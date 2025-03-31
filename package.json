@@ -1,0 +1,19 @@
+{
+  "name": "sistema-de-monitoria-ic",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "start:backend": "bun run backend/index.ts --port=3001",
+    "dev:backend": "bun --watch run backend/index.ts --port=3001",
+    "build:backend": "bun build backend/index.ts --outdir backend/dist",
+    "start:frontend": "bun run frontend/index.ts --port=3000",
+    "dev:frontend": "bun --watch run frontend/index.ts --port=3000",
+    "build:frontend": "bun build frontend/index.ts --outdir frontend/dist"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
