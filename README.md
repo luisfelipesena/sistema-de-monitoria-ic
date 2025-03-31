@@ -19,6 +19,7 @@ Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de In
 ## 🏛️ Arquitetura
 
 ## 🎨 Protótipo
+[Link do Protótipo](./docs/prototipo.md)
 
 ## 🚀 Instalação e Execução
 
