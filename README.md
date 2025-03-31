@@ -14,7 +14,8 @@ Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de In
 
 ## 💻 Requisitos do Sistema
 
-<a target="_blank" href= "https://docs.google.com/document/d/14G-kwj4GwdpCYyfQN60SjJtvp3tMCS7QN21ji6eBeao/edit?tab=t.0" target="_blank"> Requisitos do Sistema </a>
+<a href="https://docs.google.com/document/d/14G-kwj4GwdpCYyfQN60SjJtvp3tMCS7QN21ji6eBeao/edit?tab=t.0" target="_blank">Requisitos do Sistema</a>
+
 
 ## 🏛️ Arquitetura
 
