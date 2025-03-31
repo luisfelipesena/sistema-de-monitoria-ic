@@ -6,9 +6,9 @@ Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de In
 
 ## Tecnologias utilizadas
 
-- **Front-end**:
-- **Back-end**:
-- **Banco de Dados**:
+- **Front-end**: React
+- **Back-end**: NodeJS
+- **Banco de Dados**: PostgreSQL
 - **Hospedagem**:
 
 ## Requisitos do Sistema
