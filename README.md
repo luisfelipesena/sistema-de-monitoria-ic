@@ -42,7 +42,7 @@ Este projeto está licenciado sob a
 - **Luis Felipe Sena** - [luis.sena@ufba.br](mailto:luis.sena@ufba.br)
 - **Luisa Coutinho Coelho** - [luisacoelho@ufba.br](mailto:luisacoelho@ufba.br)
 - **Maria Fernanda Pinto da Fonseca** - [nandamfpf@hotmail.com](mailto:nandamfpf@hotmail.com)
-- **Matheus Pereira dos Passos Oliveira** - [matheus.estudosacademicos@proton.me](mailto:matheus.estudosacademicos@proton.me)
+- **Matheus Pereira dos Passos Oliveira** - [matheus.oliveiradesenv@proton.me](mailto:matheus.oliveiradesenv@proton.me)
 - **Ronaldo Paulo Freire Junior** - [ronaldopaulo21@gmail.com](mailto:ronaldopaulo21@gmail.com)
 
 
