@@ -1,21 +1,33 @@
-# Sistema de monitoria
+# Sistema de monitoria para o IC
 
-## Descrição
+## 📝 Descrição
 
-Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de Informação e Web**. 
+Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de Informação e Web**. Um sistema completo para gerenciamento do processo de monitoria no Instituto de Computação, desde o cadastro de projetos pelos docentes até a seleção de estudantes e geração de documentos.
 
-## Tecnologias utilizadas
+## 🛠️ Tecnologias utilizadas
 
 - **Front-end**: React
 - **Back-end**: NodeJS
 - **Banco de Dados**: PostgreSQL
 - **Hospedagem**:
 
-## Requisitos do Sistema
+## 💻 Requisitos do Sistema
 
 <a href= "https://docs.google.com/document/d/14G-kwj4GwdpCYyfQN60SjJtvp3tMCS7QN21ji6eBeao/edit?tab=t.0" target="_blank"> Requisitos do Sistema </a>
 
-## Equipe
+## 🏛️ Arquitetura
+
+## 🎨 Protótipo
+
+## 🚀 Instalação e Execução
+
+## 🌐 Ambientes
+
+## 📝 Licença
+
+Este projeto está licenciado sob a
+
+## 👥 Equipe
 
 - **Antoniel Magalhães Sousa** - [antoniels@ufba.br](mailto:antoniels@ufba.br)
 - **Caio Gomes de Mello** - [caiomello@ufba.br](mailto:caiomello@ufba.br)
