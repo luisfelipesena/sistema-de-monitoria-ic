@@ -7,7 +7,7 @@ Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de In
 ## 🛠️ Tecnologias utilizadas
 
 - **Front-end**: React
-- **Back-end**: NodeJS com NestJs
+- **Back-end**: NodeJS com Nest
 - **Banco de Dados**: PostgreSQL
 - **Hospedagem**:
 
