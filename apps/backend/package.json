@@ -18,6 +18,7 @@
     "@electric-sql/pglite": "^0.2.17",
     "@hono/node-server": "^1.14.0",
     "bcryptjs": "^3.0.2",
+    "dotenv": "^16.4.7",
     "drizzle-orm": "^0.41.0",
     "drizzle-zod": "^0.7.1",
     "hono": "^4.2.4",

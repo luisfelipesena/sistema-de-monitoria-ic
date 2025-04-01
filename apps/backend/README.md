@@ -3,8 +3,8 @@
 ## 🚀 Instalação e Execução
 
 ```bash
-bun install
-bun run dev
+npm install
+npm run dev
 ```
 
 ## 📦 Estrutura de Pastas
