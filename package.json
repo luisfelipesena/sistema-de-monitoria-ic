@@ -1,19 +1,31 @@
 {
   "name": "sistema-de-monitoria-ic",
-  "module": "index.ts",
-  "type": "module",
   "scripts": {
-    "start:backend": "bun run backend/index.ts --port=3001",
-    "dev:backend": "bun --watch run backend/index.ts --port=3001",
-    "build:backend": "bun build backend/index.ts --outdir backend/dist",
-    "start:frontend": "bun run frontend/index.ts --port=3000",
-    "dev:frontend": "bun --watch run frontend/index.ts --port=3000",
-    "build:frontend": "bun build frontend/index.ts --outdir frontend/dist"
+    "dev": "dotenv -e .env -- turbo run dev",
+    "migration:gen": "cd apps/server && drizzle-kit generate",
+    "migration:run": "cd apps/server && drizzle-kit migrate",
+    "migration:drop": "cd apps/server && drizzle-kit drop"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "dotenv-cli": "7.4.4",
+    "@types/glob": "^8.1.0",
+    "prettier": "^3.5.0",
+    "ts-node": "^10.9.2",
+    "turbo": "^2.4.2",
+    "typescript": "^5.7.3"
   },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "bun@1.2.3",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "@hono/zod-validator": "^0.4.3",
+    "glob": "^11.0.1",
+    "tss-react": "^4.9.15",
+    "zod": "^3.24.2"
   }
 }
