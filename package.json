@@ -7,23 +7,25 @@
     "migration:drop": "cd apps/server && drizzle-kit drop"
   },
   "devDependencies": {
-    "dotenv-cli": "7.4.4",
     "@types/glob": "^8.1.0",
+    "dotenv-cli": "7.4.4",
     "prettier": "^3.5.0",
     "ts-node": "^10.9.2",
     "turbo": "^2.4.2",
     "typescript": "^5.7.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=18",
+    "npm": ">=10.2.0"
   },
-  "packageManager": "bun@1.2.3",
+  "packageManager": "npm@10.2.0",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "dependencies": {
     "@hono/zod-validator": "^0.4.3",
+    "dotenv": "^16.4.7",
     "glob": "^11.0.1",
     "tss-react": "^4.9.15",
     "zod": "^3.24.2"
