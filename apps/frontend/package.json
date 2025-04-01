@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "npm run index.ts",
-    "dev": "npm --watch run index.ts",
+    "dev": "tsx watch index.ts",
     "build": "npm build index.ts --outdir dist"
   },
   "peerDependencies": {
