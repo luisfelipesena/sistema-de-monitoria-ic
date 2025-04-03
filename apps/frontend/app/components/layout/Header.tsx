@@ -16,7 +16,7 @@ export function Header(p: { className?: string }) {
       <div className="container flex h-14 items-center">
         <Link to="/" className="mr-6 flex items-center space-x-2">
           <GraduationCap className="h-6 w-6" />
-          <span className="font-bold sm:inline-block">Sistema de Defesas de TCC</span>
+          <span className="font-bold sm:inline-block">Sistema de Monitoria do IC</span>
         </Link>
 
         {/* Right Side: Action Buttons */}
