@@ -4,7 +4,6 @@ import { env } from "../config/env"
 import runDatabaseMigrations from "./migrate"
 import * as schema from "./schema"
 
-console.log(env.DATABASE_URL)
 const pool = new pg.Pool({
   connectionString: env.DATABASE_URL,
 })
