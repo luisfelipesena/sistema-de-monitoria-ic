@@ -1,10 +1,15 @@
 {
-  "name": "sistema-de-monitoria-ic",
+  "name": "@sistema-de-monitoria-ic/root",
   "scripts": {
     "dev": "dotenv -e .env -- turbo run dev",
     "migration:gen": "cd apps/server && drizzle-kit generate",
     "migration:run": "cd apps/server && drizzle-kit migrate",
-    "migration:drop": "cd apps/server && drizzle-kit drop"
+    "migration:drop": "cd apps/server && drizzle-kit drop",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:clean": "docker-compose down -v",
+    "docker:logs": "docker-compose logs -f postgres",
+    "db:connect": "psql -h localhost -U postgres -d sistema-de-monitoria-ic -p 5432"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",

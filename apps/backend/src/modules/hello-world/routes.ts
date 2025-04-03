@@ -1,9 +1,6 @@
 import { Hono } from "hono"
-import { AppVariables } from "../../types"
+import type { AppVariables } from "../../types"
 
-
-export const helloWorldRoutes = new Hono<{ Variables: AppVariables }>()
-  .get("/", async (c) => {
-    return c.json({ message: "Hello World" }, 200)
-  })
-
+export const helloWorldRoutes = new Hono<{ Variables: AppVariables }>().get("/", async (c) => {
+  return c.json({ message: "Hello World" }, 200)
+})

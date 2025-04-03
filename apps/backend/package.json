@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "@sistema-de-monitoria-ic/backend",
   "version": "0.0.1",
   "type": "module",
   "scripts": {

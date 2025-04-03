@@ -2,17 +2,13 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
+    "verbatimModuleSyntax": true,
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "strict": true,
-    "lib": [
-      "ESNext"
-    ],
-    "types": [
-      "vitest/globals",
-      "@cloudflare/workers-types"
-    ],
+    "lib": ["ESNext"],
+    "types": ["vitest/globals", "@cloudflare/workers-types"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
-  },
+  }
 }

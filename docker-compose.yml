@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16.3-alpine
+    environment:
+      - POSTGRES_DB=sistema-de-monitoria-ic
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./data/backup:/backup
+    ports:
+      - "5439:5432"
+    container_name: sistema-de-monitoria-ic_postgres

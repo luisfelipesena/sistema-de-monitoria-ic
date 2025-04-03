@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server"
 import { createMiddleware } from "hono/factory"
 import { db } from "./database"
 import { app } from "./index"
-import { AppVariables } from "./types"
+import type { AppVariables } from "./types"
 
 const TrueDeps = createMiddleware<{ Variables: AppVariables }>(async (c, next) => {
   c.set("db", db)
