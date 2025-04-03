@@ -48,4 +48,22 @@ Este projeto está licenciado sob a
 - **Matheus Pereira dos Passos Oliveira** - [matheus.oliveiradesenv@proton.me](mailto:matheus.oliveiradesenv@proton.me)
 - **Ronaldo Paulo Freire Junior** - [ronaldopaulo21@gmail.com](mailto:ronaldopaulo21@gmail.com)
 
+### Programas necessários
+
+- Git, Node e (Docker ou PostgreSQL)
+  - é Recomendado o docker para a emulação do banco de dados, mas é possível usar o PostgreSQL
+
+#### Como instalar
+
+Windows:
+- Git: Acesse https://git-scm.com/download/win, baixe o instalador, execute-o e siga as instruções.
+- Node: Vá em https://nodejs.org, escolha a versão LTS, baixe o instalador, execute-o e conclua a instalação.
+- Docker: Acesse https://www.docker.com/products/docker-desktop, baixe o Docker Desktop (necessita Windows 10 com WSL2 habilitado) e siga as orientações do instalador.
+- PostgreSQL: Entre em https://www.postgresql.org/download/windows/, baixe o instalador (geralmente o instalador do EDB) e siga os passos para configurar o banco de dados.
+
+Linux (considerando distribuições baseadas em Debian/Ubuntu):
+- Git: Abra o terminal e execute: sudo apt update && sudo apt install git.
+- Node: Atualize o sistema e instale o Node.js e o npm com: sudo apt update && sudo apt install nodejs npm. Alternativamente, use o NodeSource ou o nvm para versões mais recentes.
+- Docker: Siga os passos oficiais - remova versões antigas (se houver), adicione a chave GPG e o repositório oficial e instale com: sudo apt update && sudo apt install docker-ce docker-ce-cli containerd.io.
+- PostgreSQL: Instale com: sudo apt update && sudo apt install postgresql postgresql-contrib.
 
