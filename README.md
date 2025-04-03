@@ -10,16 +10,16 @@ Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de In
 - **Front-end**: React, TailwindCSS, Shadcn/UI
 - **Back-end**: NodeJS com Express
 - **Banco de Dados**: PostgreSQL
-- **Hospedagem**: 
+- **Hospedagem**:
 
 ## 💻 Requisitos do Sistema
 
 <a href="https://docs.google.com/document/d/14G-kwj4GwdpCYyfQN60SjJtvp3tMCS7QN21ji6eBeao/edit?tab=t.0" target="_blank">Requisitos do Sistema</a>
 
-
 ## 🏛️ Arquitetura
 
 ## 🎨 Protótipo
+
 [Link do Protótipo](./docs/prototipo.md)
 
 ## 🚀 Instalação e Execução
@@ -53,17 +53,80 @@ Este projeto está licenciado sob a
 - Git, Node e (Docker ou PostgreSQL)
   - é Recomendado o docker para a emulação do banco de dados, mas é possível usar o PostgreSQL
 
+### Pré-requisitos
+
+Certifique-se de ter os seguintes programas instalados:
+
+- **Git**: [Instalação do Git](https://git-scm.com/downloads)
+- **Node.js**: [Instalação do Node.js](https://nodejs.org/)
+- **Docker** (recomendado) ou **PostgreSQL**: [Instalação do Docker](https://www.docker.com/products/docker-desktop) | [Instalação do PostgreSQL](https://www.postgresql.org/download/)
+
 #### Como instalar
 
 Windows:
+
 - Git: Acesse https://git-scm.com/download/win, baixe o instalador, execute-o e siga as instruções.
 - Node: Vá em https://nodejs.org, escolha a versão LTS, baixe o instalador, execute-o e conclua a instalação.
 - Docker: Acesse https://www.docker.com/products/docker-desktop, baixe o Docker Desktop (necessita Windows 10 com WSL2 habilitado) e siga as orientações do instalador.
-- PostgreSQL: Entre em https://www.postgresql.org/download/windows/, baixe o instalador (geralmente o instalador do EDB) e siga os passos para configurar o banco de dados.
 
 Linux (considerando distribuições baseadas em Debian/Ubuntu):
+
 - Git: Abra o terminal e execute: sudo apt update && sudo apt install git.
 - Node: Atualize o sistema e instale o Node.js e o npm com: sudo apt update && sudo apt install nodejs npm. Alternativamente, use o NodeSource ou o nvm para versões mais recentes.
 - Docker: Siga os passos oficiais - remova versões antigas (se houver), adicione a chave GPG e o repositório oficial e instale com: sudo apt update && sudo apt install docker-ce docker-ce-cli containerd.io.
-- PostgreSQL: Instale com: sudo apt update && sudo apt install postgresql postgresql-contrib.
 
+### Instalação
+
+1. Clone o repositório:
+
+   ```bash
+   git clone https://github.com/seu-usuario/sistema-de-monitoria-ic.git
+   cd sistema-de-monitoria-ic
+   ```
+
+2. Instale as dependências:
+
+   ```bash
+   npm install
+   ```
+
+### Configuração do Banco de Dados
+
+1. **Usando Docker** (recomendado):
+
+   - Inicie o container do PostgreSQL:
+
+     ```bash
+     npm run docker:up
+     ```
+
+   - Verifique se o banco de dados está ativo:
+
+     ```bash
+     npm run db:check
+     ```
+
+2. **Usando PostgreSQL local**:
+
+   - Certifique-se de que o PostgreSQL está rodando localmente.
+   - Configure as variáveis de ambiente no arquivo `.env` conforme o `.env.example`.
+
+### Execução do Projeto
+
+1. Inicie o servidor de desenvolvimento:
+
+   ```bash
+   npm run dev
+   ```
+
+2. Acesse o front-end no navegador:
+
+   ```
+   http://localhost:5173
+   ```
+
+3. O back-end estará disponível em:
+
+   ```
+   http://localhost:3000
+   ```

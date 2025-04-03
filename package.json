@@ -9,7 +9,7 @@
     "docker:down": "docker-compose down",
     "docker:clean": "docker-compose down -v",
     "docker:logs": "docker-compose logs -f postgres",
-    "db:connect": "psql -h localhost -U postgres -d sistema-de-monitoria-ic -p 5432"
+    "db:check": "pg_isready -h localhost -U postgres -d sistema-de-monitoria-ic -p 5439"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
