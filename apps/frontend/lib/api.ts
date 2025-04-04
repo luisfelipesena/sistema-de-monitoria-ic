@@ -1,15 +1,10 @@
+import { env } from "@/config/env"
 import { type AppType } from "@sistema-de-monitoria-ic/backend"
 import axios from "axios"
 import { hc } from "hono/client"
 
-// TODO: Replace with your actual backend URL in production/staging
 const getBaseUrl = () => {
-  if (typeof window === "undefined") {
-    // Server-side rendering or build process
-    return import.meta.env.VITE_INTERNAL_BACKEND_URL || "http://localhost:3000"
-  }
-  // Client-side
-  return import.meta.env.VITE_BACKEND_URL || "/"
+  return env.VITE_API_URL || "/"
 }
 
 // Standard Axios instance (useful for direct calls if needed)

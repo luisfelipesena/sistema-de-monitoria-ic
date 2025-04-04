@@ -2,8 +2,32 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import type { User } from "lucia"
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from "react"
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useState } from "react"
 import { apiClient } from "../lib/api"
+
+// Custom hook to check if the component is hydrated (client-side rendering is complete)
+function useHydrated() {
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
+  return isHydrated
+}
+
+// Loading fallback UI component with skeleton animation
+function AuthFallback() {
+  return (
+    <div className="flex items-center justify-center w-full h-screen">
+      <div className="text-center animate-pulse">
+        <div className="w-12 h-12 mx-auto mb-4 bg-gray-300 rounded-full" />
+        <div className="h-4 mx-auto mb-2 bg-gray-300 rounded w-36" />
+        <div className="h-3 mx-auto bg-gray-300 rounded w-28" />
+      </div>
+    </div>
+  )
+}
 
 interface AuthState {
   user: User | null
@@ -46,6 +70,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(authReducer, initialState)
   const queryClient = useQueryClient()
+  const isHydrated = useHydrated()
 
   // Fetch user on initial load using React Query
   const { data: initialUser, isLoading: isUserLoading } = useQuery({
@@ -66,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     retry: false, // Don't retry on initial load failure (e.g., 401)
+    enabled: isHydrated, // Only run the query after hydration
   })
 
   // Update context state based on query result
@@ -157,6 +183,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }),
     [state, signIn, signUp, signOut]
   )
+
+  // Return a fallback during hydration to prevent content flashing/layout shifts
+  if (!isHydrated || (isHydrated && isUserLoading)) {
+    return (
+      <AuthContext.Provider
+        value={{
+          ...initialState,
+          signIn: async () => {
+            throw new Error("Application is still loading")
+          },
+          signUp: async () => {
+            throw new Error("Application is still loading")
+          },
+          signOut: async () => {
+            throw new Error("Application is still loading")
+          },
+        }}
+      >
+        <AuthFallback />
+      </AuthContext.Provider>
+    )
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
