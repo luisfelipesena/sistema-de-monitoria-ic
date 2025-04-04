@@ -3,16 +3,9 @@
   "ui": "stream",
   "envMode": "loose",
   "tasks": {
-    "build:package": {
-      "dependsOn": ["^build:package:database"],
-      "inputs": ["packages/database/src/schema.ts"],
-      "cache": false,
-      "outputs": ["dist/**"]
-    },
     "dev": {
       "persistent": true,
-      "cache": false,
-      "dependsOn": ["^build:package"]
+      "cache": false
     }
   }
 }
