@@ -13,19 +13,19 @@ export function Header(p: { className?: string }) {
         p.className
       )}
     >
-      <div className="container flex h-14 items-center">
-        <Link to="/" className="mr-6 flex items-center space-x-2">
-          <GraduationCap className="h-6 w-6" />
+      <div className="container flex items-center h-14">
+        <Link to="/" className="flex items-center mr-6 space-x-2">
+          <GraduationCap className="w-6 h-6" />
           <span className="font-bold sm:inline-block">Sistema de Monitoria do IC</span>
         </Link>
 
         {/* Right Side: Action Buttons */}
-        <div className="flex flex-1 items-center justify-end space-x-4">
+        <div className="flex items-center justify-end flex-1 space-x-4">
           <>
-            <Button variant="ghost" onClick={() => navigate("/login")}>
+            <Button variant="ghost" onClick={() => navigate("/auth/sign-in")}>
               Login
             </Button>
-            <Button variant="outline" onClick={() => navigate("/register")}>
+            <Button variant="outline" onClick={() => navigate("/auth/sign-up")}>
               Registre-se
             </Button>
           </>

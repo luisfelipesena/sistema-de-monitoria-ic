@@ -6,10 +6,10 @@ import { hc } from "hono/client"
 const getBaseUrl = () => {
   if (typeof window === "undefined") {
     // Server-side rendering or build process
-    return process.env.INTERNAL_BACKEND_URL || "http://localhost:3000"
+    return import.meta.env.VITE_INTERNAL_BACKEND_URL || "http://localhost:3000"
   }
   // Client-side
-  return process.env.NEXT_PUBLIC_BACKEND_URL || "/"
+  return import.meta.env.VITE_BACKEND_URL || "/"
 }
 
 // Standard Axios instance (useful for direct calls if needed)

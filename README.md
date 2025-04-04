@@ -24,6 +24,8 @@ Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de In
 
 ## 🚀 Instalação e Execução
 
+- [Instalação e Execução](./docs/instalação.md)
+
 ## 🌐 Ambientes
 
 ## 📝 Licença

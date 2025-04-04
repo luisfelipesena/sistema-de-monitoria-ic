@@ -21,13 +21,9 @@
   },
   "engines": {
     "node": ">=18",
-    "npm": ">=10.2.0"
+    "npm": ">=9.14.2"
   },
-  "packageManager": "npm@10.2.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "packageManager": "pnpm@9.14.2",
   "dependencies": {
     "@hono/zod-validator": "^0.4.3",
     "dotenv": "^16.4.7",
