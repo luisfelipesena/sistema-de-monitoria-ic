@@ -1,0 +1,83 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Project Description: Sistema de Monitoria IC
+
+## Overview
+
+This project aims to create a web application to manage the workflow of the UFBA Monitoria Program, from project proposal by professors to student application and selection, including document handling and notifications.
+
+## Core Roles & Business Rules
+
+### 1. Administrador (Admin)
+
+*   **User Management:**
+    *   Can view all users.
+    *   Can assign the `Professor` role to existing users.
+    *   Manages CRUD operations for `Departments`.
+    *   Manages CRUD operations for `Disciplines`.
+    *   Manages CRUD operations for `Semesters`.
+*   **Project Management:**
+    *   Can view all monitoria projects.
+    *   Approves or rejects submitted monitoria projects.
+*   **Vacancy Management:**
+    *   Defines the number of scholarship (`bolsista`) vacancies for approved projects based on PROGRAD/Department decisions.
+*   **Application Period Management:**
+    *   Creates and manages application periods for each semester (start/end dates).
+    *   Uploads the official signed `Edital` for each application period.
+*   **Spreadsheet Generation:**
+    *   Generates final spreadsheets detailing projects and vacancies per department (DCC, DCI).
+*   **Configuration:**
+    *   Potentially manages system-wide settings (email templates, deadlines - TBD).
+
+### 2. Professor
+
+*   **Project Management:**
+    *   Can create new monitoria project proposals (`draft` status).
+    *   Can view and edit their own draft projects (objectives, participating professors).
+    *   Can list/view projects they are responsible for or participating in.
+    *   Can submit their draft projects for Admin approval (`submitted` status).
+    *   Can add/remove *participating* professors to their projects (while in `draft` status).
+    *   Must be designated as the single *responsible* professor for a project.
+*   **Document Handling:**
+    *   Uploads the initial (unsigned) project proposal document (PDF?).
+    *   Handles the project proposal signing process (mechanism TBD - upload signed PDF or use integration like DocuSign/Docuseal).
+    *   Uploads the selection meeting minutes (`ata`) after the selection process.
+*   **Vacancy Management:**
+    *   Defines the number of volunteer (`voluntario`) vacancies desired for their approved projects.
+*   **Application & Selection:**
+    *   Views applications submitted specifically for their projects.
+    *   Selects or rejects applicants for their project vacancies.
+    *   Triggers email notifications to applicants regarding their selection status (using Resend via backend).
+
+### 3. Aluno (Student)
+
+*   **Project Discovery:**
+    *   Can view available monitoria projects during an active application period.
+*   **Application:**
+    *   Can submit applications to monitoria projects during an active application period.
+    *   Views the status of their own applications.
+*   **Acceptance/Decline:**
+    *   Receives email notification when selected for a project.
+    *   Can accept or decline offered monitoria positions before the deadline (if applicable).
+    *   Can accept only *one* `bolsista` position per semester.
+    *   Can accept multiple `voluntario` positions.
+
+### 4. Monitor (Implicit Role)
+
+*   **Context:** This role exists in the `userRoleEnum` but the specific actions/permissions for an *active* monitor (after accepting a position) are not detailed in the current requirements phases. Future phases might include monitor-specific dashboards, reporting, etc.
+
+## Key Workflows & Constraints
+
+1.  **Project Lifecycle:** Draft -> Submitted -> Approved/Rejected.
+2.  **Signing:** Project proposals need signing by the responsible professor (and potentially others? TBD). Mechanism needs definition (upload vs. digital signature integration).
+3.  **Vacancy Allocation:** Scholarship vacancies are set by Admins; volunteer vacancies by Professors.
+4.  **Application Window:** Students can only apply during defined Application Periods.
+5.  **Selection:** Professors select students for their projects.
+6.  **Acceptance Constraint:** Students are limited to one concurrent scholarship position.
+7.  **Notifications:** Email notifications (via Resend) are key for proposal signing requests, application results, and acceptance confirmations.
+8.  **Document Storage:** A system is needed to store various documents (proposals, signed proposals, editais, atas).
+9.  **Reporting:** Generation of specific Excel spreadsheets is required for PROGRAD/Departments.

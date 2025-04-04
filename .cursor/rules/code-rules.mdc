@@ -1,0 +1,63 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# Code Development Guidelines - Sistema de Monitoria IC
+
+This rule outlines the expected coding standards and practices for the Sistema de Monitoria IC project, ensuring maintainability, scalability, and collaboration. It draws upon the project's specific structure (`frontend`/`backend`), chosen technologies (React, TypeScript, Node.js, Drizzle, shadcn/ui, etc.), and defined business logic (`project-description.mdc`).
+
+## Core Engineering Principles
+
+1.  **Think Before You Code:**
+    *   Before implementing features or fixes, analyze the existing codebase (`apps/frontend` or `apps/backend`), relevant documentation (`docs/`, `project-description.mdc`), and the specific requirements.
+    *   Understand the impact of changes on related modules and business rules.
+
+2.  **Best Practices First:**
+    *   **DRY (Don't Repeat Yourself):** Abstract common logic into reusable functions, hooks (frontend), or services (backend).
+    *   **KISS (Keep It Simple, Stupid):** Favor straightforward solutions over unnecessary complexity.
+    *   **Separation of Concerns:** Maintain clear boundaries between UI, state management, API communication (frontend), and between API handlers, business logic, and database access (backend).
+    *   **Readability:** Write clear, concise, and well-formatted code with meaningful names for variables, functions, and components.
+    *   **Scalability & Maintainability:** Design components and modules with future modifications and expansion in mind.
+    *   **Testability:** Write code that is easily testable. Structure logic to facilitate unit and integration testing.
+
+3.  **Propose, Don't Just Apply:**
+    *   For non-trivial changes, first explain the problem and the proposed solution.
+    *   Justify the approach, referencing architectural patterns, design principles (SOLID, etc.), chosen libraries (see `docs/tech_stack_plan.md`), and potential trade-offs.
+    *   Await confirmation before implementing significant code edits, especially those affecting architecture or core logic.
+
+4.  **Minimize Unnecessary Comments:**
+    *   Focus on self-documenting code through clear naming and structure.
+    *   Add comments only to explain *why* something is done in a non-obvious way, not *what* the code does if it's clear.
+
+5.  **Context Awareness:**
+    *   Adhere to the established project structure (`apps/frontend`, `apps/backend`, `packages/` if applicable).
+    *   Utilize the chosen tech stack effectively (React, Vite, TypeScript, Node.js, Hono, Drizzle, Lucia, TanStack Query, Zustand, RHF, Zod, shadcn/ui, Tailwind CSS).
+    *   Ensure implementations align with the business rules defined in `project-description.mdc` and the API contracts outlined in `docs/plan.md`.
+
+## Backend Specifics (`apps/backend/`)
+
+*   **Architecture:** Maintain a clear separation between API route handlers (e.g., using Hono), service layers containing business logic, and data access layers using Drizzle ORM.
+*   **Drizzle ORM:** Leverage Drizzle's type safety. Use the generated schema types (`schema.ts`) throughout the backend where appropriate. Manage database changes via Drizzle migrations.
+*   **API Design:** Implement API endpoints as defined in `docs/plan.md`, ensuring request/response shapes are consistent and validated (potentially using Zod).
+*   **Authentication & Authorization:** Utilize Lucia for authentication. Implement role-based authorization checks within route handlers or middleware, respecting the roles defined in `project-description.mdc`.
+*   **Error Handling:** Implement consistent error handling and logging.
+*   **Security:** Never expose sensitive keys or logic. Handle operations like email sending (Resend) securely within the backend.
+
+## Frontend Specifics (`apps/frontend/`)
+
+*   **Component Library:** Utilize `shadcn/ui` components according to their intended use and design system principles.
+*   **State Management:** Use `TanStack Query` for server state (caching, synchronization with backend data) and `Zustand` (or chosen alternative) for global client state (UI state, non-server data).
+*   **Forms:** Use `React Hook Form` with `Zod` for validation, integrating cleanly with `shadcn/ui` form components.
+*   **API Communication:** Interact with the backend API via `TanStack Query` hooks (`useQuery`, `useMutation`). Do not embed API keys or perform sensitive operations directly in the frontend.
+*   **Routing:** Use `React Router` for navigation.
+*   **Styling:** Use `Tailwind CSS` utility classes. Avoid custom CSS where Tailwind provides an equivalent, unless necessary for complex layouts or overriding library styles.
+*   **File Handling:** Use libraries like `SheetJS (xlsx)` and `FileSaver.js` for client-side Excel generation/parsing as needed, following the plan in `docs/tech_stack_plan.md`.
+*   **Document Signing:** Follow the chosen provider's integration pattern (redirection, iframe, or React component), ensuring the secure flow via the backend API call.
+
+## Collaboration
+
+*   Follow the commit message guidelines in portuguese (PT-BR) (`<custom_instructions>`).
+*   Keep code changes focused and related to a single task or feature where possible.
+*   Communicate potential issues or alternative approaches clearly. 
