@@ -1,4 +1,4 @@
-import type { AppType } from "../src/index"
+import type { AppType } from '../src/index';
 
-export type * from "../src/database/schema"
-export type { AppType }
+export type * from '../src/database/schema';
+export type { AppType };

@@ -12,6 +12,7 @@
     "paths": {
       "@/*": ["./app/*"],
       "@/hooks/*": ["./hooks/*"],
+      "@shared/*": ["../../backend/shared/*"]
     },
     "esModuleInterop": true,
     "allowJs": true,

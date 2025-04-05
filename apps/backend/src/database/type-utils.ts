@@ -56,21 +56,21 @@ type Value =
 export type Format<T extends Value> = string;
 type IsExactlyDate<T> = [T] extends [Date]
   ? [Date] extends [T]
-  ? true
-  : false
+    ? true
+    : false
   : false;
 
 // TODO remove once no longer needed (script executions need them for now)
 export type TransformDates<T> = T extends unknown
   ? IsExactlyDate<NonNullable<T>> extends true
-  ? [T] extends [null]
-  ? (string & Format<'date-time'>) | null
-  : string & Format<'date-time'>
-  : T extends (infer U)[]
-  ? TransformDates<U>[]
-  : T extends object
-  ? { [K in keyof T]: TransformDates<T[K]> }
-  : T
+    ? [T] extends [null]
+      ? (string & Format<'date-time'>) | null
+      : string & Format<'date-time'>
+    : T extends (infer U)[]
+      ? TransformDates<U>[]
+      : T extends object
+        ? { [K in keyof T]: TransformDates<T[K]> }
+        : T
   : never;
 
 /**

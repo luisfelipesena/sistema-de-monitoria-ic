@@ -1,0 +1,14 @@
+# Ignore build outputs and dependencies
+node_modules
+dist
+build
+coverage
+.turbo
+
+# Ignore package manager lock files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Ignore specific configuration or generated files if needed
+# Example: public/build/ 

@@ -6,6 +6,8 @@
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "strict": true,
+    "outDir": "./dist",
+    "rootDir": ".",
     "lib": ["ESNext"],
     "types": ["vitest/globals", "@cloudflare/workers-types"],
     "jsx": "react-jsx",
@@ -14,5 +16,7 @@
     "paths": {
       "@/*": ["src/*"]
     }
-  }
+  },
+  "include": ["src/**/*", "shared/**/*", "./*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "scripts"]
 }

@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
     "migration:gen": "drizzle-kit generate",
     "migration:run": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",

@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { Header } from "@/components/layout/Header"
-import { Link } from "react-router"
+import { Header } from '@/components/layout/Header';
+import { Link } from 'react-router';
 
 export default function Home() {
   return (
@@ -12,5 +12,5 @@ export default function Home() {
         <Link to="/auth/sign-in">Ir para login</Link>
       </p>
     </div>
-  )
+  );
 }

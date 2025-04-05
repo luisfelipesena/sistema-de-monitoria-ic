@@ -1,12 +1,12 @@
-import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle"
-import { Lucia } from "lucia"
-import { db } from "../database"
-import { sessionTable, userTable, type userRoleEnum } from "../database/schema"
+import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
+import { Lucia } from 'lucia';
+import { db } from '../database';
+import { sessionTable, userTable, type userRoleEnum } from '../database/schema';
 
-const adapter = new DrizzlePostgreSQLAdapter(db, sessionTable, userTable)
+const adapter = new DrizzlePostgreSQLAdapter(db, sessionTable, userTable);
 
 // NOTE: Make sure to configure NODE_ENV=production when deploying!
-const isProduction = process.env.NODE_ENV === "production"
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const lucia = new Lucia(adapter, {
   sessionCookie: {
@@ -21,20 +21,20 @@ export const lucia = new Lucia(adapter, {
     return {
       email: attributes.email,
       role: attributes.role,
-    }
+    };
   },
-})
+});
 
 // IMPORTANT! Register your Lucia instance type
-declare module "lucia" {
+declare module 'lucia' {
   interface Register {
-    Lucia: typeof lucia
-    DatabaseUserAttributes: DatabaseUserAttributes // Extend DatabaseUserAttributes
+    Lucia: typeof lucia;
+    DatabaseUserAttributes: DatabaseUserAttributes; // Extend DatabaseUserAttributes
   }
 
   // Extend DatabaseUserAttributes
   interface DatabaseUserAttributes {
-    email: string
-    role: typeof userRoleEnum.enumValues[number]
+    email: string;
+    role: (typeof userRoleEnum.enumValues)[number];
   }
 }

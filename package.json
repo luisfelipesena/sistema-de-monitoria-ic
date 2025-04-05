@@ -2,6 +2,10 @@
   "name": "@sistema-de-monitoria-ic/root",
   "scripts": {
     "dev": "dotenv -e .env -- turbo run dev --parallel",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
     "migration:gen": "cd apps/backend && drizzle-kit generate",
     "migration:run": "cd apps/backend && drizzle-kit migrate",
     "migration:drop": "cd apps/backend && drizzle-kit drop",
@@ -13,8 +17,13 @@
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "dotenv-cli": "7.4.4",
-    "prettier": "^3.5.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.2.6",
+    "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "turbo": "^2.4.2",
     "typescript": "^5.7.3"

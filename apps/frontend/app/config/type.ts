@@ -4,4 +4,4 @@ export type Dry<T> = T extends Date
     ? Dry<U>[]
     : T extends object
       ? { [K in keyof T]: Dry<T[K]> }
-      : T
+      : T;
