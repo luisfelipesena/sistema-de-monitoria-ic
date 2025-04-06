@@ -15,7 +15,7 @@ export default [
   ]),
 
   // Protected routes
-  route('home', 'components/route-guard.tsx', [
+  route('home', 'components/auth/route-guard.tsx', [
     index('./routes/home/index.tsx'),
     route('profile', './routes/home/profile.tsx'),
     route('projects', './routes/home/projects.tsx'),

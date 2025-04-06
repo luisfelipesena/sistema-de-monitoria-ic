@@ -11,7 +11,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { apiClient } from '../lib/api';
+import { apiClient } from '../../lib/api';
 
 // Custom hook to check if the component is hydrated (client-side rendering is complete)
 function useHydrated() {

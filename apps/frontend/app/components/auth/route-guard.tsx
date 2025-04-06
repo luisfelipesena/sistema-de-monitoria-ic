@@ -1,9 +1,9 @@
 'use client';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/use-auth';
 import { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router';
-import { useAuth } from '../../hooks/use-auth';
 
 export function RouteGuard() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -13,7 +13,7 @@ export function RouteGuard() {
     if (!isLoading && !isAuthenticated) {
       navigate('/auth/sign-in');
     }
-  }, [isLoading, isAuthenticated, user, navigate]);
+  }, [isLoading, isAuthenticated, user]);
 
   if (isLoading) {
     return (

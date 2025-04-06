@@ -9,6 +9,7 @@
     "migration:gen": "cd apps/backend && drizzle-kit generate",
     "migration:run": "cd apps/backend && drizzle-kit migrate",
     "migration:drop": "cd apps/backend && drizzle-kit drop",
+    "migration:studio": "cd apps/backend && drizzle-kit studio",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:clean": "docker-compose down -v",
