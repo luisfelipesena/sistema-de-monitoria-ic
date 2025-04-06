@@ -12,7 +12,7 @@ on:
 
   pull_request:
     paths:
-    - 'apps/frontend/**'
+    - 'apps/backend/**'
     - 'packages.json'
     - 'packages-lock.json'
     - 'turbo.json'
