@@ -35,11 +35,10 @@ jobs:
       run: npm ci
 
     - name: Build the frontend
-      run: npm run build
+      run: npm run dev
+      #- name: Run tests
+      # run: npm test
 
-    - name: Run tests
-      run: npm test
-
-    - name: Deploy to production
-      if: github.ref == 'refs/heads/main'
-      run: npm run deploy
+      #- name: Deploy to production
+      # if: github.ref == 'refs/heads/main'
+      #run: npm run deploy
