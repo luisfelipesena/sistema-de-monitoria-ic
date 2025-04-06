@@ -17,6 +17,6 @@
       "@/*": ["app/*"]
     }
   },
-  "include": ["app/**/*", "shared/**/*", "./*.ts"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "scripts"]
+  "include": ["app/**/*", "shared/**/*", "./*.ts", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "scripts"]
 }
