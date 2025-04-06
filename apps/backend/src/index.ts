@@ -19,7 +19,7 @@ export const app = (depsMiddleware: MiddlewareHandler<AppEnv>) =>
     .use('*', logger())
     .use('*', cors())
     .use('*', prettyJSON())
-    .use('/api/*', authMiddleware)
+    .use('*', authMiddleware)
     .route('/auth', authRoutes)
     .route('/hello-world', helloWorldRoutes)
     .notFound((c) => {

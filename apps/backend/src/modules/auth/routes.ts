@@ -41,7 +41,6 @@ export const authRoutes = new Hono<{ Variables: AppVariables }>()
     return c.json({ message: 'Signout successful' });
   })
   .get('/me', async (c) => {
-    // The requireAuth middleware guarantees user is not null here
     const user = c.get('user')!;
     return c.json(user);
   });

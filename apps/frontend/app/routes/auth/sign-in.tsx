@@ -23,30 +23,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
-import * as z from 'zod';
-
-// Define the schema based on backend validation
-const formSchema = z.object({
-  email: z.string().email('Email inválido').toLowerCase(),
-  password: z.string().min(1, 'Senha não pode estar vazia'),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
+import { signInFormSchema, type SignInFormValues } from './types';
 export default function SignInPage() {
   const { signIn, isLoading } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<SignInFormValues>({
+    resolver: zodResolver(signInFormSchema),
     defaultValues: {
       email: '',
       password: '',
     },
   });
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: SignInFormValues) {
     setError(null);
     try {
       await signIn(values);
@@ -57,7 +48,7 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex items-center justify-center min-h-screen p-4 bg-background">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Entrar</CardTitle>

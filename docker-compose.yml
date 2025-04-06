@@ -11,5 +11,5 @@ services:
       - ./data/postgres:/var/lib/postgresql/data
       - ./data/backup:/backup
     ports:
-      - "5439:5432"
+      - "5432:5432"
     container_name: sistema-de-monitoria-ic_postgres
