@@ -28,7 +28,7 @@ export function Header(p: { className?: string }) {
               Login
             </Button>
             <Button variant="outline" onClick={() => navigate('/auth/sign-up')}>
-              Registre-se
+              Registrar-se
             </Button>
           </>
         </div>
