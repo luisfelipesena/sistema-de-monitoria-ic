@@ -6,6 +6,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
+    "build": "turbo run build",
     "migration:gen": "cd apps/backend && drizzle-kit generate",
     "migration:run": "cd apps/backend && drizzle-kit migrate",
     "migration:drop": "cd apps/backend && drizzle-kit drop",

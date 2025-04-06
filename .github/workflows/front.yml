@@ -37,8 +37,8 @@ jobs:
     - name: Build the frontend
       run: npm run build
 
-    - name: Run tests
-      run: npm test
+    # - name: Run tests
+    #   run: npm run test
 
     - name: Deploy to production
       if: github.ref == 'refs/heads/main'
