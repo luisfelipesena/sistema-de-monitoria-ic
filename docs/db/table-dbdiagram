@@ -78,6 +78,7 @@ Table projeto {
   updated_at timestamp
   deleted_at timestamp [null]
 }
+Ref projeto_departamento: projeto.departamento_id > departamento.id
 
 Table projeto_disciplina {
   id integer [primary key]
@@ -110,6 +111,7 @@ Ref atividade_projeto_1: atividade_projeto.projeto_id > projeto.id
 
 Table professor {
   id integer [primary key]
+  departamento_id integer [not null]
   nome_completo varchar [not null]
   nome_social varchar [null]
   matricula_siape varchar [not null]
@@ -124,6 +126,7 @@ Table professor {
   updated_at timestamp
   deleted_at timestamp [null]
 }
+Ref professor_departamento: professor.departamento_id > departamento.id
 
 Table disciplina {
   id integer [primary key]
@@ -163,6 +166,9 @@ Table endereco{
   estado varchar [not null]
   cep varchar [not null]
   complemento varchar [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
 }
 
 Table curso {
@@ -223,6 +229,7 @@ Table inscricao_documento {
   updated_at timestamp
   deleted_at timestamp [null]
 }
+Ref inscricao_documento_inscricao: inscricao_documento.inscricao_id > inscricao.id
 
 Table vaga {
   id integer [primary key]
