@@ -11,6 +11,8 @@ Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de In
 - **Back-end**: NodeJS com Express
 - **Banco de Dados**: PostgreSQL
 - **Hospedagem**:
+  - **Front-end**: Vercel
+  - **Back-end**: Fly.app
 
 ## 💻 Requisitos do Sistema
 
