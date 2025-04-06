@@ -56,6 +56,7 @@ Certifique-se de ter as seguintes ferramentas instaladas em seu sistema:
 4.  **Instalar Dependências:**
     *   Na raiz do projeto, instale todas as dependências do Node.js para o root, frontend e backend:
         ```bash
+        nvm use
         npm install
         ```
 
