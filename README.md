@@ -12,7 +12,7 @@ Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de In
 - **Banco de Dados**: PostgreSQL
 - **Hospedagem**:
   - **Front-end**: Vercel
-  - **Back-end**: Fly.app
+  - **Back-end**: Fly
 
 ## 💻 Requisitos do Sistema
 
