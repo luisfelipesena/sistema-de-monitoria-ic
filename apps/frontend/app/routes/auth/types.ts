@@ -1,4 +1,4 @@
-import { userRoleEnum } from '@sistema-de-monitoria-ic/backend/src/database/schema';
+import { userRoleEnum } from '@sistema-de-monitoria-ic/backend/app/database/schema';
 import { z } from 'zod';
 export const signUpFormSchema = z
   .object({

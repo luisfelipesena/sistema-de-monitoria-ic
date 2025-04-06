@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "dev": "tsx watch app/server.ts",
+    "build": "tsc --skipLibCheck",
     "start": "node dist/server.js",
     "migration:gen": "drizzle-kit generate",
     "migration:run": "drizzle-kit migrate",
