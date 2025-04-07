@@ -6,6 +6,7 @@ import { prettyJSON } from 'hono/pretty-json';
 import { AppError } from './error';
 import { authMiddleware } from './middleware/auth';
 import { authRoutes } from './modules/auth/routes';
+import { emailRouter } from './modules/email/routes';
 import type { AppEnv } from './types';
 
 // --- API Routes ---
@@ -19,6 +20,7 @@ export const app = (depsMiddleware: MiddlewareHandler<AppEnv>) =>
     .use('*', prettyJSON())
     .use('*', authMiddleware)
     .route('/auth', authRoutes)
+    .route('/email', emailRouter)
     .notFound((c) => {
       return c.json({ message: 'Not Found', ok: false }, 404);
     })

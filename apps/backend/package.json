@@ -29,6 +29,7 @@
     "hono": "^4.2.4",
     "lucia": "^3.2.2",
     "pg": "^8.14.1",
+    "resend": "^4.2.0",
     "ts-pattern": "^5.7.0"
   },
   "devDependencies": {
