@@ -24,10 +24,6 @@ Esse projeto faz parte da disciplina **IC045/MATE85 - Tópicos em Sistemas de In
 
 [Link do Protótipo](https://www.figma.com/design/meTbBaQdqBHlvtzBEb9ehF/Sistema-de-Monitoria-IC?node-id=0-1&t=PmIFftLr23foR8ZG-1)
 
-## 🚀 Instalação e Execução
-
-- [Instalação e Execução](./docs/instalação.md)
-
 ## 🌐 Ambientes
 
 ## 📝 Licença
@@ -51,6 +47,8 @@ Este projeto está licenciado sob a
 - **Maria Fernanda Pinto da Fonseca** - [nandamfpf@hotmail.com](mailto:nandamfpf@hotmail.com)
 - **Matheus Pereira dos Passos Oliveira** - [matheus.oliveiradesenv@proton.me](mailto:matheus.oliveiradesenv@proton.me)
 - **Ronaldo Paulo Freire Junior** - [ronaldopaulo21@gmail.com](mailto:ronaldopaulo21@gmail.com)
+
+## 🚀 Instalação e Execução
 
 ### Programas necessários
 
