@@ -24,32 +24,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router';
-import * as z from 'zod';
-
-// Define the schema based on backend validation
-const formSchema = z
-  .object({
-    email: z.string().email('Email inválido').toLowerCase(),
-    password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
-    confirmPassword: z.string(),
-    // Role is optional here, backend defaults to 'student'
-    // Add if you want users to select roles during signup (potentially admin-only feature?)
-    // role: z.enum(userRoleEnum.enumValues).optional(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'As senhas não coincidem',
-    path: ['confirmPassword'], // path of error
-  });
-
-type FormValues = z.infer<typeof formSchema>;
+import { signUpFormSchema, type SignUpFormValues } from './types';
 
 export default function SignUpPage() {
   const { signUp, isLoading } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpFormSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -58,13 +41,11 @@ export default function SignUpPage() {
     },
   });
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: SignUpFormValues) {
     setError(null);
-    // Exclude confirmPassword before sending to API
-    const { confirmPassword, ...signUpData } = values;
     try {
-      await signUp(signUpData);
-      navigate('/home'); // Redirect to home or dashboard after successful sign-up
+      await signUp(values);
+      navigate('/home');
     } catch (err: any) {
       setError(err.message || 'Ocorreu um erro ao tentar cadastrar.');
     }

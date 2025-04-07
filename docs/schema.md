@@ -1,6 +1,6 @@
 # Documentação do Schema do Banco de Dados
 
-Este documento explica o schema do banco de dados definido em `apps/backend/src/database/schema.ts`, vinculando cada tabela e coluna aos requisitos coletados nas notas do cliente.
+Este documento explica o schema do banco de dados definido em `apps/backend/app/database/schema.ts`, vinculando cada tabela e coluna aos requisitos coletados nas notas do cliente.
 
 ## Tabelas Principais
 

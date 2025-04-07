@@ -1,7 +1,7 @@
+import { AuthProvider } from '@/hooks/use-auth';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Outlet, Scripts, ScrollRestoration } from 'react-router';
-import { AuthProvider } from '../hooks/use-auth';
 import './app.css';
 
 // Create a client

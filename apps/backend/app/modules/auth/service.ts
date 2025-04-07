@@ -1,8 +1,9 @@
 import { db } from '@/database';
-import { userTable, type userRoleEnum } from '@/database/schema';
+import { userTable } from '@/database/schema';
 import type { Database } from '@/database/type-utils';
 import { lucia } from '@/lib/auth';
 import { hashPassword, verifyPassword } from '@/lib/password';
+import type { SignInFormValues, SignUpFormValues } from '@/modules/auth/types';
 import { eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { generateId } from 'lucia';
@@ -22,12 +23,8 @@ export class AuthService {
     return AuthService.instance;
   }
 
-  async signUp(
-    email: string,
-    password: string,
-    role: (typeof userRoleEnum.enumValues)[number],
-  ) {
-    // Check if user exists
+  async signUp(params: SignUpFormValues) {
+    const { email, password, role } = params;
     const existingUser = await this.database.query.userTable.findFirst({
       where: eq(userTable.email, email),
     });
@@ -57,7 +54,8 @@ export class AuthService {
     }
   }
 
-  async signIn(email: string, password: string) {
+  async signIn(params: SignInFormValues) {
+    const { email, password } = params;
     const user = await this.database.query.userTable.findFirst({
       where: eq(userTable.email, email),
     });
@@ -84,7 +82,7 @@ export class AuthService {
     }
   }
 
-  async getUser(email: string) {
+  async getUserByEmail(email: string) {
     const user = await this.database.query.userTable.findFirst({
       where: eq(userTable.email, email),
     });

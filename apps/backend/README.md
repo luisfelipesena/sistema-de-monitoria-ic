@@ -10,7 +10,7 @@ npm run dev
 ## 📦 Estrutura de Pastas
 
 ```bash
-src/
+app/
 ├── config/
 ├── database/
 ├── modules/

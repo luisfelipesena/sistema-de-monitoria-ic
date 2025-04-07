@@ -11,7 +11,7 @@ export const authRoutes = new Hono<{ Variables: AppVariables }>()
     const { email, password, role } = c.req.valid('json');
     const authService = AuthService.getInstance();
 
-    const session = await authService.signUp(email, password, role);
+    const session = await authService.signUp({ email, password, role });
     const sessionCookie = lucia.createSessionCookie(session.id);
 
     c.header('Set-Cookie', sessionCookie.serialize(), { append: true });
@@ -21,7 +21,7 @@ export const authRoutes = new Hono<{ Variables: AppVariables }>()
     const { email, password } = c.req.valid('json');
     const authService = AuthService.getInstance();
 
-    const session = await authService.signIn(email, password);
+    const session = await authService.signIn({ email, password });
     const sessionCookie = lucia.createSessionCookie(session.id);
 
     c.header('Set-Cookie', sessionCookie.serialize(), { append: true });
@@ -41,7 +41,6 @@ export const authRoutes = new Hono<{ Variables: AppVariables }>()
     return c.json({ message: 'Signout successful' });
   })
   .get('/me', async (c) => {
-    // The requireAuth middleware guarantees user is not null here
     const user = c.get('user')!;
     return c.json(user);
   });
