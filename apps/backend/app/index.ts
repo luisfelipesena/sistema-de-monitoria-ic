@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { poweredBy } from 'hono/powered-by';
 import { prettyJSON } from 'hono/pretty-json';
+import { env } from './config/env';
 import { AppError } from './error';
 import { authMiddleware } from './middleware/auth';
 import { authRoutes } from './modules/auth/routes';
@@ -15,7 +16,7 @@ export const app = (depsMiddleware: MiddlewareHandler<AppEnv>) =>
     .use(depsMiddleware)
     .use('*', poweredBy())
     .use('*', logger())
-    .use('*', cors())
+    .use('*', cors({ origin: env.CLIENT_URL, credentials: true }))
     .use('*', prettyJSON())
     .use('*', authMiddleware)
     .route('/auth', authRoutes)

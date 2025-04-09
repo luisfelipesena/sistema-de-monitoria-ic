@@ -10,8 +10,10 @@ export function RouteGuard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('isLoading', isLoading);
+    console.log('isAuthenticated', isAuthenticated);
     if (!isLoading && !isAuthenticated) {
-      navigate('/auth/sign-in');
+      navigate('/');
     }
   }, [isLoading, isAuthenticated, user]);
 
