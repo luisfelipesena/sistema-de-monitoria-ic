@@ -9,7 +9,7 @@ import { Hono } from 'hono';
 import { generateId } from 'lucia';
 import type { AppVariables } from '../../types';
 
-export const casRoutes = new Hono<{ Variables: AppVariables }>()
+export const authRoutes = new Hono<{ Variables: AppVariables }>()
   .get('/cas-login', async (c) => {
     const redirectUrl = `${env.CAS_SERVER_URL_PREFIX}/login?service=${encodeURIComponent(
       `${env.SERVER_NAME}/auth/cas-callback`,
