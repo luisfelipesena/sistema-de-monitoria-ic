@@ -1,8 +1,8 @@
 import { Hono, type MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
-import { logger as honoLogger } from 'hono/logger';
 import { poweredBy } from 'hono/powered-by';
 import { prettyJSON } from 'hono/pretty-json';
+import { env } from './config/env';
 import { AppError } from './error';
 import logger from './lib/logger';
 import { authMiddleware } from './middleware/auth';
@@ -15,8 +15,8 @@ export const app = (depsMiddleware: MiddlewareHandler<AppEnv>) =>
   new Hono<AppEnv>()
     .use(depsMiddleware)
     .use('*', poweredBy())
-    .use('*', honoLogger())
-    .use('*', cors())
+    .use('*', logger())
+    .use('*', cors({ origin: env.CLIENT_URL, credentials: true }))
     .use('*', prettyJSON())
     .use('*', authMiddleware)
     .route('/auth', authRoutes)

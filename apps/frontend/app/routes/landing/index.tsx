@@ -1,24 +1,15 @@
 'use client';
 
+import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function LandingPage() {
+  const { signIn } = useAuth();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
-        <div className="text-xl font-bold text-blue-700">
-          Sistema de Monitoria IC
-        </div>
-        <div className="flex gap-4">
-          <Button asChild variant="ghost">
-            <Link to="/auth/sign-in">Entrar</Link>
-          </Button>
-          <Button asChild>
-            <Link to="/auth/sign-up">Cadastrar</Link>
-          </Button>
-        </div>
-      </nav>
+      <Header />
 
       <main className="container px-4 py-12 mx-auto max-w-7xl">
         <div className="grid items-center grid-cols-1 gap-12 md:grid-cols-2">
@@ -31,8 +22,12 @@ export default function LandingPage() {
               monitores para projetos acadêmicos da UFBA.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Button asChild size="lg" className="px-8">
-                <Link to="/auth/sign-in">Começar Agora</Link>
+              <Button
+                onClick={signIn}
+                size="lg"
+                className="bg-blue-700 hover:bg-blue-800"
+              >
+                Entrar com Email UFBA
               </Button>
               <Button asChild variant="outline" size="lg">
                 <a href="#saiba-mais">Saiba Mais</a>
@@ -41,7 +36,7 @@ export default function LandingPage() {
           </div>
           <div className="order-first md:order-last">
             <div className="relative">
-              <div className="w-full h-64 overflow-hidden rounded-lg shadow-xl md:h-96 bg-blue-100">
+              <div className="w-full h-64 overflow-hidden bg-blue-100 rounded-lg shadow-xl md:h-96">
                 <div className="flex items-center justify-center h-full">
                   <span className="text-xl text-blue-800">
                     Ilustração do Sistema

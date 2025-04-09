@@ -7,6 +7,9 @@ const pool = new pg.Pool({
   connectionString: env.DATABASE_URL,
 });
 
+/**
+ * @deprecated Use the `db` instance from the Hono context instead.
+ */
 export const db = drizzle(pool, { schema });
 
 export * from './schema';

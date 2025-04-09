@@ -13,4 +13,4 @@ const injectDependencies = createMiddleware<AppEnv>(async (c, next) => {
 });
 
 serve({ fetch: app(injectDependencies).fetch, port: 3000 });
-logger.info(' ✅ Server starting on port 3000...');
+logger.info(' ✅ Server started on port 3000');
