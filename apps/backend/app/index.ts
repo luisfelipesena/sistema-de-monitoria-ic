@@ -5,7 +5,7 @@ import { poweredBy } from 'hono/powered-by';
 import { prettyJSON } from 'hono/pretty-json';
 import { AppError } from './error';
 import { authMiddleware } from './middleware/auth';
-import { casRoutes } from './modules/auth/cas-routes';
+import { casRoutes } from './modules/auth/routes';
 import type { AppEnv } from './types';
 
 // --- API Routes ---
