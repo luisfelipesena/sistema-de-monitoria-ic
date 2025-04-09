@@ -143,6 +143,7 @@ Table disciplina {
   codigo varchar
   created_at timestamp
   updated_at timestamp
+  deleted_at timestamp [null]
 }
 
 Table aluno {
@@ -208,7 +209,7 @@ Table processo_seletivo {
   projeto_id integer [not null]
   vagas_bolsista integer [not null]
   vagas_voluntario integer [not null]
-  edital blob [null]
+  edital_unique_id integer [null]
   data_inicio date [not null]
   data_final date [not null]
   created_at timestamp
@@ -234,7 +235,7 @@ Ref inscricao_aluno: inscricao.aluno_id > aluno.id
 Table inscricao_documento {
   id integer [primary key]
   inscricao_id integer [not null]
-  documento blob [not null]
+  documento_unique_id integer [not null]
   validado bool [null]
   created_at timestamp
   updated_at timestamp
