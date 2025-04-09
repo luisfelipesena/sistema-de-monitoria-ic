@@ -12,6 +12,7 @@ import React, {
   useState,
 } from 'react';
 import { apiClient } from '../../lib/api';
+import logger from '../../lib/logger';
 
 // Custom hook to check if the component is hydrated (client-side rendering is complete)
 function useHydrated() {
@@ -65,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated(!!userData);
         return userData;
       } catch (error) {
-        console.error('Error fetching user:', error);
+        logger.auth.error('Erro ao buscar usuário', { error });
         setUser(null);
         setIsAuthenticated(false);
         return null;
@@ -89,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         await refetchUser(); // Fetch user data after successful sign-in
       } catch (error) {
-        console.error('Sign in error:', error);
+        logger.auth.error('Erro no login', { error });
         setIsLoading(false);
         throw error;
       }
@@ -106,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error(errorData.message || 'Sign up failed');
         }
       } catch (error) {
-        console.error('Sign up error:', error);
+        logger.auth.error('Erro no cadastro', { error });
         throw error;
       }
     },
@@ -126,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAuthenticated(false);
       queryClient.setQueryData(['authUser'], null);
     } catch (error) {
-      console.error('Sign out error:', error);
+      logger.auth.error('Erro ao fazer logout', { error });
     } finally {
       setIsLoading(false);
     }
