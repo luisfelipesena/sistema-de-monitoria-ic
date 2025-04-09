@@ -118,7 +118,7 @@ Ref atividade_projeto_1: atividade_projeto.projeto_id > projeto.id
 
 Table professor {
   id integer [primary key]
-  user_id integer [not null]
+  user_id text [not null]
   departamento_id integer [not null]
   nome_completo varchar [not null]
   nome_social varchar [null]
@@ -148,7 +148,7 @@ Table disciplina {
 
 Table aluno {
   id integer [primary key]
-  user_id integer [not null]
+  user_id text [not null]
   nome_completo varchar [not null]
   nome_social varchar [null]
   genero genero_enum [not null]

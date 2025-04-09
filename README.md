@@ -112,7 +112,7 @@ Linux (considerando distribuições baseadas em Debian/Ubuntu):
 2. **Usando PostgreSQL local**:
 
    - Certifique-se de que o PostgreSQL está rodando localmente.
-   - Configure as variáveis de ambiente no arquivo `.env` conforme o `.env.example`.
+   - Configure as variáveis de ambiente no arquivo `.env` conforme o `.env.sample`.
 
 ### Execução do Projeto
 

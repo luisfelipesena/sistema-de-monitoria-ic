@@ -194,7 +194,7 @@ export const atividadeProjetoTable = pgTable('atividade_projeto', {
 
 export const professorTable = pgTable('professor', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => userTable.id).notNull(),
+  userId: text('user_id').references(() => userTable.id).notNull(),
   departamentoId: integer('departamento_id').references(() => departamentoTable.id).notNull(),
   nomeCompleto: varchar('nome_completo').notNull(),
   nomeSocial: varchar('nome_social'),
@@ -241,7 +241,7 @@ export const disciplinaTable = pgTable('disciplina', {
 
 export const alunoTable = pgTable('aluno', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => userTable.id).notNull(),
+  userId: text('user_id').references(() => userTable.id).notNull(),
   nomeCompleto: varchar('nome_completo').notNull(),
   nomeSocial: varchar('nome_social'),
   genero: generoEnum('genero').notNull(),
