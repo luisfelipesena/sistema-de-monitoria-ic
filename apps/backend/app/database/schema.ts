@@ -117,7 +117,7 @@ export const departamentoTable = pgTable('departamento', {
 export const projetoTable = pgTable('projeto', {
   id: serial('id').primaryKey(),
   dataAprovacao: date('data_aprovacao', {mode: 'date'}),
-  departamentoId: integer('departamento_id').notNull(),
+  departamentoId: integer('departamento_id').references(() => departamentoTable.id).notNull(),
   ano: integer('ano').notNull(),
   semestre: semestreEnum('semestre').notNull(),
   tipoProposicao: tipoProposicaoEnum('tipo_proposicao').notNull(),
@@ -129,7 +129,7 @@ export const projetoTable = pgTable('projeto', {
   numeroSemanas: integer('numero_semanas').notNull(),
   publicoAlvo: text('publico_alvo').notNull(),
   estimativaPessoasBenificiadas: integer('estimativa_pessoas_benificiadas'),
-  professorResponsavelId: integer('professor_responsavel_id').notNull(),
+  professorResponsavelId: integer('professor_responsavel_id').references(() => professorTable.id).notNull(),
   descricao: text('descricao').notNull(),
   status: projetoStatusEnum('status').notNull().default('SUBMETIDO'),
   analiseSubmissao: text('analise_submissao').notNull(),
@@ -152,8 +152,8 @@ export const projetoTable = pgTable('projeto', {
 
 export const projetoDisciplinaTable = pgTable('projeto_disciplina', {
   id: serial('id').primaryKey(),
-  projetoId: integer('projeto_id').notNull(),
-  disciplinaId: integer('disciplina_id').notNull(),
+  projetoId: integer('projeto_id').references(() => projetoTable.id).notNull(),
+  disciplinaId: integer('disciplina_id').references(() => disciplinaTable.id).notNull(),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',
@@ -166,8 +166,8 @@ export const projetoDisciplinaTable = pgTable('projeto_disciplina', {
 
 export const projetoProfessorTable = pgTable('projeto_professor', {
   id: serial('id').primaryKey(),
-  projetoId: integer('projeto_id').notNull(),
-  professorId: integer('professor_id').notNull(),
+  projetoId: integer('projeto_id').references(() => projetoTable.id).notNull(),
+  professorId: integer('professor_id').references(() => professorTable.id).notNull(),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',
@@ -180,7 +180,7 @@ export const projetoProfessorTable = pgTable('projeto_professor', {
 
 export const atividadeProjetoTable = pgTable('atividade_projeto', {
   id: serial('id').primaryKey(),
-  projetoId: integer('projeto_id').notNull(),
+  projetoId: integer('projeto_id').references(() => projetoTable.id).notNull(),
   descricao: text('descricao').notNull(),
   createdAt: timestamp('created_at', {
     withTimezone: true,
@@ -194,8 +194,8 @@ export const atividadeProjetoTable = pgTable('atividade_projeto', {
 
 export const professorTable = pgTable('professor', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull(),
-  departamentoId: integer('departamento_id').notNull(),
+  userId: integer('user_id').references(() => userTable.id).notNull(),
+  departamentoId: integer('departamento_id').references(() => departamentoTable.id).notNull(),
   nomeCompleto: varchar('nome_completo').notNull(),
   nomeSocial: varchar('nome_social'),
   // FIXME todos os professors tem matrícula Siape?
@@ -241,7 +241,7 @@ export const disciplinaTable = pgTable('disciplina', {
 
 export const alunoTable = pgTable('aluno', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull(),
+  userId: integer('user_id').references(() => userTable.id).notNull(),
   nomeCompleto: varchar('nome_completo').notNull(),
   nomeSocial: varchar('nome_social'),
   genero: generoEnum('genero').notNull(),
@@ -252,8 +252,8 @@ export const alunoTable = pgTable('aluno', {
   cpf: varchar('cpf').notNull(),
   cr: real('CR').notNull(),
   telefone: varchar('telefone'),
-  enderecoId: integer('endereco_id'),
-  cursoId: integer('curso_id').notNull(),
+  enderecoId: integer('endereco_id').references(() => enderecoTable.id),
+  cursoId: integer('curso_id').references(() => cursoTable.id).notNull(),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',
@@ -307,7 +307,7 @@ export const cursoTable = pgTable('curso', {
 
 export const notaAlunoTable = pgTable('nota_aluno', {
   id: serial('id').primaryKey(),
-  alunoId: integer('aluno_id').notNull(),
+  alunoId: integer('aluno_id').references(() => alunoTable.id).notNull(),
   codigoDisciplina: varchar('codigo_disciplina').notNull(),
   nota: real('nota').notNull(),
   ano: integer('ano').notNull(),
@@ -328,7 +328,7 @@ export const notaAlunoTable = pgTable('nota_aluno', {
 
 export const processoSeletivoTable = pgTable('processo_seletivo', {
   id: serial('id').primaryKey(),
-  projetoId: integer('projeto_id').notNull(),
+  projetoId: integer('projeto_id').references(() => projetoTable.id).notNull(),
   vagasBolsista: integer('vagas_bolsista').notNull(),
   vagasVoluntario: integer('vagas_voluntario').notNull(),
   editalUniqueId: integer('edital_unique_id'),
@@ -350,8 +350,8 @@ export const processoSeletivoTable = pgTable('processo_seletivo', {
 
 export const inscricaoTable = pgTable('inscricao', {
   id: serial('id').primaryKey(),
-  processoSeletivoId: integer('processo_seletivo_id').notNull(),
-  alunoId: integer('aluno_id').notNull(),
+  processoSeletivoId: integer('processo_seletivo_id').references(() => processoSeletivoTable.id).notNull(),
+  alunoId: integer('aluno_id').references(() => alunoTable.id).notNull(),
   tipo: tipoInscricaoEnum('tipo'),
   status: statusInscricaoEnum('status').notNull(),
   notaProva: real('nota_prova'),
@@ -371,7 +371,7 @@ export const inscricaoTable = pgTable('inscricao', {
 
 export const inscricaoDocumentoTable = pgTable('inscricao_documento', {
   id: serial('id').primaryKey(),
-  inscricaoId: integer('inscricao_id').notNull(),
+  inscricaoId: integer('inscricao_id').references(() => inscricaoTable.id).notNull(),
   documentoUniqueId: integer('documento_unique_id').notNull(),
   validado: boolean('validado'),
   createdAt: timestamp('created_at', {
@@ -390,8 +390,8 @@ export const inscricaoDocumentoTable = pgTable('inscricao_documento', {
 
 export const vagaTable = pgTable('vaga', {
   id: serial('id').primaryKey(),
-  alunoId: integer('aluno_id').notNull(),
-  projetoId: integer('projeto_id').notNull(),
+  alunoId: integer('aluno_id').references(() => alunoTable.id).notNull(),
+  projetoId: integer('projeto_id').references(() => projetoTable.id).notNull(),
   tipo: tipoVagaEnum('tipo').notNull(),
   createdAt: timestamp('created_at', {
     withTimezone: true,
@@ -406,3 +406,130 @@ export const vagaTable = pgTable('vaga', {
     mode: 'date',
   }),
 });
+
+export const departamentoRelations = relations(departamentoTable, ({ many }) => ({
+  projetos: many(projetoTable),
+  professores: many(professorTable),
+  alunos: many(alunoTable),
+}));
+
+export const projetoRelations = relations(projetoTable, ({ one, many }) => ({
+  departamento: one(departamentoTable, {
+    fields: [projetoTable.departamentoId],
+    references: [departamentoTable.id],
+  }),
+  projetoDisciplinas: many(projetoDisciplinaTable),
+  projetoProfessores: many(projetoProfessorTable),
+  projetoAtividades: many(atividadeProjetoTable),
+}));
+
+export const projetoDisciplinaRelations = relations(projetoDisciplinaTable, ({ one }) => ({
+  projeto: one(projetoTable, {
+    fields: [projetoDisciplinaTable.projetoId],
+    references: [projetoTable.id],
+  }),
+  disciplina: one(disciplinaTable, {
+    fields: [projetoDisciplinaTable.disciplinaId],
+    references: [disciplinaTable.id],
+  }),
+}));
+
+export const projetoProfessorRelations = relations(projetoProfessorTable, ({ one }) => ({
+  projeto: one(projetoTable, {
+    fields: [projetoProfessorTable.projetoId],
+    references: [projetoTable.id],
+  }),
+  professor: one(professorTable, {
+    fields: [projetoProfessorTable.professorId],
+    references: [professorTable.id],
+  }),
+}));
+
+export const atividadeProjetoRelations = relations(atividadeProjetoTable, ({ one }) => ({
+  projeto: one(projetoTable, {
+    fields: [atividadeProjetoTable.projetoId],
+    references: [projetoTable.id],
+  }),
+}));
+
+export const professorRelations = relations(professorTable, ({ one, many }) => ({
+  departamento: one(departamentoTable, {
+    fields: [professorTable.departamentoId],
+    references: [departamentoTable.id],
+  }),
+  user: one(userTable, {
+    fields: [professorTable.userId],
+    references: [userTable.id],
+  }),
+  projetoProfessores: many(projetoProfessorTable),
+}));
+
+export const disciplinaRelations = relations(disciplinaTable, ({ many }) => ({
+  projetoDisciplinas: many(projetoDisciplinaTable),
+}));
+
+export const alunoRelations = relations(alunoTable, ({ one, many }) => ({
+  endereco: one(enderecoTable, {
+    fields: [alunoTable.enderecoId],
+    references: [enderecoTable.id],
+  }),
+  curso: one(cursoTable, {
+    fields: [alunoTable.cursoId],
+    references: [cursoTable.id],
+  }),
+  user: one(userTable, {
+    fields: [alunoTable.userId],
+    references: [userTable.id],
+  }),
+  inscricoes: many(inscricaoTable),
+  notas: many(notaAlunoTable),
+  vagas: many(vagaTable),
+}));
+
+export const notaAlunoRelations = relations(notaAlunoTable, ({ one }) => ({
+  aluno: one(alunoTable, {
+    fields: [notaAlunoTable.alunoId],
+    references: [alunoTable.id],
+  }),
+}));
+
+export const processoSeletivoRelations = relations(processoSeletivoTable, ({ one }) => ({
+  projeto: one(projetoTable, {
+    fields: [processoSeletivoTable.projetoId],
+    references: [projetoTable.id],
+  }),
+  inscricoes: one(inscricaoTable, {
+    fields: [processoSeletivoTable.id],
+    references: [inscricaoTable.processoSeletivoId],
+  }),
+}));
+
+export const inscricaoRelations = relations(inscricaoTable, ({ one }) => ({
+  processoSeletivo: one(processoSeletivoTable, {
+    fields: [inscricaoTable.processoSeletivoId],
+    references: [processoSeletivoTable.id],
+  }),
+  aluno: one(alunoTable, {
+    fields: [inscricaoTable.alunoId],
+    references: [alunoTable.id],
+  }),
+  documentos: many(inscricaoDocumentoTable),
+}));
+
+export const inscricaoDocumentoRelations = relations(inscricaoDocumentoTable, ({ one }) => ({
+  inscricao: one(inscricaoTable, {
+    fields: [inscricaoDocumentoTable.inscricaoId],
+    references: [inscricaoTable.id],
+  }),
+}));
+
+export const vagaRelations = relations(vagaTable, ({ one }) => ({
+  aluno: one(alunoTable, {
+    fields: [vagaTable.alunoId],
+    references: [alunoTable.id],
+  }),
+  projeto: one(projetoTable, {
+    fields: [vagaTable.projetoId],
+    references: [projetoTable.id],
+  }),
+}));
