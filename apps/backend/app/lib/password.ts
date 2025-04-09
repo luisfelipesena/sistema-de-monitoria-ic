@@ -1,7 +1,6 @@
 import { hash, verify, type Options } from '@node-rs/argon2';
 
 const options: Options = {
-  // recommended minimum parameters
   memoryCost: 19456,
   timeCost: 2,
   outputLen: 32,
