@@ -2,6 +2,7 @@ import { db } from '@/database';
 import { userTable } from '@/database/schema';
 import type { Database } from '@/database/type-utils';
 import { lucia } from '@/lib/auth';
+import logger from '@/lib/logger';
 import { hashPassword, verifyPassword } from '@/lib/password';
 import type { SignInFormValues, SignUpFormValues } from '@/modules/auth/types';
 import { eq } from 'drizzle-orm';
@@ -49,7 +50,7 @@ export class AuthService {
       const session = await lucia.createSession(userId, {});
       return session;
     } catch (e) {
-      console.error('Signup DB Error:', e);
+      logger.error({ err: e }, 'Signup DB Error');
       throw new HTTPException(500, { message: 'Could not create user' });
     }
   }

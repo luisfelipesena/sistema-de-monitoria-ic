@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server';
 import { createMiddleware } from 'hono/factory';
 import { db } from './database';
 import { app } from './index';
+import logger from './lib/logger';
 import type { AppEnv } from './types';
 
 const injectDependencies = createMiddleware<AppEnv>(async (c, next) => {
@@ -12,4 +13,4 @@ const injectDependencies = createMiddleware<AppEnv>(async (c, next) => {
 });
 
 serve({ fetch: app(injectDependencies).fetch, port: 3000 });
-console.log(' ✅ Server starting on port 3000...');
+logger.info(' ✅ Server starting on port 3000...');
