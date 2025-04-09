@@ -17,7 +17,21 @@ export const axiosInstance = axios.create({
 });
 
 // Hono RPC client - Provides type safety based on backend routes
-export const apiClient = hc<AppType>(getBaseUrl());
+export const apiClient = hc<AppType>(getBaseUrl(), {
+  fetch: async (input, requestInit, Env, executionCtx) => {
+    try {
+      const response = await fetch(input, {
+        ...requestInit,
+        credentials: 'include',
+      });
+
+      return response;
+    } catch (error) {
+      console.error('Network error:', error);
+      throw error;
+    }
+  },
+});
 
 // You can use either axiosInstance for traditional REST calls
 // or apiClient for type-safe RPC-style calls with Hono.
