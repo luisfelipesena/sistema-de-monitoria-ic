@@ -60,6 +60,8 @@
     "lucia": "^3.2.2",
     "lucide-react": "^0.485.0",
     "next-themes": "^0.4.6",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.55.0",

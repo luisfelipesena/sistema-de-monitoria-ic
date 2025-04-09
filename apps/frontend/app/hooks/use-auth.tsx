@@ -18,6 +18,7 @@ import React, {
 } from 'react';
 import { useNavigate } from 'react-router';
 import { apiClient } from '../../lib/api';
+import logger from '../../lib/logger';
 
 function useHydrated() {
   const [isHydrated, setIsHydrated] = useState(false);
@@ -75,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated(!!userData);
         return userData;
       } catch (error) {
-        console.error('Error fetching user:', error);
+        logger.auth.error('Erro ao buscar usuário', { error });
         setUser(null);
         setIsAuthenticated(false);
         return null;
@@ -108,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setIsAuthenticated(false);
     } catch (error) {
-      console.error('Sign out error:', error);
+      logger.auth.error('Erro ao fazer logout', { error });
     } finally {
       setIsLoading(false);
     }

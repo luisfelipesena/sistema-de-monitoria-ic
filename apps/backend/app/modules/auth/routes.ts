@@ -1,6 +1,7 @@
 import { env } from '@/config/env';
 import { userTable } from '@/database/schema';
 import { lucia } from '@/lib/auth';
+import logger from '@/lib/logger';
 import axios from 'axios';
 import { eq } from 'drizzle-orm';
 import { XMLParser } from 'fast-xml-parser';
@@ -71,17 +72,17 @@ export const authRoutes = new Hono<{ Variables: AppVariables }>()
         return c.redirect(`${env.CLIENT_URL}/auth/cas-callback`);
       } else if (serviceResponse['cas:authenticationFailure']) {
         const failure = serviceResponse['cas:authenticationFailure'];
-        console.log('CAS Authentication failed:', failure);
+        logger.error('CAS Authentication failed:', failure);
         return c.json(
           { error: 'Authentication failed', details: failure },
           401,
         );
       } else {
-        console.log('Unexpected CAS response format');
+        logger.error('Unexpected CAS response format');
         return c.json({ error: 'Invalid CAS server response' }, 500);
       }
     } catch (error) {
-      console.error('CAS validation error:', error);
+      logger.error('CAS validation error:', error);
       return c.json(
         { message: 'CAS validation error', error: String(error) },
         500,
