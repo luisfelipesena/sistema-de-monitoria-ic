@@ -1,5 +1,4 @@
 import { env } from '@/config/env';
-import { db } from '@/database';
 import { userTable } from '@/database/schema';
 import { lucia } from '@/lib/auth';
 import axios from 'axios';
@@ -42,7 +41,7 @@ export const authRoutes = new Hono<{ Variables: AppVariables }>()
         const username = authSuccess['cas:user'];
         const attributes = authSuccess['cas:attributes'] || {};
 
-        const existingUser = await db.query.userTable.findFirst({
+        const existingUser = await c.get('db').query.userTable.findFirst({
           where: eq(userTable.username, username),
         });
 
@@ -51,7 +50,8 @@ export const authRoutes = new Hono<{ Variables: AppVariables }>()
         if (!existingUser) {
           const email = attributes['cas:mail'] || `${username}@ufba.br`;
 
-          const [newUser] = await db
+          const [newUser] = await c
+            .get('db')
             .insert(userTable)
             .values({
               username: username,
