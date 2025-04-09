@@ -43,6 +43,12 @@ enum status_inscricao_enum {
     APROVACAO_CONFIRMADA_VOLUNTARIO
 }
 
+enum user_role {
+    admin
+    monitor
+    student
+}
+
 Table departamento {
   id integer [primary key]
   unidade_universitaria varchar
@@ -111,6 +117,7 @@ Ref atividade_projeto_1: atividade_projeto.projeto_id > projeto.id
 
 Table professor {
   id integer [primary key]
+  user_id integer [not null]
   departamento_id integer [not null]
   nome_completo varchar [not null]
   nome_social varchar [null]
@@ -127,6 +134,7 @@ Table professor {
   deleted_at timestamp [null]
 }
 Ref professor_departamento: professor.departamento_id > departamento.id
+Ref professor_user: professor.user_id > user.id
 
 Table disciplina {
   id integer [primary key]
@@ -138,6 +146,7 @@ Table disciplina {
 
 Table aluno {
   id integer [primary key]
+  user_id integer [not null]
   nome_completo varchar [not null]
   nome_social varchar [null]
   genero genero_enum [not null]
@@ -156,6 +165,7 @@ Table aluno {
 }
 Ref aluno_endereco: aluno.endereco_id > endereco.id
 Ref aluno_curso: aluno.curso_id > curso.id
+Ref aluno_user: aluno.user_id > user.id
 
 Table endereco{
   id integer [primary key]
@@ -242,3 +252,19 @@ Table vaga {
 }
 Ref vaga_aluno: vaga.aluno_id > aluno.id
 Ref vaga_projeto: vaga.projeto_id > projeto.id
+
+
+Table user {
+  id text [primary key]
+  email text [not null, unique]
+  hashed_password text [not null]
+  role user_role [not null, default: 'student']
+}
+
+Table session {
+  id text [primary key]
+  user_id text [not null]
+  expires_at timestamp [not null]
+}
+
+Ref session_user: session.user_id > user.id
