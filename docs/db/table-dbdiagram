@@ -19,8 +19,8 @@ enum projeto_status_enum {
     REPROVADO
 }
 enum genero_enum {
-    M
-    F
+    MASCULINO
+    FEMININO
     OUTRO
 }
 enum regime_enum {
@@ -51,10 +51,11 @@ enum user_role {
 
 Table departamento {
   id integer [primary key]
-  unidade_universitaria varchar
-  nome varchar
-  sigla varchar
+  unidade_universitaria varchar [null]
+  nome varchar [not null]
+  sigla varchar [null]
   created_at timestamp
+  updated_at timestamp
 }
 
 Table projeto {
@@ -71,14 +72,14 @@ Table projeto {
   voluntarios_atendidos integer [null]
   carga_horaria_semana integer [not null]
   numero_semanas integer [not null]
-  publico_alvo varchar [not null]
+  publico_alvo text [not null]
   estimativa_pessoas_beneficiadas integer [null]
   professor_responsavel_id integer [not null]
   descricao text [not null]
-  status projeto_status_enum [not null]
+  status projeto_status_enum [not null, default: 'SUBMETIDO']
   analise_submissao text [null]
-  documento blob [null]
-  assinatura blob [null]
+  documento_unique_id text [null]
+  assinatura_unique_id text [null]
   validado bool [not null, default: false]
   created_at timestamp
   updated_at timestamp
