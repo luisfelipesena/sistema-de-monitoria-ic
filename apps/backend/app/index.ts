@@ -5,7 +5,7 @@ import { poweredBy } from 'hono/powered-by';
 import { prettyJSON } from 'hono/pretty-json';
 import { AppError } from './error';
 import { authMiddleware } from './middleware/auth';
-import { authRoutes } from './modules/auth/routes';
+import { casRoutes } from './modules/auth/cas-routes';
 import type { AppEnv } from './types';
 
 // --- API Routes ---
@@ -18,7 +18,7 @@ export const app = (depsMiddleware: MiddlewareHandler<AppEnv>) =>
     .use('*', cors())
     .use('*', prettyJSON())
     .use('*', authMiddleware)
-    .route('/auth', authRoutes)
+    .route('/auth', casRoutes)
     .notFound((c) => {
       return c.json({ message: 'Not Found', ok: false }, 404);
     })

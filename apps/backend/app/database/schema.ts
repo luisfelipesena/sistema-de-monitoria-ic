@@ -1,6 +1,5 @@
-import { relations, sql } from 'drizzle-orm';
+import { relations } from 'drizzle-orm';
 import {
-  boolean,
   integer,
   pgEnum,
   pgTable,
@@ -16,15 +15,15 @@ export const userRoleEnum = pgEnum('user_role', [
 ]);
 
 export const userTable = pgTable('user', {
-  id: text('id').primaryKey(),
+  id: serial('id').primaryKey(),
+  username: text('username').notNull().unique(),
   email: text('email').notNull().unique(),
-  hashed_password: text('hashed_password').notNull(),
   role: userRoleEnum('role').notNull().default('student'),
 });
 
 export const sessionTable = pgTable('session', {
   id: text('id').primaryKey(),
-  userId: text('user_id')
+  userId: integer('user_id')
     .notNull()
     .references(() => userTable.id),
   expiresAt: timestamp('expires_at', {
@@ -43,5 +42,3 @@ export const sessionRelations = relations(sessionTable, ({ one }) => ({
     references: [userTable.id],
   }),
 }));
-
-// TODO: Add other necessary application schemas below

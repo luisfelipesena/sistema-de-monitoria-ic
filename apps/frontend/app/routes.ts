@@ -10,8 +10,7 @@ export default [
   // Public routes
   index('routes/landing/index.tsx'),
   layout('routes/auth/layout.tsx', [
-    route('auth/sign-in', 'routes/auth/sign-in.tsx'),
-    route('auth/sign-up', 'routes/auth/sign-up.tsx'),
+    route('auth/cas-callback', 'routes/auth/cas-callback.tsx'),
   ]),
 
   // Protected routes
