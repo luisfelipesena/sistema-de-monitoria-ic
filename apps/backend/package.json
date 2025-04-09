@@ -29,6 +29,8 @@
     "hono": "^4.2.4",
     "lucia": "^3.2.2",
     "pg": "^8.14.1",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0",
     "ts-pattern": "^5.7.0"
   },
   "devDependencies": {
