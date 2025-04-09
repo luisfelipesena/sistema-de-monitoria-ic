@@ -6,7 +6,6 @@ import axios from 'axios';
 import { eq } from 'drizzle-orm';
 import { XMLParser } from 'fast-xml-parser';
 import { Hono } from 'hono';
-import { generateId } from 'lucia';
 import type { AppVariables } from '../../types';
 
 export const authRoutes = new Hono<{ Variables: AppVariables }>()
@@ -50,7 +49,6 @@ export const authRoutes = new Hono<{ Variables: AppVariables }>()
         let userId;
 
         if (!existingUser) {
-          userId = generateId(15);
           const email = attributes['cas:mail'] || `${username}@ufba.br`;
 
           const [newUser] = await db
