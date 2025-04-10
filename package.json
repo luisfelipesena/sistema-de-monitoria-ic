@@ -44,7 +44,6 @@
     "@hono/zod-validator": "^0.4.3",
     "dotenv": "^16.4.7",
     "glob": "^11.0.1",
-    "react-dropzone": "^14.3.8",
     "tss-react": "^4.9.15",
     "zod": "^3.24.2"
   }
