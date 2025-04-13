@@ -257,9 +257,9 @@ Ref vaga_projeto: vaga.projeto_id > projeto.id
 
 
 Table user {
-  id text [primary key]
+  id integer [primary key]
+  username text [not null, unique]
   email text [not null, unique]
-  hashed_password text [not null]
   role user_role [not null, default: 'student']
 }
 
