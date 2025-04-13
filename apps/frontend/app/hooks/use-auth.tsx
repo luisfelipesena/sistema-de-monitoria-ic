@@ -1,7 +1,12 @@
 'use client';
 
-import type { SignInFormValues, SignUpFormValues } from '@/routes/auth/types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { env } from '@/config/env';
+import {
+  type QueryObserverResult,
+  type RefetchOptions,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import type { User } from 'lucia';
 import React, {
   createContext,
@@ -11,9 +16,10 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { useNavigate } from 'react-router';
 import { apiClient } from '../../lib/api';
+import logger from '../../lib/logger';
 
-// Custom hook to check if the component is hydrated (client-side rendering is complete)
 function useHydrated() {
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -31,9 +37,14 @@ interface AuthState {
 }
 
 interface AuthContextProps extends AuthState {
-  signIn: (credentials: SignInFormValues) => Promise<void>;
-  signUp: (details: SignUpFormValues) => Promise<void>;
+  user: User | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
   signOut: () => Promise<void>;
+  signIn: () => Promise<void>;
+  refetchUser: (
+    options?: RefetchOptions,
+  ) => Promise<QueryObserverResult<User | null, Error>>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -45,8 +56,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const queryClient = useQueryClient();
   const isHydrated = useHydrated();
+  const navigate = useNavigate();
 
-  // Fetch user on initial load using React Query
   const { refetch: refetchUser } = useQuery({
     queryKey: ['authUser'],
     queryFn: async () => {
@@ -65,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsAuthenticated(!!userData);
         return userData;
       } catch (error) {
-        console.error('Error fetching user:', error);
+        logger.auth.error('Erro ao buscar usuário', { error });
         setUser(null);
         setIsAuthenticated(false);
         return null;
@@ -78,55 +89,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     enabled: isHydrated, // Only run the query after hydration
   });
 
-  const signIn = useCallback(
-    async (credentials: SignInFormValues) => {
-      setIsLoading(true);
-      try {
-        const res = await apiClient.auth.signin.$post({ json: credentials });
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || 'Sign in failed');
-        }
-        await refetchUser(); // Fetch user data after successful sign-in
-      } catch (error) {
-        console.error('Sign in error:', error);
-        setIsLoading(false);
-        throw error;
-      }
-    },
-    [refetchUser],
-  );
+  const signIn = useCallback(async () => {
+    if (user) {
+      navigate('/home');
+      return;
+    }
 
-  const signUp = useCallback(
-    async (details: SignUpFormValues) => {
-      try {
-        const res = await apiClient.auth.signup.$post({ json: details });
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || 'Sign up failed');
-        }
-      } catch (error) {
-        console.error('Sign up error:', error);
-        throw error;
-      }
-    },
-    [refetchUser],
-  );
+    setIsLoading(true);
+    window.location.href = `${env.VITE_API_URL}/auth/cas-login`;
+    setIsLoading(false);
+  }, [navigate, user]);
 
   const signOut = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await apiClient.auth.signout.$post();
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || 'Sign out failed');
-      }
-      // Clear user state immediately
+      queryClient.invalidateQueries({ queryKey: ['authUser'] });
+      await apiClient.auth.signout.$get();
+
       setUser(null);
       setIsAuthenticated(false);
-      queryClient.setQueryData(['authUser'], null);
     } catch (error) {
-      console.error('Sign out error:', error);
+      logger.auth.error('Erro ao fazer logout', { error });
     } finally {
       setIsLoading(false);
     }
@@ -137,11 +120,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       isLoading,
       isAuthenticated,
-      signIn,
-      signUp,
       signOut,
+      signIn,
+      refetchUser,
     }),
-    [user, isLoading, isAuthenticated, signIn, signUp, signOut],
+    [user, isLoading, isAuthenticated, signOut, refetchUser, signIn],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,6 +1,7 @@
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
 import { userRoleEnum } from '../database/schema'; // Import the enum to get roles
+import logger from '../lib/logger';
 import type { AppEnv } from '../types';
 
 // Infer the Role type directly from the enum values
@@ -17,7 +18,7 @@ export const requireRole = (allowedRoles: Role | Role[]) => {
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
   if (roles.length === 0) {
     // Log a warning if no roles are provided, as it effectively blocks everyone
-    console.warn(
+    logger.warn(
       'requireRole middleware created with an empty allowedRoles array. This will block all access to the route.',
     );
   }

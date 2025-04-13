@@ -1,6 +1,5 @@
 'use client';
 
-import { Sidebar } from '@/components/layout/Sidebar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,8 +14,6 @@ import { Switch } from '@/components/ui/switch';
 export default function Settings() {
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-
       <div className="flex-1 ml-64">
         <main className="p-8">
           <h1 className="mb-6 text-2xl font-bold text-gray-900">

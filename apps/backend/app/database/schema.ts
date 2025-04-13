@@ -19,15 +19,15 @@ export const userRoleEnum = pgEnum('user_role', [
 ]);
 
 export const userTable = pgTable('user', {
-  id: text('id').primaryKey(),
+  id: serial('id').primaryKey(),
+  username: text('username').notNull().unique(),
   email: text('email').notNull().unique(),
-  hashed_password: text('hashed_password').notNull(),
   role: userRoleEnum('role').notNull().default('student'),
 });
 
 export const sessionTable = pgTable('session', {
   id: text('id').primaryKey(),
-  userId: text('user_id')
+  userId: integer('user_id')
     .notNull()
     .references(() => userTable.id),
   expiresAt: timestamp('expires_at', {
@@ -40,14 +40,12 @@ export const userRelations = relations(userTable, ({ many }) => ({
   sessions: many(sessionTable),
 }));
 
-
 export const sessionRelations = relations(sessionTable, ({ one }) => ({
   user: one(userTable, {
     fields: [sessionTable.userId],
     references: [userTable.id],
   }),
 }));
-
 // Other necessary application schemas below (domain-related)
 
 export const semestreEnum = pgEnum('semestre_enum', [
@@ -194,7 +192,7 @@ export const atividadeProjetoTable = pgTable('atividade_projeto', {
 
 export const professorTable = pgTable('professor', {
   id: serial('id').primaryKey(),
-  userId: text('user_id').references(() => userTable.id).notNull(),
+  userId: integer('user_id').references(() => userTable.id).notNull(),
   departamentoId: integer('departamento_id').references(() => departamentoTable.id).notNull(),
   nomeCompleto: varchar('nome_completo').notNull(),
   nomeSocial: varchar('nome_social'),
@@ -241,7 +239,7 @@ export const disciplinaTable = pgTable('disciplina', {
 
 export const alunoTable = pgTable('aluno', {
   id: serial('id').primaryKey(),
-  userId: text('user_id').references(() => userTable.id).notNull(),
+  userId: integer('user_id').references(() => userTable.id).notNull(),
   nomeCompleto: varchar('nome_completo').notNull(),
   nomeSocial: varchar('nome_social'),
   genero: generoEnum('genero').notNull(),

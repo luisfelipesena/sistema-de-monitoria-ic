@@ -1,10 +1,9 @@
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
-import { GraduationCap } from 'lucide-react';
-import { Link, useNavigate } from 'react-router';
 
 export function Header(p: { className?: string }) {
-  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   return (
     <header
@@ -13,26 +12,16 @@ export function Header(p: { className?: string }) {
         p.className,
       )}
     >
-      <div className="container flex items-center h-14">
-        <Link to="/" className="flex items-center mr-6 space-x-2">
-          <GraduationCap className="w-6 h-6" />
-          <span className="font-bold sm:inline-block">
-            Sistema de Monitoria do IC
-          </span>
-        </Link>
-
-        {/* Right Side: Action Buttons */}
-        <div className="flex items-center justify-end flex-1 space-x-4">
-          <>
-            <Button variant="ghost" onClick={() => navigate('/auth/sign-in')}>
-              Login
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/auth/sign-up')}>
-              Registre-se
-            </Button>
-          </>
+      <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-sm">
+        <div className="text-xl font-bold text-blue-700">
+          Sistema de Monitoria IC
         </div>
-      </div>
+        <div className="flex gap-4">
+          <Button className="bg-blue-700 hover:bg-blue-800" onClick={signIn}>
+            Entrar com Email UFBA
+          </Button>
+        </div>
+      </nav>
     </header>
   );
 }
