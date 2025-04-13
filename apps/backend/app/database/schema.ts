@@ -410,7 +410,6 @@ export const vagaTable = pgTable('vaga', {
 export const departamentoRelations = relations(departamentoTable, ({ many }) => ({
   projetos: many(projetoTable),
   professores: many(professorTable),
-  alunos: many(alunoTable),
 }));
 
 export const projetoRelations = relations(projetoTable, ({ one, many }) => ({
@@ -493,18 +492,15 @@ export const notaAlunoRelations = relations(notaAlunoTable, ({ one }) => ({
   }),
 }));
 
-export const processoSeletivoRelations = relations(processoSeletivoTable, ({ one }) => ({
+export const processoSeletivoRelations = relations(processoSeletivoTable, ({ one, many }) => ({
   projeto: one(projetoTable, {
     fields: [processoSeletivoTable.projetoId],
     references: [projetoTable.id],
   }),
-  inscricoes: one(inscricaoTable, {
-    fields: [processoSeletivoTable.id],
-    references: [inscricaoTable.processoSeletivoId],
-  }),
+  inscricoes: many(inscricaoTable),
 }));
 
-export const inscricaoRelations = relations(inscricaoTable, ({ one }) => ({
+export const inscricaoRelations = relations(inscricaoTable, ({ one, many }) => ({
   processoSeletivo: one(processoSeletivoTable, {
     fields: [inscricaoTable.processoSeletivoId],
     references: [processoSeletivoTable.id],
