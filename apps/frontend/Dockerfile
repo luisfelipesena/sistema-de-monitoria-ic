@@ -19,7 +19,8 @@ COPY . .
 # Ensure backend shared types are available for the build
 # The path resolution in tsconfig should handle the rest
 WORKDIR /app/apps/frontend
-RUN npm run build
+# Explicitly build only the frontend package using turbo filter
+RUN npx turbo run build --filter=@sistema-de-monitoria-ic/frontend
 
 # === Production Dependencies Stage ===
 # Install only production dependencies (needed for vite preview)

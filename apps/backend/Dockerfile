@@ -17,7 +17,8 @@ WORKDIR /app
 # Copy the entire monorepo context
 COPY . .
 WORKDIR /app/apps/backend
-RUN npm run build
+# Explicitly build only the backend package using turbo filter
+RUN npx turbo run build --filter=@sistema-de-monitoria-ic/backend
 
 # === Production Dependencies Stage ===
 # Install only production dependencies

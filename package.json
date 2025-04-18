@@ -16,7 +16,9 @@
     "docker:down": "docker-compose down",
     "docker:clean": "docker-compose down -v",
     "docker:logs": "docker-compose logs -f postgres",
-    "db:check": "pg_isready -h localhost -U postgres -d sistema-de-monitoria-ic -p 5432"
+    "db:check": "pg_isready -h localhost -U postgres -d sistema-de-monitoria-ic -p 5432",
+    "deploy:frontend": "git push dokku main:master",
+    "deploy:backend": "git push dokku-api main"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
