@@ -37,4 +37,4 @@ RUN npm install --omit=dev
 EXPOSE 5000
 
 # Start the application using tsx for TypeScript execution
-CMD ["npx", "tsx", "app/server.ts"] 
+CMD ["npm", "run", "start"] 

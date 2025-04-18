@@ -7,7 +7,6 @@ WORKDIR /app
 # Copy root and workspace package.json files and lockfile
 COPY package*.json ./
 COPY turbo.json ./
-COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package*.json ./apps/frontend/
 
 # Install dependencies
@@ -29,7 +28,7 @@ COPY --from=builder /app/apps/frontend/build ./build
 COPY --from=builder /app/apps/frontend/package*.json ./
 
 # Install production dependencies only
-RUN npm install --omit=dev --ignore-scripts
+RUN npm install --omit=dev
 
 # Expose the port
 EXPOSE 5000
