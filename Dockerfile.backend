@@ -35,7 +35,7 @@ COPY --from=builder /app/apps/backend/app/database/drizzle ./app/database/drizzl
 RUN npm install --omit=dev
 
 # Expose the port
-EXPOSE 3000
+EXPOSE 5000
 
 # Start the application using tsx for TypeScript execution
 CMD ["npx", "tsx", "app/server.ts"] 
