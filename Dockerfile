@@ -1,6 +1,8 @@
 # === Base Node Stage ===
 FROM node:20-alpine AS base
 WORKDIR /app
+# Garantir uma versão específica do npm para evitar problemas de compatibilidade 
+RUN npm install -g npm@10.8.0
 
 # === Development Dependencies Stage ===
 # Install all dependencies needed for building
