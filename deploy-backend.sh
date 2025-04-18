@@ -1,41 +1,42 @@
 #!/bin/bash
 set -e
 
-echo "Deploying backend to Dokku..."
-
-# Create a temporary directory
+# Configurações
 TEMP_DIR=$(mktemp -d)
-CURRENT_DIR=$(pwd)
+REMOTE="dokku@app.ic.ufba.br:sistema-de-monitoria-api"
+SSH_PORT=2299
 
-# Create the app structure
+echo "Criando diretório temporário em $TEMP_DIR"
+
+# Criando a estrutura correta para o Dockerfile
+echo "Criando estrutura de diretórios"
 mkdir -p $TEMP_DIR/apps/backend
 mkdir -p $TEMP_DIR/packages
 
-# Copy necessary files
-cp -r $CURRENT_DIR/apps/backend $TEMP_DIR/apps/
-cp -r $CURRENT_DIR/packages $TEMP_DIR/
-cp $CURRENT_DIR/package.json $TEMP_DIR/
-cp $CURRENT_DIR/package-lock.json $TEMP_DIR/
-cp $CURRENT_DIR/turbo.json $TEMP_DIR/
-cp $CURRENT_DIR/Dockerfile.backend $TEMP_DIR/Dockerfile
-cp $CURRENT_DIR/.dockerignore $TEMP_DIR/
+# Copiando apenas arquivos necessários do backend
+echo "Copiando arquivos do backend"
+cp -r apps/backend/* $TEMP_DIR/apps/backend/
+cp Dockerfile.backend $TEMP_DIR/Dockerfile
+cp package.json $TEMP_DIR/
+cp package-lock.json $TEMP_DIR/ 2>/dev/null || true
+cp turbo.json $TEMP_DIR/
 
-# Move to the temporary directory
+# Inicializando git e fazendo commit
 cd $TEMP_DIR
-
-# Initialize git, add files, and commit
 git init
 git add .
-git config --global user.email "deploy@example.com"
-git config --global user.name "Dokku Deploy"
-git commit -m "feat(backend): deploy to dokku"
+git config --global user.email "deploy@ic.ufba.br"
+git config --global user.name "Deploy Script"
+git commit -m "Deploy backend"
 
-# Add the dokku remote and push
-git remote add dokku app.ic.ufba.br:sistema-de-monitoria-api
-git push -f dokku main:main
+# Adicionando remote Dokku e fazendo push
+echo "Configurando remote e fazendo push para Dokku"
+git remote add dokku "ssh://dokku@app.ic.ufba.br:$SSH_PORT/sistema-de-monitoria-api"
+GIT_SSH_COMMAND="ssh -p $SSH_PORT" git push -f dokku main
 
-# Clean up
-cd $CURRENT_DIR
+# Limpeza
+echo "Fazendo limpeza"
+cd -
 rm -rf $TEMP_DIR
 
-echo "Backend deployment completed!" 
+echo "Deploy backend concluído" 

@@ -14,7 +14,6 @@ RUN npm install
 
 # Copy backend source code
 COPY apps/backend ./apps/backend
-COPY packages ./packages
 
 # Build the backend
 RUN npm run build --workspace=@sistema-de-monitoria-ic/backend

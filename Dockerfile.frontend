@@ -1,10 +1,10 @@
-# Base image
+# Build stage
 FROM node:18-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package.json and install dependencies
 COPY package*.json ./
 COPY turbo.json ./
 COPY apps/frontend/package*.json ./apps/frontend/
@@ -12,19 +12,18 @@ COPY apps/frontend/package*.json ./apps/frontend/
 # Install dependencies
 RUN npm install
 
-# Copy frontend source code
+# Copy application code
 COPY apps/frontend ./apps/frontend
-COPY packages ./packages
 
 # Build the frontend
 RUN npm run build --workspace=@sistema-de-monitoria-ic/frontend
 
-# Production image
+# Production stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy built files from builder stage
+# Copy built files
 COPY --from=builder /app/apps/frontend/build ./build
 COPY --from=builder /app/apps/frontend/package*.json ./
 
@@ -34,5 +33,5 @@ RUN npm install --omit=dev
 # Expose the port
 EXPOSE 5000
 
-# Start the application
+# Start the server
 CMD ["npm", "run", "start"] 
