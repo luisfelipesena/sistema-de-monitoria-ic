@@ -44,7 +44,6 @@
     "@react-router/fs-routes": "^7.4.1",
     "@react-router/node": "^7.2.0",
     "@react-router/serve": "^7.2.0",
-    "@sistema-de-monitoria-ic/backend": "*",
     "@tanstack/react-query": "^5.70.0",
     "@tanstack/react-query-devtools": "^5.71.0",
     "@types/glob": "^8.1.0",
@@ -75,6 +74,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@sistema-de-monitoria-ic/backend": "*",
     "@react-router/dev": "^7.2.0",
     "@tailwindcss/vite": "^4.0.8",
     "@types/node": "^20.17.19",
