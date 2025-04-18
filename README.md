@@ -133,3 +133,47 @@ Linux (considerando distribuições baseadas em Debian/Ubuntu):
    ```
    http://localhost:3000
    ```
+
+## 🚢 Deployment
+
+O projeto é implantado em dois serviços separados no Dokku:
+
+### Front-end
+
+O front-end está hospedado em `sistema-de-monitoria`.
+
+Para fazer o deploy do front-end:
+
+```bash
+npm run deploy:frontend
+```
+
+Este comando cria um repositório Git temporário contendo apenas os arquivos do front-end, configura o Dockerfile correto e faz o push para o Dokku.
+
+### Back-end (API)
+
+O back-end está hospedado em `sistema-de-monitoria-api`. 
+
+Para fazer o deploy do back-end:
+
+```bash
+npm run deploy:backend
+```
+
+Este comando cria um repositório Git temporário contendo apenas os arquivos do back-end, configura o Dockerfile correto e faz o push para o Dokku.
+
+### Configuração do Dokku
+
+Antes do primeiro deploy, certifique-se de que as aplicações estão configuradas no Dokku:
+
+```bash
+# Configurar a aplicação de front-end
+dokku apps:create sistema-de-monitoria
+dokku config:set sistema-de-monitoria VITE_API_URL=https://api.dominio.com
+
+# Configurar a aplicação de back-end
+dokku apps:create sistema-de-monitoria-api
+dokku postgres:create sistema-de-monitoria-db
+dokku postgres:link sistema-de-monitoria-db sistema-de-monitoria-api
+dokku config:set sistema-de-monitoria-api DATABASE_URL=... CAS_SERVICE_URL=... NODE_ENV=production
+```

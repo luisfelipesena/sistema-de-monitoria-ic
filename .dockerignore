@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+**/build
+**/.turbo
+**/.git
+**/.github
+**/README.md
+**/.next
+**/.DS_Store
+**/.env
+**/.env.*
+!**/.env.sample
+**/data
+**/logs
+**/.vscode 
