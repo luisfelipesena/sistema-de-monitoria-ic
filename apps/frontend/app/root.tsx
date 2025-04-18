@@ -4,7 +4,6 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Outlet, Scripts, ScrollRestoration } from 'react-router';
 import './app.css';
 
-// Create a client
 const queryClient = new QueryClient();
 
 export default function Root() {
