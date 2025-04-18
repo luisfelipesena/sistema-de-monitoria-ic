@@ -51,6 +51,6 @@ WORKDIR /app/apps/frontend
 # ENV NODE_ENV=production
 # ENV VITE_API_URL=http://your-backend-url
 
-EXPOSE 3000 # Match the port in the start script
+EXPOSE 5000
 
 CMD ["npm", "run", "start"]

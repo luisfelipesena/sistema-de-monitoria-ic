@@ -47,6 +47,6 @@ WORKDIR /app/apps/backend
 # ENV NODE_ENV=production
 # ENV PORT=3000
 
-EXPOSE 3000 # Assuming the backend runs on port 3000
+EXPOSE 5000
 
 CMD ["npm", "run", "start"] 
