@@ -1,19 +1,16 @@
 # Base image
-FROM node:20-alpine
+FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Apenas necessário caso queira garantir uma versão específica do npm
-RUN npm install -g npm@10.8.0
-
 # Copy package files
-COPY package.json package-lock.json* ./
-COPY apps/frontend/package.json apps/frontend/package-lock.json* ./apps/frontend/
+COPY package.json ./
+COPY turbo.json ./
+COPY apps/frontend/package.json ./apps/frontend/
 
 # Install dependencies without running scripts
-WORKDIR /app
-RUN npm ci --prefix apps/frontend --include-workspace-root --ignore-scripts
+RUN npm install --prefix apps/frontend --ignore-scripts
 
 # Copy application code
 COPY . .
