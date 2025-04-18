@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -8,6 +8,11 @@ WORKDIR /app
 COPY package*.json ./
 COPY turbo.json ./
 COPY apps/frontend/package*.json ./apps/frontend/
+COPY apps/backend/package*.json ./apps/backend/
+
+# Create a dummy backend package to satisfy the dependency
+RUN mkdir -p ./apps/backend/shared && \
+    echo "export type AppType = any;" > ./apps/backend/shared/index.ts
 
 # Install dependencies
 RUN npm install
@@ -19,13 +24,17 @@ COPY apps ./apps
 RUN npm run build --workspace=@sistema-de-monitoria-ic/frontend
 
 # Production stage
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
 # Copy built files
 COPY --from=builder /app/apps/frontend/build ./build
 COPY --from=builder /app/apps/frontend/package*.json ./
+
+# Create a modified package.json without the backend dependency
+RUN cat package.json | grep -v "@sistema-de-monitoria-ic/backend" > temp.json && \
+    mv temp.json package.json
 
 # Install production dependencies only
 RUN npm install --omit=dev

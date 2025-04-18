@@ -1,7 +1,8 @@
 import { env } from '@/config/env';
-// import { type AppType } from '@sistema-de-monitoria-ic/backend';
+import type { AppType as ImportedAppType } from '@sistema-de-monitoria-ic/backend';
 import axios from 'axios';
 import { hc } from 'hono/client';
+type AppType = ImportedAppType;
 
 const getBaseUrl = () => {
   return env.VITE_API_URL || '/';
@@ -17,7 +18,7 @@ export const axiosInstance = axios.create({
 });
 
 // Hono RPC client - Provides type safety based on backend routes
-export const apiClient = hc<any>(getBaseUrl(), {
+export const apiClient = hc<AppType>(getBaseUrl(), {
   fetch: async (input, requestInit, Env, executionCtx) => {
     try {
       const response = await fetch(input, {
