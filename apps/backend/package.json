@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch app/server.ts",
-    "build": "tsc --skipLibCheck",
+    "build": "tsup",
     "start": "node dist/server.js",
     "migration:gen": "drizzle-kit generate",
     "migration:run": "drizzle-kit migrate",
@@ -41,6 +41,7 @@
     "@types/bcryptjs": "^3.0.0",
     "@types/pg": "^8.11.11",
     "drizzle-kit": "^0.30.6",
+    "tsup": "^8.4.0",
     "tsx": "^4.19.2",
     "typescript": "^5.8.3",
     "vitest": "^1.5.0",

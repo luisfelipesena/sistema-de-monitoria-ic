@@ -1,10 +1,10 @@
-# Base image
+# Build stage
 FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy root and workspace package.json files and lockfile
 COPY package*.json ./
 COPY turbo.json ./
 COPY apps/backend/package*.json ./apps/backend/
@@ -12,30 +12,26 @@ COPY apps/backend/package*.json ./apps/backend/
 # Install dependencies
 RUN npm install
 
-# Copy backend source code
-COPY apps/backend ./apps/backend
+# Copy application code
+COPY apps ./apps
 
 # Build the backend
 RUN npm run build --workspace=@sistema-de-monitoria-ic/backend
 
-# Production image
+# Production stage
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy built files from builder stage
+# Copy built files
 COPY --from=builder /app/apps/backend/dist ./dist
 COPY --from=builder /app/apps/backend/package*.json ./
-COPY --from=builder /app/apps/backend/app/database/drizzle ./app/database/drizzle
-COPY --from=builder /app/apps/backend/app/config ./app/config
 
 # Install production dependencies only
 RUN npm install --omit=dev
 
-# Set environment variables
-ENV NODE_PATH=./dist
-
 # Expose the port
 EXPOSE 5000
 
-CMD ["node", "--es-module-specifier-resolution=node", "dist/app/server.js"] 
+# Start the server
+CMD ["npm", "run", "start"] 
