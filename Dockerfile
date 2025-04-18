@@ -1,61 +1,31 @@
-# === Base Node Stage ===
-FROM node:20-alpine AS base
+# Base image
+FROM node:20-alpine
+
+# Set working directory
 WORKDIR /app
-# Garantir uma versão específica do npm para evitar problemas de compatibilidade 
+
+# Apenas necessário caso queira garantir uma versão específica do npm
 RUN npm install -g npm@10.8.0
 
-# === Development Dependencies Stage ===
-# Install all dependencies needed for building
-FROM base AS development-dependencies-env
-# Copy root package files if they exist
+# Copy package files
 COPY package.json package-lock.json* ./
 COPY apps/frontend/package.json apps/frontend/package-lock.json* ./apps/frontend/
-WORKDIR /app/apps/frontend
-RUN npm install --ignore-scripts
 
-# === Build Stage ===
-# Build the frontend application
-FROM development-dependencies-env AS build-env
+# Install dependencies without running scripts
 WORKDIR /app
-# Copy the entire monorepo context first
+RUN npm ci --prefix apps/frontend --include-workspace-root --ignore-scripts
+
+# Copy application code
 COPY . .
-# Ensure backend shared types are available for the build
-# The path resolution in tsconfig should handle the rest
-WORKDIR /app/apps/frontend
-# Explicitly build only the frontend package using turbo filter
+
+# Build only the frontend application
 RUN npx turbo run build --filter=@sistema-de-monitoria-ic/frontend
 
-# === Production Dependencies Stage ===
-# Install only production dependencies (needed for vite preview)
-FROM base AS production-dependencies-env
-# Copy root package files if they exist
-COPY package.json package-lock.json* ./
-COPY apps/frontend/package.json apps/frontend/package-lock.json* ./apps/frontend/
-WORKDIR /app/apps/frontend
-# Need vite for preview, so install all deps, but could optimize later
-# if preview server has minimal deps
-RUN npm install --ignore-scripts
-
-# === Production Stage ===
-# Create the final production image
-FROM node:20-alpine AS production
-WORKDIR /app
-
-# Copy production node_modules
-COPY --from=production-dependencies-env /app/apps/frontend/node_modules ./apps/frontend/node_modules
-
-# Copy built application code
-COPY --from=build-env /app/apps/frontend/dist ./apps/frontend/dist
-
-# Copy necessary package files for running
-COPY apps/frontend/package.json ./apps/frontend/
-
+# Set working directory to frontend app
 WORKDIR /app/apps/frontend
 
-# Set environment variables if needed
-# ENV NODE_ENV=production
-# ENV VITE_API_URL=http://your-backend-url
-
+# Expose port
 EXPOSE 5000
 
+# Start the application
 CMD ["npm", "run", "start"] 
