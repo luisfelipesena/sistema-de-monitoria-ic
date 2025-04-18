@@ -7,7 +7,7 @@
     "dev": "vite",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "start": "vite preview --host 0.0.0.0 --port 5000",
+    "start": "vite preview --host 0.0.0.0 --port 5000 --strictPort false",
     "typecheck": "react-router typegen && tsc",
     "test": "vitest run"
   },
@@ -71,7 +71,8 @@
     "recharts": "^2.15.1",
     "sonner": "^2.0.2",
     "vaul": "^1.1.2",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "devDependencies": {
     "@sistema-de-monitoria-ic/backend": "*",
@@ -89,7 +90,6 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.7.3",
     "vite": "^5.4.14",
-    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^1.4.0"
   }
 }

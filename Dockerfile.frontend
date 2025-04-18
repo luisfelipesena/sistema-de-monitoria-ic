@@ -31,6 +31,7 @@ WORKDIR /app
 # Copy built files
 COPY --from=builder /app/apps/frontend/build ./build
 COPY --from=builder /app/apps/frontend/package*.json ./
+COPY --from=builder /app/apps/frontend/vite.config.ts ./
 
 # Create a modified package.json without the backend dependency
 RUN cat package.json | grep -v "@sistema-de-monitoria-ic/backend" > temp.json && \
