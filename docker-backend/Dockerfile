@@ -5,7 +5,8 @@ WORKDIR /app
 # === Development Dependencies Stage ===
 # Install all dependencies needed for building
 FROM base AS development-dependencies-env
-COPY package.json package-lock.json* ./  # Copy root package files if they exist
+# Copy root package files if they exist
+COPY package.json package-lock.json* ./
 COPY apps/backend/package.json apps/backend/package-lock.json* ./apps/backend/
 WORKDIR /app/apps/backend
 RUN npm install --ignore-scripts
@@ -23,7 +24,8 @@ RUN npx turbo run build --filter=@sistema-de-monitoria-ic/backend
 # === Production Dependencies Stage ===
 # Install only production dependencies
 FROM base AS production-dependencies-env
-COPY package.json package-lock.json* ./ # Copy root package files if they exist
+# Copy root package files if they exist
+COPY package.json package-lock.json* ./
 COPY apps/backend/package.json apps/backend/package-lock.json* ./apps/backend/
 WORKDIR /app/apps/backend
 RUN npm install --omit=dev --ignore-scripts

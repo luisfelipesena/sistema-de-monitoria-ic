@@ -5,7 +5,8 @@ WORKDIR /app
 # === Development Dependencies Stage ===
 # Install all dependencies needed for building
 FROM base AS development-dependencies-env
-COPY package.json package-lock.json* ./ # Copy root package files if they exist
+# Copy root package files if they exist
+COPY package.json package-lock.json* ./
 COPY apps/frontend/package.json apps/frontend/package-lock.json* ./apps/frontend/
 WORKDIR /app/apps/frontend
 RUN npm install --ignore-scripts
@@ -25,7 +26,8 @@ RUN npx turbo run build --filter=@sistema-de-monitoria-ic/frontend
 # === Production Dependencies Stage ===
 # Install only production dependencies (needed for vite preview)
 FROM base AS production-dependencies-env
-COPY package.json package-lock.json* ./ # Copy root package files if they exist
+# Copy root package files if they exist
+COPY package.json package-lock.json* ./
 COPY apps/frontend/package.json apps/frontend/package-lock.json* ./apps/frontend/
 WORKDIR /app/apps/frontend
 # Need vite for preview, so install all deps, but could optimize later
