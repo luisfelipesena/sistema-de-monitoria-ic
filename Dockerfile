@@ -4,25 +4,25 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY package.json ./
-COPY turbo.json ./
-COPY apps/frontend/package.json ./apps/frontend/
-
-# Install dependencies without running scripts
-RUN npm install --prefix apps/frontend --ignore-scripts
-
-# Copy application code
+# Copiar toda a base de código
 COPY . .
 
-# Build only the frontend application
-RUN npx turbo run build --filter=@sistema-de-monitoria-ic/frontend
+# Instalar dependências no root do projeto
+RUN npm install
 
-# Set working directory to frontend app
+# Instalar dependências do frontend
+WORKDIR /app/apps/frontend
+RUN npm install
+
+# Construir o frontend
+WORKDIR /app
+RUN npm run build --workspace=@sistema-de-monitoria-ic/frontend
+
+# Definir o diretório de trabalho para o frontend
 WORKDIR /app/apps/frontend
 
-# Expose port
+# Expor a porta
 EXPOSE 5000
 
-# Start the application
+# Iniciar o aplicativo
 CMD ["npm", "run", "start"] 
