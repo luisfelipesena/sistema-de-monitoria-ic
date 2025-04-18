@@ -10,12 +10,16 @@ echo "Criando diretório temporário em $TEMP_DIR"
 
 # Criando a estrutura correta para o Dockerfile
 echo "Criando estrutura de diretórios"
-mkdir -p $TEMP_DIR/apps/frontend
-mkdir -p $TEMP_DIR/packages
+mkdir -p $TEMP_DIR/apps
+cp -r apps/* $TEMP_DIR/apps/
+# Optional: Copy packages if needed by frontend build (e.g., shared ui, utils)
+# mkdir -p $TEMP_DIR/packages
+# cp -r packages/* $TEMP_DIR/packages/
 
 # Copiando apenas arquivos necessários do frontend
 echo "Copiando arquivos do frontend"
-cp -r apps/frontend/* $TEMP_DIR/apps/frontend/
+# No longer needed as apps/* is copied above
+# cp -r apps/frontend/* $TEMP_DIR/apps/frontend/
 cp Dockerfile.frontend $TEMP_DIR/Dockerfile
 cp package.json $TEMP_DIR/
 cp package-lock.json $TEMP_DIR/ 2>/dev/null || true

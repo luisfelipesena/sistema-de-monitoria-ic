@@ -4,16 +4,17 @@ FROM node:18-alpine AS builder
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and install dependencies
+# Copy root and workspace package.json files and lockfile
 COPY package*.json ./
 COPY turbo.json ./
+COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package*.json ./apps/frontend/
 
 # Install dependencies
 RUN npm install
 
 # Copy application code
-COPY apps/frontend ./apps/frontend
+COPY apps ./apps
 
 # Build the frontend
 RUN npm run build --workspace=@sistema-de-monitoria-ic/frontend
@@ -28,7 +29,7 @@ COPY --from=builder /app/apps/frontend/build ./build
 COPY --from=builder /app/apps/frontend/package*.json ./
 
 # Install production dependencies only
-RUN npm install --omit=dev
+RUN npm install --omit=dev --ignore-scripts
 
 # Expose the port
 EXPOSE 5000
