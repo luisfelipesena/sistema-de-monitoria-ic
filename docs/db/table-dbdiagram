@@ -1,0 +1,272 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+enum semestre_enum {
+    SEMESTRE_1
+    SEMESTRE_2
+}
+enum tipo_proposicao_enum {
+    INDIVIDUAL
+    COLETIVA
+}
+enum tipo_vaga_enum {
+    BOLSISTA
+    VOLUNTARIO
+} 
+enum projeto_status_enum {
+    SUBMETIDO
+    APROVADO
+    REPROVADO
+}
+enum genero_enum {
+    MASCULINO
+    FEMININO
+    OUTRO
+}
+enum regime_enum {
+    20H
+    40H
+    DE
+}
+enum tipo_inscricao_enum {
+    BOLSISTA
+    VOLUNTARIO
+    QUALQUER
+}
+enum status_inscricao_enum {
+    SUBMETIDO
+    INAPTO
+    APTO
+    SELECIONADO_BOLSISTA
+    SELECIONADO_VOLUNTARIO
+    APROVACAO_CONFIRMADA_BOLSISTA
+    APROVACAO_CONFIRMADA_VOLUNTARIO
+}
+
+enum user_role {
+    admin
+    monitor
+    student
+}
+
+Table departamento {
+  id integer [primary key]
+  unidade_universitaria varchar [null]
+  nome varchar [not null]
+  sigla varchar [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table projeto {
+  id integer [primary key]
+  data_aprovacao date [null]
+  departamento_id integer [not null]
+  ano integer [not null]
+  semestre semestre_enum [not null]
+  tipo_proposicao tipo_proposicao_enum [not null]
+  // professores
+  bolsas_solicitadas integer [not null]
+  voluntarios_solicitados integer [not null]
+  bolsas_atendidas integer [null]
+  voluntarios_atendidos integer [null]
+  carga_horaria_semana integer [not null]
+  numero_semanas integer [not null]
+  publico_alvo text [not null]
+  estimativa_pessoas_beneficiadas integer [null]
+  professor_responsavel_id integer [not null]
+  descricao text [not null]
+  status projeto_status_enum [not null, default: 'SUBMETIDO']
+  analise_submissao text [null]
+  documento_unique_id text [null]
+  assinatura_unique_id text [null]
+  validado bool [not null, default: false]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+Ref projeto_departamento: projeto.departamento_id > departamento.id
+
+Table projeto_disciplina {
+  id integer [primary key]
+  projeto_id integer [not null]
+  disciplina_id integer [not null]
+  created_at timestamp
+  deleted_at timestamp [null]
+}
+Ref projeto_disciplina_1: projeto_disciplina.projeto_id > projeto.id
+Ref projeto_disciplina_2: projeto_disciplina.disciplina_id > disciplina.id
+
+Table projeto_professor {
+  id integer [primary key]
+  projeto_id integer [not null]
+  professor_id integer [not null]
+  created_at timestamp
+  deleted_at timestamp [null]
+}
+Ref projeto_professor_1: projeto_professor.projeto_id > projeto.id
+Ref projeto_professor_2: projeto_professor.professor_id > professor.id
+
+Table atividade_projeto {
+  id integer [primary key]
+  projeto_id integer [not null]
+  descricao text [not null]
+  created_at timestamp
+  deleted_at timestamp [null]
+}
+Ref atividade_projeto_1: atividade_projeto.projeto_id > projeto.id
+
+Table professor {
+  id integer [primary key]
+  user_id text [not null]
+  departamento_id integer [not null]
+  nome_completo varchar [not null]
+  nome_social varchar [null]
+  matricula_siape varchar [not null]
+  genero genero_enum [not null]
+  regime regime_enum [not null]
+  especificacao_genero varchar [null]
+  cpf varchar [not null]
+  telefone varchar [null]
+  telefone_institucional varchar [null]
+  email_institucional varchar [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+Ref professor_departamento: professor.departamento_id > departamento.id
+Ref professor_user: professor.user_id > user.id
+
+Table disciplina {
+  id integer [primary key]
+  nome varchar
+  codigo varchar
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+Table aluno {
+  id integer [primary key]
+  user_id text [not null]
+  nome_completo varchar [not null]
+  nome_social varchar [null]
+  genero genero_enum [not null]
+  especificacao_genero varchar [null]
+  email_institucional varchar [not null]
+  matricula varchar [not null]
+  rg varchar [not null]
+  cpf varchar [not null]
+  CR float [not null]
+  telefone varchar [null]
+  endereco_id integer [null]
+  curso_id integer [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+Ref aluno_endereco: aluno.endereco_id > endereco.id
+Ref aluno_curso: aluno.curso_id > curso.id
+Ref aluno_user: aluno.user_id > user.id
+
+Table endereco{
+  id integer [primary key]
+  numero integer [null]
+  rua varchar [not null]
+  bairro varchar [not null]
+  cidade varchar [not null]
+  estado varchar [not null]
+  cep varchar [not null]
+  complemento varchar [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+
+Table curso {
+  id integer [primary key]
+  nome varchar [not null]
+  codigo integer [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table nota_aluno {
+  id integer [primary key]
+  aluno_id integer [not null]
+  codigo_disciplina varchar [not null]
+  nota float [not null]
+  ano integer [not null]
+  semestre semestre_enum [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+Ref notas_do_aluno: nota_aluno.aluno_id > aluno.id
+  
+Table processo_seletivo {
+  id integer [primary key]
+  projeto_id integer [not null]
+  vagas_bolsista integer [not null]
+  vagas_voluntario integer [not null]
+  edital_unique_id integer [null]
+  data_inicio date [not null]
+  data_final date [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+Ref processo_seletivo_projeto: processo_seletivo.projeto_id > projeto.id
+
+Table inscricao {
+  id integer [primary key]
+  processo_seletivo_id integer [not null]
+  aluno_id integer [not null]
+  tipo tipo_inscricao_enum
+  status status_inscricao_enum [not null]
+  nota_prova float [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+Ref inscricao_processo_seletivo: inscricao.processo_seletivo_id > processo_seletivo.id
+Ref inscricao_aluno: inscricao.aluno_id > aluno.id
+
+Table inscricao_documento {
+  id integer [primary key]
+  inscricao_id integer [not null]
+  documento_unique_id integer [not null]
+  validado bool [null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+Ref inscricao_documento_inscricao: inscricao_documento.inscricao_id > inscricao.id
+
+Table vaga {
+  id integer [primary key]
+  aluno_id integer [not null]
+  projeto_id integer [not null]
+  tipo tipo_vaga_enum [not null]
+  created_at timestamp
+  updated_at timestamp
+  deleted_at timestamp [null]
+}
+Ref vaga_aluno: vaga.aluno_id > aluno.id
+Ref vaga_projeto: vaga.projeto_id > projeto.id
+
+
+Table user {
+  id integer [primary key]
+  username text [not null, unique]
+  email text [not null, unique]
+  role user_role [not null, default: 'student']
+}
+
+Table session {
+  id text [primary key]
+  user_id text [not null]
+  expires_at timestamp [not null]
+}
+
+Ref session_user: session.user_id > user.id
