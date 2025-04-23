@@ -16,10 +16,10 @@ export default [
   // Protected routes
   route('home', 'components/auth/route-guard.tsx', [
     layout('routes/home/layout.tsx', [
-      index('./routes/home/index.tsx'),
-      route('profile', './routes/home/profile.tsx'),
-      route('projects', './routes/home/projects.tsx'),
-      route('settings', './routes/home/settings.tsx'),
+      index('routes/home/index.tsx'),
+      route('profile', 'routes/home/profile.tsx'),
+      route('projects', 'routes/home/projects.tsx'),
+      route('settings', 'routes/home/settings.tsx'),
     ]),
   ]),
 ] satisfies RouteConfig;
