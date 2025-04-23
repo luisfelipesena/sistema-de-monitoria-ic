@@ -10,8 +10,8 @@ export default function Root() {
   return (
     <html lang="pt-br">
       <head>
-        <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charSet="utf-8" />
         <title>Sistema de Monitoria IC</title>
       </head>
       <body>
