@@ -45,7 +45,7 @@ This project aims to create a web application to manage the workflow of the UFBA
 *   **Document Handling:**
     *   Uploads the initial (unsigned) project proposal document (PDF?).
     *   Handles the project proposal signing process (mechanism TBD - upload signed PDF or use integration like DocuSign/Docuseal).
-    *   Uploads the selection meeting minutes (`ata`) after the selection process.
+    *   Uploads the selection meeting minutes (`ata`) after the selection 
 *   **Vacancy Management:**
     *   Defines the number of volunteer (`voluntario`) vacancies desired for their approved projects.
 *   **Application & Selection:**
