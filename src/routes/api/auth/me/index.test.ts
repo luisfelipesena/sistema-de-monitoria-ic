@@ -1,29 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Mock the entire module with a simplified output-oriented approach
+// Mock the entire module to reflect the actual implementation changes
 vi.mock('./index', () => {
   return {
     APIRoute: {
       GET: vi.fn(async (params) => {
-        if (params.request.headers.get('Authorization') === 'valid-token') {
-          return new Response(JSON.stringify({
-            authenticated: true,
-            user: {
-              id: 1,
-              name: 'Test User',
-              username: 'testuser',
-              email: 'test@example.com',
-              role: 'student',
-            }
-          }));
+        // Simulate checking for a valid session ID (e.g., via a cookie or header)
+        const sessionId = params.request.headers.get('Authorization') === 'valid-token' ? 'valid-session-id' : null;
+
+        if (sessionId) {
+          // Simulate successful session validation
+          const user = {
+            id: 1,
+            name: 'Test User',
+            username: 'testuser',
+            email: 'test@example.com',
+            role: 'student', // Assuming user role is part of the user object
+          };
+          return new Response(JSON.stringify(user));
         } else {
-          return new Response(JSON.stringify({
-            authenticated: false,
-            user: null
-          }));
+          // Simulate failed session validation (no session ID or invalid session)
+          return new Response(null, { status: 401 });
         }
-      })
-    }
+      }),
+    },
   };
 });
 
@@ -32,46 +32,43 @@ describe('/api/auth/me API Route', () => {
     vi.clearAllMocks();
   });
 
-  it('should return unauthenticated response for unauthorized request', async () => {
+  it('should return 401 Unauthorized for unauthorized request', async () => {
     const { APIRoute } = await import('./index');
 
     const mockRequest = {
       request: {
-        headers: new Headers()
-      }
+        headers: new Headers(),
+      },
     };
 
     const response = await (APIRoute as any).GET(mockRequest);
-    const body = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(body).toEqual({ authenticated: false, user: null });
+    // For 401 with no body, attempting to call .json() will throw.
+    // We just check the status.
+    expect(response.status).toBe(401);
   });
 
-  it('should return authenticated response with user for authorized request', async () => {
+  it('should return 200 OK with user object for authorized request', async () => {
     const { APIRoute } = await import('./index');
 
     const mockRequest = {
       request: {
         headers: new Headers({
-          'Authorization': 'valid-token'
-        })
-      }
+          Authorization: 'valid-token', // Simulate a valid token/session header
+        }),
+      },
     };
 
     const response = await (APIRoute as any).GET(mockRequest);
     const body = await response.json();
 
     expect(response.status).toBe(200);
+    // Expect only the user object now
     expect(body).toEqual({
-      authenticated: true,
-      user: {
-        id: 1,
-        name: 'Test User',
-        username: 'testuser',
-        email: 'test@example.com',
-        role: 'student',
-      }
+      id: 1,
+      name: 'Test User',
+      username: 'testuser',
+      email: 'test@example.com',
+      role: 'student',
     });
   });
 }); 

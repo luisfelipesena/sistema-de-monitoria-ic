@@ -17,7 +17,6 @@ import {
   Link,
   Outlet,
   createFileRoute,
-  redirect,
   useLocation,
 } from '@tanstack/react-router';
 import {
@@ -39,7 +38,7 @@ function HomeLayoutComponent() {
 
   useEffect(() => {
     if (!user && !isLoading) {
-      redirect({ to: '/' });
+      signOut();
     }
   }, [user, isLoading]);
 

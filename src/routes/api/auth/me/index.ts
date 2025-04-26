@@ -12,17 +12,21 @@ export const APIRoute = createAPIFileRoute('/api/auth/me')({
     const { request: { headers } } = params;
     const sessionId = getSessionId(headers);
     if (!sessionId) {
-      return new Response(JSON.stringify({ authenticated: false, user: null }));
+      return new Response(null, { status: 401 });
     }
 
     const result = await lucia.validateSession(sessionId);
-    if (!result.session) {
-      return new Response(JSON.stringify({ authenticated: false, user: null }));
+    if (!result.session || !result.user) {
+      const sessionCookie = lucia.createBlankSessionCookie();
+      return new Response(null, {
+        status: 401,
+        headers: {
+          'Set-Cookie': sessionCookie.serialize(),
+        },
+      });
     }
 
-    const user = result.user
-
-    return new Response(JSON.stringify({ authenticated: true, user }));
+    return new Response(JSON.stringify(result.user));
   },
 });
 
