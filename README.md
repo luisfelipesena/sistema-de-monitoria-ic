@@ -17,8 +17,6 @@ Este projeto visa simplificar a gestão do Programa de Monitoria da UFBA. As fun
 - **Manuseio de Documentos:** Upload e armazenamento para propostas de projeto, editais oficiais e atas de seleção.
 - **Notificações:** Notificações por e-mail para eventos chave (planejado).
 
-Para uma descrição detalhada dos papéis e regras de negócio, veja [docs/project-description.mdc](./docs/project-description.mdc).
-
 ## Tecnologias Utilizadas (Tech Stack)
 
 - **Framework:** [React](https://react.dev/) via [Vinxi](https://vinxi.dev/) (servindo HTML, assets do cliente e API)
