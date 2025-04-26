@@ -1,5 +1,7 @@
 import { DefaultCatchBoundary } from '@/components/DefaultCatchBoundary';
 import { NotFound } from '@/components/NotFound';
+
+import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth';
 import appCss from '@/styles/app.css?url';
 import { seo } from '@/utils/seo';
@@ -92,6 +94,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {children}
         <TanStackRouterDevtools position="bottom-right" />
         <ReactQueryDevtools buttonPosition="bottom-left" />
+        <Toaster />
         <Scripts />
       </body>
     </html>

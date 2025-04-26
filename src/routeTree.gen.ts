@@ -13,25 +13,17 @@ import { createFileRoute } from '@tanstack/react-router'
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as RedirectImport } from './routes/redirect'
-import { Route as DeferredImport } from './routes/deferred'
-import { Route as PathlessLayoutImport } from './routes/_pathlessLayout'
 import { Route as IndexImport } from './routes/index'
-import { Route as HomeIndexImport } from './routes/home/index'
-import { Route as HomeSettingsImport } from './routes/home/settings'
-import { Route as HomeProjectsImport } from './routes/home/projects'
-import { Route as HomeProfileImport } from './routes/home/profile'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
-import { Route as AuthLayoutImport } from './routes/auth/_layout'
-import { Route as PathlessLayoutNestedLayoutImport } from './routes/_pathlessLayout/_nested-layout'
-import { Route as PathlessLayoutNestedLayoutRouteBImport } from './routes/_pathlessLayout/_nested-layout/route-b'
-import { Route as PathlessLayoutNestedLayoutRouteAImport } from './routes/_pathlessLayout/_nested-layout/route-a'
+import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
+import { Route as HomeLayoutSettingsIndexImport } from './routes/home/_layout/settings/index'
+import { Route as HomeLayoutProjectsIndexImport } from './routes/home/_layout/projects/index'
+import { Route as HomeLayoutProfileIndexImport } from './routes/home/_layout/profile/index'
 
 // Create Virtual Routes
 
 const HomeImport = createFileRoute('/home')()
-const AuthImport = createFileRoute('/auth')()
 
 // Create/Update Routes
 
@@ -41,57 +33,10 @@ const HomeRoute = HomeImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const AuthRoute = AuthImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const RedirectRoute = RedirectImport.update({
-  id: '/redirect',
-  path: '/redirect',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const DeferredRoute = DeferredImport.update({
-  id: '/deferred',
-  path: '/deferred',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const PathlessLayoutRoute = PathlessLayoutImport.update({
-  id: '/_pathlessLayout',
-  getParentRoute: () => rootRoute,
-} as any)
-
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
-} as any)
-
-const HomeIndexRoute = HomeIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => HomeRoute,
-} as any)
-
-const HomeSettingsRoute = HomeSettingsImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => HomeRoute,
-} as any)
-
-const HomeProjectsRoute = HomeProjectsImport.update({
-  id: '/projects',
-  path: '/projects',
-  getParentRoute: () => HomeRoute,
-} as any)
-
-const HomeProfileRoute = HomeProfileImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => HomeRoute,
 } as any)
 
 const HomeLayoutRoute = HomeLayoutImport.update({
@@ -100,36 +45,34 @@ const HomeLayoutRoute = HomeLayoutImport.update({
 } as any)
 
 const AuthCasCallbackRoute = AuthCasCallbackImport.update({
-  id: '/cas-callback',
-  path: '/cas-callback',
-  getParentRoute: () => AuthRoute,
+  id: '/auth/cas-callback',
+  path: '/auth/cas-callback',
+  getParentRoute: () => rootRoute,
 } as any)
 
-const AuthLayoutRoute = AuthLayoutImport.update({
-  id: '/_layout',
-  getParentRoute: () => AuthRoute,
+const HomeLayoutIndexRoute = HomeLayoutIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HomeLayoutRoute,
 } as any)
 
-const PathlessLayoutNestedLayoutRoute = PathlessLayoutNestedLayoutImport.update(
-  {
-    id: '/_nested-layout',
-    getParentRoute: () => PathlessLayoutRoute,
-  } as any,
-)
+const HomeLayoutSettingsIndexRoute = HomeLayoutSettingsIndexImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => HomeLayoutRoute,
+} as any)
 
-const PathlessLayoutNestedLayoutRouteBRoute =
-  PathlessLayoutNestedLayoutRouteBImport.update({
-    id: '/route-b',
-    path: '/route-b',
-    getParentRoute: () => PathlessLayoutNestedLayoutRoute,
-  } as any)
+const HomeLayoutProjectsIndexRoute = HomeLayoutProjectsIndexImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => HomeLayoutRoute,
+} as any)
 
-const PathlessLayoutNestedLayoutRouteARoute =
-  PathlessLayoutNestedLayoutRouteAImport.update({
-    id: '/route-a',
-    path: '/route-a',
-    getParentRoute: () => PathlessLayoutNestedLayoutRoute,
-  } as any)
+const HomeLayoutProfileIndexRoute = HomeLayoutProfileIndexImport.update({
+  id: '/profile/',
+  path: '/profile/',
+  getParentRoute: () => HomeLayoutRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -142,54 +85,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/_pathlessLayout': {
-      id: '/_pathlessLayout'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof PathlessLayoutImport
-      parentRoute: typeof rootRoute
-    }
-    '/deferred': {
-      id: '/deferred'
-      path: '/deferred'
-      fullPath: '/deferred'
-      preLoaderRoute: typeof DeferredImport
-      parentRoute: typeof rootRoute
-    }
-    '/redirect': {
-      id: '/redirect'
-      path: '/redirect'
-      fullPath: '/redirect'
-      preLoaderRoute: typeof RedirectImport
-      parentRoute: typeof rootRoute
-    }
-    '/_pathlessLayout/_nested-layout': {
-      id: '/_pathlessLayout/_nested-layout'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof PathlessLayoutNestedLayoutImport
-      parentRoute: typeof PathlessLayoutImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/_layout': {
-      id: '/auth/_layout'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthLayoutImport
-      parentRoute: typeof AuthRoute
-    }
     '/auth/cas-callback': {
       id: '/auth/cas-callback'
-      path: '/cas-callback'
+      path: '/auth/cas-callback'
       fullPath: '/auth/cas-callback'
       preLoaderRoute: typeof AuthCasCallbackImport
-      parentRoute: typeof AuthImport
+      parentRoute: typeof rootRoute
     }
     '/home': {
       id: '/home'
@@ -205,230 +106,138 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutImport
       parentRoute: typeof HomeRoute
     }
-    '/home/profile': {
-      id: '/home/profile'
-      path: '/profile'
-      fullPath: '/home/profile'
-      preLoaderRoute: typeof HomeProfileImport
-      parentRoute: typeof HomeImport
-    }
-    '/home/projects': {
-      id: '/home/projects'
-      path: '/projects'
-      fullPath: '/home/projects'
-      preLoaderRoute: typeof HomeProjectsImport
-      parentRoute: typeof HomeImport
-    }
-    '/home/settings': {
-      id: '/home/settings'
-      path: '/settings'
-      fullPath: '/home/settings'
-      preLoaderRoute: typeof HomeSettingsImport
-      parentRoute: typeof HomeImport
-    }
-    '/home/': {
-      id: '/home/'
+    '/home/_layout/': {
+      id: '/home/_layout/'
       path: '/'
       fullPath: '/home/'
-      preLoaderRoute: typeof HomeIndexImport
-      parentRoute: typeof HomeImport
+      preLoaderRoute: typeof HomeLayoutIndexImport
+      parentRoute: typeof HomeLayoutImport
     }
-    '/_pathlessLayout/_nested-layout/route-a': {
-      id: '/_pathlessLayout/_nested-layout/route-a'
-      path: '/route-a'
-      fullPath: '/route-a'
-      preLoaderRoute: typeof PathlessLayoutNestedLayoutRouteAImport
-      parentRoute: typeof PathlessLayoutNestedLayoutImport
+    '/home/_layout/profile/': {
+      id: '/home/_layout/profile/'
+      path: '/profile'
+      fullPath: '/home/profile'
+      preLoaderRoute: typeof HomeLayoutProfileIndexImport
+      parentRoute: typeof HomeLayoutImport
     }
-    '/_pathlessLayout/_nested-layout/route-b': {
-      id: '/_pathlessLayout/_nested-layout/route-b'
-      path: '/route-b'
-      fullPath: '/route-b'
-      preLoaderRoute: typeof PathlessLayoutNestedLayoutRouteBImport
-      parentRoute: typeof PathlessLayoutNestedLayoutImport
+    '/home/_layout/projects/': {
+      id: '/home/_layout/projects/'
+      path: '/projects'
+      fullPath: '/home/projects'
+      preLoaderRoute: typeof HomeLayoutProjectsIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
+    '/home/_layout/settings/': {
+      id: '/home/_layout/settings/'
+      path: '/settings'
+      fullPath: '/home/settings'
+      preLoaderRoute: typeof HomeLayoutSettingsIndexImport
+      parentRoute: typeof HomeLayoutImport
     }
   }
 }
 
 // Create and export the route tree
 
-interface PathlessLayoutNestedLayoutRouteChildren {
-  PathlessLayoutNestedLayoutRouteARoute: typeof PathlessLayoutNestedLayoutRouteARoute
-  PathlessLayoutNestedLayoutRouteBRoute: typeof PathlessLayoutNestedLayoutRouteBRoute
+interface HomeLayoutRouteChildren {
+  HomeLayoutIndexRoute: typeof HomeLayoutIndexRoute
+  HomeLayoutProfileIndexRoute: typeof HomeLayoutProfileIndexRoute
+  HomeLayoutProjectsIndexRoute: typeof HomeLayoutProjectsIndexRoute
+  HomeLayoutSettingsIndexRoute: typeof HomeLayoutSettingsIndexRoute
 }
 
-const PathlessLayoutNestedLayoutRouteChildren: PathlessLayoutNestedLayoutRouteChildren =
-  {
-    PathlessLayoutNestedLayoutRouteARoute:
-      PathlessLayoutNestedLayoutRouteARoute,
-    PathlessLayoutNestedLayoutRouteBRoute:
-      PathlessLayoutNestedLayoutRouteBRoute,
-  }
-
-const PathlessLayoutNestedLayoutRouteWithChildren =
-  PathlessLayoutNestedLayoutRoute._addFileChildren(
-    PathlessLayoutNestedLayoutRouteChildren,
-  )
-
-interface PathlessLayoutRouteChildren {
-  PathlessLayoutNestedLayoutRoute: typeof PathlessLayoutNestedLayoutRouteWithChildren
+const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
+  HomeLayoutIndexRoute: HomeLayoutIndexRoute,
+  HomeLayoutProfileIndexRoute: HomeLayoutProfileIndexRoute,
+  HomeLayoutProjectsIndexRoute: HomeLayoutProjectsIndexRoute,
+  HomeLayoutSettingsIndexRoute: HomeLayoutSettingsIndexRoute,
 }
 
-const PathlessLayoutRouteChildren: PathlessLayoutRouteChildren = {
-  PathlessLayoutNestedLayoutRoute: PathlessLayoutNestedLayoutRouteWithChildren,
-}
-
-const PathlessLayoutRouteWithChildren = PathlessLayoutRoute._addFileChildren(
-  PathlessLayoutRouteChildren,
+const HomeLayoutRouteWithChildren = HomeLayoutRoute._addFileChildren(
+  HomeLayoutRouteChildren,
 )
 
-interface AuthRouteChildren {
-  AuthLayoutRoute: typeof AuthLayoutRoute
-  AuthCasCallbackRoute: typeof AuthCasCallbackRoute
-}
-
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthLayoutRoute: AuthLayoutRoute,
-  AuthCasCallbackRoute: AuthCasCallbackRoute,
-}
-
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
 interface HomeRouteChildren {
-  HomeLayoutRoute: typeof HomeLayoutRoute
-  HomeProfileRoute: typeof HomeProfileRoute
-  HomeProjectsRoute: typeof HomeProjectsRoute
-  HomeSettingsRoute: typeof HomeSettingsRoute
-  HomeIndexRoute: typeof HomeIndexRoute
+  HomeLayoutRoute: typeof HomeLayoutRouteWithChildren
 }
 
 const HomeRouteChildren: HomeRouteChildren = {
-  HomeLayoutRoute: HomeLayoutRoute,
-  HomeProfileRoute: HomeProfileRoute,
-  HomeProjectsRoute: HomeProjectsRoute,
-  HomeSettingsRoute: HomeSettingsRoute,
-  HomeIndexRoute: HomeIndexRoute,
+  HomeLayoutRoute: HomeLayoutRouteWithChildren,
 }
 
 const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '': typeof PathlessLayoutNestedLayoutRouteWithChildren
-  '/deferred': typeof DeferredRoute
-  '/redirect': typeof RedirectRoute
-  '/auth': typeof AuthLayoutRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
-  '/home': typeof HomeLayoutRoute
-  '/home/profile': typeof HomeProfileRoute
-  '/home/projects': typeof HomeProjectsRoute
-  '/home/settings': typeof HomeSettingsRoute
-  '/home/': typeof HomeIndexRoute
-  '/route-a': typeof PathlessLayoutNestedLayoutRouteARoute
-  '/route-b': typeof PathlessLayoutNestedLayoutRouteBRoute
+  '/home': typeof HomeLayoutRouteWithChildren
+  '/home/': typeof HomeLayoutIndexRoute
+  '/home/profile': typeof HomeLayoutProfileIndexRoute
+  '/home/projects': typeof HomeLayoutProjectsIndexRoute
+  '/home/settings': typeof HomeLayoutSettingsIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '': typeof PathlessLayoutNestedLayoutRouteWithChildren
-  '/deferred': typeof DeferredRoute
-  '/redirect': typeof RedirectRoute
-  '/auth': typeof AuthLayoutRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
-  '/home': typeof HomeIndexRoute
-  '/home/profile': typeof HomeProfileRoute
-  '/home/projects': typeof HomeProjectsRoute
-  '/home/settings': typeof HomeSettingsRoute
-  '/route-a': typeof PathlessLayoutNestedLayoutRouteARoute
-  '/route-b': typeof PathlessLayoutNestedLayoutRouteBRoute
+  '/home': typeof HomeLayoutIndexRoute
+  '/home/profile': typeof HomeLayoutProfileIndexRoute
+  '/home/projects': typeof HomeLayoutProjectsIndexRoute
+  '/home/settings': typeof HomeLayoutSettingsIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/_pathlessLayout': typeof PathlessLayoutRouteWithChildren
-  '/deferred': typeof DeferredRoute
-  '/redirect': typeof RedirectRoute
-  '/_pathlessLayout/_nested-layout': typeof PathlessLayoutNestedLayoutRouteWithChildren
-  '/auth': typeof AuthRouteWithChildren
-  '/auth/_layout': typeof AuthLayoutRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeRouteWithChildren
-  '/home/_layout': typeof HomeLayoutRoute
-  '/home/profile': typeof HomeProfileRoute
-  '/home/projects': typeof HomeProjectsRoute
-  '/home/settings': typeof HomeSettingsRoute
-  '/home/': typeof HomeIndexRoute
-  '/_pathlessLayout/_nested-layout/route-a': typeof PathlessLayoutNestedLayoutRouteARoute
-  '/_pathlessLayout/_nested-layout/route-b': typeof PathlessLayoutNestedLayoutRouteBRoute
+  '/home/_layout': typeof HomeLayoutRouteWithChildren
+  '/home/_layout/': typeof HomeLayoutIndexRoute
+  '/home/_layout/profile/': typeof HomeLayoutProfileIndexRoute
+  '/home/_layout/projects/': typeof HomeLayoutProjectsIndexRoute
+  '/home/_layout/settings/': typeof HomeLayoutSettingsIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | ''
-    | '/deferred'
-    | '/redirect'
-    | '/auth'
     | '/auth/cas-callback'
     | '/home'
+    | '/home/'
     | '/home/profile'
     | '/home/projects'
     | '/home/settings'
-    | '/home/'
-    | '/route-a'
-    | '/route-b'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | ''
-    | '/deferred'
-    | '/redirect'
-    | '/auth'
     | '/auth/cas-callback'
     | '/home'
     | '/home/profile'
     | '/home/projects'
     | '/home/settings'
-    | '/route-a'
-    | '/route-b'
   id:
     | '__root__'
     | '/'
-    | '/_pathlessLayout'
-    | '/deferred'
-    | '/redirect'
-    | '/_pathlessLayout/_nested-layout'
-    | '/auth'
-    | '/auth/_layout'
     | '/auth/cas-callback'
     | '/home'
     | '/home/_layout'
-    | '/home/profile'
-    | '/home/projects'
-    | '/home/settings'
-    | '/home/'
-    | '/_pathlessLayout/_nested-layout/route-a'
-    | '/_pathlessLayout/_nested-layout/route-b'
+    | '/home/_layout/'
+    | '/home/_layout/profile/'
+    | '/home/_layout/projects/'
+    | '/home/_layout/settings/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PathlessLayoutRoute: typeof PathlessLayoutRouteWithChildren
-  DeferredRoute: typeof DeferredRoute
-  RedirectRoute: typeof RedirectRoute
-  AuthRoute: typeof AuthRouteWithChildren
+  AuthCasCallbackRoute: typeof AuthCasCallbackRoute
   HomeRoute: typeof HomeRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PathlessLayoutRoute: PathlessLayoutRouteWithChildren,
-  DeferredRoute: DeferredRoute,
-  RedirectRoute: RedirectRoute,
-  AuthRoute: AuthRouteWithChildren,
+  AuthCasCallbackRoute: AuthCasCallbackRoute,
   HomeRoute: HomeRouteWithChildren,
 }
 
@@ -443,88 +252,47 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/_pathlessLayout",
-        "/deferred",
-        "/redirect",
-        "/auth",
+        "/auth/cas-callback",
         "/home"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/_pathlessLayout": {
-      "filePath": "_pathlessLayout.tsx",
-      "children": [
-        "/_pathlessLayout/_nested-layout"
-      ]
-    },
-    "/deferred": {
-      "filePath": "deferred.tsx"
-    },
-    "/redirect": {
-      "filePath": "redirect.tsx"
-    },
-    "/_pathlessLayout/_nested-layout": {
-      "filePath": "_pathlessLayout/_nested-layout.tsx",
-      "parent": "/_pathlessLayout",
-      "children": [
-        "/_pathlessLayout/_nested-layout/route-a",
-        "/_pathlessLayout/_nested-layout/route-b"
-      ]
-    },
-    "/auth": {
-      "filePath": "auth",
-      "children": [
-        "/auth/_layout",
-        "/auth/cas-callback"
-      ]
-    },
-    "/auth/_layout": {
-      "filePath": "auth/_layout.tsx",
-      "parent": "/auth"
-    },
     "/auth/cas-callback": {
-      "filePath": "auth/cas-callback.tsx",
-      "parent": "/auth"
+      "filePath": "auth/cas-callback.tsx"
     },
     "/home": {
       "filePath": "home",
       "children": [
-        "/home/_layout",
-        "/home/profile",
-        "/home/projects",
-        "/home/settings",
-        "/home/"
+        "/home/_layout"
       ]
     },
     "/home/_layout": {
       "filePath": "home/_layout.tsx",
-      "parent": "/home"
+      "parent": "/home",
+      "children": [
+        "/home/_layout/",
+        "/home/_layout/profile/",
+        "/home/_layout/projects/",
+        "/home/_layout/settings/"
+      ]
     },
-    "/home/profile": {
-      "filePath": "home/profile.tsx",
-      "parent": "/home"
+    "/home/_layout/": {
+      "filePath": "home/_layout/index.tsx",
+      "parent": "/home/_layout"
     },
-    "/home/projects": {
-      "filePath": "home/projects.tsx",
-      "parent": "/home"
+    "/home/_layout/profile/": {
+      "filePath": "home/_layout/profile/index.tsx",
+      "parent": "/home/_layout"
     },
-    "/home/settings": {
-      "filePath": "home/settings.tsx",
-      "parent": "/home"
+    "/home/_layout/projects/": {
+      "filePath": "home/_layout/projects/index.tsx",
+      "parent": "/home/_layout"
     },
-    "/home/": {
-      "filePath": "home/index.tsx",
-      "parent": "/home"
-    },
-    "/_pathlessLayout/_nested-layout/route-a": {
-      "filePath": "_pathlessLayout/_nested-layout/route-a.tsx",
-      "parent": "/_pathlessLayout/_nested-layout"
-    },
-    "/_pathlessLayout/_nested-layout/route-b": {
-      "filePath": "_pathlessLayout/_nested-layout/route-b.tsx",
-      "parent": "/_pathlessLayout/_nested-layout"
+    "/home/_layout/settings/": {
+      "filePath": "home/_layout/settings/index.tsx",
+      "parent": "/home/_layout"
     }
   }
 }
