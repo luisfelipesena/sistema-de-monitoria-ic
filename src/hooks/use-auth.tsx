@@ -43,8 +43,9 @@ interface AuthContextProps extends AuthState {
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [internalUser, setInternalUser] = useState<User | null>(null);
-  const [isInternalLoading, setIsInternalLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const queryClient = useQueryClient();
   const isHydrated = useHydrated();
@@ -61,29 +62,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const res = await fetchApi('/auth/me');
         if (!res.ok) {
           if (res.status === 401) {
-            setInternalUser(null);
+            setUser(null);
             return null;
           }
           throw new Error(`Failed to fetch user: ${res.status}`);
         }
         const data = await res.json();
-        setInternalUser(data.user);
+        setUser(data);
+        setIsAuthenticated(true);
         return data;
       } catch (error) {
-        setInternalUser(null);
+        setUser(null);
+        setIsAuthenticated(false);
         return null;
       } finally {
-        setIsInternalLoading(false);
+        setIsLoading(false);
       }
     },
     staleTime: 5 * 60 * 1000,
     retry: false,
     enabled: isHydrated,
   });
-
-  const isLoading = queryLoading || isInternalLoading;
-  const user = queryData?.user ?? internalUser;
-  const isAuthenticated = !!user && !isLoading;
 
   const signIn = useCallback(() => {
     if (user) {
@@ -94,18 +93,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, router]);
 
   const signOut = useCallback(async () => {
-    setIsInternalLoading(true);
+    setIsLoading(true);
     try {
       await fetchApi('/auth/signout');
-      setInternalUser(null);
+      setUser(null);
       await queryClient.invalidateQueries({ queryKey: ['authUser'] });
-      await queryClient.setQueryData(['authUser'], null);
       router.navigate({ to: '/' });
     } catch (error) {
-      setInternalUser(null);
-      await queryClient.setQueryData(['authUser'], null);
+      setUser(null);
+      await queryClient.invalidateQueries({ queryKey: ['authUser'] });
     } finally {
-      setIsInternalLoading(false);
+      setIsLoading(false);
+      setIsAuthenticated(false);
     }
   }, [queryClient, router]);
 

@@ -8,8 +8,8 @@ const log = logger.child({
 export class CasLoginService {
   getRedirectUrl() {
     const casServerUrlPrefix = env.CAS_SERVER_URL_PREFIX
-    const clientUrl = env.CLIENT_URL
-    const serviceUrl = `${clientUrl}/auth/cas-callback`
+    const serverUrl = env.SERVER_URL
+    const serviceUrl = `${serverUrl}/auth/cas-callback`
     const redirectUrl = `${casServerUrlPrefix}/login?service=${encodeURIComponent(serviceUrl)}`
 
     return redirectUrl

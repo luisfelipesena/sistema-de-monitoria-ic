@@ -96,15 +96,13 @@ export class CasCallbackService {
     const clientUrl = env.CLIENT_URL;
     const session = await lucia.createSession(userId, {});
     const sessionCookie = lucia.createSessionCookie(session.id);
-
     log.info(`Session created: ${session.id}`);
-    const cookieString = `${sessionCookie.name}=${sessionCookie.value}; Path=${sessionCookie.attributes.path}; ${sessionCookie.attributes.httpOnly ? 'HttpOnly;' : ''} ${sessionCookie.attributes.secure ? 'Secure;' : ''} SameSite=${sessionCookie.attributes.sameSite}`;
 
     return new Response(null, {
       status: 302,
       headers: {
         Location: `${clientUrl}/auth/cas-callback`,
-        'Set-Cookie': cookieString,
+        'Set-Cookie': sessionCookie.serialize(),
       },
     });
   }

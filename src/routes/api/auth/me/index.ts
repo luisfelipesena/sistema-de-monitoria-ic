@@ -11,22 +11,27 @@ export const APIRoute = createAPIFileRoute('/api/auth/me')({
   GET: async (params) => {
     const { request: { headers } } = params;
     const sessionId = getSessionId(headers);
+    log.info({ sessionId }, 'Session ID');
     if (!sessionId) {
       return new Response(null, { status: 401 });
     }
 
-    const result = await lucia.validateSession(sessionId);
-    if (!result.session || !result.user) {
-      const sessionCookie = lucia.createBlankSessionCookie();
-      return new Response(null, {
-        status: 401,
-        headers: {
-          'Set-Cookie': sessionCookie.serialize(),
-        },
-      });
-    }
+    try {
+      const result = await lucia.validateSession(sessionId);
+      if (!result.session || !result.user) {
+        const sessionCookie = lucia.createBlankSessionCookie();
+        return new Response(null, {
+          status: 401,
+          headers: {
+            'Set-Cookie': sessionCookie.serialize(),
+          },
+        });
+      }
 
-    return new Response(JSON.stringify(result.user));
+      return new Response(JSON.stringify(result.user));
+    } catch (error) {
+      return new Response(null, { status: 401 });
+    }
   },
 });
 

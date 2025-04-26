@@ -2,8 +2,8 @@
 
 import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '@/hooks/use-auth';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
 
 export const Route = createFileRoute('/auth/cas-callback')({
   component: CasCallbackPage,
@@ -11,41 +11,20 @@ export const Route = createFileRoute('/auth/cas-callback')({
 
 function CasCallbackPage() {
   const navigate = useNavigate();
-  const { refetchUser, isLoading: isAuthLoading } = useAuth();
-  const [error, setError] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(true);
+  const { isLoading, user } = useAuth();
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function handleAuth() {
-      try {
-        const result = await refetchUser();
-        if (!isMounted) return;
-        if (result.status === 'success') {
-          navigate({ to: '/home', replace: true });
-        } else {
-          setError(
-            result.error?.message ||
-              'Falha na autenticação. Seu login não pôde ser completado.',
-          );
-          setIsProcessing(false);
-        }
-      } catch (err: any) {
-        if (!isMounted) return;
-        setError(err.message || 'Erro ao processar autenticação UFBA');
-        setIsProcessing(false);
-      }
+    if (isLoading) {
+      return;
     }
 
-    handleAuth();
+    if (!user) {
+      navigate({ to: '/', replace: true });
+      return;
+    }
 
-    return () => {
-      isMounted = false;
-    };
-  }, [navigate, refetchUser]);
-
-  const isLoading = isAuthLoading || isProcessing;
+    navigate({ to: '/home', replace: true });
+  }, [user, isLoading]);
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-background">
@@ -60,16 +39,6 @@ function CasCallbackPage() {
               <p className="mt-2 text-sm text-muted-foreground">
                 Você será redirecionado automaticamente.
               </p>
-            </div>
-          ) : error ? (
-            <div className="py-4">
-              <p className="mb-4 font-medium text-destructive">{error}</p>
-              <Link
-                to="/"
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-              >
-                Ir para a página inicial
-              </Link>
             </div>
           ) : (
             <div className="py-8 text-center">

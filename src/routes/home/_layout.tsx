@@ -26,21 +26,23 @@ import {
   Settings,
   User,
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export const Route = createFileRoute('/home/_layout')({
   component: HomeLayoutComponent,
 });
 
 function HomeLayoutComponent() {
-  const { user, isLoading, signOut } = useAuth();
+  const { user, isLoading, signOut, isAuthenticated } = useAuth();
   const location = useLocation();
+  const [isSignedOut, setIsSignedOut] = useState(false);
 
   useEffect(() => {
-    if (!user && !isLoading) {
+    if (!user && !isSignedOut) {
       signOut();
+      setIsSignedOut(true);
     }
-  }, [user, isLoading]);
+  }, [user, isSignedOut]);
 
   return (
     <SidebarProvider>
@@ -112,7 +114,13 @@ function HomeLayoutComponent() {
           )}
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={signOut} tooltip="Sair">
+              <SidebarMenuButton
+                onClick={() => {
+                  setIsSignedOut(true);
+                  signOut();
+                }}
+                tooltip="Sair"
+              >
                 <LogOut />
                 <span>Sair</span>
               </SidebarMenuButton>
