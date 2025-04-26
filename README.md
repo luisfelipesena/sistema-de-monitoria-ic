@@ -1,72 +1,59 @@
-# Welcome to TanStack.com!
+# Sistema de Monitoria IC
 
-This site is built with TanStack Router!
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-- [TanStack Router Docs](https://tanstack.com/router)
+Aplicação web para gerenciar o fluxo de trabalho do Programa de Monitoria da UFBA, desde a proposta de projetos pelos professores até a inscrição e seleção de alunos, incluindo o manuseio de documentos e notificações.
 
-It's deployed automagically with Netlify!
+Construído com [Vinxi](https://vinxi.dev/), [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [TanStack Router](https://tanstack.com/router/latest), [TanStack Query](https://tanstack.com/query/latest), [Drizzle ORM](https://orm.drizzle.team/) e [Lucia Auth](https://lucia-auth.com/).
 
-- [Netlify](https://netlify.com/)
+## Visão Geral
 
-## Development
+Este projeto visa simplificar a gestão do Programa de Monitoria da UFBA. As funcionalidades chave incluem:
 
-From your terminal:
+- **Gerenciamento de Projetos:** Professores propõem, gerenciam e submetem projetos de monitoria. Administradores revisam e aprovam/rejeitam projetos.
+- **Papéis de Usuário:** Papéis distintos para Administradores, Professores e Alunos com permissões específicas.
+- **Fluxo de Inscrição:** Alunos se inscrevem para vagas de monitoria durante períodos definidos. Professores selecionam candidatos.
+- **Gerenciamento de Vagas:** Administradores definem vagas de bolsista, Professores definem vagas de voluntário.
+- **Manuseio de Documentos:** Upload e armazenamento para propostas de projeto, editais oficiais e atas de seleção.
+- **Notificações:** Notificações por e-mail para eventos chave (planejado).
 
-```sh
-pnpm install
-pnpm dev
-```
+Para uma descrição detalhada dos papéis e regras de negócio, veja [docs/project-description.mdc](./docs/project-description.mdc).
 
-This starts your app in development mode, rebuilding assets on file changes.
+## Tecnologias Utilizadas (Tech Stack)
 
-## Editing and previewing the docs of TanStack projects locally
+- **Framework:** [React](https://react.dev/) via [Vinxi](https://vinxi.dev/) (servindo HTML, assets do cliente e API)
+- **Linguagem:** [TypeScript](https://www.typescriptlang.org/)
+- **Roteamento:** [TanStack Router](https://tanstack.com/router/latest)
+- **API & Estado do Servidor:** [TanStack Query](https://tanstack.com/query/latest)
+- **ORM de Banco de Dados:** [Drizzle ORM](https://orm.drizzle.team/) com PostgreSQL
+- **Autenticação:** [Lucia Auth](https://lucia-auth.com/)
+- **Componentes de UI:** [shadcn/ui](https://ui.shadcn.com/)
+- **Estilização:** [Tailwind CSS](https://tailwindcss.com/)
+- **Banco de Dados:** PostgreSQL (gerenciado via Docker)
 
-The documentations for all TanStack projects except for `React Charts` are hosted on [https://tanstack.com](https://tanstack.com), powered by this TanStack Router app.
-In production, the markdown doc pages are fetched from the GitHub repos of the projects, but in development they are read from the local file system.
+Para mais detalhes sobre as bibliotecas escolhidas, veja [docs/tech-stack-plan.md](./docs/tech-stack-plan.md).
 
-Follow these steps if you want to edit the doc pages of a project (in these steps we'll assume it's [`TanStack/form`](https://github.com/tanstack/form)) and preview them locally :
+## Como Começar
 
-1. Create a new directory called `tanstack`.
+Para configurar o projeto localmente, siga os passos no [Guia de Configuração Local](./docs/setup-guide.md).
 
-```sh
-mkdir tanstack
-```
+## Plano de Desenvolvimento
 
-2. Enter the directory and clone this repo and the repo of the project there.
+O desenvolvimento está planejado em fases. Você pode encontrar o detalhamento no [Plano de Desenvolvimento](./docs/plan.md).
 
-```sh
-cd tanstack
-git clone git@github.com:TanStack/tanstack.com.git
-git clone git@github.com:TanStack/form.git
-```
+## Comandos de Desenvolvimento
 
-> [!NOTE]
-> Your `tanstack` directory should look like this:
->
-> ```
-> tanstack/
->    |
->    +-- form/
->    |
->    +-- tanstack.com/
-> ```
+- `npm install`: Instala as dependências.
+- `npm run dev`: Inicia o servidor de desenvolvimento (frontend & backend).
+- `npm run build`: Compila a aplicação para produção.
+- `npm run start`: Executa a build de produção localmente.
+- `npm run db:generate`: Gera arquivos de migração do Drizzle ORM com base nas mudanças do schema.
+- `npm run db:migrate`: Aplica as migrações pendentes do banco de dados.
+- `npm run db:studio`: Abre o Drizzle Studio para inspecionar o banco de dados.
+- `npm run docker:up`: Inicia o contêiner do banco de dados PostgreSQL.
+- `npm run docker:down`: Para e remove o contêiner do banco de dados PostgreSQL.
+- `npm run docker:clean`: Para, remove o contêiner e exclui o volume de dados (use com cuidado).
 
-> [!WARNING]
-> Make sure the name of the directory in your local file system matches the name of the project's repo. For example, `tanstack/form` must be cloned into `form` (this is the default) instead of `some-other-name`, because that way, the doc pages won't be found.
+## Contribuindo
 
-3. Enter the `tanstack/tanstack.com` directory, install the dependencies and run the app in dev mode:
-
-```sh
-cd tanstack.com
-pnpm i
-# The app will run on https://localhost:3000 by default
-pnpm dev
-```
-
-4. Now you can visit http://localhost:3000/form/latest/docs/overview in the browser and see the changes you make in `tanstack/form/docs`.
-
-> [!NOTE]
-> The updated pages need to be manually reloaded in the browser.
-
-> [!WARNING]
-> You will need to update the `docs/config.json` file (in the project's repo) if you add a new doc page!
+Por favor, consulte as diretrizes de desenvolvimento de código e convenções de mensagens de commit do projeto ao contribuir. (Detalhes podem ser adicionados posteriormente).

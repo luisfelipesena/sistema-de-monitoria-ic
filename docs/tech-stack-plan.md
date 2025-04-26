@@ -1,137 +1,102 @@
 # Planejamento de Bibliotecas Frontend (React) - Sistema de Monitoria IC
 
-Este documento detalha as bibliotecas Javascript/React recomendadas para o frontend (`@frontend/`) do Sistema de Monitoria IC, com foco nos requisitos de manipulação de documentos Excel, fluxo de assinatura digital e disparo de emails (via backend), conforme as necessidades levantadas.
+Este documento detalha as bibliotecas Javascript/React recomendadas e utilizadas no Sistema de Monitoria IC, com foco nos requisitos atuais e funcionalidades planejadas, como manipulação de documentos e disparo de emails (via backend).
 
-## Stack Principal Existente
+## Stack Principal Utilizada
 
-O frontend já utiliza uma base moderna que será mantida:
+A aplicação utiliza uma base moderna:
 
-*   **Framework:** React
-*   **Build Tool:** Vite
-*   **Linguagem:** TypeScript
-*   **Estilização:** Tailwind CSS
-*   **Componentes UI:** shadcn/ui (baseado em Radix UI & Tailwind)
-*   **Roteamento:** React Router
+- **Framework:** React
+- **Build Tool / Server:** Vinxi
+- **Linguagem:** TypeScript
+- **Estilização:** Tailwind CSS
+- **Componentes UI:** shadcn/ui (baseado em Radix UI & Tailwind)
+- **Roteamento:** TanStack Router
+- **ORM / Banco de Dados:** Drizzle ORM / PostgreSQL
+- **Autenticação:** Lucia Auth
 
-## Bibliotecas Adicionais Recomendadas
+## Bibliotecas Adicionais Utilizadas / Planejadas
 
-Abaixo estão as bibliotecas propostas para adicionar funcionalidades específicas:
+Abaixo estão as bibliotecas chave para funcionalidades específicas:
 
 ### 1. Comunicação com API e Gerenciamento de Estado do Servidor
 
-*   **Biblioteca:** **TanStack Query (React Query)** (`@tanstack/react-query`)
-*   **Propósito:** Essencial para buscar, armazenar em cache, sincronizar e atualizar dados do servidor (backend). Simplifica o tratamento de estados de loading, erro, e revalidação de dados.
-*   **Passo a Passo:**
-    1.  Instalar: `pnpm add @tanstack/react-query`
-    2.  Configurar um `QueryClientProvider` na raiz da aplicação (ex: `app/main.tsx` ou `app/app.tsx`).
-    3.  Usar hooks como `useQuery` para buscar dados (ex: listar projetos, disciplinas) e `useMutation` para enviar dados (ex: criar projeto, submeter inscrição).
-*   **Observação:** Pode ser usado em conjunto com `fetch` nativo ou `axios` para realizar as requisições HTTP.
+- **Biblioteca:** **TanStack Query (React Query)** (`@tanstack/react-query`)
+- **Propósito:** Essencial para buscar, armazenar em cache, sincronizar e atualizar dados da API interna (servida pelo Vinxi). Simplifica o tratamento de estados de loading, erro, e revalidação de dados.
+- **Passo a Passo:**
+  1.  Instalar: `npm install @tanstack/react-query` (Já instalado)
+  2.  Configurar um `QueryClientProvider` na raiz da aplicação (ex: `src/client.tsx` ou onde a raiz do React é renderizada).
+  3.  Usar hooks como `useQuery` para buscar dados (ex: listar projetos, disciplinas) e `useMutation` para enviar dados (ex: criar projeto, submeter inscrição) chamando os endpoints da API interna.
+- **Observação:** A comunicação com a API interna é feita geralmente através de `fetch` dentro dos hooks do TanStack Query.
 
-### 2. Gerenciamento de Estado Global do Cliente
+### 2. Formulários (Planejado/Recomendado)
 
-*   **Biblioteca:** **Zustand** (`zustand`)
-*   **Propósito:** Para gerenciar estados globais da interface que não vêm diretamente do servidor ou que precisam ser compartilhados entre componentes não relacionados (ex: estado de modais, informações do usuário logado que não mudam frequentemente).
-*   **Alternativas:** React Context (para casos simples), Redux Toolkit, Jotai.
-*   **Porquê Zustand?** Oferece uma API simples, mínima boilerplate, e bom desempenho.
-*   **Passo a Passo:**
-    1.  Instalar: `pnpm add zustand`
-    2.  Criar "stores" para agrupar estados relacionados (ex: `useAuthStore`, `useUINotificationStore`).
-    3.  Usar o hook gerado pela store nos componentes que precisam acessar ou modificar o estado.
+- **Bibliotecas:** **React Hook Form** (`react-hook-form`) & **Zod** (`zod`)
+- **Propósito:**
+  - `react-hook-form`: Gerenciamento eficiente e performático de formulários complexos, controle de validação e submissão.
+  - `zod`: Definição de schemas para validação de dados (tanto no frontend quanto potencialmente no backend, nos handlers da API). Excelente integração com TypeScript.
+- **Integração:** `shadcn/ui` é projetado para funcionar bem com React Hook Form.
+- **Status Atual:** **Não instaladas.** Se/quando necessário para formulários complexos:
+- **Passo a Passo (se implementado):**
+  1.  Instalar: `npm install react-hook-form zod @hookform/resolvers` (o último é para integrar Zod).
+  2.  Definir schemas de validação com `zod` para cada formulário.
+  3.  Usar o hook `useForm` do `react-hook-form`, passando o resolver do Zod.
+  4.  Integrar com os componentes de formulário do `shadcn/ui` (`Form`, `FormField`, etc. - verificar documentação `shadcn/ui`).
 
-### 3. Formulários
+### 3. Manipulação de Arquivos Excel (.xlsx) (Planejado)
 
-*   **Biblioteca:** **React Hook Form** (`react-hook-form`) & **Zod** (`zod`)
-*   **Propósito:**
-    *   `react-hook-form`: Gerenciamento eficiente e performático de formulários complexos, controle de validação e submissão.
-    *   `zod`: Definição de schemas para validação de dados (tanto no frontend quanto potencialmente no backend, se usar tRPC ou compartilhar tipos). Excelente integração com TypeScript.
-*   **Integração:** `shadcn/ui` é projetado para funcionar bem com React Hook Form.
-*   **Passo a Passo:**
-    1.  Instalar: `pnpm add react-hook-form zod @hookform/resolvers` (o último é para integrar Zod).
-    2.  Definir schemas de validação com `zod` para cada formulário (ex: schema para criação de projeto).
-    3.  Usar o hook `useForm` do `react-hook-form`, passando o resolver do Zod.
-    4.  Integrar com os componentes de formulário do `shadcn/ui` (`Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormDescription`, `FormMessage`).
+- **Biblioteca:** **SheetJS (xlsx)** (`xlsx`)
+- **Propósito:** Ler dados de arquivos Excel enviados pelo usuário (upload) ou gerar arquivos Excel para download no navegador.
+- **Contexto:** Necessário para gerar as planilhas solicitadas (ex: Planilha final de detalhamento por departamento, Planilha de vagas).
+- **Status Atual:** **Não instalada.** Se/quando necessário:
+- **Passo a Passo (Geração/Download - se implementado):**
+  1.  Instalar: `npm install xlsx file-saver` (e `npm install -D @types/file-saver`).
+  2.  Formatar os dados da aplicação (ex: lista de projetos, vagas).
+  3.  Usar funções como `XLSX.utils.json_to_sheet`.
+  4.  Criar um "workbook" e adicionar a planilha.
+  5.  Usar `XLSX.write` com `file-saver` (`saveAs(blob, "nome_arquivo.xlsx")`) para iniciar o download.
+- **Passo a Passo (Leitura/Upload - se implementado):**
+  1.  Instalar: `npm install xlsx`.
+  2.  Obter o `File` object do input de upload.
+  3.  Ler o conteúdo do arquivo como um ArrayBuffer.
+  4.  Usar `XLSX.read(arrayBuffer, {type: 'buffer'})` para parsear.
+  5.  Converter para JSON usando `XLSX.utils.sheet_to_json`.
 
-### 4. Manipulação de Arquivos Excel (.xlsx)
+### 4. Fluxo de Assinatura de Documentos (Planejado)
 
-*   **Biblioteca:** **SheetJS (xlsx)** (`xlsx`)
-*   **Propósito:** Ler dados de arquivos Excel enviados pelo usuário (upload) ou gerar arquivos Excel para download no navegador.
-*   **Contexto:** Necessário para gerar as planilhas solicitadas (ex: Planilha final de detalhamento por departamento, Planilha de vagas).
-*   **Passo a Passo (Geração/Download):**
-    1.  Instalar: `pnpm add xlsx`
-    2.  Formatar os dados da aplicação (ex: lista de projetos, vagas) em uma estrutura que a biblioteca entenda (array de arrays ou array de objetos).
-    3.  Usar funções como `XLSX.utils.json_to_sheet` ou `XLSX.utils.aoa_to_sheet` para criar uma planilha.
-    4.  Criar um "workbook" e adicionar a planilha a ele.
-    5.  Usar `XLSX.writeFile` ou `XLSX.write` (com `file-saver` - veja abaixo) para iniciar o download no navegador.
-*   **Passo a Passo (Leitura/Upload):**
-    1.  Instalar: `pnpm add xlsx` (se ainda não instalado).
-    2.  Obter o `File` object do input de upload.
-    3.  Ler o conteúdo do arquivo como um ArrayBuffer.
-    4.  Usar `XLSX.read(arrayBuffer, {type: 'buffer'})` para parsear o arquivo.
-    5.  Acessar as planilhas e converter para JSON usando `XLSX.utils.sheet_to_json`.
-*   **Biblioteca Auxiliar (Download):** **FileSaver.js** (`file-saver`)
-    *   **Propósito:** Simplifica o processo de iniciar o download de arquivos gerados no lado do cliente.
-    *   Instalar: `pnpm add file-saver @types/file-saver`
-    *   Usar em conjunto com `XLSX.write` para gerar o blob do Excel e depois `saveAs(blob, "nome_arquivo.xlsx")`.
+- **Dependência:** A escolha da biblioteca/abordagem **depende fortemente do serviço de assinatura escolhido** (DocuSign, Docuseal, ITI Gov.br, etc.).
+- **Fluxo Típico (Componente Cliente e Servidor):**
+  1.  **Iniciar Assinatura:** O usuário clica em um botão (ex: "Assinar Proposta"). O componente cliente faz uma chamada à API interna.
+  2.  **Lógica no Servidor:** O handler da API no servidor (`src/server/...`) interage com a API do serviço de assinatura, enviando o documento e os signatários. Ele recebe de volta uma URL de assinatura ou informações para embutir a experiência.
+  3.  **Cliente Recebe:** O handler da API retorna a URL/informações para o componente cliente.
+  4.  **Exibir Assinatura (Cliente):**
+      - **Opção A (Redirecionamento):** Redirecionar o usuário para a URL de assinatura.
+      - **Opção B (Embedding/Iframe):** Se o serviço permitir, exibir a interface de assinatura dentro de um `<iframe>`.
+      - **Opção C (Componente React):** Alguns serviços (como Docuseal com `@docuseal/react`) oferecem componentes React.
+  5.  **Verificar Status:** Periodicamente (ou via WebSockets/Webhooks configurados no backend), o cliente consulta a API interna para verificar o status da assinatura.
+- **Bibliotecas Potenciais (Exemplos):**
+  - `@docuseal/react` (Se usar Docuseal)
+  - SDK específico do provedor.
+  - _Nenhuma biblioteca específica_ se for apenas redirecionamento ou iframe simples.
+- **Ação:** Pesquisar o SDK/componente React do serviço de assinatura _após_ ele ser definido.
 
-### 5. Fluxo de Assinatura de Documentos
+### 5. Disparo de Emails (Resend) (Planejado)
 
-*   **Dependência:** A escolha da biblioteca/abordagem **depende fortemente do serviço de assinatura escolhido** (DocuSign, Docuseal, ITI Gov.br, etc.).
-*   **Fluxo Típico (Frontend):**
-    1.  **Iniciar Assinatura:** O usuário clica em um botão (ex: "Assinar Proposta"). O frontend faz uma chamada à API do *backend*.
-    2.  **Backend:** O backend interage com a API do serviço de assinatura, enviando o documento e os signatários. Ele recebe de volta uma URL de assinatura ou informações para embutir a experiência.
-    3.  **Frontend Recebe:** O backend retorna a URL/informações para o frontend.
-    4.  **Exibir Assinatura:**
-        *   **Opção A (Redirecionamento):** Redirecionar o usuário para a URL de assinatura.
-        *   **Opção B (Embedding/Iframe):** Se o serviço permitir, exibir a interface de assinatura dentro de um `<iframe>` na própria aplicação.
-        *   **Opção C (Componente React):** Alguns serviços (como Docuseal com `@docuseal/react`) oferecem componentes React para facilitar o embedding.
-    5.  **Verificar Status:** Periodicamente (ou via WebSockets/Webhooks configurados no backend), o frontend consulta o backend para verificar o status da assinatura (pendente, concluído, recusado) e atualiza a UI.
-*   **Bibliotecas Potenciais (Exemplos):**
-    *   `@docuseal/react` (Se usar Docuseal)
-    *   SDK específico do provedor (verificar documentação se usar DocuSign, etc.)
-    *   *Nenhuma biblioteca específica* se for apenas redirecionamento ou iframe simples.
-*   **Ação:** Pesquisar o SDK/componente React do serviço de assinatura *após* ele ser definido.
+- **Abordagem:** O envio de emails com Resend (ou qualquer serviço similar que use chaves de API secretas) **DEVE** ser feito exclusivamente pela **lógica do servidor** (`src/server/...`).
+- **Responsabilidade do Cliente (Componentes React):**
+  1.  O usuário realiza uma ação que dispara um email (ex: Professor clica em "Notificar Resultados").
+  2.  O componente cliente faz uma chamada para um endpoint específico na API interna (ex: `POST /api/projects/:id/notify-results`) usando `useMutation` do TanStack Query.
+  3.  Nenhum dado sensível (como chave de API do Resend) é manipulado ou armazenado no código do cliente.
+- **Bibliotecas Cliente Necessárias:** Nenhuma específica para Resend. Apenas `TanStack Query` + `fetch` para chamar o endpoint da API.
 
-### 6. Disparo de Emails (Resend)
+### 6. Notificações / Toasts
 
-*   **Abordagem:** O envio de emails com Resend (ou qualquer serviço similar que use chaves de API secretas) **DEVE** ser feito exclusivamente pelo **backend** (`@backend/`).
-*   **Responsabilidade do Frontend:**
-    1.  O usuário realiza uma ação que dispara um email (ex: Professor clica em "Notificar Resultados" na Fase 3).
-    2.  O frontend faz uma chamada para um endpoint específico no backend (ex: `POST /projects/:id/notify-results`).
-    3.  Nenhum dado sensível (como chave de API do Resend) é manipulado ou armazenado no frontend.
-*   **Bibliotecas Frontend Necessárias:** Nenhuma específica para Resend. Apenas a biblioteca de comunicação com API (`TanStack Query` + `fetch`/`axios`) para chamar o endpoint do backend.
-
-### 7. Notificações / Toasts
-
-*   **Biblioteca:** **Sonner** (`sonner`) (Já incluído/usado por `shadcn/ui`)
-*   **Propósito:** Exibir notificações não-bloqueantes para o usuário (ex: "Projeto salvo com sucesso", "Erro ao enviar inscrição").
-*   **Uso:** Importar e usar a função `toast()` fornecida pelo `sonner` (ou wrapper do `shadcn/ui`).
-
-## Passo a Passo da Instalação (Bibliotecas Novas)
-
-Execute no terminal, dentro do diretório `apps/frontend`:
-
-```bash
-# 1. TanStack Query (React Query)
-pnpm add @tanstack/react-query
-
-# 2. Zustand (State Management)
-pnpm add zustand
-
-# 3. React Hook Form + Zod
-pnpm add react-hook-form zod @hookform/resolvers
-
-# 4. SheetJS (xlsx) + FileSaver
-pnpm add xlsx file-saver
-pnpm add -D @types/file-saver # Tipos para FileSaver
-
-# 5. Assinatura (Exemplo Docuseal - Instalar APENAS se for usar)
-# pnpm add @docuseal/react
-
-# (Nenhuma lib frontend específica para Resend)
-```
+- **Biblioteca:** **Radix UI Toast** (`@radix-ui/react-toast`) (Utilizada via `shadcn/ui`)
+- **Propósito:** Exibir notificações não-bloqueantes para o usuário (ex: "Projeto salvo com sucesso", "Erro ao enviar inscrição").
+- **Uso:** Utilizar o componente `<Toast>` e o hook `useToast` (ou similar) exportados pelo `shadcn/ui` (verificar `src/components/ui/toast.tsx` e `src/components/ui/use-toast.ts` ou equivalentes).
 
 ## Considerações Adicionais
 
-*   **Tipagem:** Aproveitar ao máximo o TypeScript para garantir a segurança de tipos ao usar essas bibliotecas.
-*   **Testes:** Considerar adicionar testes unitários/integração para hooks e lógica complexa envolvendo essas bibliotecas (ex: usando React Testing Library, Vitest).
-*   **Performance:** Monitorar o tamanho do bundle e o desempenho, especialmente ao lidar com manipulação de arquivos no cliente. 
+- **Tipagem:** Aproveitar ao máximo o TypeScript para garantir a segurança de tipos ao usar essas bibliotecas.
+- **Testes:** Considerar adicionar testes unitários/integração para handlers da API e lógica de negócios no servidor (`src/server`). Implementar testes de componentes e ponta a ponta para o cliente (`src/components`, `src/routes`). Utilizar Vitest (já configurado).
+- **Performance:** Monitorar o tamanho do bundle e o desempenho, especialmente ao adicionar novas dependências ou implementar manipulação de arquivos no cliente.

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { Route } from './index'; // Import the Route object
+import { Route } from '../routes/index'; // Import the Route object
 
 // Extract the component from the Route configuration
 const LandingPageComponent = Route.options.component;

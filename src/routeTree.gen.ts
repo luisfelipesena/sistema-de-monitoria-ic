@@ -14,7 +14,6 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as IndexTestImport } from './routes/index.test'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
@@ -37,12 +36,6 @@ const HomeRoute = HomeImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const IndexTestRoute = IndexTestImport.update({
-  id: '/index/test',
-  path: '/index/test',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -113,13 +106,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutImport
       parentRoute: typeof HomeRoute
     }
-    '/index/test': {
-      id: '/index/test'
-      path: '/index/test'
-      fullPath: '/index/test'
-      preLoaderRoute: typeof IndexTestImport
-      parentRoute: typeof rootRoute
-    }
     '/home/_layout/': {
       id: '/home/_layout/'
       path: '/'
@@ -185,7 +171,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutRouteWithChildren
-  '/index/test': typeof IndexTestRoute
   '/home/': typeof HomeLayoutIndexRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
@@ -196,7 +181,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutIndexRoute
-  '/index/test': typeof IndexTestRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
   '/home/settings': typeof HomeLayoutSettingsIndexRoute
@@ -208,7 +192,6 @@ export interface FileRoutesById {
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
-  '/index/test': typeof IndexTestRoute
   '/home/_layout/': typeof HomeLayoutIndexRoute
   '/home/_layout/profile/': typeof HomeLayoutProfileIndexRoute
   '/home/_layout/projects/': typeof HomeLayoutProjectsIndexRoute
@@ -221,7 +204,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/cas-callback'
     | '/home'
-    | '/index/test'
     | '/home/'
     | '/home/profile'
     | '/home/projects'
@@ -231,7 +213,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/cas-callback'
     | '/home'
-    | '/index/test'
     | '/home/profile'
     | '/home/projects'
     | '/home/settings'
@@ -241,7 +222,6 @@ export interface FileRouteTypes {
     | '/auth/cas-callback'
     | '/home'
     | '/home/_layout'
-    | '/index/test'
     | '/home/_layout/'
     | '/home/_layout/profile/'
     | '/home/_layout/projects/'
@@ -253,14 +233,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthCasCallbackRoute: typeof AuthCasCallbackRoute
   HomeRoute: typeof HomeRouteWithChildren
-  IndexTestRoute: typeof IndexTestRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthCasCallbackRoute: AuthCasCallbackRoute,
   HomeRoute: HomeRouteWithChildren,
-  IndexTestRoute: IndexTestRoute,
 }
 
 export const routeTree = rootRoute
@@ -275,8 +253,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/auth/cas-callback",
-        "/home",
-        "/index/test"
+        "/home"
       ]
     },
     "/": {
@@ -300,9 +277,6 @@ export const routeTree = rootRoute
         "/home/_layout/projects/",
         "/home/_layout/settings/"
       ]
-    },
-    "/index/test": {
-      "filePath": "index.test.tsx"
     },
     "/home/_layout/": {
       "filePath": "home/_layout/index.tsx",

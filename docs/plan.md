@@ -1,68 +1,68 @@
 # Plano de Desenvolvimento: Sistema de Monitoria IC
 
-Este plano descreve as fases de desenvolvimento para o Sistema de Gerenciamento de Monitoria, dividindo os requisitos do cliente em etapas acionáveis.
+Este plano descreve as fases de desenvolvimento para o Sistema de Gerenciamento de Monitoria, dividindo os requisitos do cliente em etapas acionáveis, considerando a estrutura unificada do projeto com Vinxi.
 
-## Fase 1: Proposta de Projeto e Configuração Inicial (Foco no Backend)
+## Fase 1: Proposta de Projeto e Configuração Inicial
 
 **Objetivo:** Permitir que professores criem, enviem e gerenciem propostas de projetos de monitoria para um determinado semestre. Permitir que Administradores gerenciem professores e dados básicos do sistema.
 
-**Dependências do Schema:** `userTable`, `professorTable`, `departmentTable`, `disciplineTable`, `semesterTable`, `projectTable`, `projectProfessorTable`, `projectFileTable`, `projectStatusEnum`, `fileTypeEnum`.
+**Dependências do Schema:** `userTable`, `professorTable`, `departmentTable`, `disciplineTable`, `semesterTable`, `projectTable`, `projectProfessorTable`, `projectFileTable`, `projectStatusEnum`, `fileTypeEnum` (Definidos em `src/server/database/schema.ts` ou similar).
 
-**Backend (`@backend/`)**
+**API Endpoints (Implementados em `src/routes/api/...` ou `src/server/routes/...`)**
 
-1.  **Endpoints da API - CRUD:**
-    *   `/departments`: GET (listar), POST (criar - Somente Admin)
-    *   `/disciplines`: GET (listar, filtrar por departamento), POST (criar - Somente Admin)
-    *   `/semesters`: GET (listar), POST (criar - Somente Admin)
-    *   `/professors`: GET (listar), POST (vincular usuário ao professor - Somente Admin) - *Requer integração com gerenciamento de usuários.*
-    *   `/projects`:
-        *   POST / (Criar rascunho do projeto - Professor)
-        *   GET / (Listar projetos - Filtrar por professor, semestre, status, disciplina - Professor/Admin)
-        *   GET /:id (Obter detalhes do projeto - Professor/Admin)
-        *   PUT /:id (Atualizar detalhes do projeto, objetivos - Professor Responsável, somente se for rascunho)
-        *   POST /:id/submit (Mudar status para 'submitted' - Professor Responsável)
-        *   POST /:id/approve (Mudar status para 'approved' - Admin)
-        *   POST /:id/reject (Mudar status para 'rejected' - Admin)
-        *   POST /:id/professors (Adicionar professor participante - Professor Responsável)
-        *   DELETE /:id/professors/:profId (Remover professor participante - Professor Responsável)
+1.  **CRUD:**
+    - `/api/departments`: GET (listar), POST (criar - Somente Admin)
+    - `/api/disciplines`: GET (listar, filtrar por departamento), POST (criar - Somente Admin)
+    - `/api/semesters`: GET (listar), POST (criar - Somente Admin)
+    - `/api/professors`: GET (listar), POST (vincular usuário ao professor - Somente Admin) - _Requer integração com gerenciamento de usuários._
+    - `/api/projects`:
+      - POST / (Criar rascunho do projeto - Professor)
+      - GET / (Listar projetos - Filtrar por professor, semestre, status, disciplina - Professor/Admin)
+      - GET /:id (Obter detalhes do projeto - Professor/Admin)
+      - PUT /:id (Atualizar detalhes do projeto, objetivos - Professor Responsável, somente se for rascunho)
+      - POST /:id/submit (Mudar status para 'submitted' - Professor Responsável)
+      - POST /:id/approve (Mudar status para 'approved' - Admin)
+      - POST /:id/reject (Mudar status para 'rejected' - Admin)
+      - POST /:id/professors (Adicionar professor participante - Professor Responsável)
+      - DELETE /:id/professors/:profId (Remover professor participante - Professor Responsável)
 2.  **Manuseio de Arquivos:**
-    *   Configurar armazenamento de arquivos (ex: disco local para dev, S3 para prod).
-    *   Endpoint da API: `POST /projects/:id/upload/:fileType` (Upload de PDF da proposta, proposta assinada - Professor/Admin). Requer `fileTypeEnum`. Registra informações do arquivo na `projectFileTable`.
-    *   Endpoint da API: `GET /files/:fileId` (Download de arquivo - Usuários autenticados com permissões apropriadas).
-3.  **Lógica de Negócios:**
-    *   Permissões: Implementar controle de acesso baseado em função (Admin, Professor, Aluno). Professores devem modificar apenas seus próprios projetos (a menos que sejam Admin).
-    *   Transições de Status: Forçar transições de status válidas do projeto (ex: não pode editar se não for 'draft').
+    - Configurar armazenamento de arquivos (ex: disco local para dev, S3/MinIO para prod - via variáveis de ambiente).
+    - Endpoint da API: `POST /api/projects/:id/upload/:fileType` (Upload de PDF da proposta, proposta assinada - Professor/Admin). Requer `fileTypeEnum`. Registra informações do arquivo na `projectFileTable`.
+    - Endpoint da API: `GET /api/files/:fileId` (Download de arquivo - Usuários autenticados com permissões apropriadas).
+3.  **Lógica de Negócios (Implementada nos handlers da API ou serviços em `src/server/lib/...`)**
+    - Permissões: Implementar controle de acesso baseado em função (Admin, Professor, Aluno) usando middleware ou verificações nos handlers.
+    - Transições de Status: Forçar transições de status válidas do projeto.
 4.  **Autenticação:**
-    *   Garantir que a autenticação Lucia existente proteja todos os endpoints relevantes. Atualizar funções conforme necessário.
+    - Garantir que a autenticação Lucia (configurada em `src/server/lib/auth` ou similar) proteja todos os endpoints relevantes.
 5.  **Migrações do Banco de Dados:**
-    *   Gerar e aplicar migrações baseadas no `schema.ts` atualizado.
+    - Gerar (`npm run db:generate`) e aplicar (`npm run db:migrate`) migrações baseadas no schema (`src/server/database/schema.ts`).
 
-**Frontend (`@frontend/`)**
+**Componentes e Rotas do Cliente (Implementados em `src/routes/...`, `src/components/...`)**
 
 1.  **Telas de Admin:**
-    *   Interfaces CRUD básicas para Departamentos, Disciplinas, Semestres.
-    *   Tela para vincular Usuários existentes a perfis de Professor.
-    *   Dashboard para visualizar/aprovar/rejeitar projetos enviados.
+    - Interfaces CRUD básicas para Departamentos, Disciplinas, Semestres (ex: `src/routes/admin/departments.tsx`).
+    - Tela para vincular Usuários existentes a perfis de Professor.
+    - Dashboard para visualizar/aprovar/rejeitar projetos enviados.
 2.  **Telas de Professor:**
-    *   Dashboard para visualizar projetos próprios por semestre/status.
-    *   Formulário para criar/editar um Projeto de Monitoria (selecionar disciplina, adicionar objetivos, adicionar professores participantes).
-    *   Tela para upload do PDF da proposta/proposta assinada.
-    *   Mecanismo para submeter o projeto para aprovação.
+    - Dashboard para visualizar projetos próprios por semestre/status (ex: `src/routes/home/projects.tsx`).
+    - Formulário para criar/editar um Projeto de Monitoria.
+    - Componente/Tela para upload do PDF da proposta/proposta assinada.
+    - Mecanismo (botão/ação) para submeter o projeto para aprovação.
 
 **Tarefas:**
 
-*   [ ] Backend: Implementar API CRUD de Departamentos
-*   [ ] Backend: Implementar API CRUD de Disciplinas
-*   [ ] Backend: Implementar API CRUD de Semestres
-*   [ ] Backend: Implementar API de vinculação de Professor
-*   [ ] Backend: Implementar API CRUD de Projetos e Mudança de Status
-*   [ ] Backend: Implementar API de Upload/Download de Arquivos e Configuração de Armazenamento
-*   [ ] Backend: Implementar Controle de Acesso Baseado em Função para novas APIs
-*   [ ] Backend: Gerar e Aplicar Migrações do BD
-*   [ ] Frontend: Implementar telas Admin para Gerenciamento de Dept/Disc/Sem/Prof
-*   [ ] Frontend: Implementar dashboard Admin de revisão de projetos
-*   [ ] Frontend: Implementar formulário Professor de criação/edição de projeto
-*   [ ] Frontend: Implementar dashboard Professor e upload de arquivos
+- [ ] API: Implementar CRUD de Departamentos
+- [ ] API: Implementar CRUD de Disciplinas
+- [ ] API: Implementar CRUD de Semestres
+- [ ] API: Implementar vinculação de Professor
+- [ ] API: Implementar CRUD de Projetos e Mudança de Status
+- [ ] API: Implementar Upload/Download de Arquivos e Configuração de Armazenamento
+- [ ] API: Implementar Controle de Acesso Baseado em Função
+- [ ] DB: Gerar e Aplicar Migrações Iniciais
+- [ ] UI: Implementar telas Admin para Gerenciamento de Dept/Disc/Sem/Prof
+- [ ] UI: Implementar dashboard Admin de revisão de projetos
+- [ ] UI: Implementar formulário Professor de criação/edição de projeto
+- [ ] UI: Implementar dashboard Professor e upload de arquivos
 
 ---
 
@@ -72,36 +72,35 @@ Este plano descreve as fases de desenvolvimento para o Sistema de Gerenciamento 
 
 **Dependências do Schema:** `projectTable`, `vacancyTable`, `vacancyTypeEnum`, `applicationPeriodTable`, `semesterTable`, `projectFileTable`.
 
-**Backend (`@backend/`)**
+**API Endpoints (`src/routes/api/...` ou `src/server/routes/...`)**
 
-1.  **Endpoints da API:**
-    *   `/projects/:id/vacancies`:
-        *   POST / (Definir vagas - Admin para 'bolsista', Professor Responsável para 'voluntario')
-        *   PUT /:vacancyId (Atualizar quantidade de vagas - Permissões como acima)
-        *   GET / (Listar vagas para um projeto)
-    *   `/application-periods`:
-        *   POST / (Criar período de inscrição para um semestre - Admin)
-        *   PUT /:id (Atualizar datas - Admin)
-        *   GET / (Listar períodos, filtrar por semestre)
-        *   POST /:id/upload-edital (Upload do PDF do edital oficial - Admin) - Usa infraestrutura da `projectFileTable`.
+1.  `/api/projects/:id/vacancies`:
+    - POST / (Definir vagas - Admin para 'bolsista', Professor Responsável para 'voluntario')
+    - PUT /:vacancyId (Atualizar quantidade de vagas - Permissões como acima)
+    - GET / (Listar vagas para um projeto)
+2.  `/api/application-periods`:
+    - POST / (Criar período de inscrição para um semestre - Admin)
+    - PUT /:id (Atualizar datas - Admin)
+    - GET / (Listar períodos, filtrar por semestre)
+    - POST /:id/upload-edital (Upload do PDF do edital oficial - Admin) - Usa infraestrutura da `projectFileTable`.
 
-**Frontend (`@frontend/`)**
+**Componentes e Rotas do Cliente (`src/routes/...`, `src/components/...`)**
 
 1.  **Telas de Admin:**
-    *   Interface na visualização do Projeto ou seção separada para definir números de vagas 'bolsista' por projeto.
-    *   Interface para criar/gerenciar Períodos de Inscrição por semestre (definir datas, upload do edital).
+    - Interface na visualização do Projeto ou seção separada para definir números de vagas 'bolsista'.
+    - Interface para criar/gerenciar Períodos de Inscrição por semestre.
 2.  **Telas de Professor:**
-    *   Interface na visualização do Projeto para definir números de vagas 'voluntario'.
+    - Interface na visualização do Projeto para definir números de vagas 'voluntario'.
 
 **Tarefas:**
 
-*   [ ] Backend: Implementar API de Gerenciamento de Vagas (POST, PUT, GET)
-*   [ ] Backend: Implementar API de Gerenciamento de Período de Inscrição (POST, PUT, GET, Upload Edital)
-*   [ ] Backend: Atualizar Controle de Acesso para APIs de Vagas/Períodos
-*   [ ] Backend: Gerar e Aplicar Migrações do BD (se o schema mudou)
-*   [ ] Frontend: Implementar interface Admin para vagas 'bolsista'
-*   [ ] Frontend: Implementar interface Admin para Períodos de Inscrição
-*   [ ] Frontend: Implementar interface Professor para vagas 'voluntario'
+- [ ] API: Implementar Gerenciamento de Vagas (POST, PUT, GET)
+- [ ] API: Implementar Gerenciamento de Período de Inscrição (POST, PUT, GET, Upload Edital)
+- [ ] API: Atualizar Controle de Acesso
+- [ ] DB: Gerar e Aplicar Migrações (se necessário)
+- [ ] UI: Implementar interface Admin para vagas 'bolsista'
+- [ ] UI: Implementar interface Admin para Períodos de Inscrição
+- [ ] UI: Implementar interface Professor para vagas 'voluntario'
 
 ---
 
@@ -111,47 +110,45 @@ Este plano descreve as fases de desenvolvimento para o Sistema de Gerenciamento 
 
 **Dependências do Schema:** `applicationTable`, `applicationStatusEnum`, `userTable`, `projectTable`, `projectFileTable`, `fileTypeEnum`, `vacancyTable`.
 
-**Backend (`@backend/`)**
+**API Endpoints (`src/routes/api/...` ou `src/server/routes/...`)**
 
-1.  **Endpoints da API:**
-    *   `/applications`:
-        *   POST / (Submeter inscrição - Aluno, requer período de inscrição ativo)
-        *   GET / (Listar inscrições - Aluno vê as próprias, Professor vê para seus projetos, Admin vê todas)
-        *   GET /:id (Obter detalhes da inscrição - Como acima)
-    *   `/projects/:id/applications/:appId/select`: POST (Marcar inscrição como 'selected' - Professor Responsável) - *Potencialmente definir prazo de aceitação?*
-    *   `/projects/:id/applications/:appId/reject`: POST (Marcar inscrição como 'rejected' - Professor Responsável)
-    *   `/projects/:id/upload/:fileType`: Estender upload existente para lidar com tipo 'ata' (Professor Responsável) - Vincula a `projectTable.ataFileId`.
-    *   `/projects/:id/notify-results`: POST (Disparar notificações por email para candidatos sobre seu status - Professor Responsável) - *Requer integração de email (Resend).*
+1.  `/api/applications`:
+    - POST / (Submeter inscrição - Aluno, requer período de inscrição ativo)
+    - GET / (Listar inscrições - Aluno vê as próprias, Professor vê para seus projetos, Admin vê todas)
+    - GET /:id (Obter detalhes da inscrição - Como acima)
+2.  `/api/projects/:id/applications/:appId/select`: POST (Marcar inscrição como 'selected' - Professor Responsável)
+3.  `/api/projects/:id/applications/:appId/reject`: POST (Marcar inscrição como 'rejected' - Professor Responsável)
+4.  `/api/projects/:id/upload/:fileType`: Estender upload existente para lidar com tipo 'ata' (Professor Responsável) - Vincula a `projectTable.ataFileId`.
+5.  `/api/projects/:id/notify-results`: POST (Disparar notificações por email para candidatos - Professor Responsável) - _Requer integração de email (Resend) na lógica do servidor._
 
-**Frontend (`@frontend/`)**
+**Componentes e Rotas do Cliente (`src/routes/...`, `src/components/...`)**
 
 1.  **Telas de Aluno:**
-    *   Visualizar projetos de monitoria disponíveis durante um período de inscrição ativo.
-    *   Formulário de inscrição (vincular ao projeto, potencialmente adicionar justificativa).
-    *   Dashboard para visualizar o status da própria inscrição.
+    - Visualizar projetos disponíveis durante um período de inscrição ativo.
+    - Formulário de inscrição.
+    - Dashboard para visualizar o status da própria inscrição.
 2.  **Telas de Professor:**
-    *   Visualizar inscrições recebidas para seus projetos.
-    *   Interface para marcar inscrições como 'selected' ou 'rejected'.
-    *   Tela/Mecanismo para upload do arquivo `ata` da seleção.
-    *   Botão para disparar notificações de resultado.
+    - Visualizar inscrições recebidas para seus projetos.
+    - Interface para marcar inscrições como 'selected' ou 'rejected'.
+    - Componente/Mecanismo para upload do arquivo `ata` da seleção.
+    - Botão para disparar notificações de resultado.
 3.  **Telas de Admin:**
-    *   Visão geral de todas as inscrições, se necessário.
+    - Visão geral de todas as inscrições, se necessário.
 
 **Tarefas:**
 
-*   [ ] Backend: Implementar API de Submissão de Inscrição (POST /applications)
-*   [ ] Backend: Implementar API de Listagem/Detalhes de Inscrição (GET /applications, GET /applications/:id)
-*   [ ] Backend: Implementar API de Seleção/Rejeição de Inscrição (POST .../select, POST .../reject)
-*   [ ] Backend: Estender API de Upload de Arquivo para 'ata'
-*   [ ] Backend: Implementar API de Disparo de Notificação por Email
-*   [ ] Backend: Integrar Resend para notificações por email
-*   [ ] Backend: Atualizar Controle de Acesso
-*   [ ] Backend: Gerar e Aplicar Migrações do BD
-*   [ ] Frontend: Implementar listagem de projetos/formulário de inscrição do Aluno
-*   [ ] Frontend: Implementar dashboard de inscrição do Aluno
-*   [ ] Frontend: Implementar interface de revisão/seleção de inscrição do Professor
-*   [ ] Frontend: Implementar upload de 'ata' do Professor
-*   [ ] Frontend: Implementar disparo de notificação do Professor
+- [ ] API: Implementar Submissão de Inscrição (POST /api/applications)
+- [ ] API: Implementar Listagem/Detalhes de Inscrição (GET /api/applications, GET /api/applications/:id)
+- [ ] API: Implementar Seleção/Rejeição de Inscrição
+- [ ] API: Estender Upload de Arquivo para 'ata'
+- [ ] API: Implementar Disparo de Notificação por Email (com integração Resend no servidor)
+- [ ] API: Atualizar Controle de Acesso
+- [ ] DB: Gerar e Aplicar Migrações
+- [ ] UI: Implementar listagem de projetos/formulário de inscrição do Aluno
+- [ ] UI: Implementar dashboard de inscrição do Aluno
+- [ ] UI: Implementar interface de revisão/seleção de inscrição do Professor
+- [ ] UI: Implementar upload de 'ata' do Professor
+- [ ] UI: Implementar disparo de notificação do Professor
 
 ---
 
@@ -161,41 +158,40 @@ Este plano descreve as fases de desenvolvimento para o Sistema de Gerenciamento 
 
 **Dependências do Schema:** `applicationTable`, `applicationStatusEnum`, `userTable`.
 
-**Backend (`@backend/`)**
+**API Endpoints (`src/routes/api/...` ou `src/server/routes/...`)**
 
-1.  **Endpoints da API:**
-    *   `/applications/:id/accept-bolsista`: POST (Aluno aceita vaga 'bolsista' - Verifica se o aluno já aceitou outra vaga 'bolsista' no semestre). Define status para `accepted_bolsista`.
-    *   `/applications/:id/accept-voluntario`: POST (Aluno aceita vaga 'voluntario'). Define status para `accepted_voluntario`.
-    *   `/applications/:id/decline`: POST (Aluno recusa vaga oferecida). Define status para `declined`.
-2.  **Lógica de Negócios:**
-    *   Implementar verificação de restrição para aceitar vagas 'bolsista'.
-    *   Lidar com potenciais prazos de aceitação (se implementado).
+1.  `/api/applications/:id/accept-bolsista`: POST (Aluno aceita vaga 'bolsista' - Verifica restrições no servidor). Define status para `accepted_bolsista`.
+2.  `/api/applications/:id/accept-voluntario`: POST (Aluno aceita vaga 'voluntario'). Define status para `accepted_voluntario`.
+3.  `/api/applications/:id/decline`: POST (Aluno recusa vaga oferecida). Define status para `declined`.
+4.  **Lógica de Negócios (no Servidor):**
+    - Implementar verificação de restrição para aceitar vagas 'bolsista'.
+    - Lidar com potenciais prazos de aceitação.
 
-**Frontend (`@frontend/`)**
+**Componentes e Rotas do Cliente (`src/routes/...`, `src/components/...`)**
 
 1.  **Telas de Aluno:**
-    *   Atualizar dashboard de inscrição para mostrar status 'selected' com botões Aceitar/Recusar.
-    *   Exibir avisos/erros se tentar aceitar mais de uma vaga 'bolsista'.
+    - Atualizar dashboard de inscrição para mostrar status 'selected' com botões Aceitar/Recusar.
+    - Exibir avisos/erros se tentar aceitar mais de uma vaga 'bolsista'.
 
 **Tarefas:**
 
-*   [ ] Backend: Implementar API de Aceitação de Inscrição (Bolsista, Voluntario)
-*   [ ] Backend: Implementar API de Recusa de Inscrição
-*   [ ] Backend: Implementar lógica de restrição 'bolsista'
-*   [ ] Backend: Atualizar Controle de Acesso
-*   [ ] Backend: Gerar e Aplicar Migrações do BD (se o schema mudou)
-*   [ ] Frontend: Atualizar dashboard do Aluno com ações Aceitar/Recusar
-*   [ ] Frontend: Implementar feedback de violação de restrição
+- [ ] API: Implementar Aceitação de Inscrição (Bolsista, Voluntario)
+- [ ] API: Implementar Recusa de Inscrição
+- [ ] API: Implementar lógica de restrição 'bolsista' no servidor
+- [ ] API: Atualizar Controle de Acesso
+- [ ] DB: Gerar e Aplicar Migrações (se necessário)
+- [ ] UI: Atualizar dashboard do Aluno com ações Aceitar/Recusar
+- [ ] UI: Implementar feedback de violação de restrição
 
 ---
 
 ## Preocupações Transversais e Considerações Futuras
 
-*   **Assinatura de Documentos:** Integrar DocuSign/it-br/SIPAC ou similar para assinaturas de propostas de projeto (Fase 1). Isso requer pesquisa sobre APIs e potencialmente novos elementos de schema. Docuseal é outra opção mencionada.
-*   **Painel Admin:** Considerar o uso de Retool ou ferramenta similar para algumas telas Admin se a complexidade aumentar significativamente, ou construir telas personalizadas no aplicativo frontend principal.
-*   **Geração de Planilhas:** Implementar lógica para gerar os arquivos `.xlsx` ou `.csv` necessários com base nos dados do projeto e vagas (Fases 1 e 2). Bibliotecas como `xlsx` ou `papaparse` (no frontend/backend) podem ser usadas.
-*   **Geração/Edição de PDF:** Se o requisito for *gerar* PDFs editáveis a partir de modelos, bibliotecas como `pdf-lib` podem ser necessárias. Se for apenas upload de PDFs pré-preenchidos, o manuseio de arquivos atual é suficiente.
-*   **Testes:** Implementar testes unitários e de integração para APIs e lógica de negócios do backend. Implementar testes de componentes e ponta a ponta para o frontend.
-*   **Tratamento de Erros e Logging:** Implementar tratamento robusto de erros e logging em todo o backend e frontend.
-*   **Deployment:** Definir pipelines de CI/CD para backend e frontend.
-*   **UI/UX:** Refinar componentes de frontend e fluxos de usuário para melhor usabilidade. 
+- **Assinatura de Documentos:** Integrar DocuSign/Docuseal/etc. para assinaturas (Fase 1). Requer pesquisa e implementação no **servidor** e componentes UI correspondentes.
+- **Painel Admin:** Construir telas Admin dentro da aplicação principal (`src/routes/admin/...`).
+- **Geração de Planilhas:** Implementar lógica no **servidor** para gerar os arquivos `.xlsx` e fornecer um endpoint para download (Fases 1 e 2).
+- **Geração/Edição de PDF:** Se necessário gerar PDFs no servidor, usar bibliotecas como `pdf-lib`.
+- **Testes:** Implementar testes unitários/integração para APIs/lógica do servidor (Vitest). Implementar testes de componentes/E2E para UI (Vitest/Playwright/Cypress).
+- **Tratamento de Erros e Logging:** Implementar em todo o servidor e cliente.
+- **Deployment:** Definir pipelines de CI/CD.
+- **UI/UX:** Refinar componentes e fluxos.

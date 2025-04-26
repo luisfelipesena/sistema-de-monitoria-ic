@@ -11,8 +11,7 @@ Based on communication with the infrastructure team, the following setup will be
 
 ## Applications (Dokku)
 
-1.  **`sistema-de-monitoria-api`**: The backend application (Node.js/Hono).
-2.  **`sistema-de-monitoria`**: The frontend application (React/Vite).
+2.  **`sistema-de-monitoria`**: The application
 3.  **`sistema-de-monitoria-minio`**: MinIO instance for object storage (documents, uploads).
 
 ## Database
@@ -32,5 +31,3 @@ Based on communication with the infrastructure team, the following setup will be
 *   **Method:** Central Authentication Service (CAS)
 *   **Provider:** UFBA
 *   **CAS Server URL:** `https://autenticacao.ufba.br/ca`
-*   **Integration:** Requires using a CAS client library (e.g., `http-cas-client` for Node.js) in the backend (`sistema-de-monitoria-api`).
-*   **Frontend Interaction:** The frontend (`sistema-de-monitoria`) will redirect users to the backend to initiate the CAS login flow. The backend service name used for CAS validation needs to be configured (e.g., via environment variables). 
