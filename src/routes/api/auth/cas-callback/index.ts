@@ -10,15 +10,16 @@ const casCallbackService = new CasCallbackService();
 
 export const APIRoute = createAPIFileRoute('/api/auth/cas-callback')({
   GET: async ({ request }) => {
-    const url = new URL(request.url);
-    const ticket = url.searchParams.get('ticket');
-
-    if (!ticket) {
-      log.error('CAS Callback: No ticket provided');
-      return casCallbackService.redirectToError('NO_TICKET');
-    }
-
     try {
+      const url = new URL(request.url);
+      const ticket = url.searchParams.get('ticket');
+
+      if (!ticket) {
+        log.error('CAS Callback: No ticket provided');
+        return new Response('No ticket provided', { status: 500, statusText: 'No ticket provided' });
+      }
+
+
       const serviceUrl = `${url.origin}${url.pathname}`;
       const serviceResponse = await casCallbackService.validateTicket(ticket, serviceUrl);
 
@@ -27,19 +28,21 @@ export const APIRoute = createAPIFileRoute('/api/auth/cas-callback')({
         const username = authSuccess['cas:user'];
         const attributes = authSuccess['cas:attributes'] || {};
 
-        return casCallbackService.handleAuthSuccess(username, attributes);
-      } else if (serviceResponse && serviceResponse['cas:authenticationFailure']) {
+        return await casCallbackService.handleAuthSuccess(username, attributes);
+      }
+
+      if (serviceResponse && serviceResponse['cas:authenticationFailure']) {
         const failure = serviceResponse['cas:authenticationFailure'];
         log.error('CAS Authentication failed:', failure);
-        return casCallbackService.redirectToError('CAS_FAILURE', failure.code || 'UNKNOWN');
-      } else {
-        log.error('Unexpected CAS response format:', serviceResponse);
-        return casCallbackService.redirectToError('INVALID_RESPONSE');
+        return new Response(failure, { status: 500, statusText: failure });
       }
+
+      log.error('Unexpected CAS response format:', serviceResponse);
+      return new Response('Unexpected CAS response format', { status: 500, statusText: 'Unexpected CAS response format' });
     } catch (error: any) {
       log.error(error, 'CAS validation internal error:');
       const errorMessage = error instanceof Error ? error.message : String(error);
-      return casCallbackService.redirectToError('INTERNAL_ERROR', errorMessage);
+      return new Response(errorMessage, { status: 500, statusText: errorMessage });
     }
   },
 });

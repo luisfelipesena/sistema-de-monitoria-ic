@@ -13,7 +13,7 @@ const log = logger.child({
 export class CasCallbackService {
   redirectToError(code: string, detail?: string) {
     const clientUrl = env.CLIENT_URL
-    const errorUrl = new URL(`${clientUrl}/auth-error`);
+    const errorUrl = new URL(`${clientUrl}`);
     errorUrl.searchParams.set('code', code);
     if (detail) {
       errorUrl.searchParams.set('detail', detail);
