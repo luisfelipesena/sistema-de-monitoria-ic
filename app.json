@@ -1,5 +1,9 @@
 {
   "scripts": {
+    "dokku": {
+      "predeploy": "npm run db:migrate",
+      "postdeploy": "npm run db:migrate"
+    },
     "postdeploy": "npm run db:migrate"
   }
 }
