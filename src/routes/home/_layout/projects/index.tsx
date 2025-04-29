@@ -1,9 +1,8 @@
 'use client';
 
-import { PdfDropzone } from '@/components/ui/PdfDropzone';
+import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// import { Label } from '@/components/ui/label'; // Temporarily commented out - Add using `npx shadcn-ui@latest add label`
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Document,
@@ -128,7 +127,10 @@ const ClientPDFViewer = ({
 
 // Main Component
 function ProjectsComponent() {
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<{
+    fileId: string;
+    fileName: string;
+  } | null>(null);
 
   const {
     register,
@@ -148,9 +150,9 @@ function ProjectsComponent() {
   // Watch current form values to pass to the PDF component
   const currentFormData = watch();
 
-  const handleFileAccept = (file: File) => {
-    console.log('Accepted file:', file);
-    setUploadedFile(file);
+  const handleFileAccept = (fileData: { fileId: string; fileName: string }) => {
+    console.log('Accepted file:', fileData);
+    setUploadedFile(fileData);
   };
 
   const onSubmit = (data: TemplateFormData) => {
@@ -287,10 +289,14 @@ function ProjectsComponent() {
           <h2 className="mb-3 text-xl font-semibold text-gray-800">
             Fazer Upload de Proposta Assinada (Arquivo PDF)
           </h2>
-          <PdfDropzone onFileAccepted={handleFileAccept} />
+          <FileUploader
+            entityType="project"
+            entityId="123e4567-e89b-12d3-a456-426614174000"
+            onUploadComplete={handleFileAccept}
+          />
           {uploadedFile && (
             <p className="mt-4 text-sm text-green-600">
-              Arquivo selecionado para upload: '{uploadedFile.name}'.
+              Arquivo selecionado para upload: '{uploadedFile.fileName}'.
             </p>
           )}
         </div>

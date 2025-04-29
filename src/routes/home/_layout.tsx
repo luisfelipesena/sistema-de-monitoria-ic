@@ -20,6 +20,7 @@ import {
   useLocation,
 } from '@tanstack/react-router';
 import {
+  File,
   FolderKanban,
   LayoutDashboard,
   LogOut,
@@ -38,11 +39,11 @@ function HomeLayoutComponent() {
   const [isSignedOut, setIsSignedOut] = useState(false);
 
   useEffect(() => {
-    if (!user && !isSignedOut) {
+    if (!user && !isLoading && !isSignedOut) {
       signOut();
       setIsSignedOut(true);
     }
-  }, [user, isSignedOut]);
+  }, [user, isLoading, isSignedOut]);
 
   return (
     <SidebarProvider>
@@ -64,6 +65,18 @@ function HomeLayoutComponent() {
                 <Link to="/home">
                   <LayoutDashboard />
                   <span>Visão Geral</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={location.pathname === '/home/files'}
+                tooltip="Arquivos"
+              >
+                <Link to="/home/files">
+                  <File />
+                  <span>Arquivos</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

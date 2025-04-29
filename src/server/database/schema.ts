@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
 import {
+  bigint,
   date,
   integer,
   pgEnum,
@@ -8,6 +9,7 @@ import {
   serial,
   text,
   timestamp,
+  uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
 
@@ -489,6 +491,27 @@ export const vagaTable = pgTable('vaga', {
   }).$onUpdate(() => new Date()),
   // Unique constraint: (alunoId, projetoId, tipo) for a given period?
 });
+
+// Schema para metadados de arquivos
+export const fileMetadataTable = pgTable('file_metadata', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  objectName: text('object_name').notNull(), // Caminho/nome no Minio
+  originalName: text('original_name').notNull(), // Nome original do arquivo
+  mimeType: text('mime_type').notNull(),
+  fileSize: bigint('file_size', { mode: 'number' }).notNull(),
+  entityType: text('entity_type').notNull(), // ex: 'project_proposal', 'meeting_minutes'
+  entityId: uuid('entity_id').notNull(), // ID da entidade relacionada
+  uploadedBy: uuid('uploaded_by').references(() => userTable.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Relações para fileMetadata
+export const fileMetadataRelations = relations(fileMetadataTable, ({ one }) => ({
+  uploader: one(userTable, {
+    fields: [fileMetadataTable.uploadedBy],
+    references: [userTable.id],
+  }),
+}));
 
 // --- Relations ---
 

@@ -5,4 +5,10 @@ export const env = {
   SERVER_URL: process.env.SERVER_URL || 'http://localhost:3000/api',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
   NODE_ENV: process.env.NODE_ENV,
+  MINIO_ENDPOINT: process.env.MINIO_ENDPOINT || 'localhost',
+  MINIO_PORT: process.env.MINIO_PORT || '9000',
+  MINIO_USE_SSL: process.env.MINIO_USE_SSL || 'false',
+  MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY || 'minioadmin',
+  MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY || 'minioadmin',
+  MINIO_BUCKET_NAME: process.env.MINIO_BUCKET_NAME || 'monitoria-arquivos',
 };
