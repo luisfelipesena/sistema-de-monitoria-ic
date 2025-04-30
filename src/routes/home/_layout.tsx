@@ -38,11 +38,11 @@ function HomeLayoutComponent() {
   const [isSignedOut, setIsSignedOut] = useState(false);
 
   useEffect(() => {
-    if (!user && !isSignedOut) {
+    if (!user && !isLoading && !isSignedOut) {
       signOut();
       setIsSignedOut(true);
     }
-  }, [user, isSignedOut]);
+  }, [user, isLoading, isSignedOut]);
 
   return (
     <SidebarProvider>
