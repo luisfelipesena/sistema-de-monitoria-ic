@@ -15,11 +15,13 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer';
+import { useDebouncedValue } from '@tanstack/react-pacer';
 import { createFileRoute } from '@tanstack/react-router';
 import {
   JSXElementConstructor,
   ReactElement,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { useForm } from 'react-hook-form';
@@ -127,12 +129,12 @@ function ProjectsComponent() {
 
   const {
     register,
-    handleSubmit, // Use handleSubmit to wrap onSubmit
+    handleSubmit,
     watch,
-    formState: { errors, isValid }, // Use isValid from formState
+    formState: { errors, isValid },
   } = useForm<TemplateFormData>({
     resolver: zodResolver(templateSchema),
-    mode: 'onChange', // Validate on change for better UX with download link
+    mode: 'onChange',
     defaultValues: {
       professorName: '',
       projectName: '',
@@ -140,8 +142,11 @@ function ProjectsComponent() {
     },
   });
 
-  // Watch current form values to pass to the PDF component
+  // Watch current form values
   const currentFormData = watch();
+  const [debouncedFormData] = useDebouncedValue(currentFormData, {
+    wait: 1000,
+  });
 
   const handleFileAccept = (fileData: { fileId: string; fileName: string }) => {
     log.info('Accepted file:', fileData);
@@ -152,8 +157,25 @@ function ProjectsComponent() {
     log.info('Form data submitted (optional action):', data);
   };
 
-  // Use formState.isValid for enabling download
-  const isFormValid = isValid;
+  // Memoize the PDF document to prevent unnecessary rerenders
+  const memoizedPdfDocument = useMemo(() => {
+    return <ProjectPdfDocument data={debouncedFormData} />;
+  }, [
+    debouncedFormData.professorName,
+    debouncedFormData.projectName,
+    debouncedFormData.objective,
+  ]);
+
+  // Create a stable filename for the PDF
+  const pdfFileName = useMemo(() => {
+    return `proposta_${
+      debouncedFormData.projectName
+        ?.normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .replace(/\s+/g, '_') || 'projeto'
+    }.pdf`;
+  }, [debouncedFormData.projectName]);
 
   return (
     <div>
@@ -233,16 +255,10 @@ function ProjectsComponent() {
 
               {/* PDF Download Link - enabled when form is valid */}
               <div className="pt-4">
-                {isFormValid ? (
+                {isValid ? (
                   <PDFDownloadLink
-                    document={<ProjectPdfDocument data={currentFormData} />}
-                    fileName={`proposta_${
-                      currentFormData.projectName
-                        ?.normalize('NFD')
-                        .replace(/[\u0300-\u036f]/g, '')
-                        .replace(/[^a-zA-Z0-9\s]/g, '')
-                        .replace(/\s+/g, '_') || 'projeto'
-                    }.pdf`}
+                    document={memoizedPdfDocument}
+                    fileName={pdfFileName}
                   >
                     {({ loading }) => (
                       <Button
@@ -268,9 +284,7 @@ function ProjectsComponent() {
             <h2 className="mb-4 text-xl font-semibold text-gray-800">
               Pré-visualização do PDF
             </h2>
-            <ClientPDFViewer
-              document={<ProjectPdfDocument data={currentFormData} />}
-            />
+            <ClientPDFViewer document={memoizedPdfDocument} />
           </div>
         </div>
 
