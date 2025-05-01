@@ -1,7 +1,6 @@
-import { lucia } from '@/server/lib/auth';
+import { authMiddleware } from '@/routes/api/-middlewares/auth';
 import minioClient, { bucketName } from '@/server/lib/minio';
 import { logger } from '@/utils/logger';
-import { getSessionId } from '@/utils/lucia';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import * as Minio from 'minio';
 
@@ -16,24 +15,7 @@ interface RouteParams {
 export const APIRoute = createAPIFileRoute('/api/files/access/$fileId')({
   GET: async ({ request, params }) => {
     try {
-      // Verificar autenticação
-      const headers = request.headers;
-      const sessionId = getSessionId(headers);
-
-      if (!sessionId) {
-        return new Response(JSON.stringify({ error: 'Não autenticado' }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-
-      const sessionResult = await lucia.validateSession(sessionId);
-      if (!sessionResult.session || !sessionResult.user) {
-        return new Response(JSON.stringify({ error: 'Sessão inválida' }), {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
+      await authMiddleware(request);
 
       const { fileId } = params as RouteParams;
       if (!fileId) {

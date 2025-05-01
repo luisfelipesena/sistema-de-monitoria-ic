@@ -17,10 +17,9 @@ import { Route as IndexImport } from './routes/index'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
-import { Route as HomeLayoutSettingsIndexImport } from './routes/home/_layout/settings/index'
 import { Route as HomeLayoutProjectsIndexImport } from './routes/home/_layout/projects/index'
 import { Route as HomeLayoutProfileIndexImport } from './routes/home/_layout/profile/index'
-import { Route as HomeLayoutFilesIndexImport } from './routes/home/_layout/files/index'
+import { Route as HomeLayoutAdminFilesImport } from './routes/home/_layout/admin/files'
 
 // Create Virtual Routes
 
@@ -57,12 +56,6 @@ const HomeLayoutIndexRoute = HomeLayoutIndexImport.update({
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
-const HomeLayoutSettingsIndexRoute = HomeLayoutSettingsIndexImport.update({
-  id: '/settings/',
-  path: '/settings/',
-  getParentRoute: () => HomeLayoutRoute,
-} as any)
-
 const HomeLayoutProjectsIndexRoute = HomeLayoutProjectsIndexImport.update({
   id: '/projects/',
   path: '/projects/',
@@ -75,9 +68,9 @@ const HomeLayoutProfileIndexRoute = HomeLayoutProfileIndexImport.update({
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
-const HomeLayoutFilesIndexRoute = HomeLayoutFilesIndexImport.update({
-  id: '/files/',
-  path: '/files/',
+const HomeLayoutAdminFilesRoute = HomeLayoutAdminFilesImport.update({
+  id: '/admin/files',
+  path: '/admin/files',
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
@@ -120,11 +113,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutIndexImport
       parentRoute: typeof HomeLayoutImport
     }
-    '/home/_layout/files/': {
-      id: '/home/_layout/files/'
-      path: '/files'
-      fullPath: '/home/files'
-      preLoaderRoute: typeof HomeLayoutFilesIndexImport
+    '/home/_layout/admin/files': {
+      id: '/home/_layout/admin/files'
+      path: '/admin/files'
+      fullPath: '/home/admin/files'
+      preLoaderRoute: typeof HomeLayoutAdminFilesImport
       parentRoute: typeof HomeLayoutImport
     }
     '/home/_layout/profile/': {
@@ -141,13 +134,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutProjectsIndexImport
       parentRoute: typeof HomeLayoutImport
     }
-    '/home/_layout/settings/': {
-      id: '/home/_layout/settings/'
-      path: '/settings'
-      fullPath: '/home/settings'
-      preLoaderRoute: typeof HomeLayoutSettingsIndexImport
-      parentRoute: typeof HomeLayoutImport
-    }
   }
 }
 
@@ -155,18 +141,16 @@ declare module '@tanstack/react-router' {
 
 interface HomeLayoutRouteChildren {
   HomeLayoutIndexRoute: typeof HomeLayoutIndexRoute
-  HomeLayoutFilesIndexRoute: typeof HomeLayoutFilesIndexRoute
+  HomeLayoutAdminFilesRoute: typeof HomeLayoutAdminFilesRoute
   HomeLayoutProfileIndexRoute: typeof HomeLayoutProfileIndexRoute
   HomeLayoutProjectsIndexRoute: typeof HomeLayoutProjectsIndexRoute
-  HomeLayoutSettingsIndexRoute: typeof HomeLayoutSettingsIndexRoute
 }
 
 const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutIndexRoute: HomeLayoutIndexRoute,
-  HomeLayoutFilesIndexRoute: HomeLayoutFilesIndexRoute,
+  HomeLayoutAdminFilesRoute: HomeLayoutAdminFilesRoute,
   HomeLayoutProfileIndexRoute: HomeLayoutProfileIndexRoute,
   HomeLayoutProjectsIndexRoute: HomeLayoutProjectsIndexRoute,
-  HomeLayoutSettingsIndexRoute: HomeLayoutSettingsIndexRoute,
 }
 
 const HomeLayoutRouteWithChildren = HomeLayoutRoute._addFileChildren(
@@ -188,20 +172,18 @@ export interface FileRoutesByFullPath {
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutRouteWithChildren
   '/home/': typeof HomeLayoutIndexRoute
-  '/home/files': typeof HomeLayoutFilesIndexRoute
+  '/home/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
-  '/home/settings': typeof HomeLayoutSettingsIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutIndexRoute
-  '/home/files': typeof HomeLayoutFilesIndexRoute
+  '/home/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
-  '/home/settings': typeof HomeLayoutSettingsIndexRoute
 }
 
 export interface FileRoutesById {
@@ -211,10 +193,9 @@ export interface FileRoutesById {
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
   '/home/_layout/': typeof HomeLayoutIndexRoute
-  '/home/_layout/files/': typeof HomeLayoutFilesIndexRoute
+  '/home/_layout/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/_layout/profile/': typeof HomeLayoutProfileIndexRoute
   '/home/_layout/projects/': typeof HomeLayoutProjectsIndexRoute
-  '/home/_layout/settings/': typeof HomeLayoutSettingsIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -224,19 +205,17 @@ export interface FileRouteTypes {
     | '/auth/cas-callback'
     | '/home'
     | '/home/'
-    | '/home/files'
+    | '/home/admin/files'
     | '/home/profile'
     | '/home/projects'
-    | '/home/settings'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth/cas-callback'
     | '/home'
-    | '/home/files'
+    | '/home/admin/files'
     | '/home/profile'
     | '/home/projects'
-    | '/home/settings'
   id:
     | '__root__'
     | '/'
@@ -244,10 +223,9 @@ export interface FileRouteTypes {
     | '/home'
     | '/home/_layout'
     | '/home/_layout/'
-    | '/home/_layout/files/'
+    | '/home/_layout/admin/files'
     | '/home/_layout/profile/'
     | '/home/_layout/projects/'
-    | '/home/_layout/settings/'
   fileRoutesById: FileRoutesById
 }
 
@@ -295,18 +273,17 @@ export const routeTree = rootRoute
       "parent": "/home",
       "children": [
         "/home/_layout/",
-        "/home/_layout/files/",
+        "/home/_layout/admin/files",
         "/home/_layout/profile/",
-        "/home/_layout/projects/",
-        "/home/_layout/settings/"
+        "/home/_layout/projects/"
       ]
     },
     "/home/_layout/": {
       "filePath": "home/_layout/index.tsx",
       "parent": "/home/_layout"
     },
-    "/home/_layout/files/": {
-      "filePath": "home/_layout/files/index.tsx",
+    "/home/_layout/admin/files": {
+      "filePath": "home/_layout/admin/files.tsx",
       "parent": "/home/_layout"
     },
     "/home/_layout/profile/": {
@@ -315,10 +292,6 @@ export const routeTree = rootRoute
     },
     "/home/_layout/projects/": {
       "filePath": "home/_layout/projects/index.tsx",
-      "parent": "/home/_layout"
-    },
-    "/home/_layout/settings/": {
-      "filePath": "home/_layout/settings/index.tsx",
       "parent": "/home/_layout"
     }
   }

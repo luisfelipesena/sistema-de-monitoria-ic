@@ -1,7 +1,6 @@
-import { lucia } from '@/server/lib/auth';
+import { authMiddleware } from '@/routes/api/-middlewares/auth';
 import minioClient, { bucketName, ensureBucketExists } from '@/server/lib/minio';
 import { logger } from '@/utils/logger';
-import { getSessionId } from '@/utils/lucia';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import path from 'path';
 import { Readable } from 'stream';
@@ -20,37 +19,13 @@ export const config = {
 export const APIRoute = createAPIFileRoute('/api/files/upload')({
   POST: async ({ request }) => {
     try {
-      // Verificar autenticação
-      const headers = request.headers;
-      const sessionId = getSessionId(headers);
-
-      if (!sessionId) {
-        return new Response(JSON.stringify({ error: 'Não autenticado' }), {
-          status: 401,
-        });
-      }
-
-      const sessionResult = await lucia.validateSession(sessionId);
-      if (!sessionResult.session || !sessionResult.user) {
-        return new Response(JSON.stringify({ error: 'Sessão inválida' }), {
-          status: 401,
-        });
-      }
-
-      console.log('Uploading file...');
-      // Garantir que o bucket existe
+      const { userId } = await authMiddleware(request);
       await ensureBucketExists();
-      console.log('Bucket exists');
 
-      // Processar o upload de arquivo usando a API Blob/File Web
       const formData = await request.formData();
       const file = formData.get('file') as File;
       const entityType = formData.get('entityType') as string;
       const entityId = formData.get('entityId') as string;
-
-      console.log('File:', file);
-      console.log('Entity type:', entityType);
-      console.log('Entity ID:', entityId);
 
       if (!file || !entityType || !entityId) {
         return new Response(JSON.stringify({ error: 'Arquivo, tipo de entidade ou ID de entidade não fornecidos' }), {
@@ -59,7 +34,6 @@ export const APIRoute = createAPIFileRoute('/api/files/upload')({
       }
 
       try {
-        const userId = sessionResult.user.id;
         const fileId = uuidv4();
         const originalFilename = file.name;
         const extension = path.extname(originalFilename);
