@@ -94,12 +94,12 @@ function HomeLayoutComponent() {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={location.pathname.startsWith('/home/settings')}
-                tooltip="Configurações"
+                isActive={location.pathname.startsWith('/home/admin/files')}
+                tooltip="Administração"
               >
-                <Link to="/home/settings">
+                <Link to="/home/admin/files">
                   <Settings />
-                  <span>Configurações</span>
+                  <span>Administração</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

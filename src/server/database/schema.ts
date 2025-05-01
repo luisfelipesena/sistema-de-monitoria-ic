@@ -8,7 +8,7 @@ import {
   serial,
   text,
   timestamp,
-  varchar,
+  varchar
 } from 'drizzle-orm/pg-core';
 
 // --- Auth Schema --- TODO: Review if all user fields are needed directly in lucia attributes
