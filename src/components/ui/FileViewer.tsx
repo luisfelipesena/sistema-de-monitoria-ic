@@ -1,13 +1,17 @@
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 import { X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from './button';
-
 interface FileViewerProps {
   fileId: string;
   fileName?: string; // Nome opcional para exibição
   showPreview?: boolean; // Se deve mostrar visualização para PDFs/imagens
 }
+
+const log = logger.child({
+  context: 'FileViewer',
+});
 
 export function FileViewer({
   fileId,
@@ -30,7 +34,7 @@ export function FileViewer({
   const fetchFileUrl = useCallback(async () => {
     if (!fileId) return;
 
-    console.log(`Buscando arquivo com ID: ${fileId}`);
+    log.info(`Buscando arquivo com ID: ${fileId}`);
     setIsLoading(true);
     setError(null);
 
@@ -39,9 +43,9 @@ export function FileViewer({
         credentials: 'include',
       });
 
-      console.log(`Status da resposta: ${response.status}`);
+      log.info(`Status da resposta: ${response.status}`);
       const data = await response.json();
-      console.log('Dados recebidos:', data);
+      log.info('Dados recebidos:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Erro ao acessar o arquivo');
@@ -54,7 +58,7 @@ export function FileViewer({
         fileSize: data.fileSize,
       });
     } catch (error) {
-      console.error('Erro ao buscar arquivo:', error);
+      log.error('Erro ao buscar arquivo:', error);
       setError(
         error instanceof Error ? error.message : 'Erro ao buscar o arquivo',
       );

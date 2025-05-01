@@ -1,6 +1,10 @@
 import { env } from '@/utils/env';
+import { logger } from '@/utils/logger';
 import * as Minio from 'minio';
 
+const log = logger.child({
+  context: 'Minio',
+});
 
 // Inicializar o cliente Minio
 const minioClient = new Minio.Client({
@@ -9,7 +13,9 @@ const minioClient = new Minio.Client({
   secretKey: env.MINIO_SECRET_KEY,
 });
 
-export const bucketName = env.MINIO_BUCKET_NAME || 'monitoria-arquivos';
+export const bucketName = env.MINIO_BUCKET_NAME
+
+
 
 /**
  * Verifica se o bucket existe e cria se necessário
@@ -18,14 +24,14 @@ export async function ensureBucketExists(bucket: string = bucketName): Promise<v
   try {
     const exists = await minioClient.bucketExists(bucket);
     if (!exists) {
-      console.log(`Bucket ${bucket} não existe. Criando...`);
+      log.info(`Bucket ${bucket} não existe. Criando...`);
       await minioClient.makeBucket(bucket);
-      console.log(`Bucket ${bucket} criado com sucesso.`);
+      log.info(`Bucket ${bucket} criado com sucesso.`);
     } else {
-      console.log(`Bucket ${bucket} já existe.`);
+      log.info(`Bucket ${bucket} já existe.`);
     }
   } catch (error) {
-    console.error('Erro ao verificar ou criar bucket:', error);
+    log.error('Erro ao verificar ou criar bucket:', error);
     throw error;
   }
 }

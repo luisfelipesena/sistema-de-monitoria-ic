@@ -3,6 +3,7 @@
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { logger } from '@/utils/logger';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Document,
@@ -24,17 +25,9 @@ import {
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
-// --- Register Fonts (Optional but Recommended for Consistency) ---
-// Make sure you have font files available (e.g., in public/fonts)
-// Example: Downloaded from Google Fonts
-// Font.register({
-//   family: 'Roboto',
-//   fonts: [
-//     { src: '/fonts/Roboto-Regular.ttf' },
-//     { src: '/fonts/Roboto-Bold.ttf', fontWeight: 'bold' },
-//   ],
-// });
-// --------------------------------------------------------------
+const log = logger.child({
+  context: 'ProjectsComponent',
+});
 
 export const Route = createFileRoute('/home/_layout/projects/')({
   component: ProjectsComponent,
@@ -151,12 +144,12 @@ function ProjectsComponent() {
   const currentFormData = watch();
 
   const handleFileAccept = (fileData: { fileId: string; fileName: string }) => {
-    console.log('Accepted file:', fileData);
+    log.info('Accepted file:', fileData);
     setUploadedFile(fileData);
   };
 
   const onSubmit = (data: TemplateFormData) => {
-    console.log('Form data submitted (optional action):', data);
+    log.info('Form data submitted (optional action):', data);
   };
 
   // Use formState.isValid for enabling download
