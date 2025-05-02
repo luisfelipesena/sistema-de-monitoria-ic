@@ -1,5 +1,6 @@
 'use client';
 
+import { Footer } from '@/components/layout/Footertemp';
 import { Header } from '@/components/layout/Header';
 import {
   Sidebar,
@@ -134,6 +135,7 @@ function HomeLayoutComponent() {
         <main className="flex-1 p-6 overflow-y-auto">
           <Outlet />
         </main>
+        <Footer />
       </SidebarInset>
     </SidebarProvider>
   );
