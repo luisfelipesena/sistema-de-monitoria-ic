@@ -42,15 +42,15 @@ O desenvolvimento está planejado em fases. Você pode encontrar o detalhamento 
 ## Comandos de Desenvolvimento
 
 - `npm install`: Instala as dependências.
+- `docker compose up -d`: Inicia o contêiner do banco de dados PostgreSQL.
 - `npm run dev`: Inicia o servidor de desenvolvimento (frontend & backend).
 - `npm run build`: Compila a aplicação para produção.
 - `npm run start`: Executa a build de produção localmente.
 - `npm run db:generate`: Gera arquivos de migração do Drizzle ORM com base nas mudanças do schema.
 - `npm run db:migrate`: Aplica as migrações pendentes do banco de dados.
 - `npm run db:studio`: Abre o Drizzle Studio para inspecionar o banco de dados.
-- `npm run docker:up`: Inicia o contêiner do banco de dados PostgreSQL.
-- `npm run docker:down`: Para e remove o contêiner do banco de dados PostgreSQL.
-- `npm run docker:clean`: Para, remove o contêiner e exclui o volume de dados (use com cuidado).
+- `docker compose down`: Para e remove o contêiner do banco de dados PostgreSQL.
+- `docker compose down -v`: Para, remove o contêiner e exclui o volume de dados (use com cuidado).
 
 ## Contribuindo
 

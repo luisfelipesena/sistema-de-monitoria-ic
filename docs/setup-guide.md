@@ -35,16 +35,7 @@ Certifique-se de ter as seguintes ferramentas instaladas em seu sistema:
         _(A porta padrão é `5432`, o usuário/senha é `postgres`, e o banco de dados é `sistema-de-monitoria-ic`, conforme definido em `docker-compose.yml`)._
       - A variável `VITE_API_URL` (se ainda existir no `.env.sample`) pode não ser estritamente necessária, pois o Vinxi pode lidar com o roteamento de API internamente. Se usada pelo código do cliente, deve apontar para o URL base onde a aplicação é servida (ex: `http://localhost:3000`).
 
-3.  **Iniciar o Banco de Dados:**
-
-    - Na raiz do projeto.
-    - Execute o comando para iniciar o contêiner do PostgreSQL em background usando Docker Compose:
-      ```bash
-      npm run docker:up
-      ```
-    - Aguarde alguns segundos para o banco de dados iniciar completamente. Você pode verificar os logs com `npm run docker:logs` (execute em outro terminal se necessário).
-
-4.  **Instalar Dependências:**
+3.  **Instalar Dependências:**
 
     - Na raiz do projeto, certifique-se de estar usando a versão correta do Node.js e instale todas as dependências:
       ```bash
@@ -52,9 +43,17 @@ Certifique-se de ter as seguintes ferramentas instaladas em seu sistema:
       npm install
       ```
 
+4.  **Iniciar o Banco de Dados:**
+
+    - Na raiz do projeto, execute o comando para iniciar o contêiner do PostgreSQL em background usando Docker Compose:
+      ```bash
+      docker compose up -d
+      ```
+    - Aguarde alguns segundos para o banco de dados iniciar completamente. Você pode verificar os logs com `docker compose logs -f` (execute em outro terminal se necessário).
+
 5.  **Executar Migrações do Banco de Dados:**
 
-    - Com o banco de dados rodando (passo 3), aplique as migrações para criar as tabelas e estruturas necessárias:
+    - Com o banco de dados rodando (passo 4), aplique as migrações para criar as tabelas e estruturas necessárias:
       ```bash
       npm run db:migrate
       ```
@@ -76,11 +75,11 @@ Certifique-se de ter as seguintes ferramentas instaladas em seu sistema:
 - Para parar o servidor de desenvolvimento, pressione `Ctrl + C` no terminal onde `npm run dev` está rodando.
 - Para parar e remover o contêiner do banco de dados:
   ```bash
-  npm run docker:down
+  docker compose down
   ```
 - Para parar, remover o contêiner e **excluir o volume de dados** (use com cuidado!):
   ```bash
-  npm run docker:clean
+  docker compose down -v
   ```
 
 Com estes passos, o ambiente de desenvolvimento local do Sistema de Monitoria IC deve estar configurado e rodando.
