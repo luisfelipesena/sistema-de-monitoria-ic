@@ -30,9 +30,8 @@ export const Route = createRootRouteWithContext<{
         content: 'width=device-width, initial-scale=1',
       },
       ...seo({
-        title:
-          'TanStack Start | Type-Safe, Client-First, Full-Stack React Framework',
-        description: `TanStack Start is a type-safe, client-first, full-stack React framework. `,
+        title: 'Sistema de Monitoria IC - UFBA',
+        description: `Gerenciamento do programa de monitoria do IC/UFBA.`,
       }),
     ],
     links: [
@@ -85,7 +84,7 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html>
+    <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>
