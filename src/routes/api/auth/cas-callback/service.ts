@@ -3,9 +3,9 @@ import { userTable } from '@/server/database/schema';
 import { lucia } from '@/server/lib/auth';
 import { env } from '@/utils/env';
 import { logger } from '@/utils/logger';
+import { json } from '@tanstack/react-start';
 import { eq } from 'drizzle-orm';
 import { XMLParser } from 'fast-xml-parser';
-
 const log = logger.child({
   context: 'CASCallback',
 });
@@ -18,7 +18,7 @@ export class CasCallbackService {
     if (detail) {
       errorUrl.searchParams.set('detail', detail);
     }
-    return new Response(null, {
+    return json(null, {
       status: 302,
       headers: {
         Location: errorUrl.toString(),
@@ -98,7 +98,7 @@ export class CasCallbackService {
     const sessionCookie = lucia.createSessionCookie(session.id);
     log.info(`Session created: ${session.id}`);
 
-    return new Response(null, {
+    return json(null, {
       status: 302,
       headers: {
         Location: `${clientUrl}/auth/cas-callback`,

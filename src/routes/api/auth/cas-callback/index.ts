@@ -1,5 +1,6 @@
 import { CasCallbackService } from '@/routes/api/auth/cas-callback/service';
 import { logger } from '@/utils/logger';
+import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 
 const log = logger.child({
@@ -16,7 +17,7 @@ export const APIRoute = createAPIFileRoute('/api/auth/cas-callback')({
 
       if (!ticket) {
         log.error('CAS Callback: No ticket provided');
-        return new Response('No ticket provided', { status: 500, statusText: 'No ticket provided' });
+        return json({ error: 'No ticket provided' }, { status: 500, statusText: 'No ticket provided' });
       }
 
 
@@ -34,15 +35,15 @@ export const APIRoute = createAPIFileRoute('/api/auth/cas-callback')({
       if (serviceResponse && serviceResponse['cas:authenticationFailure']) {
         const failure = serviceResponse['cas:authenticationFailure'];
         log.error('CAS Authentication failed:', failure);
-        return new Response(failure, { status: 500, statusText: failure });
+        return json(failure, { status: 500, statusText: failure });
       }
 
       log.error('Unexpected CAS response format:', serviceResponse);
-      return new Response('Unexpected CAS response format', { status: 500, statusText: 'Unexpected CAS response format' });
+      return json({ error: 'Unexpected CAS response format' }, { status: 500, statusText: 'Unexpected CAS response format' });
     } catch (error: any) {
       log.error(error, 'CAS validation internal error:');
       const errorMessage = error instanceof Error ? error.message : String(error);
-      return new Response(errorMessage, { status: 500, statusText: errorMessage });
+      return json({ error: errorMessage }, { status: 500, statusText: errorMessage });
     }
   },
 });

@@ -1,6 +1,7 @@
 import { authMiddleware } from '@/routes/api/-middlewares/auth';
 import minioClient, { bucketName } from '@/server/lib/minio';
 import { logger } from '@/utils/logger';
+import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import * as Minio from 'minio';
 
@@ -19,10 +20,7 @@ export const APIRoute = createAPIFileRoute('/api/files/access/$fileId')({
 
       const { fileId } = params as RouteParams;
       if (!fileId) {
-        return new Response(JSON.stringify({ error: 'ID do arquivo não fornecido' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
-        });
+        return json({ error: 'ID do arquivo não fornecido' }, { status: 400, headers: { 'Content-Type': 'application/json' } });
       }
 
       // Listar objetos no bucket para encontrar o arquivo pelo fileId no nome
@@ -65,18 +63,18 @@ export const APIRoute = createAPIFileRoute('/api/files/access/$fileId')({
             // Gerar URL pré-assinada com validade de 1 hora
             const url = await minioClient.presignedGetObject(bucketName, foundObject.name, 60 * 60);
 
-            resolve(new Response(JSON.stringify({
+            resolve(json({
               url,
               fileName: originalFilename,
               mimeType,
               fileSize: stat.size,
-            }), {
+            }, {
               status: 200,
               headers: { 'Content-Type': 'application/json' },
             }));
           } catch (error) {
             log.error(error, 'Erro ao obter URL pré-assinada');
-            resolve(new Response(JSON.stringify({ error: 'Erro ao gerar link de acesso ao arquivo' }), {
+            resolve(json({ error: 'Erro ao gerar link de acesso ao arquivo' }, {
               status: 500,
               headers: { 'Content-Type': 'application/json' },
             }));
@@ -85,10 +83,7 @@ export const APIRoute = createAPIFileRoute('/api/files/access/$fileId')({
       });
     } catch (error) {
       log.error(error, 'Erro no processamento do acesso ao arquivo');
-      return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Erro interno do servidor' }, { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
   },
 }); 

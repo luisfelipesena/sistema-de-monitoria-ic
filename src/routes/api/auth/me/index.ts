@@ -1,6 +1,7 @@
 import { lucia } from '@/server/lib/auth';
 import { logger } from '@/utils/logger';
 import { getSessionId } from '@/utils/lucia';
+import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 
 const log = logger.child({
@@ -13,14 +14,14 @@ export const APIRoute = createAPIFileRoute('/api/auth/me')({
     const sessionId = getSessionId(headers);
     log.info({ sessionId }, 'Session ID');
     if (!sessionId) {
-      return new Response(null, { status: 401 });
+      return json(null, { status: 401 });
     }
 
     try {
       const result = await lucia.validateSession(sessionId);
       if (!result.session || !result.user) {
         const sessionCookie = lucia.createBlankSessionCookie();
-        return new Response(null, {
+        return json(null, {
           status: 401,
           headers: {
             'Set-Cookie': sessionCookie.serialize(),
@@ -28,9 +29,9 @@ export const APIRoute = createAPIFileRoute('/api/auth/me')({
         });
       }
 
-      return new Response(JSON.stringify(result.user));
+      return json(result.user);
     } catch (error) {
-      return new Response(null, { status: 401 });
+      return json(null, { status: 401 });
     }
   },
 });

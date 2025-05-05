@@ -1,6 +1,7 @@
 import { authMiddleware } from '@/routes/api/-middlewares/auth';
 import minioClient, { bucketName, ensureBucketExists } from '@/server/lib/minio';
 import { logger } from '@/utils/logger';
+import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import path from 'path';
 import { Readable } from 'stream';
@@ -28,9 +29,7 @@ export const APIRoute = createAPIFileRoute('/api/files/upload')({
       const entityId = formData.get('entityId') as string;
 
       if (!file || !entityType || !entityId) {
-        return new Response(JSON.stringify({ error: 'Arquivo, tipo de entidade ou ID de entidade não fornecidos' }), {
-          status: 400,
-        });
+        return json({ error: 'Arquivo, tipo de entidade ou ID de entidade não fornecidos' }, { status: 400 });
       }
 
       try {
@@ -69,25 +68,21 @@ export const APIRoute = createAPIFileRoute('/api/files/upload')({
           userId,
         }, 'Arquivo enviado com sucesso');
 
-        return new Response(JSON.stringify({
+        return json({
           fileId,
           fileName: originalFilename,
           mimeType: file.type,
           fileSize: file.size,
-        }), {
+        }, {
           status: 200,
         });
       } catch (error) {
         log.error(error, 'Erro ao enviar arquivo para MinIO');
-        return new Response(JSON.stringify({ error: 'Erro ao salvar o arquivo' }), {
-          status: 500,
-        });
+        return json({ error: 'Erro ao salvar o arquivo' }, { status: 500 });
       }
     } catch (error) {
       log.error(error, 'Erro no processamento do upload');
-      return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), {
-        status: 500,
-      });
+      return json({ error: 'Erro interno do servidor' }, { status: 500 });
     }
   },
 }); 

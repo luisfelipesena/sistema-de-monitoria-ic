@@ -1,6 +1,7 @@
 import { lucia } from '@/server/lib/auth';
 import { logger } from '@/utils/logger';
 import { getSessionId } from '@/utils/lucia';
+import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 
 const log = logger.child({
@@ -12,16 +13,16 @@ export const APIRoute = createAPIFileRoute('/api/auth/signout')({
     const { request: { headers } } = params;
     const sessionId = getSessionId(headers);
     if (!sessionId) {
-      return new Response(JSON.stringify({ message: 'No session cookie' }));
+      return json({ message: 'No session cookie' }, { status: 401 });
     }
 
     const result = await lucia.validateSession(sessionId);
     if (!result.session) {
-      return new Response(JSON.stringify({ message: 'No session cookie' }));
+      return json({ message: 'No session cookie' }, { status: 401 });
     }
 
     await lucia.invalidateSession(sessionId);
 
-    return new Response(JSON.stringify({ message: 'Signed out successfully' }));
+    return json({ message: 'Signed out successfully' }, { status: 200 });
   },
 });

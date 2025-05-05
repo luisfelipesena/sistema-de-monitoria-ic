@@ -2,6 +2,7 @@ import { adminAuthMiddleware } from '@/routes/api/-middlewares/auth';
 import { FileListItem } from '@/routes/api/files/admin/-admin-types';
 import minioClient, { bucketName } from '@/server/lib/minio';
 import { logger } from '@/utils/logger';
+import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import * as Minio from 'minio';
 
@@ -72,10 +73,7 @@ export const APIRoute = createAPIFileRoute('/api/files/admin/list')({
       }
 
       log.error(error, 'Erro geral no processamento da listagem de arquivos admin');
-      return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Erro interno do servidor' }, { status: 500 });
     }
   },
 }); 

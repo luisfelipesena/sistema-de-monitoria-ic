@@ -1,5 +1,5 @@
+import { json } from '@tanstack/react-start';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
 // Mock the entire module to reflect the actual implementation changes
 vi.mock('./index', () => {
   return {
@@ -17,10 +17,10 @@ vi.mock('./index', () => {
             email: 'test@example.com',
             role: 'student', // Assuming user role is part of the user object
           };
-          return new Response(JSON.stringify(user));
+          return json(user);
         } else {
           // Simulate failed session validation (no session ID or invalid session)
-          return new Response(null, { status: 401 });
+          return json(null, { status: 401 });
         }
       }),
     },

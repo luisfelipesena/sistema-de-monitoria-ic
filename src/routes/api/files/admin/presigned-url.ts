@@ -1,6 +1,7 @@
 import { adminAuthMiddleware } from '@/routes/api/-middlewares/auth';
 import minioClient, { bucketName } from '@/server/lib/minio';
 import { logger } from '@/utils/logger';
+import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { z } from 'zod';
 
@@ -19,15 +20,12 @@ export const APIRoute = createAPIFileRoute('/api/files/admin/presigned-url')({
       try {
         body = await request.clone().json();
       } catch (e) {
-        return new Response(JSON.stringify({ error: 'Corpo da requisição inválido (não é JSON)' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+        return json({ error: 'Corpo da requisição inválido (não é JSON)' }, { status: 400, headers: { 'Content-Type': 'application/json' } });
       }
 
       const validation = urlBodySchema.safeParse(body);
       if (!validation.success) {
-        return new Response(JSON.stringify({ error: 'Dados inválidos', details: validation.error.flatten() }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
-        });
+        return json({ error: 'Dados inválidos', details: validation.error.flatten() }, { status: 400, headers: { 'Content-Type': 'application/json' } });
       }
       const { objectName } = validation.data;
 
@@ -41,11 +39,11 @@ export const APIRoute = createAPIFileRoute('/api/files/admin/presigned-url')({
 
       log.info({ adminUserId: userId, objectName }, 'URL pré-assinada gerada.');
 
-      return new Response(JSON.stringify({
+      return json({
         url,
         fileName: originalFilename,
         mimeType,
-      }), {
+      }, {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -58,16 +56,10 @@ export const APIRoute = createAPIFileRoute('/api/files/admin/presigned-url')({
       // Handle specific MinIO errors (e.g., file not found)
       if (error instanceof Error && (error.message.includes('NoSuchKey') || (error as any).code === 'NoSuchKey')) {
         log.warn({ error }, 'Tentativa de gerar URL para arquivo não encontrado');
-        return new Response(JSON.stringify({ error: 'Arquivo não encontrado no bucket' }), {
-          status: 404,
-          headers: { 'Content-Type': 'application/json' },
-        });
+        return json({ error: 'Arquivo não encontrado no bucket' }, { status: 404, headers: { 'Content-Type': 'application/json' } });
       }
       log.error(error, 'Erro ao gerar URL pré-assinada');
-      return new Response(JSON.stringify({ error: 'Erro interno do servidor ao gerar URL' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Erro interno do servidor ao gerar URL' }, { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
   },
 }); 

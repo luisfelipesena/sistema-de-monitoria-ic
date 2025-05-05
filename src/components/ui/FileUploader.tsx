@@ -1,5 +1,6 @@
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { logger } from '@/utils/logger';
 import { File as FileIcon, UploadCloud, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -13,6 +14,10 @@ interface FileUploaderProps {
   maxSizeInMB?: number; // tamanho máximo em MB
   className?: string;
 }
+
+const log = logger.child({
+  context: 'FileUploader',
+});
 
 export function FileUploader({
   entityType,
@@ -125,7 +130,7 @@ export function FileUploader({
 
       setFile(null);
     } catch (error) {
-      console.error('Erro no upload:', error);
+      log.error(error, 'Erro no upload:');
       toast({
         title: 'Erro no upload',
         description:
