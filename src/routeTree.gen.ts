@@ -17,6 +17,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
+import { Route as HomeLayoutTestIndexImport } from './routes/home/_layout/test/index'
 import { Route as HomeLayoutProjectsIndexImport } from './routes/home/_layout/projects/index'
 import { Route as HomeLayoutProfileIndexImport } from './routes/home/_layout/profile/index'
 import { Route as HomeLayoutAdminFilesImport } from './routes/home/_layout/admin/files'
@@ -53,6 +54,12 @@ const AuthCasCallbackRoute = AuthCasCallbackImport.update({
 const HomeLayoutIndexRoute = HomeLayoutIndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => HomeLayoutRoute,
+} as any)
+
+const HomeLayoutTestIndexRoute = HomeLayoutTestIndexImport.update({
+  id: '/test/',
+  path: '/test/',
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
@@ -134,6 +141,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutProjectsIndexImport
       parentRoute: typeof HomeLayoutImport
     }
+    '/home/_layout/test/': {
+      id: '/home/_layout/test/'
+      path: '/test'
+      fullPath: '/home/test'
+      preLoaderRoute: typeof HomeLayoutTestIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
   }
 }
 
@@ -144,6 +158,7 @@ interface HomeLayoutRouteChildren {
   HomeLayoutAdminFilesRoute: typeof HomeLayoutAdminFilesRoute
   HomeLayoutProfileIndexRoute: typeof HomeLayoutProfileIndexRoute
   HomeLayoutProjectsIndexRoute: typeof HomeLayoutProjectsIndexRoute
+  HomeLayoutTestIndexRoute: typeof HomeLayoutTestIndexRoute
 }
 
 const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
@@ -151,6 +166,7 @@ const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutAdminFilesRoute: HomeLayoutAdminFilesRoute,
   HomeLayoutProfileIndexRoute: HomeLayoutProfileIndexRoute,
   HomeLayoutProjectsIndexRoute: HomeLayoutProjectsIndexRoute,
+  HomeLayoutTestIndexRoute: HomeLayoutTestIndexRoute,
 }
 
 const HomeLayoutRouteWithChildren = HomeLayoutRoute._addFileChildren(
@@ -175,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
+  '/home/test': typeof HomeLayoutTestIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -184,6 +201,7 @@ export interface FileRoutesByTo {
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
+  '/home/test': typeof HomeLayoutTestIndexRoute
 }
 
 export interface FileRoutesById {
@@ -196,6 +214,7 @@ export interface FileRoutesById {
   '/home/_layout/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/_layout/profile/': typeof HomeLayoutProfileIndexRoute
   '/home/_layout/projects/': typeof HomeLayoutProjectsIndexRoute
+  '/home/_layout/test/': typeof HomeLayoutTestIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -208,6 +227,7 @@ export interface FileRouteTypes {
     | '/home/admin/files'
     | '/home/profile'
     | '/home/projects'
+    | '/home/test'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -216,6 +236,7 @@ export interface FileRouteTypes {
     | '/home/admin/files'
     | '/home/profile'
     | '/home/projects'
+    | '/home/test'
   id:
     | '__root__'
     | '/'
@@ -226,6 +247,7 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/files'
     | '/home/_layout/profile/'
     | '/home/_layout/projects/'
+    | '/home/_layout/test/'
   fileRoutesById: FileRoutesById
 }
 
@@ -275,7 +297,8 @@ export const routeTree = rootRoute
         "/home/_layout/",
         "/home/_layout/admin/files",
         "/home/_layout/profile/",
-        "/home/_layout/projects/"
+        "/home/_layout/projects/",
+        "/home/_layout/test/"
       ]
     },
     "/home/_layout/": {
@@ -292,6 +315,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/projects/": {
       "filePath": "home/_layout/projects/index.tsx",
+      "parent": "/home/_layout"
+    },
+    "/home/_layout/test/": {
+      "filePath": "home/_layout/test/index.tsx",
       "parent": "/home/_layout"
     }
   }

@@ -82,6 +82,18 @@ function HomeLayoutComponent() {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
+                isActive={location.pathname.startsWith('/home/test')}
+                tooltip="Teste"
+              >
+                <Link to="/home/test">
+                  <FolderKanban />
+                  <span>Teste</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
                 isActive={location.pathname.startsWith('/home/profile')}
                 tooltip="Perfil"
               >

@@ -5,88 +5,97 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
+    /* Primary Brand Color - UFBA Purple */
+    --primary: 265 50% 37%;
+    /* #572C90 */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    /* Secondary Teal */
+    --secondary: 169 56% 40%;
+    /* #31A8A0 */
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    /* Secondary Light Purple */
+    --accent: 265 50% 90%;
+    /* #E8DEFC */
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    /* Sidebar Specific Colors */
+    --sidebar-background: 265 50% 37%;
+    /* #572C90 */
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 265 50% 37%;
+    /* #572C90 */
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 265 50% 45%;
+    /* #6A36AE */
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 265 50% 45%;
+    --sidebar-ring: 265 50% 37%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* System Success/Error Colors */
+    --success: 142 71% 45%;
+    /* #2DCE89 */
+    --success-foreground: 210 40% 98%;
+    --warning: 37 95% 65%;
+    /* #FFDB5C */
+    --warning-foreground: 222.2 47.4% 11.2%;
+    --error: 0 84.2% 60.2%;
+    /* #F5365C */
+    --error-foreground: 210 40% 98%;
+    --info: 224 76% 48%;
+    /* #1171EF */
+    --info-foreground: 210 40% 98%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
+    --primary: 265 50% 37%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 169 56% 40%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --accent: 265 50% 90%;
+    --accent-foreground: 210 40% 98%;
 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
   }
 
   html {
@@ -107,13 +116,71 @@
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
+}
+
+/* Tipografia baseada no Design System */
+.h1 {
+  @apply text-4xl font-bold tracking-tight;
+}
+
+.h2 {
+  @apply text-3xl font-semibold tracking-tight;
+}
+
+.h3 {
+  @apply text-2xl font-semibold tracking-tight;
+}
+
+.h4 {
+  @apply text-xl font-semibold tracking-tight;
+}
+
+.p {
+  @apply text-base leading-7;
+}
+
+.small {
+  @apply text-sm leading-6;
+}
+
+.body-large {
+  @apply text-lg leading-7;
+}
+
+.body-small {
+  @apply text-xs leading-5;
+}
+
+/* Variantes específicas do design system */
+.sidebar-link {
+  @apply flex items-center gap-2 rounded-md px-3 py-2 text-sidebar-foreground transition-colors hover:bg-sidebar-accent focus:bg-sidebar-accent focus:outline-none;
+}
+
+.sidebar-link.active {
+  @apply bg-sidebar-accent font-medium;
+}
+
+.card-section {
+  @apply rounded-lg border bg-card p-4 shadow-sm;
+}
+
+.badge-primary {
+  @apply rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground;
+}
+
+.badge-secondary {
+  @apply rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground;
+}
+
+.badge-outline {
+  @apply rounded-full border border-input bg-background px-2.5 py-0.5 text-xs font-medium;
 }
