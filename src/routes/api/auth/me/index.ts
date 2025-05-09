@@ -10,9 +10,10 @@ const log = logger.child({
 
 export const APIRoute = createAPIFileRoute('/api/auth/me')({
   GET: async (params) => {
-    const { request: { headers } } = params;
+    const {
+      request: { headers },
+    } = params;
     const sessionId = getSessionId(headers);
-    log.info({ sessionId }, 'Session ID');
     if (!sessionId) {
       return json(null, { status: 401 });
     }
@@ -35,4 +36,3 @@ export const APIRoute = createAPIFileRoute('/api/auth/me')({
     }
   },
 });
-

@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from '../trpc/init';
+import { createTRPCRouter, publicProcedure } from '../init';
+import { alunoRouter } from './aluno';
 
 const guitars = [
   { id: 1, brand: 'Fender', model: 'Stratocaster' },
@@ -28,6 +29,7 @@ const guitarRouter = createTRPCRouter({
 
 export const trpcRouter = createTRPCRouter({
   guitars: guitarRouter,
+  aluno: alunoRouter,
 });
 
 export type AppRouter = typeof trpcRouter;

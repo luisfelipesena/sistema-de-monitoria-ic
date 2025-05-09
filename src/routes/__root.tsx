@@ -16,7 +16,7 @@ import {
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import type { TRPCOptionsProxy } from '@trpc/tanstack-react-query';
 import * as React from 'react';
-import type { AppRouter } from '../server/routes/router';
+import type { AppRouter } from '../server/trpc/routers/router';
 
 export interface MyRouterContext {
   queryClient: QueryClient;

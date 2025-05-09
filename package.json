@@ -48,6 +48,7 @@
     "date-fns": "^4.1.0",
     "drizzle-kit": "^0.31.0",
     "drizzle-orm": "^0.43.1",
+    "drizzle-zod": "^0.7.1",
     "fast-xml-parser": "^4.4.0",
     "file-saver": "^2.0.5",
     "formidable": "^3.5.4",
