@@ -17,43 +17,36 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+export const Route = createFileRoute('/home/_layout/onboarding/onboarding')({
+  component: OnboardingPage,
+});
+
+function OnboardingPage() {
+  const { user, isLoading: authLoading } = useAuth();
+
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Carregando...
+      </div>
+    );
+  }
+
+  const isStudent = user?.role === 'student';
+
+  return (
+    <div className="max-w-3xl mx-auto py-12 px-4">
+      <h1 className="text-3xl font-bold mb-2">Bem-vindo(a)!</h1>
+      <p className="mb-8 text-muted-foreground">
+        Por favor, complete suas informações de perfil. Isso facilitará o
+        preenchimento automático em futuras candidaturas.
+      </p>
+
+      {isStudent ? <StudentForm /> : <ProfessorForm />}
+    </div>
+  );
+}
 // Schema for student (aluno) form data
-const studentSchema = z.object({
-  nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
-  nomeSocial: z.string().optional(),
-  matricula: z.string().min(1, 'Matrícula é obrigatória'),
-  cpf: z.string().min(1, 'CPF é obrigatório'),
-  emailInstitucional: z
-    .string()
-    .email('Email institucional inválido')
-    .min(1, 'Email institucional é obrigatório'),
-  genero: z.string().min(1, 'Gênero é obrigatório'),
-  especificacaoGenero: z.string().optional(),
-  cr: z.string().min(1, 'CR é obrigatório'),
-  telefone: z.string().optional(),
-  cursoId: z.coerce.number().min(1, 'ID do curso é obrigatório'),
-});
-
-// Schema for professor form data
-const professorSchema = z.object({
-  nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
-  nomeSocial: z.string().optional(),
-  matriculaSiape: z.string().min(1, 'Matrícula SIAPE é obrigatória'),
-  cpf: z.string().min(1, 'CPF é obrigatório'),
-  emailInstitucional: z
-    .string()
-    .email('Email institucional inválido')
-    .min(1, 'Email institucional é obrigatório'),
-  genero: z.string().min(1, 'Gênero é obrigatório'),
-  especificacaoGenero: z.string().optional(),
-  regime: z.string().min(1, 'Regime é obrigatório'),
-  telefone: z.string().optional(),
-  telefoneInstitucional: z.string().optional(),
-  departamentoId: z.coerce.number().min(1, 'ID do departamento é obrigatório'),
-});
-
-type StudentFormData = z.infer<typeof studentSchema>;
-type ProfessorFormData = z.infer<typeof professorSchema>;
 
 async function fetchProfile(apiUrl: string) {
   const res = await fetch(apiUrl);
@@ -672,32 +665,39 @@ function ProfessorForm() {
   );
 }
 
-function OnboardingPage() {
-  const { user, isLoading: authLoading } = useAuth();
-
-  if (authLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        Carregando...
-      </div>
-    );
-  }
-
-  const isStudent = user?.role === 'student';
-
-  return (
-    <div className="max-w-3xl mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-2">Bem-vindo(a)!</h1>
-      <p className="mb-8 text-muted-foreground">
-        Por favor, complete suas informações de perfil. Isso facilitará o
-        preenchimento automático em futuras candidaturas.
-      </p>
-
-      {isStudent ? <StudentForm /> : <ProfessorForm />}
-    </div>
-  );
-}
-
-export const Route = createFileRoute('/home/_layout/onboarding/onboarding')({
-  component: OnboardingPage,
+const studentSchema = z.object({
+  nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
+  nomeSocial: z.string().optional(),
+  matricula: z.string().min(1, 'Matrícula é obrigatória'),
+  cpf: z.string().min(1, 'CPF é obrigatório'),
+  emailInstitucional: z
+    .string()
+    .email('Email institucional inválido')
+    .min(1, 'Email institucional é obrigatório'),
+  genero: z.string().min(1, 'Gênero é obrigatório'),
+  especificacaoGenero: z.string().optional(),
+  cr: z.string().min(1, 'CR é obrigatório'),
+  telefone: z.string().optional(),
+  cursoId: z.coerce.number().min(1, 'ID do curso é obrigatório'),
 });
+
+// Schema for professor form data
+const professorSchema = z.object({
+  nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
+  nomeSocial: z.string().optional(),
+  matriculaSiape: z.string().min(1, 'Matrícula SIAPE é obrigatória'),
+  cpf: z.string().min(1, 'CPF é obrigatório'),
+  emailInstitucional: z
+    .string()
+    .email('Email institucional inválido')
+    .min(1, 'Email institucional é obrigatório'),
+  genero: z.string().min(1, 'Gênero é obrigatório'),
+  especificacaoGenero: z.string().optional(),
+  regime: z.string().min(1, 'Regime é obrigatório'),
+  telefone: z.string().optional(),
+  telefoneInstitucional: z.string().optional(),
+  departamentoId: z.coerce.number().min(1, 'ID do departamento é obrigatório'),
+});
+
+type StudentFormData = z.infer<typeof studentSchema>;
+type ProfessorFormData = z.infer<typeof professorSchema>;
