@@ -8,7 +8,7 @@ import { createTRPCReact } from '@trpc/react-query';
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
 import SuperJSON from 'superjson';
 import { routeTree } from './routeTree.gen';
-import { AppRouter } from './trpc/router';
+import { AppRouter } from './server/routes/router';
 
 export const trpc = createTRPCReact<AppRouter>();
 

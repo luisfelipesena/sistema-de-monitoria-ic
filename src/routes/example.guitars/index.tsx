@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { trpc } from '../../trpc/react';
+import { trpc } from '../../server/trpc/react';
 
 export const Route = createFileRoute('/example/guitars/')({
   component: GuitarsIndex,

@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { createTRPCRouter, publicProcedure } from './init';
+import { createTRPCRouter, publicProcedure } from '../trpc/init';
 
 const guitars = [
   { id: 1, brand: 'Fender', model: 'Stratocaster' },
