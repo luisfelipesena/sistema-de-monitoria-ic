@@ -14,13 +14,13 @@ import {
   createRootRouteWithContext,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import type { TRPCOptionsProxy } from '@trpc/tanstack-react-query';
+import { TRPCClient } from '@trpc/client';
 import * as React from 'react';
 import type { AppRouter } from '../server/trpc/routers/router';
 
 export interface MyRouterContext {
   queryClient: QueryClient;
-  trpc: TRPCOptionsProxy<AppRouter>;
+  trpc: TRPCClient<AppRouter>;
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({

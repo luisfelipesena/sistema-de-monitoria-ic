@@ -3,6 +3,8 @@ import { NotFound } from '@/components/NotFound';
 import { QueryClient } from '@tanstack/react-query';
 import { createRouter as createTanStackRouter } from '@tanstack/react-router';
 import { routerWithQueryClient } from '@tanstack/react-router-with-query';
+import { createIsomorphicFn } from '@tanstack/react-start';
+import { getHeaders } from '@tanstack/react-start/server';
 import { createTRPCClient, httpBatchStreamLink } from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
@@ -20,6 +22,10 @@ function getUrl() {
   return base + '/api/trpc';
 }
 
+const headers = createIsomorphicFn()
+  .client(() => ({}))
+  .server(() => getHeaders());
+
 export function createRouter() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -36,6 +42,7 @@ export function createRouter() {
       httpBatchStreamLink({
         transformer: SuperJSON,
         url: getUrl(),
+        headers,
       }),
     ],
   });
@@ -47,7 +54,7 @@ export function createRouter() {
   return routerWithQueryClient(
     createTanStackRouter({
       routeTree,
-      context: { queryClient, trpc: serverHelpers },
+      context: { queryClient, trpc: trpcClient },
       defaultPreload: 'render',
       defaultErrorComponent: DefaultCatchBoundary,
       defaultNotFoundComponent: () => <NotFound />,

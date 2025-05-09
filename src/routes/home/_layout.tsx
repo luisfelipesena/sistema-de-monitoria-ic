@@ -18,6 +18,7 @@ import {
   Outlet,
   createFileRoute,
   useLocation,
+  useNavigate,
 } from '@tanstack/react-router';
 import {
   FolderKanban,
@@ -30,12 +31,21 @@ import { useEffect, useState } from 'react';
 
 export const Route = createFileRoute('/home/_layout')({
   component: HomeLayoutComponent,
+  loader: async ({ context }) => {
+    const result = await context.trpc.onboarding.getStatus.query(undefined, {
+      context: {},
+    });
+    return { onboardingPending: result.pending };
+  },
 });
 
 function HomeLayoutComponent() {
   const { user, isLoading, signOut, isAuthenticated } = useAuth();
   const location = useLocation();
   const [isSignedOut, setIsSignedOut] = useState(false);
+  const { onboardingPending } = Route.useLoaderData();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user && !isLoading && !isSignedOut) {
@@ -43,6 +53,11 @@ function HomeLayoutComponent() {
       setIsSignedOut(true);
     }
   }, [user, isLoading, isSignedOut]);
+
+  if (onboardingPending) {
+    navigate({ to: '/home/onboarding/onboarding' });
+  }
+  if (isLoading) return null;
 
   return (
     <SidebarProvider>
