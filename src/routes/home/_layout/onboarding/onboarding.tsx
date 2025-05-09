@@ -1,10 +1,19 @@
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '@/hooks/use-auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -79,6 +88,7 @@ function StudentForm() {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
+  const [useNomeSocial, setUseNomeSocial] = useState(false);
 
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
@@ -108,6 +118,7 @@ function StudentForm() {
         navigate({ to: '/home' });
       } else if (Object.keys(profileData).length > 0) {
         form.reset(profileData);
+        setUseNomeSocial(!!profileData.nomeSocial);
       }
     }
   }, [profileData, navigate, form]);
@@ -129,6 +140,9 @@ function StudentForm() {
   });
 
   const onSubmit = (values: StudentFormData) => {
+    if (!useNomeSocial) {
+      values.nomeSocial = undefined;
+    }
     mutation.mutate(values);
   };
 
@@ -141,121 +155,202 @@ function StudentForm() {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <Input
-          placeholder="Nome Completo"
-          {...form.register('nomeCompleto')}
-          aria-invalid={form.formState.errors.nomeCompleto ? 'true' : 'false'}
-        />
-        {form.formState.errors.nomeCompleto && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.nomeCompleto.message}
-          </p>
-        )}
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Informações Pessoais</h2>
+
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <Label htmlFor="nomeCompleto">Nome Completo</Label>
+            <Input
+              id="nomeCompleto"
+              {...form.register('nomeCompleto')}
+              className={
+                form.formState.errors.nomeCompleto ? 'border-red-500' : ''
+              }
+            />
+            {form.formState.errors.nomeCompleto && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.nomeCompleto.message}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="useNomeSocial"
+              checked={useNomeSocial}
+              onCheckedChange={(checked) => setUseNomeSocial(checked === true)}
+            />
+            <Label htmlFor="useNomeSocial" className="text-sm font-normal">
+              Usar nome social
+            </Label>
+          </div>
+
+          {useNomeSocial && (
+            <div className="ml-6">
+              <Label htmlFor="nomeSocial">Nome Social</Label>
+              <Input id="nomeSocial" {...form.register('nomeSocial')} />
+            </div>
+          )}
+        </div>
       </div>
 
-      <div>
-        <Input
-          placeholder="Nome Social (opcional)"
-          {...form.register('nomeSocial')}
-        />
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Documentos e Identificação</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="matricula">Matrícula</Label>
+            <Input
+              id="matricula"
+              {...form.register('matricula')}
+              className={
+                form.formState.errors.matricula ? 'border-red-500' : ''
+              }
+            />
+            {form.formState.errors.matricula && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.matricula.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="cpf">CPF</Label>
+            <Input
+              id="cpf"
+              {...form.register('cpf')}
+              className={form.formState.errors.cpf ? 'border-red-500' : ''}
+              placeholder="Somente números"
+            />
+            {form.formState.errors.cpf && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.cpf.message}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div>
-        <Input
-          placeholder="Matrícula"
-          {...form.register('matricula')}
-          aria-invalid={form.formState.errors.matricula ? 'true' : 'false'}
-        />
-        {form.formState.errors.matricula && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.matricula.message}
-          </p>
-        )}
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Informações de Contato</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="emailInstitucional">Email Institucional</Label>
+            <Input
+              id="emailInstitucional"
+              type="email"
+              {...form.register('emailInstitucional')}
+              className={
+                form.formState.errors.emailInstitucional ? 'border-red-500' : ''
+              }
+            />
+            {form.formState.errors.emailInstitucional && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.emailInstitucional.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="telefone">Telefone (opcional)</Label>
+            <Input id="telefone" {...form.register('telefone')} />
+          </div>
+        </div>
       </div>
 
-      <div>
-        <Input
-          placeholder="CPF (somente números)"
-          {...form.register('cpf')}
-          aria-invalid={form.formState.errors.cpf ? 'true' : 'false'}
-        />
-        {form.formState.errors.cpf && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.cpf.message}
-          </p>
-        )}
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Informações Acadêmicas</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2">
+            <Label htmlFor="cursoId">Curso</Label>
+            <Select
+              onValueChange={(value) =>
+                form.setValue('cursoId', parseInt(value))
+              }
+              defaultValue={form.getValues('cursoId')?.toString()}
+            >
+              <SelectTrigger
+                className={
+                  form.formState.errors.cursoId ? 'border-red-500' : ''
+                }
+              >
+                <SelectValue placeholder="Selecione o curso" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Ciência da Computação</SelectItem>
+                <SelectItem value="2">Sistemas de Informação</SelectItem>
+                <SelectItem value="3">Engenharia da Computação</SelectItem>
+                <SelectItem value="4">Licenciatura em Computação</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.cursoId && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.cursoId.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="cr">CR</Label>
+            <Input
+              id="cr"
+              {...form.register('cr')}
+              className={form.formState.errors.cr ? 'border-red-500' : ''}
+              placeholder="Ex: 8.5"
+            />
+            {form.formState.errors.cr && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.cr.message}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div>
-        <Input
-          placeholder="Email Institucional"
-          type="email"
-          {...form.register('emailInstitucional')}
-          aria-invalid={
-            form.formState.errors.emailInstitucional ? 'true' : 'false'
-          }
-        />
-        {form.formState.errors.emailInstitucional && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.emailInstitucional.message}
-          </p>
-        )}
-      </div>
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Dados Adicionais</h2>
 
-      <div>
-        <Input
-          placeholder="Gênero (MASCULINO, FEMININO ou OUTRO)"
-          {...form.register('genero')}
-          aria-invalid={form.formState.errors.genero ? 'true' : 'false'}
-        />
-        {form.formState.errors.genero && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.genero.message}
-          </p>
-        )}
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="genero">Gênero</Label>
+            <Select
+              onValueChange={(value) => form.setValue('genero', value)}
+              defaultValue={form.getValues('genero')}
+            >
+              <SelectTrigger
+                className={form.formState.errors.genero ? 'border-red-500' : ''}
+              >
+                <SelectValue placeholder="Selecione o gênero" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MASCULINO">Masculino</SelectItem>
+                <SelectItem value="FEMININO">Feminino</SelectItem>
+                <SelectItem value="OUTRO">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.genero && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.genero.message}
+              </p>
+            )}
+          </div>
 
-      <div>
-        <Input
-          placeholder="Especificação de Gênero (opcional)"
-          {...form.register('especificacaoGenero')}
-        />
-      </div>
-
-      <div>
-        <Input
-          placeholder="CR (Coeficiente de Rendimento)"
-          {...form.register('cr')}
-          aria-invalid={form.formState.errors.cr ? 'true' : 'false'}
-        />
-        {form.formState.errors.cr && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.cr.message}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <Input
-          placeholder="Telefone (opcional)"
-          {...form.register('telefone')}
-        />
-      </div>
-
-      <div>
-        <Input
-          placeholder="ID do Curso"
-          type="number"
-          {...form.register('cursoId')}
-          aria-invalid={form.formState.errors.cursoId ? 'true' : 'false'}
-        />
-        {form.formState.errors.cursoId && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.cursoId.message}
-          </p>
-        )}
+          {form.getValues('genero') === 'OUTRO' && (
+            <div>
+              <Label htmlFor="especificacaoGenero">
+                Especificação de Gênero
+              </Label>
+              <Input
+                id="especificacaoGenero"
+                {...form.register('especificacaoGenero')}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="pt-4">
@@ -276,6 +371,7 @@ function ProfessorForm() {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
+  const [useNomeSocial, setUseNomeSocial] = useState(false);
 
   const form = useForm<ProfessorFormData>({
     resolver: zodResolver(professorSchema),
@@ -305,6 +401,7 @@ function ProfessorForm() {
         navigate({ to: '/home' });
       } else if (Object.keys(profileData).length > 0) {
         form.reset(profileData);
+        setUseNomeSocial(!!profileData.nomeSocial);
       }
     }
   }, [profileData, navigate, form]);
@@ -327,6 +424,9 @@ function ProfessorForm() {
   });
 
   const onSubmit = (values: ProfessorFormData) => {
+    if (!useNomeSocial) {
+      values.nomeSocial = undefined;
+    }
     mutation.mutate(values);
   };
 
@@ -339,128 +439,223 @@ function ProfessorForm() {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <Input
-          placeholder="Nome Completo"
-          {...form.register('nomeCompleto')}
-          aria-invalid={form.formState.errors.nomeCompleto ? 'true' : 'false'}
-        />
-        {form.formState.errors.nomeCompleto && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.nomeCompleto.message}
-          </p>
-        )}
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Informações Pessoais</h2>
+
+        <div className="grid grid-cols-1 gap-4">
+          <div>
+            <Label htmlFor="nomeCompleto">Nome Completo</Label>
+            <Input
+              id="nomeCompleto"
+              {...form.register('nomeCompleto')}
+              className={
+                form.formState.errors.nomeCompleto ? 'border-red-500' : ''
+              }
+            />
+            {form.formState.errors.nomeCompleto && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.nomeCompleto.message}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="useNomeSocial"
+              checked={useNomeSocial}
+              onCheckedChange={(checked) => setUseNomeSocial(checked === true)}
+            />
+            <Label htmlFor="useNomeSocial" className="text-sm font-normal">
+              Usar nome social
+            </Label>
+          </div>
+
+          {useNomeSocial && (
+            <div className="ml-6">
+              <Label htmlFor="nomeSocial">Nome Social</Label>
+              <Input id="nomeSocial" {...form.register('nomeSocial')} />
+            </div>
+          )}
+        </div>
       </div>
 
-      <div>
-        <Input
-          placeholder="Nome Social (opcional)"
-          {...form.register('nomeSocial')}
-        />
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Documentos e Identificação</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="matriculaSiape">Matrícula SIAPE</Label>
+            <Input
+              id="matriculaSiape"
+              {...form.register('matriculaSiape')}
+              className={
+                form.formState.errors.matriculaSiape ? 'border-red-500' : ''
+              }
+            />
+            {form.formState.errors.matriculaSiape && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.matriculaSiape.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="cpf">CPF</Label>
+            <Input
+              id="cpf"
+              {...form.register('cpf')}
+              className={form.formState.errors.cpf ? 'border-red-500' : ''}
+              placeholder="Somente números"
+            />
+            {form.formState.errors.cpf && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.cpf.message}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div>
-        <Input
-          placeholder="Matrícula SIAPE"
-          {...form.register('matriculaSiape')}
-          aria-invalid={form.formState.errors.matriculaSiape ? 'true' : 'false'}
-        />
-        {form.formState.errors.matriculaSiape && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.matriculaSiape.message}
-          </p>
-        )}
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Informações de Contato</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="emailInstitucional">Email Institucional</Label>
+            <Input
+              id="emailInstitucional"
+              type="email"
+              {...form.register('emailInstitucional')}
+              className={
+                form.formState.errors.emailInstitucional ? 'border-red-500' : ''
+              }
+            />
+            {form.formState.errors.emailInstitucional && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.emailInstitucional.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="telefone">Telefone (opcional)</Label>
+            <Input id="telefone" {...form.register('telefone')} />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <Label htmlFor="telefoneInstitucional">
+            Telefone Institucional (opcional)
+          </Label>
+          <Input
+            id="telefoneInstitucional"
+            {...form.register('telefoneInstitucional')}
+          />
+        </div>
       </div>
 
-      <div>
-        <Input
-          placeholder="CPF (somente números)"
-          {...form.register('cpf')}
-          aria-invalid={form.formState.errors.cpf ? 'true' : 'false'}
-        />
-        {form.formState.errors.cpf && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.cpf.message}
-          </p>
-        )}
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Informações Profissionais</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="departamentoId">Departamento</Label>
+            <Select
+              onValueChange={(value) =>
+                form.setValue('departamentoId', parseInt(value))
+              }
+              defaultValue={form.getValues('departamentoId')?.toString()}
+            >
+              <SelectTrigger
+                className={
+                  form.formState.errors.departamentoId ? 'border-red-500' : ''
+                }
+              >
+                <SelectValue placeholder="Selecione o departamento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Ciência da Computação (DCC)</SelectItem>
+                <SelectItem value="2">Estatística</SelectItem>
+                <SelectItem value="3">Matemática</SelectItem>
+                <SelectItem value="4">
+                  Computação Interdisciplinar (DCI)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.departamentoId && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.departamentoId.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="regime">Regime de Trabalho</Label>
+            <Select
+              onValueChange={(value) => form.setValue('regime', value)}
+              defaultValue={form.getValues('regime')}
+            >
+              <SelectTrigger
+                className={form.formState.errors.regime ? 'border-red-500' : ''}
+              >
+                <SelectValue placeholder="Selecione o regime" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="20H">20 horas</SelectItem>
+                <SelectItem value="40H">40 horas</SelectItem>
+                <SelectItem value="DE">Dedicação Exclusiva</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.regime && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.regime.message}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div>
-        <Input
-          placeholder="Email Institucional"
-          type="email"
-          {...form.register('emailInstitucional')}
-          aria-invalid={
-            form.formState.errors.emailInstitucional ? 'true' : 'false'
-          }
-        />
-        {form.formState.errors.emailInstitucional && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.emailInstitucional.message}
-          </p>
-        )}
-      </div>
+      <div className="space-y-2">
+        <h2 className="text-xl font-semibold">Dados Adicionais</h2>
 
-      <div>
-        <Input
-          placeholder="Gênero (MASCULINO, FEMININO ou OUTRO)"
-          {...form.register('genero')}
-          aria-invalid={form.formState.errors.genero ? 'true' : 'false'}
-        />
-        {form.formState.errors.genero && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.genero.message}
-          </p>
-        )}
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="genero">Gênero</Label>
+            <Select
+              onValueChange={(value) => form.setValue('genero', value)}
+              defaultValue={form.getValues('genero')}
+            >
+              <SelectTrigger
+                className={form.formState.errors.genero ? 'border-red-500' : ''}
+              >
+                <SelectValue placeholder="Selecione o gênero" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="MASCULINO">Masculino</SelectItem>
+                <SelectItem value="FEMININO">Feminino</SelectItem>
+                <SelectItem value="OUTRO">Outro</SelectItem>
+              </SelectContent>
+            </Select>
+            {form.formState.errors.genero && (
+              <p className="text-red-500 text-sm mt-1">
+                {form.formState.errors.genero.message}
+              </p>
+            )}
+          </div>
 
-      <div>
-        <Input
-          placeholder="Especificação de Gênero (opcional)"
-          {...form.register('especificacaoGenero')}
-        />
-      </div>
-
-      <div>
-        <Input
-          placeholder="Regime (20H, 40H, ou DE)"
-          {...form.register('regime')}
-          aria-invalid={form.formState.errors.regime ? 'true' : 'false'}
-        />
-        {form.formState.errors.regime && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.regime.message}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <Input
-          placeholder="Telefone (opcional)"
-          {...form.register('telefone')}
-        />
-      </div>
-
-      <div>
-        <Input
-          placeholder="Telefone Institucional (opcional)"
-          {...form.register('telefoneInstitucional')}
-        />
-      </div>
-
-      <div>
-        <Input
-          placeholder="ID do Departamento"
-          type="number"
-          {...form.register('departamentoId')}
-          aria-invalid={form.formState.errors.departamentoId ? 'true' : 'false'}
-        />
-        {form.formState.errors.departamentoId && (
-          <p className="text-red-500 text-sm mt-1">
-            {form.formState.errors.departamentoId.message}
-          </p>
-        )}
+          {form.getValues('genero') === 'OUTRO' && (
+            <div>
+              <Label htmlFor="especificacaoGenero">
+                Especificação de Gênero
+              </Label>
+              <Input
+                id="especificacaoGenero"
+                {...form.register('especificacaoGenero')}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="pt-4">
@@ -491,7 +686,7 @@ function OnboardingPage() {
   const isStudent = user?.role === 'student';
 
   return (
-    <div className="max-w-2xl mx-auto py-12 px-4">
+    <div className="max-w-3xl mx-auto py-12 px-4">
       <h1 className="text-3xl font-bold mb-2">Bem-vindo(a)!</h1>
       <p className="mb-8 text-muted-foreground">
         Por favor, complete suas informações de perfil. Isso facilitará o
