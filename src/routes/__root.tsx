@@ -4,9 +4,9 @@ import { NotFound } from '@/components/NotFound';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth';
 import appCss from '@/styles/app.css?url';
+import { CustomTrpcProvider } from '@/trpc/root-provider';
 import { seo } from '@/utils/seo';
 import type { QueryClient } from '@tanstack/react-query';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import {
   HeadContent,
@@ -15,11 +15,16 @@ import {
   createRootRouteWithContext,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import type { TRPCOptionsProxy } from '@trpc/tanstack-react-query';
 import * as React from 'react';
+import type { AppRouter } from '../trpc/router';
 
-export const Route = createRootRouteWithContext<{
+export interface MyRouterContext {
   queryClient: QueryClient;
-}>()({
+  trpc: TRPCOptionsProxy<AppRouter>;
+}
+
+export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
     meta: [
       {
@@ -73,11 +78,11 @@ function RootComponent() {
 
   return (
     <RootDocument>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <Outlet />
-        </AuthProvider>
-      </QueryClientProvider>
+      {/* <QueryClientProvider client={queryClient}> */}
+      <AuthProvider>
+        <Outlet />
+      </AuthProvider>
+      {/* </QueryClientProvider> */}
     </RootDocument>
   );
 }
@@ -89,12 +94,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <hr />
-        {children}
-        <TanStackRouterDevtools position="bottom-right" />
-        <ReactQueryDevtools buttonPosition="bottom-left" />
-        <Toaster />
-        <Scripts />
+        <CustomTrpcProvider>
+          <hr />
+          {children}
+          <TanStackRouterDevtools position="bottom-right" />
+          <ReactQueryDevtools buttonPosition="bottom-left" />
+          <Toaster />
+          <Scripts />
+        </CustomTrpcProvider>
       </body>
     </html>
   );

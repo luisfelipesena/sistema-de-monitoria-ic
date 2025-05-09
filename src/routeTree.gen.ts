@@ -18,6 +18,8 @@ import { Route as IndexImport } from './routes/index'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
+import { Route as ExampleGuitarsIndexImport } from './routes/example.guitars/index'
+import { Route as ExampleGuitarsguitarIdImport } from './routes/example.guitars/[guitarId]'
 import { Route as HomeLayoutProjectsIndexImport } from './routes/home/_layout/projects/index'
 import { Route as HomeLayoutProfileIndexImport } from './routes/home/_layout/profile/index'
 import { Route as HomeLayoutAdminFilesImport } from './routes/home/_layout/admin/files'
@@ -61,6 +63,18 @@ const HomeLayoutIndexRoute = HomeLayoutIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => HomeLayoutRoute,
+} as any)
+
+const ExampleGuitarsIndexRoute = ExampleGuitarsIndexImport.update({
+  id: '/example/guitars/',
+  path: '/example/guitars/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ExampleGuitarsguitarIdRoute = ExampleGuitarsguitarIdImport.update({
+  id: '/example/guitars/[guitarId]',
+  path: '/example/guitars/[guitarId]',
+  getParentRoute: () => rootRoute,
 } as any)
 
 const HomeLayoutProjectsIndexRoute = HomeLayoutProjectsIndexImport.update({
@@ -119,6 +133,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/home'
       preLoaderRoute: typeof HomeLayoutImport
       parentRoute: typeof HomeRoute
+    }
+    '/example/guitars/[guitarId]': {
+      id: '/example/guitars/[guitarId]'
+      path: '/example/guitars/[guitarId]'
+      fullPath: '/example/guitars/[guitarId]'
+      preLoaderRoute: typeof ExampleGuitarsguitarIdImport
+      parentRoute: typeof rootRoute
+    }
+    '/example/guitars/': {
+      id: '/example/guitars/'
+      path: '/example/guitars'
+      fullPath: '/example/guitars'
+      preLoaderRoute: typeof ExampleGuitarsIndexImport
+      parentRoute: typeof rootRoute
     }
     '/home/_layout/': {
       id: '/home/_layout/'
@@ -186,6 +214,8 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutRouteWithChildren
+  '/example/guitars/[guitarId]': typeof ExampleGuitarsguitarIdRoute
+  '/example/guitars': typeof ExampleGuitarsIndexRoute
   '/home/': typeof HomeLayoutIndexRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
@@ -197,6 +227,8 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutIndexRoute
+  '/example/guitars/[guitarId]': typeof ExampleGuitarsguitarIdRoute
+  '/example/guitars': typeof ExampleGuitarsIndexRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
@@ -209,6 +241,8 @@ export interface FileRoutesById {
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
+  '/example/guitars/[guitarId]': typeof ExampleGuitarsguitarIdRoute
+  '/example/guitars/': typeof ExampleGuitarsIndexRoute
   '/home/_layout/': typeof HomeLayoutIndexRoute
   '/home/_layout/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/_layout/profile/': typeof HomeLayoutProfileIndexRoute
@@ -222,6 +256,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/auth/cas-callback'
     | '/home'
+    | '/example/guitars/[guitarId]'
+    | '/example/guitars'
     | '/home/'
     | '/home/admin/files'
     | '/home/profile'
@@ -232,6 +268,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/auth/cas-callback'
     | '/home'
+    | '/example/guitars/[guitarId]'
+    | '/example/guitars'
     | '/home/admin/files'
     | '/home/profile'
     | '/home/projects'
@@ -242,6 +280,8 @@ export interface FileRouteTypes {
     | '/auth/cas-callback'
     | '/home'
     | '/home/_layout'
+    | '/example/guitars/[guitarId]'
+    | '/example/guitars/'
     | '/home/_layout/'
     | '/home/_layout/admin/files'
     | '/home/_layout/profile/'
@@ -254,6 +294,8 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   AuthCasCallbackRoute: typeof AuthCasCallbackRoute
   HomeRoute: typeof HomeRouteWithChildren
+  ExampleGuitarsguitarIdRoute: typeof ExampleGuitarsguitarIdRoute
+  ExampleGuitarsIndexRoute: typeof ExampleGuitarsIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -261,6 +303,8 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   AuthCasCallbackRoute: AuthCasCallbackRoute,
   HomeRoute: HomeRouteWithChildren,
+  ExampleGuitarsguitarIdRoute: ExampleGuitarsguitarIdRoute,
+  ExampleGuitarsIndexRoute: ExampleGuitarsIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -276,7 +320,9 @@ export const routeTree = rootRoute
         "/",
         "/onboarding",
         "/auth/cas-callback",
-        "/home"
+        "/home",
+        "/example/guitars/[guitarId]",
+        "/example/guitars/"
       ]
     },
     "/": {
@@ -303,6 +349,12 @@ export const routeTree = rootRoute
         "/home/_layout/profile/",
         "/home/_layout/projects/"
       ]
+    },
+    "/example/guitars/[guitarId]": {
+      "filePath": "example.guitars/[guitarId].tsx"
+    },
+    "/example/guitars/": {
+      "filePath": "example.guitars/index.tsx"
     },
     "/home/_layout/": {
       "filePath": "home/_layout/index.tsx",
