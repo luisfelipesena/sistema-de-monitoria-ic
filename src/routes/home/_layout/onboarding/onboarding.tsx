@@ -263,6 +263,6 @@ function OnboardingPage() {
   );
 }
 
-export const Route = createFileRoute('/onboarding')({
+export const Route = createFileRoute('/home/_layout/onboarding/onboarding')({
   component: OnboardingPage,
 });

@@ -21,7 +21,7 @@ function HomeComponent() {
       (user.role === 'student' || user.role === 'professor') &&
       !isComplete
     ) {
-      navigate({ to: '/onboarding' });
+      navigate({ to: '/home/onboarding/onboarding' });
     }
   }, [isLoading, isComplete, user, navigate]);
 
