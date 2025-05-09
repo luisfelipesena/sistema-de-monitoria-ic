@@ -4,7 +4,6 @@ import { NotFound } from '@/components/NotFound';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth';
 import appCss from '@/styles/app.css?url';
-import { CustomTrpcProvider } from '@/trpc/root-provider';
 import { seo } from '@/utils/seo';
 import type { QueryClient } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -94,14 +93,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <CustomTrpcProvider>
-          <hr />
-          {children}
-          <TanStackRouterDevtools position="bottom-right" />
-          <ReactQueryDevtools buttonPosition="bottom-left" />
-          <Toaster />
-          <Scripts />
-        </CustomTrpcProvider>
+        <hr />
+        {children}
+        <TanStackRouterDevtools position="bottom-right" />
+        <ReactQueryDevtools buttonPosition="bottom-left" />
+        <Toaster />
+        <Scripts />
       </body>
     </html>
   );
