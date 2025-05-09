@@ -212,7 +212,7 @@ function AdminFilesPage() {
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button
-                      variant="outline"
+                      variant="secondary"
                       size="icon"
                       onClick={() => handleViewFile(file.objectName)}
                       disabled={
@@ -229,7 +229,7 @@ function AdminFilesPage() {
                       )}
                     </Button>
                     <Button
-                      variant="destructive"
+                      variant="cancel"
                       size="icon"
                       onClick={() => openDeleteDialog(file)}
                       disabled={

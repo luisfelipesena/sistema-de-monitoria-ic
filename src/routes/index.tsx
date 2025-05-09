@@ -20,12 +20,7 @@ function LandingPageComponent() {
           <span className="text-xl font-bold text-blue-800">
             Sistema de Monitoria IC
           </span>
-          <Button
-            isLoading={isLoading}
-            variant="destructive"
-            onClick={signIn}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-700 rounded-md hover:bg-blue-800"
-          >
+          <Button isLoading={isLoading} variant="cancel" onClick={signIn}>
             Entrar com Email UFBA
           </Button>
         </div>
@@ -42,19 +37,11 @@ function LandingPageComponent() {
               monitores para projetos acadêmicos da UFBA.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Button
-                isLoading={isLoading}
-                onClick={signIn}
-                className="px-6 py-3 text-lg font-medium text-white bg-blue-700 rounded-md hover:bg-blue-800"
-              >
+              <Button isLoading={isLoading} onClick={signIn} variant="primary">
                 Entrar com Email UFBA
               </Button>
 
-              <Button
-                variant="outline"
-                asChild
-                className="inline-flex items-center justify-center px-6 py-3 text-lg font-medium text-blue-700 bg-white border border-blue-700 rounded-md hover:bg-blue-50"
-              >
+              <Button variant="secondary" asChild>
                 <a href="#saiba-mais">Saiba Mais</a>
               </Button>
             </div>

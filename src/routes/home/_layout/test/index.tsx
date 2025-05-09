@@ -145,11 +145,7 @@ function HomePage() {
                   </a>
                 </td>
                 <td className="p-4 align-middle">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="bg-[#53BDEC] hover:bg-[#53BDEC]/90 text-white rounded-full gap-1"
-                  >
+                  <Button variant="secondary" size="sm">
                     <Eye className="h-4 w-4" />
                     Inscrever
                   </Button>

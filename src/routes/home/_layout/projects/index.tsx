@@ -203,6 +203,7 @@ function ProjectsComponent() {
                   id="professorName"
                   {...register('professorName')}
                   aria-invalid={errors.professorName ? 'true' : 'false'}
+                  className="bg-white"
                 />
                 {errors.professorName && (
                   <p className="mt-1 text-xs text-red-600" role="alert">
@@ -223,6 +224,7 @@ function ProjectsComponent() {
                   id="projectName"
                   {...register('projectName')}
                   aria-invalid={errors.projectName ? 'true' : 'false'}
+                  className="bg-white"
                 />
                 {errors.projectName && (
                   <p className="mt-1 text-xs text-red-600" role="alert">
@@ -263,7 +265,7 @@ function ProjectsComponent() {
                     {({ loading }) => (
                       <Button
                         type="button"
-                        variant="default"
+                        variant="primary"
                         disabled={loading}
                       >
                         {loading ? 'Gerando PDF...' : 'Baixar PDF da Proposta'}
@@ -271,7 +273,11 @@ function ProjectsComponent() {
                     )}
                   </PDFDownloadLink>
                 ) : (
-                  <Button type="button" variant="secondary" disabled>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="bg-[#53BDEC] hover:bg-[#53BDEC]/90 text-white rounded-full gap-1"
+                  >
                     Preencha o formulário para baixar o PDF
                   </Button>
                 )}

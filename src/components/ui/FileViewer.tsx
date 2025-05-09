@@ -134,10 +134,10 @@ export function FileViewer({
         </div>
 
         <div className="flex space-x-2">
-          <Button onClick={handleView} variant="outline" size="sm">
+          <Button onClick={handleView} variant="secondary" size="sm">
             Visualizar
           </Button>
-          <Button onClick={handleDownload} size="sm">
+          <Button onClick={handleDownload} variant="primary" size="sm">
             Baixar
           </Button>
         </div>
@@ -149,7 +149,7 @@ export function FileViewer({
           style={{ height: '500px' }}
         >
           <Button
-            variant="outline"
+            variant="secondary"
             size="icon"
             className="absolute z-10 top-2 right-2 bg-white/80"
             onClick={() => setIsViewerOpen(false)}

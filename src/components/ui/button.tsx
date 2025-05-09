@@ -6,24 +6,15 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none',
+  'inline-flex items-center justify-center text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 gap-1',
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-        outline:
-          'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-        secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/90',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'underline-offset-4 hover:underline text-primary',
-        success:
-          'bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] hover:bg-[hsl(var(--success))]/90',
-        warning:
-          'bg-[hsl(var(--warning))] text-[hsl(var(--warning-foreground))] hover:bg-[hsl(var(--warning))]/90',
-        info: 'bg-[hsl(var(--info))] text-[hsl(var(--info-foreground))] hover:bg-[hsl(var(--info))]/90',
+        primary: 'bg-[#1B4377] hover:bg-[#1B4377]/90 text-white rounded-full',
+        secondary: 'bg-[#53BDEC] hover:bg-[#53BDEC]/90 text-white rounded-full',
+        cancel: 'bg-[#C92F2F] hover:bg-[#C92F2F]/90 text-white rounded-full',
+        disabled: 'bg-[#A7A7A7] text-white rounded-full',
+        transparent: 'bg-transparent text-black rounded-full',
       },
       size: {
         default: 'h-10 py-2 px-4',
@@ -33,7 +24,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: 'default',
+      variant: 'primary',
       size: 'default',
     },
   },
@@ -54,17 +45,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       size,
       asChild = false,
       isLoading = false,
+      disabled,
       children,
       ...props
     },
     ref,
   ) => {
     const Comp = asChild ? Slot : 'button';
+    // Se estiver desabilitado ou em loading, força a variante disabled
+    const effectiveVariant = disabled || isLoading ? 'disabled' : variant;
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(
+          buttonVariants({ variant: effectiveVariant, size, className }),
+        )}
         ref={ref}
-        disabled={isLoading}
+        disabled={disabled || isLoading}
         {...props}
       >
         {isLoading ? (

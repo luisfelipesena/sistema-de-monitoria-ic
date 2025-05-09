@@ -3,22 +3,50 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import { Check, ChevronDown } from 'lucide-react';
 import * as React from 'react';
 
+const statusClasses = {
+  default:
+    'border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600',
+  error:
+    'border-red-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600',
+  success:
+    'border-green-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600',
+  disabled: 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed',
+};
+
+const helperTextClasses = {
+  default: 'text-gray-500',
+  error: 'text-red-600',
+  success: 'text-green-600',
+};
+
+export interface SelectFieldProps
+  extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> {
+  label?: string;
+  helperText?: string;
+  status?: 'default' | 'error' | 'success';
+  children: React.ReactNode;
+  disabled?: boolean;
+}
+
 const Select = SelectPrimitive.Root;
-
 const SelectGroup = SelectPrimitive.Group;
-
 const SelectValue = SelectPrimitive.Value;
 
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & {
+    status?: 'default' | 'error' | 'success';
+    disabled?: boolean;
+  }
+>(({ className, status = 'default', disabled, children, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-10 w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+      'flex h-10 w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors outline-none',
+      statusClasses[disabled ? 'disabled' : status],
       className,
     )}
+    disabled={disabled}
     {...props}
   >
     {children}
@@ -28,6 +56,23 @@ const SelectTrigger = React.forwardRef<
   </SelectPrimitive.Trigger>
 ));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+
+const CustomSelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & {
+    status?: 'default' | 'error' | 'success';
+    disabled?: boolean;
+  }
+>(({ status = 'default', disabled, className, ...props }, ref) => (
+  <SelectTrigger
+    ref={ref}
+    status={status}
+    disabled={disabled}
+    className={className}
+    {...props}
+  />
+));
+CustomSelectTrigger.displayName = 'CustomSelectTrigger';
 
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
@@ -105,9 +150,44 @@ const SelectSeparator = React.forwardRef<
 ));
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
+const SelectField = React.forwardRef<HTMLDivElement, SelectFieldProps>(
+  (
+    { label, helperText, status = 'default', disabled, children, ...props },
+    ref,
+  ) => (
+    <div className="w-full space-y-1" ref={ref}>
+      {label && (
+        <label className="block text-sm font-medium text-gray-500 mb-1">
+          {label}
+        </label>
+      )}
+      <Select disabled={disabled} {...props}>
+        {React.Children.map(children, (child) => {
+          if (
+            React.isValidElement(child) &&
+            child.type &&
+            (child.type as any).displayName === 'CustomSelectTrigger'
+          ) {
+            return React.cloneElement(child);
+          }
+          return child;
+        })}
+      </Select>
+      {helperText && (
+        <span className={cn('text-xs mt-1', helperTextClasses[status])}>
+          {helperText}
+        </span>
+      )}
+    </div>
+  ),
+);
+SelectField.displayName = 'SelectField';
+
 export {
+  CustomSelectTrigger,
   Select,
   SelectContent,
+  SelectField,
   SelectGroup,
   SelectItem,
   SelectLabel,

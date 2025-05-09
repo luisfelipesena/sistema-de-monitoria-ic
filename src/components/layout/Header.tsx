@@ -28,7 +28,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-4">
           <Button
-            variant="ghost"
+            variant="transparent"
             size="icon"
             onClick={onMenuClick}
             className="md:hidden"
@@ -41,22 +41,30 @@ export function Header({ onMenuClick }: HeaderProps) {
             <input
               type="text"
               placeholder="Buscar..."
-              className="h-10 rounded-md border border-input bg-background pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="h-10 rounded-md border border-input bg-background pl-10 pr-4 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600"
             />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
+          <Button
+            variant="transparent"
+            size="icon"
+            className="text-muted-foreground"
+          >
             <Bell />
           </Button>
-          <Button variant="ghost" size="icon" className="text-muted-foreground">
+          <Button
+            variant="transparent"
+            size="icon"
+            className="text-muted-foreground"
+          >
             <MessageSquare />
           </Button>
 
           <div className="relative">
             <Button
-              variant="ghost"
+              variant="transparent"
               className="flex items-center gap-2 px-2 py-1"
               onClick={toggleUserMenu}
             >
