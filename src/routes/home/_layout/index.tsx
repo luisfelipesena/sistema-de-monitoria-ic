@@ -1,7 +1,9 @@
 'use client';
 
 import { useAuth } from '@//hooks/use-auth';
-import { createFileRoute } from '@tanstack/react-router';
+import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useEffect } from 'react';
 
 export const Route = createFileRoute('/home/_layout/')({
   component: HomeComponent,
@@ -9,6 +11,21 @@ export const Route = createFileRoute('/home/_layout/')({
 
 function HomeComponent() {
   const { user } = useAuth();
+  const { isComplete, isLoading } = useProfileCompleteness();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (
+      !isLoading &&
+      user &&
+      (user.role === 'student' || user.role === 'professor') &&
+      !isComplete
+    ) {
+      navigate({ to: '/onboarding' });
+    }
+  }, [isLoading, isComplete, user, navigate]);
+
+  if (isLoading) return null;
 
   return (
     <div>
