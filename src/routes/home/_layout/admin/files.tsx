@@ -36,12 +36,12 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import {
   FileListItem,
-  PresignedUrlResponse,
   UploadCompletionData,
 } from '@/routes/api/files/admin/-admin-types';
-import { trpc } from '@/server/trpc/react';
 import { logger } from '@/utils/logger';
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { format } from 'date-fns';
 import { Eye, Loader2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -55,8 +55,7 @@ export const Route = createFileRoute('/home/_layout/admin/files')({
 
 function AdminFilesPage() {
   const { toast } = useToast();
-  const utils = trpc.useUtils();
-
+  const queryClient = useQueryClient();
   const [fileToDelete, setFileToDelete] = useState<FileListItem | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -77,34 +76,10 @@ function AdminFilesPage() {
 
   const confirmDelete = () => {
     if (fileToDelete) {
-      deleteMutation.mutate(
-        { objectName: fileToDelete.objectName },
-        {
-          onSuccess: (data: { message: string }) => {
-            toast({ title: 'Sucesso', description: data.message });
-            log.info(`Arquivo ${fileToDelete.objectName} excluído.`);
-          },
-          onError: (error) => {
-            toast({
-              title: 'Erro',
-              description: error.message,
-              variant: 'destructive',
-            });
-          },
-          onSettled: () => {
-            closeDeleteDialog();
-          },
-        },
-      );
-    }
-  };
-
-  const handleViewFile = (objectName: string) => {
-    viewMutation.mutate(
-      { objectName },
-      {
-        onSuccess: (data: PresignedUrlResponse) => {
-          window.open(data.url, '_blank');
+      deleteMutation.mutate(fileToDelete.objectName, {
+        onSuccess: (data) => {
+          toast({ title: 'Sucesso', description: data.message });
+          log.info(`Arquivo ${fileToDelete.objectName} excluído.`);
         },
         onError: (error) => {
           toast({
@@ -113,8 +88,26 @@ function AdminFilesPage() {
             variant: 'destructive',
           });
         },
+        onSettled: () => {
+          closeDeleteDialog();
+        },
+      });
+    }
+  };
+
+  const handleViewFile = (objectName: string) => {
+    viewMutation.mutate(objectName, {
+      onSuccess: (data) => {
+        window.open(data.url, '_blank');
       },
-    );
+      onError: (error) => {
+        toast({
+          title: 'Erro',
+          description: error.message,
+          variant: 'destructive',
+        });
+      },
+    });
   };
 
   const handleUploadComplete = (uploadData: UploadCompletionData) => {
@@ -123,7 +116,7 @@ function AdminFilesPage() {
       title: 'Upload Concluído',
       description: `Arquivo ${uploadData.fileName} enviado.`,
     });
-    utils.files.list.invalidate();
+    queryClient.invalidateQueries({ queryKey: ['adminFiles'] });
   };
 
   const formatBytes = (bytes: number, decimals = 2) => {
@@ -198,7 +191,7 @@ function AdminFilesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {files.map((file: FileListItem) => (
+            {files.map((file) => (
               <TableRow key={file.objectName}>
                 <TableCell
                   className="font-medium truncate max-w-xs"
@@ -214,22 +207,22 @@ function AdminFilesPage() {
                 </TableCell>
                 <TableCell>{formatBytes(file.size)}</TableCell>
                 <TableCell>
-                  {new Date(file.lastModified).toLocaleString()}
+                  {format(new Date(file.lastModified), 'dd/MM/yyyy HH:mm')}
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button
-                      variant="secondary"
+                      variant="transparent"
                       size="icon"
                       onClick={() => handleViewFile(file.objectName)}
                       disabled={
                         viewMutation.isPending &&
-                        viewMutation.variables.objectName === file.objectName
+                        viewMutation.variables === file.objectName
                       }
                       title="Visualizar/Baixar"
                     >
                       {viewMutation.isPending &&
-                      viewMutation.variables.objectName === file.objectName ? (
+                      viewMutation.variables === file.objectName ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <Eye className="w-4 h-4" />
@@ -241,13 +234,12 @@ function AdminFilesPage() {
                       onClick={() => openDeleteDialog(file)}
                       disabled={
                         deleteMutation.isPending &&
-                        deleteMutation.variables.objectName === file.objectName
+                        deleteMutation.variables === file.objectName
                       }
                       title="Excluir"
                     >
                       {deleteMutation.isPending &&
-                      deleteMutation.variables.objectName ===
-                        file.objectName ? (
+                      deleteMutation.variables === file.objectName ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         <Trash2 className="w-4 h-4" />
