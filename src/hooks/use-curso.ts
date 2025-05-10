@@ -1,4 +1,5 @@
 import { QueryKeys } from '@/hooks/query-keys';
+import { CursoInput, CursoResponse } from '@/routes/api/curso/-types';
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -7,24 +8,11 @@ const log = logger.child({
   context: 'curso-hooks',
 });
 
-export interface Curso {
-  id: number;
-  nome: string;
-  codigo?: number | null;
-  createdAt?: string;
-  updatedAt?: string | null;
-}
-
-export interface CursoInput {
-  nome: string;
-  codigo?: number | null;
-}
-
 /**
  * Hook para listar cursos
  */
 export function useCursos() {
-  return useQuery<Curso[]>({
+  return useQuery<CursoResponse[]>({
     queryKey: QueryKeys.curso.all,
     queryFn: async () => {
       try {

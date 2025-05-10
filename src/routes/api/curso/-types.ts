@@ -9,4 +9,5 @@ export const cursoInputSchema = createInsertSchema(cursoTable).omit({
   updatedAt: true
 });
 
-export type CursoResponse = z.infer<typeof cursoSchema>[];
+export type CursoResponse = z.infer<typeof cursoSchema>;
+export type CursoInput = z.infer<typeof cursoInputSchema>;

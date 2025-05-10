@@ -18,14 +18,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Curso,
-  CursoInput,
   useCreateCurso,
   useCursos,
   useDeleteCurso,
   useUpdateCurso,
 } from '@/hooks/use-curso';
 import { useToast } from '@/hooks/use-toast';
+import { CursoInput, CursoResponse } from '@/routes/api/curso/-types';
 import { logger } from '@/utils/logger';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Database, Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
@@ -57,7 +56,9 @@ function CursosPage() {
     nome: '',
     codigo: null,
   });
-  const [cursoToDelete, setCursoToDelete] = useState<Curso | null>(null);
+  const [cursoToDelete, setCursoToDelete] = useState<CursoResponse | null>(
+    null,
+  );
 
   // Hooks de curso
   const { data: cursos, isLoading } = useCursos();
@@ -65,7 +66,7 @@ function CursosPage() {
   const updateCursoMutation = useUpdateCurso();
   const deleteCursoMutation = useDeleteCurso();
 
-  const openDialog = (curso?: Curso) => {
+  const openDialog = (curso?: CursoResponse) => {
     if (curso) {
       setIsEditing(true);
       setCurrentCurso({
@@ -91,7 +92,7 @@ function CursosPage() {
     });
   };
 
-  const openDeleteDialog = (curso: Curso) => {
+  const openDeleteDialog = (curso: CursoResponse) => {
     setCursoToDelete(curso);
     setDeleteDialogOpen(true);
   };

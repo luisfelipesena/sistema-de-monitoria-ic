@@ -1,3 +1,4 @@
+import { departamentoSchema } from '@/routes/api/departamento/-types';
 import { db } from '@/server/database';
 import { createAPIHandler } from '@/server/middleware/common';
 import { logger } from '@/utils/logger';
@@ -8,18 +9,6 @@ import { z } from 'zod';
 const log = logger.child({
   context: 'DepartamentoAPI',
 });
-
-// Definindo o schema para departamento
-export const departamentoSchema = z.object({
-  id: z.number().int().positive(),
-  unidadeUniversitaria: z.string().nullable(),
-  nome: z.string(),
-  sigla: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date().nullable(),
-});
-
-export type DepartamentoResponse = z.infer<typeof departamentoSchema>[];
 
 export const APIRoute = createAPIFileRoute('/api/departamento')({
   GET: createAPIHandler(async (ctx) => {

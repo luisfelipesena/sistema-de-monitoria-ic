@@ -36,7 +36,7 @@ export function useSetAluno() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QueryKeys.aluno.all });
-      queryClient.invalidateQueries({ queryKey: QueryKeys.user.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.onboarding.status });
     },
     onError: (error) => {
       log.error({ error }, 'Erro ao salvar aluno');

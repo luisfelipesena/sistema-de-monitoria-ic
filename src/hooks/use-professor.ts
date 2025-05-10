@@ -30,6 +30,7 @@ export function useSetProfessor() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QueryKeys.professor.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.onboarding.status });
     },
   });
 } 
