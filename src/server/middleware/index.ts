@@ -1,3 +1,5 @@
+import { userRoleEnum } from '../database/schema';
+
 /**
  * Middleware utility for TanStack Start API routes
  */
@@ -6,7 +8,7 @@
 export interface AppState {
   user?: {
     userId: string;
-    role: 'admin' | 'professor' | 'student';
+    role: (typeof userRoleEnum.enumValues)[number];
     // Add other user properties as needed
   };
   // Add other state properties as needed

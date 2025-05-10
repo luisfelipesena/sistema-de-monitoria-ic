@@ -52,14 +52,11 @@ export const requireAuth = createMiddleware<AppState>(async (ctx, next) => {
       );
     }
 
-    // We know these values are valid based on our schema
-    const role = userRecord.role as 'admin' | 'professor' | 'student';
-
     // Set properly typed user in state
     ctx.state.user = {
       ...sessionResult.user,
       userId: String(sessionResult.user.id),
-      role
+      role: userRecord.role,
     };
 
     return next();

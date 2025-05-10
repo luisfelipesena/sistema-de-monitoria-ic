@@ -1,6 +1,7 @@
 'use client';
 
 import { apiClient } from '@/utils/api-client';
+import { logger } from '@/utils/logger';
 import {
   useMutation,
   useQuery,
@@ -19,6 +20,10 @@ import React, {
   useState,
 } from 'react';
 import { QueryKeys } from './query-keys';
+
+const log = logger.child({
+  context: 'useAuth',
+});
 
 interface AuthState {
   user: User | null;
@@ -63,7 +68,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const queryClient = useQueryClient();
   const router = useRouter();
   const { data: userQuery, refetch: refetchUserInternal } = useMeQuery();
   const logoutMutation = useLogoutMutation();
@@ -90,16 +94,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       await logoutMutation.mutateAsync();
-      setUser(null);
-      await queryClient.invalidateQueries({ queryKey: QueryKeys.auth.me });
-      router.navigate({ to: '/' });
     } catch (error) {
-      setUser(null);
-      await queryClient.invalidateQueries({ queryKey: QueryKeys.auth.me });
+      log.error({ error }, 'Erro ao fazer logout');
     } finally {
+      window.location.href = '/';
       setIsLoading(false);
     }
-  }, [queryClient, router]);
+  }, [router]);
 
   const value = useMemo(
     () => ({

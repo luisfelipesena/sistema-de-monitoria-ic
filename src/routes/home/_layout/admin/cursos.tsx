@@ -203,7 +203,7 @@ function CursosPage() {
         </div>
         <div className="flex gap-2">
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={() => navigate({ to: '/home/admin/seed-cursos' })}
             className="flex items-center gap-2"
           >
@@ -266,7 +266,6 @@ function CursosPage() {
                         size="sm"
                         onClick={() => openDialog(curso)}
                         disabled={updateCursoMutation.isPending}
-                        className="h-8 px-2"
                       >
                         <Pencil size={16} className="mr-1" />
                         Editar
@@ -276,7 +275,6 @@ function CursosPage() {
                         size="sm"
                         onClick={() => openDeleteDialog(curso)}
                         disabled={deleteCursoMutation.isPending}
-                        className="h-8 px-2"
                       >
                         <Trash2 size={16} className="mr-1" />
                         Remover
@@ -348,7 +346,7 @@ function CursosPage() {
             <DialogFooter className="pt-4">
               <Button
                 type="button"
-                variant="secondary"
+                variant="outline"
                 onClick={closeDialog}
                 disabled={
                   createCursoMutation.isPending || updateCursoMutation.isPending
@@ -397,7 +395,7 @@ function CursosPage() {
 
           <DialogFooter className="pt-4">
             <Button
-              variant="secondary"
+              variant="outline"
               onClick={closeDeleteDialog}
               disabled={deleteCursoMutation.isPending}
               className="mr-2"

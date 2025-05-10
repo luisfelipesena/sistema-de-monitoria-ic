@@ -50,7 +50,7 @@ export function useCreateCurso() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cursos'] });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.curso.all });
     },
     onError: (error) => {
       log.error({ error }, 'Erro ao criar curso');
@@ -70,7 +70,7 @@ export function useUpdateCurso() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cursos'] });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.curso.all });
     },
     onError: (error) => {
       log.error({ error }, 'Erro ao atualizar curso');
@@ -90,35 +90,10 @@ export function useDeleteCurso() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cursos'] });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.curso.all });
     },
     onError: (error) => {
       log.error({ error }, 'Erro ao excluir curso');
     },
   });
 }
-
-/**
- * Hook para criar cursos iniciais (seed)
- */
-export function useSeedCursos() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async () => {
-      const response = await apiClient.post('/curso');
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cursos'] });
-    },
-    onError: (error) => {
-      log.error({ error }, 'Erro ao criar cursos iniciais');
-    },
-  });
-}
-
-// Compatibilidade com código existente
-export function useCursoList() {
-  return useCursos();
-} 

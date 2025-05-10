@@ -10,8 +10,6 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
-  BookOpen,
-  Building,
   FileText,
   FolderKanban,
   GraduationCap,
@@ -37,13 +35,13 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
   // Menu de administrador
   const adminMenu = [
     { label: 'Cursos', href: '/home/admin/cursos', icon: GraduationCap },
-    {
-      label: 'Departamentos',
-      href: '/home/admin/departamentos',
-      icon: Building,
-    },
+    // {
+    //   label: 'Departamentos',
+    //   href: '/home/admin/departamentos',
+    //   icon: Building,
+    // },
     { label: 'Usuários', href: '/home/admin/users', icon: Users },
-    { label: 'Disciplinas', href: '/home/admin/disciplinas', icon: BookOpen },
+    // { label: 'Disciplinas', href: '/home/admin/disciplinas', icon: BookOpen },
     { label: 'Arquivos', href: '/home/admin/files', icon: FileText },
   ];
 

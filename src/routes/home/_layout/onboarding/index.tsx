@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useSetAluno } from '@/hooks/use-aluno';
 import { useAuth } from '@/hooks/use-auth';
 import { useCursos } from '@/hooks/use-curso';
@@ -22,7 +23,6 @@ import { logger } from '@/utils/logger';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -112,11 +112,30 @@ function StudentForm() {
     resolver: zodResolver(alunoInputSchema),
     defaultValues: {
       emailInstitucional: user?.email || '',
+      genero: 'OUTRO', // TODO: Ver q porra eh isso
     },
   });
 
+  const handleHistoricoFileSelect = (file: File | null) => {
+    setHistoricoEscolarFile(file);
+    // Limpar o ID se o arquivo for alterado ou removido
+    if (file === null) {
+      setHistoricoEscolarFileId(null);
+    }
+  };
+
+  const handleComprovanteFileSelect = (file: File | null) => {
+    setComprovanteMatriculaFile(file);
+    // Limpar o ID se o arquivo for alterado ou removido
+    if (file === null) {
+      setComprovanteMatriculaFileId(null);
+    }
+  };
+
   const onSubmit = form.handleSubmit(async (values) => {
-    if (!historicoEscolarFile && !historicoEscolarFileId) {
+    // Validar se o histórico escolar está presente
+    console.log({ historicoEscolarFile, values });
+    if (!historicoEscolarFile) {
       toast({
         title: 'Documento obrigatório',
         description: 'É necessário fazer upload do histórico escolar',
@@ -128,34 +147,54 @@ function StudentForm() {
     setIsSubmitting(true);
 
     try {
-      // 1. Primeiro, fazer upload dos arquivos se necessário
-      let historicoId = historicoEscolarFileId;
-      let comprovanteId = comprovanteMatriculaFileId;
+      // 1. Fazer upload dos arquivos e obter os IDs
+      let historicoId = null;
+      let comprovanteId = null;
 
-      if (historicoEscolarFile && !historicoEscolarFileId) {
+      // Upload do histórico escolar
+      try {
         const response = await fileUploadMutation.mutateAsync({
           file: historicoEscolarFile,
           entityType: 'historico_escolar',
           entityId: user?.id?.toString() || '0',
         });
         historicoId = response.fileId;
-        setHistoricoEscolarFileId(response.fileId); // Store the ID after successful upload
-      }
-
-      if (comprovanteMatriculaFile && !comprovanteMatriculaFileId) {
-        const response = await fileUploadMutation.mutateAsync({
-          file: comprovanteMatriculaFile,
-          entityType: 'comprovante_matricula',
-          entityId: user?.id?.toString() || '0',
+        setHistoricoEscolarFileId(response.fileId);
+      } catch (error: any) {
+        toast({
+          title: 'Erro no upload do histórico',
+          description: error.message || 'Erro ao enviar o histórico escolar',
+          variant: 'destructive',
         });
-        comprovanteId = response.fileId;
-        setComprovanteMatriculaFileId(response.fileId); // Store the ID after successful upload
+        setIsSubmitting(false);
+        return;
       }
 
-      // 2. Depois, enviar os dados do aluno com os IDs dos arquivos
+      // Upload do comprovante de matrícula (se fornecido)
+      if (comprovanteMatriculaFile) {
+        try {
+          const response = await fileUploadMutation.mutateAsync({
+            file: comprovanteMatriculaFile,
+            entityType: 'comprovante_matricula',
+            entityId: user?.id?.toString() || '0',
+          });
+          comprovanteId = response.fileId;
+          setComprovanteMatriculaFileId(response.fileId);
+        } catch (error: any) {
+          toast({
+            title: 'Erro no upload do comprovante',
+            description:
+              error.message || 'Erro ao enviar o comprovante de matrícula',
+            variant: 'destructive',
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // 2. Enviar os dados do aluno com os IDs dos arquivos
       const alunoData: AlunoInput = {
         ...values,
-        genero: 'OUTRO',
         historicoEscolarFileId: historicoId || undefined,
         comprovanteMatriculaFileId: comprovanteId || undefined,
       };
@@ -323,161 +362,71 @@ function StudentForm() {
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
-            <Label htmlFor="historico">Histórico Escolar *</Label>
+            <Label htmlFor="historico">
+              Histórico Escolar <span className="text-red-500">*</span>
+            </Label>
             <div className="mt-2">
               <div className="border border-dashed border-gray-300 p-4 rounded-md">
-                {historicoEscolarFileId ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6 text-green-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      <span>Arquivo enviado com sucesso!</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        setHistoricoEscolarFileId(null);
-                        setHistoricoEscolarFile(null); // Also clear the file object
-                      }}
-                    >
-                      Remover
-                    </Button>
-                  </div>
-                ) : historicoEscolarFile ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Upload className="h-6 w-6 text-blue-500" />
-                      <span className="truncate text-sm">
-                        {historicoEscolarFile.name}
-                      </span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setHistoricoEscolarFile(null)}
-                    >
-                      Remover
-                    </Button>
-                  </div>
-                ) : (
-                  <FileUploader
-                    entityType="historico_escolar"
-                    entityId={user?.id?.toString() || '0'}
-                    onFileSelect={(file) => {
-                      setHistoricoEscolarFile(file);
-                      setHistoricoEscolarFileId(null); // Clear any old ID if a new file is selected
-                    }}
-                    allowedTypes={['application/pdf']}
-                    maxSizeInMB={5}
-                  />
-                )}
+                <FileUploader
+                  onFileSelect={handleHistoricoFileSelect}
+                  selectedFile={historicoEscolarFile}
+                  allowedTypes={['application/pdf']}
+                  maxSizeInMB={100}
+                />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Documento obrigatório (PDF, máx. 5MB)
+                <span className="font-semibold">Documento obrigatório</span>{' '}
+                (PDF, máx. 100MB)
               </p>
+              {historicoEscolarFile && (
+                <p className="text-xs text-green-600 mt-1">
+                  Arquivo selecionado com sucesso!
+                </p>
+              )}
             </div>
           </div>
 
           <div>
-            <Label htmlFor="comprovante">Comprovante de Matrícula</Label>
+            <Label htmlFor="comprovante">
+              Comprovante de Matrícula{' '}
+              <span className="text-muted-foreground">(opcional)</span>
+            </Label>
             <div className="mt-2">
               <div className="border border-dashed border-gray-300 p-4 rounded-md">
-                {comprovanteMatriculaFileId ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6 text-green-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      <span>Arquivo enviado com sucesso!</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        setComprovanteMatriculaFileId(null);
-                        setComprovanteMatriculaFile(null); // Also clear the file object
-                      }}
-                    >
-                      Remover
-                    </Button>
-                  </div>
-                ) : comprovanteMatriculaFile ? (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Upload className="h-6 w-6 text-blue-500" />
-                      <span className="truncate text-sm">
-                        {comprovanteMatriculaFile.name}
-                      </span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setComprovanteMatriculaFile(null)}
-                    >
-                      Remover
-                    </Button>
-                  </div>
-                ) : (
-                  <FileUploader
-                    entityType="comprovante_matricula"
-                    entityId={user?.id?.toString() || '0'}
-                    onFileSelect={(file) => {
-                      setComprovanteMatriculaFile(file);
-                      setComprovanteMatriculaFileId(null); // Clear any old ID if a new file is selected
-                    }}
-                    allowedTypes={['application/pdf']}
-                    maxSizeInMB={5}
-                  />
-                )}
+                <FileUploader
+                  onFileSelect={handleComprovanteFileSelect}
+                  selectedFile={comprovanteMatriculaFile}
+                  allowedTypes={['application/pdf']}
+                  maxSizeInMB={100}
+                />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Documento opcional (PDF, máx. 5MB)
+                Documento opcional (PDF, máx. 100MB)
               </p>
+              {comprovanteMatriculaFile && (
+                <p className="text-xs text-green-600 mt-1">
+                  Arquivo selecionado com sucesso!
+                </p>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       <div className="pt-4">
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={
-            isSubmitting ||
-            !form.formState.isValid ||
-            (!historicoEscolarFile && !historicoEscolarFileId) // Histórico é obrigatório
-          }
-        >
-          {isSubmitting ? 'Salvando...' : 'Concluir Cadastro'}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <Spinner /> Salvando...
+            </span>
+          ) : (
+            'Concluir Cadastro'
+          )}
         </Button>
+        <p className="text-xs text-center text-muted-foreground mt-2">
+          Ao clicar em Concluir Cadastro, seus arquivos serão enviados
+          automaticamente.
+        </p>
       </div>
       {setAlunoMutation.error && (
         <p className="text-red-500 text-sm mt-2 text-center">

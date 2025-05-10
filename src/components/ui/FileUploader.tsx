@@ -1,6 +1,4 @@
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
 import { Upload } from 'lucide-react';
 import { forwardRef, useRef, useState } from 'react';
@@ -11,111 +9,83 @@ const log = logger.child({
 });
 
 export interface FileUploaderProps {
-  entityType: string;
-  entityId: string;
-  onUploadComplete?: (fileData: { fileId: string; fileName: string }) => void;
-  onFileSelect?: (file: File) => void;
+  onFileSelect: (file: File | null) => void;
   allowedTypes?: string[];
   maxSizeInMB?: number;
   className?: string;
+  selectedFile?: File | null;
 }
 
 export const FileUploader = forwardRef<HTMLInputElement, FileUploaderProps>(
   (
     {
-      entityType,
-      entityId,
-      onUploadComplete,
       onFileSelect,
       allowedTypes = [],
       maxSizeInMB = 5,
       className,
+      selectedFile,
     },
     ref,
   ) => {
-    const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [internalSelectedFile, setInternalSelectedFile] =
+      useState<File | null>(selectedFile || null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { toast } = useToast();
 
-    const handleFileChange = async (file: File) => {
-      if (!file) return;
+    // Use the controlled file if provided, otherwise use internal state
+    const currentFile =
+      selectedFile !== undefined ? selectedFile : internalSelectedFile;
 
-      // Validar tipo de arquivo
+    const handleFileValidation = (
+      file: File,
+    ): { valid: boolean; error?: string } => {
       if (allowedTypes.length > 0 && !allowedTypes.includes(file.type)) {
-        setError(
-          `Tipo de arquivo não permitido. Use: ${allowedTypes.join(', ')}`,
-        );
-        return;
+        return {
+          valid: false,
+          error: `Tipo de arquivo não permitido. Use: ${allowedTypes.join(', ')}`,
+        };
       }
 
-      // Validar tamanho
       const fileSizeInMB = file.size / (1024 * 1024);
       if (fileSizeInMB > maxSizeInMB) {
-        setError(`Arquivo muito grande. Tamanho máximo: ${maxSizeInMB}MB`);
+        return {
+          valid: false,
+          error: `Arquivo muito grande. Tamanho máximo: ${maxSizeInMB}MB`,
+        };
+      }
+
+      return { valid: true };
+    };
+
+    const handleFileChange = (file: File) => {
+      if (!file) return;
+
+      const validation = handleFileValidation(file);
+      if (!validation.valid) {
+        setError(validation.error || 'Arquivo inválido');
         return;
       }
 
-      // Notificar sobre a seleção do arquivo
-      if (onFileSelect) {
-        onFileSelect(file);
-        setError(null);
-        return;
-      }
-
-      // Se não houver callback de seleção, fazer upload imediatamente
-      setIsUploading(true);
       setError(null);
-
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('entityType', entityType);
-        formData.append('entityId', entityId);
-
-        const response = await apiClient.post('/files/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-
-        if (onUploadComplete) {
-          onUploadComplete({
-            fileId: response.data.fileId,
-            fileName: file.name,
-          });
-        }
-      } catch (error: any) {
-        log.error({ error }, 'Erro ao fazer upload do arquivo');
-        toast({
-          title: 'Erro no upload',
-          description:
-            error?.response?.data?.message || 'Erro ao fazer upload do arquivo',
-          variant: 'destructive',
-        });
-        setError('Erro ao fazer upload do arquivo');
-      } finally {
-        setIsUploading(false);
-      }
+      setInternalSelectedFile(file);
+      onFileSelect(file);
     };
 
     const { getRootProps, getInputProps } = useDropzone({
       onDrop: (acceptedFiles, fileRejections) => {
         setError(null);
-
         if (fileRejections.length > 0) {
           setError('Arquivo inválido. Por favor, verifique o tipo e tamanho.');
           return;
         }
-
         if (acceptedFiles.length > 0) {
-          const selectedFile = acceptedFiles[0];
-          handleFileChange(selectedFile);
+          const file = acceptedFiles[0];
+          handleFileChange(file);
         }
       },
       accept: Object.fromEntries(allowedTypes.map((type) => [type, []])),
       multiple: false,
-      disabled: isUploading,
+      disabled: !!currentFile,
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,41 +95,60 @@ export const FileUploader = forwardRef<HTMLInputElement, FileUploaderProps>(
       }
     };
 
+    const handleRemove = () => {
+      setInternalSelectedFile(null);
+      setError(null);
+      onFileSelect(null);
+    };
+
     return (
       <div className={cn('space-y-2', className)}>
         <div
-          {...getRootProps()}
-          className="border border-dashed border-gray-300 p-4 rounded-md hover:border-gray-400 transition-colors"
+          {...(!currentFile ? getRootProps() : {})}
+          className="border border-dashed border-gray-300 p-4 rounded-md hover:border-gray-400 transition-colors min-h-[112px] flex items-center justify-center"
+          style={{ minHeight: 112 }}
         >
           <input {...getInputProps()} />
-          <div className="flex flex-col items-center justify-center">
-            <Upload className="h-6 w-6 mb-2 text-gray-500" />
-            <p className="text-sm text-center text-gray-500">
-              Arraste e solte um arquivo aqui, ou clique para selecionar
-            </p>
-            <p className="text-xs text-center text-gray-400 mt-1">
-              {allowedTypes.length > 0
-                ? `Tipos permitidos: ${allowedTypes.join(', ')}`
-                : ''}
-              {maxSizeInMB ? ` | Máximo: ${maxSizeInMB}MB` : ''}
-            </p>
-          </div>
+          {!currentFile ? (
+            <div className="flex flex-col items-center justify-center w-full">
+              <Upload className="h-6 w-6 mb-2 text-gray-500" />
+              <p className="text-sm text-center text-gray-500">
+                Arraste e solte um arquivo aqui, ou clique para selecionar
+              </p>
+              <p className="text-xs text-center text-gray-400 mt-1">
+                {allowedTypes.length > 0
+                  ? `Tipos permitidos: ${allowedTypes.join(', ')}`
+                  : ''}
+                {maxSizeInMB ? ` | Máximo: ${maxSizeInMB}MB` : ''}
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <Upload className="h-6 w-6 flex-shrink-0 text-blue-500" />
+                <span className="truncate text-sm">{currentFile.name}</span>
+              </div>
+              <button
+                type="button"
+                className="ml-2 flex-shrink-0 bg-blue-400 hover:bg-blue-500 text-white rounded-full px-3 py-1 text-xs font-semibold"
+                onClick={handleRemove}
+              >
+                Remover
+              </button>
+            </div>
+          )}
         </div>
-
         {error && <p className="text-red-500 text-sm">{error}</p>}
-
         <input
           type="file"
           className="hidden"
           onChange={handleInputChange}
           ref={(element) => {
-            // Atribuir a ref passada via forwardRef
             if (typeof ref === 'function') {
               ref(element);
             } else if (ref) {
               ref.current = element;
             }
-            // Também manter nossa ref interna
             fileInputRef.current = element;
           }}
         />

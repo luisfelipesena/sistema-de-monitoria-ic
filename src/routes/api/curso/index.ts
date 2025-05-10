@@ -1,6 +1,7 @@
+import { cursoInputSchema } from '@/routes/api/curso/-types';
 import { db } from '@/server/database';
 import { cursoTable } from '@/server/database/schema';
-import { createAPIHandler, withAuthMiddleware } from '@/server/middleware/common';
+import { createAPIHandler, withRoleMiddleware } from '@/server/middleware/common';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
@@ -9,23 +10,6 @@ import { z } from 'zod';
 const log = logger.child({
   context: 'CursoAPI',
 });
-
-// Schema for validating curso data
-export const cursoSchema = z.object({
-  id: z.number().int().positive(),
-  nome: z.string().min(1, "Nome é obrigatório"),
-  codigo: z.number().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date().nullable(),
-});
-
-// Schema para validação de entrada
-export const cursoInputSchema = z.object({
-  nome: z.string().min(1, "Nome é obrigatório"),
-  codigo: z.coerce.number().nullable(),
-});
-
-export type CursoResponse = z.infer<typeof cursoSchema>[];
 
 export const APIRoute = createAPIFileRoute('/api/curso')({
   // Listar todos os cursos
@@ -47,15 +31,7 @@ export const APIRoute = createAPIFileRoute('/api/curso')({
 
   // Criar um novo curso
   POST: createAPIHandler(
-    withAuthMiddleware(async (ctx) => {
-      // Verificar se o usuário é admin
-      if (ctx.state.user.role !== 'admin') {
-        return json(
-          { error: 'Acesso não autorizado' },
-          { status: 403 }
-        );
-      }
-
+    withRoleMiddleware(['admin'], async (ctx) => {
       try {
         const body = await ctx.request.json();
         const validatedData = cursoInputSchema.parse(body);
@@ -74,9 +50,19 @@ export const APIRoute = createAPIFileRoute('/api/curso')({
           );
         }
 
-        log.error({ error }, 'Erro ao criar curso');
+        log.error(
+          {
+            message: error instanceof Error ? error.message : 'Unknown error',
+            errorObject: error,
+            stack: error instanceof Error ? error.stack : undefined,
+          },
+          'Erro ao criar curso'
+        );
         return json(
-          { error: 'Erro ao criar curso' },
+          {
+            error: 'Erro ao criar curso',
+            details: error instanceof Error ? error.message : 'Unknown error details',
+          },
           { status: 500 }
         );
       }

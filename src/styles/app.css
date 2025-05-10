@@ -16,12 +16,12 @@
     /* Primary Brand Color */
     --primary: 210 40% 20%;
     /* #572C90 */
-    --primary-foreground: 210 40% 70%;
+    --primary-foreground: 210 40% 0%;
 
     /* Secondary Brand Color */
     --secondary: 195 71% 50%;
     /* #31A8A0 */
-    --secondary-foreground: 195 71% 90%;
+    --secondary-foreground: 195 71% 30%;
 
     /* Secondary Light Blue */
     --accent: 195 71% 50%;
@@ -33,7 +33,7 @@
 
     /* Destructive Red */
     --destructive: 355 71% 50%;
-    --destructive-foreground: 355 71% 90%;
+    --destructive-foreground: 355 71% 30%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;

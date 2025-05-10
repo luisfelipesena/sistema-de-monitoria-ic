@@ -1,5 +1,3 @@
-import { Link } from '@tanstack/react-router'
-
 export function NotFound({ children }: { children?: any }) {
   return (
     <div className="space-y-2 p-2">
@@ -13,13 +11,7 @@ export function NotFound({ children }: { children?: any }) {
         >
           Go back
         </button>
-        <Link
-          to="/"
-          className="bg-cyan-600 text-white px-2 py-1 rounded uppercase font-black text-sm"
-        >
-          Start Over
-        </Link>
       </p>
     </div>
-  )
+  );
 }

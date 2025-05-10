@@ -20,11 +20,22 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { FileUploader } from '@/components/ui/FileUploader';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
+import { QueryKeys } from '@/hooks/query-keys';
 import {
   useAdminFileDelete,
   useAdminFileList,
   useAdminFilePresignedUrl,
+  useFileUpload,
 } from '@/hooks/use-files';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -52,11 +63,27 @@ function AdminFilesPage() {
   const queryClient = useQueryClient();
   const [fileToDelete, setFileToDelete] = useState<FileListItem | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [entityType, setEntityType] = useState<string>('admin-uploads');
+  const [entityId, setEntityId] = useState<string>('general');
+  const [customEntityType, setCustomEntityType] = useState<string>('');
 
   const { data: files, isLoading, error, refetch } = useAdminFileList();
 
   const deleteMutation = useAdminFileDelete();
   const viewMutation = useAdminFilePresignedUrl();
+  const uploadMutation = useFileUpload();
+
+  // Opções de pastas predefinidas
+  const entityTypeOptions = [
+    { value: 'admin-uploads', label: 'Uploads Administrativos' },
+    { value: 'editais', label: 'Editais' },
+    { value: 'contratos', label: 'Contratos' },
+    { value: 'atas', label: 'Atas de Reunião' },
+    { value: 'historico_escolar', label: 'Histórico Escolar' },
+    { value: 'comprovante_matricula', label: 'Comprovantes de Matrícula' },
+    { value: 'custom', label: 'Personalizado' }, // Opção para digitar uma pasta personalizada
+  ];
 
   const openDeleteDialog = (file: FileListItem) => {
     setFileToDelete(file);
@@ -110,7 +137,51 @@ function AdminFilesPage() {
       title: 'Upload Concluído',
       description: `Arquivo ${uploadData.fileName} enviado.`,
     });
-    queryClient.invalidateQueries({ queryKey: ['adminFiles'] });
+    queryClient.invalidateQueries({ queryKey: QueryKeys.files.all });
+  };
+
+  const handleFileSelect = (file: File | null) => {
+    setUploadFile(file);
+  };
+
+  const handleUpload = () => {
+    if (!uploadFile) return;
+
+    const finalEntityType =
+      entityType === 'custom' ? customEntityType : entityType;
+
+    if (entityType === 'custom' && !customEntityType.trim()) {
+      toast({
+        title: 'Pasta inválida',
+        description: 'Por favor, especifique uma pasta válida',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    uploadMutation.mutate(
+      {
+        file: uploadFile,
+        entityType: finalEntityType,
+        entityId: entityId,
+      },
+      {
+        onSuccess: (data) => {
+          handleUploadComplete({
+            fileId: data.fileId,
+            fileName: uploadFile.name,
+          });
+          setUploadFile(null); // Reset file after successful upload
+        },
+        onError: (error) => {
+          toast({
+            title: 'Erro no upload',
+            description: error.message || 'Erro ao fazer upload do arquivo',
+            variant: 'destructive',
+          });
+        },
+      },
+    );
   };
 
   const formatBytes = (bytes: number, decimals = 2) => {
@@ -229,18 +300,74 @@ function AdminFilesPage() {
         <CardHeader>
           <CardTitle>Upload de Arquivo</CardTitle>
           <CardDescription>
-            Faça upload de arquivos para o bucket. Use um tipo e ID de entidade
-            genéricos ou relevantes para o propósito do upload.
+            Faça upload de arquivos para o bucket. Selecione a pasta e o
+            identificador para organizar os arquivos.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <FileUploader
-            entityType="admin-uploads" // Generic type for admin uploads
-            entityId="general" // Generic ID or make dynamic if needed
-            onUploadComplete={handleUploadComplete}
-            // allowedTypes={['application/pdf']} // Example: restrict if needed
-            // maxSizeInMB={10}
-          />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="space-y-2">
+                <Label htmlFor="entityType">Pasta</Label>
+                <Select
+                  value={entityType}
+                  onValueChange={(value) => setEntityType(value)}
+                >
+                  <SelectTrigger id="entityType">
+                    <SelectValue placeholder="Selecione uma pasta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {entityTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {entityType === 'custom' && (
+                <div className="space-y-2">
+                  <Label htmlFor="customEntityType">
+                    Nome da Pasta Personalizada
+                  </Label>
+                  <Input
+                    id="customEntityType"
+                    value={customEntityType}
+                    onChange={(e) => setCustomEntityType(e.target.value)}
+                    placeholder="Ex: projetos-2023"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="entityId">Identificador</Label>
+                <Input
+                  id="entityId"
+                  value={entityId}
+                  onChange={(e) => setEntityId(e.target.value)}
+                  placeholder="Ex: usuario-123"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Identificador opcional para organizar arquivos na pasta
+                </p>
+              </div>
+            </div>
+
+            <FileUploader
+              onFileSelect={handleFileSelect}
+              selectedFile={uploadFile}
+              maxSizeInMB={100}
+            />
+
+            <Button
+              onClick={handleUpload}
+              disabled={!uploadFile || uploadMutation.isPending}
+              className="w-full"
+            >
+              {uploadMutation.isPending ? 'Enviando...' : 'Enviar Arquivo'}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

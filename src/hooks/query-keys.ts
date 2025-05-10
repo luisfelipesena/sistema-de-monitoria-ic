@@ -13,6 +13,9 @@ export const QueryKeys = {
   user: {
     all: ['users'],
     byId: (id: string) => ['users', id],
+    admin: {
+      list: ['users', 'admin', 'list'],
+    },
   },
 
   // Aluno related queries
@@ -47,6 +50,9 @@ export const QueryKeys = {
   curso: {
     all: ['curso'],
     byId: (id: string) => ['curso', id],
+    admin: {
+      list: ['curso', 'admin', 'list'],
+    },
   },
 
   // Departamento related queries
