@@ -9,7 +9,7 @@ function handler({ request }: { request: Request }) {
     req: request,
     router: trpcRouter,
     createContext: async (opts) => {
-      return createContext(opts.req);
+      return createContext(opts.req, opts.resHeaders);
     },
   });
 }
