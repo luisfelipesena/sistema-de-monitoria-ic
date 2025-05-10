@@ -41,7 +41,6 @@ import {
 import { logger } from '@/utils/logger';
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { format } from 'date-fns';
 import { Eye, Loader2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -207,7 +206,7 @@ function AdminFilesPage() {
                 </TableCell>
                 <TableCell>{formatBytes(file.size)}</TableCell>
                 <TableCell>
-                  {format(new Date(file.lastModified), 'dd/MM/yyyy HH:mm')}
+                  {new Date(file.lastModified).toLocaleString()}
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">

@@ -1,13 +1,13 @@
 'use client';
 
-import { fetchApi } from '@/utils/fetchApi';
+import { trpc } from '@/router';
 import {
   type QueryObserverResult,
   type RefetchOptions,
-  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
+import { TRPCClientErrorLike } from '@trpc/client';
 import type { User } from 'lucia';
 import React, {
   createContext,
@@ -37,7 +37,7 @@ interface AuthContextProps extends AuthState {
   signIn: () => void; // Simplified: direct redirect
   refetchUser: (
     options?: RefetchOptions,
-  ) => Promise<QueryObserverResult<{ user: User } | null, Error>>; // Adjusted return type slightly
+  ) => Promise<QueryObserverResult<User | undefined, TRPCClientErrorLike<any>>>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -50,39 +50,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const isHydrated = useHydrated();
   const router = useRouter();
+  const trpcUtils = trpc.useUtils();
 
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      trpcUtils.auth.me.invalidate();
+      router.navigate({ to: '/' });
+      setUser(null);
+    },
+  });
   const {
     data: queryData,
     isLoading: queryLoading,
     refetch: refetchUserInternal,
-  } = useQuery({
-    queryKey: ['authUser'],
-    queryFn: async () => {
-      try {
-        const res = await fetchApi('/auth/me');
-        if (!res.ok) {
-          if (res.status === 401) {
-            setUser(null);
-            return null;
-          }
-          throw new Error(`Failed to fetch user: ${res.status}`);
-        }
-        const data = await res.json();
-        setUser(data);
-        setIsAuthenticated(true);
-        return data;
-      } catch (error) {
-        setUser(null);
-        setIsAuthenticated(false);
-        return null;
-      } finally {
-        setIsLoading(false);
-      }
-    },
+  } = trpc.auth.me.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
     retry: false,
     enabled: isHydrated,
   });
+
+  useEffect(() => {
+    if (queryData) {
+      setUser(queryData);
+      setIsAuthenticated(true);
+    } else {
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+    setIsLoading(queryLoading);
+  }, [queryData, queryLoading]);
 
   const signIn = useCallback(() => {
     if (user) {
@@ -95,23 +91,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     setIsLoading(true);
     try {
-      await fetchApi('/auth/signout');
-      setUser(null);
-      await queryClient.invalidateQueries({ queryKey: ['authUser'] });
-      router.navigate({ to: '/' });
+      await logoutMutation.mutateAsync();
     } catch (error) {
       setUser(null);
-      await queryClient.invalidateQueries({ queryKey: ['authUser'] });
+      trpcUtils.auth.me.invalidate();
     } finally {
       setIsLoading(false);
       setIsAuthenticated(false);
     }
-  }, [queryClient, router]);
+  }, [trpcUtils]);
 
-  const refetchUser: AuthContextProps['refetchUser'] = useCallback(
-    refetchUserInternal,
-    [refetchUserInternal],
-  );
+  const refetchUser = useCallback(refetchUserInternal, [refetchUserInternal]);
 
   const value = useMemo(
     () => ({

@@ -6,7 +6,6 @@ import { AuthProvider } from '@/hooks/use-auth';
 import appCss from '@/styles/app.css?url';
 import { seo } from '@/utils/seo';
 import type { QueryClient } from '@tanstack/react-query';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import {
   HeadContent,
@@ -15,11 +14,16 @@ import {
   createRootRouteWithContext,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { TRPCClient } from '@trpc/client';
 import * as React from 'react';
+import type { AppRouter } from '../server/trpc/routers/router';
 
-export const Route = createRootRouteWithContext<{
+export interface MyRouterContext {
   queryClient: QueryClient;
-}>()({
+  trpc: TRPCClient<AppRouter>;
+}
+
+export const Route = createRootRouteWithContext<MyRouterContext>()({
   head: () => ({
     meta: [
       {
@@ -73,11 +77,12 @@ function RootComponent() {
 
   return (
     <RootDocument>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <Outlet />
-        </AuthProvider>
-      </QueryClientProvider>
+      {/* <QueryClientProvider client={queryClient}> */}
+      <AuthProvider>
+        <Outlet />
+      </AuthProvider>
+      <Toaster />
+      {/* </QueryClientProvider> */}
     </RootDocument>
   );
 }
