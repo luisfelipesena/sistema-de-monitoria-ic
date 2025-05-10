@@ -1,15 +1,14 @@
-import { trpc } from '@/utils/trpc';
-import { useQueryClient } from '@tanstack/react-query';
+import { trpc } from '@/server/trpc/react';
 
 export function useAdminFilesList() {
   return trpc.files.list.useQuery();
 }
 
 export function useAdminFileDelete() {
-  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
   const mutation = trpc.files.delete.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['files.list'] });
+      utils.files.list.invalidate();
     },
   });
   return mutation;

@@ -39,8 +39,8 @@ import {
   PresignedUrlResponse,
   UploadCompletionData,
 } from '@/routes/api/files/admin/-admin-types';
+import { trpc } from '@/server/trpc/react';
 import { logger } from '@/utils/logger';
-import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { Eye, Loader2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -55,7 +55,8 @@ export const Route = createFileRoute('/home/_layout/admin/files')({
 
 function AdminFilesPage() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const utils = trpc.useUtils();
+
   const [fileToDelete, setFileToDelete] = useState<FileListItem | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -122,7 +123,7 @@ function AdminFilesPage() {
       title: 'Upload Concluído',
       description: `Arquivo ${uploadData.fileName} enviado.`,
     });
-    queryClient.invalidateQueries({ queryKey: ['adminFiles'] });
+    utils.files.list.invalidate();
   };
 
   const formatBytes = (bytes: number, decimals = 2) => {

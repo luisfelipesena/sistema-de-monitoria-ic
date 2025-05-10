@@ -1,6 +1,6 @@
 'use client';
 
-import { trpc } from '@/router';
+import { trpc } from '@/server/trpc/react';
 import {
   type QueryObserverResult,
   type RefetchOptions,
@@ -90,9 +90,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       await logoutMutation.mutateAsync();
+      trpcUtils.auth.me.invalidate();
     } catch (error) {
       setUser(null);
-      trpcUtils.auth.me.invalidate();
     } finally {
       setIsLoading(false);
       setIsAuthenticated(false);

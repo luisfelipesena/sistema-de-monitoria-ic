@@ -20,7 +20,7 @@ import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
 import { Route as HomeLayoutTestIndexImport } from './routes/home/_layout/test/index'
 import { Route as HomeLayoutProjectsIndexImport } from './routes/home/_layout/projects/index'
 import { Route as HomeLayoutProfileIndexImport } from './routes/home/_layout/profile/index'
-import { Route as HomeLayoutOnboardingOnboardingImport } from './routes/home/_layout/onboarding/onboarding'
+import { Route as HomeLayoutOnboardingIndexImport } from './routes/home/_layout/onboarding/index'
 import { Route as HomeLayoutAdminFilesImport } from './routes/home/_layout/admin/files'
 
 // Create Virtual Routes
@@ -76,12 +76,11 @@ const HomeLayoutProfileIndexRoute = HomeLayoutProfileIndexImport.update({
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
-const HomeLayoutOnboardingOnboardingRoute =
-  HomeLayoutOnboardingOnboardingImport.update({
-    id: '/onboarding/onboarding',
-    path: '/onboarding/onboarding',
-    getParentRoute: () => HomeLayoutRoute,
-  } as any)
+const HomeLayoutOnboardingIndexRoute = HomeLayoutOnboardingIndexImport.update({
+  id: '/onboarding/',
+  path: '/onboarding/',
+  getParentRoute: () => HomeLayoutRoute,
+} as any)
 
 const HomeLayoutAdminFilesRoute = HomeLayoutAdminFilesImport.update({
   id: '/admin/files',
@@ -135,11 +134,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminFilesImport
       parentRoute: typeof HomeLayoutImport
     }
-    '/home/_layout/onboarding/onboarding': {
-      id: '/home/_layout/onboarding/onboarding'
-      path: '/onboarding/onboarding'
-      fullPath: '/home/onboarding/onboarding'
-      preLoaderRoute: typeof HomeLayoutOnboardingOnboardingImport
+    '/home/_layout/onboarding/': {
+      id: '/home/_layout/onboarding/'
+      path: '/onboarding'
+      fullPath: '/home/onboarding'
+      preLoaderRoute: typeof HomeLayoutOnboardingIndexImport
       parentRoute: typeof HomeLayoutImport
     }
     '/home/_layout/profile/': {
@@ -171,7 +170,7 @@ declare module '@tanstack/react-router' {
 interface HomeLayoutRouteChildren {
   HomeLayoutIndexRoute: typeof HomeLayoutIndexRoute
   HomeLayoutAdminFilesRoute: typeof HomeLayoutAdminFilesRoute
-  HomeLayoutOnboardingOnboardingRoute: typeof HomeLayoutOnboardingOnboardingRoute
+  HomeLayoutOnboardingIndexRoute: typeof HomeLayoutOnboardingIndexRoute
   HomeLayoutProfileIndexRoute: typeof HomeLayoutProfileIndexRoute
   HomeLayoutProjectsIndexRoute: typeof HomeLayoutProjectsIndexRoute
   HomeLayoutTestIndexRoute: typeof HomeLayoutTestIndexRoute
@@ -180,7 +179,7 @@ interface HomeLayoutRouteChildren {
 const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutIndexRoute: HomeLayoutIndexRoute,
   HomeLayoutAdminFilesRoute: HomeLayoutAdminFilesRoute,
-  HomeLayoutOnboardingOnboardingRoute: HomeLayoutOnboardingOnboardingRoute,
+  HomeLayoutOnboardingIndexRoute: HomeLayoutOnboardingIndexRoute,
   HomeLayoutProfileIndexRoute: HomeLayoutProfileIndexRoute,
   HomeLayoutProjectsIndexRoute: HomeLayoutProjectsIndexRoute,
   HomeLayoutTestIndexRoute: HomeLayoutTestIndexRoute,
@@ -206,7 +205,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof HomeLayoutRouteWithChildren
   '/home/': typeof HomeLayoutIndexRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
-  '/home/onboarding/onboarding': typeof HomeLayoutOnboardingOnboardingRoute
+  '/home/onboarding': typeof HomeLayoutOnboardingIndexRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
   '/home/test': typeof HomeLayoutTestIndexRoute
@@ -217,7 +216,7 @@ export interface FileRoutesByTo {
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutIndexRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
-  '/home/onboarding/onboarding': typeof HomeLayoutOnboardingOnboardingRoute
+  '/home/onboarding': typeof HomeLayoutOnboardingIndexRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
   '/home/test': typeof HomeLayoutTestIndexRoute
@@ -231,7 +230,7 @@ export interface FileRoutesById {
   '/home/_layout': typeof HomeLayoutRouteWithChildren
   '/home/_layout/': typeof HomeLayoutIndexRoute
   '/home/_layout/admin/files': typeof HomeLayoutAdminFilesRoute
-  '/home/_layout/onboarding/onboarding': typeof HomeLayoutOnboardingOnboardingRoute
+  '/home/_layout/onboarding/': typeof HomeLayoutOnboardingIndexRoute
   '/home/_layout/profile/': typeof HomeLayoutProfileIndexRoute
   '/home/_layout/projects/': typeof HomeLayoutProjectsIndexRoute
   '/home/_layout/test/': typeof HomeLayoutTestIndexRoute
@@ -245,7 +244,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/home/'
     | '/home/admin/files'
-    | '/home/onboarding/onboarding'
+    | '/home/onboarding'
     | '/home/profile'
     | '/home/projects'
     | '/home/test'
@@ -255,7 +254,7 @@ export interface FileRouteTypes {
     | '/auth/cas-callback'
     | '/home'
     | '/home/admin/files'
-    | '/home/onboarding/onboarding'
+    | '/home/onboarding'
     | '/home/profile'
     | '/home/projects'
     | '/home/test'
@@ -267,7 +266,7 @@ export interface FileRouteTypes {
     | '/home/_layout'
     | '/home/_layout/'
     | '/home/_layout/admin/files'
-    | '/home/_layout/onboarding/onboarding'
+    | '/home/_layout/onboarding/'
     | '/home/_layout/profile/'
     | '/home/_layout/projects/'
     | '/home/_layout/test/'
@@ -319,7 +318,7 @@ export const routeTree = rootRoute
       "children": [
         "/home/_layout/",
         "/home/_layout/admin/files",
-        "/home/_layout/onboarding/onboarding",
+        "/home/_layout/onboarding/",
         "/home/_layout/profile/",
         "/home/_layout/projects/",
         "/home/_layout/test/"
@@ -333,8 +332,8 @@ export const routeTree = rootRoute
       "filePath": "home/_layout/admin/files.tsx",
       "parent": "/home/_layout"
     },
-    "/home/_layout/onboarding/onboarding": {
-      "filePath": "home/_layout/onboarding/onboarding.tsx",
+    "/home/_layout/onboarding/": {
+      "filePath": "home/_layout/onboarding/index.tsx",
       "parent": "/home/_layout"
     },
     "/home/_layout/profile/": {

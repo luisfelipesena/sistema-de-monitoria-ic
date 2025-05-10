@@ -1,55 +1,29 @@
 'use client';
 
+import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-} from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
+import { trpc } from '@/server/trpc/react';
+
+import { SidebarLayout } from '@/components/layout/Sidebar';
 import {
-  Link,
   Outlet,
   createFileRoute,
-  redirect,
   useLocation,
   useNavigate,
 } from '@tanstack/react-router';
-import {
-  FolderKanban,
-  LayoutDashboard,
-  LogOut,
-  Settings,
-  User,
-} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const Route = createFileRoute('/home/_layout')({
   component: HomeLayoutComponent,
-  loader: async ({ context }) => {
-    try {
-      const result = await context.trpc.onboarding.getStatus.query(undefined, {
-        context: {},
-      });
-      return { onboardingPending: result.pending };
-    } catch (error) {
-      throw redirect({ to: '/' });
-    }
-  },
 });
 
 function HomeLayoutComponent() {
   const { user, isLoading, signOut } = useAuth();
+  const { data: onboardingPending } = trpc.onboarding.getStatus.useQuery();
   const location = useLocation();
   const [isSignedOut, setIsSignedOut] = useState(false);
-  const { onboardingPending } = Route.useLoaderData();
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,119 +34,22 @@ function HomeLayoutComponent() {
   }, [user, isLoading, isSignedOut]);
 
   useEffect(() => {
-    if (onboardingPending) {
-      navigate({ to: '/home/onboarding/onboarding' });
+    if (onboardingPending && location.pathname.includes('/home')) {
+      navigate({ to: '/home/onboarding' });
     }
-  }, [onboardingPending]);
+  }, [onboardingPending, location.pathname]);
 
   if (isLoading) return null;
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <div className="flex flex-col items-center gap-2 mb-4">
-            <img
-              src="/images/logo.ico"
-              alt="Monitoria IC"
-              className="h-32 w-18"
-            />
-            <span className="text-lg font-semibold">Monitoria IC</span>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={location.pathname === '/home'}
-                tooltip="Visão Geral"
-              >
-                <Link to="/home">
-                  <LayoutDashboard />
-                  <span>Visão Geral</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={location.pathname.startsWith('/home/projects')}
-                tooltip="Projetos"
-              >
-                <Link to="/home/projects">
-                  <FolderKanban />
-                  <span>Projetos</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={location.pathname.startsWith('/home/test')}
-                tooltip="Teste"
-              >
-                <Link to="/home/test">
-                  <FolderKanban />
-                  <span>Teste</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={location.pathname.startsWith('/home/profile')}
-                tooltip="Perfil"
-              >
-                <Link to="/home/profile">
-                  <User />
-                  <span>Perfil</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={location.pathname.startsWith('/home/admin/files')}
-                tooltip="Administração"
-              >
-                <Link to="/home/admin/files">
-                  <Settings />
-                  <span>Administração</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
-          {user && (
-            <div className="px-3 py-2 mb-2 text-sm border-t border-border">
-              <p className="font-medium truncate">{user.username}</p>
-              <p className="text-xs text-muted-foreground">{user.role}</p>
-            </div>
-          )}
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => {
-                  setIsSignedOut(true);
-                  signOut();
-                }}
-                tooltip="Sair"
-              >
-                <LogOut />
-                <span>Sair</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      </Sidebar>
-
+      <SidebarLayout pathname={location.pathname} />
       <SidebarInset>
         <Header />
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 min-h-screen p-6">
           <Outlet />
         </main>
+        <Footer />
       </SidebarInset>
     </SidebarProvider>
   );
