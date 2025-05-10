@@ -2,6 +2,7 @@ import { DefaultCatchBoundary } from '@/components/DefaultCatchBoundary';
 import { NotFound } from '@/components/NotFound';
 
 import { trpc } from '@/server/trpc/react';
+import { env } from '@/utils/env';
 import { QueryClient } from '@tanstack/react-query';
 import { createRouter as createTanStackRouter } from '@tanstack/react-router';
 import { routerWithQueryClient } from '@tanstack/react-router-with-query';
@@ -12,12 +13,8 @@ import SuperJSON from 'superjson';
 import { routeTree } from './routeTree.gen';
 import { AppRouter } from './server/trpc/routers/router';
 
-function getUrl() {
-  const base = (() => {
-    if (typeof window !== 'undefined') return '';
-    return `http://localhost:3000`;
-  })();
-  return base + '/api/trpc';
+function getTrpcServerUrl() {
+  return env.SERVER_URL + '/trpc';
 }
 
 const headers = createIsomorphicFn()
@@ -49,7 +46,7 @@ export function createRouter() {
           });
         },
         transformer: SuperJSON,
-        url: getUrl(),
+        url: getTrpcServerUrl(),
         headers,
       }),
     ],
