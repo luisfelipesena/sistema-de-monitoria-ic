@@ -248,7 +248,7 @@ export function Sidebar() {
         </div>
         <Button
           onClick={handleSignOut}
-          variant="outline"
+          variant="transparent"
           className="w-full justify-start border-sidebar-foreground/20 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
           <LogOut />

@@ -13,17 +13,17 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary Brand Color - UFBA Purple */
-    --primary: 265 50% 37%;
+    /* Primary Brand Color - UFBA #53BDEC */
+    --primary: 195 71% 63%;
     /* #572C90 */
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 195 71% 40%;
 
-    /* Secondary Teal */
-    --secondary: 169 56% 40%;
+    /* Secondary Brand Color - UFBA #1B4377 */
+    --secondary: 210 40% 20%;
     /* #31A8A0 */
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 10%;
 
-    /* Secondary Light Purple */
+    /* Secondary Light Blue - UFBA #53BDEC */
     --accent: 265 50% 90%;
     /* #E8DEFC */
     --accent-foreground: 222.2 47.4% 11.2%;
@@ -31,8 +31,9 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive Red - UFBA #C92F2F */
+    --destructive: 355 71% 50%;
+    --destructive-foreground: 355 71% 90%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
@@ -66,36 +67,6 @@
     --info: 224 76% 48%;
     /* #1171EF */
     --info-foreground: 210 40% 98%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 265 50% 37%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 169 56% 40%;
-    --secondary-foreground: 210 40% 98%;
-
-    --accent: 265 50% 90%;
-    --accent-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
   }
 
   html {

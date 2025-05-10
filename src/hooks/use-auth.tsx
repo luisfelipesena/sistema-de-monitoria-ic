@@ -4,7 +4,6 @@ import { trpc } from '@/router';
 import {
   type QueryObserverResult,
   type RefetchOptions,
-  useQueryClient,
 } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { TRPCClientErrorLike } from '@trpc/client';
@@ -34,7 +33,7 @@ interface AuthState {
 
 interface AuthContextProps extends AuthState {
   signOut: () => Promise<void>;
-  signIn: () => void; // Simplified: direct redirect
+  signIn: () => void;
   refetchUser: (
     options?: RefetchOptions,
   ) => Promise<QueryObserverResult<User | undefined, TRPCClientErrorLike<any>>>;
@@ -47,7 +46,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const queryClient = useQueryClient();
   const isHydrated = useHydrated();
   const router = useRouter();
   const trpcUtils = trpc.useUtils();
@@ -61,8 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
   const {
     data: queryData,
-    isLoading: queryLoading,
     refetch: refetchUserInternal,
+    isLoading: queryLoading,
   } = trpc.auth.me.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
     retry: false,
@@ -70,15 +68,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
+    if (!isHydrated) return;
+
     if (queryData) {
       setUser(queryData);
       setIsAuthenticated(true);
-    } else {
-      setUser(null);
-      setIsAuthenticated(false);
     }
+
     setIsLoading(queryLoading);
-  }, [queryData, queryLoading]);
+  }, [queryData, queryLoading, isHydrated]);
 
   const signIn = useCallback(() => {
     if (user) {

@@ -10,9 +10,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-[#53BDEC] hover:bg-[#53BDEC]/90 text-white rounded-full',
-        secondary: 'bg-[#1B4377] hover:bg-[#1B4377]/90 text-white rounded-full',
-        cancel: 'bg-[#C92F2F] hover:bg-[#C92F2F]/90 text-white rounded-full',
+        primary:
+          'bg-primary hover:bg-primary-foreground text-white rounded-full',
+        secondary:
+          'bg-secondary hover:bg-secondary-foreground text-white rounded-full',
+        destructive:
+          'bg-destructive hover:bg-destructive-foreground text-white rounded-full',
         disabled: 'bg-[#A7A7A7] text-white rounded-full',
         transparent: 'bg-transparent text-black rounded-full',
       },

@@ -1,13 +1,11 @@
 import { createContext } from '@/server/trpc/init';
+import { logger } from '@/utils/logger';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
-import { createConsola } from 'consola';
 import { trpcRouter } from '../server/trpc/routers/router';
 
-const logger = createConsola({
-  formatOptions: {
-    colors: true,
-  },
+const log = logger.child({
+  module: 'api.trpc.$',
 });
 
 function handler({ request }: { request: Request }) {
@@ -16,7 +14,7 @@ function handler({ request }: { request: Request }) {
     req: request,
     router: trpcRouter,
     onError: (opts) => {
-      logger.error(opts.error);
+      log.error(opts.error);
     },
     createContext: async (opts) => {
       return createContext(opts.req, opts.resHeaders);

@@ -10,7 +10,7 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Toggle user dropdown menu
@@ -92,9 +92,8 @@ export function Header({ onMenuClick }: HeaderProps) {
                 <Link
                   to="/"
                   className="block px-4 py-2 text-sm hover:bg-accent"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    window.location.href = '/api/auth/signout';
+                  onClick={() => {
+                    signOut();
                   }}
                 >
                   Sair

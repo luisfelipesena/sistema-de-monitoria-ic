@@ -9,18 +9,23 @@ export const Route = createFileRoute('/')({
 });
 
 function LandingPageComponent() {
-  const { signIn, isAuthenticated, isLoading } = useAuth();
-
-  const showLogin = !isLoading && !isAuthenticated;
+  const { signIn, isLoading } = useAuth();
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <header className="sticky top-0 z-10 p-4 border-b bg-white/80 backdrop-blur-sm">
         <div className="container flex items-center justify-between mx-auto">
-          <span className="text-xl font-bold text-blue-800">
-            Sistema de Monitoria IC
-          </span>
-          <Button isLoading={isLoading} variant="cancel" onClick={signIn}>
+          <div className="flex items-center gap-2">
+            <img
+              src="/images/logo.ico"
+              alt="Monitoria IC"
+              className="h-12 w-12"
+            />
+            <span className="text-xl font-bold text-blue-800">
+              Sistema de Monitoria IC
+            </span>
+          </div>
+          <Button isLoading={isLoading} onClick={signIn}>
             Entrar com Email UFBA
           </Button>
         </div>
@@ -37,7 +42,11 @@ function LandingPageComponent() {
               monitores para projetos acadêmicos da UFBA.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Button isLoading={isLoading} onClick={signIn} variant="primary">
+              <Button
+                isLoading={isLoading}
+                onClick={signIn}
+                variant="secondary"
+              >
                 Entrar com Email UFBA
               </Button>
 

@@ -28,7 +28,7 @@ import {
   Settings,
   User,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const Route = createFileRoute('/home/_layout')({
   component: HomeLayoutComponent,
@@ -45,21 +45,21 @@ export const Route = createFileRoute('/home/_layout')({
 });
 
 function HomeLayoutComponent() {
-  const { user, isLoading, signOut, isAuthenticated } = useAuth();
+  const { user, isLoading, signOut } = useAuth();
   const location = useLocation();
   const [isSignedOut, setIsSignedOut] = useState(false);
   const { onboardingPending } = Route.useLoaderData();
 
   const navigate = useNavigate();
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!user && !isLoading && !isSignedOut) {
       signOut();
       setIsSignedOut(true);
     }
   }, [user, isLoading, isSignedOut]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (onboardingPending) {
       navigate({ to: '/home/onboarding/onboarding' });
     }
@@ -72,7 +72,11 @@ function HomeLayoutComponent() {
       <Sidebar>
         <SidebarHeader>
           <div className="flex flex-col items-center gap-2 mb-4">
-            <img src="/logo.ico" alt="Monitoria IC" className="h-32 w-18" />
+            <img
+              src="/images/logo.ico"
+              alt="Monitoria IC"
+              className="h-32 w-18"
+            />
             <span className="text-lg font-semibold">Monitoria IC</span>
           </div>
         </SidebarHeader>
