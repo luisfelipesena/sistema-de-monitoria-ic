@@ -12,8 +12,9 @@ import {
   createFileRoute,
   useLocation,
   useNavigate,
+  useRouter,
 } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export const Route = createFileRoute('/home/_layout')({
   component: HomeLayoutComponent,
@@ -25,6 +26,16 @@ function HomeLayoutComponent() {
   const location = useLocation();
   const [isSignedOut, setIsSignedOut] = useState(false);
   const navigate = useNavigate();
+  const router = useRouter();
+
+  React.useEffect(
+    function onSuccessOnboarding() {
+      if (onboardingPending?.pending) {
+        navigate({ to: '/home/onboarding' });
+      }
+    },
+    [onboardingPending?.pending],
+  );
 
   useEffect(() => {
     if (!user && !isLoading && !isSignedOut) {
@@ -32,12 +43,6 @@ function HomeLayoutComponent() {
       setIsSignedOut(true);
     }
   }, [user, isLoading, isSignedOut]);
-
-  useEffect(() => {
-    if (onboardingPending && location.pathname.includes('/home')) {
-      // navigate({ to: '/home/onboarding' });
-    }
-  }, [onboardingPending, location.pathname]);
 
   if (isLoading) return null;
 

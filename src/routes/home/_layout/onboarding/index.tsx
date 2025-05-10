@@ -117,6 +117,7 @@ function StudentForm() {
       navigate({ to: '/home' });
     },
   });
+  const trpcUtils = trpc.useUtils();
 
   const onSubmit = (values: StudentFormData) => {
     if (!useNomeSocial) {
@@ -147,7 +148,15 @@ function StudentForm() {
       comprovanteMatriculaFileId: comprovanteMatriculaFileId || undefined,
     };
 
-    setAlunoMutation.mutate(alunoData);
+    setAlunoMutation.mutate(alunoData, {
+      onSuccess: () => {
+        trpcUtils.onboarding.getStatus.setData(undefined, {
+          pending: false,
+          reason: undefined,
+        });
+        navigate({ to: '/home' });
+      },
+    });
   };
 
   if (authLoading) {
