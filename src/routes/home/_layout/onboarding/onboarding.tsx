@@ -10,6 +10,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { trpc } from '@/router';
+import { insertAlunoTableSchema } from '@/server/database/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
@@ -65,70 +68,24 @@ async function fetchProfile(apiUrl: string) {
   return {};
 }
 
-async function updateProfile(apiUrl: string, data: any) {
-  const res = await fetch(apiUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    throw new Error('Falha ao atualizar perfil');
-  }
-  return res.json();
-}
-
 function StudentForm() {
   const navigate = useNavigate();
-  const { user, isLoading: authLoading } = useAuth();
-  const queryClient = useQueryClient();
+  const { isLoading: authLoading } = useAuth();
   const [useNomeSocial, setUseNomeSocial] = useState(false);
+  const { toast } = useToast();
 
+  const cursoQuery = trpc.curso.get.useQuery();
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
   });
 
-  const { data: profileData, isLoading: profileLoading } = useQuery({
-    queryKey: ['userProfile', user?.id, user?.role],
-    queryFn: () => fetchProfile('/api/aluno'),
-    enabled: !!user && !authLoading,
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  });
-
-  useEffect(() => {
-    if (profileData) {
-      const requiredFields = Object.keys(studentSchema.shape);
-      const isComplete =
-        Object.keys(profileData).length > 0 &&
-        requiredFields.every(
-          (field) =>
-            field in profileData &&
-            profileData[field as keyof typeof profileData] !== null &&
-            profileData[field as keyof typeof profileData] !== '',
-        );
-
-      if (isComplete) {
-        navigate({ to: '/home' });
-      } else if (Object.keys(profileData).length > 0) {
-        form.reset(profileData);
-        setUseNomeSocial(!!profileData.nomeSocial);
-      }
-    }
-  }, [profileData, navigate, form]);
-
-  const mutation = useMutation({
-    mutationFn: (data: StudentFormData) => updateProfile('/api/aluno', data),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ['userProfile', user?.id, user?.role],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ['profile-completeness'],
+  const setAlunoMutation = trpc.aluno.set.useMutation({
+    onSuccess: () => {
+      debugger;
+      toast({
+        title: 'Cadastro realizado com sucesso!',
       });
       navigate({ to: '/home' });
-    },
-    onError: (error) => {
-      console.error('Falha ao atualizar perfil:', error);
     },
   });
 
@@ -136,10 +93,22 @@ function StudentForm() {
     if (!useNomeSocial) {
       values.nomeSocial = undefined;
     }
-    mutation.mutate(values);
+    setAlunoMutation.mutate({
+      cpf: values.cpf,
+      emailInstitucional: values.emailInstitucional,
+      genero: values.genero,
+      matricula: values.matricula,
+      nomeCompleto: values.nomeCompleto,
+      nomeSocial: values.nomeSocial,
+      cr: values.cr,
+      cursoId: values.cursoId,
+      rg: values.rg,
+      telefone: values.telefone,
+      especificacaoGenero: values.especificacaoGenero,
+    });
   };
 
-  if (authLoading || (profileLoading && !profileData)) {
+  if (authLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         Carregando...
@@ -274,10 +243,11 @@ function StudentForm() {
                 <SelectValue placeholder="Selecione o curso" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">Ciência da Computação</SelectItem>
-                <SelectItem value="2">Sistemas de Informação</SelectItem>
-                <SelectItem value="3">Engenharia da Computação</SelectItem>
-                <SelectItem value="4">Licenciatura em Computação</SelectItem>
+                {cursoQuery.data?.map((curso) => (
+                  <SelectItem key={curso.id} value={curso.id.toString()}>
+                    {curso.nome}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {form.formState.errors.cursoId && (
@@ -293,6 +263,7 @@ function StudentForm() {
               id="cr"
               {...form.register('cr')}
               className={form.formState.errors.cr ? 'border-red-500' : ''}
+              type="number"
               placeholder="Ex: 8.5"
             />
             {form.formState.errors.cr && (
@@ -311,7 +282,12 @@ function StudentForm() {
           <div>
             <Label htmlFor="genero">Gênero</Label>
             <Select
-              onValueChange={(value) => form.setValue('genero', value)}
+              onValueChange={(value) =>
+                form.setValue(
+                  'genero',
+                  value as 'MASCULINO' | 'FEMININO' | 'OUTRO',
+                )
+              }
               defaultValue={form.getValues('genero')}
             >
               <SelectTrigger
@@ -347,13 +323,17 @@ function StudentForm() {
       </div>
 
       <div className="pt-4">
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Salvando...' : 'Concluir Cadastro'}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={setAlunoMutation.isPending}
+        >
+          {setAlunoMutation.isPending ? 'Salvando...' : 'Concluir Cadastro'}
         </Button>
       </div>
-      {mutation.error && (
+      {setAlunoMutation.error && (
         <p className="text-red-500 text-sm mt-2 text-center">
-          Erro ao salvar: {mutation.error.message}
+          Erro ao salvar: {setAlunoMutation.error.message}
         </p>
       )}
     </form>
@@ -400,8 +380,7 @@ function ProfessorForm() {
   }, [profileData, navigate, form]);
 
   const mutation = useMutation({
-    mutationFn: (data: ProfessorFormData) =>
-      updateProfile('/api/professor', data),
+    mutationFn: (data: ProfessorFormData) => ({}),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ['userProfile', user?.id, user?.role],
@@ -665,20 +644,8 @@ function ProfessorForm() {
   );
 }
 
-const studentSchema = z.object({
-  nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
-  nomeSocial: z.string().optional(),
-  matricula: z.string().min(1, 'Matrícula é obrigatória'),
-  cpf: z.string().min(1, 'CPF é obrigatório'),
-  emailInstitucional: z
-    .string()
-    .email('Email institucional inválido')
-    .min(1, 'Email institucional é obrigatório'),
-  genero: z.string().min(1, 'Gênero é obrigatório'),
-  especificacaoGenero: z.string().optional(),
-  cr: z.string().min(1, 'CR é obrigatório'),
-  telefone: z.string().optional(),
-  cursoId: z.coerce.number().min(1, 'ID do curso é obrigatório'),
+const studentSchema = insertAlunoTableSchema.extend({
+  cr: z.coerce.number().min(1, 'CR é obrigatório'),
 });
 
 // Schema for professor form data

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { createTRPCRouter, publicProcedure } from '../init';
 import { alunoRouter } from './aluno';
 import { authRouter } from './auth';
+import { cursoRouter } from './curso';
 import { onboardingRouter } from './onboarding';
 
 const guitars = [
@@ -34,6 +35,7 @@ export const trpcRouter = createTRPCRouter({
   aluno: alunoRouter,
   onboarding: onboardingRouter,
   auth: authRouter,
+  curso: cursoRouter,
 });
 
 export type AppRouter = typeof trpcRouter;

@@ -5,7 +5,11 @@ import { createRouter as createTanStackRouter } from '@tanstack/react-router';
 import { routerWithQueryClient } from '@tanstack/react-router-with-query';
 import { createIsomorphicFn } from '@tanstack/react-start';
 import { getHeaders } from '@tanstack/react-start/server';
-import { createTRPCClient, httpBatchStreamLink } from '@trpc/client';
+import {
+  createTRPCClient,
+  httpBatchStreamLink,
+  loggerLink,
+} from '@trpc/client';
 import { createTRPCReact } from '@trpc/react-query';
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
 import SuperJSON from 'superjson';
@@ -39,6 +43,14 @@ export function createRouter() {
   });
   const trpcClient = createTRPCClient<AppRouter>({
     links: [
+      loggerLink({
+        enabled: (opts) => {
+          return (
+            (opts.direction === 'down' && opts.result instanceof Error) ||
+            opts.direction === 'up'
+          );
+        },
+      }),
       httpBatchStreamLink({
         transformer: SuperJSON,
         url: getUrl(),

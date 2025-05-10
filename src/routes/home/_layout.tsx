@@ -28,7 +28,7 @@ import {
   Settings,
   User,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 export const Route = createFileRoute('/home/_layout')({
   component: HomeLayoutComponent,
@@ -52,16 +52,19 @@ function HomeLayoutComponent() {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!user && !isLoading && !isSignedOut) {
       signOut();
       setIsSignedOut(true);
     }
   }, [user, isLoading, isSignedOut]);
 
-  if (onboardingPending) {
-    navigate({ to: '/home/onboarding/onboarding' });
-  }
+  React.useEffect(() => {
+    if (onboardingPending) {
+      navigate({ to: '/home/onboarding/onboarding' });
+    }
+  }, [onboardingPending]);
+
   if (isLoading) return null;
 
   return (

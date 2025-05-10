@@ -13,7 +13,7 @@ export const alunoRouter = createTRPCRouter({
   set: privateProcedure
     .input(insertAlunoTableSchema)
     .mutation(async ({ input, ctx }) => {
-      let aluno = await db.query.alunoTable.findFirst({
+      const aluno = await db.query.alunoTable.findFirst({
         where: eq(alunoTable.userId, ctx.user.id),
       });
 
