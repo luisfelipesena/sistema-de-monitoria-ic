@@ -1,13 +1,14 @@
 'use client';
 
 import { trpc } from '@/server/trpc/react';
-import { logger } from '@/utils/logger';
+import { LUCIA_SESSION_COOKIE_NAME } from '@/utils/types';
 import {
   type QueryObserverResult,
   type RefetchOptions,
 } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { TRPCClientErrorLike } from '@trpc/client';
+import Cookie from 'js-cookie';
 import type { User } from 'lucia';
 import React, {
   createContext,
@@ -40,16 +41,11 @@ interface AuthContextProps extends AuthState {
   ) => Promise<QueryObserverResult<User | undefined, TRPCClientErrorLike<any>>>;
 }
 
-const log = logger.child({
-  context: 'useAuth',
-});
-
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const isHydrated = useHydrated();
   const router = useRouter();
@@ -75,7 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     if (queryData) {
       setUser(queryData);
-      setIsAuthenticated(true);
     }
 
     setIsLoading(queryLoading);
@@ -89,8 +84,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loginMutation.mutate();
   }, [user, router]);
 
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      Cookie.remove(LUCIA_SESSION_COOKIE_NAME);
+      setUser(null);
+      router.navigate({ to: '/' });
+    },
+  });
+
   const signOut = useCallback(async () => {
-    window.location.href = '/auth/logout';
+    logoutMutation.mutate();
   }, []);
 
   const refetchUser = useCallback(refetchUserInternal, [refetchUserInternal]);
@@ -99,12 +102,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       isLoading,
-      isAuthenticated,
+      isAuthenticated: !!user,
       signIn,
       signOut,
       refetchUser,
     }),
-    [user, isLoading, isAuthenticated, signIn, signOut, refetchUser],
+    [user, isLoading, signIn, signOut, refetchUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

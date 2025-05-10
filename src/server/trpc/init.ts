@@ -1,36 +1,16 @@
 import { getSessionId } from '@/utils/lucia';
 import { initTRPC } from '@trpc/server';
-import cookie from 'cookie';
 import superjson from 'superjson';
 import { lucia } from '../lib/auth';
 
-export async function createContext(req: Request, resHeaders: Headers) {
+export async function createContext(req: Request) {
   const headers = req.headers;
   const sessionId = getSessionId(headers);
   const result = await lucia.validateSession(sessionId || '');
   return {
     user: result.user,
     session: result.session,
-    request: req,
-    cookies: {
-      getCookies() {
-        const cookieHeader = req.headers.get('Cookie');
-        if (!cookieHeader) return {};
-        return cookie.parse(cookieHeader);
-      },
-      getCookie(name: string) {
-        const cookieHeader = req.headers.get('Cookie');
-        if (!cookieHeader) return;
-        const cookies = cookie.parse(cookieHeader);
-        return cookies[name];
-      },
-      setCookie(sessionCookie: any) {
-        resHeaders.append('Set-Cookie', sessionCookie.serialize());
-      },
-      removeCookie(name: string) {
-        resHeaders.delete(name);
-      },
-    },
+    request: req
   };
 }
 
@@ -44,7 +24,6 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
     if (ctx.session) {
       await lucia.invalidateSession(ctx.session?.id || '');
     }
-    ctx.cookies.removeCookie(lucia.sessionCookieName);
     throw new Error('Unauthorized');
   }
 

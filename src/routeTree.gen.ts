@@ -15,8 +15,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
-import { Route as AuthTesteImport } from './routes/auth/teste'
-import { Route as AuthLogoutImport } from './routes/auth/logout'
 import { Route as AuthLoginImport } from './routes/auth/login'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
 import { Route as HomeLayoutTestIndexImport } from './routes/home/_layout/test/index'
@@ -46,18 +44,6 @@ const IndexRoute = IndexImport.update({
 const HomeLayoutRoute = HomeLayoutImport.update({
   id: '/_layout',
   getParentRoute: () => HomeRoute,
-} as any)
-
-const AuthTesteRoute = AuthTesteImport.update({
-  id: '/auth/teste',
-  path: '/auth/teste',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AuthLogoutRoute = AuthLogoutImport.update({
-  id: '/auth/logout',
-  path: '/auth/logout',
-  getParentRoute: () => rootRoute,
 } as any)
 
 const AuthLoginRoute = AuthLoginImport.update({
@@ -118,20 +104,6 @@ declare module '@tanstack/react-router' {
       path: '/auth/login'
       fullPath: '/auth/login'
       preLoaderRoute: typeof AuthLoginImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/logout': {
-      id: '/auth/logout'
-      path: '/auth/logout'
-      fullPath: '/auth/logout'
-      preLoaderRoute: typeof AuthLogoutImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/teste': {
-      id: '/auth/teste'
-      path: '/auth/teste'
-      fullPath: '/auth/teste'
-      preLoaderRoute: typeof AuthTesteImport
       parentRoute: typeof rootRoute
     }
     '/home': {
@@ -230,8 +202,6 @@ const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
-  '/auth/logout': typeof AuthLogoutRoute
-  '/auth/teste': typeof AuthTesteRoute
   '/home': typeof HomeLayoutRouteWithChildren
   '/home/': typeof HomeLayoutIndexRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
@@ -244,8 +214,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
-  '/auth/logout': typeof AuthLogoutRoute
-  '/auth/teste': typeof AuthTesteRoute
   '/home': typeof HomeLayoutIndexRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/onboarding': typeof HomeLayoutOnboardingIndexRoute
@@ -258,8 +226,6 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
-  '/auth/logout': typeof AuthLogoutRoute
-  '/auth/teste': typeof AuthTesteRoute
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
   '/home/_layout/': typeof HomeLayoutIndexRoute
@@ -275,8 +241,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth/login'
-    | '/auth/logout'
-    | '/auth/teste'
     | '/home'
     | '/home/'
     | '/home/admin/files'
@@ -288,8 +252,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth/login'
-    | '/auth/logout'
-    | '/auth/teste'
     | '/home'
     | '/home/admin/files'
     | '/home/onboarding'
@@ -300,8 +262,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth/login'
-    | '/auth/logout'
-    | '/auth/teste'
     | '/home'
     | '/home/_layout'
     | '/home/_layout/'
@@ -316,16 +276,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthLoginRoute: typeof AuthLoginRoute
-  AuthLogoutRoute: typeof AuthLogoutRoute
-  AuthTesteRoute: typeof AuthTesteRoute
   HomeRoute: typeof HomeRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthLoginRoute: AuthLoginRoute,
-  AuthLogoutRoute: AuthLogoutRoute,
-  AuthTesteRoute: AuthTesteRoute,
   HomeRoute: HomeRouteWithChildren,
 }
 
@@ -341,8 +297,6 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/auth/login",
-        "/auth/logout",
-        "/auth/teste",
         "/home"
       ]
     },
@@ -351,12 +305,6 @@ export const routeTree = rootRoute
     },
     "/auth/login": {
       "filePath": "auth/login.tsx"
-    },
-    "/auth/logout": {
-      "filePath": "auth/logout.tsx"
-    },
-    "/auth/teste": {
-      "filePath": "auth/teste.tsx"
     },
     "/home": {
       "filePath": "home",

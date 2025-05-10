@@ -9,9 +9,8 @@ export const authRouter = createTRPCRouter({
   me: privateProcedure.query(async ({ ctx }) => {
     return ctx.user;
   }),
-  logout: privateProcedure.mutation(async ({ ctx }) => {
+  logout: publicProcedure.mutation(async ({ ctx }) => {
     await lucia.invalidateSession(ctx.session?.id || '');
-    ctx.cookies.removeCookie(lucia.sessionCookieName);
     return { success: true };
   }),
   login: publicProcedure.mutation(async ({ ctx }) => {
@@ -19,7 +18,7 @@ export const authRouter = createTRPCRouter({
   }),
   loginCallback: publicProcedure.input(z.object({ responseData: z.string() })).mutation(async ({ input, ctx }) => {
     const { responseData } = input;
-    const result = await authService.handleLoginCallback(responseData, ctx.cookies)
+    const result = await authService.handleLoginCallback(responseData)
     return result
   }),
 });

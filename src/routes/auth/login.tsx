@@ -3,8 +3,9 @@
 import { Spinner } from '@/components/ui/spinner';
 import { env } from '@/utils/env';
 import { logger } from '@/utils/logger';
+import { LUCIA_SESSION_COOKIE_NAME } from '@/utils/types';
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { setCookie } from '@tanstack/react-start/server';
+import Cookie from 'js-cookie';
 import { useEffect } from 'react';
 import { z } from 'zod';
 const log = logger.child({ context: 'LoginPage' });
@@ -36,7 +37,7 @@ export const Route = createFileRoute('/auth/login')({
       const result = await context.trpc.auth.loginCallback.mutate({
         responseData,
       });
-      setCookie(result.sessionCookie.name, result.sessionCookie.value);
+
       return {
         sessionCookie: result.sessionCookie,
       };
@@ -44,13 +45,23 @@ export const Route = createFileRoute('/auth/login')({
       throw redirect({ to: '/' });
     }
   },
+  errorComponent: () => {
+    return <div>Erro ao autenticar</div>;
+  },
+  pendingComponent: () => {
+    return <Spinner />;
+  },
 });
 
 function LoginPage() {
   const { sessionCookie, user } = Route.useLoaderData();
 
   useEffect(() => {
-    if (sessionCookie || user) {
+    if (sessionCookie) {
+      Cookie.set(LUCIA_SESSION_COOKIE_NAME, sessionCookie.value);
+    }
+
+    if (user || sessionCookie) {
       window.location.href = '/home';
     }
   }, [sessionCookie, user]);

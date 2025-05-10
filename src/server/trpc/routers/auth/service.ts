@@ -15,10 +15,17 @@ export class AuthService {
     return redirectUrl
   }
 
-  async handleLoginCallback(responseData: string, cookies: any) {
+  async handleLoginCallback(responseData: string) {
     const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '' })
     const result = parser.parse(responseData)
     const serviceResponse = result['cas:serviceResponse']
+
+    if (serviceResponse && serviceResponse['cas:authenticationFailure']) {
+      const failure = serviceResponse['cas:authenticationFailure']
+      log.error('CAS Authentication failed:', failure)
+      throw new Error('CAS Authentication failed')
+    }
+
     if (serviceResponse && serviceResponse['cas:authenticationSuccess']) {
       const authSuccess = serviceResponse['cas:authenticationSuccess']
       const username = authSuccess['cas:user']
@@ -35,16 +42,11 @@ export class AuthService {
       }
       const session = await lucia.createSession(user.id, {})
       const sessionCookie = lucia.createSessionCookie(session.id)
-      cookies.setCookie(sessionCookie)
 
       log.info(`Session created for user ${user.username}, sessionId: ${session.id}`)
       return { success: true, sessionCookie }
     }
-    if (serviceResponse && serviceResponse['cas:authenticationFailure']) {
-      const failure = serviceResponse['cas:authenticationFailure']
-      log.error('CAS Authentication failed:', failure)
-      throw new Error('CAS Authentication failed')
-    }
+
     log.error('Unexpected CAS response format:', serviceResponse)
     throw new Error('Unexpected CAS response format')
   }

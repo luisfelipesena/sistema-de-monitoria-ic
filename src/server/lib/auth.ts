@@ -1,4 +1,5 @@
 import { env } from '@/utils/env';
+import { LUCIA_SESSION_COOKIE_NAME } from '@/utils/types';
 import { DrizzlePostgreSQLAdapter } from '@lucia-auth/adapter-drizzle';
 import { Lucia, TimeSpan } from 'lucia';
 import { db } from '../database';
@@ -10,7 +11,7 @@ const adapter = new DrizzlePostgreSQLAdapter(db, sessionTable, userTable);
 export const lucia = new Lucia(adapter, {
   sessionExpiresIn: new TimeSpan(30, 'd'), // 30 days
   sessionCookie: {
-    name: 'session',
+    name: LUCIA_SESSION_COOKIE_NAME,
     expires: false, // session cookies have very long lifespan (2 years)
     attributes: {
       secure: isProduction,
