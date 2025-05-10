@@ -4,9 +4,9 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vinxi dev | pino-pretty",
-    "build": "vinxi build",
-    "start": "vinxi start",
+    "dev": "dotenv -e .env -- vinxi dev | pino-pretty",
+    "build": "dotenv -e .env -- vinxi build",
+    "start": "dotenv -e .env -- vinxi start",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
