@@ -1,6 +1,6 @@
 import {
   FileListItem,
-  PresignedUrlResponse
+  PresignedUrlResponse,
 } from '@/routes/api/files/admin/-admin-types';
 import { fetchApi } from '@/utils/fetchApi';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -60,4 +60,4 @@ export function useFilePresignedUrl() {
       return response.json();
     },
   });
-} 
+}

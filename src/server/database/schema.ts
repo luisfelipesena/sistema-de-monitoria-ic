@@ -8,9 +8,9 @@ import {
   serial,
   text,
   timestamp,
-  varchar
+  varchar,
 } from 'drizzle-orm/pg-core';
-
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 // --- Auth Schema --- TODO: Review if all user fields are needed directly in lucia attributes
 
 export const userRoleEnum = pgEnum('user_role', [
@@ -260,6 +260,15 @@ export const professorTable = pgTable('professor', {
   }).$onUpdate(() => new Date()),
   // deletedAt handled by user deletion cascade?
 });
+export const selectProfessorTableSchema = createSelectSchema(professorTable);
+export const insertProfessorTableSchema = createInsertSchema(
+  professorTable,
+).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 export const disciplinaTable = pgTable('disciplina', {
   id: serial('id').primaryKey(),
@@ -315,6 +324,13 @@ export const alunoTable = pgTable('aluno', {
     mode: 'date',
   }).$onUpdate(() => new Date()),
   // deletedAt handled by user deletion cascade?
+});
+export const selectAlunoTableSchema = createSelectSchema(alunoTable);
+export const insertAlunoTableSchema = createInsertSchema(alunoTable).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const enderecoTable = pgTable('endereco', {

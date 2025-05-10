@@ -17,7 +17,9 @@ import {
   Link,
   Outlet,
   createFileRoute,
+  redirect,
   useLocation,
+  useNavigate,
 } from '@tanstack/react-router';
 import {
   FolderKanban,
@@ -26,23 +28,44 @@ import {
   Settings,
   User,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 export const Route = createFileRoute('/home/_layout')({
   component: HomeLayoutComponent,
+  loader: async ({ context }) => {
+    try {
+      const result = await context.trpc.onboarding.getStatus.query(undefined, {
+        context: {},
+      });
+      return { onboardingPending: result.pending };
+    } catch (error) {
+      throw redirect({ to: '/' });
+    }
+  },
 });
 
 function HomeLayoutComponent() {
   const { user, isLoading, signOut, isAuthenticated } = useAuth();
   const location = useLocation();
   const [isSignedOut, setIsSignedOut] = useState(false);
+  const { onboardingPending } = Route.useLoaderData();
 
-  useEffect(() => {
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
     if (!user && !isLoading && !isSignedOut) {
       signOut();
       setIsSignedOut(true);
     }
   }, [user, isLoading, isSignedOut]);
+
+  React.useEffect(() => {
+    if (onboardingPending) {
+      navigate({ to: '/home/onboarding/onboarding' });
+    }
+  }, [onboardingPending]);
+
+  if (isLoading) return null;
 
   return (
     <SidebarProvider>

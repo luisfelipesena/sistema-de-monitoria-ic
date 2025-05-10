@@ -1,40 +1,36 @@
-import { cn } from '@/lib/utils';
+import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 
-const variantClasses = {
-  success: 'bg-green-200 text-green-800',
-  danger: 'bg-red-200 text-red-800',
-  warning: 'bg-yellow-200 text-yellow-800',
-  info: 'bg-sky-200 text-sky-800',
-  volunteer: 'bg-indigo-200 text-indigo-800',
-  muted: 'bg-gray-200 text-gray-800',
-};
+import { cn } from '@/lib/utils';
 
-const roundedClasses = {
-  full: 'rounded-full',
-  md: 'rounded-md',
-};
+const badgeVariants = cva(
+  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  {
+    variants: {
+      variant: {
+        default:
+          'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
+        secondary:
+          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        destructive:
+          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
+        outline: 'text-foreground',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+    },
+  },
+);
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: keyof typeof variantClasses;
-  rounded?: keyof typeof roundedClasses;
-}
+export interface BadgeProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof badgeVariants> {}
 
-export function Badge({
-  className,
-  variant = 'muted',
-  rounded = 'md',
-  ...props
-}: BadgeProps) {
+function Badge({ className, variant, ...props }: BadgeProps) {
   return (
-    <span
-      className={cn(
-        'px-3 py-1 text-xs font-semibold',
-        variantClasses[variant],
-        roundedClasses[rounded],
-        className,
-      )}
-      {...props}
-    />
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
   );
 }
+
+export { Badge, badgeVariants };
