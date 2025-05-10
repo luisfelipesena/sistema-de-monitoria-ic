@@ -49,7 +49,7 @@ function HomeLayoutComponent() {
       <Sidebar>
         <SidebarHeader>
           <div className="flex flex-col items-center gap-2 mb-4">
-            <img src="/ic-logo.png" alt="Monitoria IC" className="h-32 w-18" />
+            <img src="/logo.ico" alt="Monitoria IC" className="h-32 w-18" />
             <span className="text-lg font-semibold">Monitoria IC</span>
           </div>
         </SidebarHeader>

@@ -1,6 +1,14 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { createFileRoute } from '@tanstack/react-router';
-import { Eye } from 'lucide-react';
+import {
+  Calendar,
+  Eye,
+  Link as LinkIcon,
+  List,
+  User,
+  Users,
+} from 'lucide-react';
 
 export const Route = createFileRoute('/home/_layout/test/')({
   component: HomePage,
@@ -70,49 +78,54 @@ function HomePage() {
       {/* Welcome message */}
       <h1 className="text-5xl font-bold mb-8">Olá, Bruno Mota</h1>
 
-      {/* Main heading */}
+      {/* Tabela padronizada */}
       <h2 className="text-2xl font-normal mb-6">
         Todos os editais abertos para monitoria com bolsa e voluntários
       </h2>
-
-      {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
         <table className="w-full caption-bottom text-sm">
           <thead>
-            <tr className="border-b bg-slate-50">
-              <th className="h-12 px-4 text-left font-medium text-slate-500">
+            <tr className="border-b">
+              <th className="h-14 px-4 text-left font-bold text-lg text-gray-900 whitespace-nowrap">
                 <div className="flex items-center gap-2">
-                  <span>Componente curricular</span>
+                  <List className="h-5 w-5 text-gray-400" />
+                  Componente curricular
                 </div>
               </th>
-              <th className="h-12 px-4 text-left font-medium text-slate-500">
+              <th className="h-14 px-4 text-left font-bold text-lg text-gray-900 whitespace-nowrap">
                 <div className="flex items-center gap-2">
-                  <span>Docente</span>
+                  <User className="h-5 w-5 text-gray-400" />
+                  Docente
                 </div>
               </th>
-              <th className="h-12 px-4 text-left font-medium text-slate-500">
+              <th className="h-14 px-4 text-left font-bold text-lg text-gray-900 whitespace-nowrap">
                 <div className="flex items-center gap-2">
-                  <span>Tipo</span>
+                  <List className="h-5 w-5 text-gray-400" />
+                  Tipo
                 </div>
               </th>
-              <th className="h-12 px-4 text-center font-medium text-slate-500">
+              <th className="h-14 px-4 text-center font-bold text-lg text-gray-900 whitespace-nowrap">
                 <div className="flex items-center justify-center gap-2">
-                  <span>Data Limite</span>
+                  <Calendar className="h-5 w-5 text-gray-400" />
+                  Data Limite
                 </div>
               </th>
-              <th className="h-12 px-4 text-center font-medium text-slate-500">
+              <th className="h-14 px-4 text-center font-bold text-lg text-gray-900 whitespace-nowrap">
                 <div className="flex items-center justify-center gap-2">
-                  <span>Nº de vagas</span>
+                  <Users className="h-5 w-5 text-gray-400" />
+                  Nº de vagas
                 </div>
               </th>
-              <th className="h-12 px-4 text-left font-medium text-slate-500">
+              <th className="h-14 px-4 text-left font-bold text-lg text-gray-900 whitespace-nowrap">
                 <div className="flex items-center gap-2">
-                  <span>Edital</span>
+                  <LinkIcon className="h-5 w-5 text-gray-400" />
+                  Edital
                 </div>
               </th>
-              <th className="h-12 px-4 text-left font-medium text-slate-500">
+              <th className="h-14 px-4 text-left font-bold text-lg text-gray-900 whitespace-nowrap">
                 <div className="flex items-center gap-2">
-                  <span>Ações</span>
+                  <Eye className="h-5 w-5 text-gray-400" />
+                  Ações
                 </div>
               </th>
             </tr>
@@ -121,23 +134,35 @@ function HomePage() {
             {editais.map((edital) => (
               <tr
                 key={edital.id}
-                className="border-b transition-colors hover:bg-slate-50"
+                className="border-b last:border-0 hover:bg-gray-50 transition-colors"
               >
-                <td className="p-4 align-middle font-medium">
+                <td className="p-4 align-middle font-semibold text-base text-gray-900">
                   {edital.disciplina}
                 </td>
-                <td className="p-4 align-middle">{edital.professor}</td>
-                <td className="p-4 align-middle">{edital.tipo}</td>
-                <td className="p-4 align-middle text-center">
-                  <div className="inline-flex items-center justify-center rounded-md bg-slate-100 px-2.5 py-0.5">
-                    {edital.dataLimite}
-                  </div>
+                <td className="p-4 align-middle text-base">
+                  {edital.professor}
                 </td>
-                <td className="p-4 align-middle text-center">{edital.vagas}</td>
+                <td className="p-4 align-middle">
+                  {edital.tipo === 'Voluntário' ? (
+                    <Badge variant="volunteer" rounded="full">
+                      Voluntário
+                    </Badge>
+                  ) : (
+                    <Badge variant="info" rounded="full">
+                      Bolsista
+                    </Badge>
+                  )}
+                </td>
+                <td className="p-4 align-middle text-center">
+                  {edital.dataLimite}
+                </td>
+                <td className="p-4 align-middle text-center text-base">
+                  {edital.vagas}
+                </td>
                 <td className="p-4 align-middle">
                   <a
                     href={edital.editalUrl}
-                    className="text-blue-600 hover:underline"
+                    className="text-primary hover:underline font-medium"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -145,7 +170,11 @@ function HomePage() {
                   </a>
                 </td>
                 <td className="p-4 align-middle">
-                  <Button variant="secondary" size="sm">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="rounded-full flex items-center gap-1"
+                  >
                     <Eye className="h-4 w-4" />
                     Inscrever
                   </Button>

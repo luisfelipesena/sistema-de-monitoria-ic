@@ -17,6 +17,7 @@ import {
 } from '@react-pdf/renderer';
 import { useDebouncedValue } from '@tanstack/react-pacer';
 import { createFileRoute } from '@tanstack/react-router';
+import { DownloadIcon } from 'lucide-react';
 import {
   JSXElementConstructor,
   ReactElement,
@@ -273,11 +274,8 @@ function ProjectsComponent() {
                     )}
                   </PDFDownloadLink>
                 ) : (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="bg-[#53BDEC] hover:bg-[#53BDEC]/90 text-white rounded-full gap-1"
-                  >
+                  <Button variant="secondary" size="sm">
+                    <DownloadIcon className="w-4 h-4" />
                     Preencha o formulário para baixar o PDF
                   </Button>
                 )}
