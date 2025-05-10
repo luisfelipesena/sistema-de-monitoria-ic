@@ -73,13 +73,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logoutMutation = useLogoutMutation();
 
   useEffect(() => {
-    if (userQuery) {
-      setUser(userQuery);
-      setIsLoading(false);
-    } else if (userQuery === null) {
-      setUser(null);
-      setIsLoading(false);
-    }
+    setUser(userQuery?.id ? userQuery : null);
+    setIsLoading(false);
+    console.log('userQuery', userQuery);
   }, [userQuery]);
 
   const signIn = useCallback(() => {
@@ -97,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       log.warn({ error }, 'Erro ao fazer logout');
     } finally {
-      router.navigate({ to: '/' });
+      window.location.href = '/';
       setIsLoading(false);
     }
   }, [router]);
