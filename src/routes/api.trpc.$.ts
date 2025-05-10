@@ -14,10 +14,19 @@ function handler({ request }: { request: Request }) {
     req: request,
     router: trpcRouter,
     onError: (opts) => {
-      log.error({ error: opts.error, message: opts.error.message }, 'TRPC Error');
+      console.log('opts', opts);
+      log.error(
+        {
+          error: opts.error,
+          message: opts.error.message,
+          path: opts.path,
+          input: opts.input,
+        },
+        'TRPC Error',
+      );
     },
     createContext: async (opts) => {
-      return createContext(opts.req, opts.resHeaders);
+      return createContext(opts.req);
     },
   });
 }
