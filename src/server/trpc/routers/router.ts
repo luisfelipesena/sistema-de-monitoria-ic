@@ -4,7 +4,9 @@ import { createTRPCRouter, publicProcedure } from '../init';
 import { alunoRouter } from './aluno';
 import { authRouter } from './auth';
 import { cursoRouter } from './curso';
+import { departamentoRouter } from './departamento';
 import { onboardingRouter } from './onboarding';
+import { professorRouter } from './professor';
 
 const guitars = [
   { id: 1, brand: 'Fender', model: 'Stratocaster' },
@@ -36,6 +38,8 @@ export const trpcRouter = createTRPCRouter({
   onboarding: onboardingRouter,
   auth: authRouter,
   curso: cursoRouter,
+  professor: professorRouter,
+  departamento: departamentoRouter,
 });
 
 export type AppRouter = typeof trpcRouter;

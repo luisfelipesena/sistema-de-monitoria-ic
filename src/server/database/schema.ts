@@ -260,6 +260,15 @@ export const professorTable = pgTable('professor', {
   }).$onUpdate(() => new Date()),
   // deletedAt handled by user deletion cascade?
 });
+export const selectProfessorTableSchema = createSelectSchema(professorTable);
+export const insertProfessorTableSchema = createInsertSchema(
+  professorTable,
+).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 export const disciplinaTable = pgTable('disciplina', {
   id: serial('id').primaryKey(),

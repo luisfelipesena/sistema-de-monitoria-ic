@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/router';
 import { insertAlunoTableSchema } from '@/server/database/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -45,7 +45,7 @@ function OnboardingPage() {
         preenchimento automático em futuras candidaturas.
       </p>
 
-      {isStudent ? <StudentForm /> : <ProfessorForm />}
+      {false ? <StudentForm /> : <ProfessorForm />}
     </div>
   );
 }
@@ -350,13 +350,14 @@ function ProfessorForm() {
     resolver: zodResolver(professorSchema),
   });
 
-  const { data: profileData, isLoading: profileLoading } = useQuery({
-    queryKey: ['userProfile', user?.id, user?.role],
-    queryFn: () => fetchProfile('/api/professor'),
-    enabled: !!user && !authLoading,
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  });
+  const { data: profileData, isLoading: profileLoading } =
+    trpc.professor.get.useQuery(undefined, {
+      enabled: !!user && !authLoading,
+      staleTime: 5 * 60 * 1000,
+      retry: false,
+    });
+
+  const departamentoQuery = trpc.departamento.get.useQuery();
 
   useEffect(() => {
     if (profileData) {
@@ -374,16 +375,17 @@ function ProfessorForm() {
         navigate({ to: '/home' });
       } else if (Object.keys(profileData).length > 0) {
         form.reset(profileData);
-        setUseNomeSocial(!!profileData.nomeSocial);
+        if ('nomeSocial' in profileData) {
+          setUseNomeSocial(!!(profileData as any).nomeSocial);
+        }
       }
     }
   }, [profileData, navigate, form]);
 
-  const mutation = useMutation({
-    mutationFn: (data: ProfessorFormData) => ({}),
+  const mutation = trpc.professor.set.useMutation({
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ['userProfile', user?.id, user?.role],
+        queryKey: ['professor.get'],
       });
       await queryClient.invalidateQueries({
         queryKey: ['profile-completeness'],
@@ -399,7 +401,11 @@ function ProfessorForm() {
     if (!useNomeSocial) {
       values.nomeSocial = undefined;
     }
-    mutation.mutate(values);
+    mutation.mutate({
+      ...values,
+      genero: values.genero as 'MASCULINO' | 'FEMININO' | 'OUTRO',
+      regime: values.regime as '20H' | '40H' | 'DE',
+    });
   };
 
   if (authLoading || (profileLoading && !profileData)) {
@@ -547,12 +553,14 @@ function ProfessorForm() {
                 <SelectValue placeholder="Selecione o departamento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">Ciência da Computação (DCC)</SelectItem>
-                <SelectItem value="2">Estatística</SelectItem>
-                <SelectItem value="3">Matemática</SelectItem>
-                <SelectItem value="4">
-                  Computação Interdisciplinar (DCI)
-                </SelectItem>
+                {departamentoQuery.data?.map((departamento) => (
+                  <SelectItem
+                    key={departamento.id}
+                    value={departamento.id.toString()}
+                  >
+                    {departamento.nome}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             {form.formState.errors.departamentoId && (
