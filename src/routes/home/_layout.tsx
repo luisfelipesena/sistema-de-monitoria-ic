@@ -17,6 +17,7 @@ import {
   Link,
   Outlet,
   createFileRoute,
+  redirect,
   useLocation,
   useNavigate,
 } from '@tanstack/react-router';
@@ -32,10 +33,14 @@ import { useEffect, useState } from 'react';
 export const Route = createFileRoute('/home/_layout')({
   component: HomeLayoutComponent,
   loader: async ({ context }) => {
-    const result = await context.trpc.onboarding.getStatus.query(undefined, {
-      context: {},
-    });
-    return { onboardingPending: result.pending };
+    try {
+      const result = await context.trpc.onboarding.getStatus.query(undefined, {
+        context: {},
+      });
+      return { onboardingPending: result.pending };
+    } catch (error) {
+      throw redirect({ to: '/' });
+    }
   },
 });
 

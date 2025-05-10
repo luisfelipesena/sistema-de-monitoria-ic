@@ -1,7 +1,6 @@
 'use client';
 
 import { trpc } from '@/router';
-import { fetchApi } from '@/utils/fetchApi';
 import {
   type QueryObserverResult,
   type RefetchOptions,
@@ -51,7 +50,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const isHydrated = useHydrated();
   const router = useRouter();
+  const trpcUtils = trpc.useUtils();
 
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      trpcUtils.auth.me.invalidate();
+      router.navigate({ to: '/' });
+      setUser(null);
+    },
+  });
   const {
     data: queryData,
     isLoading: queryLoading,
@@ -84,18 +91,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     setIsLoading(true);
     try {
-      await fetchApi('/auth/signout');
-      setUser(null);
-      await queryClient.invalidateQueries({ queryKey: ['authUser'] });
-      router.navigate({ to: '/' });
+      await logoutMutation.mutateAsync();
     } catch (error) {
       setUser(null);
-      await queryClient.invalidateQueries({ queryKey: ['authUser'] });
+      trpcUtils.auth.me.invalidate();
     } finally {
       setIsLoading(false);
       setIsAuthenticated(false);
     }
-  }, [queryClient, router]);
+  }, [trpcUtils]);
 
   const refetchUser = useCallback(refetchUserInternal, [refetchUserInternal]);
 
