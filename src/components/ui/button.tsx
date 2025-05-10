@@ -16,6 +16,8 @@ const buttonVariants = cva(
           'bg-secondary hover:bg-secondary-foreground text-white rounded-full',
         destructive:
           'bg-destructive hover:bg-destructive-foreground text-white rounded-full',
+        outline:
+          'bg-transparent border border-primary text-primary hover:bg-primary/10 rounded-full',
         disabled: 'bg-[#A7A7A7] text-white rounded-full',
         transparent: 'bg-transparent text-black rounded-full',
       },

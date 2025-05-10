@@ -14,8 +14,7 @@
     "db:drop": "drizzle-kit drop",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "deploy": "bash deploy.sh",
-    "seed": "tsx src/server/database/migrations/0001_initial_seed.ts"
+    "deploy": "bash deploy.sh"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

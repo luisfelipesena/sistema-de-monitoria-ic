@@ -26,8 +26,8 @@ function HomeLayoutComponent() {
     useOnboardingStatus();
 
   useEffect(() => {
+    // TODO: add location
     if (!isLoading && !statusLoading && onboardingStatus) {
-      console.log('onboardingStatus', onboardingStatus);
       if (onboardingStatus.pending) {
         navigate({ to: '/home/onboarding' });
       }

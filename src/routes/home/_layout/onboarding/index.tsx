@@ -13,13 +13,16 @@ import {
 import { useSetAluno } from '@/hooks/use-aluno';
 import { useAuth } from '@/hooks/use-auth';
 import { useCursos } from '@/hooks/use-curso';
+import { useFileUpload } from '@/hooks/use-files';
 import { useOnboardingStatus } from '@/hooks/use-onboarding';
 import { useToast } from '@/hooks/use-toast';
+import { AlunoInput, alunoInputSchema } from '@/routes/api/aluno/-types';
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -78,38 +81,6 @@ function OnboardingPage() {
   );
 }
 
-// Interface estendida para incluir campos de upload
-interface AlunoFormData {
-  nomeCompleto: string;
-  nomeSocial?: string;
-  cpf: string;
-  matricula: string;
-  emailInstitucional: string;
-  genero: 'MASCULINO' | 'FEMININO' | 'OUTRO';
-  // Campos adicionais necessários pelo backend
-  cursoId: number;
-  cr: number;
-  // Campos para o upload de arquivos
-  historicoEscolarFileId?: string;
-  comprovanteMatriculaFileId?: string;
-}
-
-// Schema atualizado para incluir cursoId
-const studentSchema = z.object({
-  nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
-  nomeSocial: z.string().optional(),
-  matricula: z.string().min(1, 'Matrícula é obrigatória'),
-  cpf: z.string().min(1, 'CPF é obrigatório'),
-  emailInstitucional: z.string().min(1, 'E-mail institucional é obrigatório'),
-  cursoId: z.coerce.number({
-    required_error: 'O curso é obrigatório',
-    invalid_type_error: 'Selecione um curso válido',
-  }),
-  cr: z.coerce.number().min(0).max(10).default(7.0),
-});
-
-type StudentFormValues = z.infer<typeof studentSchema>;
-
 function StudentForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -133,19 +104,19 @@ function StudentForm() {
   // Buscar a lista de cursos
   const { data: cursos, isLoading: cursosLoading } = useCursos();
 
-  const form = useForm<StudentFormValues>({
-    resolver: zodResolver(studentSchema) as any,
-    defaultValues: {
-      emailInstitucional: user?.email || '',
-      cr: 7.0,
-      cursoId: undefined,
-    } as any,
-  });
-
+  // Hooks para upload de arquivos e salvar aluno
+  const fileUploadMutation = useFileUpload();
   const setAlunoMutation = useSetAluno();
 
+  const form = useForm<AlunoInput>({
+    resolver: zodResolver(alunoInputSchema),
+    defaultValues: {
+      emailInstitucional: user?.email || '',
+    },
+  });
+
   const onSubmit = form.handleSubmit(async (values) => {
-    if (!historicoEscolarFile) {
+    if (!historicoEscolarFile && !historicoEscolarFileId) {
       toast({
         title: 'Documento obrigatório',
         description: 'É necessário fazer upload do histórico escolar',
@@ -157,43 +128,36 @@ function StudentForm() {
     setIsSubmitting(true);
 
     try {
-      // 1. Primeiro, fazer upload dos arquivos
+      // 1. Primeiro, fazer upload dos arquivos se necessário
+      let historicoId = historicoEscolarFileId;
+      let comprovanteId = comprovanteMatriculaFileId;
+
       if (historicoEscolarFile && !historicoEscolarFileId) {
-        const formData = new FormData();
-        formData.append('file', historicoEscolarFile);
-        formData.append('entityType', 'historico_escolar');
-        formData.append('entityId', user?.id?.toString() || '0');
-
-        const response = await apiClient.post('/files/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+        const response = await fileUploadMutation.mutateAsync({
+          file: historicoEscolarFile,
+          entityType: 'historico_escolar',
+          entityId: user?.id?.toString() || '0',
         });
-
-        setHistoricoEscolarFileId(response.data.fileId);
+        historicoId = response.fileId;
+        setHistoricoEscolarFileId(response.fileId); // Store the ID after successful upload
       }
 
       if (comprovanteMatriculaFile && !comprovanteMatriculaFileId) {
-        const formData = new FormData();
-        formData.append('file', comprovanteMatriculaFile);
-        formData.append('entityType', 'comprovante_matricula');
-        formData.append('entityId', user?.id?.toString() || '0');
-
-        const response = await apiClient.post('/files/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+        const response = await fileUploadMutation.mutateAsync({
+          file: comprovanteMatriculaFile,
+          entityType: 'comprovante_matricula',
+          entityId: user?.id?.toString() || '0',
         });
-
-        setComprovanteMatriculaFileId(response.data.fileId);
+        comprovanteId = response.fileId;
+        setComprovanteMatriculaFileId(response.fileId); // Store the ID after successful upload
       }
 
       // 2. Depois, enviar os dados do aluno com os IDs dos arquivos
-      const alunoData: AlunoFormData = {
+      const alunoData: AlunoInput = {
         ...values,
-        genero: 'OUTRO', // Valor padrão
-        historicoEscolarFileId: historicoEscolarFileId || '',
-        comprovanteMatriculaFileId: comprovanteMatriculaFileId || undefined,
+        genero: 'OUTRO',
+        historicoEscolarFileId: historicoId || undefined,
+        comprovanteMatriculaFileId: comprovanteId || undefined,
       };
 
       if (!useNomeSocial) {
@@ -283,17 +247,11 @@ function StudentForm() {
                 <SelectValue placeholder="Selecione seu curso" />
               </SelectTrigger>
               <SelectContent>
-                {cursosLoading ? (
-                  <SelectItem value="" disabled>
-                    Carregando...
+                {cursos?.map((curso) => (
+                  <SelectItem key={curso.id} value={curso.id.toString()}>
+                    {curso.nome}
                   </SelectItem>
-                ) : (
-                  cursos?.map((curso) => (
-                    <SelectItem key={curso.id} value={curso.id.toString()}>
-                      {curso.nome}
-                    </SelectItem>
-                  ))
-                )}
+                ))}
               </SelectContent>
             </Select>
             {form.formState.errors.cursoId && (
@@ -363,111 +321,147 @@ function StudentForm() {
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Documentos</h2>
 
-        <div>
-          <Label htmlFor="historico">Histórico Escolar *</Label>
-          <div className="mt-2">
-            <div className="border border-dashed border-gray-300 p-4 rounded-md">
-              {historicoEscolarFileId ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-green-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div>
+            <Label htmlFor="historico">Histórico Escolar *</Label>
+            <div className="mt-2">
+              <div className="border border-dashed border-gray-300 p-4 rounded-md">
+                {historicoEscolarFileId ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-green-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      <span>Arquivo enviado com sucesso!</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setHistoricoEscolarFileId(null);
+                        setHistoricoEscolarFile(null); // Also clear the file object
+                      }}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <span>Arquivo enviado com sucesso</span>
+                      Remover
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setHistoricoEscolarFileId(null);
-                      setHistoricoEscolarFile(null);
+                ) : historicoEscolarFile ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Upload className="h-6 w-6 text-blue-500" />
+                      <span className="truncate text-sm">
+                        {historicoEscolarFile.name}
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setHistoricoEscolarFile(null)}
+                    >
+                      Remover
+                    </Button>
+                  </div>
+                ) : (
+                  <FileUploader
+                    entityType="historico_escolar"
+                    entityId={user?.id?.toString() || '0'}
+                    onFileSelect={(file) => {
+                      setHistoricoEscolarFile(file);
+                      setHistoricoEscolarFileId(null); // Clear any old ID if a new file is selected
                     }}
-                  >
-                    Remover
-                  </Button>
-                </div>
-              ) : (
-                <FileUploader
-                  entityType="historico_escolar"
-                  entityId={user?.id?.toString() || '0'}
-                  onFileSelect={(file) => setHistoricoEscolarFile(file)}
-                  onUploadComplete={(fileData) =>
-                    setHistoricoEscolarFileId(fileData.fileId)
-                  }
-                  allowedTypes={['application/pdf']}
-                  maxSizeInMB={5}
-                />
-              )}
+                    allowedTypes={['application/pdf']}
+                    maxSizeInMB={5}
+                  />
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Documento obrigatório (PDF, máx. 5MB)
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Documento obrigatório (PDF, máx. 5MB)
-            </p>
           </div>
-        </div>
 
-        <div>
-          <Label htmlFor="comprovante">Comprovante de Matrícula</Label>
-          <div className="mt-2">
-            <div className="border border-dashed border-gray-300 p-4 rounded-md">
-              {comprovanteMatriculaFileId ? (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-green-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+          <div>
+            <Label htmlFor="comprovante">Comprovante de Matrícula</Label>
+            <div className="mt-2">
+              <div className="border border-dashed border-gray-300 p-4 rounded-md">
+                {comprovanteMatriculaFileId ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-green-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      <span>Arquivo enviado com sucesso!</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setComprovanteMatriculaFileId(null);
+                        setComprovanteMatriculaFile(null); // Also clear the file object
+                      }}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <span>Arquivo enviado com sucesso</span>
+                      Remover
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setComprovanteMatriculaFileId(null);
-                      setComprovanteMatriculaFile(null);
+                ) : comprovanteMatriculaFile ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Upload className="h-6 w-6 text-blue-500" />
+                      <span className="truncate text-sm">
+                        {comprovanteMatriculaFile.name}
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setComprovanteMatriculaFile(null)}
+                    >
+                      Remover
+                    </Button>
+                  </div>
+                ) : (
+                  <FileUploader
+                    entityType="comprovante_matricula"
+                    entityId={user?.id?.toString() || '0'}
+                    onFileSelect={(file) => {
+                      setComprovanteMatriculaFile(file);
+                      setComprovanteMatriculaFileId(null); // Clear any old ID if a new file is selected
                     }}
-                  >
-                    Remover
-                  </Button>
-                </div>
-              ) : (
-                <FileUploader
-                  entityType="comprovante_matricula"
-                  entityId={user?.id?.toString() || '0'}
-                  onFileSelect={(file) => setComprovanteMatriculaFile(file)}
-                  onUploadComplete={(fileData) =>
-                    setComprovanteMatriculaFileId(fileData.fileId)
-                  }
-                  allowedTypes={['application/pdf']}
-                  maxSizeInMB={5}
-                />
-              )}
+                    allowedTypes={['application/pdf']}
+                    maxSizeInMB={5}
+                  />
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Documento opcional (PDF, máx. 5MB)
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Documento opcional (PDF, máx. 5MB)
-            </p>
           </div>
         </div>
       </div>
@@ -477,7 +471,9 @@ function StudentForm() {
           type="submit"
           className="w-full"
           disabled={
-            isSubmitting || !form.formState.isValid || !historicoEscolarFile
+            isSubmitting ||
+            !form.formState.isValid ||
+            (!historicoEscolarFile && !historicoEscolarFileId) // Histórico é obrigatório
           }
         >
           {isSubmitting ? 'Salvando...' : 'Concluir Cadastro'}

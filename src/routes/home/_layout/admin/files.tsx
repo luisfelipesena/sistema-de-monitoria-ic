@@ -30,7 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   FileListItem,
   UploadCompletionData,
-} from '@/routes/api/files/admin/-admin-types';
+} from '@/routes/api/files/admin/-types';
 import { logger } from '@/utils/logger';
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';

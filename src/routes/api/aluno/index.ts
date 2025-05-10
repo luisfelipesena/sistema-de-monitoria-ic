@@ -1,5 +1,6 @@
+import { alunoInputSchema, alunoResponseSchema } from '@/routes/api/aluno/-types';
 import { db } from '@/server/database';
-import { alunoTable, insertAlunoTableSchema, selectAlunoTableSchema } from '@/server/database/schema';
+import { alunoTable } from '@/server/database/schema';
 import { createAPIHandler, withAuthMiddleware } from '@/server/middleware/common';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
@@ -10,18 +11,6 @@ import { z } from 'zod';
 const log = logger.child({
   context: 'aluno',
 });
-
-// Schema estendido para incluir campos de upload
-const alunoInputSchema = insertAlunoTableSchema.extend({
-  historicoEscolarFileId: z.string().optional(),
-  comprovanteMatriculaFileId: z.string().optional(),
-});
-
-// Schema for response to ensure type safety
-export const alunoResponseSchema = selectAlunoTableSchema;
-
-export type AlunoResponse = z.infer<typeof alunoResponseSchema>;
-export type AlunoInput = z.infer<typeof alunoInputSchema>;
 
 export const APIRoute = createAPIFileRoute('/api/aluno')({
   // GET: Obter dados do aluno autenticado

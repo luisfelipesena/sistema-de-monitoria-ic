@@ -45,7 +45,8 @@ export const QueryKeys = {
 
   // Curso related queries
   curso: {
-    list: ['curso', 'list'],
+    all: ['curso'],
+    byId: (id: string) => ['curso', id],
   },
 
   // Departamento related queries

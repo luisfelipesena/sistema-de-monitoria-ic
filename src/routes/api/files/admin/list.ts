@@ -1,4 +1,4 @@
-import { FileListItem } from '@/routes/api/files/admin/-admin-types';
+import { FileListItem } from '@/routes/api/files/admin/-types';
 import minioClient, { bucketName } from '@/server/lib/minio';
 import { createAPIHandler, withRoleMiddleware } from '@/server/middleware/common';
 import { logger } from '@/utils/logger';

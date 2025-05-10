@@ -1,40 +1,60 @@
-import { FileAccessResponse } from '@/routes/api/files/access/$fileId';
-import { FileListItem, PresignedUrlResponse } from '@/routes/api/files/admin/-admin-types';
+import { FileListItem, PresignedUrlResponse } from '@/routes/api/files/admin/-types';
 import { DeleteResponse } from '@/routes/api/files/admin/delete';
 import { PresignedUrlBody } from '@/routes/api/files/admin/presigned-url';
-import { UploadResponse } from '@/routes/api/files/upload';
 import { apiClient } from '@/utils/api-client';
+import { logger } from '@/utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from './query-keys';
 
+const log = logger.child({
+  context: 'files-hooks',
+});
 
 /**
- * Hook to upload a file
+ * Hook para fazer upload de arquivos
  */
 export function useFileUpload() {
-  return useMutation<UploadResponse, Error, FormData>({
-    mutationFn: async (formData) => {
-      const result = await apiClient.post<UploadResponse>('/files/upload', formData, {
+  return useMutation({
+    mutationFn: async ({
+      file,
+      entityType,
+      entityId,
+    }: {
+      file: File;
+      entityType: string;
+      entityId: string;
+    }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('entityType', entityType);
+      formData.append('entityId', entityId);
+
+      const response = await apiClient.post('/files/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      return result.data;
+
+      return response.data;
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao fazer upload de arquivo');
     },
   });
 }
 
 /**
- * Hook to access a file by ID
+ * Hook para acessar um arquivo
  */
 export function useFileAccess(fileId: string) {
-  return useQuery<FileAccessResponse>({
+  return useQuery({
     queryKey: QueryKeys.files.byId(fileId),
     queryFn: async () => {
-      const response = await apiClient.get<FileAccessResponse>(`/files/access/${fileId}`);
+      if (!fileId) return null;
+      const response = await apiClient.get(`/files/access/${fileId}`);
       return response.data;
     },
-    enabled: !!fileId,
+    enabled: Boolean(fileId),
   });
 }
 

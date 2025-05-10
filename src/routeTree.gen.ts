@@ -21,6 +21,7 @@ import { Route as HomeLayoutTestIndexImport } from './routes/home/_layout/test/i
 import { Route as HomeLayoutProjectsIndexImport } from './routes/home/_layout/projects/index'
 import { Route as HomeLayoutProfileIndexImport } from './routes/home/_layout/profile/index'
 import { Route as HomeLayoutOnboardingIndexImport } from './routes/home/_layout/onboarding/index'
+import { Route as HomeLayoutAdminSeedCursosImport } from './routes/home/_layout/admin/seed-cursos'
 import { Route as HomeLayoutAdminFilesImport } from './routes/home/_layout/admin/files'
 import { Route as HomeLayoutAdminCursosImport } from './routes/home/_layout/admin/cursos'
 
@@ -80,6 +81,12 @@ const HomeLayoutProfileIndexRoute = HomeLayoutProfileIndexImport.update({
 const HomeLayoutOnboardingIndexRoute = HomeLayoutOnboardingIndexImport.update({
   id: '/onboarding/',
   path: '/onboarding/',
+  getParentRoute: () => HomeLayoutRoute,
+} as any)
+
+const HomeLayoutAdminSeedCursosRoute = HomeLayoutAdminSeedCursosImport.update({
+  id: '/admin/seed-cursos',
+  path: '/admin/seed-cursos',
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
@@ -148,6 +155,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminFilesImport
       parentRoute: typeof HomeLayoutImport
     }
+    '/home/_layout/admin/seed-cursos': {
+      id: '/home/_layout/admin/seed-cursos'
+      path: '/admin/seed-cursos'
+      fullPath: '/home/admin/seed-cursos'
+      preLoaderRoute: typeof HomeLayoutAdminSeedCursosImport
+      parentRoute: typeof HomeLayoutImport
+    }
     '/home/_layout/onboarding/': {
       id: '/home/_layout/onboarding/'
       path: '/onboarding'
@@ -185,6 +199,7 @@ interface HomeLayoutRouteChildren {
   HomeLayoutIndexRoute: typeof HomeLayoutIndexRoute
   HomeLayoutAdminCursosRoute: typeof HomeLayoutAdminCursosRoute
   HomeLayoutAdminFilesRoute: typeof HomeLayoutAdminFilesRoute
+  HomeLayoutAdminSeedCursosRoute: typeof HomeLayoutAdminSeedCursosRoute
   HomeLayoutOnboardingIndexRoute: typeof HomeLayoutOnboardingIndexRoute
   HomeLayoutProfileIndexRoute: typeof HomeLayoutProfileIndexRoute
   HomeLayoutProjectsIndexRoute: typeof HomeLayoutProjectsIndexRoute
@@ -195,6 +210,7 @@ const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutIndexRoute: HomeLayoutIndexRoute,
   HomeLayoutAdminCursosRoute: HomeLayoutAdminCursosRoute,
   HomeLayoutAdminFilesRoute: HomeLayoutAdminFilesRoute,
+  HomeLayoutAdminSeedCursosRoute: HomeLayoutAdminSeedCursosRoute,
   HomeLayoutOnboardingIndexRoute: HomeLayoutOnboardingIndexRoute,
   HomeLayoutProfileIndexRoute: HomeLayoutProfileIndexRoute,
   HomeLayoutProjectsIndexRoute: HomeLayoutProjectsIndexRoute,
@@ -222,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/home/': typeof HomeLayoutIndexRoute
   '/home/admin/cursos': typeof HomeLayoutAdminCursosRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
+  '/home/admin/seed-cursos': typeof HomeLayoutAdminSeedCursosRoute
   '/home/onboarding': typeof HomeLayoutOnboardingIndexRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
@@ -234,6 +251,7 @@ export interface FileRoutesByTo {
   '/home': typeof HomeLayoutIndexRoute
   '/home/admin/cursos': typeof HomeLayoutAdminCursosRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
+  '/home/admin/seed-cursos': typeof HomeLayoutAdminSeedCursosRoute
   '/home/onboarding': typeof HomeLayoutOnboardingIndexRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
@@ -249,6 +267,7 @@ export interface FileRoutesById {
   '/home/_layout/': typeof HomeLayoutIndexRoute
   '/home/_layout/admin/cursos': typeof HomeLayoutAdminCursosRoute
   '/home/_layout/admin/files': typeof HomeLayoutAdminFilesRoute
+  '/home/_layout/admin/seed-cursos': typeof HomeLayoutAdminSeedCursosRoute
   '/home/_layout/onboarding/': typeof HomeLayoutOnboardingIndexRoute
   '/home/_layout/profile/': typeof HomeLayoutProfileIndexRoute
   '/home/_layout/projects/': typeof HomeLayoutProjectsIndexRoute
@@ -264,6 +283,7 @@ export interface FileRouteTypes {
     | '/home/'
     | '/home/admin/cursos'
     | '/home/admin/files'
+    | '/home/admin/seed-cursos'
     | '/home/onboarding'
     | '/home/profile'
     | '/home/projects'
@@ -275,6 +295,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/home/admin/cursos'
     | '/home/admin/files'
+    | '/home/admin/seed-cursos'
     | '/home/onboarding'
     | '/home/profile'
     | '/home/projects'
@@ -288,6 +309,7 @@ export interface FileRouteTypes {
     | '/home/_layout/'
     | '/home/_layout/admin/cursos'
     | '/home/_layout/admin/files'
+    | '/home/_layout/admin/seed-cursos'
     | '/home/_layout/onboarding/'
     | '/home/_layout/profile/'
     | '/home/_layout/projects/'
@@ -341,6 +363,7 @@ export const routeTree = rootRoute
         "/home/_layout/",
         "/home/_layout/admin/cursos",
         "/home/_layout/admin/files",
+        "/home/_layout/admin/seed-cursos",
         "/home/_layout/onboarding/",
         "/home/_layout/profile/",
         "/home/_layout/projects/",
@@ -357,6 +380,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/admin/files": {
       "filePath": "home/_layout/admin/files.tsx",
+      "parent": "/home/_layout"
+    },
+    "/home/_layout/admin/seed-cursos": {
+      "filePath": "home/_layout/admin/seed-cursos.tsx",
       "parent": "/home/_layout"
     },
     "/home/_layout/onboarding/": {

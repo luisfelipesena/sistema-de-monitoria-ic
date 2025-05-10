@@ -17,31 +17,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Curso,
+  CursoInput,
+  useCreateCurso,
+  useCursos,
+  useDeleteCurso,
+  useUpdateCurso,
+} from '@/hooks/use-curso';
 import { useToast } from '@/hooks/use-toast';
-import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Database, Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
 
 const log = logger.child({
   context: 'admin-cursos',
 });
-
-interface Curso {
-  id: number;
-  nome: string;
-  codigo: number | null;
-  createdAt: string;
-  updatedAt: string | null;
-}
-
-interface CursoInput {
-  id?: number;
-  nome: string;
-  codigo: number | null;
-}
 
 export const Route = createFileRoute('/home/_layout/admin/cursos')({
   component: CursosPage,
@@ -54,98 +47,23 @@ const schema = z.object({
 
 function CursosPage() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentCurso, setCurrentCurso] = useState<CursoInput>({
+  const [currentCurso, setCurrentCurso] = useState<
+    CursoInput & { id?: number }
+  >({
     nome: '',
     codigo: null,
   });
   const [cursoToDelete, setCursoToDelete] = useState<Curso | null>(null);
 
-  // Fetch cursos
-  const { data: cursos, isLoading } = useQuery({
-    queryKey: ['cursos'],
-    queryFn: async (): Promise<Curso[]> => {
-      const response = await apiClient.get('/curso');
-      return response.data;
-    },
-  });
-
-  // Create/update curso
-  const saveCursoMutation = useMutation({
-    mutationFn: async (data: CursoInput) => {
-      if (isEditing && currentCurso.id) {
-        return apiClient.put(`/curso/${currentCurso.id}`, data);
-      }
-      return apiClient.post('/curso', data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cursos'] });
-      toast({
-        title: isEditing ? 'Curso atualizado' : 'Curso criado',
-        description: isEditing
-          ? 'O curso foi atualizado com sucesso'
-          : 'O curso foi criado com sucesso',
-      });
-      closeDialog();
-    },
-    onError: (error: any) => {
-      log.error({ error }, 'Erro ao salvar curso');
-      toast({
-        title: 'Erro',
-        description: error?.response?.data?.error || 'Erro ao salvar o curso',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Delete curso
-  const deleteCursoMutation = useMutation({
-    mutationFn: async (id: number) => {
-      return apiClient.delete(`/curso/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cursos'] });
-      toast({
-        title: 'Curso removido',
-        description: 'O curso foi removido com sucesso',
-      });
-      closeDeleteDialog();
-    },
-    onError: (error: any) => {
-      log.error({ error }, 'Erro ao remover curso');
-      toast({
-        title: 'Erro',
-        description: error?.response?.data?.error || 'Erro ao remover o curso',
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Create initial seed cursos
-  const seedCursosMutation = useMutation({
-    mutationFn: async () => {
-      return apiClient.post('/curso');
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cursos'] });
-      toast({
-        title: 'Cursos iniciais criados',
-        description: 'Os cursos iniciais foram criados com sucesso',
-      });
-    },
-    onError: (error: any) => {
-      log.error({ error }, 'Erro ao criar cursos iniciais');
-      toast({
-        title: 'Erro',
-        description:
-          error?.response?.data?.error || 'Erro ao criar cursos iniciais',
-        variant: 'destructive',
-      });
-    },
-  });
+  // Hooks de curso
+  const { data: cursos, isLoading } = useCursos();
+  const createCursoMutation = useCreateCurso();
+  const updateCursoMutation = useUpdateCurso();
+  const deleteCursoMutation = useDeleteCurso();
 
   const openDialog = (curso?: Curso) => {
     if (curso) {
@@ -188,7 +106,47 @@ function CursosPage() {
     try {
       // Validar dados
       const validatedData = schema.parse(currentCurso);
-      saveCursoMutation.mutate(validatedData);
+
+      if (isEditing && currentCurso.id) {
+        updateCursoMutation.mutate(
+          { id: currentCurso.id, data: validatedData },
+          {
+            onSuccess: () => {
+              toast({
+                title: 'Curso atualizado',
+                description: 'O curso foi atualizado com sucesso',
+              });
+              closeDialog();
+            },
+            onError: (error: any) => {
+              toast({
+                title: 'Erro',
+                description:
+                  error?.response?.data?.error || 'Erro ao atualizar o curso',
+                variant: 'destructive',
+              });
+            },
+          },
+        );
+      } else {
+        createCursoMutation.mutate(validatedData, {
+          onSuccess: () => {
+            toast({
+              title: 'Curso criado',
+              description: 'O curso foi criado com sucesso',
+            });
+            closeDialog();
+          },
+          onError: (error: any) => {
+            toast({
+              title: 'Erro',
+              description:
+                error?.response?.data?.error || 'Erro ao criar o curso',
+              variant: 'destructive',
+            });
+          },
+        });
+      }
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Mostrar erros de validação
@@ -214,28 +172,50 @@ function CursosPage() {
 
   const handleDelete = () => {
     if (cursoToDelete) {
-      deleteCursoMutation.mutate(cursoToDelete.id);
+      deleteCursoMutation.mutate(cursoToDelete.id, {
+        onSuccess: () => {
+          toast({
+            title: 'Curso removido',
+            description: 'O curso foi removido com sucesso',
+          });
+          closeDeleteDialog();
+        },
+        onError: (error: any) => {
+          toast({
+            title: 'Erro',
+            description:
+              error?.response?.data?.error || 'Erro ao remover o curso',
+            variant: 'destructive',
+          });
+        },
+      });
     }
-  };
-
-  const handleCreateInitialCursos = () => {
-    seedCursosMutation.mutate();
   };
 
   return (
     <div className="container mx-auto py-10 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Gerenciar Cursos</h1>
+        <div>
+          <h1 className="text-2xl font-bold">Gerenciar Cursos</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Crie e gerencie os cursos disponíveis no sistema
+          </p>
+        </div>
         <div className="flex gap-2">
-          <Button onClick={() => openDialog()}>Adicionar Curso</Button>
           <Button
             variant="secondary"
-            onClick={handleCreateInitialCursos}
-            disabled={seedCursosMutation.isPending}
+            onClick={() => navigate({ to: '/home/admin/seed-cursos' })}
+            className="flex items-center gap-2"
           >
-            {seedCursosMutation.isPending
-              ? 'Criando cursos...'
-              : 'Criar Cursos Iniciais'}
+            <Database size={16} />
+            <span>Importação em Massa</span>
+          </Button>
+          <Button
+            onClick={() => openDialog()}
+            className="flex items-center gap-2"
+          >
+            <PlusCircle size={16} />
+            <span>Adicionar Curso</span>
           </Button>
         </div>
       </div>
@@ -243,84 +223,111 @@ function CursosPage() {
       {isLoading ? (
         <div className="flex justify-center py-10">Carregando cursos...</div>
       ) : !cursos?.length ? (
-        <div className="text-center py-10 border rounded-md">
-          <p className="text-gray-500">Nenhum curso cadastrado</p>
-          <Button variant="secondary" onClick={() => openDialog()}>
-            Adicionar o primeiro curso
-          </Button>
-          <p className="text-gray-400 text-sm mt-2">
-            Ou use o botão "Criar Cursos Iniciais" para adicionar cursos padrão
+        <div className="text-center py-20 border rounded-md bg-muted/20">
+          <Info className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
+          <h3 className="text-lg font-medium">Nenhum curso cadastrado</h3>
+          <p className="text-muted-foreground mb-4">
+            Adicione cursos para que os alunos possam selecioná-los durante o
+            cadastro.
           </p>
+          <Button onClick={() => openDialog()}>
+            <PlusCircle size={16} className="mr-2" />
+            Adicionar Curso
+          </Button>
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Código</TableHead>
-              <TableHead>Data de Criação</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {cursos.map((curso) => (
-              <TableRow key={curso.id}>
-                <TableCell className="font-medium">{curso.nome}</TableCell>
-                <TableCell>{curso.codigo || '-'}</TableCell>
-                <TableCell>
-                  {new Date(curso.createdAt).toLocaleDateString('pt-BR')}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => openDialog(curso)}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => openDeleteDialog(curso)}
-                    >
-                      Remover
-                    </Button>
-                  </div>
-                </TableCell>
+        <div className="border rounded-md overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="w-[50px]">ID</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Código</TableHead>
+                <TableHead>Data de Criação</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {cursos.map((curso) => (
+                <TableRow key={curso.id} className="hover:bg-muted/10">
+                  <TableCell className="font-mono text-sm">
+                    {curso.id}
+                  </TableCell>
+                  <TableCell className="font-medium">{curso.nome}</TableCell>
+                  <TableCell>{curso.codigo || '-'}</TableCell>
+                  <TableCell>
+                    {curso.createdAt &&
+                      new Date(curso.createdAt).toLocaleDateString('pt-BR')}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => openDialog(curso)}
+                        disabled={updateCursoMutation.isPending}
+                        className="h-8 px-2"
+                      >
+                        <Pencil size={16} className="mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => openDeleteDialog(curso)}
+                        disabled={deleteCursoMutation.isPending}
+                        className="h-8 px-2"
+                      >
+                        <Trash2 size={16} className="mr-1" />
+                        Remover
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {/* Modal de criação/edição */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
               {isEditing ? 'Editar Curso' : 'Adicionar Curso'}
             </DialogTitle>
             <DialogDescription>
-              Preencha os dados do curso abaixo.
+              {isEditing
+                ? 'Altere as informações do curso selecionado'
+                : 'Preencha os dados para adicionar um novo curso'}
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="nome">Nome do Curso*</Label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="nome" className="text-sm font-semibold">
+                  Nome do Curso <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="nome"
                   name="nome"
                   value={currentCurso.nome}
                   onChange={handleInputChange}
+                  placeholder="Ex: Ciência da Computação"
+                  className="w-full"
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Nome completo do curso como aparecerá para os alunos
+                </p>
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="codigo">Código do Curso</Label>
+              <div className="space-y-2">
+                <Label htmlFor="codigo" className="text-sm font-semibold">
+                  Código do Curso
+                </Label>
                 <Input
                   id="codigo"
                   name="codigo"
@@ -329,25 +336,38 @@ function CursosPage() {
                     currentCurso.codigo === null ? '' : currentCurso.codigo
                   }
                   onChange={handleInputChange}
+                  placeholder="Ex: 112"
+                  className="w-full"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Código numérico do curso (opcional)
+                </p>
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="pt-4">
               <Button
                 type="button"
                 variant="secondary"
                 onClick={closeDialog}
-                disabled={saveCursoMutation.isPending}
+                disabled={
+                  createCursoMutation.isPending || updateCursoMutation.isPending
+                }
+                className="mr-2"
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={saveCursoMutation.isPending}>
-                {saveCursoMutation.isPending
+              <Button
+                type="submit"
+                disabled={
+                  createCursoMutation.isPending || updateCursoMutation.isPending
+                }
+              >
+                {createCursoMutation.isPending || updateCursoMutation.isPending
                   ? 'Salvando...'
                   : isEditing
-                    ? 'Salvar'
-                    : 'Adicionar'}
+                    ? 'Salvar Alterações'
+                    : 'Criar Curso'}
               </Button>
             </DialogFooter>
           </form>
@@ -356,9 +376,12 @@ function CursosPage() {
 
       {/* Modal de confirmação de exclusão */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Remover Curso</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-red-500">
+              <Trash2 size={18} />
+              Remover Curso
+            </DialogTitle>
             <DialogDescription>
               Tem certeza que deseja remover o curso{' '}
               <strong>{cursoToDelete?.nome}</strong>? Esta ação não pode ser
@@ -366,11 +389,18 @@ function CursosPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter>
+          <p className="text-sm text-muted-foreground">
+            Ao remover um curso, você impede que novos alunos o selecionem
+            durante o cadastro. Esta ação não afetará os alunos que já estão
+            vinculados a este curso.
+          </p>
+
+          <DialogFooter className="pt-4">
             <Button
               variant="secondary"
               onClick={closeDeleteDialog}
               disabled={deleteCursoMutation.isPending}
+              className="mr-2"
             >
               Cancelar
             </Button>
@@ -379,7 +409,9 @@ function CursosPage() {
               onClick={handleDelete}
               disabled={deleteCursoMutation.isPending}
             >
-              {deleteCursoMutation.isPending ? 'Removendo...' : 'Remover'}
+              {deleteCursoMutation.isPending
+                ? 'Removendo...'
+                : 'Confirmar Exclusão'}
             </Button>
           </DialogFooter>
         </DialogContent>
