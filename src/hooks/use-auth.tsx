@@ -66,15 +66,17 @@ const useLogoutMutation = () => {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
-  const { data: userQuery, refetch: refetchUserInternal } = useMeQuery();
+  const {
+    data: userQuery,
+    refetch: refetchUserInternal,
+    isLoading: isLoadingUser,
+  } = useMeQuery();
   const logoutMutation = useLogoutMutation();
 
   useEffect(() => {
     setUser(userQuery?.id ? userQuery : null);
-    setIsLoading(false);
   }, [userQuery]);
 
   const signIn = useCallback(() => {
@@ -86,27 +88,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, router]);
 
   const signOut = useCallback(async () => {
-    setIsLoading(true);
     try {
       await logoutMutation.mutateAsync();
     } catch (error) {
       log.warn({ error }, 'Erro ao fazer logout');
     } finally {
       window.location.href = '/';
-      setIsLoading(false);
     }
   }, [router]);
 
   const value = useMemo(
     () => ({
       user,
-      isLoading,
+      isLoading: isLoadingUser || logoutMutation.isPending,
       isAuthenticated: !!user,
       signIn,
       signOut,
       refetchUser: refetchUserInternal,
     }),
-    [user, isLoading, signIn, signOut, refetchUserInternal],
+    [user, signIn, signOut, refetchUserInternal],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

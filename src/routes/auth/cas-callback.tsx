@@ -3,7 +3,7 @@
 import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '@/hooks/use-auth';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 
 export const Route = createFileRoute('/auth/cas-callback')({
   component: CasCallbackPage,
@@ -11,20 +11,22 @@ export const Route = createFileRoute('/auth/cas-callback')({
 
 function CasCallbackPage() {
   const navigate = useNavigate();
-  const { isLoading, user } = useAuth();
+  const { isLoading, user, refetchUser } = useAuth();
 
-  useEffect(() => {
-    if (isLoading) {
-      return;
-    }
+  const handleRedirect = useCallback(async () => {
+    const user = await refetchUser();
 
     if (!user) {
       navigate({ to: '/', replace: true });
       return;
     }
 
-    window.location.href = '/';
-  }, [user, isLoading]);
+    navigate({ to: '/home', replace: true });
+  }, [isLoading, refetchUser, user, navigate]);
+
+  useEffect(() => {
+    handleRedirect();
+  }, []);
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-background">
