@@ -1,10 +1,10 @@
 'use client';
 
-import { trpc } from '@/router';
+import { trpc } from '@/server/trpc/react';
+import { logger } from '@/utils/logger';
 import {
   type QueryObserverResult,
   type RefetchOptions,
-  useQueryClient,
 } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { TRPCClientErrorLike } from '@trpc/client';
@@ -34,11 +34,15 @@ interface AuthState {
 
 interface AuthContextProps extends AuthState {
   signOut: () => Promise<void>;
-  signIn: () => void; // Simplified: direct redirect
+  signIn: () => void;
   refetchUser: (
     options?: RefetchOptions,
   ) => Promise<QueryObserverResult<User | undefined, TRPCClientErrorLike<any>>>;
 }
+
+const log = logger.child({
+  context: 'useAuth',
+});
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
@@ -47,22 +51,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const queryClient = useQueryClient();
   const isHydrated = useHydrated();
   const router = useRouter();
-  const trpcUtils = trpc.useUtils();
 
-  const logoutMutation = trpc.auth.logout.useMutation({
-    onSuccess: () => {
-      trpcUtils.auth.me.invalidate();
-      router.navigate({ to: '/' });
-      setUser(null);
+  const loginMutation = trpc.auth.login.useMutation({
+    onSuccess: (data) => {
+      window.location.href = data;
     },
   });
+
   const {
     data: queryData,
-    isLoading: queryLoading,
     refetch: refetchUserInternal,
+    isLoading: queryLoading,
   } = trpc.auth.me.useQuery(undefined, {
     staleTime: 5 * 60 * 1000,
     retry: false,
@@ -70,36 +71,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
+    if (!isHydrated) return;
+
     if (queryData) {
       setUser(queryData);
       setIsAuthenticated(true);
-    } else {
-      setUser(null);
-      setIsAuthenticated(false);
     }
+
     setIsLoading(queryLoading);
-  }, [queryData, queryLoading]);
+  }, [queryData, queryLoading, isHydrated]);
 
   const signIn = useCallback(() => {
     if (user) {
       router.navigate({ to: '/home' });
       return;
     }
-    window.location.href = '/api/auth/cas-login';
+    loginMutation.mutate();
   }, [user, router]);
 
   const signOut = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (error) {
-      setUser(null);
-      trpcUtils.auth.me.invalidate();
-    } finally {
-      setIsLoading(false);
-      setIsAuthenticated(false);
-    }
-  }, [trpcUtils]);
+    window.location.href = '/auth/logout';
+  }, []);
 
   const refetchUser = useCallback(refetchUserInternal, [refetchUserInternal]);
 

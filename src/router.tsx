@@ -1,5 +1,7 @@
 import { DefaultCatchBoundary } from '@/components/DefaultCatchBoundary';
 import { NotFound } from '@/components/NotFound';
+
+import { trpc } from '@/server/trpc/react';
 import { QueryClient } from '@tanstack/react-query';
 import { createRouter as createTanStackRouter } from '@tanstack/react-router';
 import { routerWithQueryClient } from '@tanstack/react-router-with-query';
@@ -10,13 +12,9 @@ import {
   httpBatchStreamLink,
   loggerLink,
 } from '@trpc/client';
-import { createTRPCReact } from '@trpc/react-query';
-import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
 import SuperJSON from 'superjson';
 import { routeTree } from './routeTree.gen';
 import { AppRouter } from './server/trpc/routers/router';
-
-export const trpc = createTRPCReact<AppRouter>();
 
 function getUrl() {
   const base = (() => {
@@ -27,7 +25,9 @@ function getUrl() {
 }
 
 const headers = createIsomorphicFn()
-  .client(() => ({}))
+  .client(() => ({
+    credentials: 'include',
+  }))
   .server(() => getHeaders());
 
 export function createRouter() {
@@ -41,6 +41,7 @@ export function createRouter() {
       },
     },
   });
+
   const trpcClient = createTRPCClient<AppRouter>({
     links: [
       loggerLink({
@@ -52,15 +53,18 @@ export function createRouter() {
         },
       }),
       httpBatchStreamLink({
+        fetch(url, options) {
+          return fetch(url, {
+            ...options,
+            credentials: 'include',
+            body: options?.body as BodyInit,
+          });
+        },
         transformer: SuperJSON,
         url: getUrl(),
         headers,
       }),
     ],
-  });
-  const serverHelpers = createTRPCOptionsProxy({
-    client: trpcClient,
-    queryClient: queryClient,
   });
 
   return routerWithQueryClient(

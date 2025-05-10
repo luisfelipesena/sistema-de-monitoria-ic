@@ -11,16 +11,21 @@ import {
 } from '@/components/ui/select';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { trpc } from '@/router';
+
 import { insertAlunoTableSchema } from '@/server/database/schema';
+import { trpc } from '@/server/trpc/react';
+import { logger } from '@/utils/logger';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-export const Route = createFileRoute('/home/_layout/onboarding/onboarding')({
+const log = logger.child({
+  context: 'onboarding',
+});
+
+export const Route = createFileRoute('/home/_layout/onboarding/')({
   component: OnboardingPage,
 });
 
@@ -343,7 +348,6 @@ function StudentForm() {
 function ProfessorForm() {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
-  const queryClient = useQueryClient();
   const [useNomeSocial, setUseNomeSocial] = useState(false);
 
   const form = useForm<ProfessorFormData>({
@@ -384,16 +388,12 @@ function ProfessorForm() {
 
   const mutation = trpc.professor.set.useMutation({
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ['professor.get'],
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ['profile-completeness'],
-      });
+      const utils = trpc.useUtils();
+      await utils.professor.get.invalidate();
       navigate({ to: '/home' });
     },
     onError: (error) => {
-      console.error('Falha ao atualizar perfil:', error);
+      log.error('Falha ao atualizar perfil:', error);
     },
   });
 
@@ -419,7 +419,7 @@ function ProfessorForm() {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Informações Pessoais</h2>
+        <h2>Informações Pessoais</h2>
 
         <div className="grid grid-cols-1 gap-4">
           <div>

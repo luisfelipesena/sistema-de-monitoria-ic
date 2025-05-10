@@ -16,4 +16,4 @@ export interface PresignedUrlResponse {
 export interface UploadCompletionData {
   fileId: string;
   fileName: string;
-}
+} 

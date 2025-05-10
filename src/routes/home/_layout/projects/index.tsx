@@ -17,6 +17,7 @@ import {
 } from '@react-pdf/renderer';
 import { useDebouncedValue } from '@tanstack/react-pacer';
 import { createFileRoute } from '@tanstack/react-router';
+import { DownloadIcon } from 'lucide-react';
 import {
   JSXElementConstructor,
   ReactElement,
@@ -203,6 +204,7 @@ function ProjectsComponent() {
                   id="professorName"
                   {...register('professorName')}
                   aria-invalid={errors.professorName ? 'true' : 'false'}
+                  className="bg-white"
                 />
                 {errors.professorName && (
                   <p className="mt-1 text-xs text-red-600" role="alert">
@@ -223,6 +225,7 @@ function ProjectsComponent() {
                   id="projectName"
                   {...register('projectName')}
                   aria-invalid={errors.projectName ? 'true' : 'false'}
+                  className="bg-white"
                 />
                 {errors.projectName && (
                   <p className="mt-1 text-xs text-red-600" role="alert">
@@ -263,7 +266,7 @@ function ProjectsComponent() {
                     {({ loading }) => (
                       <Button
                         type="button"
-                        variant="default"
+                        variant="primary"
                         disabled={loading}
                       >
                         {loading ? 'Gerando PDF...' : 'Baixar PDF da Proposta'}
@@ -271,7 +274,8 @@ function ProjectsComponent() {
                     )}
                   </PDFDownloadLink>
                 ) : (
-                  <Button type="button" variant="secondary" disabled>
+                  <Button variant="secondary" size="sm">
+                    <DownloadIcon className="w-4 h-4" />
                     Preencha o formulário para baixar o PDF
                   </Button>
                 )}

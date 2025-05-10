@@ -1,63 +1,19 @@
-import {
-  FileListItem,
-  PresignedUrlResponse,
-} from '@/routes/api/files/admin/-admin-types';
-import { fetchApi } from '@/utils/fetchApi';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { trpc } from '@/server/trpc/react';
 
 export function useAdminFilesList() {
-  return useQuery<FileListItem[], Error>({
-    queryKey: ['adminFiles'],
-    queryFn: async () => {
-      const response = await fetchApi('/files/admin/list');
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Erro ao buscar arquivos');
-      }
-      return response.json();
-    },
-  });
+  return trpc.files.list.useQuery();
 }
 
 export function useAdminFileDelete() {
-  const queryClient = useQueryClient();
-
-  return useMutation<{ message: string }, Error, string>({
-    mutationFn: async (objectName) => {
-      const response = await fetchApi('/files/admin/delete', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ objectName }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Erro ao excluir arquivo');
-      }
-      return response.json();
-    },
+  const utils = trpc.useUtils();
+  const mutation = trpc.files.delete.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminFiles'] });
+      utils.files.list.invalidate();
     },
   });
+  return mutation;
 }
 
 export function useFilePresignedUrl() {
-  return useMutation<PresignedUrlResponse, Error, string>({
-    mutationFn: async (objectName) => {
-      const response = await fetchApi('/files/admin/presigned-url', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ objectName }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Erro ao obter URL de visualização');
-      }
-      return response.json();
-    },
-  });
+  return trpc.files.presignedUrl.get.useMutation();
 }

@@ -15,13 +15,14 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
-import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
+import { Route as AuthTesteImport } from './routes/auth/teste'
+import { Route as AuthLogoutImport } from './routes/auth/logout'
+import { Route as AuthLoginImport } from './routes/auth/login'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
-import { Route as ExampleGuitarsIndexImport } from './routes/example.guitars/index'
-import { Route as ExampleGuitarsguitarIdImport } from './routes/example.guitars/[guitarId]'
+import { Route as HomeLayoutTestIndexImport } from './routes/home/_layout/test/index'
 import { Route as HomeLayoutProjectsIndexImport } from './routes/home/_layout/projects/index'
 import { Route as HomeLayoutProfileIndexImport } from './routes/home/_layout/profile/index'
-import { Route as HomeLayoutOnboardingOnboardingImport } from './routes/home/_layout/onboarding/onboarding'
+import { Route as HomeLayoutOnboardingIndexImport } from './routes/home/_layout/onboarding/index'
 import { Route as HomeLayoutAdminFilesImport } from './routes/home/_layout/admin/files'
 
 // Create Virtual Routes
@@ -47,9 +48,21 @@ const HomeLayoutRoute = HomeLayoutImport.update({
   getParentRoute: () => HomeRoute,
 } as any)
 
-const AuthCasCallbackRoute = AuthCasCallbackImport.update({
-  id: '/auth/cas-callback',
-  path: '/auth/cas-callback',
+const AuthTesteRoute = AuthTesteImport.update({
+  id: '/auth/teste',
+  path: '/auth/teste',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthLogoutRoute = AuthLogoutImport.update({
+  id: '/auth/logout',
+  path: '/auth/logout',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthLoginRoute = AuthLoginImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -59,16 +72,10 @@ const HomeLayoutIndexRoute = HomeLayoutIndexImport.update({
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
-const ExampleGuitarsIndexRoute = ExampleGuitarsIndexImport.update({
-  id: '/example/guitars/',
-  path: '/example/guitars/',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const ExampleGuitarsguitarIdRoute = ExampleGuitarsguitarIdImport.update({
-  id: '/example/guitars/[guitarId]',
-  path: '/example/guitars/[guitarId]',
-  getParentRoute: () => rootRoute,
+const HomeLayoutTestIndexRoute = HomeLayoutTestIndexImport.update({
+  id: '/test/',
+  path: '/test/',
+  getParentRoute: () => HomeLayoutRoute,
 } as any)
 
 const HomeLayoutProjectsIndexRoute = HomeLayoutProjectsIndexImport.update({
@@ -83,12 +90,11 @@ const HomeLayoutProfileIndexRoute = HomeLayoutProfileIndexImport.update({
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
-const HomeLayoutOnboardingOnboardingRoute =
-  HomeLayoutOnboardingOnboardingImport.update({
-    id: '/onboarding/onboarding',
-    path: '/onboarding/onboarding',
-    getParentRoute: () => HomeLayoutRoute,
-  } as any)
+const HomeLayoutOnboardingIndexRoute = HomeLayoutOnboardingIndexImport.update({
+  id: '/onboarding/',
+  path: '/onboarding/',
+  getParentRoute: () => HomeLayoutRoute,
+} as any)
 
 const HomeLayoutAdminFilesRoute = HomeLayoutAdminFilesImport.update({
   id: '/admin/files',
@@ -107,11 +113,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/auth/cas-callback': {
-      id: '/auth/cas-callback'
-      path: '/auth/cas-callback'
-      fullPath: '/auth/cas-callback'
-      preLoaderRoute: typeof AuthCasCallbackImport
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/logout': {
+      id: '/auth/logout'
+      path: '/auth/logout'
+      fullPath: '/auth/logout'
+      preLoaderRoute: typeof AuthLogoutImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/teste': {
+      id: '/auth/teste'
+      path: '/auth/teste'
+      fullPath: '/auth/teste'
+      preLoaderRoute: typeof AuthTesteImport
       parentRoute: typeof rootRoute
     }
     '/home': {
@@ -128,20 +148,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutImport
       parentRoute: typeof HomeRoute
     }
-    '/example/guitars/[guitarId]': {
-      id: '/example/guitars/[guitarId]'
-      path: '/example/guitars/[guitarId]'
-      fullPath: '/example/guitars/[guitarId]'
-      preLoaderRoute: typeof ExampleGuitarsguitarIdImport
-      parentRoute: typeof rootRoute
-    }
-    '/example/guitars/': {
-      id: '/example/guitars/'
-      path: '/example/guitars'
-      fullPath: '/example/guitars'
-      preLoaderRoute: typeof ExampleGuitarsIndexImport
-      parentRoute: typeof rootRoute
-    }
     '/home/_layout/': {
       id: '/home/_layout/'
       path: '/'
@@ -156,11 +162,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminFilesImport
       parentRoute: typeof HomeLayoutImport
     }
-    '/home/_layout/onboarding/onboarding': {
-      id: '/home/_layout/onboarding/onboarding'
-      path: '/onboarding/onboarding'
-      fullPath: '/home/onboarding/onboarding'
-      preLoaderRoute: typeof HomeLayoutOnboardingOnboardingImport
+    '/home/_layout/onboarding/': {
+      id: '/home/_layout/onboarding/'
+      path: '/onboarding'
+      fullPath: '/home/onboarding'
+      preLoaderRoute: typeof HomeLayoutOnboardingIndexImport
       parentRoute: typeof HomeLayoutImport
     }
     '/home/_layout/profile/': {
@@ -177,6 +183,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutProjectsIndexImport
       parentRoute: typeof HomeLayoutImport
     }
+    '/home/_layout/test/': {
+      id: '/home/_layout/test/'
+      path: '/test'
+      fullPath: '/home/test'
+      preLoaderRoute: typeof HomeLayoutTestIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
   }
 }
 
@@ -185,17 +198,19 @@ declare module '@tanstack/react-router' {
 interface HomeLayoutRouteChildren {
   HomeLayoutIndexRoute: typeof HomeLayoutIndexRoute
   HomeLayoutAdminFilesRoute: typeof HomeLayoutAdminFilesRoute
-  HomeLayoutOnboardingOnboardingRoute: typeof HomeLayoutOnboardingOnboardingRoute
+  HomeLayoutOnboardingIndexRoute: typeof HomeLayoutOnboardingIndexRoute
   HomeLayoutProfileIndexRoute: typeof HomeLayoutProfileIndexRoute
   HomeLayoutProjectsIndexRoute: typeof HomeLayoutProjectsIndexRoute
+  HomeLayoutTestIndexRoute: typeof HomeLayoutTestIndexRoute
 }
 
 const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutIndexRoute: HomeLayoutIndexRoute,
   HomeLayoutAdminFilesRoute: HomeLayoutAdminFilesRoute,
-  HomeLayoutOnboardingOnboardingRoute: HomeLayoutOnboardingOnboardingRoute,
+  HomeLayoutOnboardingIndexRoute: HomeLayoutOnboardingIndexRoute,
   HomeLayoutProfileIndexRoute: HomeLayoutProfileIndexRoute,
   HomeLayoutProjectsIndexRoute: HomeLayoutProjectsIndexRoute,
+  HomeLayoutTestIndexRoute: HomeLayoutTestIndexRoute,
 }
 
 const HomeLayoutRouteWithChildren = HomeLayoutRoute._addFileChildren(
@@ -214,98 +229,104 @@ const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth/cas-callback': typeof AuthCasCallbackRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/logout': typeof AuthLogoutRoute
+  '/auth/teste': typeof AuthTesteRoute
   '/home': typeof HomeLayoutRouteWithChildren
-  '/example/guitars/[guitarId]': typeof ExampleGuitarsguitarIdRoute
-  '/example/guitars': typeof ExampleGuitarsIndexRoute
   '/home/': typeof HomeLayoutIndexRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
-  '/home/onboarding/onboarding': typeof HomeLayoutOnboardingOnboardingRoute
+  '/home/onboarding': typeof HomeLayoutOnboardingIndexRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
+  '/home/test': typeof HomeLayoutTestIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth/cas-callback': typeof AuthCasCallbackRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/logout': typeof AuthLogoutRoute
+  '/auth/teste': typeof AuthTesteRoute
   '/home': typeof HomeLayoutIndexRoute
-  '/example/guitars/[guitarId]': typeof ExampleGuitarsguitarIdRoute
-  '/example/guitars': typeof ExampleGuitarsIndexRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
-  '/home/onboarding/onboarding': typeof HomeLayoutOnboardingOnboardingRoute
+  '/home/onboarding': typeof HomeLayoutOnboardingIndexRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
+  '/home/test': typeof HomeLayoutTestIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/auth/cas-callback': typeof AuthCasCallbackRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/logout': typeof AuthLogoutRoute
+  '/auth/teste': typeof AuthTesteRoute
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
-  '/example/guitars/[guitarId]': typeof ExampleGuitarsguitarIdRoute
-  '/example/guitars/': typeof ExampleGuitarsIndexRoute
   '/home/_layout/': typeof HomeLayoutIndexRoute
   '/home/_layout/admin/files': typeof HomeLayoutAdminFilesRoute
-  '/home/_layout/onboarding/onboarding': typeof HomeLayoutOnboardingOnboardingRoute
+  '/home/_layout/onboarding/': typeof HomeLayoutOnboardingIndexRoute
   '/home/_layout/profile/': typeof HomeLayoutProfileIndexRoute
   '/home/_layout/projects/': typeof HomeLayoutProjectsIndexRoute
+  '/home/_layout/test/': typeof HomeLayoutTestIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/auth/cas-callback'
+    | '/auth/login'
+    | '/auth/logout'
+    | '/auth/teste'
     | '/home'
-    | '/example/guitars/[guitarId]'
-    | '/example/guitars'
     | '/home/'
     | '/home/admin/files'
-    | '/home/onboarding/onboarding'
+    | '/home/onboarding'
     | '/home/profile'
     | '/home/projects'
+    | '/home/test'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/auth/cas-callback'
+    | '/auth/login'
+    | '/auth/logout'
+    | '/auth/teste'
     | '/home'
-    | '/example/guitars/[guitarId]'
-    | '/example/guitars'
     | '/home/admin/files'
-    | '/home/onboarding/onboarding'
+    | '/home/onboarding'
     | '/home/profile'
     | '/home/projects'
+    | '/home/test'
   id:
     | '__root__'
     | '/'
-    | '/auth/cas-callback'
+    | '/auth/login'
+    | '/auth/logout'
+    | '/auth/teste'
     | '/home'
     | '/home/_layout'
-    | '/example/guitars/[guitarId]'
-    | '/example/guitars/'
     | '/home/_layout/'
     | '/home/_layout/admin/files'
-    | '/home/_layout/onboarding/onboarding'
+    | '/home/_layout/onboarding/'
     | '/home/_layout/profile/'
     | '/home/_layout/projects/'
+    | '/home/_layout/test/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthCasCallbackRoute: typeof AuthCasCallbackRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthLogoutRoute: typeof AuthLogoutRoute
+  AuthTesteRoute: typeof AuthTesteRoute
   HomeRoute: typeof HomeRouteWithChildren
-  ExampleGuitarsguitarIdRoute: typeof ExampleGuitarsguitarIdRoute
-  ExampleGuitarsIndexRoute: typeof ExampleGuitarsIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthCasCallbackRoute: AuthCasCallbackRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthLogoutRoute: AuthLogoutRoute,
+  AuthTesteRoute: AuthTesteRoute,
   HomeRoute: HomeRouteWithChildren,
-  ExampleGuitarsguitarIdRoute: ExampleGuitarsguitarIdRoute,
-  ExampleGuitarsIndexRoute: ExampleGuitarsIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -319,17 +340,23 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/auth/cas-callback",
-        "/home",
-        "/example/guitars/[guitarId]",
-        "/example/guitars/"
+        "/auth/login",
+        "/auth/logout",
+        "/auth/teste",
+        "/home"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
-    "/auth/cas-callback": {
-      "filePath": "auth/cas-callback.tsx"
+    "/auth/login": {
+      "filePath": "auth/login.tsx"
+    },
+    "/auth/logout": {
+      "filePath": "auth/logout.tsx"
+    },
+    "/auth/teste": {
+      "filePath": "auth/teste.tsx"
     },
     "/home": {
       "filePath": "home",
@@ -343,16 +370,11 @@ export const routeTree = rootRoute
       "children": [
         "/home/_layout/",
         "/home/_layout/admin/files",
-        "/home/_layout/onboarding/onboarding",
+        "/home/_layout/onboarding/",
         "/home/_layout/profile/",
-        "/home/_layout/projects/"
+        "/home/_layout/projects/",
+        "/home/_layout/test/"
       ]
-    },
-    "/example/guitars/[guitarId]": {
-      "filePath": "example.guitars/[guitarId].tsx"
-    },
-    "/example/guitars/": {
-      "filePath": "example.guitars/index.tsx"
     },
     "/home/_layout/": {
       "filePath": "home/_layout/index.tsx",
@@ -362,8 +384,8 @@ export const routeTree = rootRoute
       "filePath": "home/_layout/admin/files.tsx",
       "parent": "/home/_layout"
     },
-    "/home/_layout/onboarding/onboarding": {
-      "filePath": "home/_layout/onboarding/onboarding.tsx",
+    "/home/_layout/onboarding/": {
+      "filePath": "home/_layout/onboarding/index.tsx",
       "parent": "/home/_layout"
     },
     "/home/_layout/profile/": {
@@ -372,6 +394,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/projects/": {
       "filePath": "home/_layout/projects/index.tsx",
+      "parent": "/home/_layout"
+    },
+    "/home/_layout/test/": {
+      "filePath": "home/_layout/test/index.tsx",
       "parent": "/home/_layout"
     }
   }
