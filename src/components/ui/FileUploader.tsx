@@ -1,6 +1,5 @@
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { trpc } from '@/server/trpc/react';
 import { logger } from '@/utils/logger';
 import { File as FileIcon, UploadCloud, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
@@ -93,15 +92,6 @@ export function FileUploader({
       disabled: isUploading,
     });
 
-  const { mutateAsync: uploadFile } = trpc.files.upload.post.useMutation({
-    onSuccess: (data) => {
-      toast({
-        title: 'Upload concluído',
-        description: `O arquivo ${file?.name} foi enviado com sucesso`,
-      });
-    },
-  });
-
   const handleUpload = useCallback(async () => {
     if (!file) return;
 
@@ -113,12 +103,28 @@ export function FileUploader({
       formData.append('entityType', entityType);
       formData.append('entityId', entityId);
 
-      const data = await uploadFile({ file });
+      const response = await fetch('/api/files/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao enviar arquivo');
+      }
+
+      toast({
+        title: 'Upload concluído',
+        description: `O arquivo ${file.name} foi enviado com sucesso`,
+        variant: 'default',
+      });
 
       if (onUploadComplete) {
         onUploadComplete({
-          fileId: data.versionId || '',
-          fileName: file.name,
+          fileId: data.fileId,
+          fileName: data.fileName,
         });
       }
 
