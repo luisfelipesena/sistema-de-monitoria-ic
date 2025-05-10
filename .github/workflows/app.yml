@@ -25,8 +25,11 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Remove lockfile and node_modules
+        run: rm -rf package-lock.json node_modules
+
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build the APP
         run: npm run build
