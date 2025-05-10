@@ -11,6 +11,7 @@ export async function createContext(req: Request, resHeaders: Headers) {
   return {
     user: result.user,
     session: result.session,
+    request: req,
     cookies: {
       getCookies() {
         const cookieHeader = req.headers.get('Cookie');
