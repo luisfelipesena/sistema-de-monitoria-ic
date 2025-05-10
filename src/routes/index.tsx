@@ -10,7 +10,7 @@ export const Route = createFileRoute('/')({
 });
 
 function LandingPageComponent() {
-  const { signIn, isLoading } = useAuth();
+  const { signIn } = useAuth();
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-[hsl(195,71%,95%)] to-white">
@@ -26,9 +26,7 @@ function LandingPageComponent() {
               Sistema de Monitoria IC
             </span>
           </div>
-          <Button isLoading={isLoading} onClick={signIn}>
-            Entrar com Email UFBA
-          </Button>
+          <Button onClick={signIn}>Entrar com Email UFBA</Button>
         </div>
       </header>
 
@@ -42,7 +40,7 @@ function LandingPageComponent() {
               Simplifique o processo de inscrição, seleção e gerenciamento de
               monitores para projetos acadêmicos da UFBA.
             </p>
-            <Button size="lg" isLoading={isLoading} onClick={signIn}>
+            <Button size="lg" onClick={signIn}>
               Entrar com Email UFBA
             </Button>
           </div>
