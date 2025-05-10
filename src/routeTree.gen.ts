@@ -16,6 +16,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthLoginImport } from './routes/auth/login'
+import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
 import { Route as HomeLayoutTestIndexImport } from './routes/home/_layout/test/index'
 import { Route as HomeLayoutProjectsIndexImport } from './routes/home/_layout/projects/index'
@@ -49,6 +50,12 @@ const HomeLayoutRoute = HomeLayoutImport.update({
 const AuthLoginRoute = AuthLoginImport.update({
   id: '/auth/login',
   path: '/auth/login',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthCasCallbackRoute = AuthCasCallbackImport.update({
+  id: '/auth/cas-callback',
+  path: '/auth/cas-callback',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -97,6 +104,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/cas-callback': {
+      id: '/auth/cas-callback'
+      path: '/auth/cas-callback'
+      fullPath: '/auth/cas-callback'
+      preLoaderRoute: typeof AuthCasCallbackImport
       parentRoute: typeof rootRoute
     }
     '/auth/login': {
@@ -201,6 +215,7 @@ const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/auth/login': typeof AuthLoginRoute
   '/home': typeof HomeLayoutRouteWithChildren
   '/home/': typeof HomeLayoutIndexRoute
@@ -213,6 +228,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/auth/login': typeof AuthLoginRoute
   '/home': typeof HomeLayoutIndexRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
@@ -225,6 +241,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/auth/login': typeof AuthLoginRoute
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
@@ -240,6 +257,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth/cas-callback'
     | '/auth/login'
     | '/home'
     | '/home/'
@@ -251,6 +269,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth/cas-callback'
     | '/auth/login'
     | '/home'
     | '/home/admin/files'
@@ -261,6 +280,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/auth/cas-callback'
     | '/auth/login'
     | '/home'
     | '/home/_layout'
@@ -275,12 +295,14 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthCasCallbackRoute: typeof AuthCasCallbackRoute
   AuthLoginRoute: typeof AuthLoginRoute
   HomeRoute: typeof HomeRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthCasCallbackRoute: AuthCasCallbackRoute,
   AuthLoginRoute: AuthLoginRoute,
   HomeRoute: HomeRouteWithChildren,
 }
@@ -296,12 +318,16 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/auth/cas-callback",
         "/auth/login",
         "/home"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/auth/cas-callback": {
+      "filePath": "auth/cas-callback.tsx"
     },
     "/auth/login": {
       "filePath": "auth/login.tsx"

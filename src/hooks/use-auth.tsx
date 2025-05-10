@@ -1,14 +1,15 @@
 'use client';
 
 import { trpc } from '@/server/trpc/react';
-import { LUCIA_SESSION_COOKIE_NAME } from '@/utils/types';
+import { fetchApi } from '@/utils/fetchApi';
 import {
   type QueryObserverResult,
   type RefetchOptions,
+  useQueryClient,
 } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { TRPCClientErrorLike } from '@trpc/client';
-import Cookie from 'js-cookie';
+import { DefaultErrorShape } from '@trpc/server/unstable-core-do-not-import';
 import type { User } from 'lucia';
 import React, {
   createContext,
@@ -36,9 +37,17 @@ interface AuthState {
 interface AuthContextProps extends AuthState {
   signOut: () => Promise<void>;
   signIn: () => void;
-  refetchUser: (
-    options?: RefetchOptions,
-  ) => Promise<QueryObserverResult<User | undefined, TRPCClientErrorLike<any>>>;
+  refetchUser: (options?: RefetchOptions) => Promise<
+    QueryObserverResult<
+      User,
+      TRPCClientErrorLike<{
+        input: void;
+        output: User;
+        transformer: true;
+        errorShape: DefaultErrorShape;
+      }>
+    >
+  >;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -47,56 +56,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const isHydrated = useHydrated();
+  const queryClient = useQueryClient();
   const router = useRouter();
-
-  const loginMutation = trpc.auth.login.useMutation({
-    onSuccess: (data) => {
-      window.location.href = data;
-    },
-  });
-
-  const {
-    data: queryData,
-    refetch: refetchUserInternal,
-    isLoading: queryLoading,
-  } = trpc.auth.me.useQuery(undefined, {
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-    enabled: isHydrated,
-  });
+  const { data: userQuery, refetch: refetchUserInternal } =
+    trpc.auth.me.useQuery();
 
   useEffect(() => {
-    if (!isHydrated) return;
-
-    if (queryData) {
-      setUser(queryData);
+    if (userQuery) {
+      setUser(userQuery);
+      setIsLoading(false);
     }
-
-    setIsLoading(queryLoading);
-  }, [queryData, queryLoading, isHydrated]);
+  }, [userQuery]);
 
   const signIn = useCallback(() => {
     if (user) {
       router.navigate({ to: '/home' });
       return;
     }
-    loginMutation.mutate();
+    window.location.href = '/api/auth/cas-login';
   }, [user, router]);
 
-  const logoutMutation = trpc.auth.logout.useMutation({
-    onSuccess: () => {
-      Cookie.remove(LUCIA_SESSION_COOKIE_NAME);
-      setUser(null);
-      router.navigate({ to: '/' });
-    },
-  });
-
   const signOut = useCallback(async () => {
-    logoutMutation.mutate();
-  }, []);
-
-  const refetchUser = useCallback(refetchUserInternal, [refetchUserInternal]);
+    setIsLoading(true);
+    try {
+      await fetchApi('/auth/signout');
+      setUser(null);
+      await queryClient.invalidateQueries({ queryKey: ['authUser'] });
+      router.navigate({ to: '/' });
+    } catch (error) {
+      setUser(null);
+      await queryClient.invalidateQueries({ queryKey: ['authUser'] });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [queryClient, router]);
 
   const value = useMemo(
     () => ({
@@ -105,9 +98,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: !!user,
       signIn,
       signOut,
-      refetchUser,
+      refetchUser: refetchUserInternal,
     }),
-    [user, isLoading, signIn, signOut, refetchUser],
+    [user, isLoading, signIn, signOut, refetchUserInternal],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

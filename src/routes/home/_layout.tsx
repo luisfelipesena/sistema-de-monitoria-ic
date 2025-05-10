@@ -35,7 +35,7 @@ function HomeLayoutComponent() {
 
   useEffect(() => {
     if (onboardingPending && location.pathname.includes('/home')) {
-      navigate({ to: '/home/onboarding' });
+      // navigate({ to: '/home/onboarding' });
     }
   }, [onboardingPending, location.pathname]);
 
