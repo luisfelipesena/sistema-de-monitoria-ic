@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FileUploader } from '@/components/ui/FileUploader';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -12,7 +13,6 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
-import { insertAlunoTableSchema } from '@/server/database/schema';
 import { trpc } from '@/server/trpc/react';
 import { logger } from '@/utils/logger';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,8 +31,24 @@ export const Route = createFileRoute('/home/_layout/onboarding/')({
 
 function OnboardingPage() {
   const { user, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
-  if (authLoading) {
+  // Verificar se o usuário precisa de onboarding
+  const { data: onboardingStatus, isLoading: statusLoading } =
+    trpc.onboarding.getStatus.useQuery(undefined, {
+      enabled: !!user && !authLoading,
+    });
+
+  // Quando o status estiver disponível, redirecionar se não for necessário onboarding
+  useEffect(() => {
+    if (!authLoading && !statusLoading && onboardingStatus) {
+      if (!onboardingStatus.pending) {
+        navigate({ to: '/home' });
+      }
+    }
+  }, [onboardingStatus, authLoading, statusLoading, navigate]);
+
+  if (authLoading || statusLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         Carregando...
@@ -40,53 +56,61 @@ function OnboardingPage() {
     );
   }
 
-  const isStudent = user?.role === 'student';
+  // Se não precisar de onboarding, não renderizar nada (será redirecionado)
+  if (!onboardingStatus?.pending) {
+    return null;
+  }
+
+  // Admin não precisa de onboarding
+  if (user?.role === 'admin') {
+    navigate({ to: '/home' });
+    return null;
+  }
 
   return (
     <div className="max-w-3xl mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-2">Bem-vindo(a)!</h1>
-      <p className="mb-8 text-muted-foreground">
-        Por favor, complete suas informações de perfil. Isso facilitará o
-        preenchimento automático em futuras candidaturas.
-      </p>
+      <h1 className="text-3xl font-bold mb-2">Seja bem-vindo(a)!</h1>
+      <p className="mb-8 text-muted-foreground">Cadastre suas informações</p>
 
-      {false ? <StudentForm /> : <ProfessorForm />}
+      {user?.role === 'student' ? <StudentForm /> : <ProfessorForm />}
     </div>
   );
 }
-// Schema for student (aluno) form data
 
-async function fetchProfile(apiUrl: string) {
-  const res = await fetch(apiUrl);
-  if (!res.ok) {
-    throw new Error('Falha ao buscar perfil');
-  }
-  if (res.status === 200) {
-    const text = await res.text();
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      if (text.trim() === '{}') return {};
-      throw new Error('Resposta inválida do servidor');
-    }
-  }
-  return {};
+// Interface estendida para incluir campos de upload
+interface AlunoFormData {
+  nomeCompleto: string;
+  nomeSocial?: string;
+  cpf: string;
+  matricula: string;
+  emailInstitucional: string;
+  genero: 'MASCULINO' | 'FEMININO' | 'OUTRO';
+  // Campos adicionais necessários pelo backend
+  cursoId: number;
+  cr: number;
+  // Campos para o upload de arquivos
+  historicoEscolarFileId?: string;
+  comprovanteMatriculaFileId?: string;
 }
 
 function StudentForm() {
   const navigate = useNavigate();
-  const { isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [useNomeSocial, setUseNomeSocial] = useState(false);
   const { toast } = useToast();
+  const [historicoEscolarFileId, setHistoricoEscolarFileId] = useState<
+    string | null
+  >(null);
+  const [comprovanteMatriculaFileId, setComprovanteMatriculaFileId] = useState<
+    string | null
+  >(null);
 
-  const cursoQuery = trpc.curso.get.useQuery();
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
   });
 
   const setAlunoMutation = trpc.aluno.set.useMutation({
     onSuccess: () => {
-      debugger;
       toast({
         title: 'Cadastro realizado com sucesso!',
       });
@@ -98,19 +122,32 @@ function StudentForm() {
     if (!useNomeSocial) {
       values.nomeSocial = undefined;
     }
-    setAlunoMutation.mutate({
+
+    if (!historicoEscolarFileId) {
+      toast({
+        title: 'Documento obrigatório',
+        description: 'É necessário fazer upload do histórico escolar',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const alunoData: AlunoFormData = {
       cpf: values.cpf,
-      emailInstitucional: values.emailInstitucional,
-      genero: values.genero,
+      emailInstitucional: user?.email || '',
       matricula: values.matricula,
       nomeCompleto: values.nomeCompleto,
       nomeSocial: values.nomeSocial,
-      cr: values.cr,
-      cursoId: values.cursoId,
-      rg: values.rg,
-      telefone: values.telefone,
-      especificacaoGenero: values.especificacaoGenero,
-    });
+      genero: 'OUTRO',
+      // Valores padrão para campos obrigatórios
+      cursoId: 1, // Valor padrão temporário
+      cr: 5.0, // Valor padrão temporário
+      // Campos de upload
+      historicoEscolarFileId: historicoEscolarFileId,
+      comprovanteMatriculaFileId: comprovanteMatriculaFileId || undefined,
+    };
+
+    setAlunoMutation.mutate(alunoData);
   };
 
   if (authLoading) {
@@ -200,130 +237,37 @@ function StudentForm() {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Informações de Contato</h2>
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Documentos</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="emailInstitucional">Email Institucional</Label>
-            <Input
-              id="emailInstitucional"
-              type="email"
-              {...form.register('emailInstitucional')}
-              className={
-                form.formState.errors.emailInstitucional ? 'border-red-500' : ''
+        <div>
+          <Label htmlFor="historico">Histórico Escolar</Label>
+          <div className="mt-2">
+            <FileUploader
+              entityType="historico_escolar"
+              entityId={user?.id.toString() || '0'}
+              onUploadComplete={(fileData) =>
+                setHistoricoEscolarFileId(fileData.fileId)
               }
+              allowedTypes={['application/pdf']}
+              maxSizeInMB={5}
             />
-            {form.formState.errors.emailInstitucional && (
-              <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.emailInstitucional.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="telefone">Telefone (opcional)</Label>
-            <Input id="telefone" {...form.register('telefone')} />
           </div>
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Informações Acadêmicas</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2">
-            <Label htmlFor="cursoId">Curso</Label>
-            <Select
-              onValueChange={(value) =>
-                form.setValue('cursoId', parseInt(value))
+        <div>
+          <Label htmlFor="comprovante">Comprovante de Matrícula</Label>
+          <div className="mt-2">
+            <FileUploader
+              entityType="comprovante_matricula"
+              entityId={user?.id.toString() || '0'}
+              onUploadComplete={(fileData) =>
+                setComprovanteMatriculaFileId(fileData.fileId)
               }
-              defaultValue={form.getValues('cursoId')?.toString()}
-            >
-              <SelectTrigger
-                className={
-                  form.formState.errors.cursoId ? 'border-red-500' : ''
-                }
-              >
-                <SelectValue placeholder="Selecione o curso" />
-              </SelectTrigger>
-              <SelectContent>
-                {cursoQuery.data?.map((curso) => (
-                  <SelectItem key={curso.id} value={curso.id.toString()}>
-                    {curso.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {form.formState.errors.cursoId && (
-              <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.cursoId.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="cr">CR</Label>
-            <Input
-              id="cr"
-              {...form.register('cr')}
-              className={form.formState.errors.cr ? 'border-red-500' : ''}
-              type="number"
-              placeholder="Ex: 8.5"
+              allowedTypes={['application/pdf']}
+              maxSizeInMB={5}
             />
-            {form.formState.errors.cr && (
-              <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.cr.message}
-              </p>
-            )}
           </div>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Dados Adicionais</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="genero">Gênero</Label>
-            <Select
-              onValueChange={(value) =>
-                form.setValue(
-                  'genero',
-                  value as 'MASCULINO' | 'FEMININO' | 'OUTRO',
-                )
-              }
-              defaultValue={form.getValues('genero')}
-            >
-              <SelectTrigger
-                className={form.formState.errors.genero ? 'border-red-500' : ''}
-              >
-                <SelectValue placeholder="Selecione o gênero" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MASCULINO">Masculino</SelectItem>
-                <SelectItem value="FEMININO">Feminino</SelectItem>
-                <SelectItem value="OUTRO">Outro</SelectItem>
-              </SelectContent>
-            </Select>
-            {form.formState.errors.genero && (
-              <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.genero.message}
-              </p>
-            )}
-          </div>
-
-          {form.getValues('genero') === 'OUTRO' && (
-            <div>
-              <Label htmlFor="especificacaoGenero">
-                Especificação de Gênero
-              </Label>
-              <Input
-                id="especificacaoGenero"
-                {...form.register('especificacaoGenero')}
-              />
-            </div>
-          )}
         </div>
       </div>
 
@@ -349,47 +293,14 @@ function ProfessorForm() {
   const navigate = useNavigate();
   const { user, isLoading: authLoading } = useAuth();
   const [useNomeSocial, setUseNomeSocial] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<ProfessorFormData>({
     resolver: zodResolver(professorSchema),
   });
 
-  const { data: profileData, isLoading: profileLoading } =
-    trpc.professor.get.useQuery(undefined, {
-      enabled: !!user && !authLoading,
-      staleTime: 5 * 60 * 1000,
-      retry: false,
-    });
-
-  const departamentoQuery = trpc.departamento.get.useQuery();
-
-  useEffect(() => {
-    if (profileData) {
-      const requiredFields = Object.keys(professorSchema.shape);
-      const isComplete =
-        Object.keys(profileData).length > 0 &&
-        requiredFields.every(
-          (field) =>
-            field in profileData &&
-            profileData[field as keyof typeof profileData] !== null &&
-            profileData[field as keyof typeof profileData] !== '',
-        );
-
-      if (isComplete) {
-        navigate({ to: '/home' });
-      } else if (Object.keys(profileData).length > 0) {
-        form.reset(profileData);
-        if ('nomeSocial' in profileData) {
-          setUseNomeSocial(!!(profileData as any).nomeSocial);
-        }
-      }
-    }
-  }, [profileData, navigate, form]);
-
   const mutation = trpc.professor.set.useMutation({
     onSuccess: async () => {
-      const utils = trpc.useUtils();
-      await utils.professor.get.invalidate();
       navigate({ to: '/home' });
     },
     onError: (error) => {
@@ -401,14 +312,23 @@ function ProfessorForm() {
     if (!useNomeSocial) {
       values.nomeSocial = undefined;
     }
+
+    // Converte o valor de string para o tipo esperado pelo enum
+    const tipoRegime = values.regime as '20H' | '40H' | 'DE';
+
     mutation.mutate({
-      ...values,
-      genero: values.genero as 'MASCULINO' | 'FEMININO' | 'OUTRO',
-      regime: values.regime as '20H' | '40H' | 'DE',
+      nomeCompleto: values.nomeCompleto,
+      cpf: values.cpf,
+      matriculaSiape: values.matriculaSiape,
+      nomeSocial: values.nomeSocial,
+      emailInstitucional: user?.email || '',
+      genero: 'OUTRO', // Default para simplificar
+      regime: tipoRegime,
+      departamentoId: 1, // Valor padrão temporário, deve ser ajustado conforme necessário
     });
   };
 
-  if (authLoading || (profileLoading && !profileData)) {
+  if (authLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         Carregando...
@@ -419,7 +339,7 @@ function ProfessorForm() {
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        <h2>Informações Pessoais</h2>
+        <h2 className="text-xl font-semibold">Informações Pessoais</h2>
 
         <div className="grid grid-cols-1 gap-4">
           <div>
@@ -496,144 +416,29 @@ function ProfessorForm() {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Informações de Contato</h2>
+        <h2 className="text-xl font-semibold">Regime de Trabalho</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="emailInstitucional">Email Institucional</Label>
-            <Input
-              id="emailInstitucional"
-              type="email"
-              {...form.register('emailInstitucional')}
-              className={
-                form.formState.errors.emailInstitucional ? 'border-red-500' : ''
-              }
-            />
-            {form.formState.errors.emailInstitucional && (
-              <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.emailInstitucional.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="telefone">Telefone (opcional)</Label>
-            <Input id="telefone" {...form.register('telefone')} />
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <Label htmlFor="telefoneInstitucional">
-            Telefone Institucional (opcional)
-          </Label>
-          <Input
-            id="telefoneInstitucional"
-            {...form.register('telefoneInstitucional')}
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Informações Profissionais</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="departamentoId">Departamento</Label>
-            <Select
-              onValueChange={(value) =>
-                form.setValue('departamentoId', parseInt(value))
-              }
-              defaultValue={form.getValues('departamentoId')?.toString()}
+        <div>
+          <Label htmlFor="regime">Regime</Label>
+          <Select
+            onValueChange={(value) => form.setValue('regime', value)}
+            defaultValue={form.getValues('regime')}
+          >
+            <SelectTrigger
+              className={form.formState.errors.regime ? 'border-red-500' : ''}
             >
-              <SelectTrigger
-                className={
-                  form.formState.errors.departamentoId ? 'border-red-500' : ''
-                }
-              >
-                <SelectValue placeholder="Selecione o departamento" />
-              </SelectTrigger>
-              <SelectContent>
-                {departamentoQuery.data?.map((departamento) => (
-                  <SelectItem
-                    key={departamento.id}
-                    value={departamento.id.toString()}
-                  >
-                    {departamento.nome}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {form.formState.errors.departamentoId && (
-              <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.departamentoId.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="regime">Regime de Trabalho</Label>
-            <Select
-              onValueChange={(value) => form.setValue('regime', value)}
-              defaultValue={form.getValues('regime')}
-            >
-              <SelectTrigger
-                className={form.formState.errors.regime ? 'border-red-500' : ''}
-              >
-                <SelectValue placeholder="Selecione o regime" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="20H">20 horas</SelectItem>
-                <SelectItem value="40H">40 horas</SelectItem>
-                <SelectItem value="DE">Dedicação Exclusiva</SelectItem>
-              </SelectContent>
-            </Select>
-            {form.formState.errors.regime && (
-              <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.regime.message}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <h2 className="text-xl font-semibold">Dados Adicionais</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="genero">Gênero</Label>
-            <Select
-              onValueChange={(value) => form.setValue('genero', value)}
-              defaultValue={form.getValues('genero')}
-            >
-              <SelectTrigger
-                className={form.formState.errors.genero ? 'border-red-500' : ''}
-              >
-                <SelectValue placeholder="Selecione o gênero" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MASCULINO">Masculino</SelectItem>
-                <SelectItem value="FEMININO">Feminino</SelectItem>
-                <SelectItem value="OUTRO">Outro</SelectItem>
-              </SelectContent>
-            </Select>
-            {form.formState.errors.genero && (
-              <p className="text-red-500 text-sm mt-1">
-                {form.formState.errors.genero.message}
-              </p>
-            )}
-          </div>
-
-          {form.getValues('genero') === 'OUTRO' && (
-            <div>
-              <Label htmlFor="especificacaoGenero">
-                Especificação de Gênero
-              </Label>
-              <Input
-                id="especificacaoGenero"
-                {...form.register('especificacaoGenero')}
-              />
-            </div>
+              <SelectValue placeholder="Selecione o regime" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="20H">20 horas</SelectItem>
+              <SelectItem value="40H">40 horas</SelectItem>
+              <SelectItem value="DE">Dedicação Exclusiva</SelectItem>
+            </SelectContent>
+          </Select>
+          {form.formState.errors.regime && (
+            <p className="text-red-500 text-sm mt-1">
+              {form.formState.errors.regime.message}
+            </p>
           )}
         </div>
       </div>
@@ -652,26 +457,21 @@ function ProfessorForm() {
   );
 }
 
-const studentSchema = insertAlunoTableSchema.extend({
-  cr: z.coerce.number().min(1, 'CR é obrigatório'),
+// Schema simplificado para aluno
+const studentSchema = z.object({
+  nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
+  nomeSocial: z.string().optional(),
+  matricula: z.string().min(1, 'Matrícula é obrigatória'),
+  cpf: z.string().min(1, 'CPF é obrigatório'),
 });
 
-// Schema for professor form data
+// Schema simplificado para professor
 const professorSchema = z.object({
   nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
   nomeSocial: z.string().optional(),
   matriculaSiape: z.string().min(1, 'Matrícula SIAPE é obrigatória'),
   cpf: z.string().min(1, 'CPF é obrigatório'),
-  emailInstitucional: z
-    .string()
-    .email('Email institucional inválido')
-    .min(1, 'Email institucional é obrigatório'),
-  genero: z.string().min(1, 'Gênero é obrigatório'),
-  especificacaoGenero: z.string().optional(),
   regime: z.string().min(1, 'Regime é obrigatório'),
-  telefone: z.string().optional(),
-  telefoneInstitucional: z.string().optional(),
-  departamentoId: z.coerce.number().min(1, 'ID do departamento é obrigatório'),
 });
 
 type StudentFormData = z.infer<typeof studentSchema>;

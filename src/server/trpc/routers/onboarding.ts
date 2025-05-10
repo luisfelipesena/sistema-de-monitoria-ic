@@ -6,6 +6,12 @@ import { createTRPCRouter, privateProcedure } from '../init';
 export const onboardingRouter = createTRPCRouter({
   getStatus: privateProcedure.query(async ({ ctx }) => {
     const { id, role } = ctx.user;
+
+    // Admin não precisa de onboarding
+    if (role === 'admin') {
+      return { pending: false };
+    }
+
     if (role === 'student') {
       const aluno = await db.query.alunoTable.findFirst({
         where: eq(alunoTable.userId, id),

@@ -8,6 +8,9 @@ import { XMLParser } from 'fast-xml-parser';
 
 const log = logger.child({ context: 'AuthService' })
 
+// Lista de emails admin
+const ADMIN_EMAILS = ['luis.sena@ufba.br'];
+
 export class AuthService {
   getClientLoginRedirectUrl() {
     const serviceUrl = `${env.CLIENT_URL}/auth/login`
@@ -33,7 +36,10 @@ export class AuthService {
       let user = await db.query.userTable.findFirst({ where: eq(userTable.username, username) })
       if (!user) {
         const email = attributes['cas:mail'] || `${username}@ufba.br`
-        const [newUser] = await db.insert(userTable).values({ username, email, role: 'student' }).returning()
+        // Determinar o papel do usuário baseado no email
+        const role = ADMIN_EMAILS.includes(email) ? 'admin' : 'student'
+
+        const [newUser] = await db.insert(userTable).values({ username, email, role }).returning()
         user = newUser
       }
       if (!user) {
