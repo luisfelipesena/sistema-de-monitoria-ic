@@ -95,9 +95,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await logoutMutation.mutateAsync();
     } catch (error) {
-      log.error({ error }, 'Erro ao fazer logout');
+      log.warn({ error }, 'Erro ao fazer logout');
     } finally {
-      window.location.href = '/';
+      router.navigate({ to: '/' });
       setIsLoading(false);
     }
   }, [router]);

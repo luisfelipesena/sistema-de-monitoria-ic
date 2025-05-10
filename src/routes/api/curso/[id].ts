@@ -1,3 +1,4 @@
+import { cursoInputSchema } from '@/routes/api/curso/-types';
 import { db } from '@/server/database';
 import { alunoTable, cursoTable } from '@/server/database/schema';
 import { createAPIHandler, withAuthMiddleware } from '@/server/middleware/common';
@@ -6,7 +7,7 @@ import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
-import { cursoInputSchema } from '.';
+
 
 const log = logger.child({
   context: 'CursoDetailAPI',
