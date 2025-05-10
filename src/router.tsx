@@ -39,6 +39,7 @@ export function createRouter() {
       },
     },
   });
+
   const trpcClient = createTRPCClient<AppRouter>({
     links: [
       loggerLink({
@@ -50,6 +51,13 @@ export function createRouter() {
         },
       }),
       httpBatchStreamLink({
+        fetch(url, options) {
+          return fetch(url, {
+            ...options,
+            credentials: 'include',
+            body: options?.body as BodyInit,
+          });
+        },
         transformer: SuperJSON,
         url: getUrl(),
         headers,

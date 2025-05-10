@@ -9,25 +9,15 @@ import { XMLParser } from 'fast-xml-parser';
 const log = logger.child({ context: 'AuthService' })
 
 export class AuthService {
-  getLoginRedirectUrl() {
-    const casServerUrlPrefix = env.CAS_SERVER_URL_PREFIX
-    const clientUrl = env.CLIENT_URL
-    const serviceUrl = `${clientUrl}/auth/cas-callback`
-    const redirectUrl = `${casServerUrlPrefix}/login?service=${encodeURIComponent(serviceUrl)}`
+  getClientLoginRedirectUrl() {
+    const serviceUrl = `${env.CLIENT_URL}/auth/cas-callback`
+    const redirectUrl = `${env.CAS_SERVER_URL_PREFIX}/login?service=${encodeURIComponent(serviceUrl)}`
     return redirectUrl
   }
 
-  async handleCasCallback(ticket: string, serviceUrl: string, cookies: any) {
-    const casServerUrlPrefix = env.CAS_SERVER_URL_PREFIX
-    const validationUrl = `${casServerUrlPrefix}/serviceValidate?ticket=${ticket}&service=${encodeURIComponent(serviceUrl)}`
-    const response = await fetch(validationUrl)
-    const data = await response.text()
-    if (response.status !== 200) {
-      log.error(`CAS validation request failed with status ${response.status}:`, data)
-      return { success: false, error: 'CAS_HTTP_ERROR' }
-    }
+  async handleCasCallback(responseData: string, cookies: any) {
     const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '' })
-    const result = parser.parse(data)
+    const result = parser.parse(responseData)
     const serviceResponse = result['cas:serviceResponse']
     if (serviceResponse && serviceResponse['cas:authenticationSuccess']) {
       const authSuccess = serviceResponse['cas:authenticationSuccess']
@@ -41,19 +31,21 @@ export class AuthService {
       }
       if (!user) {
         log.error('User ID not determined after lookup/creation.')
-        return { success: false, error: 'USER_ID_MISSING' }
+        throw new Error('User ID not determined after lookup/creation.')
       }
       const session = await lucia.createSession(user.id, {})
       const sessionCookie = lucia.createSessionCookie(session.id)
-      cookies.setCookie(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
-      return { success: true }
+      cookies.setCookie(sessionCookie)
+
+      log.info(`Session created for user ${user.username}, sessionId: ${session.id}`)
+      return { success: true, sessionCookie }
     }
     if (serviceResponse && serviceResponse['cas:authenticationFailure']) {
       const failure = serviceResponse['cas:authenticationFailure']
       log.error('CAS Authentication failed:', failure)
-      return { success: false, error: 'CAS_AUTHENTICATION_FAILURE' }
+      throw new Error('CAS Authentication failed')
     }
     log.error('Unexpected CAS response format:', serviceResponse)
-    return { success: false, error: 'UNEXPECTED_CAS_RESPONSE_FORMAT' }
+    throw new Error('Unexpected CAS response format')
   }
 }

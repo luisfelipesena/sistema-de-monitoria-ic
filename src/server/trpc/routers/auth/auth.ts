@@ -1,5 +1,4 @@
 import { lucia } from '@/server/lib/auth';
-import { env } from '@/utils/env';
 import { z } from 'zod';
 import { createTRPCRouter, privateProcedure, publicProcedure } from '../../init';
 import { AuthService } from './service';
@@ -16,13 +15,11 @@ export const authRouter = createTRPCRouter({
     return { success: true };
   }),
   login: publicProcedure.mutation(async ({ ctx }) => {
-    return authService.getLoginRedirectUrl();
+    return authService.getClientLoginRedirectUrl();
   }),
-  casCallback: publicProcedure.input(z.object({ ticket: z.string() })).mutation(async ({ input, ctx }) => {
-    const ticket = input.ticket;
-    const serviceUrl = `${env.SERVER_URL}/auth/cas-callback`;
-    const result = await authService.handleCasCallback(ticket, serviceUrl, ctx.cookies);
-    if (result.success) return { success: true };
-    throw new Error(result.error || 'Erro na autenticação CAS');
+  casCallback: publicProcedure.input(z.object({ responseData: z.string() })).mutation(async ({ input, ctx }) => {
+    const { responseData } = input;
+    const result = await authService.handleCasCallback(responseData, ctx.cookies)
+    return result
   }),
 });

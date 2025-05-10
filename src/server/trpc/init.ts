@@ -1,6 +1,6 @@
 import { getSessionId } from '@/utils/lucia';
 import { initTRPC } from '@trpc/server';
-import cookie, { type SerializeOptions } from 'cookie';
+import cookie from 'cookie';
 import superjson from 'superjson';
 import { lucia } from '../lib/auth';
 
@@ -24,8 +24,8 @@ export async function createContext(req: Request, resHeaders: Headers) {
         const cookies = cookie.parse(cookieHeader);
         return cookies[name];
       },
-      setCookie(name: string, value: string, options?: SerializeOptions) {
-        resHeaders.append('Set-Cookie', cookie.serialize(name, value, options));
+      setCookie(sessionCookie: any) {
+        resHeaders.append('Set-Cookie', sessionCookie.serialize());
       },
       removeCookie(name: string) {
         resHeaders.delete(name);
