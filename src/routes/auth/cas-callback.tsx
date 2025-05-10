@@ -23,7 +23,7 @@ function CasCallbackPage() {
       return;
     }
 
-    navigate({ to: '/home', replace: true });
+    window.location.href = '/';
   }, [user, isLoading]);
 
   return (

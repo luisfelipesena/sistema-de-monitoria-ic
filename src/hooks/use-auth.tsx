@@ -75,7 +75,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setUser(userQuery?.id ? userQuery : null);
     setIsLoading(false);
-    console.log('userQuery', userQuery);
   }, [userQuery]);
 
   const signIn = useCallback(() => {

@@ -78,8 +78,6 @@ export function StudentForm() {
   };
 
   const onSubmit = form.handleSubmit(async (values) => {
-    // Validar se o histórico escolar está presente
-    console.log({ historicoEscolarFile, values });
     if (!historicoEscolarFile) {
       toast({
         title: 'Documento obrigatório',

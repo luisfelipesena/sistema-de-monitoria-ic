@@ -40,10 +40,10 @@ function HomeLayoutComponent() {
   }, [onboardingStatus, isLoading, statusLoading, location.pathname]);
 
   useEffect(() => {
-    if (!user && !isLoading) {
+    if (!user && !isLoading && !statusLoading) {
       signOut();
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, statusLoading]);
 
   return (
     <SidebarProvider>
