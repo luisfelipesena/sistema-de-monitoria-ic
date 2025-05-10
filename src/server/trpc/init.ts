@@ -40,6 +40,9 @@ const t = initTRPC.context<Context>().create({
 
 const isAuthed = t.middleware(async ({ ctx, next }) => {
   if (!ctx.session || !ctx.user) {
+    if (ctx.session) {
+      await lucia.invalidateSession(ctx.session?.id || '');
+    }
     ctx.cookies.removeCookie(lucia.sessionCookieName);
     throw new Error('Unauthorized');
   }

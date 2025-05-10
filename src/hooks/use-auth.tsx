@@ -1,6 +1,7 @@
 'use client';
 
 import { trpc } from '@/server/trpc/react';
+import { logger } from '@/utils/logger';
 import {
   type QueryObserverResult,
   type RefetchOptions,
@@ -39,6 +40,10 @@ interface AuthContextProps extends AuthState {
   ) => Promise<QueryObserverResult<User | undefined, TRPCClientErrorLike<any>>>;
 }
 
+const log = logger.child({
+  context: 'useAuth',
+});
+
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -49,6 +54,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isHydrated = useHydrated();
   const router = useRouter();
   const trpcUtils = trpc.useUtils();
+
+  const loginMutation = trpc.auth.login.useMutation({
+    onSuccess: (data) => {
+      window.location.href = data;
+    },
+  });
 
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
@@ -79,18 +90,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [queryData, queryLoading, isHydrated]);
 
   const signIn = useCallback(() => {
+    log.info({ user });
     if (user) {
       router.navigate({ to: '/home' });
       return;
     }
-    window.location.href = '/api/auth/cas-login';
+    loginMutation.mutate();
   }, [user, router]);
 
   const signOut = useCallback(async () => {
     setIsLoading(true);
     try {
       await logoutMutation.mutateAsync();
-      trpcUtils.auth.me.invalidate();
     } catch (error) {
       setUser(null);
     } finally {

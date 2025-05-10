@@ -21,17 +21,17 @@
     /* Secondary Brand Color */
     --secondary: 195 71% 50%;
     /* #31A8A0 */
-    --secondary-foreground: 195 71% 40%;
+    --secondary-foreground: 195 71% 90%;
 
     /* Secondary Light Blue */
-    --accent: 265 50% 90%;
+    --accent: 195 71% 50%;
     /* #E8DEFC */
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent-foreground: 195 71% 90%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Destructive Red - UFBA #C92F2F */
+    /* Destructive Red */
     --destructive: 355 71% 50%;
     --destructive-foreground: 355 71% 90%;
 
@@ -129,29 +129,4 @@ p {
 
 .body-small {
   @apply text-xs leading-5;
-}
-
-/* Variantes específicas do design system */
-.sidebar-link {
-  @apply flex items-center gap-2 rounded-md px-3 py-2 text-sidebar-foreground transition-colors hover:bg-sidebar-accent focus:bg-sidebar-accent focus:outline-none;
-}
-
-.sidebar-link.active {
-  @apply bg-sidebar-accent font-medium;
-}
-
-.card-section {
-  @apply rounded-lg border bg-card p-4 shadow-sm;
-}
-
-.badge-primary {
-  @apply rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground;
-}
-
-.badge-secondary {
-  @apply rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground;
-}
-
-.badge-outline {
-  @apply rounded-full border border-input bg-background px-2.5 py-0.5 text-xs font-medium;
 }
