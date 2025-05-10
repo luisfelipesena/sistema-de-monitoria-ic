@@ -55,6 +55,7 @@ export class CasCallbackService {
     log.info(`CAS Success for user: ${username}`);
     const userId = await this.getOrCreateUser(username, attributes);
 
+
     if (!userId) {
       log.error('User ID not determined after lookup/creation.');
       return this.redirectToError('USER_ID_MISSING');
@@ -70,6 +71,20 @@ export class CasCallbackService {
 
     if (existingUser) {
       log.info(`Found existing user: ${username}, ID: ${existingUser.id}`);
+
+      const ADMIN_EMAILS = ['luis.sena@ufba.br'];
+      if (ADMIN_EMAILS.includes(existingUser.email)) {
+        const [updatedUser] = await db
+          .update(userTable)
+          .set({
+            role: 'admin',
+          })
+          .where(eq(userTable.id, existingUser.id))
+          .returning({ id: userTable.id });
+
+        return updatedUser.id;
+      }
+
       return existingUser.id;
     }
 
