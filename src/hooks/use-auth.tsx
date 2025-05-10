@@ -76,8 +76,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logoutMutation = useLogoutMutation();
 
   useEffect(() => {
-    setUser(userQuery?.id ? userQuery : null);
-  }, [userQuery]);
+    if (!isLoadingUser) {
+      setUser(userQuery?.id ? userQuery : null);
+    }
+  }, [userQuery, isLoadingUser]);
 
   const signIn = useCallback(() => {
     if (user) {

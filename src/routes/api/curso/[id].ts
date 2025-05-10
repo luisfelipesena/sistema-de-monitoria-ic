@@ -1,7 +1,7 @@
 import { cursoInputSchema } from '@/routes/api/curso/-types';
 import { db } from '@/server/database';
 import { alunoTable, cursoTable } from '@/server/database/schema';
-import { createAPIHandler, withAuthMiddleware } from '@/server/middleware/common';
+import { createAPIHandler, withAuthMiddleware, withRoleMiddleware } from '@/server/middleware/common';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
@@ -44,15 +44,7 @@ export const APIRoute = createAPIFileRoute('/api/curso/[id]')({
 
   // Atualizar um curso
   PUT: createAPIHandler(
-    withAuthMiddleware(async (ctx) => {
-      // Verificar se o usuário é admin
-      if (ctx.state.user.role !== 'admin') {
-        return json(
-          { error: 'Acesso não autorizado' },
-          { status: 403 }
-        );
-      }
-
+    withRoleMiddleware(['admin'], async (ctx) => {
       try {
         const id = parseInt(ctx.params.id);
         if (isNaN(id)) {
