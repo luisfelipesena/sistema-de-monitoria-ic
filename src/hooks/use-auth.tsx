@@ -53,7 +53,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isHydrated = useHydrated();
   const router = useRouter();
-  const trpcUtils = trpc.useUtils();
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: (data) => {
@@ -61,13 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
-  const logoutMutation = trpc.auth.logout.useMutation({
-    onSuccess: () => {
-      trpcUtils.auth.me.invalidate();
-      router.navigate({ to: '/' });
-      setUser(null);
-    },
-  });
   const {
     data: queryData,
     refetch: refetchUserInternal,
@@ -90,7 +82,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [queryData, queryLoading, isHydrated]);
 
   const signIn = useCallback(() => {
-    log.info({ user });
     if (user) {
       router.navigate({ to: '/home' });
       return;
@@ -99,16 +90,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, router]);
 
   const signOut = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (error) {
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-      setIsAuthenticated(false);
-    }
-  }, [trpcUtils]);
+    window.location.href = '/auth/logout';
+  }, []);
 
   const refetchUser = useCallback(refetchUserInternal, [refetchUserInternal]);
 

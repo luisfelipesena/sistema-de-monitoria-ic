@@ -25,7 +25,9 @@ function getUrl() {
 }
 
 const headers = createIsomorphicFn()
-  .client(() => ({}))
+  .client(() => ({
+    credentials: 'include',
+  }))
   .server(() => getHeaders());
 
 export function createRouter() {

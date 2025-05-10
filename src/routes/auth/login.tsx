@@ -1,54 +1,59 @@
 'use client';
 
 import { Spinner } from '@/components/ui/spinner';
-import { useAuth } from '@/hooks/use-auth';
 import { env } from '@/utils/env';
 import { logger } from '@/utils/logger';
 import { createFileRoute, redirect } from '@tanstack/react-router';
+import { setCookie } from '@tanstack/react-start/server';
+import { useEffect } from 'react';
 import { z } from 'zod';
-const log = logger.child({ context: 'CasCallbackPage' });
+const log = logger.child({ context: 'LoginPage' });
 
-export const Route = createFileRoute('/auth/cas-callback')({
-  component: CasCallbackPage,
+export const Route = createFileRoute('/auth/login')({
+  component: LoginPage,
   validateSearch: z.object({
     ticket: z.string(),
   }),
   loaderDeps: ({ search }) => ({ ticket: search.ticket }),
   loader: async ({ context, deps }) => {
     try {
-      const { trpc } = context;
       try {
-        const user = await trpc.auth.me.query();
-        if (user) {
-          return redirect({ to: '/home' });
-        }
+        const result = await context.trpc.auth.me.query();
+        return { user: result };
       } catch (error) {
         log.warn({ error }, 'User not found, continuing...');
       }
 
       const ticket = deps.ticket;
       if (!ticket) {
-        return redirect({ to: '/' });
+        throw redirect({ to: '/' });
       }
 
-      const serviceUrl = `${env.CLIENT_URL}/auth/cas-callback`;
+      const serviceUrl = `${env.CLIENT_URL}/auth/login`;
       const validationUrl = `${env.CAS_SERVER_URL_PREFIX}/serviceValidate?ticket=${ticket}&service=${encodeURIComponent(serviceUrl)}`;
       const response = await fetch(validationUrl);
       const responseData = await response.text();
-      const result = await trpc.auth.casCallback.mutate({ responseData });
+      const result = await context.trpc.auth.loginCallback.mutate({
+        responseData,
+      });
+      setCookie(result.sessionCookie.name, result.sessionCookie.value);
       return {
-        success: result.success,
         sessionCookie: result.sessionCookie,
       };
     } catch (error) {
-      log.error(error);
-      return redirect({ to: '/' });
+      throw redirect({ to: '/' });
     }
   },
 });
 
-function CasCallbackPage() {
-  const { isLoading } = useAuth();
+function LoginPage() {
+  const { sessionCookie, user } = Route.useLoaderData();
+
+  useEffect(() => {
+    if (sessionCookie || user) {
+      window.location.href = '/home';
+    }
+  }, [sessionCookie, user]);
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-background">
@@ -57,18 +62,12 @@ function CasCallbackPage() {
           <h1 className="text-2xl font-bold">Autenticação UFBA</h1>
         </div>
         <div>
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Spinner />
-              <p className="mt-2 text-sm text-muted-foreground">
-                Você será redirecionado automaticamente.
-              </p>
-            </div>
-          ) : (
-            <div className="py-8 text-center">
-              <p>Autenticação bem-sucedida! Redirecionando...</p>
-            </div>
-          )}
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <Spinner />
+            <p className="mt-2 text-sm text-muted-foreground">
+              Você será redirecionado automaticamente.
+            </p>
+          </div>
         </div>
       </div>
     </div>

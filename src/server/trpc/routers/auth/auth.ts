@@ -17,9 +17,9 @@ export const authRouter = createTRPCRouter({
   login: publicProcedure.mutation(async ({ ctx }) => {
     return authService.getClientLoginRedirectUrl();
   }),
-  casCallback: publicProcedure.input(z.object({ responseData: z.string() })).mutation(async ({ input, ctx }) => {
+  loginCallback: publicProcedure.input(z.object({ responseData: z.string() })).mutation(async ({ input, ctx }) => {
     const { responseData } = input;
-    const result = await authService.handleCasCallback(responseData, ctx.cookies)
+    const result = await authService.handleLoginCallback(responseData, ctx.cookies)
     return result
   }),
 });

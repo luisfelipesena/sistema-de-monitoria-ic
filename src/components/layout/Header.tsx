@@ -63,7 +63,7 @@ export function Header() {
                 <Link to="/home/profile">Meu Perfil</Link>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => signOut()} asChild>
-                <Link to="/">Sair</Link>
+                <div>Sair</div>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

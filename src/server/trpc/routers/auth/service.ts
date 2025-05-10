@@ -10,12 +10,12 @@ const log = logger.child({ context: 'AuthService' })
 
 export class AuthService {
   getClientLoginRedirectUrl() {
-    const serviceUrl = `${env.CLIENT_URL}/auth/cas-callback`
+    const serviceUrl = `${env.CLIENT_URL}/auth/login`
     const redirectUrl = `${env.CAS_SERVER_URL_PREFIX}/login?service=${encodeURIComponent(serviceUrl)}`
     return redirectUrl
   }
 
-  async handleCasCallback(responseData: string, cookies: any) {
+  async handleLoginCallback(responseData: string, cookies: any) {
     const parser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '' })
     const result = parser.parse(responseData)
     const serviceResponse = result['cas:serviceResponse']
