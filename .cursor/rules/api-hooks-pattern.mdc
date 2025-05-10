@@ -1,0 +1,127 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# API and Hooks Pattern
+
+This rule defines the standard pattern for implementing API routes with TanStack Start and consuming them with React Query hooks.
+
+## API Routes Structure
+
+All API routes should be placed in the `src/routes/api` directory, following a feature-based folder structure. Each feature should have its own directory (e.g., `curso`, `departamento`, `files`).
+
+### API Route Implementation Pattern
+
+API routes should:
+
+1. Use `createAPIFileRoute` and `createAPIHandler` from TanStack
+2. Include proper error handling with logging
+3. Use Zod for input validation
+4. Return structured responses using `json` helper
+
+Example:
+
+```typescript
+import { createAPIHandler } from '@/server/middleware/common';
+import { logger } from '@/utils/logger';
+import { json } from '@tanstack/react-start';
+import { createAPIFileRoute } from '@tanstack/react-start/api';
+import { z } from 'zod';
+
+const log = logger.child({
+  context: 'FeatureNameAPI',
+});
+
+// Optional schema if the endpoint accepts input
+const inputSchema = z.object({
+  // schema definition
+});
+
+export type InputType = z.infer<typeof inputSchema>;
+
+// Response schema for typing
+export const responseSchema = z.object({
+  // response schema definition
+});
+
+export type ResponseType = z.infer<typeof responseSchema>;
+
+export const APIRoute = createAPIFileRoute('/api/feature-name')({
+  GET: createAPIHandler(async (ctx) => {
+    try {
+      // Implementation logic
+      
+      log.info('Operation successful');
+      return json(data, { status: 200 });
+    } catch (error) {
+      log.error(error, 'Error message');
+      return json({ error: 'Error message' }, { status: 500 });
+    }
+  }),
+});
+```
+
+## Frontend Hooks
+
+Frontend hooks should be placed in the `src/hooks` directory with a filename that matches the feature name (e.g., `use-curso.ts`, `use-files.ts`).
+
+### Hook Implementation Pattern
+
+Hooks should:
+
+1. Use the centralized `QueryKeys` from `query-keys.ts`
+2. Properly type the request and response data
+3. Extract the `.data` property from axios responses
+4. Use proper React Query hooks (`useQuery`, `useMutation`)
+
+Example:
+
+```typescript
+import { apiClient } from '@/utils/api-client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { QueryKeys } from './query-keys';
+import { ResponseType, InputType } from '@/routes/api/feature-name';
+
+export function useFeatureList() {
+  return useQuery<ResponseType[]>({
+    queryKey: QueryKeys.featureName.list,
+    queryFn: async () => {
+      const response = await apiClient.get<ResponseType[]>('/feature-name');
+      return response.data;
+    },
+  });
+}
+
+export function useFeatureCreate() {
+  const queryClient = useQueryClient();
+  
+  return useMutation<ResponseType, Error, InputType>({
+    mutationFn: async (input) => {
+      const response = await apiClient.post<ResponseType>('/feature-name', input);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.featureName.list });
+    },
+  });
+}
+```
+
+## QueryKeys Structure
+
+All query keys should be defined in `src/hooks/query-keys.ts` following the pattern:
+
+```typescript
+export const QueryKeys = {
+  // ... other keys
+  
+  featureName: {
+    list: ['featureName', 'list'],
+    byId: (id: string) => ['featureName', id],
+    // other query keys for this feature
+  },
+};
+```
+
+Always update this file when adding new API routes to maintain consistency across the application.

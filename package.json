@@ -14,7 +14,8 @@
     "db:drop": "drizzle-kit drop",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "deploy": "bash deploy.sh"
+    "deploy": "bash deploy.sh",
+    "seed": "tsx src/server/database/migrations/0001_initial_seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -55,13 +56,11 @@
     "@tanstack/react-router-devtools": "^1.117.1",
     "@tanstack/react-router-with-query": "^1.117.1",
     "@tanstack/react-start": "^1.117.2",
-    "@trpc/client": "^11.1.2",
-    "@trpc/react-query": "^11.1.2",
-    "@trpc/server": "^11.1.2",
-    "@trpc/tanstack-react-query": "^11.1.2",
+    "@tanstack/react-table": "^8.21.3",
     "@types/cookies": "^0.9.0",
     "@types/formidable": "^3.4.5",
     "@types/uuid": "^10.0.0",
+    "axios": "^1.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

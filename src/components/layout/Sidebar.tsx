@@ -7,21 +7,45 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { useAuth } from '@/hooks/use-auth';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { FolderKanban, LayoutDashboard, Settings, User } from 'lucide-react';
+import {
+  BookOpen,
+  Building,
+  FileText,
+  FolderKanban,
+  GraduationCap,
+  LayoutDashboard,
+  User,
+  Users,
+} from 'lucide-react';
 
 type SidebarLayoutProps = {
   pathname: string;
 };
 
 export function SidebarLayout({ pathname }: SidebarLayoutProps) {
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { user } = useAuth();
+  const { isLessThanMediumDesktop, setOpenCompactSidebarView } = useSidebar();
   const navigate = useNavigate();
 
   function handleNavigate(to: string) {
     navigate({ to });
-    if (isMobile) setOpenMobile(false);
+    if (isLessThanMediumDesktop) setOpenCompactSidebarView(false);
   }
+
+  // Menu de administrador
+  const adminMenu = [
+    { label: 'Cursos', href: '/home/admin/cursos', icon: GraduationCap },
+    {
+      label: 'Departamentos',
+      href: '/home/admin/departamentos',
+      icon: Building,
+    },
+    { label: 'Usuários', href: '/home/admin/users', icon: Users },
+    { label: 'Disciplinas', href: '/home/admin/disciplinas', icon: BookOpen },
+    { label: 'Arquivos', href: '/home/admin/files', icon: FileText },
+  ];
 
   return (
     <Sidebar className="z-30">
@@ -50,6 +74,7 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
@@ -63,19 +88,7 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname.startsWith('/home/test')}
-              tooltip="Teste"
-              onClick={() => handleNavigate('/home/test')}
-            >
-              <Link to="/home/test">
-                <FolderKanban />
-                <span>Teste</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
@@ -89,19 +102,33 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname.startsWith('/home/admin/files')}
-              tooltip="Administração"
-              onClick={() => handleNavigate('/home/admin/files')}
-            >
-              <Link to="/home/admin/files">
-                <Settings />
-                <span>Administração</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+
+          {/* Menu de Administração */}
+          {user?.role === 'admin' && (
+            <>
+              <div className="mt-6 mb-2 px-3">
+                <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Administração
+                </h2>
+              </div>
+
+              {adminMenu.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href}
+                    tooltip={item.label}
+                    onClick={() => handleNavigate(item.href)}
+                  >
+                    <Link to={item.href}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </>
+          )}
         </SidebarMenu>
       </SidebarContent>
     </Sidebar>

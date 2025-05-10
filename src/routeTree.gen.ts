@@ -15,7 +15,6 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
-import { Route as AuthLoginImport } from './routes/auth/login'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
 import { Route as HomeLayoutTestIndexImport } from './routes/home/_layout/test/index'
@@ -23,6 +22,7 @@ import { Route as HomeLayoutProjectsIndexImport } from './routes/home/_layout/pr
 import { Route as HomeLayoutProfileIndexImport } from './routes/home/_layout/profile/index'
 import { Route as HomeLayoutOnboardingIndexImport } from './routes/home/_layout/onboarding/index'
 import { Route as HomeLayoutAdminFilesImport } from './routes/home/_layout/admin/files'
+import { Route as HomeLayoutAdminCursosImport } from './routes/home/_layout/admin/cursos'
 
 // Create Virtual Routes
 
@@ -45,12 +45,6 @@ const IndexRoute = IndexImport.update({
 const HomeLayoutRoute = HomeLayoutImport.update({
   id: '/_layout',
   getParentRoute: () => HomeRoute,
-} as any)
-
-const AuthLoginRoute = AuthLoginImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
-  getParentRoute: () => rootRoute,
 } as any)
 
 const AuthCasCallbackRoute = AuthCasCallbackImport.update({
@@ -95,6 +89,12 @@ const HomeLayoutAdminFilesRoute = HomeLayoutAdminFilesImport.update({
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
+const HomeLayoutAdminCursosRoute = HomeLayoutAdminCursosImport.update({
+  id: '/admin/cursos',
+  path: '/admin/cursos',
+  getParentRoute: () => HomeLayoutRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -111,13 +111,6 @@ declare module '@tanstack/react-router' {
       path: '/auth/cas-callback'
       fullPath: '/auth/cas-callback'
       preLoaderRoute: typeof AuthCasCallbackImport
-      parentRoute: typeof rootRoute
-    }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginImport
       parentRoute: typeof rootRoute
     }
     '/home': {
@@ -139,6 +132,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/home/'
       preLoaderRoute: typeof HomeLayoutIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
+    '/home/_layout/admin/cursos': {
+      id: '/home/_layout/admin/cursos'
+      path: '/admin/cursos'
+      fullPath: '/home/admin/cursos'
+      preLoaderRoute: typeof HomeLayoutAdminCursosImport
       parentRoute: typeof HomeLayoutImport
     }
     '/home/_layout/admin/files': {
@@ -183,6 +183,7 @@ declare module '@tanstack/react-router' {
 
 interface HomeLayoutRouteChildren {
   HomeLayoutIndexRoute: typeof HomeLayoutIndexRoute
+  HomeLayoutAdminCursosRoute: typeof HomeLayoutAdminCursosRoute
   HomeLayoutAdminFilesRoute: typeof HomeLayoutAdminFilesRoute
   HomeLayoutOnboardingIndexRoute: typeof HomeLayoutOnboardingIndexRoute
   HomeLayoutProfileIndexRoute: typeof HomeLayoutProfileIndexRoute
@@ -192,6 +193,7 @@ interface HomeLayoutRouteChildren {
 
 const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutIndexRoute: HomeLayoutIndexRoute,
+  HomeLayoutAdminCursosRoute: HomeLayoutAdminCursosRoute,
   HomeLayoutAdminFilesRoute: HomeLayoutAdminFilesRoute,
   HomeLayoutOnboardingIndexRoute: HomeLayoutOnboardingIndexRoute,
   HomeLayoutProfileIndexRoute: HomeLayoutProfileIndexRoute,
@@ -216,9 +218,9 @@ const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
-  '/auth/login': typeof AuthLoginRoute
   '/home': typeof HomeLayoutRouteWithChildren
   '/home/': typeof HomeLayoutIndexRoute
+  '/home/admin/cursos': typeof HomeLayoutAdminCursosRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/onboarding': typeof HomeLayoutOnboardingIndexRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
@@ -229,8 +231,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
-  '/auth/login': typeof AuthLoginRoute
   '/home': typeof HomeLayoutIndexRoute
+  '/home/admin/cursos': typeof HomeLayoutAdminCursosRoute
   '/home/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/onboarding': typeof HomeLayoutOnboardingIndexRoute
   '/home/profile': typeof HomeLayoutProfileIndexRoute
@@ -242,10 +244,10 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
-  '/auth/login': typeof AuthLoginRoute
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
   '/home/_layout/': typeof HomeLayoutIndexRoute
+  '/home/_layout/admin/cursos': typeof HomeLayoutAdminCursosRoute
   '/home/_layout/admin/files': typeof HomeLayoutAdminFilesRoute
   '/home/_layout/onboarding/': typeof HomeLayoutOnboardingIndexRoute
   '/home/_layout/profile/': typeof HomeLayoutProfileIndexRoute
@@ -258,9 +260,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth/cas-callback'
-    | '/auth/login'
     | '/home'
     | '/home/'
+    | '/home/admin/cursos'
     | '/home/admin/files'
     | '/home/onboarding'
     | '/home/profile'
@@ -270,8 +272,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth/cas-callback'
-    | '/auth/login'
     | '/home'
+    | '/home/admin/cursos'
     | '/home/admin/files'
     | '/home/onboarding'
     | '/home/profile'
@@ -281,10 +283,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth/cas-callback'
-    | '/auth/login'
     | '/home'
     | '/home/_layout'
     | '/home/_layout/'
+    | '/home/_layout/admin/cursos'
     | '/home/_layout/admin/files'
     | '/home/_layout/onboarding/'
     | '/home/_layout/profile/'
@@ -296,14 +298,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthCasCallbackRoute: typeof AuthCasCallbackRoute
-  AuthLoginRoute: typeof AuthLoginRoute
   HomeRoute: typeof HomeRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthCasCallbackRoute: AuthCasCallbackRoute,
-  AuthLoginRoute: AuthLoginRoute,
   HomeRoute: HomeRouteWithChildren,
 }
 
@@ -319,7 +319,6 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/auth/cas-callback",
-        "/auth/login",
         "/home"
       ]
     },
@@ -328,9 +327,6 @@ export const routeTree = rootRoute
     },
     "/auth/cas-callback": {
       "filePath": "auth/cas-callback.tsx"
-    },
-    "/auth/login": {
-      "filePath": "auth/login.tsx"
     },
     "/home": {
       "filePath": "home",
@@ -343,6 +339,7 @@ export const routeTree = rootRoute
       "parent": "/home",
       "children": [
         "/home/_layout/",
+        "/home/_layout/admin/cursos",
         "/home/_layout/admin/files",
         "/home/_layout/onboarding/",
         "/home/_layout/profile/",
@@ -352,6 +349,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/": {
       "filePath": "home/_layout/index.tsx",
+      "parent": "/home/_layout"
+    },
+    "/home/_layout/admin/cursos": {
+      "filePath": "home/_layout/admin/cursos.tsx",
       "parent": "/home/_layout"
     },
     "/home/_layout/admin/files": {

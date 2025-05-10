@@ -1,6 +1,8 @@
+import { TableComponent } from '@/components/layout/TableComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { createFileRoute } from '@tanstack/react-router';
+import { ColumnDef } from '@tanstack/react-table';
 import {
   Calendar,
   Eye,
@@ -73,6 +75,120 @@ function HomePage() {
     },
   ];
 
+  // Definição de colunas para o TableComponent
+  const columns: ColumnDef<(typeof editais)[0]>[] = [
+    {
+      accessorKey: 'disciplina',
+      header: () => (
+        <div className="flex items-center gap-2">
+          <List className="h-5 w-5 text-gray-400" />
+          Componente curricular
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="font-semibold text-base text-gray-900">
+          {row.original.disciplina}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'professor',
+      header: () => (
+        <div className="flex items-center gap-2">
+          <User className="h-5 w-5 text-gray-400" />
+          Docente
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-base">{row.original.professor}</div>
+      ),
+    },
+    {
+      accessorKey: 'tipo',
+      header: () => (
+        <div className="flex items-center gap-2">
+          <List className="h-5 w-5 text-gray-400" />
+          Tipo
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div>
+          {row.original.tipo === 'Voluntário' ? (
+            <Badge variant="secondary" className="rounded-full">
+              Voluntário
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="rounded-full">
+              Bolsista
+            </Badge>
+          )}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'dataLimite',
+      header: () => (
+        <div className="flex items-center justify-center gap-2">
+          <Calendar className="h-5 w-5 text-gray-400" />
+          Data Limite
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">{row.original.dataLimite}</div>
+      ),
+    },
+    {
+      accessorKey: 'vagas',
+      header: () => (
+        <div className="flex items-center justify-center gap-2">
+          <Users className="h-5 w-5 text-gray-400" />
+          Nº de vagas
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center text-base">{row.original.vagas}</div>
+      ),
+    },
+    {
+      accessorKey: 'editalUrl',
+      header: () => (
+        <div className="flex items-center gap-2">
+          <LinkIcon className="h-5 w-5 text-gray-400" />
+          Edital
+        </div>
+      ),
+      cell: ({ row }) => (
+        <a
+          href={row.original.editalUrl}
+          className="text-primary hover:underline font-medium"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {row.original.editalUrl}
+        </a>
+      ),
+    },
+    {
+      id: 'actions',
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Eye className="h-5 w-5 text-gray-400" />
+          Ações
+        </div>
+      ),
+      cell: () => (
+        <Button
+          variant="primary"
+          size="sm"
+          className="rounded-full flex items-center gap-1"
+        >
+          <Eye className="h-4 w-4" />
+          Inscrever
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Welcome message */}
@@ -82,107 +198,14 @@ function HomePage() {
       <h2 className="text-2xl font-normal mb-6">
         Todos os editais abertos para monitoria com bolsa e voluntários
       </h2>
-      <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
-        <table className="w-full caption-bottom text-sm">
-          <thead>
-            <tr className="border-b">
-              <th className="h-14 px-4 text-left font-bold text-lg text-gray-900 whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  <List className="h-5 w-5 text-gray-400" />
-                  Componente curricular
-                </div>
-              </th>
-              <th className="h-14 px-4 text-left font-bold text-lg text-gray-900 whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-gray-400" />
-                  Docente
-                </div>
-              </th>
-              <th className="h-14 px-4 text-left font-bold text-lg text-gray-900 whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  <List className="h-5 w-5 text-gray-400" />
-                  Tipo
-                </div>
-              </th>
-              <th className="h-14 px-4 text-center font-bold text-lg text-gray-900 whitespace-nowrap">
-                <div className="flex items-center justify-center gap-2">
-                  <Calendar className="h-5 w-5 text-gray-400" />
-                  Data Limite
-                </div>
-              </th>
-              <th className="h-14 px-4 text-center font-bold text-lg text-gray-900 whitespace-nowrap">
-                <div className="flex items-center justify-center gap-2">
-                  <Users className="h-5 w-5 text-gray-400" />
-                  Nº de vagas
-                </div>
-              </th>
-              <th className="h-14 px-4 text-left font-bold text-lg text-gray-900 whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  <LinkIcon className="h-5 w-5 text-gray-400" />
-                  Edital
-                </div>
-              </th>
-              <th className="h-14 px-4 text-left font-bold text-lg text-gray-900 whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  <Eye className="h-5 w-5 text-gray-400" />
-                  Ações
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {editais.map((edital) => (
-              <tr
-                key={edital.id}
-                className="border-b last:border-0 hover:bg-gray-50 transition-colors"
-              >
-                <td className="p-4 align-middle font-semibold text-base text-gray-900">
-                  {edital.disciplina}
-                </td>
-                <td className="p-4 align-middle text-base">
-                  {edital.professor}
-                </td>
-                <td className="p-4 align-middle">
-                  {edital.tipo === 'Voluntário' ? (
-                    <Badge variant="volunteer" rounded="full">
-                      Voluntário
-                    </Badge>
-                  ) : (
-                    <Badge variant="info" rounded="full">
-                      Bolsista
-                    </Badge>
-                  )}
-                </td>
-                <td className="p-4 align-middle text-center">
-                  {edital.dataLimite}
-                </td>
-                <td className="p-4 align-middle text-center text-base">
-                  {edital.vagas}
-                </td>
-                <td className="p-4 align-middle">
-                  <a
-                    href={edital.editalUrl}
-                    className="text-primary hover:underline font-medium"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {edital.editalUrl}
-                  </a>
-                </td>
-                <td className="p-4 align-middle">
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    className="rounded-full flex items-center gap-1"
-                  >
-                    <Eye className="h-4 w-4" />
-                    Inscrever
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      <div className="overflow-hidden bg-white rounded-xl shadow-sm border border-gray-200">
+        <TableComponent
+          columns={columns}
+          data={editais}
+          searchableColumn="disciplina"
+          searchPlaceholder="Buscar por disciplina..."
+        />
       </div>
     </div>
   );

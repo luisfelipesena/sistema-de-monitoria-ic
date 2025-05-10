@@ -1,5 +1,6 @@
 'use client';
 
+import { TableComponent } from '@/components/layout/TableComponent';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,17 +22,9 @@ import {
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Spinner } from '@/components/ui/spinner';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   useAdminFileDelete,
-  useAdminFilesList,
-  useFilePresignedUrl,
+  useAdminFileList,
+  useAdminFilePresignedUrl,
 } from '@/hooks/use-files';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -41,6 +34,7 @@ import {
 import { logger } from '@/utils/logger';
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { Eye, Loader2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -59,10 +53,10 @@ function AdminFilesPage() {
   const [fileToDelete, setFileToDelete] = useState<FileListItem | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const { data: files, isLoading, error, refetch } = useAdminFilesList();
+  const { data: files, isLoading, error, refetch } = useAdminFileList();
 
   const deleteMutation = useAdminFileDelete();
-  const viewMutation = useFilePresignedUrl();
+  const viewMutation = useAdminFilePresignedUrl();
 
   const openDeleteDialog = (file: FileListItem) => {
     setFileToDelete(file);
@@ -76,7 +70,7 @@ function AdminFilesPage() {
 
   const confirmDelete = () => {
     if (fileToDelete) {
-      deleteMutation.mutate(fileToDelete.objectName, {
+      deleteMutation.mutate(fileToDelete, {
         onSuccess: (data) => {
           toast({ title: 'Sucesso', description: data.message });
           log.info(`Arquivo ${fileToDelete.objectName} excluído.`);
@@ -95,8 +89,8 @@ function AdminFilesPage() {
     }
   };
 
-  const handleViewFile = (objectName: string) => {
-    viewMutation.mutate(objectName, {
+  const handleViewFile = (file: FileListItem) => {
+    viewMutation.mutate(file, {
       onSuccess: (data) => {
         window.open(data.url, '_blank');
       },
@@ -127,6 +121,83 @@ function AdminFilesPage() {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   };
+
+  // Definição de colunas para o TableComponent
+  const columns: ColumnDef<FileListItem>[] = [
+    {
+      accessorKey: 'originalFilename',
+      header: 'Nome Original',
+      cell: ({ row }) => (
+        <div
+          className="font-medium truncate max-w-xs"
+          title={row.original.originalFilename || '-'}
+        >
+          {row.original.originalFilename || '-'}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'objectName',
+      header: 'Caminho (Objeto)',
+      cell: ({ row }) => (
+        <div className="truncate max-w-xs" title={row.original.objectName}>
+          {row.original.objectName}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'size',
+      header: 'Tamanho',
+      cell: ({ row }) => formatBytes(row.original.size),
+    },
+    {
+      accessorKey: 'lastModified',
+      header: 'Última Modificação',
+      cell: ({ row }) =>
+        format(new Date(row.original.lastModified), 'dd/MM/yyyy HH:mm'),
+    },
+    {
+      id: 'actions',
+      header: 'Ações',
+      cell: ({ row }) => {
+        const file = row.original;
+        return (
+          <div className="flex space-x-2">
+            <Button
+              variant="transparent"
+              size="icon"
+              onClick={() => handleViewFile(file)}
+              disabled={
+                viewMutation.isPending && viewMutation.variables === file
+              }
+              title="Visualizar/Baixar"
+            >
+              {viewMutation.isPending && viewMutation.variables === file ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </Button>
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={() => openDeleteDialog(file)}
+              disabled={
+                deleteMutation.isPending && deleteMutation.variables === file
+              }
+              title="Excluir"
+            >
+              {deleteMutation.isPending && deleteMutation.variables === file ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
+        );
+      },
+    },
+  ];
 
   if (isLoading && !files) {
     return (
@@ -180,77 +251,12 @@ function AdminFilesPage() {
           <Spinner /> Carregando lista...
         </div>
       ) : files && files.length > 0 ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome Original</TableHead>
-              <TableHead>Caminho (Objeto)</TableHead>
-              <TableHead>Tamanho</TableHead>
-              <TableHead>Última Modificação</TableHead>
-              <TableHead>Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {files.map((file) => (
-              <TableRow key={file.objectName}>
-                <TableCell
-                  className="font-medium truncate max-w-xs"
-                  title={file.originalFilename}
-                >
-                  {file.originalFilename || '-'}
-                </TableCell>
-                <TableCell
-                  className="truncate max-w-xs"
-                  title={file.objectName}
-                >
-                  {file.objectName}
-                </TableCell>
-                <TableCell>{formatBytes(file.size)}</TableCell>
-                <TableCell>
-                  {format(new Date(file.lastModified), 'dd/MM/yyyy HH:mm')}
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="transparent"
-                      size="icon"
-                      onClick={() => handleViewFile(file.objectName)}
-                      disabled={
-                        viewMutation.isPending &&
-                        viewMutation.variables === file.objectName
-                      }
-                      title="Visualizar/Baixar"
-                    >
-                      {viewMutation.isPending &&
-                      viewMutation.variables === file.objectName ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => openDeleteDialog(file)}
-                      disabled={
-                        deleteMutation.isPending &&
-                        deleteMutation.variables === file.objectName
-                      }
-                      title="Excluir"
-                    >
-                      {deleteMutation.isPending &&
-                      deleteMutation.variables === file.objectName ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <TableComponent
+          columns={columns}
+          data={files}
+          searchableColumn="originalFilename"
+          searchPlaceholder="Buscar por nome de arquivo..."
+        />
       ) : (
         <p className="py-4 text-center text-muted-foreground">
           Nenhum arquivo encontrado no bucket.

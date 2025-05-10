@@ -1,19 +1,17 @@
 'use client';
 
-import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
+import { SidebarLayout } from '@/components/layout/Sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
-import { trpc } from '@/server/trpc/react';
-
-import { SidebarLayout } from '@/components/layout/Sidebar';
+import { useOnboardingStatus } from '@/hooks/use-onboarding';
 import {
   Outlet,
   createFileRoute,
   useLocation,
   useNavigate,
 } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export const Route = createFileRoute('/home/_layout')({
   component: HomeLayoutComponent,
@@ -21,35 +19,36 @@ export const Route = createFileRoute('/home/_layout')({
 
 function HomeLayoutComponent() {
   const { user, isLoading, signOut } = useAuth();
-  const { data: onboardingPending } = trpc.onboarding.getStatus.useQuery();
   const location = useLocation();
-  const [isSignedOut, setIsSignedOut] = useState(false);
   const navigate = useNavigate();
 
+  const { data: onboardingStatus, isLoading: statusLoading } =
+    useOnboardingStatus();
+
   useEffect(() => {
-    if (!user && !isLoading && !isSignedOut) {
+    if (!isLoading && !statusLoading && onboardingStatus) {
+      console.log('onboardingStatus', onboardingStatus);
+      if (onboardingStatus.pending) {
+        navigate({ to: '/home/onboarding' });
+      }
+    }
+  }, [onboardingStatus, isLoading, statusLoading]);
+
+  useEffect(() => {
+    if (!user && !isLoading) {
       signOut();
-      setIsSignedOut(true);
     }
-  }, [user, isLoading, isSignedOut]);
-
-  useEffect(() => {
-    if (onboardingPending && location.pathname.includes('/home')) {
-      // navigate({ to: '/home/onboarding' });
-    }
-  }, [onboardingPending, location.pathname]);
-
-  if (isLoading) return null;
+  }, [user, isLoading]);
 
   return (
     <SidebarProvider>
       <SidebarLayout pathname={location.pathname} />
+
       <SidebarInset>
         <Header />
-        <main className="flex-1 min-h-screen p-6">
+        <main className="flex-1 p-6 overflow-auto">
           <Outlet />
         </main>
-        <Footer />
       </SidebarInset>
     </SidebarProvider>
   );

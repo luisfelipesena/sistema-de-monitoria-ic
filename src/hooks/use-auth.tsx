@@ -1,16 +1,15 @@
 'use client';
 
-import { trpc } from '@/server/trpc/react';
-import { fetchApi } from '@/utils/fetchApi';
+import { apiClient } from '@/utils/api-client';
 import {
+  useMutation,
+  useQuery,
+  useQueryClient,
   type QueryObserverResult,
   type RefetchOptions,
-  useQueryClient,
 } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
-import { TRPCClientErrorLike } from '@trpc/client';
-import { DefaultErrorShape } from '@trpc/server/unstable-core-do-not-import';
-import type { User } from 'lucia';
+import { User } from 'lucia';
 import React, {
   createContext,
   useCallback,
@@ -19,14 +18,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-
-function useHydrated() {
-  const [isHydrated, setIsHydrated] = useState(false);
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-  return isHydrated;
-}
+import { QueryKeys } from './query-keys';
 
 interface AuthState {
   user: User | null;
@@ -37,20 +29,35 @@ interface AuthState {
 interface AuthContextProps extends AuthState {
   signOut: () => Promise<void>;
   signIn: () => void;
-  refetchUser: (options?: RefetchOptions) => Promise<
-    QueryObserverResult<
-      User,
-      TRPCClientErrorLike<{
-        input: void;
-        output: User;
-        transformer: true;
-        errorShape: DefaultErrorShape;
-      }>
-    >
-  >;
+  refetchUser: (
+    options?: RefetchOptions,
+  ) => Promise<QueryObserverResult<User | null, Error>>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+
+const useMeQuery = () => {
+  return useQuery<User | null, Error>({
+    queryKey: QueryKeys.auth.me,
+    queryFn: async () => {
+      const response = await apiClient.get<User>('/auth/me');
+      return response.data;
+    },
+    retry: false,
+  });
+};
+
+const useLogoutMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await apiClient.post('/auth/logout');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.auth.me });
+    },
+  });
+};
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -58,12 +65,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { data: userQuery, refetch: refetchUserInternal } =
-    trpc.auth.me.useQuery();
+  const { data: userQuery, refetch: refetchUserInternal } = useMeQuery();
+  const logoutMutation = useLogoutMutation();
 
   useEffect(() => {
     if (userQuery) {
       setUser(userQuery);
+      setIsLoading(false);
+    } else if (userQuery === null) {
+      setUser(null);
       setIsLoading(false);
     }
   }, [userQuery]);
@@ -79,13 +89,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     setIsLoading(true);
     try {
-      await fetchApi('/auth/signout');
+      await logoutMutation.mutateAsync();
       setUser(null);
-      await queryClient.invalidateQueries({ queryKey: ['authUser'] });
+      await queryClient.invalidateQueries({ queryKey: QueryKeys.auth.me });
       router.navigate({ to: '/' });
     } catch (error) {
       setUser(null);
-      await queryClient.invalidateQueries({ queryKey: ['authUser'] });
+      await queryClient.invalidateQueries({ queryKey: QueryKeys.auth.me });
     } finally {
       setIsLoading(false);
     }
