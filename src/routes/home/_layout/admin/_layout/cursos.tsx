@@ -1,3 +1,4 @@
+import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -35,7 +36,7 @@ const log = logger.child({
   context: 'admin-cursos',
 });
 
-export const Route = createFileRoute('/home/_layout/admin/cursos')({
+export const Route = createFileRoute('/home/_layout/admin/_layout/cursos')({
   component: CursosPage,
 });
 
@@ -193,34 +194,30 @@ function CursosPage() {
     }
   };
 
-  return (
-    <div className="container mx-auto py-10 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Gerenciar Cursos</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Crie e gerencie os cursos disponíveis no sistema
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => navigate({ to: '/home/admin/seed-cursos' })}
-            className="flex items-center gap-2"
-          >
-            <Database size={16} />
-            <span>Importação em Massa</span>
-          </Button>
-          <Button
-            onClick={() => openDialog()}
-            className="flex items-center gap-2"
-          >
-            <PlusCircle size={16} />
-            <span>Adicionar Curso</span>
-          </Button>
-        </div>
-      </div>
+  // Actions to pass to PagesLayout
+  const actions = (
+    <div className="flex gap-2">
+      <Button
+        variant="outline"
+        onClick={() => navigate({ to: '/home/admin/seed-cursos' })}
+        className="flex items-center gap-2"
+      >
+        <Database size={16} />
+        <span>Importação em Massa</span>
+      </Button>
+      <Button onClick={() => openDialog()} className="flex items-center gap-2">
+        <PlusCircle size={16} />
+        <span>Adicionar Curso</span>
+      </Button>
+    </div>
+  );
 
+  return (
+    <PagesLayout
+      title="Gerenciar Cursos"
+      subtitle="Crie e gerencie os cursos disponíveis no sistema"
+      actions={actions}
+    >
       {isLoading ? (
         <div className="flex justify-center py-10">Carregando cursos...</div>
       ) : !cursos?.length ? (
@@ -415,6 +412,6 @@ function CursosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PagesLayout>
   );
 }

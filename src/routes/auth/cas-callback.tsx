@@ -11,22 +11,22 @@ export const Route = createFileRoute('/auth/cas-callback')({
 
 function CasCallbackPage() {
   const navigate = useNavigate();
-  const { isLoading, user, refetchUser } = useAuth();
+  const { isLoading, user } = useAuth();
 
   const handleRedirect = useCallback(async () => {
-    const user = await refetchUser();
-
     if (!user) {
       navigate({ to: '/', replace: true });
       return;
     }
 
     navigate({ to: '/home', replace: true });
-  }, [isLoading, refetchUser, user, navigate]);
+  }, [user]);
 
   useEffect(() => {
-    handleRedirect();
-  }, []);
+    if (!isLoading) {
+      handleRedirect();
+    }
+  }, [isLoading]);
 
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-background">

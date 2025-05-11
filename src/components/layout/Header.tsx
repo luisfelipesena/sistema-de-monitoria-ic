@@ -1,4 +1,3 @@
-import { Link } from '@tanstack/react-router';
 import { Bell, MessageSquare } from 'lucide-react';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -59,9 +58,6 @@ export function Header() {
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to="/home/profile">Meu Perfil</Link>
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => signOut()} asChild>
                 <div>Sair</div>
               </DropdownMenuItem>
