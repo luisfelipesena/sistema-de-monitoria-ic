@@ -14,6 +14,7 @@ import {
   FolderKanban,
   GraduationCap,
   LayoutDashboard,
+  Monitor,
   User,
   Users,
   type LucideIcon,
@@ -39,6 +40,12 @@ const menuItemsConfig: MenuItemConfig[] = [
     href: (role) => `/home/${role}/dashboard`, // repetir isso para todas rotas onde se diferencia o role
     icon: LayoutDashboard,
     roles: ['admin', 'professor', 'student'],
+  },
+  {
+    label: 'Monitoria',
+    href: '/home/common/monitoria',
+    icon: Monitor,
+    roles: ['professor', 'admin'],
   },
   {
     label: 'Projetos',
