@@ -24,6 +24,7 @@ import { Route as HomeLayoutAdminLayoutImport } from './routes/home/_layout/admi
 import { Route as HomeLayoutCommonProjectsIndexImport } from './routes/home/_layout/common/projects/index'
 import { Route as HomeLayoutCommonProfileIndexImport } from './routes/home/_layout/common/profile/index'
 import { Route as HomeLayoutCommonOnboardingIndexImport } from './routes/home/_layout/common/onboarding/index'
+import { Route as HomeLayoutCommonMonitoriaIndexImport } from './routes/home/_layout/common/monitoria/index'
 import { Route as HomeLayoutStudentLayoutDashboardImport } from './routes/home/_layout/student/_layout/dashboard'
 import { Route as HomeLayoutProfessorLayoutDashboardImport } from './routes/home/_layout/professor/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutUsersImport } from './routes/home/_layout/admin/_layout/users'
@@ -127,6 +128,13 @@ const HomeLayoutCommonOnboardingIndexRoute =
   HomeLayoutCommonOnboardingIndexImport.update({
     id: '/common/onboarding/',
     path: '/common/onboarding/',
+    getParentRoute: () => HomeLayoutRoute,
+  } as any)
+
+const HomeLayoutCommonMonitoriaIndexRoute =
+  HomeLayoutCommonMonitoriaIndexImport.update({
+    id: '/common/monitoria/',
+    path: '/common/monitoria/',
     getParentRoute: () => HomeLayoutRoute,
   } as any)
 
@@ -318,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutStudentLayoutDashboardImport
       parentRoute: typeof HomeLayoutStudentLayoutImport
     }
+    '/home/_layout/common/monitoria/': {
+      id: '/home/_layout/common/monitoria/'
+      path: '/common/monitoria'
+      fullPath: '/home/common/monitoria'
+      preLoaderRoute: typeof HomeLayoutCommonMonitoriaIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
     '/home/_layout/common/onboarding/': {
       id: '/home/_layout/common/onboarding/'
       path: '/common/onboarding'
@@ -434,6 +449,7 @@ interface HomeLayoutRouteChildren {
   HomeLayoutAdminRoute: typeof HomeLayoutAdminRouteWithChildren
   HomeLayoutProfessorRoute: typeof HomeLayoutProfessorRouteWithChildren
   HomeLayoutStudentRoute: typeof HomeLayoutStudentRouteWithChildren
+  HomeLayoutCommonMonitoriaIndexRoute: typeof HomeLayoutCommonMonitoriaIndexRoute
   HomeLayoutCommonOnboardingIndexRoute: typeof HomeLayoutCommonOnboardingIndexRoute
   HomeLayoutCommonProfileIndexRoute: typeof HomeLayoutCommonProfileIndexRoute
   HomeLayoutCommonProjectsIndexRoute: typeof HomeLayoutCommonProjectsIndexRoute
@@ -444,6 +460,7 @@ const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutAdminRoute: HomeLayoutAdminRouteWithChildren,
   HomeLayoutProfessorRoute: HomeLayoutProfessorRouteWithChildren,
   HomeLayoutStudentRoute: HomeLayoutStudentRouteWithChildren,
+  HomeLayoutCommonMonitoriaIndexRoute: HomeLayoutCommonMonitoriaIndexRoute,
   HomeLayoutCommonOnboardingIndexRoute: HomeLayoutCommonOnboardingIndexRoute,
   HomeLayoutCommonProfileIndexRoute: HomeLayoutCommonProfileIndexRoute,
   HomeLayoutCommonProjectsIndexRoute: HomeLayoutCommonProjectsIndexRoute,
@@ -479,6 +496,7 @@ export interface FileRoutesByFullPath {
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
+  '/home/common/monitoria': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
   '/home/common/projects': typeof HomeLayoutCommonProjectsIndexRoute
@@ -499,6 +517,7 @@ export interface FileRoutesByTo {
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
+  '/home/common/monitoria': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
   '/home/common/projects': typeof HomeLayoutCommonProjectsIndexRoute
@@ -525,6 +544,7 @@ export interface FileRoutesById {
   '/home/_layout/admin/_layout/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/_layout/professor/_layout/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/_layout/student/_layout/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
+  '/home/_layout/common/monitoria/': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/_layout/common/onboarding/': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/_layout/common/profile/': typeof HomeLayoutCommonProfileIndexRoute
   '/home/_layout/common/projects/': typeof HomeLayoutCommonProjectsIndexRoute
@@ -548,6 +568,7 @@ export interface FileRouteTypes {
     | '/home/admin/users'
     | '/home/professor/dashboard'
     | '/home/student/dashboard'
+    | '/home/common/monitoria'
     | '/home/common/onboarding'
     | '/home/common/profile'
     | '/home/common/projects'
@@ -567,6 +588,7 @@ export interface FileRouteTypes {
     | '/home/admin/users'
     | '/home/professor/dashboard'
     | '/home/student/dashboard'
+    | '/home/common/monitoria'
     | '/home/common/onboarding'
     | '/home/common/profile'
     | '/home/common/projects'
@@ -591,6 +613,7 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/_layout/users'
     | '/home/_layout/professor/_layout/dashboard'
     | '/home/_layout/student/_layout/dashboard'
+    | '/home/_layout/common/monitoria/'
     | '/home/_layout/common/onboarding/'
     | '/home/_layout/common/profile/'
     | '/home/_layout/common/projects/'
@@ -650,6 +673,7 @@ export const routeTree = rootRoute
         "/home/_layout/admin",
         "/home/_layout/professor",
         "/home/_layout/student",
+        "/home/_layout/common/monitoria/",
         "/home/_layout/common/onboarding/",
         "/home/_layout/common/profile/",
         "/home/_layout/common/projects/"
@@ -732,6 +756,10 @@ export const routeTree = rootRoute
     "/home/_layout/student/_layout/dashboard": {
       "filePath": "home/_layout/student/_layout/dashboard.tsx",
       "parent": "/home/_layout/student/_layout"
+    },
+    "/home/_layout/common/monitoria/": {
+      "filePath": "home/_layout/common/monitoria/index.tsx",
+      "parent": "/home/_layout"
     },
     "/home/_layout/common/onboarding/": {
       "filePath": "home/_layout/common/onboarding/index.tsx",
