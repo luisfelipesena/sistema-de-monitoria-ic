@@ -1,3 +1,4 @@
+import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,7 +31,7 @@ const log = logger.child({
   context: 'admin-users',
 });
 
-export const Route = createFileRoute('/home/_layout/admin/users')({
+export const Route = createFileRoute('/home/_layout/admin/_layout/users')({
   component: UsersPage,
 });
 
@@ -161,16 +162,10 @@ function UsersPage() {
   };
 
   return (
-    <div className="container mx-auto py-10 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Gerenciar Usuários</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Visualize, edite e remova usuários do sistema
-          </p>
-        </div>
-      </div>
-
+    <PagesLayout
+      title="Gerenciar Usuários"
+      subtitle="Visualize, edite e remova usuários do sistema"
+    >
       {isLoading ? (
         <div className="flex justify-center py-10">Carregando usuários...</div>
       ) : !users?.length ? (
@@ -329,6 +324,6 @@ function UsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PagesLayout>
   );
 }

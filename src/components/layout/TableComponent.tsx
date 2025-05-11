@@ -29,6 +29,8 @@ interface DataTableProps<TData, TValue> {
   searchableColumn?: string;
   searchPlaceholder?: string;
   showPagination?: boolean;
+  isLoading?: boolean;
+  emptyMessage?: string;
 }
 
 export function TableComponent<TData, TValue>({
@@ -37,6 +39,8 @@ export function TableComponent<TData, TValue>({
   searchableColumn,
   searchPlaceholder = 'Buscar...',
   showPagination = true,
+  isLoading = false,
+  emptyMessage = 'Nenhum resultado encontrado.',
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -80,8 +84,8 @@ export function TableComponent<TData, TValue>({
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
+                <TableRow key={headerGroup.id} className="bg-muted/50">
+                  {headerGroup.headers.map((header, index) => (
                     <TableHead
                       key={header.id}
                       className="h-12 px-4 text-left align-middle font-medium text-slate-500"
@@ -98,11 +102,21 @@ export function TableComponent<TData, TValue>({
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows?.length ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    Carregando...
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
+                    className="hover:bg-muted/10"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
@@ -118,9 +132,9 @@ export function TableComponent<TData, TValue>({
                 <TableRow>
                   <TableCell
                     colSpan={columns.length}
-                    className="h-24 text-center"
+                    className="h-24 text-center text-muted-foreground"
                   >
-                    Nenhum resultado encontrado.
+                    {emptyMessage}
                   </TableCell>
                 </TableRow>
               )}

@@ -2,23 +2,10 @@
 
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-  type QueryObserverResult,
-  type RefetchOptions,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
 import { User } from 'lucia';
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useMemo } from 'react';
 import { QueryKeys } from './query-keys';
 
 const log = logger.child({
@@ -34,9 +21,6 @@ interface AuthState {
 interface AuthContextProps extends AuthState {
   signOut: () => Promise<void>;
   signIn: () => void;
-  refetchUser: (
-    options?: RefetchOptions,
-  ) => Promise<QueryObserverResult<User | null, Error>>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -45,8 +29,13 @@ const useMeQuery = () => {
   return useQuery<User | null, Error>({
     queryKey: QueryKeys.auth.me,
     queryFn: async () => {
-      const response = await apiClient.get<User>('/auth/me');
-      return response.data;
+      try {
+        const response = await apiClient.get<User>('/auth/me');
+        return response.data;
+      } catch (error) {
+        log.error({ error }, 'Erro ao buscar usuário');
+        return null;
+      }
     },
     retry: false,
   });
@@ -54,32 +43,31 @@ const useMeQuery = () => {
 
 const useLogoutMutation = () => {
   const queryClient = useQueryClient();
+  const router = useRouter();
+
   return useMutation({
     mutationFn: async () => {
-      await apiClient.post('/auth/logout');
+      try {
+        await apiClient.post('/auth/logout');
+      } catch (error) {
+        log.error({ error }, 'Erro ao fazer logout');
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.auth.me });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: QueryKeys.auth.me,
+      });
+      router.navigate({ to: '/', replace: true });
     },
   });
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-
   const router = useRouter();
-  const {
-    data: userQuery,
-    refetch: refetchUserInternal,
-    isLoading: isLoadingUser,
-  } = useMeQuery();
+  const { data: userQuery, isLoading: isLoadingUser } = useMeQuery();
   const logoutMutation = useLogoutMutation();
 
-  useEffect(() => {
-    if (!isLoadingUser) {
-      setUser(userQuery?.id ? userQuery : null);
-    }
-  }, [userQuery, isLoadingUser]);
+  const user = useMemo(() => (userQuery?.id ? userQuery : null), [userQuery]);
 
   const signIn = useCallback(() => {
     if (user) {
@@ -90,14 +78,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, router]);
 
   const signOut = useCallback(async () => {
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (error) {
-      log.warn({ error }, 'Erro ao fazer logout');
-    } finally {
-      window.location.href = '/';
-    }
-  }, [router]);
+    await logoutMutation.mutateAsync();
+  }, [logoutMutation]);
 
   const value = useMemo(
     () => ({
@@ -106,16 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: !!user,
       signIn,
       signOut,
-      refetchUser: refetchUserInternal,
     }),
-    [
-      user,
-      signIn,
-      signOut,
-      refetchUserInternal,
-      isLoadingUser,
-      logoutMutation.isPending,
-    ],
+    [user, signIn, signOut, isLoadingUser, logoutMutation.isPending],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -18,7 +18,8 @@ export const Route = createFileRoute('/home/_layout')({
 });
 
 function HomeLayoutComponent() {
-  const { user, isLoading, signOut } = useAuth();
+  const { user, isLoading } = useAuth();
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -28,14 +29,14 @@ function HomeLayoutComponent() {
   useEffect(() => {
     if (!isLoading && !statusLoading && onboardingStatus) {
       if (onboardingStatus.pending) {
-        navigate({ to: '/home/onboarding' });
+        navigate({ to: '/home/common/onboarding' });
       }
     }
   }, [onboardingStatus, isLoading, statusLoading, location.pathname]);
 
   useEffect(() => {
     if (!user && !isLoading) {
-      signOut();
+      navigate({ to: '/', replace: true });
     }
   }, [user, isLoading]);
 

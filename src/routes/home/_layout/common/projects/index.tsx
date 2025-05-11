@@ -1,5 +1,6 @@
 'use client';
 
+import { PagesLayout } from '@/components/layout/PagesLayout';
 import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +33,7 @@ const log = logger.child({
   context: 'ProjectsComponent',
 });
 
-export const Route = createFileRoute('/home/_layout/projects/')({
+export const Route = createFileRoute('/home/_layout/common/projects/')({
   component: ProjectsComponent,
 });
 
@@ -149,9 +150,14 @@ function ProjectsComponent() {
     wait: 1000,
   });
 
-  const handleFileAccept = (fileData: { fileId: string; fileName: string }) => {
-    log.info('Accepted file:', fileData);
-    setUploadedFile(fileData);
+  const handleFileSelect = (fileData: File | null) => {
+    if (fileData) {
+      log.info('Accepted file:', fileData);
+      setUploadedFile({
+        fileId: fileData.name,
+        fileName: fileData.name,
+      });
+    }
   };
 
   const onSubmit = (data: TemplateFormData) => {
@@ -179,10 +185,7 @@ function ProjectsComponent() {
   }, [debouncedFormData.projectName]);
 
   return (
-    <div>
-      <h1 className="mb-6 text-3xl font-bold text-gray-900">
-        Gerenciar Projetos
-      </h1>
+    <PagesLayout title="Gerenciar Projetos">
       <div className="p-6 space-y-8 bg-white rounded-lg shadow">
         {/* Section for PDF Template Generation */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -300,11 +303,7 @@ function ProjectsComponent() {
           <h2 className="mb-3 text-xl font-semibold text-gray-800">
             Fazer Upload de Proposta Assinada (Arquivo PDF)
           </h2>
-          <FileUploader
-            entityType="project"
-            entityId="123e4567-e89b-12d3-a456-426614174000"
-            onUploadComplete={handleFileAccept}
-          />
+          <FileUploader onFileSelect={handleFileSelect} />
           {uploadedFile && (
             <p className="mt-4 text-sm text-green-600">
               Arquivo selecionado para upload: '{uploadedFile.fileName}'.
@@ -312,6 +311,6 @@ function ProjectsComponent() {
           )}
         </div>
       </div>
-    </div>
+    </PagesLayout>
   );
 }
