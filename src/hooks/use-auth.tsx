@@ -108,7 +108,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut,
       refetchUser: refetchUserInternal,
     }),
-    [user, signIn, signOut, refetchUserInternal],
+    [
+      user,
+      signIn,
+      signOut,
+      refetchUserInternal,
+      isLoadingUser,
+      logoutMutation.isPending,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
