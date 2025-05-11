@@ -10,12 +10,20 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
+<<<<<<< Updated upstream
   FileText,
   FolderKanban,
   GraduationCap,
   LayoutDashboard,
   User,
   Users,
+=======
+  ClipboardList,
+  FolderKanban,
+  LayoutDashboard,
+  Settings,
+  User,
+>>>>>>> Stashed changes
 } from 'lucide-react';
 
 type SidebarLayoutProps = {
@@ -86,7 +94,36 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+<<<<<<< Updated upstream
 
+=======
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith('/home/dashboard/admin')}
+              tooltip="Dashboard"
+              onClick={() => handleNavigate('/home/dashboard/admin')}
+            >
+              <Link to="/home/dashboard/admin">
+                <ClipboardList />
+                <span>Dashboard</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith('/home/test')}
+              tooltip="Dashboard"
+              onClick={() => handleNavigate('/home/test')}
+            >
+              <Link to="/home/test">
+                <FolderKanban />
+                <span>Teste</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+>>>>>>> Stashed changes
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild

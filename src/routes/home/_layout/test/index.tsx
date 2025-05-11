@@ -1,8 +1,16 @@
+<<<<<<< Updated upstream
 import { TableComponent } from '@/components/layout/TableComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { createFileRoute } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
+=======
+import { useAuth } from '@//hooks/use-auth';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { createFileRoute } from '@tanstack/react-router';
+
+>>>>>>> Stashed changes
 import {
   Calendar,
   Eye,
@@ -75,6 +83,7 @@ function HomePage() {
     },
   ];
 
+<<<<<<< Updated upstream
   // Definição de colunas para o TableComponent
   const columns: ColumnDef<(typeof editais)[0]>[] = [
     {
@@ -188,11 +197,14 @@ function HomePage() {
       ),
     },
   ];
+=======
+  const { user } = useAuth();
+>>>>>>> Stashed changes
 
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Welcome message */}
-      <h1 className="text-5xl font-bold mb-8">Olá, Bruno Mota</h1>
+      <h1 className="text-5xl font-bold mb-8">Olá, {user?.username || 'Usuário'}!</h1>
 
       {/* Tabela padronizada */}
       <h2 className="text-2xl font-normal mb-6">

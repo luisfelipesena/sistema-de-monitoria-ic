@@ -24,7 +24,13 @@ import { Route as HomeLayoutOnboardingIndexImport } from './routes/home/_layout/
 import { Route as HomeLayoutAdminUsersImport } from './routes/home/_layout/admin/users'
 import { Route as HomeLayoutAdminSeedCursosImport } from './routes/home/_layout/admin/seed-cursos'
 import { Route as HomeLayoutAdminFilesImport } from './routes/home/_layout/admin/files'
+<<<<<<< Updated upstream
 import { Route as HomeLayoutAdminCursosImport } from './routes/home/_layout/admin/cursos'
+=======
+import { Route as HomeLayoutDashboardStudentIndexImport } from './routes/home/_layout/dashboard/student/index'
+import { Route as HomeLayoutDashboardProfessorIndexImport } from './routes/home/_layout/dashboard/professor/index'
+import { Route as HomeLayoutDashboardAdminIndexImport } from './routes/home/_layout/dashboard/admin/index'
+>>>>>>> Stashed changes
 
 // Create Virtual Routes
 
@@ -103,11 +109,34 @@ const HomeLayoutAdminFilesRoute = HomeLayoutAdminFilesImport.update({
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
+<<<<<<< Updated upstream
 const HomeLayoutAdminCursosRoute = HomeLayoutAdminCursosImport.update({
   id: '/admin/cursos',
   path: '/admin/cursos',
   getParentRoute: () => HomeLayoutRoute,
 } as any)
+=======
+const HomeLayoutDashboardStudentIndexRoute =
+  HomeLayoutDashboardStudentIndexImport.update({
+    id: '/dashboard/student/',
+    path: '/dashboard/student/',
+    getParentRoute: () => HomeLayoutRoute,
+  } as any)
+
+const HomeLayoutDashboardProfessorIndexRoute =
+  HomeLayoutDashboardProfessorIndexImport.update({
+    id: '/dashboard/professor/',
+    path: '/dashboard/professor/',
+    getParentRoute: () => HomeLayoutRoute,
+  } as any)
+
+const HomeLayoutDashboardAdminIndexRoute =
+  HomeLayoutDashboardAdminIndexImport.update({
+    id: '/dashboard/admin/',
+    path: '/dashboard/admin/',
+    getParentRoute: () => HomeLayoutRoute,
+  } as any)
+>>>>>>> Stashed changes
 
 // Populate the FileRoutesByPath interface
 
@@ -204,6 +233,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutTestIndexImport
       parentRoute: typeof HomeLayoutImport
     }
+    '/home/_layout/dashboard/admin/': {
+      id: '/home/_layout/dashboard/admin/'
+      path: '/dashboard/admin'
+      fullPath: '/home/dashboard/admin'
+      preLoaderRoute: typeof HomeLayoutDashboardAdminIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
+    '/home/_layout/dashboard/professor/': {
+      id: '/home/_layout/dashboard/professor/'
+      path: '/dashboard/professor'
+      fullPath: '/home/dashboard/professor'
+      preLoaderRoute: typeof HomeLayoutDashboardProfessorIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
+    '/home/_layout/dashboard/student/': {
+      id: '/home/_layout/dashboard/student/'
+      path: '/dashboard/student'
+      fullPath: '/home/dashboard/student'
+      preLoaderRoute: typeof HomeLayoutDashboardStudentIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
   }
 }
 
@@ -219,6 +269,9 @@ interface HomeLayoutRouteChildren {
   HomeLayoutProfileIndexRoute: typeof HomeLayoutProfileIndexRoute
   HomeLayoutProjectsIndexRoute: typeof HomeLayoutProjectsIndexRoute
   HomeLayoutTestIndexRoute: typeof HomeLayoutTestIndexRoute
+  HomeLayoutDashboardAdminIndexRoute: typeof HomeLayoutDashboardAdminIndexRoute
+  HomeLayoutDashboardProfessorIndexRoute: typeof HomeLayoutDashboardProfessorIndexRoute
+  HomeLayoutDashboardStudentIndexRoute: typeof HomeLayoutDashboardStudentIndexRoute
 }
 
 const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
@@ -231,6 +284,10 @@ const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutProfileIndexRoute: HomeLayoutProfileIndexRoute,
   HomeLayoutProjectsIndexRoute: HomeLayoutProjectsIndexRoute,
   HomeLayoutTestIndexRoute: HomeLayoutTestIndexRoute,
+  HomeLayoutDashboardAdminIndexRoute: HomeLayoutDashboardAdminIndexRoute,
+  HomeLayoutDashboardProfessorIndexRoute:
+    HomeLayoutDashboardProfessorIndexRoute,
+  HomeLayoutDashboardStudentIndexRoute: HomeLayoutDashboardStudentIndexRoute,
 }
 
 const HomeLayoutRouteWithChildren = HomeLayoutRoute._addFileChildren(
@@ -260,6 +317,9 @@ export interface FileRoutesByFullPath {
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
   '/home/test': typeof HomeLayoutTestIndexRoute
+  '/home/dashboard/admin': typeof HomeLayoutDashboardAdminIndexRoute
+  '/home/dashboard/professor': typeof HomeLayoutDashboardProfessorIndexRoute
+  '/home/dashboard/student': typeof HomeLayoutDashboardStudentIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -274,6 +334,9 @@ export interface FileRoutesByTo {
   '/home/profile': typeof HomeLayoutProfileIndexRoute
   '/home/projects': typeof HomeLayoutProjectsIndexRoute
   '/home/test': typeof HomeLayoutTestIndexRoute
+  '/home/dashboard/admin': typeof HomeLayoutDashboardAdminIndexRoute
+  '/home/dashboard/professor': typeof HomeLayoutDashboardProfessorIndexRoute
+  '/home/dashboard/student': typeof HomeLayoutDashboardStudentIndexRoute
 }
 
 export interface FileRoutesById {
@@ -291,6 +354,9 @@ export interface FileRoutesById {
   '/home/_layout/profile/': typeof HomeLayoutProfileIndexRoute
   '/home/_layout/projects/': typeof HomeLayoutProjectsIndexRoute
   '/home/_layout/test/': typeof HomeLayoutTestIndexRoute
+  '/home/_layout/dashboard/admin/': typeof HomeLayoutDashboardAdminIndexRoute
+  '/home/_layout/dashboard/professor/': typeof HomeLayoutDashboardProfessorIndexRoute
+  '/home/_layout/dashboard/student/': typeof HomeLayoutDashboardStudentIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -308,6 +374,9 @@ export interface FileRouteTypes {
     | '/home/profile'
     | '/home/projects'
     | '/home/test'
+    | '/home/dashboard/admin'
+    | '/home/dashboard/professor'
+    | '/home/dashboard/student'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -321,6 +390,9 @@ export interface FileRouteTypes {
     | '/home/profile'
     | '/home/projects'
     | '/home/test'
+    | '/home/dashboard/admin'
+    | '/home/dashboard/professor'
+    | '/home/dashboard/student'
   id:
     | '__root__'
     | '/'
@@ -336,6 +408,9 @@ export interface FileRouteTypes {
     | '/home/_layout/profile/'
     | '/home/_layout/projects/'
     | '/home/_layout/test/'
+    | '/home/_layout/dashboard/admin/'
+    | '/home/_layout/dashboard/professor/'
+    | '/home/_layout/dashboard/student/'
   fileRoutesById: FileRoutesById
 }
 
@@ -390,7 +465,10 @@ export const routeTree = rootRoute
         "/home/_layout/onboarding/",
         "/home/_layout/profile/",
         "/home/_layout/projects/",
-        "/home/_layout/test/"
+        "/home/_layout/test/",
+        "/home/_layout/dashboard/admin/",
+        "/home/_layout/dashboard/professor/",
+        "/home/_layout/dashboard/student/"
       ]
     },
     "/home/_layout/": {
@@ -427,6 +505,18 @@ export const routeTree = rootRoute
     },
     "/home/_layout/test/": {
       "filePath": "home/_layout/test/index.tsx",
+      "parent": "/home/_layout"
+    },
+    "/home/_layout/dashboard/admin/": {
+      "filePath": "home/_layout/dashboard/admin/index.tsx",
+      "parent": "/home/_layout"
+    },
+    "/home/_layout/dashboard/professor/": {
+      "filePath": "home/_layout/dashboard/professor/index.tsx",
+      "parent": "/home/_layout"
+    },
+    "/home/_layout/dashboard/student/": {
+      "filePath": "home/_layout/dashboard/student/index.tsx",
       "parent": "/home/_layout"
     }
   }
