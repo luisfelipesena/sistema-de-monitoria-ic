@@ -18,7 +18,7 @@ function LandingPageComponent() {
         <div className="container flex items-center justify-between mx-auto">
           <div className="flex items-center gap-2">
             <img
-              src="/images/logo.ico"
+              src="/images/logo.png"
               alt="Monitoria IC"
               className="h-12 w-12"
             />
@@ -32,11 +32,12 @@ function LandingPageComponent() {
 
       <main className="container px-4 py-16 mx-auto max-w-6xl flex-grow">
         <section className="mb-20">
-          <div className="text-center mb-16">
-            <h1 className="mb-6 text-4xl font-bold h1 text-[hsl(210,40%,20%)]">
+          <div className="flex flex-col gap-10 items-center text-center mb-16">
+            <img src="/images/ic-logo.png" alt="Monitoria IC" />
+            <h1 className="text-4xl font-bold h1 text-[hsl(210,40%,20%)]">
               Sistema de Monitoria IC
             </h1>
-            <p className="mb-8 text-lg p text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg p text-gray-600 max-w-3xl mx-auto">
               Simplifique o processo de inscrição, seleção e gerenciamento de
               monitores para projetos acadêmicos da UFBA.
             </p>

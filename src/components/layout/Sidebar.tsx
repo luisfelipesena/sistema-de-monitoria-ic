@@ -10,25 +10,67 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
-<<<<<<< Updated upstream
   FileText,
   FolderKanban,
   GraduationCap,
   LayoutDashboard,
   User,
   Users,
-=======
-  ClipboardList,
-  FolderKanban,
-  LayoutDashboard,
-  Settings,
-  User,
->>>>>>> Stashed changes
+  type LucideIcon,
 } from 'lucide-react';
 
 type SidebarLayoutProps = {
   pathname: string;
 };
+
+type UserRole = 'admin' | 'professor' | 'student';
+
+type MenuItemConfig = {
+  label: string;
+  href: string | ((role: UserRole) => string);
+  icon: LucideIcon;
+  roles: UserRole[];
+  isActive?: (pathname: string, itemHref: string) => boolean;
+};
+
+const menuItemsConfig: MenuItemConfig[] = [
+  {
+    label: 'Dashboard',
+    href: (role) => `/home/${role}/dashboard`, // repetir isso para todas rotas onde se diferencia o role
+    icon: LayoutDashboard,
+    roles: ['admin', 'professor', 'student'],
+  },
+  {
+    label: 'Projetos',
+    href: '/home/common/projects',
+    icon: FolderKanban,
+    roles: ['admin', 'professor', 'student'],
+  },
+  {
+    label: 'Perfil',
+    href: '/home/common/profile',
+    icon: User,
+    roles: ['admin', 'professor', 'student'],
+  },
+  {
+    label: 'Cursos',
+    href: '/home/admin/cursos',
+    icon: GraduationCap,
+    roles: ['admin'],
+  },
+  {
+    label: 'Usuários',
+    href: '/home/admin/users',
+    icon: Users,
+    roles: ['admin'],
+  },
+  {
+    label: 'Arquivos',
+    href: '/home/admin/files',
+    icon: FileText,
+    roles: ['admin'],
+  },
+];
 
 export function SidebarLayout({ pathname }: SidebarLayoutProps) {
   const { user } = useAuth();
@@ -39,19 +81,6 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
     navigate({ to });
     if (isLessThanMediumDesktop) setOpenCompactSidebarView(false);
   }
-
-  // Menu de administrador
-  const adminMenu = [
-    { label: 'Cursos', href: '/home/admin/cursos', icon: GraduationCap },
-    // {
-    //   label: 'Departamentos',
-    //   href: '/home/admin/departamentos',
-    //   icon: Building,
-    // },
-    { label: 'Usuários', href: '/home/admin/users', icon: Users },
-    // { label: 'Disciplinas', href: '/home/admin/disciplinas', icon: BookOpen },
-    { label: 'Arquivos', href: '/home/admin/files', icon: FileText },
-  ];
 
   return (
     <Sidebar className="z-30">
@@ -67,103 +96,37 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname === '/home'}
-              tooltip="Visão Geral"
-              onClick={() => handleNavigate('/home')}
-            >
-              <Link to="/home">
-                <LayoutDashboard />
-                <span>Visão Geral</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {menuItemsConfig
+            .filter(
+              (item) =>
+                user?.role && item.roles.includes(user.role as UserRole),
+            )
+            .map((item) => {
+              const actualHref =
+                typeof item.href === 'function'
+                  ? item.href(user!.role as UserRole)
+                  : item.href;
+              const checkIsActive =
+                item.isActive ||
+                ((currentPathname, itemHref) =>
+                  currentPathname.startsWith(itemHref));
 
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname.startsWith('/home/projects')}
-              tooltip="Projetos"
-              onClick={() => handleNavigate('/home/projects')}
-            >
-              <Link to="/home/projects">
-                <FolderKanban />
-                <span>Projetos</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-<<<<<<< Updated upstream
-
-=======
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname.startsWith('/home/dashboard/admin')}
-              tooltip="Dashboard"
-              onClick={() => handleNavigate('/home/dashboard/admin')}
-            >
-              <Link to="/home/dashboard/admin">
-                <ClipboardList />
-                <span>Dashboard</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname.startsWith('/home/test')}
-              tooltip="Dashboard"
-              onClick={() => handleNavigate('/home/test')}
-            >
-              <Link to="/home/test">
-                <FolderKanban />
-                <span>Teste</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
->>>>>>> Stashed changes
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname.startsWith('/home/profile')}
-              tooltip="Perfil"
-              onClick={() => handleNavigate('/home/profile')}
-            >
-              <Link to="/home/profile">
-                <User />
-                <span>Perfil</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          {/* Menu de Administração */}
-          {user?.role === 'admin' && (
-            <>
-              <div className="mt-6 mb-2 px-3">
-                <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  Administração
-                </h2>
-              </div>
-
-              {adminMenu.map((item) => (
-                <SidebarMenuItem key={item.href}>
+              return (
+                <SidebarMenuItem key={actualHref}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.href}
+                    isActive={checkIsActive(pathname, actualHref)}
                     tooltip={item.label}
-                    onClick={() => handleNavigate(item.href)}
+                    onClick={() => handleNavigate(actualHref)}
                   >
-                    <Link to={item.href}>
+                    <Link to={actualHref}>
                       <item.icon />
                       <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
-            </>
-          )}
+              );
+            })}
         </SidebarMenu>
       </SidebarContent>
     </Sidebar>

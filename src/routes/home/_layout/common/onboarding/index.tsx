@@ -10,7 +10,7 @@ const log = logger.child({
   context: 'onboarding',
 });
 
-export const Route = createFileRoute('/home/_layout/onboarding/')({
+export const Route = createFileRoute('/home/_layout/common/onboarding/')({
   component: OnboardingPage,
 });
 

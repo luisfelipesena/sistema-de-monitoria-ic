@@ -1,5 +1,6 @@
 'use client';
 
+import { PagesLayout } from '@/components/layout/PagesLayout';
 import { TableComponent } from '@/components/layout/TableComponent';
 import {
   AlertDialog,
@@ -54,7 +55,7 @@ const log = logger.child({
   context: 'AdminFilesPage',
 });
 
-export const Route = createFileRoute('/home/_layout/admin/files')({
+export const Route = createFileRoute('/home/_layout/admin/_layout/files')({
   component: AdminFilesPage,
 });
 
@@ -290,11 +291,7 @@ function AdminFilesPage() {
   }
 
   return (
-    <div className="container py-8 mx-auto space-y-8">
-      <h1 className="mb-6 text-2xl font-bold">
-        Gerenciamento de Arquivos (Admin)
-      </h1>
-
+    <PagesLayout title="Gerenciamento de Arquivos (Admin)">
       {/* Upload Section */}
       <Card>
         <CardHeader>
@@ -372,7 +369,7 @@ function AdminFilesPage() {
       </Card>
 
       {/* File List Table */}
-      <h2 className="text-xl font-semibold">Arquivos no Bucket</h2>
+      <h2 className="text-xl font-semibold mt-6 mb-2">Arquivos no Bucket</h2>
       {isLoading ? (
         <div className="flex items-center justify-center h-32">
           <Spinner /> Carregando lista...
@@ -426,6 +423,6 @@ function AdminFilesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PagesLayout>
   );
 }

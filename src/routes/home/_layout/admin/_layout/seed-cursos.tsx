@@ -1,3 +1,4 @@
+import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,9 +18,11 @@ import {
 import { useState } from 'react';
 import { z } from 'zod';
 
-export const Route = createFileRoute('/home/_layout/admin/seed-cursos')({
-  component: SeedCursosPage,
-});
+export const Route = createFileRoute('/home/_layout/admin/_layout/seed-cursos')(
+  {
+    component: SeedCursosPage,
+  },
+);
 
 const cursoSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -188,23 +191,22 @@ function SeedCursosPage() {
     }
   };
 
-  return (
-    <div className="container mx-auto py-10 max-w-4xl">
-      <div className="mb-6">
-        <Button
-          variant="secondary"
-          onClick={() => navigate({ to: '/home/admin/cursos' })}
-          className="mb-4"
-        >
-          <ChevronLeft size={16} className="mr-2" />
-          Voltar para gerenciamento de cursos
-        </Button>
-        <h1 className="text-2xl font-bold">Criação em Massa de Cursos</h1>
-        <p className="text-muted-foreground">
-          Use esta ferramenta para adicionar múltiplos cursos de uma só vez.
-        </p>
-      </div>
+  const backButton = (
+    <Button
+      variant="secondary"
+      onClick={() => navigate({ to: '/home/admin/cursos' })}
+    >
+      <ChevronLeft size={16} className="mr-2" />
+      Voltar para gerenciamento de cursos
+    </Button>
+  );
 
+  return (
+    <PagesLayout
+      title="Criação em Massa de Cursos"
+      subtitle="Use esta ferramenta para adicionar múltiplos cursos de uma só vez"
+      actions={backButton}
+    >
       <div className="grid md:grid-cols-2 gap-8">
         <div className="space-y-6">
           <div className="bg-muted/30 border rounded-md p-4">
@@ -352,6 +354,6 @@ function SeedCursosPage() {
           </div>
         </div>
       </div>
-    </div>
+    </PagesLayout>
   );
 }
