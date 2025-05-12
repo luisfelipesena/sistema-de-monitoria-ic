@@ -1,7 +1,6 @@
-import SecaoDocumentosNecessarios from '@/components/features/inscricao/SecaoDocumentosNecessarios';
+import AdminDocuments from '@/components/features/selection/AdminDocuments';
 import { PagesLayout } from '@/components/layout/PagesLayout';
 import { TableComponent } from '@/components/layout/TableComponent';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createFileRoute } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
@@ -11,6 +10,14 @@ import { useState } from 'react';
 export const Route = createFileRoute('/home/_layout/admin/_layout/selection')({
   component: SelectionAdmin,
 });
+
+interface DocumentItem {
+  id: number;
+  title: string;
+  status: string;
+  statusColor?: string;
+  actions: ('download' | 'validate')[];
+}
 
 interface CandidatoData {
   id: number;
@@ -106,41 +113,41 @@ function SelectionAdmin() {
     },
   ];
 
-  const headerActions = (
-    <Button variant="outline" className="text-gray-600">
-      <FileDown className="w-4 h-4 mr-2" />
-      Gerar Documento
-    </Button>
-  );
-
-  const [documentos] = useState([
+  const documents: DocumentItem[] = [
     {
-      id: 'planilha',
-      nome: 'Planilha Candidatos Bolsistas',
-      status: 'pendente' as const,
+      id: 1,
+      title: 'Planilha Candidatos Bolsistas',
+      status: 'Aguardando',
+      statusColor: 'bg-gray-400',
+      actions: [],
     },
     {
-      id: 'ata',
-      nome: 'Ata da Seleção',
-      status: 'expirado' as const,
+      id: 2,
+      title: 'Ata da Seleção',
+      status: 'Pendente',
+      statusColor: '',
+      actions: ['download', 'validate'],
     },
     {
-      id: 'ata2',
-      nome: 'Ata da Seleção',
-      status: 'válido' as const,
+      id: 3,
+      title: 'Ata da Seleção',
+      status: 'Aprovado',
+      statusColor: 'bg-green-200 text-green-900',
+      actions: ['download'],
     },
-  ]);
+  ];
 
   return (
     <PagesLayout title="MATA045" subtitle="Seleção de monitores">
       <div>
         {/* candidatos bolsistas */}
-        <section className="p-4 w-full max-w-5xl mx-auto">
-          {/* Cabeçalho */}
+        <section className="py-5 w-full max-w-5xl">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <UsersRound />
-              <h2 className="text-lg font-semibold">Candidatos Bolsistas</h2>
+              <div className="bg-blue-900 bg-opacity-20 p-1.5 rounded-full">
+                <UsersRound className="text-blue-900 w-4 h-4" />
+              </div>
+              <h2 className="text-lg font-bold">Candidatos Bolsistas</h2>
             </div>
             <button
               className={`flex items-center gap-2 text-white px-4 py-2 rounded-full text-sm transition
@@ -152,20 +159,22 @@ function SelectionAdmin() {
               `}
               disabled={bolsistas.length === 0}
             >
-              <FileDown />
+              <FileDown className="w-4 h-4" />
               Gerar Documento
             </button>
           </div>
+
           <TableComponent columns={colunasCandidatos} data={bolsistas} />
         </section>
 
         {/* candidatos voluntários */}
-        <section className="p-4 w-full max-w-5xl mx-auto">
-          {/* Cabeçalho */}
+        <section className="py-5 w-full max-w-5xl">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <Hand />
-              <h2 className="text-lg font-semibold">Candidatos Voluntários</h2>
+              <div className="bg-blue-900 bg-opacity-20 p-1.5 rounded-full">
+                <Hand className="text-blue-900 w-4 h-4" />
+              </div>
+              <h2 className="text-lg font-bold">Candidatos Voluntários</h2>
             </div>
             <button
               className={`flex items-center gap-2 text-white px-4 py-2 rounded-full text-sm transition
@@ -177,20 +186,17 @@ function SelectionAdmin() {
               `}
               disabled={voluntarios.length === 0}
             >
-              <FileDown />
+              <FileDown className="w-4 h-4" />
               Gerar Documento
             </button>
           </div>
+
           <TableComponent columns={colunasCandidatos} data={voluntarios} />
         </section>
 
         {/* Documentos */}
-        <section>
-          <SecaoDocumentosNecessarios
-            documentos={documentos}
-            onUpload={(id) => console.log('upload', id)}
-            onVisualizar={(id) => console.log('ver', id)}
-          />
+        <section className="py-5 w-full max-w-5xl">
+          <AdminDocuments documents={documents} />
         </section>
       </div>
     </PagesLayout>
