@@ -48,13 +48,13 @@ const SelecaoDeVagaTable: React.FC<SelecaoDeVagaTableProps> = ({ vagas, onSeleci
                 <td className="px-6 py-4 text-center">{vaga.vagas}</td>
                 <td className="px-6 py-4">
                   {vaga.selecionado ? (
-                    <span className="text-gray-500 text-sm">Selecionado</span>
+                    <span className="inline-flex items-center gap-1 px-4 py-1 rounded-full bg-[#D1D5DB] text-white text-sm cursor-default"> Selecionado</span>
                   ) : (
                     <button
                       onClick={() => onSelecionar(vaga.id)}
-                      className="text-blue-600 hover:underline text-sm"
+                      className= "flex items-center gap-1 px-4 py-1 rounded-full bg-[#1B4377] text-white text-sm hover:opacity-90 transition"
                     >
-                      + Selecionar
+                      Selecionar
                     </button>
                   )}
                 </td>
