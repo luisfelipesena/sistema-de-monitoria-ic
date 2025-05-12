@@ -107,6 +107,7 @@ function SelectionAdmin() {
           max={10}
           step={0.1}
           value={row.original.notaFinal}
+          readOnly
           className="text-center px-0 w-16"
         />
       ),

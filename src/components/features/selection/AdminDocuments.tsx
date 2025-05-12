@@ -19,7 +19,6 @@ export default function DocumentosSection({ documents }: DocumentListProps) {
   const [documentos, setDocumentos] = useState<DocumentItem[]>(documents);
 
   const adicionarDocumento = () => {
-    console.log('oiiiii');
     const novoId = documentos.length + 1;
     setDocumentos([
       ...documentos,
