@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
+  BriefcaseBusiness,
   FileText,
   FolderKanban,
   GraduationCap,
@@ -58,6 +59,12 @@ const menuItemsConfig: MenuItemConfig[] = [
     href: '/home/common/profile',
     icon: User,
     roles: ['admin', 'professor', 'student'],
+  },
+  {
+    label: 'Seleção',
+    href: '/home/admin/selection',
+    icon: BriefcaseBusiness,
+    roles: ['admin'],
   },
   {
     label: 'Cursos',

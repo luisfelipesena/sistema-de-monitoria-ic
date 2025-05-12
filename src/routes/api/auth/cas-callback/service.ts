@@ -12,7 +12,7 @@ const log = logger.child({
 
 export class CasCallbackService {
   redirectToError(code: string, detail?: string) {
-    const clientUrl = env.CLIENT_URL
+    const clientUrl = env.CLIENT_URL;
     const errorUrl = new URL(`${clientUrl}`);
     errorUrl.searchParams.set('code', code);
     if (detail) {
@@ -35,8 +35,14 @@ export class CasCallbackService {
     const data = await response.text();
 
     if (response.status !== 200) {
-      log.error(`CAS validation request failed with status ${response.status}:`, data);
-      return this.redirectToError('CAS_HTTP_ERROR', `Status ${response.status}`);
+      log.error(
+        `CAS validation request failed with status ${response.status}:`,
+        data,
+      );
+      return this.redirectToError(
+        'CAS_HTTP_ERROR',
+        `Status ${response.status}`,
+      );
     }
 
     return this.parseValidationResponse(data);
@@ -51,10 +57,12 @@ export class CasCallbackService {
     return result['cas:serviceResponse'];
   }
 
-  async handleAuthSuccess(username: string, attributes: Record<string, string>) {
+  async handleAuthSuccess(
+    username: string,
+    attributes: Record<string, string>,
+  ) {
     log.info(`CAS Success for user: ${username}`);
     const userId = await this.getOrCreateUser(username, attributes);
-
 
     if (!userId) {
       log.error('User ID not determined after lookup/creation.');
@@ -72,7 +80,7 @@ export class CasCallbackService {
     if (existingUser) {
       log.info(`Found existing user: ${username}, ID: ${existingUser.id}`);
 
-      const ADMIN_EMAILS = ['luis.sena@ufba.br'];
+      const ADMIN_EMAILS = ['luis.sena@ufba.br', 'caioviana@ufba.br'];
       if (ADMIN_EMAILS.includes(existingUser.email)) {
         const [updatedUser] = await db
           .update(userTable)

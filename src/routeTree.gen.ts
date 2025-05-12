@@ -28,6 +28,7 @@ import { Route as HomeLayoutCommonMonitoriaIndexImport } from './routes/home/_la
 import { Route as HomeLayoutStudentLayoutDashboardImport } from './routes/home/_layout/student/_layout/dashboard'
 import { Route as HomeLayoutProfessorLayoutDashboardImport } from './routes/home/_layout/professor/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutUsersImport } from './routes/home/_layout/admin/_layout/users'
+import { Route as HomeLayoutAdminLayoutSelectionImport } from './routes/home/_layout/admin/_layout/selection'
 import { Route as HomeLayoutAdminLayoutSeedCursosImport } from './routes/home/_layout/admin/_layout/seed-cursos'
 import { Route as HomeLayoutAdminLayoutFilesImport } from './routes/home/_layout/admin/_layout/files'
 import { Route as HomeLayoutAdminLayoutDashboardImport } from './routes/home/_layout/admin/_layout/dashboard'
@@ -159,6 +160,13 @@ const HomeLayoutAdminLayoutUsersRoute = HomeLayoutAdminLayoutUsersImport.update(
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any,
 )
+
+const HomeLayoutAdminLayoutSelectionRoute =
+  HomeLayoutAdminLayoutSelectionImport.update({
+    id: '/selection',
+    path: '/selection',
+    getParentRoute: () => HomeLayoutAdminLayoutRoute,
+  } as any)
 
 const HomeLayoutAdminLayoutSeedCursosRoute =
   HomeLayoutAdminLayoutSeedCursosImport.update({
@@ -305,6 +313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminLayoutSeedCursosImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
+    '/home/_layout/admin/_layout/selection': {
+      id: '/home/_layout/admin/_layout/selection'
+      path: '/selection'
+      fullPath: '/home/admin/selection'
+      preLoaderRoute: typeof HomeLayoutAdminLayoutSelectionImport
+      parentRoute: typeof HomeLayoutAdminLayoutImport
+    }
     '/home/_layout/admin/_layout/users': {
       id: '/home/_layout/admin/_layout/users'
       path: '/users'
@@ -364,6 +379,7 @@ interface HomeLayoutAdminLayoutRouteChildren {
   HomeLayoutAdminLayoutDashboardRoute: typeof HomeLayoutAdminLayoutDashboardRoute
   HomeLayoutAdminLayoutFilesRoute: typeof HomeLayoutAdminLayoutFilesRoute
   HomeLayoutAdminLayoutSeedCursosRoute: typeof HomeLayoutAdminLayoutSeedCursosRoute
+  HomeLayoutAdminLayoutSelectionRoute: typeof HomeLayoutAdminLayoutSelectionRoute
   HomeLayoutAdminLayoutUsersRoute: typeof HomeLayoutAdminLayoutUsersRoute
 }
 
@@ -372,6 +388,7 @@ const HomeLayoutAdminLayoutRouteChildren: HomeLayoutAdminLayoutRouteChildren = {
   HomeLayoutAdminLayoutDashboardRoute: HomeLayoutAdminLayoutDashboardRoute,
   HomeLayoutAdminLayoutFilesRoute: HomeLayoutAdminLayoutFilesRoute,
   HomeLayoutAdminLayoutSeedCursosRoute: HomeLayoutAdminLayoutSeedCursosRoute,
+  HomeLayoutAdminLayoutSelectionRoute: HomeLayoutAdminLayoutSelectionRoute,
   HomeLayoutAdminLayoutUsersRoute: HomeLayoutAdminLayoutUsersRoute,
 }
 
@@ -493,6 +510,7 @@ export interface FileRoutesByFullPath {
   '/home/admin/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/admin/seed-cursos': typeof HomeLayoutAdminLayoutSeedCursosRoute
+  '/home/admin/selection': typeof HomeLayoutAdminLayoutSelectionRoute
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
@@ -514,6 +532,7 @@ export interface FileRoutesByTo {
   '/home/admin/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/admin/seed-cursos': typeof HomeLayoutAdminLayoutSeedCursosRoute
+  '/home/admin/selection': typeof HomeLayoutAdminLayoutSelectionRoute
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
@@ -541,6 +560,7 @@ export interface FileRoutesById {
   '/home/_layout/admin/_layout/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
   '/home/_layout/admin/_layout/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/_layout/admin/_layout/seed-cursos': typeof HomeLayoutAdminLayoutSeedCursosRoute
+  '/home/_layout/admin/_layout/selection': typeof HomeLayoutAdminLayoutSelectionRoute
   '/home/_layout/admin/_layout/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/_layout/professor/_layout/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/_layout/student/_layout/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
@@ -565,6 +585,7 @@ export interface FileRouteTypes {
     | '/home/admin/dashboard'
     | '/home/admin/files'
     | '/home/admin/seed-cursos'
+    | '/home/admin/selection'
     | '/home/admin/users'
     | '/home/professor/dashboard'
     | '/home/student/dashboard'
@@ -585,6 +606,7 @@ export interface FileRouteTypes {
     | '/home/admin/dashboard'
     | '/home/admin/files'
     | '/home/admin/seed-cursos'
+    | '/home/admin/selection'
     | '/home/admin/users'
     | '/home/professor/dashboard'
     | '/home/student/dashboard'
@@ -610,6 +632,7 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/_layout/dashboard'
     | '/home/_layout/admin/_layout/files'
     | '/home/_layout/admin/_layout/seed-cursos'
+    | '/home/_layout/admin/_layout/selection'
     | '/home/_layout/admin/_layout/users'
     | '/home/_layout/professor/_layout/dashboard'
     | '/home/_layout/student/_layout/dashboard'
@@ -698,6 +721,7 @@ export const routeTree = rootRoute
         "/home/_layout/admin/_layout/dashboard",
         "/home/_layout/admin/_layout/files",
         "/home/_layout/admin/_layout/seed-cursos",
+        "/home/_layout/admin/_layout/selection",
         "/home/_layout/admin/_layout/users"
       ]
     },
@@ -743,6 +767,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/admin/_layout/seed-cursos": {
       "filePath": "home/_layout/admin/_layout/seed-cursos.tsx",
+      "parent": "/home/_layout/admin/_layout"
+    },
+    "/home/_layout/admin/_layout/selection": {
+      "filePath": "home/_layout/admin/_layout/selection.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
     "/home/_layout/admin/_layout/users": {
