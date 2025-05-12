@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createFileRoute } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
-import { FileDown, Text } from 'lucide-react';
+import { FileDown, Hand, Text, UsersRound } from 'lucide-react';
 import { useState } from 'react';
 
 export const Route = createFileRoute('/home/_layout/admin/_layout/selection')({
@@ -22,7 +22,7 @@ interface CandidatoData {
 }
 
 function SelectionAdmin() {
-  const [dados, setDados] = useState<CandidatoData[]>([
+  const [bolsistas, setBolsistas] = useState<CandidatoData[]>([
     {
       id: 1,
       nome: 'Bruno Mota',
@@ -40,6 +40,8 @@ function SelectionAdmin() {
       notaFinal: 10.0,
     },
   ]);
+
+  const [voluntarios, setVoluntarios] = useState<CandidatoData[]>([]);
 
   const colunasCandidatos: ColumnDef<CandidatoData>[] = [
     {
@@ -99,7 +101,6 @@ function SelectionAdmin() {
           step={0.1}
           value={row.original.notaFinal}
           className="text-center px-0 w-16"
-          disabled
         />
       ),
     },
@@ -133,9 +134,39 @@ function SelectionAdmin() {
   return (
     <PagesLayout title="MATA045" subtitle="Seleção de monitores">
       <div>
-        <section>
-          <TableComponent columns={colunasCandidatos} data={dados} />
+        {/* candidatos bolsistas */}
+        <section className="p-4 w-full max-w-5xl mx-auto">
+          {/* Cabeçalho */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <UsersRound />
+              <h2 className="text-lg font-semibold">Candidatos Bolsistas</h2>
+            </div>
+            <button className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-full text-sm hover:bg-blue-800 transition">
+              <FileDown />
+              Gerar Documento
+            </button>
+          </div>
+          <TableComponent columns={colunasCandidatos} data={bolsistas} />
         </section>
+
+        {/* candidatos voluntários */}
+        <section className="p-4 w-full max-w-5xl mx-auto">
+          {/* Cabeçalho */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <Hand />
+              <h2 className="text-lg font-semibold">Candidatos Voluntários</h2>
+            </div>
+            <button className="flex items-center gap-2 bg-blue-900 text-white px-4 py-2 rounded-full text-sm hover:bg-blue-800 transition">
+              <FileDown />
+              Gerar Documento
+            </button>
+          </div>
+          <TableComponent columns={colunasCandidatos} data={voluntarios} />
+        </section>
+
+        {/* Documentos */}
         <section>
           <SecaoDocumentosNecessarios
             documentos={documentos}
