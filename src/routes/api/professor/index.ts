@@ -1,6 +1,13 @@
 import { db } from '@/server/database';
-import { insertProfessorTableSchema, professorTable, selectProfessorTableSchema } from '@/server/database/schema';
-import { createAPIHandler, withAuthMiddleware } from '@/server/middleware/common';
+import {
+  insertProfessorTableSchema,
+  professorTable,
+  selectProfessorTableSchema,
+} from '@/server/database/schema';
+import {
+  createAPIHandler,
+  withAuthMiddleware,
+} from '@/server/middleware/common';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
@@ -8,7 +15,7 @@ import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 // Schema for professor response and input
-export const professorResponseSchema = selectProfessorTableSchema;
+const professorResponseSchema = selectProfessorTableSchema;
 
 export type ProfessorResponse = z.infer<typeof professorResponseSchema>;
 export type ProfessorInput = z.infer<typeof insertProfessorTableSchema>;
@@ -40,10 +47,10 @@ export const APIRoute = createAPIFileRoute('/api/professor')({
         log.error(error, 'Erro ao buscar professor');
         return json(
           { error: 'Erro ao buscar dados do professor' },
-          { status: 500 }
+          { status: 500 },
         );
       }
-    })
+    }),
   ),
 
   POST: createAPIHandler(
@@ -52,6 +59,7 @@ export const APIRoute = createAPIFileRoute('/api/professor')({
         const { userId } = ctx.state.user;
         const userIdNumber = parseInt(userId, 10);
         const body = await ctx.request.json();
+        console.log(body);
 
         const validatedInput = insertProfessorTableSchema.parse(body);
 
@@ -86,17 +94,17 @@ export const APIRoute = createAPIFileRoute('/api/professor')({
           return json(
             {
               error: 'Dados inválidos',
-              details: error.errors
+              details: error.errors,
             },
-            { status: 400 }
+            { status: 400 },
           );
         }
 
         return json(
           { error: 'Erro ao salvar dados do professor' },
-          { status: 500 }
+          { status: 500 },
         );
       }
-    })
+    }),
   ),
-}); 
+});
