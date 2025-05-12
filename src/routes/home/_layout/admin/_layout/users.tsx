@@ -125,7 +125,9 @@ function UsersPage() {
               title: 'Usuário atualizado',
               description: 'O papel do usuário foi atualizado com sucesso',
             });
-            window.location.reload();
+            if (currentUser.id === me?.id) {
+              window.location.reload();
+            }
             closeDialog();
           },
           onError: (error: any) => {
