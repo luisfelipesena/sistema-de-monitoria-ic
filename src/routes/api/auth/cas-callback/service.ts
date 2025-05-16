@@ -80,7 +80,11 @@ export class CasCallbackService {
     if (existingUser) {
       log.info(`Found existing user: ${username}, ID: ${existingUser.id}`);
 
-      const ADMIN_EMAILS = ['luis.sena@ufba.br', 'caioviana@ufba.br'];
+      const ADMIN_EMAILS = [
+        'luis.sena@ufba.br',
+        'caioviana@ufba.br',
+        'joao.leahy@ufba.br',
+      ];
       if (ADMIN_EMAILS.includes(existingUser.email)) {
         const [updatedUser] = await db
           .update(userTable)

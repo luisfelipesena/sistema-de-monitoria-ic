@@ -10,6 +10,13 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -98,10 +105,10 @@ function UsersPage() {
     setUserToDelete(null);
   };
 
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleRoleChange = (value: string) => {
     setCurrentUser((prev) => ({
       ...prev,
-      role: e.target.value as (typeof userRoleEnum.enumValues)[number],
+      role: value as (typeof userRoleEnum.enumValues)[number],
     }));
   };
 
@@ -118,6 +125,9 @@ function UsersPage() {
               title: 'Usuário atualizado',
               description: 'O papel do usuário foi atualizado com sucesso',
             });
+            if (currentUser.id === me?.id) {
+              window.location.reload();
+            }
             closeDialog();
           },
           onError: (error: any) => {
@@ -247,23 +257,21 @@ function UsersPage() {
               <Label htmlFor="role" className="text-sm font-semibold">
                 Papel
               </Label>
-              <select
-                id="role"
-                name="role"
-                value={currentUser.role}
-                onChange={handleRoleChange}
-                className="w-full border rounded px-2 py-2"
-                required
+              <Select
+                onValueChange={handleRoleChange}
+                defaultValue={currentUser.role}
               >
-                <option value="" disabled>
-                  Selecione um papel
-                </option>
-                {roleOptions.map((role) => (
-                  <option key={role} value={role} className="capitalize">
-                    {role}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione seu papel" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roleOptions.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {role}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <DialogFooter className="pt-4">
               <Button
