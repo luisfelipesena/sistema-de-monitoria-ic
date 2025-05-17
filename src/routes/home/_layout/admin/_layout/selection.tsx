@@ -6,6 +6,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 import { FileDown, Hand, Text, UsersRound } from 'lucide-react';
 import { useState } from 'react';
+import * as XLSX from 'xlsx';
 
 export const Route = createFileRoute('/home/_layout/admin/_layout/selection')({
   component: SelectionAdmin,
@@ -182,6 +183,36 @@ function SelectionAdmin() {
     },
   ];
 
+  const exportToExcel = (data: CandidatoData[]) => {
+    const dadosFormatados = data.map((b) => ({
+      Nome: b.nome,
+      Matrícula: b.matricula,
+      CR: b.cr,
+      'Nota da Disciplina': b.notaDisciplina,
+      'Nota Final': b.notaFinal,
+    }));
+
+    // Aqui, cria a planilha a partir do array de objetos
+    const worksheet = XLSX.utils.json_to_sheet(dadosFormatados);
+
+    worksheet['!cols'] = [
+      { wch: 20 }, // Nome
+      { wch: 15 }, // Matrícula
+      { wch: 5 }, // CR
+      { wch: 18 }, // Nota da Disciplina
+      { wch: 10 }, // Nota Final
+    ];
+
+    // Cria um workbook (arquivo Excel)
+    const workbook = XLSX.utils.book_new();
+
+    // Anexa a worksheet ao workbook, nomeando como "Candidatos"
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Candidatos');
+
+    // Salva o arquivo Excel localmente com o nome desejado
+    XLSX.writeFile(workbook, 'candidatos.xlsx');
+  };
+
   return (
     <PagesLayout title="MATA045" subtitle="Seleção de monitores">
       <div>
@@ -195,6 +226,7 @@ function SelectionAdmin() {
               <h2 className="text-lg font-bold">Candidatos Bolsistas</h2>
             </div>
             <button
+              onClick={() => exportToExcel(bolsistas)}
               className={`flex items-center gap-2 text-white px-4 py-2 rounded-full text-sm transition
               ${
                 bolsistas.length === 0
@@ -222,6 +254,7 @@ function SelectionAdmin() {
               <h2 className="text-lg font-bold">Candidatos Voluntários</h2>
             </div>
             <button
+              onClick={() => exportToExcel(voluntarios)}
               className={`flex items-center gap-2 text-white px-4 py-2 rounded-full text-sm transition
               ${
                 voluntarios.length === 0
