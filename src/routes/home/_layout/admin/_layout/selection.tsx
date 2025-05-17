@@ -21,34 +21,70 @@ interface DocumentItem {
 
 interface CandidatoData {
   id: number;
+  tipo: 'bolsista' | 'voluntario';
   nome: string;
   matricula: string;
-  cr: number;
-  notaDisciplina: number;
-  notaFinal: number;
+  cr: string;
+  notaDisciplina: string;
+  notaFinal: string;
 }
 
 function SelectionAdmin() {
   const [bolsistas, setBolsistas] = useState<CandidatoData[]>([
     {
       id: 1,
+      tipo: 'bolsista',
       nome: 'Bruno Mota',
       matricula: '222229999',
-      cr: 0.0,
-      notaDisciplina: 0.0,
-      notaFinal: 0.0,
+      cr: '0.0',
+      notaDisciplina: '0.0',
+      notaFinal: '0.0',
     },
     {
       id: 2,
+      tipo: 'bolsista',
       nome: 'Lucas Fernandes',
       matricula: '222118888',
-      cr: 10.0,
-      notaDisciplina: 10.0,
-      notaFinal: 10.0,
+      cr: '10.0',
+      notaDisciplina: '10.0',
+      notaFinal: '10.0',
     },
   ]);
 
   const [voluntarios, setVoluntarios] = useState<CandidatoData[]>([]);
+
+  const atualizarCampo = (
+    id: number,
+    campo: keyof CandidatoData,
+    e: React.ChangeEvent<HTMLInputElement>,
+    tipo: 'bolsista' | 'voluntario',
+  ) => {
+    const valor = e.target.value.replace(',', '.');
+
+    let num = parseFloat(valor);
+
+    if (isNaN(num)) {
+      num = 0;
+    }
+
+    // Limita entre 0 e 10
+    if (num < 0) num = 0;
+    if (num > 10) num = num / 10;
+
+    // Limita para uma casa decimal
+    num = Math.round(num * 10) / 10;
+
+    const novaStr = num.toFixed(1);
+
+    const lista = tipo === 'bolsista' ? bolsistas : voluntarios;
+    const atualizarLista = tipo === 'bolsista' ? setBolsistas : setVoluntarios;
+
+    const novaLista = lista.map((candidato) =>
+      candidato.id === id ? { ...candidato, [campo]: novaStr } : candidato,
+    );
+
+    atualizarLista(novaLista);
+  };
 
   const colunasCandidatos: ColumnDef<CandidatoData>[] = [
     {
@@ -72,13 +108,14 @@ function SelectionAdmin() {
       accessorKey: 'cr',
       cell: ({ row }) => (
         <Input
-          type="number"
-          min={0}
-          max={10}
-          step={0.1}
-          value={row.original.cr}
+          type="text"
+          inputMode="decimal"
+          pattern="[0-9]*[.,]?[0-9]*"
+          defaultValue={row.original.cr}
           className="text-center px-0 w-16"
-          disabled
+          onBlur={(e) =>
+            atualizarCampo(row.original.id, 'cr', e, row.original.tipo)
+          }
         />
       ),
     },
@@ -87,13 +124,19 @@ function SelectionAdmin() {
       accessorKey: 'notaDisciplina',
       cell: ({ row }) => (
         <Input
-          type="number"
-          min={0}
-          max={10}
-          step={0.1}
-          value={row.original.notaDisciplina}
+          type="text"
+          inputMode="decimal"
+          pattern="[0-9]*[.,]?[0-9]*"
+          defaultValue={row.original.notaDisciplina}
           className="text-center px-0 w-16"
-          disabled
+          onBlur={(e) =>
+            atualizarCampo(
+              row.original.id,
+              'notaDisciplina',
+              e,
+              row.original.tipo,
+            )
+          }
         />
       ),
     },
@@ -102,13 +145,14 @@ function SelectionAdmin() {
       accessorKey: 'notaFinal',
       cell: ({ row }) => (
         <Input
-          type="number"
-          min={0}
-          max={10}
-          step={0.1}
-          value={row.original.notaFinal}
-          readOnly
+          type="text"
+          inputMode="decimal"
+          pattern="[0-9]*[.,]?[0-9]*"
+          defaultValue={row.original.notaFinal}
           className="text-center px-0 w-16"
+          onBlur={(e) =>
+            atualizarCampo(row.original.id, 'notaFinal', e, row.original.tipo)
+          }
         />
       ),
     },
