@@ -1,8 +1,12 @@
 import { db } from '@/server/database';
 import { alunoTable, professorTable } from '@/server/database/schema';
-import { createAPIHandler, withAuthMiddleware } from '@/server/middleware/common';
+import {
+  createAPIHandler,
+  withAuthMiddleware,
+} from '@/server/middleware/common';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
+
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
@@ -13,7 +17,9 @@ const log = logger.child({
 
 // Schema for onboarding status response
 export const onboardingStatusSchema = z.object({
-  pending: z.boolean().describe('Indica se o usuário ainda precisa completar o onboarding'),
+  pending: z
+    .boolean()
+    .describe('Indica se o usuário ainda precisa completar o onboarding'),
 });
 
 export type OnboardingStatus = z.infer<typeof onboardingStatusSchema>;
@@ -54,9 +60,9 @@ export const APIRoute = createAPIFileRoute('/api/onboarding/status')({
         log.error({ error }, 'Erro ao verificar status de onboarding');
         return json(
           { error: 'Erro ao verificar status de onboarding' },
-          { status: 500 }
+          { status: 500 },
         );
       }
-    })
+    }),
   ),
-}); 
+});
