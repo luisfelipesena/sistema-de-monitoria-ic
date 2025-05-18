@@ -9,4 +9,6 @@ const pool = new Pool({
 
 const combinedSchema = { ...schema };
 
-export const db = drizzle(pool, { schema: combinedSchema });
+const db = drizzle(pool, { schema: combinedSchema });
+
+export { db };
