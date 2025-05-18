@@ -16,6 +16,8 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
+import { Route as AlunoStatusCadastroImport } from './routes/aluno/status-cadastro'
+import { Route as AlunoProfileImport } from './routes/aluno/profile'
 import { Route as AlunoCadastroImport } from './routes/aluno/cadastro'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
 import { Route as HomeLayoutStudentLayoutImport } from './routes/home/_layout/student/_layout'
@@ -62,6 +64,18 @@ const HomeLayoutRoute = HomeLayoutImport.update({
 const AuthCasCallbackRoute = AuthCasCallbackImport.update({
   id: '/auth/cas-callback',
   path: '/auth/cas-callback',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AlunoStatusCadastroRoute = AlunoStatusCadastroImport.update({
+  id: '/aluno/status-cadastro',
+  path: '/aluno/status-cadastro',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AlunoProfileRoute = AlunoProfileImport.update({
+  id: '/aluno/profile',
+  path: '/aluno/profile',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -205,6 +219,20 @@ declare module '@tanstack/react-router' {
       path: '/aluno/cadastro'
       fullPath: '/aluno/cadastro'
       preLoaderRoute: typeof AlunoCadastroImport
+      parentRoute: typeof rootRoute
+    }
+    '/aluno/profile': {
+      id: '/aluno/profile'
+      path: '/aluno/profile'
+      fullPath: '/aluno/profile'
+      preLoaderRoute: typeof AlunoProfileImport
+      parentRoute: typeof rootRoute
+    }
+    '/aluno/status-cadastro': {
+      id: '/aluno/status-cadastro'
+      path: '/aluno/status-cadastro'
+      fullPath: '/aluno/status-cadastro'
+      preLoaderRoute: typeof AlunoStatusCadastroImport
       parentRoute: typeof rootRoute
     }
     '/auth/cas-callback': {
@@ -483,6 +511,8 @@ const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aluno/cadastro': typeof AlunoCadastroRoute
+  '/aluno/profile': typeof AlunoProfileRoute
+  '/aluno/status-cadastro': typeof AlunoStatusCadastroRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutRouteWithChildren
   '/home/': typeof HomeLayoutIndexRoute
@@ -505,6 +535,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aluno/cadastro': typeof AlunoCadastroRoute
+  '/aluno/profile': typeof AlunoProfileRoute
+  '/aluno/status-cadastro': typeof AlunoStatusCadastroRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutIndexRoute
   '/home/admin': typeof HomeLayoutAdminLayoutRouteWithChildren
@@ -527,6 +559,8 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/aluno/cadastro': typeof AlunoCadastroRoute
+  '/aluno/profile': typeof AlunoProfileRoute
+  '/aluno/status-cadastro': typeof AlunoStatusCadastroRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
@@ -555,6 +589,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/aluno/cadastro'
+    | '/aluno/profile'
+    | '/aluno/status-cadastro'
     | '/auth/cas-callback'
     | '/home'
     | '/home/'
@@ -576,6 +612,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/aluno/cadastro'
+    | '/aluno/profile'
+    | '/aluno/status-cadastro'
     | '/auth/cas-callback'
     | '/home'
     | '/home/admin'
@@ -596,6 +634,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/aluno/cadastro'
+    | '/aluno/profile'
+    | '/aluno/status-cadastro'
     | '/auth/cas-callback'
     | '/home'
     | '/home/_layout'
@@ -623,6 +663,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AlunoCadastroRoute: typeof AlunoCadastroRoute
+  AlunoProfileRoute: typeof AlunoProfileRoute
+  AlunoStatusCadastroRoute: typeof AlunoStatusCadastroRoute
   AuthCasCallbackRoute: typeof AuthCasCallbackRoute
   HomeRoute: typeof HomeRouteWithChildren
 }
@@ -630,6 +672,8 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AlunoCadastroRoute: AlunoCadastroRoute,
+  AlunoProfileRoute: AlunoProfileRoute,
+  AlunoStatusCadastroRoute: AlunoStatusCadastroRoute,
   AuthCasCallbackRoute: AuthCasCallbackRoute,
   HomeRoute: HomeRouteWithChildren,
 }
@@ -646,6 +690,8 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/aluno/cadastro",
+        "/aluno/profile",
+        "/aluno/status-cadastro",
         "/auth/cas-callback",
         "/home"
       ]
@@ -655,6 +701,12 @@ export const routeTree = rootRoute
     },
     "/aluno/cadastro": {
       "filePath": "aluno/cadastro.tsx"
+    },
+    "/aluno/profile": {
+      "filePath": "aluno/profile.tsx"
+    },
+    "/aluno/status-cadastro": {
+      "filePath": "aluno/status-cadastro.tsx"
     },
     "/auth/cas-callback": {
       "filePath": "auth/cas-callback.tsx"
