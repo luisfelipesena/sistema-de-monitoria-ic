@@ -59,7 +59,6 @@ export const APIRoute = createAPIFileRoute('/api/professor')({
         const { userId } = ctx.state.user;
         const userIdNumber = parseInt(userId, 10);
         const body = await ctx.request.json();
-        console.log(body);
 
         const validatedInput = insertProfessorTableSchema.parse(body);
 
