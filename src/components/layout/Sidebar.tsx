@@ -10,6 +10,8 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
+  FileCheck,
+  FilePlus,
   FileText,
   FolderKanban,
   GraduationCap,
@@ -57,6 +59,18 @@ const menuItemsConfig: MenuItemConfig[] = [
     label: 'Perfil',
     href: '/home/common/profile',
     icon: User,
+    roles: ['admin', 'professor', 'student'],
+  },
+  {
+    label: 'Status',
+    href: '/home/common/status',
+    icon: FileCheck,
+    roles: ['admin', 'professor', 'student'],
+  },
+  {
+    label: 'Inscrição',
+    href: '/home/common/monitoria/signIn',
+    icon: FilePlus,
     roles: ['admin', 'professor', 'student'],
   },
   {
@@ -115,8 +129,7 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
                   : item.href;
               const checkIsActive =
                 item.isActive ||
-                ((currentPathname, itemHref) =>
-                  currentPathname.startsWith(itemHref));
+                ((currentPathname, itemHref) => currentPathname === itemHref);
 
               return (
                 <SidebarMenuItem key={actualHref}>
