@@ -125,6 +125,17 @@ export const departamentoTable = pgTable('departamento', {
   }).$onUpdate(() => new Date()),
 });
 
+export const selectDepartamentoTableSchema =
+  createSelectSchema(departamentoTable);
+
+export const insertDepartamentoTableSchema = createInsertSchema(
+  departamentoTable,
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const projetoTable = pgTable('projeto', {
   id: serial('id').primaryKey(),
   // dataAprovacao: date('data_aprovacao', { mode: 'date' }), // Approval date might be inferred from status change
