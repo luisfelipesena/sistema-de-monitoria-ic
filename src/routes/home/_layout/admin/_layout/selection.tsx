@@ -17,7 +17,8 @@ interface DocumentItem {
   title: string;
   status: string;
   statusColor?: string;
-  actions: ('download' | 'validate')[];
+  actions?: 'validate';
+  file?: File;
 }
 
 interface CandidatoData {
@@ -165,21 +166,19 @@ function SelectionAdmin() {
       title: 'Planilha Candidatos Bolsistas',
       status: 'Aguardando',
       statusColor: 'bg-gray-400',
-      actions: [],
     },
     {
       id: 2,
       title: 'Ata da Seleção',
       status: 'Pendente',
       statusColor: '',
-      actions: ['download', 'validate'],
+      actions: 'validate',
     },
     {
       id: 3,
       title: 'Ata da Seleção',
-      status: 'Aprovado',
+      status: 'Assinatura Aprovada',
       statusColor: 'bg-green-200 text-green-900',
-      actions: ['download'],
     },
   ];
 
