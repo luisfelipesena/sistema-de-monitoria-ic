@@ -16,11 +16,11 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
-import { Route as AlunoCadastroImport } from './routes/aluno/cadastro'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
 import { Route as HomeLayoutStudentLayoutImport } from './routes/home/_layout/student/_layout'
 import { Route as HomeLayoutProfessorLayoutImport } from './routes/home/_layout/professor/_layout'
 import { Route as HomeLayoutAdminLayoutImport } from './routes/home/_layout/admin/_layout'
+import { Route as HomeLayoutCommonStatusIndexImport } from './routes/home/_layout/common/status/index'
 import { Route as HomeLayoutCommonProjectsIndexImport } from './routes/home/_layout/common/projects/index'
 import { Route as HomeLayoutCommonProfileIndexImport } from './routes/home/_layout/common/profile/index'
 import { Route as HomeLayoutCommonOnboardingIndexImport } from './routes/home/_layout/common/onboarding/index'
@@ -33,6 +33,7 @@ import { Route as HomeLayoutAdminLayoutSeedCursosImport } from './routes/home/_l
 import { Route as HomeLayoutAdminLayoutFilesImport } from './routes/home/_layout/admin/_layout/files'
 import { Route as HomeLayoutAdminLayoutDashboardImport } from './routes/home/_layout/admin/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutCursosImport } from './routes/home/_layout/admin/_layout/cursos'
+import { Route as HomeLayoutCommonMonitoriaSignInIndexImport } from './routes/home/_layout/common/monitoria/signIn/index'
 
 // Create Virtual Routes
 
@@ -63,12 +64,6 @@ const HomeLayoutRoute = HomeLayoutImport.update({
 const AuthCasCallbackRoute = AuthCasCallbackImport.update({
   id: '/auth/cas-callback',
   path: '/auth/cas-callback',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AlunoCadastroRoute = AlunoCadastroImport.update({
-  id: '/aluno/cadastro',
-  path: '/aluno/cadastro',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -110,6 +105,13 @@ const HomeLayoutAdminLayoutRoute = HomeLayoutAdminLayoutImport.update({
   id: '/_layout',
   getParentRoute: () => HomeLayoutAdminRoute,
 } as any)
+
+const HomeLayoutCommonStatusIndexRoute =
+  HomeLayoutCommonStatusIndexImport.update({
+    id: '/common/status/',
+    path: '/common/status/',
+    getParentRoute: () => HomeLayoutRoute,
+  } as any)
 
 const HomeLayoutCommonProjectsIndexRoute =
   HomeLayoutCommonProjectsIndexImport.update({
@@ -197,6 +199,13 @@ const HomeLayoutAdminLayoutCursosRoute =
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any)
 
+const HomeLayoutCommonMonitoriaSignInIndexRoute =
+  HomeLayoutCommonMonitoriaSignInIndexImport.update({
+    id: '/common/monitoria/signIn/',
+    path: '/common/monitoria/signIn/',
+    getParentRoute: () => HomeLayoutRoute,
+  } as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -206,13 +215,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/aluno/cadastro': {
-      id: '/aluno/cadastro'
-      path: '/aluno/cadastro'
-      fullPath: '/aluno/cadastro'
-      preLoaderRoute: typeof AlunoCadastroImport
       parentRoute: typeof rootRoute
     }
     '/auth/cas-callback': {
@@ -369,6 +371,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutCommonProjectsIndexImport
       parentRoute: typeof HomeLayoutImport
     }
+    '/home/_layout/common/status/': {
+      id: '/home/_layout/common/status/'
+      path: '/common/status'
+      fullPath: '/home/common/status'
+      preLoaderRoute: typeof HomeLayoutCommonStatusIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
+    '/home/_layout/common/monitoria/signIn/': {
+      id: '/home/_layout/common/monitoria/signIn/'
+      path: '/common/monitoria/signIn'
+      fullPath: '/home/common/monitoria/signIn'
+      preLoaderRoute: typeof HomeLayoutCommonMonitoriaSignInIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
   }
 }
 
@@ -470,6 +486,8 @@ interface HomeLayoutRouteChildren {
   HomeLayoutCommonOnboardingIndexRoute: typeof HomeLayoutCommonOnboardingIndexRoute
   HomeLayoutCommonProfileIndexRoute: typeof HomeLayoutCommonProfileIndexRoute
   HomeLayoutCommonProjectsIndexRoute: typeof HomeLayoutCommonProjectsIndexRoute
+  HomeLayoutCommonStatusIndexRoute: typeof HomeLayoutCommonStatusIndexRoute
+  HomeLayoutCommonMonitoriaSignInIndexRoute: typeof HomeLayoutCommonMonitoriaSignInIndexRoute
 }
 
 const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
@@ -481,6 +499,9 @@ const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutCommonOnboardingIndexRoute: HomeLayoutCommonOnboardingIndexRoute,
   HomeLayoutCommonProfileIndexRoute: HomeLayoutCommonProfileIndexRoute,
   HomeLayoutCommonProjectsIndexRoute: HomeLayoutCommonProjectsIndexRoute,
+  HomeLayoutCommonStatusIndexRoute: HomeLayoutCommonStatusIndexRoute,
+  HomeLayoutCommonMonitoriaSignInIndexRoute:
+    HomeLayoutCommonMonitoriaSignInIndexRoute,
 }
 
 const HomeLayoutRouteWithChildren = HomeLayoutRoute._addFileChildren(
@@ -499,7 +520,6 @@ const HomeRouteWithChildren = HomeRoute._addFileChildren(HomeRouteChildren)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/aluno/cadastro': typeof AlunoCadastroRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutRouteWithChildren
   '/home/': typeof HomeLayoutIndexRoute
@@ -518,11 +538,12 @@ export interface FileRoutesByFullPath {
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
   '/home/common/projects': typeof HomeLayoutCommonProjectsIndexRoute
+  '/home/common/status': typeof HomeLayoutCommonStatusIndexRoute
+  '/home/common/monitoria/signIn': typeof HomeLayoutCommonMonitoriaSignInIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/aluno/cadastro': typeof AlunoCadastroRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutIndexRoute
   '/home/admin': typeof HomeLayoutAdminLayoutRouteWithChildren
@@ -540,12 +561,13 @@ export interface FileRoutesByTo {
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
   '/home/common/projects': typeof HomeLayoutCommonProjectsIndexRoute
+  '/home/common/status': typeof HomeLayoutCommonStatusIndexRoute
+  '/home/common/monitoria/signIn': typeof HomeLayoutCommonMonitoriaSignInIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/aluno/cadastro': typeof AlunoCadastroRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
@@ -568,13 +590,14 @@ export interface FileRoutesById {
   '/home/_layout/common/onboarding/': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/_layout/common/profile/': typeof HomeLayoutCommonProfileIndexRoute
   '/home/_layout/common/projects/': typeof HomeLayoutCommonProjectsIndexRoute
+  '/home/_layout/common/status/': typeof HomeLayoutCommonStatusIndexRoute
+  '/home/_layout/common/monitoria/signIn/': typeof HomeLayoutCommonMonitoriaSignInIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/aluno/cadastro'
     | '/auth/cas-callback'
     | '/home'
     | '/home/'
@@ -593,10 +616,11 @@ export interface FileRouteTypes {
     | '/home/common/onboarding'
     | '/home/common/profile'
     | '/home/common/projects'
+    | '/home/common/status'
+    | '/home/common/monitoria/signIn'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/aluno/cadastro'
     | '/auth/cas-callback'
     | '/home'
     | '/home/admin'
@@ -614,10 +638,11 @@ export interface FileRouteTypes {
     | '/home/common/onboarding'
     | '/home/common/profile'
     | '/home/common/projects'
+    | '/home/common/status'
+    | '/home/common/monitoria/signIn'
   id:
     | '__root__'
     | '/'
-    | '/aluno/cadastro'
     | '/auth/cas-callback'
     | '/home'
     | '/home/_layout'
@@ -640,19 +665,19 @@ export interface FileRouteTypes {
     | '/home/_layout/common/onboarding/'
     | '/home/_layout/common/profile/'
     | '/home/_layout/common/projects/'
+    | '/home/_layout/common/status/'
+    | '/home/_layout/common/monitoria/signIn/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AlunoCadastroRoute: typeof AlunoCadastroRoute
   AuthCasCallbackRoute: typeof AuthCasCallbackRoute
   HomeRoute: typeof HomeRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AlunoCadastroRoute: AlunoCadastroRoute,
   AuthCasCallbackRoute: AuthCasCallbackRoute,
   HomeRoute: HomeRouteWithChildren,
 }
@@ -668,16 +693,12 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/aluno/cadastro",
         "/auth/cas-callback",
         "/home"
       ]
     },
     "/": {
       "filePath": "index.tsx"
-    },
-    "/aluno/cadastro": {
-      "filePath": "aluno/cadastro.tsx"
     },
     "/auth/cas-callback": {
       "filePath": "auth/cas-callback.tsx"
@@ -699,7 +720,9 @@ export const routeTree = rootRoute
         "/home/_layout/common/monitoria/",
         "/home/_layout/common/onboarding/",
         "/home/_layout/common/profile/",
-        "/home/_layout/common/projects/"
+        "/home/_layout/common/projects/",
+        "/home/_layout/common/status/",
+        "/home/_layout/common/monitoria/signIn/"
       ]
     },
     "/home/_layout/": {
@@ -799,6 +822,14 @@ export const routeTree = rootRoute
     },
     "/home/_layout/common/projects/": {
       "filePath": "home/_layout/common/projects/index.tsx",
+      "parent": "/home/_layout"
+    },
+    "/home/_layout/common/status/": {
+      "filePath": "home/_layout/common/status/index.tsx",
+      "parent": "/home/_layout"
+    },
+    "/home/_layout/common/monitoria/signIn/": {
+      "filePath": "home/_layout/common/monitoria/signIn/index.tsx",
       "parent": "/home/_layout"
     }
   }
