@@ -81,14 +81,14 @@ const ProjectPdfDocument = ({ data }: { data: TemplateFormData }) => (
       <View style={styles.section}>
         <Text style={styles.heading}>Proposta de Projeto de Monitoria</Text>
         <Text style={styles.text}>
-          Professor(a) Responsável: {data.professorName || '[Nome Professor]'}
+          Professor(a) responsável: {data.professorName || '[Nome Professor]'}
         </Text>
         <Text style={styles.text}>
-          Nome do Projeto: {data.projectName || '[Nome Projeto]'}
+          Nome do projeto: {data.projectName || '[Nome Projeto]'}
         </Text>
       </View>
       <View style={styles.section}>
-        <Text style={styles.heading}>Objetivo Geral</Text>
+        <Text style={styles.heading}>Objetivo geral</Text>
         <Text style={styles.text}>{data.objective || '[Objetivo Geral]'}</Text>
       </View>
       {/* Add more template sections as needed */}
@@ -192,7 +192,7 @@ function ProjectsComponent() {
           {/* Column 1: Form Inputs */}
           <div>
             <h2 className="mb-4 text-xl font-semibold text-gray-800">
-              Dados da Proposta (Template)
+              Dados da proposta (Template)
             </h2>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Professor Name Input */}
@@ -201,7 +201,7 @@ function ProjectsComponent() {
                   htmlFor="professorName"
                   className="block mb-1 text-sm font-medium text-gray-700"
                 >
-                  Nome do Professor Responsável
+                  Nome do Professor responsável
                 </label>
                 <Input
                   id="professorName"
@@ -222,7 +222,7 @@ function ProjectsComponent() {
                   htmlFor="projectName"
                   className="block mb-1 text-sm font-medium text-gray-700"
                 >
-                  Nome do Projeto
+                  Nome do projeto
                 </label>
                 <Input
                   id="projectName"
@@ -243,7 +243,7 @@ function ProjectsComponent() {
                   htmlFor="objective"
                   className="block mb-1 text-sm font-medium text-gray-700"
                 >
-                  Objetivo Geral do Projeto
+                  Objetivo geral do projeto
                 </label>
                 <textarea
                   id="objective"
