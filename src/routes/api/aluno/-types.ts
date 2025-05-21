@@ -7,9 +7,7 @@ import { z } from 'zod';
 // Schema estendido para incluir campos de upload
 export const alunoInputSchema = insertAlunoTableSchema.extend({
   historicoEscolarFileId: z.string().optional(),
-  comprovanteMatriculaFileId: z.string({
-    required_error: 'O comprovante de matrícula é obrigatório',
-  }),
+  comprovanteMatriculaFileId: z.string().optional(),
 });
 
 // Schema for response to ensure type safety

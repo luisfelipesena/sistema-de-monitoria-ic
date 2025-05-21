@@ -96,7 +96,7 @@ export function StudentForm() {
       // Upload do comprovante de matrícula (obrigatório)
       try {
         const response = await fileUploadMutation.mutateAsync({
-          file: comprovanteMatriculaFile,
+          file: comprovanteMatriculaFile as File,
           entityType: 'comprovante_matricula',
           entityId: user?.id?.toString() || '0',
         });
