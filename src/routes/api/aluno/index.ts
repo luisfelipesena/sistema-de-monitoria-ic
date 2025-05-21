@@ -1,7 +1,13 @@
-import { alunoInputSchema, alunoResponseSchema } from '@/routes/api/aluno/-types';
+import {
+  alunoInputSchema,
+  alunoResponseSchema,
+} from '@/routes/api/aluno/-types';
 import { db } from '@/server/database';
 import { alunoTable } from '@/server/database/schema';
-import { createAPIHandler, withAuthMiddleware } from '@/server/middleware/common';
+import {
+  createAPIHandler,
+  withAuthMiddleware,
+} from '@/server/middleware/common';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
@@ -33,10 +39,10 @@ export const APIRoute = createAPIFileRoute('/api/aluno')({
         log.error({ error }, 'Erro ao buscar aluno');
         return json(
           { error: 'Erro ao buscar dados do aluno' },
-          { status: 500 }
+          { status: 500 },
         );
       }
-    })
+    }),
   ),
 
   // POST: Criar ou atualizar dados do aluno
@@ -49,7 +55,19 @@ export const APIRoute = createAPIFileRoute('/api/aluno')({
         const validatedInput = alunoInputSchema.parse(body);
 
         // Extrair os campos de upload antes de inserir no banco
-        const { historicoEscolarFileId, comprovanteMatriculaFileId, ...alunoData } = validatedInput;
+        const {
+          historicoEscolarFileId,
+          comprovanteMatriculaFileId,
+          ...alunoData
+        } = validatedInput;
+
+        // Regra de negócio: comprovante de matrícula é obrigatório
+        if (!comprovanteMatriculaFileId) {
+          return json(
+            { error: 'Comprovante de matrícula é obrigatório' },
+            { status: 400 },
+          );
+        }
 
         const aluno = await db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, parseInt(ctx.state.user.userId)),
@@ -88,17 +106,17 @@ export const APIRoute = createAPIFileRoute('/api/aluno')({
           return json(
             {
               error: 'Dados inválidos',
-              details: error.errors
+              details: error.errors,
             },
-            { status: 400 }
+            { status: 400 },
           );
         }
 
         return json(
           { error: 'Erro ao salvar dados do aluno' },
-          { status: 500 }
+          { status: 500 },
         );
       }
-    })
+    }),
   ),
-}); 
+});

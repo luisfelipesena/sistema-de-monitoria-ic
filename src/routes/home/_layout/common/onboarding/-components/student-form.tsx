@@ -22,10 +22,6 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-interface StudentFormProps {
-  // Adicione props se necessário
-}
-
 export function StudentForm() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -33,21 +29,15 @@ export function StudentForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Estado dos arquivos
+  // Comprovante de matrícula é obrigatório, histórico escolar opcional
+  const [comprovanteMatriculaFile, setComprovanteMatriculaFile] =
+    useState<File | null>(null);
   const [historicoEscolarFile, setHistoricoEscolarFile] = useState<File | null>(
     null,
   );
-  const [comprovanteMatriculaFile, setComprovanteMatriculaFile] =
-    useState<File | null>(null);
-  const [historicoEscolarFileId, setHistoricoEscolarFileId] = useState<
-    string | null
-  >(null);
-  const [comprovanteMatriculaFileId, setComprovanteMatriculaFileId] = useState<
-    string | null
-  >(null);
 
   // Buscar a lista de cursos
-  const { data: cursos, isLoading: cursosLoading } = useCursos();
+  const { data: cursos } = useCursos();
 
   // Hooks para upload de arquivos e salvar aluno
   const fileUploadMutation = useFileUpload();
@@ -61,27 +51,19 @@ export function StudentForm() {
     },
   });
 
-  const handleHistoricoFileSelect = (file: File | null) => {
-    setHistoricoEscolarFile(file);
-    // Limpar o ID se o arquivo for alterado ou removido
-    if (file === null) {
-      setHistoricoEscolarFileId(null);
-    }
-  };
-
   const handleComprovanteFileSelect = (file: File | null) => {
     setComprovanteMatriculaFile(file);
-    // Limpar o ID se o arquivo for alterado ou removido
-    if (file === null) {
-      setComprovanteMatriculaFileId(null);
-    }
+  };
+
+  const handleHistoricoFileSelect = (file: File | null) => {
+    setHistoricoEscolarFile(file);
   };
 
   const onSubmit = form.handleSubmit(async (values) => {
-    if (!historicoEscolarFile) {
+    if (!comprovanteMatriculaFile) {
       toast({
         title: 'Documento obrigatório',
-        description: 'É necessário fazer upload do histórico escolar',
+        description: 'É necessário fazer upload do comprovante de matrícula',
         variant: 'destructive',
       });
       return;
@@ -91,43 +73,41 @@ export function StudentForm() {
 
     try {
       // 1. Fazer upload dos arquivos e obter os IDs
-      let historicoId = null;
-      let comprovanteId = null;
+      let comprovanteId: string | null = null;
+      let historicoId: string | null = null;
 
-      // Upload do histórico escolar
+      // Upload do comprovante de matrícula (obrigatório)
       try {
         const response = await fileUploadMutation.mutateAsync({
-          file: historicoEscolarFile,
-          entityType: 'historico_escolar',
+          file: comprovanteMatriculaFile,
+          entityType: 'comprovante_matricula',
           entityId: user?.id?.toString() || '0',
         });
-        historicoId = response.fileId;
-        setHistoricoEscolarFileId(response.fileId);
+        comprovanteId = response.fileId;
       } catch (error: any) {
         toast({
-          title: 'Erro no upload do histórico',
-          description: error.message || 'Erro ao enviar o histórico escolar',
+          title: 'Erro no upload do comprovante',
+          description:
+            error.message || 'Erro ao enviar o comprovante de matrícula',
           variant: 'destructive',
         });
         setIsSubmitting(false);
         return;
       }
 
-      // Upload do comprovante de matrícula (se fornecido)
-      if (comprovanteMatriculaFile) {
+      // Upload do histórico escolar (opcional)
+      if (historicoEscolarFile) {
         try {
           const response = await fileUploadMutation.mutateAsync({
-            file: comprovanteMatriculaFile,
-            entityType: 'comprovante_matricula',
+            file: historicoEscolarFile,
+            entityType: 'historico_escolar',
             entityId: user?.id?.toString() || '0',
           });
-          comprovanteId = response.fileId;
-          setComprovanteMatriculaFileId(response.fileId);
+          historicoId = response.fileId;
         } catch (error: any) {
           toast({
-            title: 'Erro no upload do comprovante',
-            description:
-              error.message || 'Erro ao enviar o comprovante de matrícula',
+            title: 'Erro no upload do histórico',
+            description: error.message || 'Erro ao enviar o histórico escolar',
             variant: 'destructive',
           });
           setIsSubmitting(false);
@@ -139,7 +119,7 @@ export function StudentForm() {
       const alunoData: AlunoInput = {
         ...values,
         historicoEscolarFileId: historicoId || undefined,
-        comprovanteMatriculaFileId: comprovanteId || undefined,
+        comprovanteMatriculaFileId: comprovanteId!,
       };
 
       if (!useNomeSocial) {
@@ -306,7 +286,8 @@ export function StudentForm() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div>
             <Label htmlFor="historico">
-              Histórico Escolar <span className="text-red-500">*</span>
+              Histórico Escolar{' '}
+              <span className="text-muted-foreground">(opcional)</span>
             </Label>
             <div className="mt-2">
               <div className="border border-dashed border-gray-300 p-4 rounded-md">
@@ -318,8 +299,7 @@ export function StudentForm() {
                 />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                <span className="font-semibold">Documento obrigatório</span>{' '}
-                (PDF, máx. 100MB)
+                Documento opcional (PDF, máx. 100MB)
               </p>
               {historicoEscolarFile && (
                 <p className="text-xs text-green-600 mt-1">
@@ -331,8 +311,7 @@ export function StudentForm() {
 
           <div>
             <Label htmlFor="comprovante">
-              Comprovante de Matrícula{' '}
-              <span className="text-muted-foreground">(opcional)</span>
+              Comprovante de Matrícula <span className="text-red-500">*</span>
             </Label>
             <div className="mt-2">
               <div className="border border-dashed border-gray-300 p-4 rounded-md">
@@ -344,7 +323,8 @@ export function StudentForm() {
                 />
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                Documento opcional (PDF, máx. 100MB)
+                <span className="font-semibold">Documento obrigatório</span>{' '}
+                (PDF, máx. 100MB)
               </p>
               {comprovanteMatriculaFile && (
                 <p className="text-xs text-green-600 mt-1">
