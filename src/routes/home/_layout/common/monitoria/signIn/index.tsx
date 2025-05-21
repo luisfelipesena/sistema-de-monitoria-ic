@@ -80,7 +80,7 @@ function RouteComponent() {
       <section>
         <SecaoDocumentosNecessarios
           documentos={documentos}
-          onUpload={(id) => console.log('upload', id)}
+          onUpload={(file, id) => console.log('upload', id, file)}
           onVisualizar={(id) => console.log('ver', id)}
         />
       </section>
@@ -92,4 +92,3 @@ function RouteComponent() {
     </div>
   );
 }
-``;

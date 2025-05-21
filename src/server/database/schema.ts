@@ -473,7 +473,7 @@ export const inscricaoDocumentoTable = pgTable('inscricao_documento', {
   inscricaoId: integer('inscricao_id')
     .references(() => inscricaoTable.id, { onDelete: 'cascade' })
     .notNull(),
-  // documentoUniqueId: text('documento_unique_id').notNull(), // Link to document table
+  fileId: text('file_id').notNull(), // Unique identifier for the uploaded document in the object storage
   tipoDocumento: text('tipo_documento').notNull(), // e.g., 'HISTORICO_ESCOLAR'
   // validado: boolean('validado'), // Potentially handled by admin/professor review
   createdAt: timestamp('created_at', {
