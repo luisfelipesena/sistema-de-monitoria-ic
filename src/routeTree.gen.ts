@@ -33,12 +33,14 @@ import { Route as HomeLayoutProfessorLayoutDashboardImport } from './routes/home
 import { Route as HomeLayoutAdminLayoutUsersImport } from './routes/home/_layout/admin/_layout/users'
 import { Route as HomeLayoutAdminLayoutSeedCursosImport } from './routes/home/_layout/admin/_layout/seed-cursos'
 import { Route as HomeLayoutAdminLayoutProfessoresImport } from './routes/home/_layout/admin/_layout/professores'
+import { Route as HomeLayoutAdminLayoutPeriodosInscricaoImport } from './routes/home/_layout/admin/_layout/periodos-inscricao'
 import { Route as HomeLayoutAdminLayoutNotificacoesImport } from './routes/home/_layout/admin/_layout/notificacoes'
 import { Route as HomeLayoutAdminLayoutFilesImport } from './routes/home/_layout/admin/_layout/files'
 import { Route as HomeLayoutAdminLayoutDisciplinasImport } from './routes/home/_layout/admin/_layout/disciplinas'
 import { Route as HomeLayoutAdminLayoutDepartamentosImport } from './routes/home/_layout/admin/_layout/departamentos'
 import { Route as HomeLayoutAdminLayoutDashboardImport } from './routes/home/_layout/admin/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutCursosImport } from './routes/home/_layout/admin/_layout/cursos'
+import { Route as HomeLayoutAdminLayoutAnaliseProjetosImport } from './routes/home/_layout/admin/_layout/analise-projetos'
 import { Route as HomeLayoutAdminLayoutAlunosImport } from './routes/home/_layout/admin/_layout/alunos'
 
 // Create Virtual Routes
@@ -203,6 +205,13 @@ const HomeLayoutAdminLayoutProfessoresRoute =
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any)
 
+const HomeLayoutAdminLayoutPeriodosInscricaoRoute =
+  HomeLayoutAdminLayoutPeriodosInscricaoImport.update({
+    id: '/periodos-inscricao',
+    path: '/periodos-inscricao',
+    getParentRoute: () => HomeLayoutAdminLayoutRoute,
+  } as any)
+
 const HomeLayoutAdminLayoutNotificacoesRoute =
   HomeLayoutAdminLayoutNotificacoesImport.update({
     id: '/notificacoes',
@@ -243,6 +252,13 @@ const HomeLayoutAdminLayoutCursosRoute =
   HomeLayoutAdminLayoutCursosImport.update({
     id: '/cursos',
     path: '/cursos',
+    getParentRoute: () => HomeLayoutAdminLayoutRoute,
+  } as any)
+
+const HomeLayoutAdminLayoutAnaliseProjetosRoute =
+  HomeLayoutAdminLayoutAnaliseProjetosImport.update({
+    id: '/analise-projetos',
+    path: '/analise-projetos',
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any)
 
@@ -348,6 +364,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminLayoutAlunosImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
+    '/home/_layout/admin/_layout/analise-projetos': {
+      id: '/home/_layout/admin/_layout/analise-projetos'
+      path: '/analise-projetos'
+      fullPath: '/home/admin/analise-projetos'
+      preLoaderRoute: typeof HomeLayoutAdminLayoutAnaliseProjetosImport
+      parentRoute: typeof HomeLayoutAdminLayoutImport
+    }
     '/home/_layout/admin/_layout/cursos': {
       id: '/home/_layout/admin/_layout/cursos'
       path: '/cursos'
@@ -388,6 +411,13 @@ declare module '@tanstack/react-router' {
       path: '/notificacoes'
       fullPath: '/home/admin/notificacoes'
       preLoaderRoute: typeof HomeLayoutAdminLayoutNotificacoesImport
+      parentRoute: typeof HomeLayoutAdminLayoutImport
+    }
+    '/home/_layout/admin/_layout/periodos-inscricao': {
+      id: '/home/_layout/admin/_layout/periodos-inscricao'
+      path: '/periodos-inscricao'
+      fullPath: '/home/admin/periodos-inscricao'
+      preLoaderRoute: typeof HomeLayoutAdminLayoutPeriodosInscricaoImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
     '/home/_layout/admin/_layout/professores': {
@@ -481,12 +511,14 @@ declare module '@tanstack/react-router' {
 
 interface HomeLayoutAdminLayoutRouteChildren {
   HomeLayoutAdminLayoutAlunosRoute: typeof HomeLayoutAdminLayoutAlunosRoute
+  HomeLayoutAdminLayoutAnaliseProjetosRoute: typeof HomeLayoutAdminLayoutAnaliseProjetosRoute
   HomeLayoutAdminLayoutCursosRoute: typeof HomeLayoutAdminLayoutCursosRoute
   HomeLayoutAdminLayoutDashboardRoute: typeof HomeLayoutAdminLayoutDashboardRoute
   HomeLayoutAdminLayoutDepartamentosRoute: typeof HomeLayoutAdminLayoutDepartamentosRoute
   HomeLayoutAdminLayoutDisciplinasRoute: typeof HomeLayoutAdminLayoutDisciplinasRoute
   HomeLayoutAdminLayoutFilesRoute: typeof HomeLayoutAdminLayoutFilesRoute
   HomeLayoutAdminLayoutNotificacoesRoute: typeof HomeLayoutAdminLayoutNotificacoesRoute
+  HomeLayoutAdminLayoutPeriodosInscricaoRoute: typeof HomeLayoutAdminLayoutPeriodosInscricaoRoute
   HomeLayoutAdminLayoutProfessoresRoute: typeof HomeLayoutAdminLayoutProfessoresRoute
   HomeLayoutAdminLayoutSeedCursosRoute: typeof HomeLayoutAdminLayoutSeedCursosRoute
   HomeLayoutAdminLayoutUsersRoute: typeof HomeLayoutAdminLayoutUsersRoute
@@ -494,6 +526,8 @@ interface HomeLayoutAdminLayoutRouteChildren {
 
 const HomeLayoutAdminLayoutRouteChildren: HomeLayoutAdminLayoutRouteChildren = {
   HomeLayoutAdminLayoutAlunosRoute: HomeLayoutAdminLayoutAlunosRoute,
+  HomeLayoutAdminLayoutAnaliseProjetosRoute:
+    HomeLayoutAdminLayoutAnaliseProjetosRoute,
   HomeLayoutAdminLayoutCursosRoute: HomeLayoutAdminLayoutCursosRoute,
   HomeLayoutAdminLayoutDashboardRoute: HomeLayoutAdminLayoutDashboardRoute,
   HomeLayoutAdminLayoutDepartamentosRoute:
@@ -502,6 +536,8 @@ const HomeLayoutAdminLayoutRouteChildren: HomeLayoutAdminLayoutRouteChildren = {
   HomeLayoutAdminLayoutFilesRoute: HomeLayoutAdminLayoutFilesRoute,
   HomeLayoutAdminLayoutNotificacoesRoute:
     HomeLayoutAdminLayoutNotificacoesRoute,
+  HomeLayoutAdminLayoutPeriodosInscricaoRoute:
+    HomeLayoutAdminLayoutPeriodosInscricaoRoute,
   HomeLayoutAdminLayoutProfessoresRoute: HomeLayoutAdminLayoutProfessoresRoute,
   HomeLayoutAdminLayoutSeedCursosRoute: HomeLayoutAdminLayoutSeedCursosRoute,
   HomeLayoutAdminLayoutUsersRoute: HomeLayoutAdminLayoutUsersRoute,
@@ -629,12 +665,14 @@ export interface FileRoutesByFullPath {
   '/home/professor': typeof HomeLayoutProfessorLayoutRouteWithChildren
   '/home/student': typeof HomeLayoutStudentLayoutRouteWithChildren
   '/home/admin/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
+  '/home/admin/analise-projetos': typeof HomeLayoutAdminLayoutAnaliseProjetosRoute
   '/home/admin/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/admin/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
   '/home/admin/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
   '/home/admin/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
+  '/home/admin/periodos-inscricao': typeof HomeLayoutAdminLayoutPeriodosInscricaoRoute
   '/home/admin/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
   '/home/admin/seed-cursos': typeof HomeLayoutAdminLayoutSeedCursosRoute
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
@@ -658,12 +696,14 @@ export interface FileRoutesByTo {
   '/home/professor': typeof HomeLayoutProfessorLayoutRouteWithChildren
   '/home/student': typeof HomeLayoutStudentLayoutRouteWithChildren
   '/home/admin/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
+  '/home/admin/analise-projetos': typeof HomeLayoutAdminLayoutAnaliseProjetosRoute
   '/home/admin/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/admin/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
   '/home/admin/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
   '/home/admin/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
+  '/home/admin/periodos-inscricao': typeof HomeLayoutAdminLayoutPeriodosInscricaoRoute
   '/home/admin/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
   '/home/admin/seed-cursos': typeof HomeLayoutAdminLayoutSeedCursosRoute
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
@@ -693,12 +733,14 @@ export interface FileRoutesById {
   '/home/_layout/student': typeof HomeLayoutStudentRouteWithChildren
   '/home/_layout/student/_layout': typeof HomeLayoutStudentLayoutRouteWithChildren
   '/home/_layout/admin/_layout/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
+  '/home/_layout/admin/_layout/analise-projetos': typeof HomeLayoutAdminLayoutAnaliseProjetosRoute
   '/home/_layout/admin/_layout/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/_layout/admin/_layout/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
   '/home/_layout/admin/_layout/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
   '/home/_layout/admin/_layout/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/_layout/admin/_layout/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/_layout/admin/_layout/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
+  '/home/_layout/admin/_layout/periodos-inscricao': typeof HomeLayoutAdminLayoutPeriodosInscricaoRoute
   '/home/_layout/admin/_layout/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
   '/home/_layout/admin/_layout/seed-cursos': typeof HomeLayoutAdminLayoutSeedCursosRoute
   '/home/_layout/admin/_layout/users': typeof HomeLayoutAdminLayoutUsersRoute
@@ -725,12 +767,14 @@ export interface FileRouteTypes {
     | '/home/professor'
     | '/home/student'
     | '/home/admin/alunos'
+    | '/home/admin/analise-projetos'
     | '/home/admin/cursos'
     | '/home/admin/dashboard'
     | '/home/admin/departamentos'
     | '/home/admin/disciplinas'
     | '/home/admin/files'
     | '/home/admin/notificacoes'
+    | '/home/admin/periodos-inscricao'
     | '/home/admin/professores'
     | '/home/admin/seed-cursos'
     | '/home/admin/users'
@@ -753,12 +797,14 @@ export interface FileRouteTypes {
     | '/home/professor'
     | '/home/student'
     | '/home/admin/alunos'
+    | '/home/admin/analise-projetos'
     | '/home/admin/cursos'
     | '/home/admin/dashboard'
     | '/home/admin/departamentos'
     | '/home/admin/disciplinas'
     | '/home/admin/files'
     | '/home/admin/notificacoes'
+    | '/home/admin/periodos-inscricao'
     | '/home/admin/professores'
     | '/home/admin/seed-cursos'
     | '/home/admin/users'
@@ -786,12 +832,14 @@ export interface FileRouteTypes {
     | '/home/_layout/student'
     | '/home/_layout/student/_layout'
     | '/home/_layout/admin/_layout/alunos'
+    | '/home/_layout/admin/_layout/analise-projetos'
     | '/home/_layout/admin/_layout/cursos'
     | '/home/_layout/admin/_layout/dashboard'
     | '/home/_layout/admin/_layout/departamentos'
     | '/home/_layout/admin/_layout/disciplinas'
     | '/home/_layout/admin/_layout/files'
     | '/home/_layout/admin/_layout/notificacoes'
+    | '/home/_layout/admin/_layout/periodos-inscricao'
     | '/home/_layout/admin/_layout/professores'
     | '/home/_layout/admin/_layout/seed-cursos'
     | '/home/_layout/admin/_layout/users'
@@ -885,12 +933,14 @@ export const routeTree = rootRoute
       "parent": "/home/_layout/admin",
       "children": [
         "/home/_layout/admin/_layout/alunos",
+        "/home/_layout/admin/_layout/analise-projetos",
         "/home/_layout/admin/_layout/cursos",
         "/home/_layout/admin/_layout/dashboard",
         "/home/_layout/admin/_layout/departamentos",
         "/home/_layout/admin/_layout/disciplinas",
         "/home/_layout/admin/_layout/files",
         "/home/_layout/admin/_layout/notificacoes",
+        "/home/_layout/admin/_layout/periodos-inscricao",
         "/home/_layout/admin/_layout/professores",
         "/home/_layout/admin/_layout/seed-cursos",
         "/home/_layout/admin/_layout/users"
@@ -928,6 +978,10 @@ export const routeTree = rootRoute
       "filePath": "home/_layout/admin/_layout/alunos.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
+    "/home/_layout/admin/_layout/analise-projetos": {
+      "filePath": "home/_layout/admin/_layout/analise-projetos.tsx",
+      "parent": "/home/_layout/admin/_layout"
+    },
     "/home/_layout/admin/_layout/cursos": {
       "filePath": "home/_layout/admin/_layout/cursos.tsx",
       "parent": "/home/_layout/admin/_layout"
@@ -950,6 +1004,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/admin/_layout/notificacoes": {
       "filePath": "home/_layout/admin/_layout/notificacoes.tsx",
+      "parent": "/home/_layout/admin/_layout"
+    },
+    "/home/_layout/admin/_layout/periodos-inscricao": {
+      "filePath": "home/_layout/admin/_layout/periodos-inscricao.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
     "/home/_layout/admin/_layout/professores": {

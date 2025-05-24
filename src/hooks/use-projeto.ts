@@ -47,6 +47,66 @@ export function useCreateProjeto() {
   });
 }
 
+export function useSubmitProjeto() {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, number>({
+    mutationFn: async (projetoId) => {
+      const response = await apiClient.post(`/projeto/${projetoId}/submit`);
+      return response.data;
+    },
+    onSuccess: (_, projetoId) => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.projeto.byId(projetoId.toString()),
+      });
+    },
+  });
+}
+
+export function useApproveProjeto() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    any,
+    Error,
+    { projetoId: number; bolsasDisponibilizadas: number; observacoes?: string }
+  >({
+    mutationFn: async ({ projetoId, bolsasDisponibilizadas, observacoes }) => {
+      const response = await apiClient.post(`/projeto/${projetoId}/approve`, {
+        bolsasDisponibilizadas,
+        observacoes,
+      });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.projeto.byId(variables.projetoId.toString()),
+      });
+    },
+  });
+}
+
+export function useRejectProjeto() {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, { projetoId: number; motivo: string }>({
+    mutationFn: async ({ projetoId, motivo }) => {
+      const response = await apiClient.post(`/projeto/${projetoId}/reject`, {
+        motivo,
+      });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.projeto.byId(variables.projetoId.toString()),
+      });
+    },
+  });
+}
+
 export function useUpdateProjeto() {
   const queryClient = useQueryClient();
 

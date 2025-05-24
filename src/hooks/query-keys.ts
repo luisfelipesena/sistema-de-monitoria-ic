@@ -77,4 +77,10 @@ export const QueryKeys = {
     list: ['disciplina', 'list'],
     byId: (id: string) => ['disciplina', id],
   },
+
+  // Período de inscrição related queries
+  periodoInscricao: {
+    list: ['periodoInscricao', 'list'],
+    byId: (id: string) => ['periodoInscricao', id],
+  },
 };

@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
   BookOpen,
+  Calendar,
   FileCheck,
   FilePlus,
   FileText,
@@ -105,6 +106,18 @@ const menuItemsConfig: MenuItemConfig[] = [
     label: 'Disciplinas',
     href: '/home/admin/disciplinas',
     icon: BookOpen,
+    roles: ['admin'],
+  },
+  {
+    label: 'Períodos de Inscrição',
+    href: '/home/admin/periodos-inscricao',
+    icon: Calendar,
+    roles: ['admin'],
+  },
+  {
+    label: 'Análise de Projetos',
+    href: '/home/admin/analise-projetos',
+    icon: FileCheck,
     roles: ['admin'],
   },
   {
