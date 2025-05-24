@@ -69,6 +69,7 @@ export const QueryKeys = {
   projeto: {
     list: ['projeto', 'list'],
     byId: (id: string) => ['projeto', id],
+    inscricoes: (id: number) => ['projeto', id, 'inscricoes'],
   },
 
   disciplina: {

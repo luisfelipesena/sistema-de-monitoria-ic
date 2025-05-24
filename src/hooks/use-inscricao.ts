@@ -1,7 +1,12 @@
 import { InscricaoComDetalhes } from '@/routes/api/inscricao/-types';
 import { apiClient } from '@/utils/api-client';
+import { logger } from '@/utils/logger';
 import { useQuery } from '@tanstack/react-query';
 import { QueryKeys } from './query-keys';
+
+const log = logger.child({
+  context: 'inscricao-hooks',
+});
 
 export function useMinhasInscricoes() {
   return useQuery<InscricaoComDetalhes[]>({

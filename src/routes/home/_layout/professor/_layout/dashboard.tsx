@@ -41,8 +41,7 @@ function DashboardProfessor() {
   };
 
   const handleAnalisarProjeto = (projetoId: number) => {
-    // TODO: Implementar navegação para página de candidatos quando a rota for criada
-    console.log('Analisar candidatos do projeto:', projetoId);
+    navigate({ to: `/projeto/${projetoId}/inscricoes` });
   };
 
   const handleCriarProjeto = () => {

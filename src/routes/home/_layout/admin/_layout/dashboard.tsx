@@ -84,13 +84,15 @@ function DashboardAdmin() {
   };
 
   const handleAnalisarProjeto = (projetoId: number) => {
-    // TODO: Implementar navegação para página de análise quando a rota for criada
-    console.log('Analisar projeto:', projetoId);
+    navigate({ to: `/projeto/${projetoId}/inscricoes` });
   };
 
   const handleEditarUsuario = (userId: number, tipo: 'professor' | 'aluno') => {
-    // TODO: Implementar navegação para edição quando a rota for criada
-    console.log(`Editar ${tipo}:`, userId);
+    if (tipo === 'professor') {
+      navigate({ to: '/home/admin/professores' });
+    } else {
+      navigate({ to: '/home/admin/alunos' });
+    }
   };
 
   const handleAdicionarUsuario = (tipo: 'professor' | 'aluno') => {

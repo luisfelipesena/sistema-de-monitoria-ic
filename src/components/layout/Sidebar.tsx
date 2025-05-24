@@ -21,6 +21,7 @@ import {
   Monitor,
   User,
   UserCog,
+  UserPlus,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -53,10 +54,16 @@ const menuItemsConfig: MenuItemConfig[] = [
     roles: ['professor', 'admin'],
   },
   {
+    label: 'Seleção de monitores',
+    href: '/home/common/selecao-monitores',
+    icon: UserCog,
+    roles: ['professor', 'admin'],
+  },
+  {
     label: 'Projetos',
     href: '/home/common/projects',
     icon: FolderKanban,
-    roles: ['admin', 'professor', 'student'],
+    roles: ['admin', 'professor'],
   },
   {
     label: 'Perfil',
@@ -83,6 +90,12 @@ const menuItemsConfig: MenuItemConfig[] = [
     roles: ['admin'],
   },
   {
+    label: 'Departamentos',
+    href: '/home/admin/departamentos',
+    icon: Monitor,
+    roles: ['admin'],
+  },
+  {
     label: 'Disciplinas',
     href: '/home/admin/disciplinas',
     icon: BookOpen,
@@ -97,7 +110,7 @@ const menuItemsConfig: MenuItemConfig[] = [
   {
     label: 'Alunos',
     href: '/home/admin/alunos',
-    icon: Users,
+    icon: UserPlus,
     roles: ['admin'],
   },
   {

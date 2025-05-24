@@ -21,6 +21,7 @@ import { Route as HomeLayoutStudentLayoutImport } from './routes/home/_layout/st
 import { Route as HomeLayoutProfessorLayoutImport } from './routes/home/_layout/professor/_layout'
 import { Route as HomeLayoutAdminLayoutImport } from './routes/home/_layout/admin/_layout'
 import { Route as HomeLayoutCommonStatusIndexImport } from './routes/home/_layout/common/status/index'
+import { Route as HomeLayoutCommonSelecaoMonitoresIndexImport } from './routes/home/_layout/common/selecao-monitores/index'
 import { Route as HomeLayoutCommonProjectsIndexImport } from './routes/home/_layout/common/projects/index'
 import { Route as HomeLayoutCommonProfileIndexImport } from './routes/home/_layout/common/profile/index'
 import { Route as HomeLayoutCommonOnboardingIndexImport } from './routes/home/_layout/common/onboarding/index'
@@ -33,6 +34,7 @@ import { Route as HomeLayoutAdminLayoutProfessoresImport } from './routes/home/_
 import { Route as HomeLayoutAdminLayoutNotificacoesImport } from './routes/home/_layout/admin/_layout/notificacoes'
 import { Route as HomeLayoutAdminLayoutFilesImport } from './routes/home/_layout/admin/_layout/files'
 import { Route as HomeLayoutAdminLayoutDisciplinasImport } from './routes/home/_layout/admin/_layout/disciplinas'
+import { Route as HomeLayoutAdminLayoutDepartamentosImport } from './routes/home/_layout/admin/_layout/departamentos'
 import { Route as HomeLayoutAdminLayoutDashboardImport } from './routes/home/_layout/admin/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutCursosImport } from './routes/home/_layout/admin/_layout/cursos'
 import { Route as HomeLayoutAdminLayoutAlunosImport } from './routes/home/_layout/admin/_layout/alunos'
@@ -112,6 +114,13 @@ const HomeLayoutCommonStatusIndexRoute =
   HomeLayoutCommonStatusIndexImport.update({
     id: '/common/status/',
     path: '/common/status/',
+    getParentRoute: () => HomeLayoutRoute,
+  } as any)
+
+const HomeLayoutCommonSelecaoMonitoresIndexRoute =
+  HomeLayoutCommonSelecaoMonitoresIndexImport.update({
+    id: '/common/selecao-monitores/',
+    path: '/common/selecao-monitores/',
     getParentRoute: () => HomeLayoutRoute,
   } as any)
 
@@ -198,6 +207,13 @@ const HomeLayoutAdminLayoutDisciplinasRoute =
   HomeLayoutAdminLayoutDisciplinasImport.update({
     id: '/disciplinas',
     path: '/disciplinas',
+    getParentRoute: () => HomeLayoutAdminLayoutRoute,
+  } as any)
+
+const HomeLayoutAdminLayoutDepartamentosRoute =
+  HomeLayoutAdminLayoutDepartamentosImport.update({
+    id: '/departamentos',
+    path: '/departamentos',
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any)
 
@@ -324,6 +340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminLayoutDashboardImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
+    '/home/_layout/admin/_layout/departamentos': {
+      id: '/home/_layout/admin/_layout/departamentos'
+      path: '/departamentos'
+      fullPath: '/home/admin/departamentos'
+      preLoaderRoute: typeof HomeLayoutAdminLayoutDepartamentosImport
+      parentRoute: typeof HomeLayoutAdminLayoutImport
+    }
     '/home/_layout/admin/_layout/disciplinas': {
       id: '/home/_layout/admin/_layout/disciplinas'
       path: '/disciplinas'
@@ -408,6 +431,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutCommonProjectsIndexImport
       parentRoute: typeof HomeLayoutImport
     }
+    '/home/_layout/common/selecao-monitores/': {
+      id: '/home/_layout/common/selecao-monitores/'
+      path: '/common/selecao-monitores'
+      fullPath: '/home/common/selecao-monitores'
+      preLoaderRoute: typeof HomeLayoutCommonSelecaoMonitoresIndexImport
+      parentRoute: typeof HomeLayoutImport
+    }
     '/home/_layout/common/status/': {
       id: '/home/_layout/common/status/'
       path: '/common/status'
@@ -424,6 +454,7 @@ interface HomeLayoutAdminLayoutRouteChildren {
   HomeLayoutAdminLayoutAlunosRoute: typeof HomeLayoutAdminLayoutAlunosRoute
   HomeLayoutAdminLayoutCursosRoute: typeof HomeLayoutAdminLayoutCursosRoute
   HomeLayoutAdminLayoutDashboardRoute: typeof HomeLayoutAdminLayoutDashboardRoute
+  HomeLayoutAdminLayoutDepartamentosRoute: typeof HomeLayoutAdminLayoutDepartamentosRoute
   HomeLayoutAdminLayoutDisciplinasRoute: typeof HomeLayoutAdminLayoutDisciplinasRoute
   HomeLayoutAdminLayoutFilesRoute: typeof HomeLayoutAdminLayoutFilesRoute
   HomeLayoutAdminLayoutNotificacoesRoute: typeof HomeLayoutAdminLayoutNotificacoesRoute
@@ -436,6 +467,8 @@ const HomeLayoutAdminLayoutRouteChildren: HomeLayoutAdminLayoutRouteChildren = {
   HomeLayoutAdminLayoutAlunosRoute: HomeLayoutAdminLayoutAlunosRoute,
   HomeLayoutAdminLayoutCursosRoute: HomeLayoutAdminLayoutCursosRoute,
   HomeLayoutAdminLayoutDashboardRoute: HomeLayoutAdminLayoutDashboardRoute,
+  HomeLayoutAdminLayoutDepartamentosRoute:
+    HomeLayoutAdminLayoutDepartamentosRoute,
   HomeLayoutAdminLayoutDisciplinasRoute: HomeLayoutAdminLayoutDisciplinasRoute,
   HomeLayoutAdminLayoutFilesRoute: HomeLayoutAdminLayoutFilesRoute,
   HomeLayoutAdminLayoutNotificacoesRoute:
@@ -523,6 +556,7 @@ interface HomeLayoutRouteChildren {
   HomeLayoutCommonOnboardingIndexRoute: typeof HomeLayoutCommonOnboardingIndexRoute
   HomeLayoutCommonProfileIndexRoute: typeof HomeLayoutCommonProfileIndexRoute
   HomeLayoutCommonProjectsIndexRoute: typeof HomeLayoutCommonProjectsIndexRoute
+  HomeLayoutCommonSelecaoMonitoresIndexRoute: typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
   HomeLayoutCommonStatusIndexRoute: typeof HomeLayoutCommonStatusIndexRoute
 }
 
@@ -535,6 +569,8 @@ const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutCommonOnboardingIndexRoute: HomeLayoutCommonOnboardingIndexRoute,
   HomeLayoutCommonProfileIndexRoute: HomeLayoutCommonProfileIndexRoute,
   HomeLayoutCommonProjectsIndexRoute: HomeLayoutCommonProjectsIndexRoute,
+  HomeLayoutCommonSelecaoMonitoresIndexRoute:
+    HomeLayoutCommonSelecaoMonitoresIndexRoute,
   HomeLayoutCommonStatusIndexRoute: HomeLayoutCommonStatusIndexRoute,
 }
 
@@ -563,6 +599,7 @@ export interface FileRoutesByFullPath {
   '/home/admin/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
   '/home/admin/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/admin/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
+  '/home/admin/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
   '/home/admin/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
@@ -575,6 +612,7 @@ export interface FileRoutesByFullPath {
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
   '/home/common/projects': typeof HomeLayoutCommonProjectsIndexRoute
+  '/home/common/selecao-monitores': typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
   '/home/common/status': typeof HomeLayoutCommonStatusIndexRoute
 }
 
@@ -588,6 +626,7 @@ export interface FileRoutesByTo {
   '/home/admin/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
   '/home/admin/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/admin/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
+  '/home/admin/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
   '/home/admin/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
@@ -600,6 +639,7 @@ export interface FileRoutesByTo {
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
   '/home/common/projects': typeof HomeLayoutCommonProjectsIndexRoute
+  '/home/common/selecao-monitores': typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
   '/home/common/status': typeof HomeLayoutCommonStatusIndexRoute
 }
 
@@ -619,6 +659,7 @@ export interface FileRoutesById {
   '/home/_layout/admin/_layout/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
   '/home/_layout/admin/_layout/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/_layout/admin/_layout/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
+  '/home/_layout/admin/_layout/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
   '/home/_layout/admin/_layout/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/_layout/admin/_layout/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/_layout/admin/_layout/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
@@ -631,6 +672,7 @@ export interface FileRoutesById {
   '/home/_layout/common/onboarding/': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/_layout/common/profile/': typeof HomeLayoutCommonProfileIndexRoute
   '/home/_layout/common/projects/': typeof HomeLayoutCommonProjectsIndexRoute
+  '/home/_layout/common/selecao-monitores/': typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
   '/home/_layout/common/status/': typeof HomeLayoutCommonStatusIndexRoute
 }
 
@@ -647,6 +689,7 @@ export interface FileRouteTypes {
     | '/home/admin/alunos'
     | '/home/admin/cursos'
     | '/home/admin/dashboard'
+    | '/home/admin/departamentos'
     | '/home/admin/disciplinas'
     | '/home/admin/files'
     | '/home/admin/notificacoes'
@@ -659,6 +702,7 @@ export interface FileRouteTypes {
     | '/home/common/onboarding'
     | '/home/common/profile'
     | '/home/common/projects'
+    | '/home/common/selecao-monitores'
     | '/home/common/status'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -671,6 +715,7 @@ export interface FileRouteTypes {
     | '/home/admin/alunos'
     | '/home/admin/cursos'
     | '/home/admin/dashboard'
+    | '/home/admin/departamentos'
     | '/home/admin/disciplinas'
     | '/home/admin/files'
     | '/home/admin/notificacoes'
@@ -683,6 +728,7 @@ export interface FileRouteTypes {
     | '/home/common/onboarding'
     | '/home/common/profile'
     | '/home/common/projects'
+    | '/home/common/selecao-monitores'
     | '/home/common/status'
   id:
     | '__root__'
@@ -700,6 +746,7 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/_layout/alunos'
     | '/home/_layout/admin/_layout/cursos'
     | '/home/_layout/admin/_layout/dashboard'
+    | '/home/_layout/admin/_layout/departamentos'
     | '/home/_layout/admin/_layout/disciplinas'
     | '/home/_layout/admin/_layout/files'
     | '/home/_layout/admin/_layout/notificacoes'
@@ -712,6 +759,7 @@ export interface FileRouteTypes {
     | '/home/_layout/common/onboarding/'
     | '/home/_layout/common/profile/'
     | '/home/_layout/common/projects/'
+    | '/home/_layout/common/selecao-monitores/'
     | '/home/_layout/common/status/'
   fileRoutesById: FileRoutesById
 }
@@ -767,6 +815,7 @@ export const routeTree = rootRoute
         "/home/_layout/common/onboarding/",
         "/home/_layout/common/profile/",
         "/home/_layout/common/projects/",
+        "/home/_layout/common/selecao-monitores/",
         "/home/_layout/common/status/"
       ]
     },
@@ -788,6 +837,7 @@ export const routeTree = rootRoute
         "/home/_layout/admin/_layout/alunos",
         "/home/_layout/admin/_layout/cursos",
         "/home/_layout/admin/_layout/dashboard",
+        "/home/_layout/admin/_layout/departamentos",
         "/home/_layout/admin/_layout/disciplinas",
         "/home/_layout/admin/_layout/files",
         "/home/_layout/admin/_layout/notificacoes",
@@ -836,6 +886,10 @@ export const routeTree = rootRoute
       "filePath": "home/_layout/admin/_layout/dashboard.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
+    "/home/_layout/admin/_layout/departamentos": {
+      "filePath": "home/_layout/admin/_layout/departamentos.tsx",
+      "parent": "/home/_layout/admin/_layout"
+    },
     "/home/_layout/admin/_layout/disciplinas": {
       "filePath": "home/_layout/admin/_layout/disciplinas.tsx",
       "parent": "/home/_layout/admin/_layout"
@@ -882,6 +936,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/common/projects/": {
       "filePath": "home/_layout/common/projects/index.tsx",
+      "parent": "/home/_layout"
+    },
+    "/home/_layout/common/selecao-monitores/": {
+      "filePath": "home/_layout/common/selecao-monitores/index.tsx",
       "parent": "/home/_layout"
     },
     "/home/_layout/common/status/": {

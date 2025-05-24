@@ -13,13 +13,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/hooks/use-auth';
 import { useDepartamentoList } from '@/hooks/use-departamento';
 import { useDisciplinas } from '@/hooks/use-disciplina';
 import { useCreateProjeto } from '@/hooks/use-projeto';
 import { DepartamentoResponse } from '@/routes/api/departamento/-types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { BookOpen, FileText, Target, Users } from 'lucide-react';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -52,12 +54,21 @@ const projetoFormSchema = z.object({
     .min(1, 'Pelo menos uma disciplina deve ser selecionada'),
 });
 
-type ProjetoFormData = z.infer<typeof projetoFormSchema>;
+export type ProjetoFormData = z.infer<typeof projetoFormSchema>;
 
 function ProjectsComponent() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: departamentos, isLoading: loadingDepartamentos } =
     useDepartamentoList();
   const createProjetoMutation = useCreateProjeto();
+
+  // Redirect students to the monitoria page instead
+  useEffect(() => {
+    if (user?.role === 'student') {
+      navigate({ to: '/home/common/monitoria' });
+    }
+  }, [user, navigate]);
 
   const {
     register,
@@ -239,26 +250,43 @@ function ProjectsComponent() {
                     <Select
                       onValueChange={(value) => {
                         const disciplinaId = parseInt(value);
-                        if (!field.value.includes(disciplinaId)) {
-                          field.onChange([...field.value, disciplinaId]);
+                        const currentIds = field.value || [];
+                        if (!currentIds.includes(disciplinaId)) {
+                          field.onChange([...currentIds, disciplinaId]);
                         }
                       }}
-                      disabled={!departamentoSelecionado}
+                      disabled={!departamentoSelecionado || loadingDisciplinas}
+                      value=""
                     >
                       <SelectTrigger
                         className={errors.disciplinaIds ? 'border-red-500' : ''}
                       >
-                        <SelectValue placeholder="Escolha um dos componentes curriculares cadastrados" />
+                        <SelectValue
+                          placeholder={
+                            !departamentoSelecionado
+                              ? 'Primeiro selecione um departamento'
+                              : loadingDisciplinas
+                                ? 'Carregando disciplinas...'
+                                : 'Escolha um dos componentes curriculares cadastrados'
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {disciplinasFiltradas?.map((disciplina) => (
-                          <SelectItem
-                            key={disciplina.id}
-                            value={disciplina.id.toString()}
-                          >
-                            {disciplina.codigo} - {disciplina.nome}
+                        {disciplinasFiltradas &&
+                        disciplinasFiltradas.length > 0 ? (
+                          disciplinasFiltradas.map((disciplina) => (
+                            <SelectItem
+                              key={disciplina.id}
+                              value={disciplina.id.toString()}
+                            >
+                              {disciplina.codigo} - {disciplina.nome}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-data" disabled>
+                            Nenhuma disciplina encontrada
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                   )}
@@ -487,9 +515,13 @@ function ProjectsComponent() {
             <CardContent>
               <div className="bg-muted/20 border rounded-md p-8 text-center">
                 <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  A pré-visualização do edital será gerada após o preenchimento
-                  dos campos obrigatórios.
+                <p className="text-muted-foreground mb-4">
+                  Após salvar o projeto, você poderá gerar o PDF do formulário
+                  de monitoria.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  O PDF será gerado seguindo o template oficial da UFBA para
+                  submissão de projetos de monitoria.
                 </p>
               </div>
             </CardContent>
