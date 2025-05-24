@@ -1,12 +1,29 @@
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import React from 'react'
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import { useAluno } from '@/hooks/use-aluno';
+import { useAuth } from '@/hooks/use-auth';
+import React from 'react';
 
 interface DadosPessoaisFormProps {
   // Pode adicionar props
 }
 
 const DadosPessoaisForm: React.FC<DadosPessoaisFormProps> = () => {
+  const { user } = useAuth();
+  const { data: aluno, isLoading } = useAluno();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold text-gray-900">Dados Pessoais</h2>
+        <div className="flex justify-center py-8">
+          <Spinner />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-900">Dados Pessoais</h2>
@@ -17,8 +34,9 @@ const DadosPessoaisForm: React.FC<DadosPessoaisFormProps> = () => {
             type="text"
             name="nomeCompleto"
             id="nomeCompleto"
-            autoComplete="name"
-            placeholder="Digite seu nome completo"
+            value={aluno?.nomeCompleto || ''}
+            disabled
+            className="bg-gray-50"
           />
         </div>
 
@@ -28,7 +46,9 @@ const DadosPessoaisForm: React.FC<DadosPessoaisFormProps> = () => {
             type="text"
             name="matricula"
             id="matricula"
-            placeholder="Digite sua matrícula"
+            value={aluno?.matricula || ''}
+            disabled
+            className="bg-gray-50"
           />
         </div>
 
@@ -38,7 +58,9 @@ const DadosPessoaisForm: React.FC<DadosPessoaisFormProps> = () => {
             type="text"
             name="cpf"
             id="cpf"
-            placeholder="Digite seu CPF"
+            value={aluno?.cpf || ''}
+            disabled
+            className="bg-gray-50"
           />
         </div>
 
@@ -48,13 +70,14 @@ const DadosPessoaisForm: React.FC<DadosPessoaisFormProps> = () => {
             type="email"
             name="email"
             id="email"
-            autoComplete="email"
-            placeholder="Digite seu e-mail"
+            value={user?.email || ''}
+            disabled
+            className="bg-gray-50"
           />
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DadosPessoaisForm
+export default DadosPessoaisForm;

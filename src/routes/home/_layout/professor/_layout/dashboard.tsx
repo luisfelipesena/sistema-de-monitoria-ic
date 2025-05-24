@@ -2,11 +2,14 @@ import { PagesLayout } from '@/components/layout/PagesLayout';
 import { TableComponent } from '@/components/layout/TableComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { createFileRoute } from '@tanstack/react-router';
+import { FilterModal, FilterValues } from '@/components/ui/FilterModal';
+import { useProjetos } from '@/hooks/use-projeto';
+import { ProjetoListItem } from '@/routes/api/projeto/-types';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { Eye, Hand, List, Loader, Users } from 'lucide-react';
+import { Eye, Filter, Hand, List, Loader, Plus, Users } from 'lucide-react';
 
 export const Route = createFileRoute(
   '/home/_layout/professor/_layout/dashboard',
@@ -14,74 +17,40 @@ export const Route = createFileRoute(
   component: DashboardProfessor,
 });
 
-interface ProjectData {
-  id: number;
-  disciplina: string;
-  status: string;
-  bolsistas: number | string;
-  voluntários: number | string;
-  inscritos: number | string;
-}
-
 function DashboardProfessor() {
-  // Mock data for dashboard
-  const dashboard: ProjectData[] = [
-    {
-      id: 1,
-      disciplina: 'MATA045',
-      status: 'Aprovado',
-      bolsistas: 10,
-      voluntários: 10,
-      inscritos: 8,
-    },
-    {
-      id: 2,
-      disciplina: 'MATA045',
-      status: 'Negado',
-      bolsistas: 0,
-      voluntários: 0,
-      inscritos: `-`,
-    },
-    {
-      id: 3,
-      disciplina: 'MATA045',
-      status: 'Em analise',
-      bolsistas: '-',
-      voluntários: '-',
-      inscritos: `-`,
-    },
-    {
-      id: 4,
-      disciplina: 'MATA045',
-      status: 'Assinatura pendente',
-      bolsistas: '-',
-      voluntários: `-`,
-      inscritos: `-`,
-    },
-    {
-      id: 5,
-      disciplina: 'MATA045',
-      status: 'Enviado',
-      bolsistas: '-',
-      voluntários: `-`,
-      inscritos: `-`,
-    },
-    {
-      id: 6,
-      disciplina: 'MATA045',
-      status: 'Fechado',
-      bolsistas: 2,
-      voluntários: 2,
-      inscritos: 1,
-    },
-  ];
+  const navigate = useNavigate();
+  const { data: projetos, isLoading: loadingProjetos } = useProjetos();
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterValues>({});
 
-  const [abaAtiva, setAbaAtiva] = useState<'projetos' | 'estatisticas'>(
-    'projetos',
-  );
+  // Aplicar filtros aos projetos
+  const projetosFiltrados = useMemo(() => {
+    if (!projetos) return [];
+
+    return projetos.filter((projeto) => {
+      if (filters.status && projeto.status !== filters.status) return false;
+      if (filters.semestre && projeto.semestre !== filters.semestre)
+        return false;
+      if (filters.ano && projeto.ano.toString() !== filters.ano) return false;
+      return true;
+    });
+  }, [projetos, filters]);
+
+  const handleApplyFilters = (newFilters: FilterValues) => {
+    setFilters(newFilters);
+  };
+
+  const handleAnalisarProjeto = (projetoId: number) => {
+    // TODO: Implementar navegação para página de candidatos quando a rota for criada
+    console.log('Analisar candidatos do projeto:', projetoId);
+  };
+
+  const handleCriarProjeto = () => {
+    navigate({ to: '/home/common/projects' });
+  };
 
   // Column definitions for the projects table
-  const colunasProjetos: ColumnDef<ProjectData>[] = [
+  const colunasProjetos: ColumnDef<ProjetoListItem>[] = [
     {
       header: () => (
         <div className="flex items-center gap-2">
@@ -89,12 +58,17 @@ function DashboardProfessor() {
           Componente curricular
         </div>
       ),
-      accessorKey: 'disciplina',
-      cell: ({ row }) => (
-        <span className="font-semibold text-base text-gray-900">
-          {row.original.disciplina}
-        </span>
-      ),
+      accessorKey: 'titulo',
+      cell: ({ row }) => {
+        const disciplinas = row.original.disciplinas;
+        const codigoDisciplina =
+          disciplinas.length > 0 ? disciplinas[0].codigo : 'N/A';
+        return (
+          <span className="font-semibold text-base text-gray-900">
+            {codigoDisciplina}
+          </span>
+        );
+      },
     },
     {
       header: () => (
@@ -106,19 +80,16 @@ function DashboardProfessor() {
       accessorKey: 'status',
       cell: ({ row }) => {
         const status = row.original.status;
-        if (status === 'Aprovado') {
+        if (status === 'APPROVED') {
           return <Badge variant="success">Aprovado</Badge>;
-        } else if (status === 'Negado') {
-          return <Badge variant="destructive">Negado</Badge>;
-        } else if (status === 'Fechado') {
-          return <Badge variant="outline">Fechado</Badge>;
-        } else if (status === 'Assinatura pendente') {
-          return <Badge variant="warning">Assinatura pendente</Badge>;
-        } else if (status === 'Em analise') {
-          return <Badge variant="warning">Em analise</Badge>;
-        } else {
-          return <Badge variant="muted">Enviado</Badge>;
+        } else if (status === 'REJECTED') {
+          return <Badge variant="destructive">Rejeitado</Badge>;
+        } else if (status === 'SUBMITTED') {
+          return <Badge variant="warning">Em análise</Badge>;
+        } else if (status === 'DRAFT') {
+          return <Badge variant="muted">Rascunho</Badge>;
         }
+        return <Badge variant="muted">{status}</Badge>;
       },
     },
     {
@@ -128,7 +99,15 @@ function DashboardProfessor() {
           Bolsistas
         </div>
       ),
-      accessorKey: 'bolsistas',
+      accessorKey: 'bolsasDisponibilizadas',
+      cell: ({ row }) => {
+        const bolsas = row.original.bolsasDisponibilizadas || 0;
+        const status = row.original.status;
+        if (status === 'APPROVED') {
+          return <span>{bolsas}</span>;
+        }
+        return <span>-</span>;
+      },
     },
     {
       header: () => (
@@ -137,10 +116,18 @@ function DashboardProfessor() {
           Voluntários
         </div>
       ),
-      accessorKey: 'voluntários',
-      cell: ({ row }) => (
-        <div className="text-center">{row.original.voluntários}</div>
-      ),
+      accessorKey: 'voluntariosSolicitados',
+      cell: ({ row }) => {
+        const status = row.original.status;
+        if (status === 'APPROVED') {
+          return (
+            <div className="text-center">
+              {row.original.voluntariosSolicitados}
+            </div>
+          );
+        }
+        return <div className="text-center">-</div>;
+      },
     },
     {
       header: () => (
@@ -149,10 +136,18 @@ function DashboardProfessor() {
           Inscritos
         </div>
       ),
-      accessorKey: 'inscritos',
-      cell: ({ row }) => (
-        <div className="text-center text-base">{row.original.inscritos}</div>
-      ),
+      accessorKey: 'totalInscritos',
+      cell: ({ row }) => {
+        const status = row.original.status;
+        if (status === 'APPROVED') {
+          return (
+            <div className="text-center text-base">
+              {row.original.totalInscritos}
+            </div>
+          );
+        }
+        return <div className="text-center">-</div>;
+      },
     },
     {
       header: () => (
@@ -162,14 +157,15 @@ function DashboardProfessor() {
         </div>
       ),
       accessorKey: 'acoes',
-      cell: () => (
+      cell: ({ row }) => (
         <Button
           variant="primary"
           size="sm"
           className="rounded-full flex items-center gap-1"
+          onClick={() => handleAnalisarProjeto(row.original.id)}
         >
           <Eye className="h-4 w-4" />
-          Analisar
+          {row.original.status === 'APPROVED' ? 'Ver Candidatos' : 'Analisar'}
         </Button>
       ),
     },
@@ -177,56 +173,79 @@ function DashboardProfessor() {
 
   // Action buttons
   const dashboardActions = (
-    <Button variant="outline" className="text-gray-600">
-      <svg
-        className="w-4 h-4 mr-1"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        viewBox="0 0 24 24"
+    <>
+      <Button
+        variant="primary"
+        className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors"
+        onClick={handleCriarProjeto}
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6h18M6 16h12"
-        />
-      </svg>
-      Filtros
-    </Button>
+        <Plus className="w-4 h-4 mr-2" />
+        Novo Projeto
+      </Button>
+      <Button
+        variant="outline"
+        className="text-gray-600"
+        onClick={() => setFilterModalOpen(true)}
+      >
+        <Filter className="w-4 h-4 mr-1" />
+        Filtros
+      </Button>
+    </>
   );
 
   return (
     <PagesLayout title="Dashboard" actions={dashboardActions}>
-      <div className="mb-6 flex gap-6 border-b border-gray-200">
-        {[
-          { id: 'projetos', label: 'Projetos' },
-          { id: 'estatisticas', label: 'Estatísticas' },
-        ].map((aba) => (
-          <button
-            key={aba.id}
-            onClick={() => setAbaAtiva(aba.id as any)}
-            className={`py-2 px-1 text-base font-medium border-b-2 transition-colors ${
-              abaAtiva === aba.id
-                ? 'border-black text-black'
-                : 'border-transparent text-gray-500 hover:text-black hover:border-gray-300'
-            }`}
-          >
-            {aba.label}
-          </button>
-        ))}
-      </div>
-
-      {/* CONTEUDO DA ABA PROJETOS*/}
-      {abaAtiva === 'projetos' && (
-        <TableComponent columns={colunasProjetos} data={dashboard} />
-      )}
-
-      {/* ABA COM ESTATISTICAS*/}
-      {abaAtiva === 'estatisticas' && (
-        <div className="text-gray-600 text-base mt-4">
-          Estatísticas virão aqui.
+      {loadingProjetos ? (
+        <div className="flex justify-center items-center py-8">
+          <Loader className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Carregando projetos...</span>
+        </div>
+      ) : projetosFiltrados && projetosFiltrados.length > 0 ? (
+        <>
+          {filters.status || filters.semestre || filters.ano ? (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-blue-700">
+                  Filtros ativos:{' '}
+                  {Object.values(filters).filter(Boolean).length}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFilters({})}
+                >
+                  Limpar filtros
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          <TableComponent columns={colunasProjetos} data={projetosFiltrados} />
+        </>
+      ) : (
+        <div className="text-center py-12 border rounded-md bg-muted/20">
+          <List className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">Nenhum projeto encontrado</h3>
+          <p className="text-muted-foreground mb-4">
+            {projetos && projetos.length === 0
+              ? 'Você ainda não criou nenhum projeto de monitoria.'
+              : 'Nenhum projeto corresponde aos filtros selecionados.'}
+          </p>
+          <Button onClick={handleCriarProjeto}>
+            {projetos && projetos.length === 0
+              ? 'Criar Primeiro Projeto'
+              : 'Criar Novo Projeto'}
+          </Button>
         </div>
       )}
+
+      {/* Modal de Filtros */}
+      <FilterModal
+        open={filterModalOpen}
+        onOpenChange={setFilterModalOpen}
+        type="professor"
+        onApplyFilters={handleApplyFilters}
+        initialFilters={filters}
+      />
     </PagesLayout>
   );
 }

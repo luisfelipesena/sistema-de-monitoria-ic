@@ -2,18 +2,24 @@ import { PagesLayout } from '@/components/layout/PagesLayout';
 import { TableComponent } from '@/components/layout/TableComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { createFileRoute } from '@tanstack/react-router';
+import { FilterModal, FilterValues } from '@/components/ui/FilterModal';
+import { useProjetos } from '@/hooks/use-projeto';
+import { useUsers } from '@/hooks/use-user';
+import { ProjetoListItem } from '@/routes/api/projeto/-types';
+import { ApiUser } from '@/routes/api/user/-types';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   Eye,
+  Filter,
+  FolderKanban,
   Hand,
   List,
   Loader,
   Mail,
   Pencil,
-  Trash2,
   User,
   Users,
 } from 'lucide-react';
@@ -22,143 +28,81 @@ export const Route = createFileRoute('/home/_layout/admin/_layout/dashboard')({
   component: DashboardAdmin,
 });
 
-// Define types for our data
-interface ProjectData {
-  id: number;
-  disciplina: string;
-  status: string;
-  bolsistas: number | string;
-  voluntários: number | string;
-  inscritos: number | string;
-}
-
-interface ProfessorData {
-  id: number;
-  professor: string;
-  status: string;
-  email: string;
-}
-
-interface AlunoData {
-  id: number;
-  aluno: string;
-  status: string;
-  email: string;
-}
-
 function DashboardAdmin() {
-  // Mock data for dashboard
-  const dashboard: ProjectData[] = [
-    {
-      id: 1,
-      disciplina: 'MATA045',
-      status: 'Aprovado',
-      bolsistas: 10,
-      voluntários: 10,
-      inscritos: 8,
-    },
-    {
-      id: 2,
-      disciplina: 'MATA045',
-      status: 'Negado',
-      bolsistas: 0,
-      voluntários: 0,
-      inscritos: `-`,
-    },
-    {
-      id: 3,
-      disciplina: 'MATA045',
-      status: 'Em analise',
-      bolsistas: '-',
-      voluntários: '-',
-      inscritos: `-`,
-    },
-    {
-      id: 4,
-      disciplina: 'MATA045',
-      status: 'Assinatura pendente',
-      bolsistas: '-',
-      voluntários: `-`,
-      inscritos: `-`,
-    },
-    {
-      id: 5,
-      disciplina: 'MATA045',
-      status: 'Enviado',
-      bolsistas: '-',
-      voluntários: `-`,
-      inscritos: `-`,
-    },
-    {
-      id: 6,
-      disciplina: 'MATA045',
-      status: 'Fechado',
-      bolsistas: 2,
-      voluntários: 2,
-      inscritos: 1,
-    },
-  ];
-
-  const tabelaprofessor: ProfessorData[] = [
-    {
-      id: 1,
-      professor: 'Fred Durao',
-      status: 'Onboarding feito',
-      email: 'fred@gmail.com',
-    },
-    {
-      id: 2,
-      professor: 'Fred Durao',
-      status: 'Onboarding pendente',
-      email: 'fred@gmail.com',
-    },
-    {
-      id: 3,
-      professor: 'Fred Durao',
-      status: 'Onboarding feito',
-      email: 'fred@gmail.com',
-    },
-    {
-      id: 4,
-      professor: 'Fred Durao',
-      status: 'Onboarding pendente',
-      email: 'fred@gmail.com',
-    },
-  ];
-
-  const tabelaaluno: AlunoData[] = [
-    {
-      id: 1,
-      aluno: 'Murilo Almeida',
-      status: 'Onboarding feito',
-      email: 'fred@gmail.com',
-    },
-    {
-      id: 2,
-      aluno: 'Murilo Almeida',
-      status: 'Onboarding pendente',
-      email: 'fred@gmail.com',
-    },
-    {
-      id: 3,
-      aluno: 'Murilo Almeida',
-      status: 'Onboarding feito',
-      email: 'fred@gmail.com',
-    },
-    {
-      id: 4,
-      aluno: 'Murilo Almeida',
-      status: 'Onboarding pendente',
-      email: 'fred@gmail.com',
-    },
-  ];
+  const navigate = useNavigate();
+  const { data: projetos, isLoading: loadingProjetos } = useProjetos();
+  const { data: users, isLoading: loadingUsers } = useUsers();
 
   const [abaAtiva, setAbaAtiva] = useState<
-    'projetos' | 'estatisticas' | 'professores' | 'alunos'
+    'projetos' | 'professores' | 'alunos'
   >('projetos');
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [filters, setFilters] = useState<FilterValues>({});
+  const [groupedView, setGroupedView] = useState(false);
 
-  // Column definitions for different tabs
-  const colunasProjetos: ColumnDef<ProjectData>[] = [
+  // Filtrar professores e alunos dos usuários
+  const professores = users?.filter((user) => user.role === 'professor') || [];
+  const alunos = users?.filter((user) => user.role === 'student') || [];
+
+  // Aplicar filtros aos projetos
+  const projetosFiltrados = useMemo(() => {
+    if (!projetos) return [];
+
+    return projetos.filter((projeto) => {
+      if (filters.status && projeto.status !== filters.status) return false;
+      if (
+        filters.departamento &&
+        projeto.departamentoId.toString() !== filters.departamento
+      )
+        return false;
+      if (filters.semestre && projeto.semestre !== filters.semestre)
+        return false;
+      if (filters.ano && projeto.ano.toString() !== filters.ano) return false;
+      return true;
+    });
+  }, [projetos, filters]);
+
+  // Agrupar projetos por departamento (se ativado)
+  const projetosExibidos = useMemo(() => {
+    if (!groupedView) return projetosFiltrados;
+
+    const grouped = projetosFiltrados.reduce(
+      (acc, projeto) => {
+        const dept = projeto.departamentoNome;
+        if (!acc[dept]) acc[dept] = [];
+        acc[dept].push(projeto);
+        return acc;
+      },
+      {} as Record<string, ProjetoListItem[]>,
+    );
+
+    return Object.values(grouped).flat();
+  }, [projetosFiltrados, groupedView]);
+
+  const handleApplyFilters = (newFilters: FilterValues) => {
+    setFilters(newFilters);
+  };
+
+  const handleAnalisarProjeto = (projetoId: number) => {
+    // TODO: Implementar navegação para página de análise quando a rota for criada
+    console.log('Analisar projeto:', projetoId);
+  };
+
+  const handleEditarUsuario = (userId: number, tipo: 'professor' | 'aluno') => {
+    // TODO: Implementar navegação para edição quando a rota for criada
+    console.log(`Editar ${tipo}:`, userId);
+  };
+
+  const handleAdicionarUsuario = (tipo: 'professor' | 'aluno') => {
+    if (tipo === 'professor') {
+      navigate({ to: '/home/admin/professores' });
+    } else {
+      navigate({ to: '/home/admin/alunos' });
+    }
+  };
+
+  // Column definitions for projects table
+  const colunasProjetos: ColumnDef<ProjetoListItem>[] = [
     {
       header: () => (
         <div className="flex items-center gap-2">
@@ -166,12 +110,24 @@ function DashboardAdmin() {
           Componente curricular
         </div>
       ),
-      accessorKey: 'disciplina',
-      cell: ({ row }) => (
-        <span className="font-semibold text-base text-gray-900">
-          {row.original.disciplina}
-        </span>
-      ),
+      accessorKey: 'titulo',
+      cell: ({ row }) => {
+        const disciplinas = row.original.disciplinas;
+        const codigoDisciplina =
+          disciplinas.length > 0 ? disciplinas[0].codigo : 'N/A';
+        return (
+          <div>
+            <span className="font-semibold text-base text-gray-900">
+              {codigoDisciplina}
+            </span>
+            {groupedView && (
+              <div className="text-xs text-muted-foreground">
+                {row.original.departamentoNome}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       header: () => (
@@ -183,19 +139,16 @@ function DashboardAdmin() {
       accessorKey: 'status',
       cell: ({ row }) => {
         const status = row.original.status;
-        if (status === 'Aprovado') {
+        if (status === 'APPROVED') {
           return <Badge variant="success">Aprovado</Badge>;
-        } else if (status === 'Negado') {
-          return <Badge variant="destructive">Negado</Badge>;
-        } else if (status === 'Fechado') {
-          return <Badge variant="outline">Fechado</Badge>;
-        } else if (status === 'Assinatura pendente') {
-          return <Badge variant="warning">Assinatura pendente</Badge>;
-        } else if (status === 'Em analise') {
-          return <Badge variant="warning">Em analise</Badge>;
-        } else {
-          return <Badge variant="muted">Enviado</Badge>;
+        } else if (status === 'REJECTED') {
+          return <Badge variant="destructive">Rejeitado</Badge>;
+        } else if (status === 'SUBMITTED') {
+          return <Badge variant="warning">Em análise</Badge>;
+        } else if (status === 'DRAFT') {
+          return <Badge variant="muted">Rascunho</Badge>;
         }
+        return <Badge variant="muted">{status}</Badge>;
       },
     },
     {
@@ -205,7 +158,11 @@ function DashboardAdmin() {
           Bolsistas
         </div>
       ),
-      accessorKey: 'bolsistas',
+      accessorKey: 'bolsasDisponibilizadas',
+      cell: ({ row }) => {
+        const bolsas = row.original.bolsasDisponibilizadas || 0;
+        return <span>{bolsas}</span>;
+      },
     },
     {
       header: () => (
@@ -214,9 +171,9 @@ function DashboardAdmin() {
           Voluntários
         </div>
       ),
-      accessorKey: 'voluntários',
+      accessorKey: 'voluntariosSolicitados',
       cell: ({ row }) => (
-        <div className="text-center">{row.original.voluntários}</div>
+        <div className="text-center">{row.original.voluntariosSolicitados}</div>
       ),
     },
     {
@@ -226,9 +183,11 @@ function DashboardAdmin() {
           Inscritos
         </div>
       ),
-      accessorKey: 'inscritos',
+      accessorKey: 'totalInscritos',
       cell: ({ row }) => (
-        <div className="text-center text-base">{row.original.inscritos}</div>
+        <div className="text-center text-base">
+          {row.original.totalInscritos}
+        </div>
       ),
     },
     {
@@ -239,11 +198,12 @@ function DashboardAdmin() {
         </div>
       ),
       accessorKey: 'acoes',
-      cell: () => (
+      cell: ({ row }) => (
         <Button
           variant="primary"
           size="sm"
           className="rounded-full flex items-center gap-1"
+          onClick={() => handleAnalisarProjeto(row.original.id)}
         >
           <Eye className="h-4 w-4" />
           Analisar
@@ -252,7 +212,7 @@ function DashboardAdmin() {
     },
   ];
 
-  const colunasProfessores: ColumnDef<ProfessorData>[] = [
+  const colunasProfessores: ColumnDef<ApiUser>[] = [
     {
       header: () => (
         <div className="flex items-center gap-2">
@@ -260,29 +220,12 @@ function DashboardAdmin() {
           Nome do Professor
         </div>
       ),
-      accessorKey: 'professor',
+      accessorKey: 'username',
       cell: ({ row }) => (
         <span className="font-semibold text-base text-gray-900">
-          {row.original.professor}
+          {row.original.username}
         </span>
       ),
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Loader className="h-5 w-5 text-gray-400" />
-          Status
-        </div>
-      ),
-      accessorKey: 'status',
-      cell: ({ row }) => {
-        const status = row.original.status;
-        if (status === 'Onboarding feito') {
-          return <Badge variant="success">Onboarding feito</Badge>;
-        } else {
-          return <Badge variant="destructive">Onboarding pendente</Badge>;
-        }
-      },
     },
     {
       header: () => (
@@ -301,30 +244,23 @@ function DashboardAdmin() {
         </div>
       ),
       accessorKey: 'acoes',
-      cell: () => (
+      cell: ({ row }) => (
         <div className="flex gap-2 ml-auto w-full">
           <Button
             variant="secondary"
             size="sm"
             className="rounded-full flex items-center gap-1"
+            onClick={() => handleEditarUsuario(row.original.id, 'professor')}
           >
             <Pencil className="h-4 w-4" />
             Editar
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="rounded-full flex items-center gap-1"
-          >
-            <Trash2 className="h-4 w-4" />
-            Excluir
           </Button>
         </div>
       ),
     },
   ];
 
-  const colunasAlunos: ColumnDef<AlunoData>[] = [
+  const colunasAlunos: ColumnDef<ApiUser>[] = [
     {
       header: () => (
         <div className="flex items-center gap-2">
@@ -332,29 +268,12 @@ function DashboardAdmin() {
           Nome do Aluno
         </div>
       ),
-      accessorKey: 'aluno',
+      accessorKey: 'username',
       cell: ({ row }) => (
         <span className="font-semibold text-base text-gray-900">
-          {row.original.aluno}
+          {row.original.username}
         </span>
       ),
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Loader className="h-5 w-5 text-gray-400" />
-          Status
-        </div>
-      ),
-      accessorKey: 'status',
-      cell: ({ row }) => {
-        const status = row.original.status;
-        if (status === 'Onboarding feito') {
-          return <Badge variant="success">Onboarding feito</Badge>;
-        } else {
-          return <Badge variant="destructive">Onboarding pendente</Badge>;
-        }
-      },
     },
     {
       header: () => (
@@ -373,23 +292,16 @@ function DashboardAdmin() {
         </div>
       ),
       accessorKey: 'acoes',
-      cell: () => (
+      cell: ({ row }) => (
         <div className="flex gap-2">
           <Button
             variant="secondary"
             size="sm"
             className="rounded-full flex items-center gap-1"
+            onClick={() => handleEditarUsuario(row.original.id, 'aluno')}
           >
             <Pencil className="h-4 w-4" />
             Editar
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="rounded-full flex items-center gap-1"
-          >
-            <Trash2 className="h-4 w-4" />
-            Excluir
           </Button>
         </div>
       ),
@@ -400,33 +312,35 @@ function DashboardAdmin() {
   const dashboardActions = (
     <>
       <Button
-        variant="primary"
+        variant={groupedView ? 'secondary' : 'primary'}
         className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors"
+        onClick={() => {
+          if (abaAtiva === 'projetos') {
+            setGroupedView(!groupedView);
+          } else if (abaAtiva === 'professores') {
+            handleAdicionarUsuario('professor');
+          } else if (abaAtiva === 'alunos') {
+            handleAdicionarUsuario('aluno');
+          }
+        }}
       >
-        {abaAtiva === 'projetos'
-          ? 'Agrupar Submissões'
-          : abaAtiva === 'professores'
-            ? 'Adicionar Professor'
-            : abaAtiva === 'alunos'
-              ? 'Adicionar Aluno'
-              : abaAtiva === 'estatisticas'
-                ? 'Baixar Estatísticas'
-                : ''}
+        {abaAtiva === 'projetos' ? (
+          <>
+            <FolderKanban className="w-4 h-4 mr-2" />
+            {groupedView ? 'Visão Normal' : 'Agrupar por Departamento'}
+          </>
+        ) : abaAtiva === 'professores' ? (
+          'Adicionar Professor'
+        ) : (
+          'Adicionar Aluno'
+        )}
       </Button>
-      <Button variant="outline" className="text-gray-600">
-        <svg
-          className="w-4 h-4 mr-1"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6h18M6 16h12"
-          />
-        </svg>
+      <Button
+        variant="outline"
+        className="text-gray-600"
+        onClick={() => setFilterModalOpen(true)}
+      >
+        <Filter className="w-4 h-4 mr-1" />
         Filtros
       </Button>
     </>
@@ -437,7 +351,6 @@ function DashboardAdmin() {
       <div className="mb-6 flex gap-6 border-b border-gray-200">
         {[
           { id: 'projetos', label: 'Projetos' },
-          { id: 'estatisticas', label: 'Estatísticas' },
           { id: 'professores', label: 'Professores' },
           { id: 'alunos', label: 'Alunos' },
         ].map((aba) => (
@@ -457,25 +370,79 @@ function DashboardAdmin() {
 
       {/* CONTEUDO DA ABA PROJETOS*/}
       {abaAtiva === 'projetos' && (
-        <TableComponent columns={colunasProjetos} data={dashboard} />
-      )}
-
-      {/* ABA COM ESTATISTICAS (EM BRANCO)*/}
-      {abaAtiva === 'estatisticas' && (
-        <div className="text-gray-600 text-base mt-4">
-          Estatísticas virão aqui.
-        </div>
+        <>
+          {loadingProjetos ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Carregando projetos...</span>
+            </div>
+          ) : (
+            <>
+              {filters.status ||
+              filters.departamento ||
+              filters.semestre ||
+              filters.ano ? (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-blue-700">
+                      Filtros ativos:{' '}
+                      {Object.values(filters).filter(Boolean).length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFilters({})}
+                    >
+                      Limpar filtros
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+              <TableComponent
+                columns={colunasProjetos}
+                data={projetosExibidos || []}
+              />
+            </>
+          )}
+        </>
       )}
 
       {/* ABA COM TABELA PROFESSORES*/}
       {abaAtiva === 'professores' && (
-        <TableComponent columns={colunasProfessores} data={tabelaprofessor} />
+        <>
+          {loadingUsers ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Carregando professores...</span>
+            </div>
+          ) : (
+            <TableComponent columns={colunasProfessores} data={professores} />
+          )}
+        </>
       )}
 
       {/* ABA COM TABELA ALUNOS*/}
       {abaAtiva === 'alunos' && (
-        <TableComponent columns={colunasAlunos} data={tabelaaluno} />
+        <>
+          {loadingUsers ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Carregando alunos...</span>
+            </div>
+          ) : (
+            <TableComponent columns={colunasAlunos} data={alunos} />
+          )}
+        </>
       )}
+
+      {/* Modal de Filtros */}
+      <FilterModal
+        open={filterModalOpen}
+        onOpenChange={setFilterModalOpen}
+        type="admin"
+        onApplyFilters={handleApplyFilters}
+        initialFilters={filters}
+      />
     </PagesLayout>
   );
 }

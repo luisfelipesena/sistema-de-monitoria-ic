@@ -59,4 +59,20 @@ export const QueryKeys = {
   departamento: {
     list: ['departamento', 'list'],
   },
-}; 
+
+  monitoria: {
+    vagas: ['monitoria', 'vagas'],
+    inscricoes: ['monitoria', 'inscricoes'],
+    inscricao: (id: string) => ['monitoria', 'inscricao', id],
+  },
+
+  projeto: {
+    list: ['projeto', 'list'],
+    byId: (id: string) => ['projeto', id],
+  },
+
+  disciplina: {
+    list: ['disciplina', 'list'],
+    byId: (id: string) => ['disciplina', id],
+  },
+};
