@@ -30,6 +30,11 @@ export const inscricaoComDetalhesSchema = z.object({
     ano: z.number(),
     semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
     status: z.enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED']),
+    professorResponsavel: z.object({
+      id: z.number(),
+      nomeCompleto: z.string(),
+      emailInstitucional: z.string(),
+    }),
   }),
   // Dados do aluno
   aluno: z.object({

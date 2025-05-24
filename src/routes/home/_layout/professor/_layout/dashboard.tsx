@@ -3,13 +3,23 @@ import { TableComponent } from '@/components/layout/TableComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FilterModal, FilterValues } from '@/components/ui/FilterModal';
-import { useProjetos } from '@/hooks/use-projeto';
+import { useProjetos, useSubmitProjeto } from '@/hooks/use-projeto';
 import { ProjetoListItem } from '@/routes/api/projeto/-types';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
-import { Eye, Filter, Hand, List, Loader, Plus, Users } from 'lucide-react';
+import {
+  Eye,
+  Filter,
+  Hand,
+  List,
+  Loader,
+  Plus,
+  Send,
+  Users,
+} from 'lucide-react';
 
 export const Route = createFileRoute(
   '/home/_layout/professor/_layout/dashboard',
@@ -20,6 +30,7 @@ export const Route = createFileRoute(
 function DashboardProfessor() {
   const navigate = useNavigate();
   const { data: projetos, isLoading: loadingProjetos } = useProjetos();
+  const submitProjetoMutation = useSubmitProjeto();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
 
@@ -46,6 +57,15 @@ function DashboardProfessor() {
 
   const handleCriarProjeto = () => {
     navigate({ to: '/home/common/projects' });
+  };
+
+  const handleSubmitProjeto = async (projetoId: number) => {
+    try {
+      await submitProjetoMutation.mutateAsync(projetoId);
+      toast.success('Projeto submetido para aprovação com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao submeter projeto. Tente novamente.');
+    }
   };
 
   // Column definitions for the projects table
@@ -157,15 +177,31 @@ function DashboardProfessor() {
       ),
       accessorKey: 'acoes',
       cell: ({ row }) => (
-        <Button
-          variant="primary"
-          size="sm"
-          className="rounded-full flex items-center gap-1"
-          onClick={() => handleAnalisarProjeto(row.original.id)}
-        >
-          <Eye className="h-4 w-4" />
-          {row.original.status === 'APPROVED' ? 'Ver Candidatos' : 'Analisar'}
-        </Button>
+        <div className="flex gap-2">
+          {row.original.status === 'DRAFT' ? (
+            <Button
+              variant="primary"
+              size="sm"
+              className="rounded-full flex items-center gap-1 bg-blue-600 hover:bg-blue-700"
+              onClick={() => handleSubmitProjeto(row.original.id)}
+            >
+              <Send className="h-4 w-4" />
+              Submeter
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              className="rounded-full flex items-center gap-1"
+              onClick={() => handleAnalisarProjeto(row.original.id)}
+            >
+              <Eye className="h-4 w-4" />
+              {row.original.status === 'APPROVED'
+                ? 'Ver Candidatos'
+                : 'Analisar'}
+            </Button>
+          )}
+        </div>
       ),
     },
   ];

@@ -40,6 +40,7 @@ import { Route as HomeLayoutAdminLayoutDisciplinasImport } from './routes/home/_
 import { Route as HomeLayoutAdminLayoutDepartamentosImport } from './routes/home/_layout/admin/_layout/departamentos'
 import { Route as HomeLayoutAdminLayoutDashboardImport } from './routes/home/_layout/admin/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutCursosImport } from './routes/home/_layout/admin/_layout/cursos'
+import { Route as HomeLayoutAdminLayoutAnalyticsImport } from './routes/home/_layout/admin/_layout/analytics'
 import { Route as HomeLayoutAdminLayoutAnaliseProjetosImport } from './routes/home/_layout/admin/_layout/analise-projetos'
 import { Route as HomeLayoutAdminLayoutAlunosImport } from './routes/home/_layout/admin/_layout/alunos'
 
@@ -255,6 +256,13 @@ const HomeLayoutAdminLayoutCursosRoute =
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any)
 
+const HomeLayoutAdminLayoutAnalyticsRoute =
+  HomeLayoutAdminLayoutAnalyticsImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => HomeLayoutAdminLayoutRoute,
+  } as any)
+
 const HomeLayoutAdminLayoutAnaliseProjetosRoute =
   HomeLayoutAdminLayoutAnaliseProjetosImport.update({
     id: '/analise-projetos',
@@ -369,6 +377,13 @@ declare module '@tanstack/react-router' {
       path: '/analise-projetos'
       fullPath: '/home/admin/analise-projetos'
       preLoaderRoute: typeof HomeLayoutAdminLayoutAnaliseProjetosImport
+      parentRoute: typeof HomeLayoutAdminLayoutImport
+    }
+    '/home/_layout/admin/_layout/analytics': {
+      id: '/home/_layout/admin/_layout/analytics'
+      path: '/analytics'
+      fullPath: '/home/admin/analytics'
+      preLoaderRoute: typeof HomeLayoutAdminLayoutAnalyticsImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
     '/home/_layout/admin/_layout/cursos': {
@@ -512,6 +527,7 @@ declare module '@tanstack/react-router' {
 interface HomeLayoutAdminLayoutRouteChildren {
   HomeLayoutAdminLayoutAlunosRoute: typeof HomeLayoutAdminLayoutAlunosRoute
   HomeLayoutAdminLayoutAnaliseProjetosRoute: typeof HomeLayoutAdminLayoutAnaliseProjetosRoute
+  HomeLayoutAdminLayoutAnalyticsRoute: typeof HomeLayoutAdminLayoutAnalyticsRoute
   HomeLayoutAdminLayoutCursosRoute: typeof HomeLayoutAdminLayoutCursosRoute
   HomeLayoutAdminLayoutDashboardRoute: typeof HomeLayoutAdminLayoutDashboardRoute
   HomeLayoutAdminLayoutDepartamentosRoute: typeof HomeLayoutAdminLayoutDepartamentosRoute
@@ -528,6 +544,7 @@ const HomeLayoutAdminLayoutRouteChildren: HomeLayoutAdminLayoutRouteChildren = {
   HomeLayoutAdminLayoutAlunosRoute: HomeLayoutAdminLayoutAlunosRoute,
   HomeLayoutAdminLayoutAnaliseProjetosRoute:
     HomeLayoutAdminLayoutAnaliseProjetosRoute,
+  HomeLayoutAdminLayoutAnalyticsRoute: HomeLayoutAdminLayoutAnalyticsRoute,
   HomeLayoutAdminLayoutCursosRoute: HomeLayoutAdminLayoutCursosRoute,
   HomeLayoutAdminLayoutDashboardRoute: HomeLayoutAdminLayoutDashboardRoute,
   HomeLayoutAdminLayoutDepartamentosRoute:
@@ -666,6 +683,7 @@ export interface FileRoutesByFullPath {
   '/home/student': typeof HomeLayoutStudentLayoutRouteWithChildren
   '/home/admin/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
   '/home/admin/analise-projetos': typeof HomeLayoutAdminLayoutAnaliseProjetosRoute
+  '/home/admin/analytics': typeof HomeLayoutAdminLayoutAnalyticsRoute
   '/home/admin/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/admin/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
   '/home/admin/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
@@ -697,6 +715,7 @@ export interface FileRoutesByTo {
   '/home/student': typeof HomeLayoutStudentLayoutRouteWithChildren
   '/home/admin/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
   '/home/admin/analise-projetos': typeof HomeLayoutAdminLayoutAnaliseProjetosRoute
+  '/home/admin/analytics': typeof HomeLayoutAdminLayoutAnalyticsRoute
   '/home/admin/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/admin/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
   '/home/admin/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
@@ -734,6 +753,7 @@ export interface FileRoutesById {
   '/home/_layout/student/_layout': typeof HomeLayoutStudentLayoutRouteWithChildren
   '/home/_layout/admin/_layout/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
   '/home/_layout/admin/_layout/analise-projetos': typeof HomeLayoutAdminLayoutAnaliseProjetosRoute
+  '/home/_layout/admin/_layout/analytics': typeof HomeLayoutAdminLayoutAnalyticsRoute
   '/home/_layout/admin/_layout/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/_layout/admin/_layout/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
   '/home/_layout/admin/_layout/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
@@ -768,6 +788,7 @@ export interface FileRouteTypes {
     | '/home/student'
     | '/home/admin/alunos'
     | '/home/admin/analise-projetos'
+    | '/home/admin/analytics'
     | '/home/admin/cursos'
     | '/home/admin/dashboard'
     | '/home/admin/departamentos'
@@ -798,6 +819,7 @@ export interface FileRouteTypes {
     | '/home/student'
     | '/home/admin/alunos'
     | '/home/admin/analise-projetos'
+    | '/home/admin/analytics'
     | '/home/admin/cursos'
     | '/home/admin/dashboard'
     | '/home/admin/departamentos'
@@ -833,6 +855,7 @@ export interface FileRouteTypes {
     | '/home/_layout/student/_layout'
     | '/home/_layout/admin/_layout/alunos'
     | '/home/_layout/admin/_layout/analise-projetos'
+    | '/home/_layout/admin/_layout/analytics'
     | '/home/_layout/admin/_layout/cursos'
     | '/home/_layout/admin/_layout/dashboard'
     | '/home/_layout/admin/_layout/departamentos'
@@ -934,6 +957,7 @@ export const routeTree = rootRoute
       "children": [
         "/home/_layout/admin/_layout/alunos",
         "/home/_layout/admin/_layout/analise-projetos",
+        "/home/_layout/admin/_layout/analytics",
         "/home/_layout/admin/_layout/cursos",
         "/home/_layout/admin/_layout/dashboard",
         "/home/_layout/admin/_layout/departamentos",
@@ -980,6 +1004,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/admin/_layout/analise-projetos": {
       "filePath": "home/_layout/admin/_layout/analise-projetos.tsx",
+      "parent": "/home/_layout/admin/_layout"
+    },
+    "/home/_layout/admin/_layout/analytics": {
+      "filePath": "home/_layout/admin/_layout/analytics.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
     "/home/_layout/admin/_layout/cursos": {

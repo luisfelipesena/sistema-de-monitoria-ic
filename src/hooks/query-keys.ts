@@ -83,4 +83,9 @@ export const QueryKeys = {
     list: ['periodoInscricao', 'list'],
     byId: (id: string) => ['periodoInscricao', id],
   },
+
+  // Analytics related queries
+  analytics: {
+    dashboard: ['analytics', 'dashboard'],
+  },
 };

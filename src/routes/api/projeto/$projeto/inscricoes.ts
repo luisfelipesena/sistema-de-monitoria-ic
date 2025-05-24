@@ -77,6 +77,10 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$projeto/inscricoes')({
             projetoAno: projetoTable.ano,
             projetoSemestre: projetoTable.semestre,
             projetoStatus: projetoTable.status,
+            // Dados do professor responsável
+            professorId: professorTable.id,
+            professorNome: professorTable.nomeCompleto,
+            professorEmail: professorTable.emailInstitucional,
             // Dados do aluno
             alunoNome: alunoTable.nomeCompleto,
             alunoEmail: alunoTable.emailInstitucional,
@@ -87,6 +91,10 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$projeto/inscricoes')({
           .innerJoin(
             projetoTable,
             eq(inscricaoTable.projetoId, projetoTable.id),
+          )
+          .innerJoin(
+            professorTable,
+            eq(projetoTable.professorResponsavelId, professorTable.id),
           )
           .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
           .where(eq(inscricaoTable.projetoId, projetoId))
@@ -124,6 +132,11 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$projeto/inscricoes')({
             ano: inscricao.projetoAno,
             semestre: inscricao.projetoSemestre,
             status: inscricao.projetoStatus,
+            professorResponsavel: {
+              id: inscricao.professorId,
+              nomeCompleto: inscricao.professorNome,
+              emailInstitucional: inscricao.professorEmail,
+            },
           },
           aluno: {
             id: inscricao.alunoId,

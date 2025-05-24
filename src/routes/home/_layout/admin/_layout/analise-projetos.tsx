@@ -207,8 +207,8 @@ function AnaliseProjetosPage() {
             size="sm"
             className="rounded-full flex items-center gap-1"
             onClick={() => {
-              // TODO: Implement view project details
-              toast.info('Funcionalidade de visualização em desenvolvimento');
+              // Navegar para detalhes do projeto
+              window.open(`/projeto/${row.original.id}/inscricoes`, '_blank');
             }}
           >
             <Eye className="h-4 w-4" />

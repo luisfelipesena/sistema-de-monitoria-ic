@@ -83,8 +83,11 @@ function DashboardStudent() {
       ),
       accessorKey: 'projeto',
       cell: ({ row }) => {
-        // TODO: Buscar nome do professor responsável
-        return <span className="text-base">Professor Responsável</span>;
+        return (
+          <span className="text-base">
+            {row.original.projeto.professorResponsavel.nomeCompleto}
+          </span>
+        );
       },
     },
     {

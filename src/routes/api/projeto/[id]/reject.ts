@@ -61,6 +61,31 @@ export const APIRoute = createAPIFileRoute('/api/projeto/[id]/reject')({
 
         log.info({ projetoId }, 'Projeto rejeitado');
 
+        // Enviar notificação por email automaticamente
+        try {
+          const notifyResponse = await fetch(
+            `${ctx.request.url.split('/reject')[0]}/notify-approval`,
+            {
+              method: 'POST',
+              headers: {
+                Authorization: ctx.request.headers.get('Authorization') || '',
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+
+          if (notifyResponse.ok) {
+            log.info({ projetoId }, 'Notificação de rejeição enviada');
+          } else {
+            log.warn({ projetoId }, 'Falha ao enviar notificação de rejeição');
+          }
+        } catch (notifyError) {
+          log.error(
+            { notifyError, projetoId },
+            'Erro ao enviar notificação de rejeição',
+          );
+        }
+
         return json(
           {
             success: true,

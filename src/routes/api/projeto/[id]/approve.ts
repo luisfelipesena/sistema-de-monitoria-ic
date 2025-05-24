@@ -77,6 +77,31 @@ export const APIRoute = createAPIFileRoute('/api/projeto/[id]/approve')({
 
         log.info({ projetoId, bolsasDisponibilizadas }, 'Projeto aprovado');
 
+        // Enviar notificação por email automaticamente
+        try {
+          const notifyResponse = await fetch(
+            `${ctx.request.url.split('/approve')[0]}/notify-approval`,
+            {
+              method: 'POST',
+              headers: {
+                Authorization: ctx.request.headers.get('Authorization') || '',
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+
+          if (notifyResponse.ok) {
+            log.info({ projetoId }, 'Notificação de aprovação enviada');
+          } else {
+            log.warn({ projetoId }, 'Falha ao enviar notificação de aprovação');
+          }
+        } catch (notifyError) {
+          log.error(
+            { notifyError, projetoId },
+            'Erro ao enviar notificação de aprovação',
+          );
+        }
+
         return json(
           {
             success: true,

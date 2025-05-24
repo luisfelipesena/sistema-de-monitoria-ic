@@ -104,9 +104,16 @@ function NotificacoesPage() {
 
   const handleEnviarNotificacao = async () => {
     try {
-      // TODO: Implementar API call para enviar notificação
-      // await sendNotificationAPI(formData);
+      if (
+        !formData.assunto ||
+        !formData.conteudo ||
+        !formData.destinatarios?.length
+      ) {
+        toast.error('Preencha todos os campos obrigatórios');
+        return;
+      }
 
+      // Implementar quando API de notificações manuais estiver disponível
       console.log('Enviando notificação:', formData);
       toast.success('Notificação enviada com sucesso!');
       setIsModalOpen(false);
@@ -123,12 +130,23 @@ function NotificacoesPage() {
 
   const handleEnviarResultadosProjeto = async (projetoId: number) => {
     try {
-      // TODO: Implementar API call para enviar resultados
-      // await sendProjectResultsAPI(projetoId);
+      // Usar o endpoint existente para notificar resultados
+      const response = await fetch(`/api/projeto/${projetoId}/notify-results`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      console.log('Enviando resultados do projeto:', projetoId);
+      if (!response.ok) {
+        throw new Error('Falha ao enviar resultados');
+      }
+
+      const result = await response.json();
+      console.log('Enviando resultados do projeto:', projetoId, result);
       toast.success('Resultados enviados para todos os candidatos!');
     } catch (error) {
+      console.error('Erro ao enviar resultados:', error);
       toast.error('Erro ao enviar resultados');
     }
   };

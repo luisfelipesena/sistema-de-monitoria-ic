@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   Mail,
   Monitor,
+  TrendingUp,
   User,
   UserCog,
   UserPlus,
@@ -118,6 +119,12 @@ const menuItemsConfig: MenuItemConfig[] = [
     label: 'Análise de Projetos',
     href: '/home/admin/analise-projetos',
     icon: FileCheck,
+    roles: ['admin'],
+  },
+  {
+    label: 'Analytics',
+    href: '/home/admin/analytics',
+    icon: TrendingUp,
     roles: ['admin'],
   },
   {
