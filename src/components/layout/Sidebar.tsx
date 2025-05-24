@@ -84,6 +84,12 @@ const menuItemsConfig: MenuItemConfig[] = [
     roles: ['student'],
   },
   {
+    label: 'Documentos',
+    href: '/home/common/documentos',
+    icon: FileText,
+    roles: ['student'],
+  },
+  {
     label: 'Cursos',
     href: '/home/admin/cursos',
     icon: GraduationCap,

@@ -24,6 +24,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/home/_layout/common/selecao-monitores/')(
   {
@@ -46,6 +47,7 @@ function SelecaoMonitoresPage() {
   );
   const { data: inscricoes, isLoading: loadingInscricoes } =
     useInscricoesProjeto(projetoSelecionado || 0);
+
   const [avaliacoes, setAvaliacoes] = useState<
     Record<number, CandidatoAvaliacao>
   >({});
@@ -102,6 +104,40 @@ function SelecaoMonitoresPage() {
         status: 'AVALIADO',
       },
     }));
+  };
+
+  const handleSalvarAvaliacoes = async () => {
+    if (!projetoSelecionado) return;
+
+    try {
+      const avaliacoesArray = Object.values(avaliacoes).filter(
+        (avaliacao) => avaliacao.notaDisciplina && avaliacao.notaFinal,
+      );
+
+      if (avaliacoesArray.length === 0) {
+        toast.error('Nenhuma avaliação para salvar');
+        return;
+      }
+
+      const response = await fetch(
+        `/api/projeto/${projetoSelecionado}/avaliacoes`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(avaliacoesArray),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Erro ao salvar avaliações');
+      }
+
+      toast.success('Avaliações salvas com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao salvar avaliações');
+    }
   };
 
   const renderCandidatos = (
@@ -288,13 +324,22 @@ function SelecaoMonitoresPage() {
                   Candidatos Voluntários
                 </CardTitle>
                 {user?.role === 'professor' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-green-600 border-green-600"
-                  >
-                    Gerar Documento
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSalvarAvaliacoes}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Salvar Avaliações
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-green-600 border-green-600"
+                    >
+                      Gerar Documento
+                    </Button>
+                  </div>
                 )}
               </CardHeader>
               <CardContent>

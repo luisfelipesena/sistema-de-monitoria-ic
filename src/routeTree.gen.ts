@@ -17,6 +17,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
+import { Route as ProjetoProjetoInscricoesImport } from './routes/projeto/$projeto/inscricoes'
 import { Route as HomeLayoutStudentLayoutImport } from './routes/home/_layout/student/_layout'
 import { Route as HomeLayoutProfessorLayoutImport } from './routes/home/_layout/professor/_layout'
 import { Route as HomeLayoutAdminLayoutImport } from './routes/home/_layout/admin/_layout'
@@ -26,6 +27,7 @@ import { Route as HomeLayoutCommonProjectsIndexImport } from './routes/home/_lay
 import { Route as HomeLayoutCommonProfileIndexImport } from './routes/home/_layout/common/profile/index'
 import { Route as HomeLayoutCommonOnboardingIndexImport } from './routes/home/_layout/common/onboarding/index'
 import { Route as HomeLayoutCommonMonitoriaIndexImport } from './routes/home/_layout/common/monitoria/index'
+import { Route as HomeLayoutCommonDocumentosIndexImport } from './routes/home/_layout/common/documentos/index'
 import { Route as HomeLayoutStudentLayoutDashboardImport } from './routes/home/_layout/student/_layout/dashboard'
 import { Route as HomeLayoutProfessorLayoutDashboardImport } from './routes/home/_layout/professor/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutUsersImport } from './routes/home/_layout/admin/_layout/users'
@@ -95,6 +97,12 @@ const HomeLayoutIndexRoute = HomeLayoutIndexImport.update({
   getParentRoute: () => HomeLayoutRoute,
 } as any)
 
+const ProjetoProjetoInscricoesRoute = ProjetoProjetoInscricoesImport.update({
+  id: '/projeto/$projeto/inscricoes',
+  path: '/projeto/$projeto/inscricoes',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const HomeLayoutStudentLayoutRoute = HomeLayoutStudentLayoutImport.update({
   id: '/_layout',
   getParentRoute: () => HomeLayoutStudentRoute,
@@ -149,6 +157,13 @@ const HomeLayoutCommonMonitoriaIndexRoute =
   HomeLayoutCommonMonitoriaIndexImport.update({
     id: '/common/monitoria/',
     path: '/common/monitoria/',
+    getParentRoute: () => HomeLayoutRoute,
+  } as any)
+
+const HomeLayoutCommonDocumentosIndexRoute =
+  HomeLayoutCommonDocumentosIndexImport.update({
+    id: '/common/documentos/',
+    path: '/common/documentos/',
     getParentRoute: () => HomeLayoutRoute,
   } as any)
 
@@ -269,6 +284,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/home'
       preLoaderRoute: typeof HomeLayoutImport
       parentRoute: typeof HomeRoute
+    }
+    '/projeto/$projeto/inscricoes': {
+      id: '/projeto/$projeto/inscricoes'
+      path: '/projeto/$projeto/inscricoes'
+      fullPath: '/projeto/$projeto/inscricoes'
+      preLoaderRoute: typeof ProjetoProjetoInscricoesImport
+      parentRoute: typeof rootRoute
     }
     '/home/_layout/': {
       id: '/home/_layout/'
@@ -402,6 +424,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/home/student/dashboard'
       preLoaderRoute: typeof HomeLayoutStudentLayoutDashboardImport
       parentRoute: typeof HomeLayoutStudentLayoutImport
+    }
+    '/home/_layout/common/documentos/': {
+      id: '/home/_layout/common/documentos/'
+      path: '/common/documentos'
+      fullPath: '/home/common/documentos'
+      preLoaderRoute: typeof HomeLayoutCommonDocumentosIndexImport
+      parentRoute: typeof HomeLayoutImport
     }
     '/home/_layout/common/monitoria/': {
       id: '/home/_layout/common/monitoria/'
@@ -552,6 +581,7 @@ interface HomeLayoutRouteChildren {
   HomeLayoutAdminRoute: typeof HomeLayoutAdminRouteWithChildren
   HomeLayoutProfessorRoute: typeof HomeLayoutProfessorRouteWithChildren
   HomeLayoutStudentRoute: typeof HomeLayoutStudentRouteWithChildren
+  HomeLayoutCommonDocumentosIndexRoute: typeof HomeLayoutCommonDocumentosIndexRoute
   HomeLayoutCommonMonitoriaIndexRoute: typeof HomeLayoutCommonMonitoriaIndexRoute
   HomeLayoutCommonOnboardingIndexRoute: typeof HomeLayoutCommonOnboardingIndexRoute
   HomeLayoutCommonProfileIndexRoute: typeof HomeLayoutCommonProfileIndexRoute
@@ -565,6 +595,7 @@ const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutAdminRoute: HomeLayoutAdminRouteWithChildren,
   HomeLayoutProfessorRoute: HomeLayoutProfessorRouteWithChildren,
   HomeLayoutStudentRoute: HomeLayoutStudentRouteWithChildren,
+  HomeLayoutCommonDocumentosIndexRoute: HomeLayoutCommonDocumentosIndexRoute,
   HomeLayoutCommonMonitoriaIndexRoute: HomeLayoutCommonMonitoriaIndexRoute,
   HomeLayoutCommonOnboardingIndexRoute: HomeLayoutCommonOnboardingIndexRoute,
   HomeLayoutCommonProfileIndexRoute: HomeLayoutCommonProfileIndexRoute,
@@ -592,6 +623,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutRouteWithChildren
+  '/projeto/$projeto/inscricoes': typeof ProjetoProjetoInscricoesRoute
   '/home/': typeof HomeLayoutIndexRoute
   '/home/admin': typeof HomeLayoutAdminLayoutRouteWithChildren
   '/home/professor': typeof HomeLayoutProfessorLayoutRouteWithChildren
@@ -608,6 +640,7 @@ export interface FileRoutesByFullPath {
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
+  '/home/common/documentos': typeof HomeLayoutCommonDocumentosIndexRoute
   '/home/common/monitoria': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
@@ -620,6 +653,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutIndexRoute
+  '/projeto/$projeto/inscricoes': typeof ProjetoProjetoInscricoesRoute
   '/home/admin': typeof HomeLayoutAdminLayoutRouteWithChildren
   '/home/professor': typeof HomeLayoutProfessorLayoutRouteWithChildren
   '/home/student': typeof HomeLayoutStudentLayoutRouteWithChildren
@@ -635,6 +669,7 @@ export interface FileRoutesByTo {
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
+  '/home/common/documentos': typeof HomeLayoutCommonDocumentosIndexRoute
   '/home/common/monitoria': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
@@ -649,6 +684,7 @@ export interface FileRoutesById {
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
+  '/projeto/$projeto/inscricoes': typeof ProjetoProjetoInscricoesRoute
   '/home/_layout/': typeof HomeLayoutIndexRoute
   '/home/_layout/admin': typeof HomeLayoutAdminRouteWithChildren
   '/home/_layout/admin/_layout': typeof HomeLayoutAdminLayoutRouteWithChildren
@@ -668,6 +704,7 @@ export interface FileRoutesById {
   '/home/_layout/admin/_layout/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/_layout/professor/_layout/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/_layout/student/_layout/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
+  '/home/_layout/common/documentos/': typeof HomeLayoutCommonDocumentosIndexRoute
   '/home/_layout/common/monitoria/': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/_layout/common/onboarding/': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/_layout/common/profile/': typeof HomeLayoutCommonProfileIndexRoute
@@ -682,6 +719,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/cas-callback'
     | '/home'
+    | '/projeto/$projeto/inscricoes'
     | '/home/'
     | '/home/admin'
     | '/home/professor'
@@ -698,6 +736,7 @@ export interface FileRouteTypes {
     | '/home/admin/users'
     | '/home/professor/dashboard'
     | '/home/student/dashboard'
+    | '/home/common/documentos'
     | '/home/common/monitoria'
     | '/home/common/onboarding'
     | '/home/common/profile'
@@ -709,6 +748,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/cas-callback'
     | '/home'
+    | '/projeto/$projeto/inscricoes'
     | '/home/admin'
     | '/home/professor'
     | '/home/student'
@@ -724,6 +764,7 @@ export interface FileRouteTypes {
     | '/home/admin/users'
     | '/home/professor/dashboard'
     | '/home/student/dashboard'
+    | '/home/common/documentos'
     | '/home/common/monitoria'
     | '/home/common/onboarding'
     | '/home/common/profile'
@@ -736,6 +777,7 @@ export interface FileRouteTypes {
     | '/auth/cas-callback'
     | '/home'
     | '/home/_layout'
+    | '/projeto/$projeto/inscricoes'
     | '/home/_layout/'
     | '/home/_layout/admin'
     | '/home/_layout/admin/_layout'
@@ -755,6 +797,7 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/_layout/users'
     | '/home/_layout/professor/_layout/dashboard'
     | '/home/_layout/student/_layout/dashboard'
+    | '/home/_layout/common/documentos/'
     | '/home/_layout/common/monitoria/'
     | '/home/_layout/common/onboarding/'
     | '/home/_layout/common/profile/'
@@ -768,12 +811,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthCasCallbackRoute: typeof AuthCasCallbackRoute
   HomeRoute: typeof HomeRouteWithChildren
+  ProjetoProjetoInscricoesRoute: typeof ProjetoProjetoInscricoesRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthCasCallbackRoute: AuthCasCallbackRoute,
   HomeRoute: HomeRouteWithChildren,
+  ProjetoProjetoInscricoesRoute: ProjetoProjetoInscricoesRoute,
 }
 
 export const routeTree = rootRoute
@@ -788,7 +833,8 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/auth/cas-callback",
-        "/home"
+        "/home",
+        "/projeto/$projeto/inscricoes"
       ]
     },
     "/": {
@@ -811,6 +857,7 @@ export const routeTree = rootRoute
         "/home/_layout/admin",
         "/home/_layout/professor",
         "/home/_layout/student",
+        "/home/_layout/common/documentos/",
         "/home/_layout/common/monitoria/",
         "/home/_layout/common/onboarding/",
         "/home/_layout/common/profile/",
@@ -818,6 +865,9 @@ export const routeTree = rootRoute
         "/home/_layout/common/selecao-monitores/",
         "/home/_layout/common/status/"
       ]
+    },
+    "/projeto/$projeto/inscricoes": {
+      "filePath": "projeto/$projeto/inscricoes.tsx"
     },
     "/home/_layout/": {
       "filePath": "home/_layout/index.tsx",
@@ -921,6 +971,10 @@ export const routeTree = rootRoute
     "/home/_layout/student/_layout/dashboard": {
       "filePath": "home/_layout/student/_layout/dashboard.tsx",
       "parent": "/home/_layout/student/_layout"
+    },
+    "/home/_layout/common/documentos/": {
+      "filePath": "home/_layout/common/documentos/index.tsx",
+      "parent": "/home/_layout"
     },
     "/home/_layout/common/monitoria/": {
       "filePath": "home/_layout/common/monitoria/index.tsx",

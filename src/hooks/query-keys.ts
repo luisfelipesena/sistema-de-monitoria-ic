@@ -27,6 +27,7 @@ export const QueryKeys = {
   // Professor related queries
   professor: {
     all: ['professor'],
+    list: ['professor', 'list'],
     byId: (id: string) => ['professor', id],
   },
 

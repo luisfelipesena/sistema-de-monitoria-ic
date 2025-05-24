@@ -7,6 +7,7 @@ export const projetoInputSchema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
   descricao: z.string().min(1, 'Descrição é obrigatória'),
   departamentoId: z.number(),
+  professorResponsavelId: z.number().optional(), // Opcional no frontend, será resolvido no backend
   ano: z.number(),
   semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
   tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),

@@ -16,12 +16,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/use-auth';
 import { useDepartamentoList } from '@/hooks/use-departamento';
 import { useDisciplinas } from '@/hooks/use-disciplina';
+import { useProfessores } from '@/hooks/use-professor';
 import { useCreateProjeto } from '@/hooks/use-projeto';
 import { DepartamentoResponse } from '@/routes/api/departamento/-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { BookOpen, FileText, Target, Users } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -34,6 +35,7 @@ const projetoFormSchema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
   descricao: z.string().min(10, 'Descrição deve ter pelo menos 10 caracteres'),
   departamentoId: z.number().min(1, 'Departamento é obrigatório'),
+  professorResponsavelId: z.number().optional(),
   ano: z.number().min(2024, 'Ano deve ser válido'),
   semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2'], {
     required_error: 'Semestre é obrigatório',
@@ -61,7 +63,9 @@ function ProjectsComponent() {
   const navigate = useNavigate();
   const { data: departamentos, isLoading: loadingDepartamentos } =
     useDepartamentoList();
+  const { data: professores, isLoading: loadingProfessores } = useProfessores();
   const createProjetoMutation = useCreateProjeto();
+  const [projetoCriado, setProjetoCriado] = useState<number | null>(null);
 
   // Redirect students to the monitoria page instead
   useEffect(() => {
@@ -99,10 +103,41 @@ function ProjectsComponent() {
 
   const onSubmit = async (data: ProjetoFormData) => {
     try {
-      await createProjetoMutation.mutateAsync(data);
-      toast.success('Projeto criado com sucesso!');
+      // Validação adicional para admins
+      if (user?.role === 'admin' && !data.professorResponsavelId) {
+        toast.error('É necessário selecionar um professor responsável.');
+        return;
+      }
+
+      const novoProjeto = await createProjetoMutation.mutateAsync(data);
+      setProjetoCriado(novoProjeto.id);
+      toast.success('Projeto criado com sucesso! Agora você pode gerar o PDF.');
     } catch (error) {
       toast.error('Erro ao criar projeto. Tente novamente.');
+    }
+  };
+
+  const handleGeneratePDF = async () => {
+    if (!projetoCriado) return;
+
+    try {
+      const response = await fetch(`/api/projeto/${projetoCriado}/pdf`);
+      const htmlContent = await response.text();
+
+      // Abrir em nova janela para impressão
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+        toast.success('PDF gerado! Use "Salvar como PDF" na impressora.');
+      } else {
+        toast.error('Popup bloqueado. Permita popups para gerar o PDF.');
+      }
+    } catch (error) {
+      toast.error('Erro ao gerar PDF do projeto');
     }
   };
 
@@ -190,6 +225,58 @@ function ProjectsComponent() {
                     </p>
                   )}
                 </div>
+
+                {/* Campo Professor Responsável - apenas para admins */}
+                {user?.role === 'admin' && (
+                  <div>
+                    <Label htmlFor="professorResponsavelId">
+                      1.2b Professor Responsável
+                    </Label>
+                    <Controller
+                      name="professorResponsavelId"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={(value) =>
+                            field.onChange(parseInt(value))
+                          }
+                          value={field.value?.toString()}
+                        >
+                          <SelectTrigger
+                            className={
+                              errors.professorResponsavelId
+                                ? 'border-red-500'
+                                : ''
+                            }
+                          >
+                            <SelectValue placeholder="Selecione o professor responsável" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {loadingProfessores ? (
+                              <SelectItem value="loading" disabled>
+                                Carregando professores...
+                              </SelectItem>
+                            ) : (
+                              professores?.map((professor) => (
+                                <SelectItem
+                                  key={professor.id}
+                                  value={professor.id.toString()}
+                                >
+                                  {professor.nomeCompleto}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.professorResponsavelId && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.professorResponsavelId.message}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -513,17 +600,37 @@ function ProjectsComponent() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-muted/20 border rounded-md p-8 text-center">
-                <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">
-                  Após salvar o projeto, você poderá gerar o PDF do formulário
-                  de monitoria.
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  O PDF será gerado seguindo o template oficial da UFBA para
-                  submissão de projetos de monitoria.
-                </p>
-              </div>
+              {projetoCriado ? (
+                <div className="bg-green-50 border border-green-200 rounded-md p-8 text-center">
+                  <FileText className="mx-auto h-12 w-12 text-green-600 mb-4" />
+                  <p className="text-green-800 mb-4 font-medium">
+                    Projeto criado com sucesso!
+                  </p>
+                  <p className="text-green-700 mb-6 text-sm">
+                    Você pode agora gerar o PDF oficial do formulário de
+                    monitoria da UFBA.
+                  </p>
+                  <Button
+                    onClick={handleGeneratePDF}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Gerar PDF do Formulário
+                  </Button>
+                </div>
+              ) : (
+                <div className="bg-muted/20 border rounded-md p-8 text-center">
+                  <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground mb-4">
+                    Após salvar o projeto, você poderá gerar o PDF do formulário
+                    de monitoria.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    O PDF será gerado seguindo o template oficial da UFBA para
+                    submissão de projetos de monitoria.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

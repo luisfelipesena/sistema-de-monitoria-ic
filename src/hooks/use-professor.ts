@@ -18,6 +18,20 @@ export function useProfessor() {
 }
 
 /**
+ * Hook para listar todos os professores (para admins)
+ */
+export function useProfessores() {
+  return useQuery<ProfessorResponse[]>({
+    queryKey: QueryKeys.professor.list,
+    queryFn: async () => {
+      const response =
+        await apiClient.get<ProfessorResponse[]>('/professor/list');
+      return response.data;
+    },
+  });
+}
+
+/**
  * Hook para atualizar dados do professor
  */
 export function useSetProfessor() {
@@ -25,7 +39,10 @@ export function useSetProfessor() {
 
   return useMutation<ProfessorResponse, Error, ProfessorInput>({
     mutationFn: async (data: ProfessorInput) => {
-      const response = await apiClient.post<ProfessorResponse>('/professor', data);
+      const response = await apiClient.post<ProfessorResponse>(
+        '/professor',
+        data,
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -33,4 +50,4 @@ export function useSetProfessor() {
       queryClient.invalidateQueries({ queryKey: QueryKeys.onboarding.status });
     },
   });
-} 
+}
