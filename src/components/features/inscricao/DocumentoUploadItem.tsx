@@ -1,12 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import React from 'react';
+import React, { useState } from 'react';
 
 interface DocumentoUploadItemProps {
   id: string;
   nome: string;
   ultimaAtualizacao?: string;
   status?: 'válido' | 'expirado' | 'pendente';
+  selectedFileName?: string;
   onUpload?: (file: File, id: string) => void;
   onVisualizar?: (id: string) => void;
 }
@@ -22,15 +23,20 @@ const DocumentoUploadItem: React.FC<DocumentoUploadItemProps> = ({
   nome,
   ultimaAtualizacao,
   status = 'pendente',
+  selectedFileName,
   onUpload,
   onVisualizar,
 }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const [localFileName, setLocalFileName] = useState<string>('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && onUpload) {
-      onUpload(file, id);
+    if (file) {
+      setLocalFileName(file.name);
+      if (onUpload) {
+        onUpload(file, id);
+      }
     }
   };
 
@@ -38,14 +44,21 @@ const DocumentoUploadItem: React.FC<DocumentoUploadItemProps> = ({
     inputRef.current?.click();
   };
 
+  const displayFileName = selectedFileName || localFileName;
+
   return (
     <div className="border p-4 rounded-xl flex justify-between items-center bg-white">
-      <div className="flex flex-col">
+      <div className="flex flex-col space-y-1">
         <span className="font-medium text-sm">{nome}</span>
+        {displayFileName && (
+          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded w-fit">
+            📄 {displayFileName}
+          </span>
+        )}
         {ultimaAtualizacao && (
           <span
             className={cn(
-              'mt-1 text-xs font-medium w-fit px-2 py-0.5 rounded-lg',
+              'text-xs font-medium w-fit px-2 py-0.5 rounded-lg',
               statusStyles[status],
             )}
           >
@@ -61,9 +74,10 @@ const DocumentoUploadItem: React.FC<DocumentoUploadItemProps> = ({
               ref={inputRef}
               onChange={handleFileChange}
               hidden
+              accept=".pdf"
             />
             <Button variant="outline" onClick={triggerSelect}>
-              📤 Fazer upload
+              📤 {displayFileName ? 'Alterar' : 'Fazer upload'}
             </Button>
           </>
         )}

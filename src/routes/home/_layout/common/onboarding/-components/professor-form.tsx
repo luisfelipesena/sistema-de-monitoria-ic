@@ -11,21 +11,14 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '@/hooks/use-auth';
+import { useSetProfessor } from '@/hooks/use-professor';
 import { useToast } from '@/hooks/use-toast';
-import { apiClient } from '@/utils/api-client';
-import { logger } from '@/utils/logger';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-const log = logger.child({
-  context: 'professor-form',
-});
-
-// Schema simplificado para professor
 const professorSchema = z.object({
   nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
   nomeSocial: z.string().optional(),
@@ -42,6 +35,7 @@ export function ProfessorForm() {
   const { user } = useAuth();
   const [useNomeSocial, setUseNomeSocial] = useState(false);
   const { toast } = useToast();
+  const setProfessorMutation = useSetProfessor();
 
   const form = useForm<ProfessorFormData>({
     resolver: zodResolver(professorSchema),
@@ -50,40 +44,37 @@ export function ProfessorForm() {
     },
   });
 
-  // Hook para salvar professor
-  const professorMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiClient.post('/professor', data);
-    },
-    onSuccess: () => {
+  const onSubmit = async (values: ProfessorFormData) => {
+    try {
+      if (!useNomeSocial) {
+        values.nomeSocial = undefined;
+      }
+
+      const tipoRegime = values.regime as '20H' | '40H' | 'DE';
+
+      await setProfessorMutation.mutateAsync({
+        nomeCompleto: values.nomeCompleto,
+        cpf: values.cpf,
+        matriculaSiape: values.matriculaSiape,
+        nomeSocial: values.nomeSocial,
+        emailInstitucional: values.emailInstitucional,
+        genero: 'OUTRO',
+        regime: tipoRegime,
+        departamentoId: 1,
+      });
+
+      toast({
+        title: 'Cadastro realizado com sucesso!',
+      });
+
       navigate({ to: '/home' });
-    },
-    onError: (error) => {
-      log.error('Falha ao atualizar perfil:', error);
-    },
-  });
-
-  const onSubmit = (values: ProfessorFormData) => {
-    if (!useNomeSocial) {
-      values.nomeSocial = undefined;
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao salvar',
+        description: error.message || 'Ocorreu um erro ao salvar os dados',
+        variant: 'destructive',
+      });
     }
-
-    // Converte o valor de string para o tipo esperado pelo enum
-    const tipoRegime = values.regime as '20H' | '40H' | 'DE';
-
-    // Use o valor do formulário
-    const emailInstitucional = values.emailInstitucional || '';
-
-    professorMutation.mutate({
-      nomeCompleto: values.nomeCompleto,
-      cpf: values.cpf,
-      matriculaSiape: values.matriculaSiape,
-      nomeSocial: values.nomeSocial,
-      emailInstitucional,
-      genero: 'OUTRO', // Default para simplificar
-      regime: tipoRegime,
-      departamentoId: 1, // Valor padrão temporário, deve ser ajustado conforme necessário
-    });
   };
 
   return (
@@ -206,9 +197,9 @@ export function ProfessorForm() {
         <Button
           type="submit"
           className="w-full"
-          disabled={professorMutation.isPending}
+          disabled={setProfessorMutation.isPending}
         >
-          {professorMutation.isPending ? (
+          {setProfessorMutation.isPending ? (
             <span className="flex items-center gap-2">
               <Spinner /> Salvando...
             </span>
@@ -217,12 +208,9 @@ export function ProfessorForm() {
           )}
         </Button>
       </div>
-      {professorMutation.error && (
+      {setProfessorMutation.error && (
         <p className="text-red-500 text-sm mt-2 text-center">
-          Erro ao salvar:{' '}
-          {professorMutation.error instanceof Error
-            ? professorMutation.error.message
-            : 'Erro desconhecido'}
+          Erro ao salvar: {setProfessorMutation.error.message}
         </p>
       )}
     </form>

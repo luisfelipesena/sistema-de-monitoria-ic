@@ -16,8 +16,10 @@ import {
   FolderKanban,
   GraduationCap,
   LayoutDashboard,
+  Mail,
   Monitor,
   User,
+  UserCog,
   Users,
   type LucideIcon,
 } from 'lucide-react';
@@ -39,7 +41,7 @@ type MenuItemConfig = {
 const menuItemsConfig: MenuItemConfig[] = [
   {
     label: 'Dashboard',
-    href: (role) => `/home/${role}/dashboard`, // repetir isso para todas rotas onde se diferencia o role
+    href: (role) => `/home/${role}/dashboard`,
     icon: LayoutDashboard,
     roles: ['admin', 'professor', 'student'],
   },
@@ -62,16 +64,16 @@ const menuItemsConfig: MenuItemConfig[] = [
     roles: ['admin', 'professor', 'student'],
   },
   {
+    label: 'Inscrição',
+    href: '/home/common/monitoria',
+    icon: FilePlus,
+    roles: ['student'],
+  },
+  {
     label: 'Status',
     href: '/home/common/status',
     icon: FileCheck,
-    roles: ['admin', 'professor', 'student'],
-  },
-  {
-    label: 'Inscrição',
-    href: '/home/common/monitoria/signIn',
-    icon: FilePlus,
-    roles: ['admin', 'professor', 'student'],
+    roles: ['student'],
   },
   {
     label: 'Cursos',
@@ -80,9 +82,27 @@ const menuItemsConfig: MenuItemConfig[] = [
     roles: ['admin'],
   },
   {
+    label: 'Professores',
+    href: '/home/admin/professores',
+    icon: UserCog,
+    roles: ['admin'],
+  },
+  {
+    label: 'Alunos',
+    href: '/home/admin/alunos',
+    icon: Users,
+    roles: ['admin'],
+  },
+  {
     label: 'Usuários',
     href: '/home/admin/users',
     icon: Users,
+    roles: ['admin'],
+  },
+  {
+    label: 'Notificações',
+    href: '/home/admin/notificacoes',
+    icon: Mail,
     roles: ['admin'],
   },
   {

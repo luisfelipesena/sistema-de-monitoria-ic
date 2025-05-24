@@ -6,6 +6,7 @@ interface Documento {
   nome: string;
   ultimaAtualizacao?: string;
   status?: 'válido' | 'expirado' | 'pendente';
+  selectedFileName?: string;
 }
 
 interface SecaoDocumentosNecessariosProps {
@@ -31,6 +32,7 @@ const SecaoDocumentosNecessarios: React.FC<SecaoDocumentosNecessariosProps> = ({
           nome={doc.nome}
           ultimaAtualizacao={doc.ultimaAtualizacao}
           status={doc.status}
+          selectedFileName={doc.selectedFileName}
           onUpload={onUpload}
           onVisualizar={onVisualizar ? () => onVisualizar(doc.id) : undefined}
         />

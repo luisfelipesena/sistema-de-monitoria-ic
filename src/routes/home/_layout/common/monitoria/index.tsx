@@ -3,9 +3,10 @@ import DadosPessoaisForm from '@/components/features/inscricao/DadosPessoaisForm
 import SecaoDocumentosNecessarios from '@/components/features/inscricao/SecaoDocumentosNecessarios';
 import SelecaoDeVagaTable from '@/components/features/inscricao/SelecaoDeVagaTable';
 import { PagesLayout } from '@/components/layout/PagesLayout';
-import { VagaDisponivel } from '@/routes/api/monitoria/-types';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { useFileUpload } from '@/hooks/use-files';
+import { useCriarInscricao, useVagasDisponiveis } from '@/hooks/use-monitoria';
+import { useToast } from '@/hooks/use-toast';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 
 export const Route = createFileRoute('/home/_layout/common/monitoria/')({
@@ -17,23 +18,18 @@ type DocumentoState = {
   nome: string;
   status: 'válido' | 'expirado' | 'pendente';
   fileId?: string;
+  fileName?: string;
   ultimaAtualizacao?: string;
 };
 
 function RouteComponent() {
-  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // --- Vagas disponíveis ---
-  const { data: vagasDisponiveis = [], isLoading: loadingVagas } = useQuery<
-    VagaDisponivel[]
-  >({
-    queryKey: ['vagas-disponiveis'],
-    queryFn: async () => {
-      const res = await fetch('/api/monitoria/vagas');
-      if (!res.ok) throw new Error('Falha ao buscar vagas');
-      return res.json();
-    },
-  });
+  const { data: vagasDisponiveis = [], isLoading: loadingVagas } =
+    useVagasDisponiveis();
+  const fileUploadMutation = useFileUpload();
+  const criarInscricaoMutation = useCriarInscricao();
 
   const [selectedVagaId, setSelectedVagaId] = useState<string | null>(null);
 
@@ -49,7 +45,6 @@ function RouteComponent() {
     selecionado: v.id === selectedVagaId,
   }));
 
-  // --- Documentos ---
   const [documentos, setDocumentos] = useState<DocumentoState[]>([
     {
       id: 'termo',
@@ -61,7 +56,11 @@ function RouteComponent() {
       nome: 'Comprovante de matrícula',
       status: 'pendente',
     },
-    { id: 'historico', nome: 'Histórico escolar', status: 'pendente' },
+    {
+      id: 'historico',
+      nome: 'Histórico escolar',
+      status: 'pendente',
+    },
   ]);
 
   const handleSelecionarVaga = (id: string) => {
@@ -69,80 +68,122 @@ function RouteComponent() {
   };
 
   const handleUploadDocumento = async (file: File, docId: string) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('entityType', 'inscricao_documento');
-    formData.append('entityId', docId);
+    try {
+      const response = await fileUploadMutation.mutateAsync({
+        file,
+        entityType: 'inscricao_documento',
+        entityId: docId,
+      });
 
-    const res = await fetch('/api/files/upload', {
-      method: 'POST',
-      body: formData,
-    });
+      setDocumentos((prev) =>
+        prev.map((d) =>
+          d.id === docId
+            ? {
+                ...d,
+                status: 'válido' as const,
+                fileId: response.fileId,
+                fileName: file.name,
+                ultimaAtualizacao: new Date().toLocaleDateString('pt-BR'),
+              }
+            : d,
+        ),
+      );
 
-    if (!res.ok) {
-      alert('Falha ao enviar arquivo');
+      toast({
+        title: 'Upload realizado',
+        description: `${file.name} foi enviado com sucesso`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro no upload',
+        description: 'Não foi possível enviar o arquivo',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleEnviarInscricao = async () => {
+    if (!selectedVagaId) {
+      toast({
+        title: 'Vaga não selecionada',
+        description: 'Por favor, selecione uma vaga antes de enviar',
+        variant: 'destructive',
+      });
       return;
     }
 
-    const data = await res.json();
-    // Atualizar status e salvar fileId internamente
-    setDocumentos((prev) =>
-      prev.map((d) =>
-        d.id === docId
-          ? {
-              ...d,
-              status: 'válido' as const,
-              fileId: data.fileId,
-              ultimaAtualizacao: new Date().toLocaleDateString('pt-BR'),
-            }
-          : d,
-      ),
+    const termoCompromisso = documentos.find((d) => d.id === 'termo');
+    if (!termoCompromisso?.fileId) {
+      toast({
+        title: 'Documento obrigatório',
+        description: 'O termo de compromisso assinado é obrigatório',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const vagaSelecionada = vagasDisponiveis.find(
+      (v) => v.id === selectedVagaId,
     );
-  };
+    if (!vagaSelecionada) {
+      toast({
+        title: 'Erro',
+        description: 'Vaga selecionada não encontrada',
+        variant: 'destructive',
+      });
+      return;
+    }
 
-  const enviarMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedVagaId) {
-        throw new Error('Selecione uma vaga');
-      }
-      const vagaSelecionada = vagasDisponiveis.find(
-        (v) => v.id === selectedVagaId,
-      );
-      if (!vagaSelecionada) throw new Error('Vaga inválida');
+    try {
+      const documentosComFileId = documentos
+        .filter((d) => d.fileId)
+        .map((d) => ({
+          tipoDocumento: d.id,
+          fileId: d.fileId!,
+        }));
 
-      const body = {
+      await criarInscricaoMutation.mutateAsync({
         projetoId: vagaSelecionada.projetoId,
         tipoVagaPretendida:
           vagaSelecionada.tipo === 'VOLUNTARIO' ? 'VOLUNTARIO' : 'BOLSISTA',
-        documentos: documentos
-          .filter((d) => d.fileId)
-          .map((d) => ({ tipoDocumento: d.id, fileId: d.fileId })),
-      };
-
-      const res = await fetch('/api/monitoria/inscricao', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+        documentos: documentosComFileId,
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err?.error || 'Erro ao enviar inscrição');
-      }
+      toast({
+        title: 'Inscrição enviada',
+        description: 'Sua inscrição foi enviada com sucesso!',
+      });
 
-      return res.json();
-    },
-    onSuccess: () => {
-      alert('Inscrição enviada com sucesso');
-    },
-  });
+      navigate({ to: '/home/common/status' });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao enviar inscrição',
+        description:
+          error.message || 'Ocorreu um erro ao processar sua inscrição',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (loadingVagas) {
+    return (
+      <PagesLayout
+        title="Inscrição para monitoria"
+        subtitle="Carregando vagas disponíveis..."
+      >
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      </PagesLayout>
+    );
+  }
 
   return (
     <PagesLayout
       title="Inscrição para monitoria"
       subtitle="Preencha o formulário abaixo para se candidatar à vaga de monitoria."
     >
-      <div className="max-w-7xl mx-auto  space-y-12">
+      <div className="max-w-7xl mx-auto space-y-12">
         <section className="bg-gray-50 p-6 rounded-xl shadow-sm">
           <DadosPessoaisForm />
         </section>
@@ -156,7 +197,10 @@ function RouteComponent() {
 
         <section>
           <SecaoDocumentosNecessarios
-            documentos={documentos}
+            documentos={documentos.map((d) => ({
+              ...d,
+              selectedFileName: d.fileName,
+            }))}
             onUpload={handleUploadDocumento}
             onVisualizar={(id) => {
               const doc = documentos.find((d) => d.id === id);
@@ -168,9 +212,9 @@ function RouteComponent() {
         </section>
 
         <AcoesInscricao
-          onEnviar={() => enviarMutation.mutate()}
+          onEnviar={handleEnviarInscricao}
           onCancelar={() => window.history.back()}
-          loading={enviarMutation.isPending}
+          loading={criarInscricaoMutation.isPending}
         />
       </div>
     </PagesLayout>

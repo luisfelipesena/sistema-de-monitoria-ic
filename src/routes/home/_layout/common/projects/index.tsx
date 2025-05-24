@@ -1,315 +1,512 @@
 'use client';
 
 import { PagesLayout } from '@/components/layout/PagesLayout';
-import { FileUploader } from '@/components/ui/FileUploader';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { logger } from '@/utils/logger';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { useDepartamentoList } from '@/hooks/use-departamento';
+import { useDisciplinas } from '@/hooks/use-disciplina';
+import { useCreateProjeto } from '@/hooks/use-projeto';
+import { DepartamentoResponse } from '@/routes/api/departamento/-types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Document,
-  DocumentProps,
-  Page,
-  PDFDownloadLink,
-  PDFViewer,
-  StyleSheet,
-  Text,
-  View,
-} from '@react-pdf/renderer';
-import { useDebouncedValue } from '@tanstack/react-pacer';
 import { createFileRoute } from '@tanstack/react-router';
-import { DownloadIcon } from 'lucide-react';
-import {
-  JSXElementConstructor,
-  ReactElement,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import { useForm } from 'react-hook-form';
+import { BookOpen, FileText, Target, Users } from 'lucide-react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as z from 'zod';
-
-const log = logger.child({
-  context: 'ProjectsComponent',
-});
 
 export const Route = createFileRoute('/home/_layout/common/projects/')({
   component: ProjectsComponent,
 });
 
-// 1. Define Zod Schema for the template form
-const templateSchema = z.object({
-  professorName: z.string().min(1, 'Nome do professor é obrigatório'),
-  projectName: z.string().min(1, 'Nome do projeto é obrigatório'),
-  objective: z.string().min(10, 'Objetivo deve ter pelo menos 10 caracteres'),
+const projetoFormSchema = z.object({
+  titulo: z.string().min(1, 'Título é obrigatório'),
+  descricao: z.string().min(10, 'Descrição deve ter pelo menos 10 caracteres'),
+  departamentoId: z.number().min(1, 'Departamento é obrigatório'),
+  ano: z.number().min(2024, 'Ano deve ser válido'),
+  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2'], {
+    required_error: 'Semestre é obrigatório',
+  }),
+  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA'], {
+    required_error: 'Tipo de proposição é obrigatório',
+  }),
+  bolsasSolicitadas: z.number().min(0, 'Número de bolsas deve ser positivo'),
+  voluntariosSolicitados: z
+    .number()
+    .min(0, 'Número de voluntários deve ser positivo'),
+  cargaHorariaSemana: z.number().min(1, 'Carga horária semanal é obrigatória'),
+  numeroSemanas: z.number().min(1, 'Número de semanas é obrigatório'),
+  publicoAlvo: z.string().min(1, 'Público alvo é obrigatório'),
+  estimativaPessoasBenificiadas: z.number().optional(),
+  disciplinaIds: z
+    .array(z.number())
+    .min(1, 'Pelo menos uma disciplina deve ser selecionada'),
 });
 
-type TemplateFormData = z.infer<typeof templateSchema>;
+type ProjetoFormData = z.infer<typeof projetoFormSchema>;
 
-// 2. Define PDF Document Component using @react-pdf/renderer
-const styles = StyleSheet.create({
-  page: { flexDirection: 'column', padding: 30, fontFamily: 'Helvetica' }, // Set default or registered font
-  section: { marginBottom: 15, padding: 10 }, // Adjusted margin
-  heading: {
-    fontSize: 14,
-    marginBottom: 8, // Adjusted margin
-    // fontWeight: 'bold', // Font weight from Font.register if used
-    fontFamily: 'Helvetica-Bold', // Use bold variant if available/needed
-    textTransform: 'uppercase',
-    borderBottomWidth: 1,
-    borderBottomColor: '#cccccc',
-    paddingBottom: 3,
-  },
-  text: { fontSize: 11, marginBottom: 4, lineHeight: 1.5 }, // Adjusted line height and margin
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 30,
-    right: 30,
-    textAlign: 'center',
-    color: 'grey',
-    fontSize: 9,
-  },
-});
-
-const ProjectPdfDocument = ({ data }: { data: TemplateFormData }) => (
-  <Document
-    title={`Proposta - ${data.projectName}`}
-    author={data.professorName}
-  >
-    <Page size="A4" style={styles.page}>
-      <View style={styles.section}>
-        <Text style={styles.heading}>Proposta de Projeto de Monitoria</Text>
-        <Text style={styles.text}>
-          Professor(a) Responsável: {data.professorName || '[Nome Professor]'}
-        </Text>
-        <Text style={styles.text}>
-          Nome do Projeto: {data.projectName || '[Nome Projeto]'}
-        </Text>
-      </View>
-      <View style={styles.section}>
-        <Text style={styles.heading}>Objetivo Geral</Text>
-        <Text style={styles.text}>{data.objective || '[Objetivo Geral]'}</Text>
-      </View>
-      {/* Add more template sections as needed */}
-      <Text style={styles.footer}>
-        Documento gerado via Sistema de Monitoria IC
-      </Text>
-    </Page>
-  </Document>
-);
-
-// Client-side only wrapper for PDFViewer
-const ClientPDFViewer = ({
-  document,
-}: {
-  document: ReactElement<DocumentProps, string | JSXElementConstructor<any>>;
-}) => {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) {
-    return <div>Carregando visualizador de PDF...</div>; // Or a loading spinner
-  }
-
-  return (
-    <PDFViewer width="100%" height="600px" className="border">
-      {document}
-    </PDFViewer>
-  );
-};
-
-// Main Component
 function ProjectsComponent() {
-  const [uploadedFile, setUploadedFile] = useState<{
-    fileId: string;
-    fileName: string;
-  } | null>(null);
+  const { data: departamentos, isLoading: loadingDepartamentos } =
+    useDepartamentoList();
+  const createProjetoMutation = useCreateProjeto();
 
   const {
     register,
     handleSubmit,
+    control,
     watch,
-    formState: { errors, isValid },
-  } = useForm<TemplateFormData>({
-    resolver: zodResolver(templateSchema),
-    mode: 'onChange',
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<ProjetoFormData>({
+    resolver: zodResolver(projetoFormSchema),
     defaultValues: {
-      professorName: '',
-      projectName: '',
-      objective: '',
+      ano: new Date().getFullYear(),
+      semestre: 'SEMESTRE_1',
+      tipoProposicao: 'INDIVIDUAL',
+      bolsasSolicitadas: 0,
+      voluntariosSolicitados: 0,
+      cargaHorariaSemana: 4,
+      numeroSemanas: 16,
+      disciplinaIds: [],
     },
   });
 
-  // Watch current form values
-  const currentFormData = watch();
-  const [debouncedFormData] = useDebouncedValue(currentFormData, {
-    wait: 1000,
-  });
+  const departamentoSelecionado = watch('departamentoId');
 
-  const handleFileSelect = (fileData: File | null) => {
-    if (fileData) {
-      log.info('Accepted file:', fileData);
-      setUploadedFile({
-        fileId: fileData.name,
-        fileName: fileData.name,
-      });
+  // Usar hook com filtro por departamento
+  const { data: disciplinasFiltradas, isLoading: loadingDisciplinas } =
+    useDisciplinas(departamentoSelecionado);
+
+  const onSubmit = async (data: ProjetoFormData) => {
+    try {
+      await createProjetoMutation.mutateAsync(data);
+      toast.success('Projeto criado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao criar projeto. Tente novamente.');
     }
   };
 
-  const onSubmit = (data: TemplateFormData) => {
-    log.info('Form data submitted (optional action):', data);
-  };
-
-  // Memoize the PDF document to prevent unnecessary rerenders
-  const memoizedPdfDocument = useMemo(() => {
-    return <ProjectPdfDocument data={debouncedFormData} />;
-  }, [
-    debouncedFormData.professorName,
-    debouncedFormData.projectName,
-    debouncedFormData.objective,
-  ]);
-
-  // Create a stable filename for the PDF
-  const pdfFileName = useMemo(() => {
-    return `proposta_${
-      debouncedFormData.projectName
-        ?.normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-zA-Z0-9\s]/g, '')
-        .replace(/\s+/g, '_') || 'projeto'
-    }.pdf`;
-  }, [debouncedFormData.projectName]);
+  if (loadingDepartamentos) {
+    return (
+      <PagesLayout title="Novo edital de monitoria">
+        <div className="flex justify-center items-center py-8">
+          <p>Carregando dados...</p>
+        </div>
+      </PagesLayout>
+    );
+  }
 
   return (
-    <PagesLayout title="Gerenciar Projetos">
-      <div className="p-6 space-y-8 bg-white rounded-lg shadow">
-        {/* Section for PDF Template Generation */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Column 1: Form Inputs */}
-          <div>
-            <h2 className="mb-4 text-xl font-semibold text-gray-800">
-              Dados da Proposta (Template)
-            </h2>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {/* Professor Name Input */}
-              <div>
-                <label
-                  htmlFor="professorName"
-                  className="block mb-1 text-sm font-medium text-gray-700"
-                >
-                  Nome do Professor Responsável
-                </label>
-                <Input
-                  id="professorName"
-                  {...register('professorName')}
-                  aria-invalid={errors.professorName ? 'true' : 'false'}
-                  className="bg-white"
-                />
-                {errors.professorName && (
-                  <p className="mt-1 text-xs text-red-600" role="alert">
-                    {errors.professorName.message}
-                  </p>
-                )}
-              </div>
+    <PagesLayout title="Novo edital de monitoria">
+      <div className="mx-auto space-y-6">
+        <div className="text-sm text-muted-foreground">
+          Formulário para submissão de projeto de monitoria
+        </div>
 
-              {/* Project Name Input */}
-              <div>
-                <label
-                  htmlFor="projectName"
-                  className="block mb-1 text-sm font-medium text-gray-700"
-                >
-                  Nome do Projeto
-                </label>
-                <Input
-                  id="projectName"
-                  {...register('projectName')}
-                  aria-invalid={errors.projectName ? 'true' : 'false'}
-                  className="bg-white"
-                />
-                {errors.projectName && (
-                  <p className="mt-1 text-xs text-red-600" role="alert">
-                    {errors.projectName.message}
-                  </p>
-                )}
-              </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Identificação do Projeto */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Identificação do Projeto
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="titulo">1.1 Título do Projeto</Label>
+                  <Input
+                    id="titulo"
+                    placeholder="Digite o título do projeto"
+                    {...register('titulo')}
+                    className={errors.titulo ? 'border-red-500' : ''}
+                  />
+                  {errors.titulo && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.titulo.message}
+                    </p>
+                  )}
+                </div>
 
-              {/* Objective Textarea */}
-              <div>
-                <label
-                  htmlFor="objective"
-                  className="block mb-1 text-sm font-medium text-gray-700"
-                >
-                  Objetivo Geral do Projeto
-                </label>
-                <textarea
-                  id="objective"
-                  rows={6} // Adjusted rows
-                  {...register('objective')}
-                  className="w-full px-3 py-2 mt-1 text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  aria-invalid={errors.objective ? 'true' : 'false'}
-                />
-                {errors.objective && (
-                  <p className="mt-1 text-xs text-red-600" role="alert">
-                    {errors.objective.message}
-                  </p>
-                )}
-              </div>
-
-              {/* PDF Download Link - enabled when form is valid */}
-              <div className="pt-4">
-                {isValid ? (
-                  <PDFDownloadLink
-                    document={memoizedPdfDocument}
-                    fileName={pdfFileName}
-                  >
-                    {({ loading }) => (
-                      <Button
-                        type="button"
-                        variant="primary"
-                        disabled={loading}
+                <div>
+                  <Label htmlFor="departamentoId">
+                    1.2 Órgão responsável (Departamento ou Coord. Acadêmica)
+                  </Label>
+                  <Controller
+                    name="departamentoId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(parseInt(value));
+                          setValue('disciplinaIds', []); // Reset disciplinas quando departamento muda
+                        }}
+                        value={field.value?.toString()}
                       >
-                        {loading ? 'Gerando PDF...' : 'Baixar PDF da Proposta'}
-                      </Button>
+                        <SelectTrigger
+                          className={
+                            errors.departamentoId ? 'border-red-500' : ''
+                          }
+                        >
+                          <SelectValue placeholder="Digite o órgão responsável" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {departamentos?.map((dept: DepartamentoResponse) => (
+                            <SelectItem
+                              key={dept.id}
+                              value={dept.id.toString()}
+                            >
+                              {dept.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     )}
-                  </PDFDownloadLink>
-                ) : (
-                  <Button variant="secondary" size="sm">
-                    <DownloadIcon className="w-4 h-4" />
-                    Preencha o formulário para baixar o PDF
-                  </Button>
+                  />
+                  {errors.departamentoId && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.departamentoId.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="ano">1.3 Ano</Label>
+                  <Input
+                    id="ano"
+                    type="number"
+                    placeholder="Ex: 2025.1"
+                    {...register('ano', { valueAsNumber: true })}
+                    className={errors.ano ? 'border-red-500' : ''}
+                  />
+                  {errors.ano && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.ano.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="semestre">1.5 Semestre</Label>
+                  <Controller
+                    name="semestre"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger
+                          className={errors.semestre ? 'border-red-500' : ''}
+                        >
+                          <SelectValue placeholder="Ex: 2025.1" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SEMESTRE_1">2025.1</SelectItem>
+                          <SelectItem value="SEMESTRE_2">2025.2</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.semestre && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.semestre.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="disciplinaIds">
+                  1.4 Componente(s) curricular(es) (código e nome)
+                </Label>
+                <Controller
+                  name="disciplinaIds"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(value) => {
+                        const disciplinaId = parseInt(value);
+                        if (!field.value.includes(disciplinaId)) {
+                          field.onChange([...field.value, disciplinaId]);
+                        }
+                      }}
+                      disabled={!departamentoSelecionado}
+                    >
+                      <SelectTrigger
+                        className={errors.disciplinaIds ? 'border-red-500' : ''}
+                      >
+                        <SelectValue placeholder="Escolha um dos componentes curriculares cadastrados" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {disciplinasFiltradas?.map((disciplina) => (
+                          <SelectItem
+                            key={disciplina.id}
+                            value={disciplina.id.toString()}
+                          >
+                            {disciplina.codigo} - {disciplina.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.disciplinaIds && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.disciplinaIds.message}
+                  </p>
+                )}
+
+                {/* Mostrar disciplinas selecionadas */}
+                <div className="mt-2 space-y-1">
+                  {watch('disciplinaIds')?.map((disciplinaId) => {
+                    const disciplina = disciplinasFiltradas?.find(
+                      (d) => d.id === disciplinaId,
+                    );
+                    return disciplina ? (
+                      <div
+                        key={disciplinaId}
+                        className="flex items-center justify-between bg-muted p-2 rounded"
+                      >
+                        <span className="text-sm">
+                          {disciplina.codigo} - {disciplina.nome}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const current = watch('disciplinaIds');
+                            setValue(
+                              'disciplinaIds',
+                              current.filter((id) => id !== disciplinaId),
+                            );
+                          }}
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Descrição do Projeto */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Descrição do Projeto
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="descricao">
+                  Descrição detalhada do projeto
+                </Label>
+                <Textarea
+                  id="descricao"
+                  rows={6}
+                  placeholder="Descreva os objetivos, metodologia e atividades do projeto..."
+                  {...register('descricao')}
+                  className={errors.descricao ? 'border-red-500' : ''}
+                />
+                {errors.descricao && (
+                  <p className="text-sm text-red-500 mt-1">
+                    {errors.descricao.message}
+                  </p>
                 )}
               </div>
-            </form>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="publicoAlvo">Público Alvo</Label>
+                  <Input
+                    id="publicoAlvo"
+                    placeholder="Ex: Estudantes de graduação em Ciência da Computação"
+                    {...register('publicoAlvo')}
+                    className={errors.publicoAlvo ? 'border-red-500' : ''}
+                  />
+                  {errors.publicoAlvo && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.publicoAlvo.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="estimativaPessoasBenificiadas">
+                    Estimativa de Pessoas Beneficiadas
+                  </Label>
+                  <Input
+                    id="estimativaPessoasBenificiadas"
+                    type="number"
+                    placeholder="Ex: 50"
+                    {...register('estimativaPessoasBenificiadas', {
+                      valueAsNumber: true,
+                    })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="cargaHorariaSemana">
+                    Carga Horária Semanal (horas)
+                  </Label>
+                  <Input
+                    id="cargaHorariaSemana"
+                    type="number"
+                    {...register('cargaHorariaSemana', { valueAsNumber: true })}
+                    className={
+                      errors.cargaHorariaSemana ? 'border-red-500' : ''
+                    }
+                  />
+                  {errors.cargaHorariaSemana && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.cargaHorariaSemana.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="numeroSemanas">Número de Semanas</Label>
+                  <Input
+                    id="numeroSemanas"
+                    type="number"
+                    {...register('numeroSemanas', { valueAsNumber: true })}
+                    className={errors.numeroSemanas ? 'border-red-500' : ''}
+                  />
+                  {errors.numeroSemanas && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.numeroSemanas.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="tipoProposicao">Tipo de Proposição</Label>
+                  <Controller
+                    name="tipoProposicao"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="INDIVIDUAL">Individual</SelectItem>
+                          <SelectItem value="COLETIVA">Coletiva</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Vagas */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Vagas Solicitadas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="bolsasSolicitadas">
+                    Número de Bolsistas Solicitados
+                  </Label>
+                  <Input
+                    id="bolsasSolicitadas"
+                    type="number"
+                    min="0"
+                    {...register('bolsasSolicitadas', { valueAsNumber: true })}
+                    className={errors.bolsasSolicitadas ? 'border-red-500' : ''}
+                  />
+                  {errors.bolsasSolicitadas && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.bolsasSolicitadas.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="voluntariosSolicitados">
+                    Número de Voluntários Solicitados
+                  </Label>
+                  <Input
+                    id="voluntariosSolicitados"
+                    type="number"
+                    min="0"
+                    {...register('voluntariosSolicitados', {
+                      valueAsNumber: true,
+                    })}
+                    className={
+                      errors.voluntariosSolicitados ? 'border-red-500' : ''
+                    }
+                  />
+                  {errors.voluntariosSolicitados && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.voluntariosSolicitados.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pré-visualização do edital */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Pré-visualização do edital
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-muted/20 border rounded-md p-8 text-center">
+                <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  A pré-visualização do edital será gerada após o preenchimento
+                  dos campos obrigatórios.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Botão de Finalizar */}
+          <div className="flex justify-center">
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isSubmitting}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+            >
+              {isSubmitting ? 'Criando projeto...' : 'Finalizar'}
+            </Button>
           </div>
-
-          {/* Column 2: PDF Preview */}
-          <div>
-            <h2 className="mb-4 text-xl font-semibold text-gray-800">
-              Pré-visualização do PDF
-            </h2>
-            <ClientPDFViewer document={memoizedPdfDocument} />
-          </div>
-        </div>
-
-        {/* Separator */}
-        <hr className="my-8 border-t border-gray-200" />
-
-        {/* Existing Section for PDF Upload */}
-        <div>
-          <h2 className="mb-3 text-xl font-semibold text-gray-800">
-            Fazer Upload de Proposta Assinada (Arquivo PDF)
-          </h2>
-          <FileUploader onFileSelect={handleFileSelect} />
-          {uploadedFile && (
-            <p className="mt-4 text-sm text-green-600">
-              Arquivo selecionado para upload: '{uploadedFile.fileName}'.
-            </p>
-          )}
-        </div>
+        </form>
       </div>
     </PagesLayout>
   );

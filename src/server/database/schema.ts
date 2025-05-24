@@ -182,6 +182,14 @@ export const projetoTable = pgTable('projeto', {
   }),
 });
 
+export const selectProjetoTableSchema = createSelectSchema(projetoTable);
+export const insertProjetoTableSchema = createInsertSchema(projetoTable).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+});
+
 export const projetoDisciplinaTable = pgTable('projeto_disciplina', {
   id: serial('id').primaryKey(),
   projetoId: integer('projeto_id')
