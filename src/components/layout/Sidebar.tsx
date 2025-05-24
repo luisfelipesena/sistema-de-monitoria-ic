@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
+  BookOpen,
   FileCheck,
   FilePlus,
   FileText,
@@ -79,6 +80,12 @@ const menuItemsConfig: MenuItemConfig[] = [
     label: 'Cursos',
     href: '/home/admin/cursos',
     icon: GraduationCap,
+    roles: ['admin'],
+  },
+  {
+    label: 'Disciplinas',
+    href: '/home/admin/disciplinas',
+    icon: BookOpen,
     roles: ['admin'],
   },
   {

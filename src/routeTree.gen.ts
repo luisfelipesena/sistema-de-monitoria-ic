@@ -32,6 +32,7 @@ import { Route as HomeLayoutAdminLayoutSeedCursosImport } from './routes/home/_l
 import { Route as HomeLayoutAdminLayoutProfessoresImport } from './routes/home/_layout/admin/_layout/professores'
 import { Route as HomeLayoutAdminLayoutNotificacoesImport } from './routes/home/_layout/admin/_layout/notificacoes'
 import { Route as HomeLayoutAdminLayoutFilesImport } from './routes/home/_layout/admin/_layout/files'
+import { Route as HomeLayoutAdminLayoutDisciplinasImport } from './routes/home/_layout/admin/_layout/disciplinas'
 import { Route as HomeLayoutAdminLayoutDashboardImport } from './routes/home/_layout/admin/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutCursosImport } from './routes/home/_layout/admin/_layout/cursos'
 import { Route as HomeLayoutAdminLayoutAlunosImport } from './routes/home/_layout/admin/_layout/alunos'
@@ -193,6 +194,13 @@ const HomeLayoutAdminLayoutFilesRoute = HomeLayoutAdminLayoutFilesImport.update(
   } as any,
 )
 
+const HomeLayoutAdminLayoutDisciplinasRoute =
+  HomeLayoutAdminLayoutDisciplinasImport.update({
+    id: '/disciplinas',
+    path: '/disciplinas',
+    getParentRoute: () => HomeLayoutAdminLayoutRoute,
+  } as any)
+
 const HomeLayoutAdminLayoutDashboardRoute =
   HomeLayoutAdminLayoutDashboardImport.update({
     id: '/dashboard',
@@ -316,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminLayoutDashboardImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
+    '/home/_layout/admin/_layout/disciplinas': {
+      id: '/home/_layout/admin/_layout/disciplinas'
+      path: '/disciplinas'
+      fullPath: '/home/admin/disciplinas'
+      preLoaderRoute: typeof HomeLayoutAdminLayoutDisciplinasImport
+      parentRoute: typeof HomeLayoutAdminLayoutImport
+    }
     '/home/_layout/admin/_layout/files': {
       id: '/home/_layout/admin/_layout/files'
       path: '/files'
@@ -409,6 +424,7 @@ interface HomeLayoutAdminLayoutRouteChildren {
   HomeLayoutAdminLayoutAlunosRoute: typeof HomeLayoutAdminLayoutAlunosRoute
   HomeLayoutAdminLayoutCursosRoute: typeof HomeLayoutAdminLayoutCursosRoute
   HomeLayoutAdminLayoutDashboardRoute: typeof HomeLayoutAdminLayoutDashboardRoute
+  HomeLayoutAdminLayoutDisciplinasRoute: typeof HomeLayoutAdminLayoutDisciplinasRoute
   HomeLayoutAdminLayoutFilesRoute: typeof HomeLayoutAdminLayoutFilesRoute
   HomeLayoutAdminLayoutNotificacoesRoute: typeof HomeLayoutAdminLayoutNotificacoesRoute
   HomeLayoutAdminLayoutProfessoresRoute: typeof HomeLayoutAdminLayoutProfessoresRoute
@@ -420,6 +436,7 @@ const HomeLayoutAdminLayoutRouteChildren: HomeLayoutAdminLayoutRouteChildren = {
   HomeLayoutAdminLayoutAlunosRoute: HomeLayoutAdminLayoutAlunosRoute,
   HomeLayoutAdminLayoutCursosRoute: HomeLayoutAdminLayoutCursosRoute,
   HomeLayoutAdminLayoutDashboardRoute: HomeLayoutAdminLayoutDashboardRoute,
+  HomeLayoutAdminLayoutDisciplinasRoute: HomeLayoutAdminLayoutDisciplinasRoute,
   HomeLayoutAdminLayoutFilesRoute: HomeLayoutAdminLayoutFilesRoute,
   HomeLayoutAdminLayoutNotificacoesRoute:
     HomeLayoutAdminLayoutNotificacoesRoute,
@@ -546,6 +563,7 @@ export interface FileRoutesByFullPath {
   '/home/admin/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
   '/home/admin/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/admin/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
+  '/home/admin/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
   '/home/admin/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
@@ -570,6 +588,7 @@ export interface FileRoutesByTo {
   '/home/admin/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
   '/home/admin/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/admin/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
+  '/home/admin/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
   '/home/admin/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
@@ -600,6 +619,7 @@ export interface FileRoutesById {
   '/home/_layout/admin/_layout/alunos': typeof HomeLayoutAdminLayoutAlunosRoute
   '/home/_layout/admin/_layout/cursos': typeof HomeLayoutAdminLayoutCursosRoute
   '/home/_layout/admin/_layout/dashboard': typeof HomeLayoutAdminLayoutDashboardRoute
+  '/home/_layout/admin/_layout/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/_layout/admin/_layout/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/_layout/admin/_layout/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
   '/home/_layout/admin/_layout/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
@@ -627,6 +647,7 @@ export interface FileRouteTypes {
     | '/home/admin/alunos'
     | '/home/admin/cursos'
     | '/home/admin/dashboard'
+    | '/home/admin/disciplinas'
     | '/home/admin/files'
     | '/home/admin/notificacoes'
     | '/home/admin/professores'
@@ -650,6 +671,7 @@ export interface FileRouteTypes {
     | '/home/admin/alunos'
     | '/home/admin/cursos'
     | '/home/admin/dashboard'
+    | '/home/admin/disciplinas'
     | '/home/admin/files'
     | '/home/admin/notificacoes'
     | '/home/admin/professores'
@@ -678,6 +700,7 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/_layout/alunos'
     | '/home/_layout/admin/_layout/cursos'
     | '/home/_layout/admin/_layout/dashboard'
+    | '/home/_layout/admin/_layout/disciplinas'
     | '/home/_layout/admin/_layout/files'
     | '/home/_layout/admin/_layout/notificacoes'
     | '/home/_layout/admin/_layout/professores'
@@ -765,6 +788,7 @@ export const routeTree = rootRoute
         "/home/_layout/admin/_layout/alunos",
         "/home/_layout/admin/_layout/cursos",
         "/home/_layout/admin/_layout/dashboard",
+        "/home/_layout/admin/_layout/disciplinas",
         "/home/_layout/admin/_layout/files",
         "/home/_layout/admin/_layout/notificacoes",
         "/home/_layout/admin/_layout/professores",
@@ -810,6 +834,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/admin/_layout/dashboard": {
       "filePath": "home/_layout/admin/_layout/dashboard.tsx",
+      "parent": "/home/_layout/admin/_layout"
+    },
+    "/home/_layout/admin/_layout/disciplinas": {
+      "filePath": "home/_layout/admin/_layout/disciplinas.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
     "/home/_layout/admin/_layout/files": {
