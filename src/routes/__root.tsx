@@ -1,5 +1,6 @@
 import { DefaultCatchBoundary } from '@/components/DefaultCatchBoundary';
 import { NotFound } from '@/components/NotFound';
+import { StagewiseProvider } from '@/components/StagewiseProvider';
 
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/hooks/use-auth';
@@ -89,11 +90,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <hr />
-        {children}
-        <TanStackRouterDevtools position="bottom-right" />
-        <ReactQueryDevtools buttonPosition="bottom-left" />
-        <Toaster />
+        <StagewiseProvider>
+          <hr />
+          {children}
+          <TanStackRouterDevtools position="bottom-right" />
+          <ReactQueryDevtools buttonPosition="bottom-left" />
+          <Toaster />
+        </StagewiseProvider>
         <Scripts />
       </body>
     </html>
