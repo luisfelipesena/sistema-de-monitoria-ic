@@ -8,9 +8,11 @@ import { InscricaoComDetalhes } from '@/routes/api/inscricao/-types';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import {
   Calendar,
+  Check,
   FileText,
   Filter,
   List,
@@ -18,6 +20,7 @@ import {
   Plus,
   User,
   Users,
+  X,
 } from 'lucide-react';
 
 export const Route = createFileRoute('/home/_layout/student/_layout/dashboard')(
@@ -51,6 +54,50 @@ function DashboardStudent() {
 
   const handleVerVagas = () => {
     navigate({ to: '/home/common/monitoria' });
+  };
+
+  const handleAceitarInscricao = async (inscricaoId: number) => {
+    try {
+      const response = await fetch(`/api/inscricao/${inscricaoId}/aceitar`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao aceitar inscrição');
+      }
+
+      const result = await response.json();
+      toast.success(result.message || 'Monitoria aceita com sucesso!');
+
+      // Recarregar dados
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao aceitar inscrição');
+    }
+  };
+
+  const handleRecusarInscricao = async (inscricaoId: number) => {
+    try {
+      const response = await fetch(`/api/inscricao/${inscricaoId}/recusar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ motivo: 'Recusado pelo estudante' }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao recusar inscrição');
+      }
+
+      const result = await response.json();
+      toast.success(result.message || 'Monitoria recusada');
+
+      // Recarregar dados
+      window.location.reload();
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao recusar inscrição');
+    }
   };
 
   // Column definitions for the student dashboard
@@ -168,6 +215,41 @@ function DashboardStudent() {
           {new Date(row.original.createdAt).toLocaleDateString('pt-BR')}
         </span>
       ),
+    },
+    {
+      header: 'Ações',
+      accessorKey: 'acoes',
+      cell: ({ row }) => {
+        const status = row.original.status;
+        const canAcceptOrReject =
+          status === 'SELECTED_BOLSISTA' || status === 'SELECTED_VOLUNTARIO';
+
+        if (!canAcceptOrReject) {
+          return <span className="text-sm text-gray-500">-</span>;
+        }
+
+        return (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white rounded-full"
+              onClick={() => handleAceitarInscricao(row.original.id)}
+            >
+              <Check className="h-4 w-4 mr-1" />
+              Aceitar
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="rounded-full"
+              onClick={() => handleRecusarInscricao(row.original.id)}
+            >
+              <X className="h-4 w-4 mr-1" />
+              Recusar
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
