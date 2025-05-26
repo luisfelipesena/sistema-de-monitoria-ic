@@ -18,7 +18,7 @@ function LandingPageComponent() {
         <div className="container flex items-center justify-between mx-auto">
           <div className="flex items-center gap-2">
             <img
-              src="/images/ic-logo.png"
+              src="/images/ic-logo-clean.png"
               alt="Monitoria IC"
               className="h-12 w-12"
             />

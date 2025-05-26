@@ -174,7 +174,7 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
       <SidebarHeader>
         <div className="flex flex-col items-center gap-2 mb-4">
           <img
-            src="/images/ic-logo.png"
+            src="/images/ic-logo-clean.png"
             alt="Monitoria IC"
             className="h-32 w-18"
           />

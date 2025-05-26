@@ -8,7 +8,7 @@ export function Footer() {
         {/* Logo and Name */}
         <div className="flex flex-col md:flex-row justify-center items-center gap-4 mb-8">
           <img
-            src="/images/logo.ico"
+            src="/images/ic-logo-clean.png"
             alt="Sistema de Monitorias"
             className="h-14 w-14"
           />
