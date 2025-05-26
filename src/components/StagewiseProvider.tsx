@@ -7,7 +7,11 @@ const StagewiseProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   useEffect(() => {
-    if (typeof window !== 'undefined' && env.NODE_ENV === 'development') {
+    if (
+      typeof window !== 'undefined' &&
+      env.NODE_ENV === 'development' &&
+      env.ENABLE_STAGEWISE === 'true'
+    ) {
       const initStagewise = async () => {
         try {
           const { StagewiseToolbar } = await import('@stagewise/toolbar-react');
