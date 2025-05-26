@@ -18,7 +18,8 @@
     "deploy": "bash deploy.sh"
   },
   "engines": {
-    "node": ">=22.14.0"
+    "node": ">=22.14.0",
+    "npm": ">=10.0.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
