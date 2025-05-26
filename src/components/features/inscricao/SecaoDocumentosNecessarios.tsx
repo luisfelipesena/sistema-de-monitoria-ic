@@ -23,7 +23,7 @@ const SecaoDocumentosNecessarios: React.FC<SecaoDocumentosNecessariosProps> = ({
   return (
     <section className="space-y-4">
       <h2 className="text-xl font-semibold text-gray-900">
-        Documentos Necessários
+        3. Documentos Necessários
       </h2>
       {documentos.map((doc) => (
         <DocumentoUploadItem
