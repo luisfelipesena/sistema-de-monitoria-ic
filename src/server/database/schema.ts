@@ -16,7 +16,7 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 export const userRoleEnum = pgEnum('user_role', [
   'admin',
   'professor', // Added professor based on project description
-  'student',
+  'estudante',
   // 'monitor', // Monitor is an implicit role based on 'vaga' association, not a direct user role initially
 ]);
 
@@ -24,7 +24,7 @@ export const userTable = pgTable('user', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(), // UFBA Login
   email: text('email').notNull().unique(), // UFBA Email
-  role: userRoleEnum('role').notNull().default('student'), // Default to student
+  role: userRoleEnum('role').notNull().default('estudante'), // Default to student
 });
 
 export const sessionTable = pgTable('session', {
@@ -104,7 +104,7 @@ export const statusInscricaoEnum = pgEnum('status_inscricao_enum', [
   'ACCEPTED_BOLSISTA', // Aluno aceitou (bolsista)
   'ACCEPTED_VOLUNTARIO', // Aluno aceitou (voluntário)
   'REJECTED_BY_PROFESSOR', // Professor rejeitou
-  'REJECTED_BY_STUDENT', // Aluno recusou
+  'REJECTED_BY_ESTUDANTE', // Aluno recusou
   // 'INAPTO', 'APTO' seem less relevant if selection is direct
 ]);
 
