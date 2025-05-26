@@ -83,6 +83,7 @@ export class CasCallbackService {
       const ADMIN_EMAILS = [
         'luis.sena@ufba.br',
         'joao.leahy@ufba.br',
+        'antoniels@ufba.br',
         'caioviana@ufba.br',
       ];
       if (ADMIN_EMAILS.includes(existingUser.email)) {
