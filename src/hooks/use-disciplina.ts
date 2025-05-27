@@ -31,8 +31,8 @@ export function useDisciplinas(departamentoId?: number) {
       : DisciplinaKeys.all,
     queryFn: async () => {
       const url = departamentoId
-        ? `/api/disciplina?departamentoId=${departamentoId}`
-        : '/api/disciplina';
+        ? `/disciplina?departamentoId=${departamentoId}`
+        : '/disciplina';
       const response = await apiClient.get<DisciplinaWithProfessor[]>(url);
       return response.data;
     },
