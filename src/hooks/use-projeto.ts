@@ -1,11 +1,17 @@
 import {
+  ProjectInput,
+  ProjectListItem,
   ProjetoInput,
-  ProjetoListItem,
   ProjetoResponse,
-} from '@/routes/api/projeto/-types';
+} from '@/routes/api/project/-types';
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { QueryKeys } from './query-keys';
 
 const log = logger.child({
@@ -31,15 +37,42 @@ type DocumentResponse = {
   createdAt: Date;
 };
 
-export function useProjetos() {
-  return useQuery<ProjetoListItem[]>({
-    queryKey: QueryKeys.projeto.list,
-    queryFn: async () => {
-      const response = await apiClient.get<ProjetoListItem[]>('/projeto');
-      return response.data;
+export const projectsQueryOptions = () =>
+  queryOptions({
+    queryKey: ['projects'],
+    queryFn: async (): Promise<ProjectListItem[]> => {
+      const response = await fetch('/api/project');
+      if (!response.ok) {
+        throw new Error('Failed to fetch projects');
+      }
+      return response.json();
     },
   });
-}
+
+export const useProjects = () => {
+  return useQuery(projectsQueryOptions());
+};
+
+export const useCreateProject = () => {
+  return useMutation({
+    mutationFn: async (data: ProjectInput): Promise<Response> => {
+      const response = await fetch('/api/project', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create project');
+      }
+
+      return response.json();
+    },
+  });
+};
 
 export function useProjeto(id: number) {
   return useQuery<ProjetoResponse>({
@@ -49,20 +82,6 @@ export function useProjeto(id: number) {
       return response.data;
     },
     enabled: !!id,
-  });
-}
-
-export function useCreateProjeto() {
-  const queryClient = useQueryClient();
-
-  return useMutation<ProjetoResponse, Error, ProjetoInput>({
-    mutationFn: async (input) => {
-      const response = await apiClient.post<ProjetoResponse>('/projeto', input);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
-    },
   });
 }
 
@@ -234,3 +253,11 @@ export function useDeleteProjeto() {
     },
   });
 }
+
+// Backwards compatibility exports (deprecated)
+// @deprecated Use projectsQueryOptions instead
+export const projetosQueryOptions = projectsQueryOptions;
+// @deprecated Use useProjects instead
+export const useProjetos = useProjects;
+// @deprecated Use useCreateProject instead
+export const useCreateProjeto = useCreateProject;

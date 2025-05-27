@@ -762,5 +762,66 @@ export const vagaRelations = relations(vagaTable, ({ one }) => ({
   }),
 }));
 
+// --- Backwards compatibility aliases for gradual migration to English naming ---
+// Tables
+export const departmentTable = departamentoTable;
+export const projectTable = projetoTable;
+export const teacherTable = professorTable;
+export const studentTable = alunoTable;
+export const subjectTable = disciplinaTable;
+export const applicationTable = inscricaoTable;
+export const applicationPeriodTable = periodoInscricaoTable;
+export const positionTable = vagaTable;
+export const projectActivityTable = atividadeProjetoTable;
+export const projectSubjectTable = projetoDisciplinaTable;
+export const projectParticipantTeacherTable = projetoProfessorParticipanteTable;
+export const applicationDocumentTable = inscricaoDocumentoTable;
+export const projectDocumentTable = projetoDocumentoTable;
+export const addressTable = enderecoTable;
+export const courseTable = cursoTable;
+export const studentGradeTable = notaAlunoTable;
+
+// Table schemas
+export const selectDepartmentTableSchema = selectDepartamentoTableSchema;
+export const insertDepartmentTableSchema = insertDepartamentoTableSchema;
+export const selectProjectTableSchema = selectProjetoTableSchema;
+export const insertProjectTableSchema = insertProjetoTableSchema;
+export const selectTeacherTableSchema = selectProfessorTableSchema;
+export const insertTeacherTableSchema = insertProfessorTableSchema;
+export const selectStudentTableSchema = selectAlunoTableSchema;
+export const insertStudentTableSchema = insertAlunoTableSchema;
+export const selectProjectDocumentTableSchema =
+  selectProjetoDocumentoTableSchema;
+export const insertProjectDocumentTableSchema =
+  insertProjetoDocumentoTableSchema;
+
+// Enums
+export const semesterEnum = semestreEnum;
+export const proposalTypeEnum = tipoProposicaoEnum;
+export const positionTypeEnum = tipoVagaEnum;
+export const projectStatusEnum = projetoStatusEnum;
+export const genderEnum = generoEnum;
+export const workRegimeEnum = regimeEnum;
+export const applicationTypeEnum = tipoInscricaoEnum;
+export const projectDocumentTypeEnum = tipoDocumentoProjetoEnum;
+export const applicationStatusEnum = statusInscricaoEnum;
+
+// Relations
+export const departmentRelations = departamentoRelations;
+export const projectRelations = projetoRelations;
+export const teacherRelations = professorRelations;
+export const studentRelations = alunoRelations;
+export const subjectRelations = disciplinaRelations;
+export const applicationRelations = inscricaoRelations;
+export const applicationPeriodRelations = periodoInscricaoRelations;
+export const positionRelations = vagaRelations;
+export const projectActivityRelations = atividadeProjetoRelations;
+export const projectSubjectRelations = projetoDisciplinaRelations;
+export const projectParticipantTeacherRelations =
+  projetoProfessorParticipanteRelations;
+export const applicationDocumentRelations = inscricaoDocumentoRelations;
+export const projectDocumentRelations = projetoDocumentoRelations;
+export const studentGradeRelations = notaAlunoRelations;
+
 // Export all schemas and relations
 export * from './schema';
