@@ -1,4 +1,4 @@
-import { DepartamentoResponse } from '@/routes/api/departamento/-types';
+import { DepartamentoResponse } from '@/routes/api/department/-types';
 import { DisciplinaResponse } from '@/routes/api/disciplina/-types';
 
 export interface ProjetoFormData {

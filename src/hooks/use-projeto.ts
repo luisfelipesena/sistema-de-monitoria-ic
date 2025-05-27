@@ -69,9 +69,11 @@ export function useCreateProjeto() {
 export function useSubmitProjeto() {
   const queryClient = useQueryClient();
 
-  return useMutation<any, Error, number>({
+  return useMutation<ProjetoResponse, Error, number>({
     mutationFn: async (projetoId) => {
-      const response = await apiClient.post(`/projeto/${projetoId}/submit`);
+      const response = await apiClient.patch<ProjetoResponse>(
+        `/api/projeto/${projetoId}/submit`,
+      );
       return response.data;
     },
     onSuccess: (_, projetoId) => {
@@ -146,6 +148,42 @@ export function useUpdateProjeto() {
       queryClient.invalidateQueries({
         queryKey: QueryKeys.projeto.byId(data.id.toString()),
       });
+    },
+  });
+}
+
+export function useUpdateProjetoStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    any, // Replace any with the actual response type if available
+    Error,
+    {
+      projetoId: number;
+      status:
+        | 'DRAFT'
+        | 'SUBMITTED'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'PENDING_PROFESSOR_SIGNATURE';
+    }
+  >({
+    mutationFn: async ({ projetoId, status }) => {
+      const response = await apiClient.put(`/api/projeto/${projetoId}/status`, {
+        status,
+      });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.projeto.byId(variables.projetoId.toString()),
+      });
+      // Optionally, refetch other queries that might depend on project status
+    },
+    onError: (error) => {
+      log.error(error, 'Error updating project status');
+      // Handle or display the error as needed
     },
   });
 }

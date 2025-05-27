@@ -59,6 +59,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto')({
             titulo: projetoTable.titulo,
             departamentoId: projetoTable.departamentoId,
             departamentoNome: departamentoTable.nome,
+            professorResponsavelId: projetoTable.professorResponsavelId,
             professorResponsavelNome: professorTable.nomeCompleto,
             status: projetoTable.status,
             ano: projetoTable.ano,

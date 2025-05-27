@@ -1,7 +1,7 @@
 import {
   DepartamentoInput,
   DepartamentoResponse,
-} from '@/routes/api/departamento/-types';
+} from '@/routes/api/department/-types';
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,7 +19,7 @@ export function useDepartamentoList() {
     queryKey: QueryKeys.departamento.list,
     queryFn: async () => {
       const response =
-        await apiClient.get<DepartamentoResponse[]>('/departamento');
+        await apiClient.get<DepartamentoResponse[]>('/department');
       return response.data;
     },
   });
@@ -30,7 +30,7 @@ export function useCreateDepartamento() {
 
   return useMutation({
     mutationFn: async (data: DepartamentoInput) => {
-      const response = await apiClient.post('/departamento', data);
+      const response = await apiClient.post('/department', data);
       return response.data;
     },
     onSuccess: () => {
@@ -53,7 +53,7 @@ export function useUpdateDepartamento() {
       id: number;
       data: DepartamentoInput;
     }) => {
-      const response = await apiClient.put(`/departamento/${id}`, data);
+      const response = await apiClient.put(`/department/${id}`, data);
       return response.data;
     },
     onSuccess: () => {
@@ -70,7 +70,7 @@ export function useDeleteDepartamento() {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiClient.delete(`/departamento/${id}`);
+      const response = await apiClient.delete(`/department/${id}`);
       return response.data;
     },
     onSuccess: () => {

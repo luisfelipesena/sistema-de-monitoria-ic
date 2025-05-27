@@ -292,6 +292,62 @@ function AdminFilesPage() {
 
   return (
     <PagesLayout title="Gerenciamento de Arquivos (Admin)">
+      {/* File List Table */}
+      <h2 className="text-xl font-semibold mt-6 mb-2">Arquivos no Bucket</h2>
+      {isLoading ? (
+        <div className="flex items-center justify-center h-32">
+          <Spinner /> Carregando lista...
+        </div>
+      ) : files && files.length > 0 ? (
+        <TableComponent
+          columns={columns}
+          data={files}
+          searchableColumn="originalFilename"
+          searchPlaceholder="Buscar por nome de arquivo..."
+        />
+      ) : (
+        <p className="py-4 text-center text-muted-foreground">
+          Nenhum arquivo encontrado no bucket.
+        </p>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o arquivo{' '}
+              <span className="font-semibold">
+                {fileToDelete?.originalFilename || fileToDelete?.objectName}
+              </span>
+              ? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={closeDeleteDialog}
+              disabled={deleteMutation.isPending}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Upload Section */}
       <Card>
         <CardHeader>
@@ -367,62 +423,6 @@ function AdminFilesPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* File List Table */}
-      <h2 className="text-xl font-semibold mt-6 mb-2">Arquivos no Bucket</h2>
-      {isLoading ? (
-        <div className="flex items-center justify-center h-32">
-          <Spinner /> Carregando lista...
-        </div>
-      ) : files && files.length > 0 ? (
-        <TableComponent
-          columns={columns}
-          data={files}
-          searchableColumn="originalFilename"
-          searchPlaceholder="Buscar por nome de arquivo..."
-        />
-      ) : (
-        <p className="py-4 text-center text-muted-foreground">
-          Nenhum arquivo encontrado no bucket.
-        </p>
-      )}
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir o arquivo{' '}
-              <span className="font-semibold">
-                {fileToDelete?.originalFilename || fileToDelete?.objectName}
-              </span>
-              ? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={closeDeleteDialog}
-              disabled={deleteMutation.isPending}
-            >
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              disabled={deleteMutation.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleteMutation.isPending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : null}
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </PagesLayout>
   );
 }

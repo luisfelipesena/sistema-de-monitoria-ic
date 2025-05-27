@@ -16,7 +16,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useCursos } from '@/hooks/use-curso';
 import { useFileUpload } from '@/hooks/use-files';
 import { useToast } from '@/hooks/use-toast';
-import { AlunoInput, alunoInputSchema } from '@/routes/api/aluno/-types';
+import { AlunoInput, alunoInputSchema } from '@/routes/api/student/-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';

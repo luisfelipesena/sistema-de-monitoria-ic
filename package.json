@@ -12,7 +12,6 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:drop": "drizzle-kit drop",
-    "db:seed": "tsx src/server/database/seed.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "deploy": "bash deploy.sh"

@@ -25,10 +25,10 @@ import {
   useUpdateCurso,
 } from '@/hooks/use-curso';
 import { useToast } from '@/hooks/use-toast';
-import { CursoInput, CursoResponse } from '@/routes/api/curso/-types';
+import { CursoInput, CursoResponse } from '@/routes/api/course/-types';
 import { logger } from '@/utils/logger';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Database, Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
+import { Info, Pencil, PlusCircle, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
 
@@ -197,14 +197,6 @@ function CursosPage() {
   // Actions to pass to PagesLayout
   const actions = (
     <div className="flex gap-2">
-      <Button
-        variant="outline"
-        onClick={() => navigate({ to: '/home/admin/seed-cursos' })}
-        className="flex items-center gap-2"
-      >
-        <Database size={16} />
-        <span>Importação em Massa</span>
-      </Button>
       <Button onClick={() => openDialog()} className="flex items-center gap-2">
         <PlusCircle size={16} />
         <span>Adicionar Curso</span>

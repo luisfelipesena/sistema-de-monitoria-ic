@@ -1,4 +1,4 @@
-import { AlunoInput, AlunoResponse } from '@/routes/api/aluno/-types';
+import { AlunoInput, AlunoResponse } from '@/routes/api/student/-types';
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -22,7 +22,6 @@ export function useAluno() {
   });
 }
 
-
 /**
  * Hook para criar/atualizar perfil de aluno
  */
@@ -42,4 +41,4 @@ export function useSetAluno() {
       log.error({ error }, 'Erro ao salvar aluno');
     },
   });
-} 
+}

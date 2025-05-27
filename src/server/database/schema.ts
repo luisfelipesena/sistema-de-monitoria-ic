@@ -81,6 +81,7 @@ export const projetoStatusEnum = pgEnum('projeto_status_enum', [
   'SUBMITTED',
   'APPROVED',
   'REJECTED',
+  'PENDING_PROFESSOR_SIGNATURE', // New status after admin signs
 ]);
 
 export const generoEnum = pgEnum('genero_enum', [

@@ -1,7 +1,7 @@
-import AcoesInscricao from '@/components/features/inscricao/AcoesInscricao';
-import DadosPessoaisForm from '@/components/features/inscricao/DadosPessoaisForm';
-import SecaoDocumentosNecessarios from '@/components/features/inscricao/SecaoDocumentosNecessarios';
-import SelecaoDeVagaTable from '@/components/features/inscricao/SelecaoDeVagaTable';
+import DadosPessoaisForm from '@/components/features/registration/DadosPessoaisForm';
+import { NecessaryDocuments } from '@/components/features/registration/NecessaryDocuments';
+import { RegisterActions } from '@/components/features/registration/RegisterActions';
+import SelecaoDeVagaTable from '@/components/features/registration/SelecaoDeVagaTable';
 import { PagesLayout } from '@/components/layout/PagesLayout';
 import { useFileUpload } from '@/hooks/use-files';
 import { useCriarInscricao, useVagasDisponiveis } from '@/hooks/use-monitoria';
@@ -45,7 +45,7 @@ function RouteComponent() {
     selecionado: v.id === selectedVagaId,
   }));
 
-  const [documentos, setDocumentos] = useState<DocumentoState[]>([
+  const [documents, setDocuments] = useState<DocumentoState[]>([
     {
       id: 'termo',
       nome: 'Termo de compromisso assinado',
@@ -75,7 +75,7 @@ function RouteComponent() {
         entityId: docId,
       });
 
-      setDocumentos((prev) =>
+      setDocuments((prev) =>
         prev.map((d) =>
           d.id === docId
             ? {
@@ -102,7 +102,7 @@ function RouteComponent() {
     }
   };
 
-  const handleEnviarInscricao = async () => {
+  const handleSendRegistration = async () => {
     if (!selectedVagaId) {
       toast({
         title: 'Vaga não selecionada',
@@ -112,7 +112,7 @@ function RouteComponent() {
       return;
     }
 
-    const termoCompromisso = documentos.find((d) => d.id === 'termo');
+    const termoCompromisso = documents.find((d) => d.id === 'termo');
     if (!termoCompromisso?.fileId) {
       toast({
         title: 'Documento obrigatório',
@@ -135,7 +135,7 @@ function RouteComponent() {
     }
 
     try {
-      const documentosComFileId = documentos
+      const documentsWithFileId = documents
         .filter((d) => d.fileId)
         .map((d) => ({
           tipoDocumento: d.id,
@@ -146,7 +146,7 @@ function RouteComponent() {
         projetoId: vagaSelecionada.projetoId,
         tipoVagaPretendida:
           vagaSelecionada.tipo === 'VOLUNTARIO' ? 'VOLUNTARIO' : 'BOLSISTA',
-        documentos: documentosComFileId,
+        documentos: documentsWithFileId,
       });
 
       toast({
@@ -196,14 +196,14 @@ function RouteComponent() {
         </section>
 
         <section>
-          <SecaoDocumentosNecessarios
-            documentos={documentos.map((d) => ({
+          <NecessaryDocuments
+            documents={documents.map((d) => ({
               ...d,
               selectedFileName: d.fileName,
             }))}
             onUpload={handleUploadDocumento}
-            onVisualizar={(id) => {
-              const doc = documentos.find((d) => d.id === id);
+            onAccess={(id) => {
+              const doc = documents.find((d) => d.id === id);
               if (doc && doc.fileId) {
                 window.open(`/api/files/access/${doc.fileId}`);
               }
@@ -211,9 +211,9 @@ function RouteComponent() {
           />
         </section>
 
-        <AcoesInscricao
-          onEnviar={handleEnviarInscricao}
-          onCancelar={() => window.history.back()}
+        <RegisterActions
+          onSend={handleSendRegistration}
+          onCancel={() => window.history.back()}
           loading={criarInscricaoMutation.isPending}
         />
       </div>

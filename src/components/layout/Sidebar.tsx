@@ -14,6 +14,7 @@ import {
   Calendar,
   FileCheck,
   FilePlus,
+  FileSignature,
   FileText,
   FolderKanban,
   GraduationCap,
@@ -50,6 +51,12 @@ const menuItemsConfig: MenuItemConfig[] = [
     roles: ['admin', 'professor', 'student'],
   },
   {
+    label: 'Projetos',
+    href: '/home/admin/projects',
+    icon: FolderKanban,
+    roles: ['admin'],
+  },
+  {
     label: 'Novo Edital',
     href: '/home/admin/edital',
     icon: Calendar,
@@ -62,9 +69,9 @@ const menuItemsConfig: MenuItemConfig[] = [
     roles: ['professor', 'admin'],
   },
   {
-    label: 'Projetos',
-    href: '/home/common/projects',
-    icon: FolderKanban,
+    label: 'Assinaturas Pendentes',
+    href: '/home/professor/assinaturas-pendentes',
+    icon: FileSignature,
     roles: ['professor'],
   },
   {

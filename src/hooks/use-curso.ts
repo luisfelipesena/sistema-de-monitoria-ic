@@ -1,5 +1,5 @@
 import { QueryKeys } from '@/hooks/query-keys';
-import { CursoInput, CursoResponse } from '@/routes/api/curso/-types';
+import { CursoInput, CursoResponse } from '@/routes/api/course/-types';
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +16,7 @@ export function useCursos() {
     queryKey: QueryKeys.curso.all,
     queryFn: async () => {
       try {
-        const response = await apiClient.get('/curso');
+        const response = await apiClient.get('/course');
         return response.data;
       } catch (error) {
         log.error({ error }, 'Erro ao buscar cursos');
@@ -34,7 +34,7 @@ export function useCreateCurso() {
 
   return useMutation({
     mutationFn: async (data: CursoInput) => {
-      const response = await apiClient.post('/curso', data);
+      const response = await apiClient.post('/course', data);
       return response.data;
     },
     onSuccess: () => {
@@ -54,7 +54,7 @@ export function useUpdateCurso() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: CursoInput }) => {
-      const response = await apiClient.put(`/curso/${id}`, data);
+      const response = await apiClient.put(`/course/${id}`, data);
       return response.data;
     },
     onSuccess: () => {
@@ -74,7 +74,7 @@ export function useDeleteCurso() {
 
   return useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiClient.delete(`/curso/${id}`);
+      const response = await apiClient.delete(`/course/${id}`);
       return response.data;
     },
     onSuccess: () => {
