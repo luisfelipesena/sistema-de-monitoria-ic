@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProjectForm } from '@/hooks/use-project-form';
 import { useCreateProjeto } from '@/hooks/use-projeto';
-import '@/utils/buffer-polyfill';
 import { useNavigate } from '@tanstack/react-router';
 import { FileText, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
