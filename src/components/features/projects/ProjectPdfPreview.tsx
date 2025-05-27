@@ -15,7 +15,6 @@ interface ProjectPDFPreviewProps {
   user: User | null;
 }
 
-// Use memo para evitar re-renders desnecessários do componente inteiro
 export const ProjectPDFPreview = memo(
   function ProjectPDFPreviewComponent({
     formData,
