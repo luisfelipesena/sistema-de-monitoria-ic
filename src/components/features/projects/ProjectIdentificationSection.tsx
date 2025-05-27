@@ -1,7 +1,12 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -10,11 +15,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { DisciplinaWithProfessor } from '@/hooks/use-disciplina';
 import type { DepartamentoResponse } from '@/routes/api/department/-types';
-import { Info, Users } from 'lucide-react';
+import { CircleAlert, Loader2 } from 'lucide-react';
 import {
   Control,
-  Controller,
   FieldErrors,
   UseFormRegister,
   UseFormSetValue,
@@ -28,8 +33,8 @@ interface ProjectIdentificationSectionProps {
   errors: FieldErrors<ProjetoFormData>;
   departamentos: DepartamentoResponse[] | undefined;
   professores: any[] | undefined;
-  disciplinasFiltradas: any[] | undefined;
-  departamentoSelecionado: number;
+  disciplinasFiltradas: DisciplinaWithProfessor[] | undefined;
+  departamentoSelecionado: DepartamentoResponse | undefined;
   loadingDisciplinas: boolean;
   user: any;
   watchedDisciplinaIds: number[];
@@ -50,306 +55,281 @@ export function ProjectIdentificationSection({
   watchedDisciplinaIds,
   isAdminForm = false,
 }: ProjectIdentificationSectionProps) {
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5" />
-          Identificação do Projeto
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="titulo">1.1 Título do Projeto</Label>
-            <Input
-              id="titulo"
-              placeholder="Digite o título do projeto"
-              {...register('titulo')}
-              className={errors.titulo ? 'border-red-500' : ''}
-            />
-            {errors.titulo && (
-              <p className="text-sm text-red-500 mt-1">
-                {errors.titulo.message}
-              </p>
-            )}
-          </div>
+  // Function to handle checking/unchecking a disciplina
+  const handleDisciplinaChange = (disciplinaId: number) => {
+    const isSelected = watchedDisciplinaIds.includes(disciplinaId);
+    if (isSelected) {
+      setValue(
+        'disciplinaIds',
+        watchedDisciplinaIds.filter((id) => id !== disciplinaId),
+        { shouldValidate: true },
+      );
+    } else {
+      setValue('disciplinaIds', [...watchedDisciplinaIds, disciplinaId], {
+        shouldValidate: true,
+      });
+    }
+  };
 
-          <div>
-            <Label htmlFor="departamentoId">
-              1.2 Órgão responsável (Departamento)
-            </Label>
-            <Controller
-              name="departamentoId"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  onValueChange={(value) => {
-                    field.onChange(parseInt(value));
-                    setValue('disciplinaIds', []);
-                  }}
-                  value={field.value?.toString()}
-                >
-                  <SelectTrigger
-                    className={errors.departamentoId ? 'border-red-500' : ''}
-                  >
-                    <SelectValue placeholder="Selecione o órgão" />
+  return (
+    <div className="space-y-6 bg-white p-6 rounded-lg border shadow-sm">
+      <h2 className="text-lg font-semibold border-b pb-2">
+        Identificação do Projeto
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={control}
+          name="titulo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Título do Projeto</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Digite o título do projeto"
+                  {...field}
+                  className="w-full"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="departamentoId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Departamento</FormLabel>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(parseInt(value));
+                  setValue('disciplinaIds', []); // Limpar disciplinas ao mudar departamento
+                }}
+                defaultValue={field.value?.toString()}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um departamento" />
                   </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {departamentos?.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id.toString()}>
+                      {dept.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        <FormField
+          control={control}
+          name="disciplinaIds"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Disciplinas</FormLabel>
+              <div className="border rounded-md p-4 bg-gray-50">
+                {!departamentoSelecionado ? (
+                  <div className="text-center py-6">
+                    <p className="text-gray-500">
+                      Selecione um departamento para ver as disciplinas
+                      disponíveis
+                    </p>
+                  </div>
+                ) : loadingDisciplinas ? (
+                  <div className="flex justify-center items-center py-6">
+                    <Loader2 className="w-5 h-5 animate-spin text-blue-500 mr-2" />
+                    <span className="text-sm text-gray-600">
+                      Carregando disciplinas...
+                    </span>
+                  </div>
+                ) : disciplinasFiltradas && disciplinasFiltradas.length > 0 ? (
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {disciplinasFiltradas.map((disciplina) => {
+                      const isSelected = field.value?.includes(disciplina.id);
+                      return (
+                        <div
+                          key={disciplina.id}
+                          className={`px-4 py-3 border rounded-md flex justify-between items-center ${
+                            isSelected ? 'bg-blue-50 border-blue-300' : ''
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`disciplina-${disciplina.id}`}
+                              value={disciplina.id}
+                              checked={isSelected}
+                              onChange={() =>
+                                handleDisciplinaChange(disciplina.id)
+                              }
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label
+                              htmlFor={`disciplina-${disciplina.id}`}
+                              className={`text-sm ${isSelected ? 'font-medium' : ''}`}
+                            >
+                              <span className="font-medium">
+                                {disciplina.codigo}
+                              </span>{' '}
+                              - {disciplina.nome}
+                              {disciplina.professorResponsavel && (
+                                <span className="ml-2 text-xs text-gray-500">
+                                  (Prof. {disciplina.professorResponsavel})
+                                </span>
+                              )}
+                            </label>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <CircleAlert className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
+                    <p className="text-gray-600">
+                      Nenhuma disciplina encontrada para este departamento.
+                    </p>
+                  </div>
+                )}
+              </div>
+              <FormMessage />
+              {watchedDisciplinaIds.length > 0 && (
+                <div className="mt-2">
+                  <p className="text-sm font-medium mb-1">
+                    Disciplinas selecionadas ({watchedDisciplinaIds.length}):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {watchedDisciplinaIds.map((id) => {
+                      const disciplina = disciplinasFiltradas?.find(
+                        (d) => d.id === id,
+                      );
+                      return (
+                        <Badge
+                          key={id}
+                          variant="outline"
+                          className="flex items-center gap-1 bg-blue-50"
+                        >
+                          {disciplina?.codigo}
+                          <button
+                            type="button"
+                            className="ml-1 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            onClick={() => handleDisciplinaChange(id)}
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {isAdminForm && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={control}
+            name="professorResponsavelId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Professor Responsável</FormLabel>
+                <Select
+                  onValueChange={(value) => field.onChange(parseInt(value))}
+                  defaultValue={field.value?.toString()}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o professor responsável" />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
-                    {departamentos?.map((dept) => (
-                      <SelectItem key={dept.id} value={dept.id.toString()}>
-                        {dept.nome}
+                    {professores?.map((prof) => (
+                      <SelectItem key={prof.id} value={prof.id.toString()}>
+                        {prof.nomeCompleto}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              )}
-            />
-            {errors.departamentoId && (
-              <p className="text-sm text-red-500 mt-1">
-                {errors.departamentoId.message}
-              </p>
-            )}
-          </div>
-
-          <div className="md:col-span-2">
-            <Label htmlFor="coordenadorResponsavel">
-              Coordenador Responsável pela Aprovação
-            </Label>
-            <Input
-              id="coordenadorResponsavel"
-              placeholder="Nome do coordenador que aprovou o projeto"
-              value={isAdminForm ? user?.username || '' : ''}
-              readOnly={isAdminForm}
-              {...register('coordenadorResponsavel')}
-            />
-            {isAdminForm && (
-              <p className="text-xs text-muted-foreground mt-1">
-                <Info className="h-3 w-3 inline mr-1" />
-                Como administrador, você será o coordenador responsável pela
-                aprovação.
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="ano">1.3 Ano</Label>
-            <Input
-              id="ano"
-              type="number"
-              placeholder="Ex: 2025"
-              {...register('ano', { valueAsNumber: true })}
-              className={errors.ano ? 'border-red-500' : ''}
-            />
-            {errors.ano && (
-              <p className="text-sm text-red-500 mt-1">{errors.ano.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="semestre">1.4 Semestre</Label>
-            <Controller
-              name="semestre"
-              control={control}
-              render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <SelectTrigger
-                    className={errors.semestre ? 'border-red-500' : ''}
-                  >
-                    <SelectValue placeholder="Selecione o semestre" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SEMESTRE_1">.1</SelectItem>
-                    <SelectItem value="SEMESTRE_2">.2</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.semestre && (
-              <p className="text-sm text-red-500 mt-1">
-                {errors.semestre.message}
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="disciplinaIds">
-            1.5 Componente(s) curricular(es)
-          </Label>
-          <Controller
-            name="disciplinaIds"
-            control={control}
-            render={({ field }) => (
-              <Select
-                onValueChange={(value) => {
-                  const disciplinaId = parseInt(value);
-                  const currentIds = field.value || [];
-                  if (!currentIds.includes(disciplinaId)) {
-                    field.onChange([...currentIds, disciplinaId]);
-                  }
-                }}
-                disabled={!departamentoSelecionado || loadingDisciplinas}
-                value=""
-              >
-                <SelectTrigger
-                  className={errors.disciplinaIds ? 'border-red-500' : ''}
-                >
-                  <SelectValue
-                    placeholder={
-                      !departamentoSelecionado
-                        ? 'Primeiro selecione um departamento'
-                        : loadingDisciplinas
-                          ? 'Carregando disciplinas...'
-                          : 'Adicionar componente curricular'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {disciplinasFiltradas && disciplinasFiltradas.length > 0 ? (
-                    disciplinasFiltradas.map((disciplina) => (
-                      <SelectItem
-                        key={disciplina.id}
-                        value={disciplina.id.toString()}
-                        disabled={watchedDisciplinaIds.includes(disciplina.id)}
-                      >
-                        {disciplina.codigo} - {disciplina.nome}
-                        {disciplina.professorResponsavel && (
-                          <div className="text-xs text-blue-600 font-medium mt-1">
-                            <span className="bg-blue-50 px-1 py-0.5 rounded">
-                              Professor: {disciplina.professorResponsavel}
-                            </span>
-                          </div>
-                        )}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-data" disabled>
-                      {loadingDisciplinas
-                        ? 'Carregando...'
-                        : 'Nenhuma disciplina encontrada'}
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+                <FormMessage />
+              </FormItem>
             )}
           />
-          {errors.disciplinaIds && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.disciplinaIds.message}
-            </p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 gap-4">
+        <FormField
+          control={control}
+          name="descricao"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descrição do Projeto</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Descreva os objetivos e justificativa do projeto"
+                  {...field}
+                  className="min-h-[100px]"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
+        />
+      </div>
 
-          <p className="text-xs text-muted-foreground mt-1">
-            <Info className="h-3 w-3 inline mr-1" />
-            Os professores responsáveis serão vinculados automaticamente às
-            disciplinas selecionadas.
-          </p>
-
-          <div className="mt-2 space-y-1">
-            {watchedDisciplinaIds.map((disciplinaId) => {
-              const disciplina = disciplinasFiltradas?.find(
-                (d) => d.id === disciplinaId,
-              );
-              return disciplina ? (
-                <div
-                  key={disciplinaId}
-                  className="flex items-center justify-between bg-muted p-2 rounded text-sm"
-                >
-                  <div>
-                    <span>
-                      {disciplina.codigo} - {disciplina.nome}
-                    </span>
-                    {disciplina.professorResponsavel && (
-                      <div className="text-xs text-blue-600 font-medium mt-1">
-                        <span className="bg-blue-50 px-1 py-0.5 rounded">
-                          Professor: {disciplina.professorResponsavel}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const current = watchedDisciplinaIds;
-                      setValue(
-                        'disciplinaIds',
-                        current.filter((id) => id !== disciplinaId),
-                        { shouldValidate: true },
-                      );
-                    }}
-                  >
-                    Remover
-                  </Button>
-                </div>
-              ) : null;
-            })}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="publicoAlvo">Público Alvo</Label>
-            <Input
-              id="publicoAlvo"
-              placeholder="Ex: Estudantes de graduação em Ciência da Computação"
-              {...register('publicoAlvo')}
-              className={errors.publicoAlvo ? 'border-red-500' : ''}
-            />
-            {errors.publicoAlvo && (
-              <p className="text-sm text-red-500 mt-1">
-                {errors.publicoAlvo.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="estimativaPessoasBenificiadas">
-              Estimativa de Pessoas Beneficiadas
-            </Label>
-            <Input
-              id="estimativaPessoasBenificiadas"
-              type="number"
-              placeholder="Ex: 50"
-              {...register('estimativaPessoasBenificiadas', {
-                valueAsNumber: true,
-              })}
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="descricao">Descrição do Projeto</Label>
-          <Textarea
-            id="descricao"
-            placeholder="Descreva os objetivos, metodologia e justificativa do projeto"
-            rows={4}
-            {...register('descricao')}
-            className={errors.descricao ? 'border-red-500' : ''}
-          />
-          {errors.descricao && (
-            <p className="text-sm text-red-500 mt-1">
-              {errors.descricao.message}
-            </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={control}
+          name="publicoAlvo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Público Alvo</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Ex: Estudantes de Ciência da Computação"
+                  {...field}
+                  className="w-full"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </div>
+        />
 
-        <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
-          <h4 className="text-sm font-medium text-blue-800 mb-1">
-            <Info className="h-4 w-4 inline mr-1" />
-            Importante: Novo fluxo de professores e disciplinas
-          </h4>
-          <p className="text-xs text-blue-700">
-            {isAdminForm
-              ? 'Como administrador, você está criando um projeto onde os professores serão automaticamente associados com base nas disciplinas selecionadas. Cada disciplina será vinculada ao seu professor responsável para o semestre atual.'
-              : 'Os professores serão automaticamente associados às disciplinas selecionadas com base nas responsabilidades do semestre atual.'}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+        <FormField
+          control={control}
+          name="estimativaPessoasBenificiadas"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Estimativa de Pessoas Beneficiadas</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Ex: 50"
+                  {...field}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    field.onChange(isNaN(value) ? '' : value);
+                  }}
+                  className="w-full"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+    </div>
   );
 }

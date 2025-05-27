@@ -1,6 +1,10 @@
-import { disciplinaSchema } from '@/routes/api/disciplina/-types';
+import { disciplinaComProfessorSchema } from '@/routes/api/disciplina/-types';
 import { db } from '@/server/database';
-import { disciplinaTable } from '@/server/database/schema';
+import {
+  disciplinaProfessorResponsavelTable,
+  disciplinaTable,
+  professorTable,
+} from '@/server/database/schema';
 import {
   createAPIHandler,
   withAuthMiddleware,
@@ -9,7 +13,7 @@ import {
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
-import { eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 const log = logger.child({
@@ -28,6 +32,9 @@ export const APIRoute = createAPIFileRoute('/api/disciplina')({
       try {
         const url = new URL(ctx.request.url);
         const departamentoId = url.searchParams.get('departamentoId');
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth();
+        const currentSemester = currentMonth <= 6 ? 'SEMESTRE_1' : 'SEMESTRE_2';
 
         let whereCondition;
         if (departamentoId) {
@@ -40,19 +47,83 @@ export const APIRoute = createAPIFileRoute('/api/disciplina')({
           whereCondition = isNull(disciplinaTable.deletedAt);
         }
 
+        // Buscar as disciplinas
         const disciplinas = await db
-          .select()
+          .select({
+            id: disciplinaTable.id,
+            nome: disciplinaTable.nome,
+            codigo: disciplinaTable.codigo,
+            departamentoId: disciplinaTable.departamentoId,
+            createdAt: disciplinaTable.createdAt,
+            updatedAt: disciplinaTable.updatedAt,
+            deletedAt: disciplinaTable.deletedAt,
+          })
           .from(disciplinaTable)
           .where(whereCondition)
           .orderBy(disciplinaTable.nome);
 
+        // Buscar vínculos de professores para o semestre atual
+        const disciplinaIds = disciplinas.map((d) => d.id);
+
+        const vinculos = await db
+          .select({
+            disciplinaId: disciplinaProfessorResponsavelTable.disciplinaId,
+            professorId: disciplinaProfessorResponsavelTable.professorId,
+            professorNome: professorTable.nomeCompleto,
+          })
+          .from(disciplinaProfessorResponsavelTable)
+          .innerJoin(
+            professorTable,
+            eq(
+              disciplinaProfessorResponsavelTable.professorId,
+              professorTable.id,
+            ),
+          )
+          .where(
+            and(
+              disciplinaIds.length > 0
+                ? inArray(
+                    disciplinaProfessorResponsavelTable.disciplinaId,
+                    disciplinaIds,
+                  )
+                : undefined,
+              eq(disciplinaProfessorResponsavelTable.ano, currentYear),
+              eq(disciplinaProfessorResponsavelTable.semestre, currentSemester),
+            ),
+          );
+
+        // Criar mapa de professores por disciplina
+        const professorPorDisciplina = new Map();
+        vinculos.forEach((v) => {
+          professorPorDisciplina.set(v.disciplinaId, {
+            professorResponsavel: v.professorNome,
+            professorResponsavelId: v.professorId,
+          });
+        });
+
+        // Combinar os dados
+        const disciplinasComProfessor = disciplinas.map((disciplina) => {
+          const professorInfo = professorPorDisciplina.get(disciplina.id) || {
+            professorResponsavel: null,
+            professorResponsavelId: null,
+          };
+
+          return {
+            ...disciplina,
+            ...professorInfo,
+          };
+        });
+
         log.info(
-          { count: disciplinas.length },
+          { count: disciplinasComProfessor.length },
           'Disciplinas recuperadas com sucesso',
         );
-        return json(z.array(disciplinaSchema).parse(disciplinas), {
-          status: 200,
-        });
+        return json(
+          z.array(disciplinaComProfessorSchema).parse(disciplinasComProfessor),
+          {
+            status: 200,
+          },
+        );
       } catch (error) {
         log.error(error, 'Erro ao recuperar disciplinas');
         return json({ error: 'Erro interno do servidor' }, { status: 500 });

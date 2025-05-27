@@ -655,6 +655,7 @@ export const professorRelations = relations(
       relationName: 'projetosResponsavel',
     }),
     projetosParticipante: many(projetoProfessorParticipanteTable),
+    disciplinasResponsavel: many(disciplinaProfessorResponsavelTable),
   }),
 );
 
@@ -667,6 +668,7 @@ export const disciplinaRelations = relations(
       references: [departamentoTable.id],
     }),
     notasAlunos: many(notaAlunoTable),
+    professoresResponsaveis: many(disciplinaProfessorResponsavelTable),
   }),
 );
 
@@ -768,6 +770,45 @@ export const vagaRelations = relations(vagaTable, ({ one }) => ({
     references: [inscricaoTable.id],
   }),
 }));
+
+export const disciplinaProfessorResponsavelTable = pgTable(
+  'disciplina_professor_responsavel',
+  {
+    id: serial('id').primaryKey(),
+    disciplinaId: integer('disciplina_id')
+      .references(() => disciplinaTable.id)
+      .notNull(),
+    professorId: integer('professor_id')
+      .references(() => professorTable.id)
+      .notNull(),
+    ano: integer('ano').notNull(),
+    semestre: semestreEnum('semestre').notNull(),
+    createdAt: timestamp('created_at', {
+      withTimezone: true,
+      mode: 'date',
+    })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', {
+      withTimezone: true,
+      mode: 'date',
+    }).$onUpdate(() => new Date()),
+  },
+);
+
+export const disciplinaProfessorResponsavelRelations = relations(
+  disciplinaProfessorResponsavelTable,
+  ({ one }) => ({
+    disciplina: one(disciplinaTable, {
+      fields: [disciplinaProfessorResponsavelTable.disciplinaId],
+      references: [disciplinaTable.id],
+    }),
+    professor: one(professorTable, {
+      fields: [disciplinaProfessorResponsavelTable.professorId],
+      references: [professorTable.id],
+    }),
+  }),
+);
 
 // Export all schemas and relations
 export * from './schema';

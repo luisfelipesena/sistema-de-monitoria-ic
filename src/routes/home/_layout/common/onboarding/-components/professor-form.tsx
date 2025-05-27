@@ -12,6 +12,11 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '@/hooks/use-auth';
+import { useDepartamentoList } from '@/hooks/use-departamento';
+import {
+  useDisciplinas,
+  useVincularProfessorDisciplina,
+} from '@/hooks/use-disciplina';
 import { useFileUpload } from '@/hooks/use-files';
 import { useSetProfessor } from '@/hooks/use-professor';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +33,8 @@ const professorSchema = z.object({
   cpf: z.string().min(1, 'CPF é obrigatório'),
   regime: z.string().min(1, 'Regime é obrigatório'),
   emailInstitucional: z.string().min(1, 'E-mail institucional é obrigatório'),
+  departamentoId: z.number().optional(),
+  disciplinaIds: z.array(z.number()).optional(),
 });
 
 type ProfessorFormData = z.infer<typeof professorSchema>;
@@ -38,6 +45,16 @@ export function ProfessorForm() {
   const [useNomeSocial, setUseNomeSocial] = useState(false);
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDepartamentoId, setSelectedDepartamentoId] = useState<
+    number | null
+  >(null);
+  const [selectedDisciplinas, setSelectedDisciplinas] = useState<number[]>([]);
+
+  // Buscar departamentos e disciplinas
+  const { data: departamentos } = useDepartamentoList();
+  const { data: disciplinas, isLoading: loadingDisciplinas } = useDisciplinas(
+    selectedDepartamentoId || undefined,
+  );
 
   // Arquivos obrigatórios para professor
   const [curriculumVitaeFile, setCurriculumVitaeFile] = useState<File | null>(
@@ -49,6 +66,7 @@ export function ProfessorForm() {
   // Hooks
   const fileUploadMutation = useFileUpload();
   const setProfessorMutation = useSetProfessor();
+  const vincularDisciplinaMutation = useVincularProfessorDisciplina();
 
   const form = useForm<ProfessorFormData>({
     resolver: zodResolver(professorSchema),
@@ -65,12 +83,42 @@ export function ProfessorForm() {
     setComprovanteVinculoFile(file);
   };
 
+  const handleDepartamentoChange = (value: string) => {
+    const departamentoId = parseInt(value);
+    setSelectedDepartamentoId(departamentoId);
+    form.setValue('departamentoId', departamentoId);
+    // Resetar disciplinas selecionadas ao mudar de departamento
+    setSelectedDisciplinas([]);
+    form.setValue('disciplinaIds', []);
+  };
+
+  const handleDisciplinaToggle = (disciplinaId: number) => {
+    setSelectedDisciplinas((current) => {
+      const isSelected = current.includes(disciplinaId);
+      const updated = isSelected
+        ? current.filter((id) => id !== disciplinaId)
+        : [...current, disciplinaId];
+
+      form.setValue('disciplinaIds', updated);
+      return updated;
+    });
+  };
+
   const onSubmit = async (values: ProfessorFormData) => {
     if (!curriculumVitaeFile || !comprovanteVinculoFile) {
       toast({
         title: 'Documentos obrigatórios',
         description:
           'É necessário fazer upload do currículo e comprovante de vínculo',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!values.departamentoId) {
+      toast({
+        title: 'Departamento obrigatório',
+        description: 'Por favor, selecione seu departamento',
         variant: 'destructive',
       });
       return;
@@ -127,7 +175,8 @@ export function ProfessorForm() {
 
       const tipoRegime = values.regime as '20H' | '40H' | 'DE';
 
-      await setProfessorMutation.mutateAsync({
+      // Salvar professor
+      const professorResponse = await setProfessorMutation.mutateAsync({
         nomeCompleto: values.nomeCompleto,
         cpf: values.cpf,
         matriculaSiape: values.matriculaSiape,
@@ -135,10 +184,36 @@ export function ProfessorForm() {
         emailInstitucional: values.emailInstitucional,
         genero: 'OUTRO',
         regime: tipoRegime,
-        departamentoId: 1,
+        departamentoId: values.departamentoId!,
         curriculumVitaeFileId: curriculumId!,
         comprovanteVinculoFileId: comprovanteId!,
       });
+
+      // 3. Se selecionou disciplinas, vincular professor a elas
+      const disciplinaIds = values.disciplinaIds || [];
+      if (professorResponse.id && disciplinaIds.length > 0) {
+        const ano = new Date().getFullYear();
+        const semestre =
+          new Date().getMonth() <= 6 ? 'SEMESTRE_1' : 'SEMESTRE_2';
+
+        // Vincular cada disciplina selecionada
+        for (const disciplinaId of disciplinaIds) {
+          try {
+            await vincularDisciplinaMutation.mutateAsync({
+              disciplinaId,
+              professorId: professorResponse.id,
+              ano,
+              semestre: semestre as 'SEMESTRE_1' | 'SEMESTRE_2',
+            });
+          } catch (error: any) {
+            console.error(
+              `Erro ao vincular disciplina ${disciplinaId}:`,
+              error,
+            );
+            // Continuar mesmo se falhar uma disciplina
+          }
+        }
+      }
 
       toast({
         title: 'Cadastro realizado com sucesso!',
@@ -270,6 +345,67 @@ export function ProfessorForm() {
             </p>
           )}
         </div>
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Departamento e Disciplinas</h2>
+        <div>
+          <Label htmlFor="departamento">Departamento</Label>
+          <Select onValueChange={handleDepartamentoChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione seu departamento" />
+            </SelectTrigger>
+            <SelectContent>
+              {departamentos?.map((dept) => (
+                <SelectItem key={dept.id} value={dept.id.toString()}>
+                  {dept.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {selectedDepartamentoId && (
+          <div>
+            <Label>Disciplinas que você leciona</Label>
+            <div className="mt-2 border rounded-md p-4 space-y-2 max-h-64 overflow-y-auto">
+              {loadingDisciplinas ? (
+                <div className="flex justify-center py-4">
+                  <Spinner />
+                </div>
+              ) : disciplinas?.length ? (
+                disciplinas.map((disciplina) => (
+                  <div
+                    key={disciplina.id}
+                    className="flex items-start space-x-2"
+                  >
+                    <Checkbox
+                      id={`disciplina-${disciplina.id}`}
+                      checked={selectedDisciplinas.includes(disciplina.id)}
+                      onCheckedChange={() =>
+                        handleDisciplinaToggle(disciplina.id)
+                      }
+                    />
+                    <Label
+                      htmlFor={`disciplina-${disciplina.id}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      <span className="font-medium">{disciplina.codigo}</span> -{' '}
+                      {disciplina.nome}
+                    </Label>
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted-foreground text-sm italic">
+                  Nenhuma disciplina encontrada para este departamento
+                </p>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Selecione as disciplinas que você leciona neste semestre
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="space-y-4">

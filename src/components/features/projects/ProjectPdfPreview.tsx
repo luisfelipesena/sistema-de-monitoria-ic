@@ -6,7 +6,7 @@ import { usePDFPreview } from '@/hooks/use-pdf-preview';
 import type { DepartamentoResponse } from '@/routes/api/department/-types';
 import { User } from 'lucia';
 import { Eye, EyeOff, FileText } from 'lucide-react';
-import { memo, Suspense, useMemo, useState } from 'react';
+import { memo, Suspense, useEffect, useMemo, useState } from 'react';
 
 interface ProjectPDFPreviewProps {
   formData: Partial<ProjetoFormData>;
@@ -37,9 +37,18 @@ export const ProjectPDFPreview = memo(
 
     // Add state to manually control PDF rendering
     const [showPreview, setShowPreview] = useState(false);
+    const [renderAttempt, setRenderAttempt] = useState(0);
 
     // Compute if PDF should be displayed based on form validity and user preference
     const shouldRenderPDF = shouldShowPDF && showPreview && hasRequiredFields;
+
+    // Reset render attempt when form data changes
+    useEffect(() => {
+      if (shouldRenderPDF) {
+        // Force re-render when template data changes
+        setRenderAttempt((prev) => prev + 1);
+      }
+    }, [templateData, shouldRenderPDF]);
 
     // Memoize o PDF Viewer para evitar re-renders desnecessários
     const MemoizedPDFViewer = useMemo(() => {
@@ -58,11 +67,12 @@ export const ProjectPDFPreview = memo(
             </div>
           }
         >
-          <MonitoriaFormTemplate data={templateData} />
+          <div className="pdf-container" key={`pdf-viewer-${renderAttempt}`}>
+            <MonitoriaFormTemplate data={templateData} />
+          </div>
         </Suspense>
       );
-      // Adicionar todas as dependências que podem causar mudança no PDF
-    }, [shouldRenderPDF, templateData]);
+    }, [shouldRenderPDF, templateData, renderAttempt]);
 
     return (
       <div ref={previewRef} className="border rounded-lg bg-white shadow-sm">
@@ -133,7 +143,7 @@ export const ProjectPDFPreview = memo(
               )}
             </div>
           ) : (
-            MemoizedPDFViewer
+            <div className="p-1 overflow-hidden">{MemoizedPDFViewer}</div>
           )}
         </div>
       </div>

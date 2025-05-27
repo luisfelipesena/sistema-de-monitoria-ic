@@ -26,7 +26,6 @@ import {
   FileSignature,
   FileText,
   GraduationCap,
-  Home,
   LayoutDashboard,
   Settings,
   TrendingUp,
@@ -66,14 +65,6 @@ const isMenuGroup = (item: MenuConfig): item is MenuGroupConfig => {
 };
 
 const menuConfig: MenuConfig[] = [
-  // Home - sempre primeiro
-  {
-    label: 'Página Inicial',
-    href: '/',
-    icon: Home,
-    roles: ['admin', 'professor', 'student'],
-  },
-
   // Dashboard - sempre segundo
   {
     label: 'Dashboard',

@@ -1,25 +1,42 @@
-import { DisciplinaResponse } from '@/routes/api/disciplina/-types';
+import {
+  DisciplinaProfessorVinculo,
+  DisciplinaResponse,
+} from '@/routes/api/disciplina/-types';
 import { apiClient } from '@/utils/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from './query-keys';
 
 // Extended type for disciplinas that include professor information
 export interface DisciplinaWithProfessor extends DisciplinaResponse {
-  professorResponsavel?: string;
+  professorResponsavel?: string | null;
+  professorResponsavelId?: number | null;
 }
 
+// Key de cache para consultas
+export const DisciplinaKeys = {
+  all: ['disciplinas'],
+  detail: (id: number) => ['disciplinas', id],
+  byDepartamento: (departamentoId: number) => [
+    'disciplinas',
+    'byDepartamento',
+    departamentoId,
+  ],
+};
+
+// Função para buscar disciplinas por departamento
 export function useDisciplinas(departamentoId?: number) {
   return useQuery<DisciplinaWithProfessor[]>({
     queryKey: departamentoId
-      ? [...QueryKeys.disciplina.list, departamentoId]
-      : QueryKeys.disciplina.list,
+      ? DisciplinaKeys.byDepartamento(departamentoId)
+      : DisciplinaKeys.all,
     queryFn: async () => {
-      const params = departamentoId ? `?departamentoId=${departamentoId}` : '';
-      const response = await apiClient.get<DisciplinaWithProfessor[]>(
-        `/disciplina${params}`,
-      );
+      const url = departamentoId
+        ? `/api/disciplina?departamentoId=${departamentoId}`
+        : '/api/disciplina';
+      const response = await apiClient.get<DisciplinaWithProfessor[]>(url);
       return response.data;
     },
+    enabled: !!departamentoId,
   });
 }
 
@@ -71,6 +88,56 @@ export function useDeleteDisciplina() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.list });
+    },
+  });
+}
+
+// Função para vincular professor a disciplina
+export function useVincularProfessorDisciplina() {
+  const queryClient = useQueryClient();
+
+  return useMutation<unknown, Error, DisciplinaProfessorVinculo>({
+    mutationFn: async (data) => {
+      const response = await apiClient.post(
+        '/api/disciplina/vincular-professor',
+        data,
+      );
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      // Invalidar caches relacionados
+      queryClient.invalidateQueries({ queryKey: DisciplinaKeys.all });
+      if (variables.disciplinaId) {
+        queryClient.invalidateQueries({
+          queryKey: DisciplinaKeys.detail(variables.disciplinaId),
+        });
+      }
+    },
+  });
+}
+
+// Função para desvincular professor de disciplina
+export function useDesvincularProfessorDisciplina() {
+  const queryClient = useQueryClient();
+
+  return useMutation<unknown, Error, Partial<DisciplinaProfessorVinculo>>({
+    mutationFn: async (data) => {
+      const response = await apiClient.delete(
+        '/api/disciplina/vincular-professor',
+        {
+          data,
+        },
+      );
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      // Invalidar caches relacionados
+      queryClient.invalidateQueries({ queryKey: DisciplinaKeys.all });
+      if (variables.disciplinaId) {
+        queryClient.invalidateQueries({
+          queryKey: DisciplinaKeys.detail(variables.disciplinaId),
+        });
+      }
     },
   });
 }
