@@ -84,7 +84,10 @@ function DashboardAdmin() {
   };
 
   const handleAnalisarProjeto = (projetoId: number) => {
-    navigate({ to: `/projeto/${projetoId}/inscricoes` });
+    navigate({
+      to: '/home/common/projects/$projeto/inscricoes',
+      params: { projeto: projetoId.toString() },
+    });
   };
 
   const handleEditarUsuario = (userId: number, tipo: 'professor' | 'aluno') => {

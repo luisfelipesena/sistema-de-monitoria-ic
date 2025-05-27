@@ -1,5 +1,3 @@
-import { Bell, MessageSquare } from 'lucide-react';
-
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '../ui/button';
@@ -26,21 +24,6 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="transparent"
-            size="icon"
-            className="text-muted-foreground"
-          >
-            <Bell />
-          </Button>
-          <Button
-            variant="transparent"
-            size="icon"
-            className="text-muted-foreground"
-          >
-            <MessageSquare />
-          </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

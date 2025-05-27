@@ -17,12 +17,18 @@ import { useAuth } from '@/hooks/use-auth';
 import { useDepartamentoList } from '@/hooks/use-departamento';
 import { useDisciplinas } from '@/hooks/use-disciplina';
 import { useProfessores } from '@/hooks/use-professor';
-import { useCreateProjeto } from '@/hooks/use-projeto';
+import {
+  useCreateProjeto,
+  useNotifyProfessorSigning,
+  useProjetoDocuments,
+  useProjetos,
+  useUploadProjetoDocument,
+} from '@/hooks/use-projeto';
 import { DepartamentoResponse } from '@/routes/api/departamento/-types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { BookOpen, FileText, Target, Users } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -64,8 +70,29 @@ function ProjectsComponent() {
   const { data: departamentos, isLoading: loadingDepartamentos } =
     useDepartamentoList();
   const { data: professores, isLoading: loadingProfessores } = useProfessores();
-  const createProjetoMutation = useCreateProjeto();
-  const [projetoCriado, setProjetoCriado] = useState<number | null>(null);
+
+  // State management
+  const [savedProjetoId, setSavedProjetoId] = useState<number | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit'>(
+    'create',
+  );
+  const [editingProjetoId, setEditingProjetoId] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Hooks
+  const { data: projetos, isLoading: loadingProjetos } = useProjetos();
+  const createProjeto = useCreateProjeto();
+  const uploadDocument = useUploadProjetoDocument();
+  const notifySigning = useNotifyProfessorSigning();
+  const { data: projetoDocuments } = useProjetoDocuments(savedProjetoId || 0);
+
+  // Para admin, mostrar lista por padrão
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      setViewMode('list');
+    }
+  }, [user]);
 
   // Redirect students to the monitoria page instead
   useEffect(() => {
@@ -74,14 +101,7 @@ function ProjectsComponent() {
     }
   }, [user, navigate]);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    watch,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<ProjetoFormData>({
+  const form = useForm<ProjetoFormData>({
     resolver: zodResolver(projetoFormSchema),
     defaultValues: {
       ano: new Date().getFullYear(),
@@ -95,70 +115,318 @@ function ProjectsComponent() {
     },
   });
 
+  const {
+    register,
+    control,
+    watch,
+    setValue,
+    formState: { errors },
+  } = form;
+
   const departamentoSelecionado = watch('departamentoId');
 
   // Usar hook com filtro por departamento
   const { data: disciplinasFiltradas, isLoading: loadingDisciplinas } =
     useDisciplinas(departamentoSelecionado);
 
-  const onSubmit = async (data: ProjetoFormData) => {
-    try {
-      // Validação adicional para admins
-      if (user?.role === 'admin' && !data.professorResponsavelId) {
-        toast.error('É necessário selecionar um professor responsável.');
-        return;
-      }
+  // Observar todos os campos do formulário
+  const formData = watch();
 
-      const novoProjeto = await createProjetoMutation.mutateAsync(data);
-      setProjetoCriado(novoProjeto.id);
-      toast.success('Projeto criado com sucesso! Agora você pode gerar o PDF.');
-    } catch (error) {
-      toast.error('Erro ao criar projeto. Tente novamente.');
+  const handleSubmit = async (data: ProjetoFormData) => {
+    try {
+      await createProjeto.mutateAsync(data);
+
+      toast.success('Projeto criado com sucesso!');
+
+      // Reset form
+      setValue('titulo', '');
+      setValue('descricao', '');
+      setValue('departamentoId', 0);
+      setValue('disciplinaIds', []);
+      setValue('publicoAlvo', '');
+      setValue('estimativaPessoasBenificiadas', undefined);
+      setValue('bolsasSolicitadas', 0);
+      setValue('voluntariosSolicitados', 0);
+      setValue('cargaHorariaSemana', 4);
+      setValue('numeroSemanas', 16);
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao criar projeto');
     }
   };
 
   const handleGeneratePDF = async () => {
-    if (!projetoCriado) return;
+    if (!formData.titulo || !formData.descricao || !departamentoSelecionado) {
+      toast.error('Preencha todos os campos obrigatórios para gerar o PDF');
+      return;
+    }
 
     try {
-      const response = await fetch(`/api/projeto/${projetoCriado}/pdf`);
-      const htmlContent = await response.text();
+      const { pdf, Document, Page, Text, View, StyleSheet } = await import(
+        '@react-pdf/renderer'
+      );
 
-      // Abrir em nova janela para impressão
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(htmlContent);
-        printWindow.document.close();
-        printWindow.onload = () => {
-          printWindow.print();
-        };
-        toast.success('PDF gerado! Use "Salvar como PDF" na impressora.');
-      } else {
-        toast.error('Popup bloqueado. Permita popups para gerar o PDF.');
-      }
+      const departamento = departamentos?.find(
+        (d) => d.id === departamentoSelecionado,
+      );
+      const disciplinasSelecionadas =
+        disciplinasFiltradas?.filter((d) =>
+          formData.disciplinaIds?.includes(d.id),
+        ) || [];
+
+      const semestreLabel =
+        formData.semestre === 'SEMESTRE_1'
+          ? `${formData.ano}.1`
+          : `${formData.ano}.2`;
+      const tipoProposicaoLabel =
+        formData.tipoProposicao === 'INDIVIDUAL' ? 'Individual' : 'Coletiva';
+      const disciplinasText = disciplinasSelecionadas
+        .map((d) => `${d.codigo} - ${d.nome}`)
+        .join(', ');
+
+      const styles = StyleSheet.create({
+        page: {
+          flexDirection: 'column',
+          backgroundColor: '#FFFFFF',
+          padding: 20,
+          fontSize: 11,
+          fontFamily: 'Helvetica',
+        },
+        header: {
+          textAlign: 'center',
+          marginBottom: 20,
+        },
+        title: {
+          fontSize: 14,
+          fontWeight: 'bold',
+          textAlign: 'center',
+          margin: '20 0',
+        },
+        section: {
+          border: '2px solid #000',
+          marginBottom: 10,
+        },
+        sectionHeader: {
+          backgroundColor: '#d0d0d0',
+          fontWeight: 'bold',
+          padding: 5,
+          borderBottom: '1px solid #000',
+        },
+        formRow: {
+          borderBottom: '1px solid #000',
+          padding: 4,
+          minHeight: 18,
+          flexDirection: 'row',
+          alignItems: 'center',
+        },
+        fieldLabel: {
+          fontWeight: 'bold',
+          marginRight: 5,
+        },
+        fieldValue: {
+          flex: 1,
+        },
+        descriptionBox: {
+          minHeight: 100,
+          padding: 10,
+          border: '1px solid #000',
+          margin: '10 0',
+        },
+      });
+
+      const MyDocument = () => (
+        <Document>
+          <Page size="A4" style={styles.page}>
+            <View style={styles.header}>
+              <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>
+                UNIVERSIDADE FEDERAL DA BAHIA{'\n'}
+                Pró - Reitoria de Ensino de Graduação{'\n'}
+                Coordenação Acadêmica de Graduação
+              </Text>
+            </View>
+
+            <Text style={styles.title}>
+              ANEXO I – FORMULÁRIO PARA SUBMISSÃO DE PROJETO DE MONITORIA
+            </Text>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionHeader}>
+                1. IDENTIFICAÇÃO DO PROJETO
+              </Text>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>
+                  1.1 Unidade Universitária:
+                </Text>
+                <Text style={styles.fieldValue}>Instituto de Computação</Text>
+              </View>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>1.2 Órgão responsável:</Text>
+                <Text style={styles.fieldValue}>
+                  {departamento?.nome || 'Não selecionado'}
+                </Text>
+              </View>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>1.3 Título:</Text>
+                <Text style={styles.fieldValue}>{formData.titulo}</Text>
+              </View>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>
+                  1.4 Componente(s) curricular(es):
+                </Text>
+                <Text style={styles.fieldValue}>
+                  {disciplinasText || 'Nenhuma disciplina selecionada'}
+                </Text>
+              </View>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>1.5 Semestre:</Text>
+                <Text style={styles.fieldValue}>{semestreLabel}</Text>
+              </View>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>1.6 Proposição:</Text>
+                <Text style={styles.fieldValue}>{tipoProposicaoLabel}</Text>
+              </View>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>1.7 Número de monitores:</Text>
+                <Text style={styles.fieldValue}>
+                  {(formData.bolsasSolicitadas || 0) +
+                    (formData.voluntariosSolicitados || 0)}
+                </Text>
+              </View>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>
+                  1.8 Carga horária semanal:
+                </Text>
+                <Text style={styles.fieldValue}>
+                  {formData.cargaHorariaSemana || 0}h
+                </Text>
+              </View>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>1.9 Carga horária total:</Text>
+                <Text style={styles.fieldValue}>
+                  {(formData.cargaHorariaSemana || 0) *
+                    (formData.numeroSemanas || 0)}
+                  h
+                </Text>
+              </View>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>1.10 Público-alvo:</Text>
+                <Text style={styles.fieldValue}>
+                  {formData.publicoAlvo || 'Não informado'}
+                </Text>
+              </View>
+
+              <View style={styles.formRow}>
+                <Text style={styles.fieldLabel}>
+                  1.11 Estimativa de beneficiados:
+                </Text>
+                <Text style={styles.fieldValue}>
+                  {formData.estimativaPessoasBenificiadas || 'Não informado'}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionHeader}>
+                2. DADOS DO PROFESSOR RESPONSÁVEL
+              </Text>
+              <View style={{ padding: 5 }}>
+                <Text>Nome: {user?.username || 'Professor Responsável'}</Text>
+                <Text>E-mail: {user?.email || 'professor@ufba.br'}</Text>
+              </View>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.sectionHeader}>3. DESCRIÇÃO DO PROJETO</Text>
+              <View style={styles.descriptionBox}>
+                <Text>{formData.descricao}</Text>
+              </View>
+            </View>
+          </Page>
+        </Document>
+      );
+
+      const blob = await pdf(<MyDocument />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `projeto-monitoria-${formData.titulo?.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('PDF gerado e download iniciado!');
     } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
       toast.error('Erro ao gerar PDF do projeto');
     }
   };
 
-  if (loadingDepartamentos) {
+  if (loadingDepartamentos || loadingProfessores) {
     return (
-      <PagesLayout title="Novo edital de monitoria">
+      <PagesLayout title="Novo projeto de monitoria">
         <div className="flex justify-center items-center py-8">
-          <p>Carregando dados...</p>
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <p className="mt-2">Carregando dados necessários...</p>
+          </div>
+        </div>
+      </PagesLayout>
+    );
+  }
+
+  // Verificar se há dados necessários
+  if (!departamentos || departamentos.length === 0) {
+    return (
+      <PagesLayout title="Novo projeto de monitoria">
+        <div className="text-center py-12 border rounded-md bg-muted/20">
+          <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">
+            Dados necessários não encontrados
+          </h3>
+          <p className="text-muted-foreground mb-4">
+            Para criar projetos de monitoria, é necessário ter departamentos
+            cadastrados no sistema.
+          </p>
+          {user?.role === 'admin' && (
+            <Button
+              onClick={() => navigate({ to: '/home/admin/departamentos' })}
+            >
+              Gerenciar Departamentos
+            </Button>
+          )}
         </div>
       </PagesLayout>
     );
   }
 
   return (
-    <PagesLayout title="Novo edital de monitoria">
-      <div className="mx-auto space-y-6">
-        <div className="text-sm text-muted-foreground">
-          Formulário para submissão de projeto de monitoria
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <PagesLayout
+      title="Novo projeto de monitoria"
+      subtitle="Formulário para submissão de projeto de monitoria"
+    >
+      <form
+        onSubmit={form.handleSubmit(async (data: ProjetoFormData) => {
+          try {
+            await createProjeto.mutateAsync(data);
+            toast.success('Projeto criado com sucesso!');
+            form.reset();
+          } catch (error: any) {
+            toast.error(error.message || 'Erro ao criar projeto');
+          }
+        })}
+        className="mx-auto space-y-6"
+      >
+        <div className="space-y-6">
           {/* Identificação do Projeto */}
           <Card>
             <CardHeader>
@@ -230,7 +498,7 @@ function ProjectsComponent() {
                 {user?.role === 'admin' && (
                   <div>
                     <Label htmlFor="professorResponsavelId">
-                      1.2b Professor Responsável
+                      1.2 Professor Responsável
                     </Label>
                     <Controller
                       name="professorResponsavelId"
@@ -297,7 +565,7 @@ function ProjectsComponent() {
                 </div>
 
                 <div>
-                  <Label htmlFor="semestre">1.5 Semestre</Label>
+                  <Label htmlFor="semestre">1.4 Semestre</Label>
                   <Controller
                     name="semestre"
                     control={control}
@@ -328,7 +596,7 @@ function ProjectsComponent() {
 
               <div>
                 <Label htmlFor="disciplinaIds">
-                  1.4 Componente(s) curricular(es) (código e nome)
+                  1.5 Componente(s) curricular(es) (código e nome)
                 </Label>
                 <Controller
                   name="disciplinaIds"
@@ -591,62 +859,44 @@ function ProjectsComponent() {
             </CardContent>
           </Card>
 
-          {/* Pré-visualização do edital */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Pré-visualização do edital
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {projetoCriado ? (
-                <div className="bg-green-50 border border-green-200 rounded-md p-8 text-center">
-                  <FileText className="mx-auto h-12 w-12 text-green-600 mb-4" />
-                  <p className="text-green-800 mb-4 font-medium">
-                    Projeto criado com sucesso!
-                  </p>
-                  <p className="text-green-700 mb-6 text-sm">
-                    Você pode agora gerar o PDF oficial do formulário de
-                    monitoria da UFBA.
-                  </p>
-                  <Button
-                    onClick={handleGeneratePDF}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Gerar PDF do Formulário
-                  </Button>
-                </div>
-              ) : (
-                <div className="bg-muted/20 border rounded-md p-8 text-center">
-                  <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground mb-4">
-                    Após salvar o projeto, você poderá gerar o PDF do formulário
-                    de monitoria.
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    O PDF será gerado seguindo o template oficial da UFBA para
-                    submissão de projetos de monitoria.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Botão de Finalizar */}
-          <div className="flex justify-center">
+          {/* Botões de Ação */}
+          <div className="flex justify-center gap-4">
             <Button
               type="submit"
               size="lg"
-              disabled={isSubmitting}
+              disabled={createProjeto.isPending}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8"
             >
-              {isSubmitting ? 'Criando projeto...' : 'Finalizar'}
+              {createProjeto.isPending ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Salvando...
+                </div>
+              ) : (
+                <>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Salvar Projeto
+                </>
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={handleGeneratePDF}
+              disabled={
+                !formData.titulo ||
+                !formData.descricao ||
+                !departamentoSelecionado
+              }
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Gerar PDF Prévia
             </Button>
           </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </PagesLayout>
   );
 }

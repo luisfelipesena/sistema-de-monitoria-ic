@@ -12,6 +12,25 @@ const log = logger.child({
   context: 'projeto-hooks',
 });
 
+// Document types
+type DocumentResponse = {
+  id: number;
+  fileId: string;
+  tipoDocumento:
+    | 'PROPOSTA_ORIGINAL'
+    | 'PROPOSTA_ASSINADA_PROFESSOR'
+    | 'PROPOSTA_ASSINADA_ADMIN'
+    | 'ATA_SELECAO';
+  assinadoPor: {
+    id: number;
+    username: string;
+    email: string;
+    role: 'admin' | 'professor' | 'student';
+  } | null;
+  observacoes: string | null;
+  createdAt: Date;
+};
+
 export function useProjetos() {
   return useQuery<ProjetoListItem[]>({
     queryKey: QueryKeys.projeto.list,
@@ -127,6 +146,91 @@ export function useUpdateProjeto() {
       queryClient.invalidateQueries({
         queryKey: QueryKeys.projeto.byId(data.id.toString()),
       });
+    },
+  });
+}
+
+// Document management hooks
+export function useProjetoDocuments(projetoId: number) {
+  return useQuery<DocumentResponse[]>({
+    queryKey: QueryKeys.projeto.documents(projetoId),
+    queryFn: async () => {
+      const response = await apiClient.get<DocumentResponse[]>(
+        `/projeto/${projetoId}/documents`,
+      );
+      return response.data;
+    },
+    enabled: !!projetoId,
+  });
+}
+
+export function useUploadProjetoDocument() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    any,
+    Error,
+    {
+      projetoId: number;
+      file: File;
+      tipoDocumento: 'PROPOSTA_ASSINADA_PROFESSOR' | 'PROPOSTA_ASSINADA_ADMIN';
+      observacoes?: string;
+    }
+  >({
+    mutationFn: async ({ projetoId, file, tipoDocumento, observacoes }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('tipoDocumento', tipoDocumento);
+      if (observacoes) {
+        formData.append('observacoes', observacoes);
+      }
+
+      const response = await apiClient.post(
+        `/projeto/${projetoId}/upload-document`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.projeto.documents(variables.projetoId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.projeto.byId(variables.projetoId.toString()),
+      });
+    },
+  });
+}
+
+export function useNotifyProfessorSigning() {
+  return useMutation<any, Error, { projetoId: number; message?: string }>({
+    mutationFn: async ({ projetoId, message }) => {
+      const response = await apiClient.post(
+        `/projeto/${projetoId}/notify-signing`,
+        {
+          message,
+        },
+      );
+      return response.data;
+    },
+  });
+}
+
+export function useDeleteProjeto() {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, number>({
+    mutationFn: async (projetoId) => {
+      const response = await apiClient.delete(`/projeto/${projetoId}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
     },
   });
 }

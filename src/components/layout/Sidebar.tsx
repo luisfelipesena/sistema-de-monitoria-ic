@@ -50,10 +50,10 @@ const menuItemsConfig: MenuItemConfig[] = [
     roles: ['admin', 'professor', 'student'],
   },
   {
-    label: 'Monitoria',
-    href: '/home/common/monitoria',
-    icon: Monitor,
-    roles: ['professor', 'admin'],
+    label: 'Novo Edital',
+    href: '/home/admin/edital',
+    icon: Calendar,
+    roles: ['admin'],
   },
   {
     label: 'Seleção de monitores',
@@ -65,7 +65,13 @@ const menuItemsConfig: MenuItemConfig[] = [
     label: 'Projetos',
     href: '/home/common/projects',
     icon: FolderKanban,
-    roles: ['admin', 'professor'],
+    roles: ['professor'],
+  },
+  {
+    label: 'Gerenciar Projetos',
+    href: '/home/admin/projetos',
+    icon: FolderKanban,
+    roles: ['admin'],
   },
   {
     label: 'Perfil',
@@ -107,12 +113,6 @@ const menuItemsConfig: MenuItemConfig[] = [
     label: 'Disciplinas',
     href: '/home/admin/disciplinas',
     icon: BookOpen,
-    roles: ['admin'],
-  },
-  {
-    label: 'Períodos de Inscrição',
-    href: '/home/admin/periodos-inscricao',
-    icon: Calendar,
     roles: ['admin'],
   },
   {
@@ -178,11 +178,11 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
             alt="Monitoria IC"
             className="h-32 w-18"
           />
-          <span className="text-lg font-semibold">Monitoria IC</span>
+          <span className="text-xl font-semibold">Monitoria IC</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarMenu>
+        <SidebarMenu className="text-base">
           {menuItemsConfig
             .filter(
               (item) =>
@@ -204,10 +204,13 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
                     isActive={checkIsActive(pathname, actualHref)}
                     tooltip={item.label}
                     onClick={() => handleNavigate(actualHref)}
+                    className="text-base py-3"
                   >
                     <Link to={actualHref}>
-                      <item.icon />
-                      <span>{item.label}</span>
+                      <item.icon className="h-5 w-5" />
+                      <span className="text-base font-medium">
+                        {item.label}
+                      </span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

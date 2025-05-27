@@ -97,6 +97,13 @@ export const tipoInscricaoEnum = pgEnum('tipo_inscricao_enum', [
   'ANY', // Changed from QUALQUER for clarity
 ]);
 
+export const tipoDocumentoProjetoEnum = pgEnum('tipo_documento_projeto_enum', [
+  'PROPOSTA_ORIGINAL',
+  'PROPOSTA_ASSINADA_PROFESSOR',
+  'PROPOSTA_ASSINADA_ADMIN',
+  'ATA_SELECAO',
+]);
+
 export const statusInscricaoEnum = pgEnum('status_inscricao_enum', [
   'SUBMITTED', // Aluno aplicou
   'SELECTED_BOLSISTA', // Professor selecionou (bolsista)
@@ -496,6 +503,41 @@ export const inscricaoDocumentoTable = pgTable('inscricao_documento', {
   }).$onUpdate(() => new Date()),
 });
 
+// Join table for documents related to a project (e.g., proposal, signed documents)
+export const projetoDocumentoTable = pgTable('projeto_documento', {
+  id: serial('id').primaryKey(),
+  projetoId: integer('projeto_id')
+    .references(() => projetoTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  fileId: text('file_id').notNull(), // Unique identifier for the uploaded document in the object storage
+  tipoDocumento: tipoDocumentoProjetoEnum('tipo_documento').notNull(),
+  assinadoPorUserId: integer('assinado_por_user_id').references(
+    () => userTable.id,
+  ), // Who signed this document (professor or admin)
+  observacoes: text('observacoes'), // Optional notes about the document
+  createdAt: timestamp('created_at', {
+    withTimezone: true,
+    mode: 'date',
+  })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', {
+    withTimezone: true,
+    mode: 'date',
+  }).$onUpdate(() => new Date()),
+});
+
+export const selectProjetoDocumentoTableSchema = createSelectSchema(
+  projetoDocumentoTable,
+);
+export const insertProjetoDocumentoTableSchema = createInsertSchema(
+  projetoDocumentoTable,
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Represents an accepted position (monitor role fulfillment)
 export const vagaTable = pgTable('vaga', {
   id: serial('id').primaryKey(),
@@ -550,6 +592,7 @@ export const projetoRelations = relations(projetoTable, ({ one, many }) => ({
   atividades: many(atividadeProjetoTable),
   inscricoes: many(inscricaoTable),
   vagas: many(vagaTable),
+  documentos: many(projetoDocumentoTable),
 }));
 
 export const projetoDisciplinaRelations = relations(
@@ -686,6 +729,20 @@ export const inscricaoDocumentoRelations = relations(
     inscricao: one(inscricaoTable, {
       fields: [inscricaoDocumentoTable.inscricaoId],
       references: [inscricaoTable.id],
+    }),
+  }),
+);
+
+export const projetoDocumentoRelations = relations(
+  projetoDocumentoTable,
+  ({ one }) => ({
+    projeto: one(projetoTable, {
+      fields: [projetoDocumentoTable.projetoId],
+      references: [projetoTable.id],
+    }),
+    assinadoPor: one(userTable, {
+      fields: [projetoDocumentoTable.assinadoPorUserId],
+      references: [userTable.id],
     }),
   }),
 );

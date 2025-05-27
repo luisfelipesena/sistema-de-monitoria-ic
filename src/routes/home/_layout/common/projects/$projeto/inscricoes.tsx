@@ -11,7 +11,7 @@ import { CheckCircle, Clock, Hand, Mail, Users, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-export const Route = createFileRoute('/projeto/$projeto/inscricoes')({
+export const Route = createFileRoute('/home/_layout/common/projects/$projeto/inscricoes')({
   component: InscricoesProjetoPage,
 });
 

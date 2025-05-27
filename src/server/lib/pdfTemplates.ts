@@ -52,15 +52,20 @@ export function generateProjetoMonitoriaPDF(
     .join(', ');
 
   const generoCheckboxes = {
-    feminino: data.professor.genero === 'FEMININO' ? 'X' : '',
-    masculino: data.professor.genero === 'MASCULINO' ? 'X' : '',
-    outro: data.professor.genero === 'OUTRO' ? 'X' : '',
+    feminino: data.professor.genero === 'FEMININO' ? 'X' : ' ',
+    masculino: data.professor.genero === 'MASCULINO' ? 'X' : ' ',
+    outro: data.professor.genero === 'OUTRO' ? 'X' : ' ',
   };
 
   const regimeCheckboxes = {
-    '20h': data.professor.regime === '20H' ? 'X' : '',
-    '40h': data.professor.regime === '40H' ? 'X' : '',
-    de: data.professor.regime === 'DE' ? 'X' : '',
+    '20h': data.professor.regime === '20H' ? 'X' : ' ',
+    '40h': data.professor.regime === '40H' ? 'X' : ' ',
+    de: data.professor.regime === 'DE' ? 'X' : ' ',
+  };
+
+  const tipoProposicaoCheckboxes = {
+    individual: data.tipoProposicao === 'INDIVIDUAL' ? 'X' : ' ',
+    coletiva: data.tipoProposicao === 'COLETIVA' ? 'X' : ' ',
   };
 
   return `
@@ -70,108 +75,186 @@ export function generateProjetoMonitoriaPDF(
     <meta charset="utf-8">
     <title>Formulário de Submissão de Projeto de Monitoria</title>
     <style>
+        @page {
+            margin: 20mm;
+            size: A4;
+        }
+        
         body {
             font-family: Arial, sans-serif;
             font-size: 11px;
-            line-height: 1.2;
-            margin: 20px;
+            line-height: 1.3;
+            margin: 0;
+            padding: 0;
             color: #000;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
+        
+        .header-container {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
         }
+        
+        .logo-section {
+            width: 80px;
+            margin-right: 15px;
+        }
+        
         .logo {
             width: 80px;
-            height: 80px;
-            margin: 0 auto 10px;
+            height: auto;
         }
+        
         .university-info {
+            flex: 1;
+            text-align: center;
             font-weight: bold;
-            margin-bottom: 20px;
+            font-size: 12px;
+            line-height: 1.4;
         }
+        
         .title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             text-align: center;
             margin: 20px 0;
+            padding: 10px 0;
         }
+        
         .section {
             border: 2px solid #000;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            page-break-inside: avoid;
         }
+        
         .section-header {
             background-color: #d0d0d0;
             font-weight: bold;
-            padding: 5px;
+            padding: 5px 8px;
             border-bottom: 1px solid #000;
+            font-size: 11px;
         }
+        
         .form-row {
             border-bottom: 1px solid #000;
-            padding: 4px;
-            min-height: 18px;
-            display: flex;
-            align-items: center;
+            padding: 6px 8px;
+            min-height: 20px;
+            display: table;
+            width: 100%;
+            box-sizing: border-box;
         }
+        
         .form-row:last-child {
             border-bottom: none;
         }
+        
         .field-label {
             font-weight: bold;
-            margin-right: 5px;
+            display: inline;
         }
+        
         .field-value {
-            flex: 1;
+            display: inline;
+            margin-left: 5px;
         }
+        
         .checkbox {
             display: inline-block;
             width: 12px;
             height: 12px;
             border: 1px solid #000;
-            margin: 0 3px;
             text-align: center;
             line-height: 10px;
-            font-size: 10px;
+            font-size: 8px;
+            margin: 0 2px;
+            vertical-align: middle;
         }
+        
         .description-box {
-            min-height: 100px;
+            min-height: 80px;
             padding: 10px;
-            border: 1px solid #000;
-            margin: 10px 0;
+            line-height: 1.4;
+            text-align: justify;
         }
+        
         .activities-box {
             min-height: 60px;
             padding: 10px;
-            border: 1px solid #000;
-            margin: 10px 0;
+            line-height: 1.4;
         }
-        .signature-section {
-            margin-top: 30px;
-            border-top: 1px solid #000;
-            padding-top: 20px;
-        }
-        .signature-line {
-            border-bottom: 1px solid #000;
-            width: 300px;
-            margin: 20px auto;
-            text-align: center;
-            padding-bottom: 5px;
-        }
-        .page-break {
-            page-break-before: always;
-        }
-        table {
+        
+        .inline-table {
             width: 100%;
             border-collapse: collapse;
         }
-        td {
-            padding: 3px;
-            vertical-align: top;
+        
+        .inline-table td {
+            padding: 0;
+            vertical-align: middle;
+            border: none;
+        }
+        
+        .signature-section {
+            margin-top: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .signature-table td {
+            padding: 10px 0;
+            vertical-align: bottom;
+            border: none;
+        }
+        
+        .signature-line {
+            border-bottom: 1px solid #000;
+            width: 250px;
+            height: 40px;
+            display: inline-block;
+        }
+        
+        .approval-signatures {
+            margin-top: 30px;
+            border-top: 1px solid #000;
+            padding-top: 20px;
+            page-break-inside: avoid;
+        }
+        
+        .approval-row {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .approval-field {
+            flex: 1;
+            margin-right: 20px;
+        }
+        
+        .approval-signature {
+            flex: 0 0 200px;
+            text-align: center;
+        }
+        
+        .small-text {
+            font-size: 9px;
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="header">
+    <!-- Cabeçalho com logo da UFBA -->
+    <div class="header-container">
+        <div class="logo-section">
+            <img src="/images/logo-ufba.png" alt="Logo UFBA" class="logo">
+        </div>
         <div class="university-info">
             UNIVERSIDADE FEDERAL DA BAHIA<br>
             Pró - Reitoria de Ensino de Graduação<br>
@@ -199,7 +282,7 @@ export function generateProjetoMonitoriaPDF(
         
         <div class="form-row">
             <span class="field-label">1.3 Data da aprovação do projeto:</span>
-            <span class="field-value">${data.dataAprovacao || '______________'}</span>
+            <span class="field-value">${data.dataAprovacao || '___/___/____'}</span>
         </div>
         
         <div class="form-row">
@@ -215,9 +298,8 @@ export function generateProjetoMonitoriaPDF(
         <div class="form-row">
             <span class="field-label">1.6 Proposição:</span>
             <span class="field-value">
-                ${tipoProposicaoLabel}
-                <span class="checkbox">${data.tipoProposicao === 'INDIVIDUAL' ? 'X' : ''}</span> ( )
-                Coletiva <span class="checkbox">${data.tipoProposicao === 'COLETIVA' ? 'X' : ''}</span> ( ) - Nesse caso, informar quantos professores: ____
+                Individual <span class="checkbox">${tipoProposicaoCheckboxes.individual}</span> ( )
+                Coletiva <span class="checkbox">${tipoProposicaoCheckboxes.coletiva}</span> ( ) – Nesse caso, informar quantos professores: ____
             </span>
         </div>
         
@@ -239,13 +321,13 @@ export function generateProjetoMonitoriaPDF(
         <div class="form-row">
             <span class="field-label">1.10 Público-alvo:</span>
             <span class="field-value">
-                ${data.publicoAlvo} <span class="checkbox">X</span> ( ), Outros ( ) – Informar qual: ____
+                Estudantes de graduação <span class="checkbox">X</span> ( ), Outros <span class="checkbox"> </span> ( ) – Informar qual: ____
             </span>
         </div>
         
         <div class="form-row">
             <span class="field-label">1.11 Estimativa de quantas pessoas serão beneficiadas com o projeto:</span>
-                         <span class="field-value">${data.estimativaPessoasBeneficiadas || '____'}</span>
+            <span class="field-value">${data.estimativaPessoasBeneficiadas || '____'}</span>
         </div>
     </div>
 
@@ -264,28 +346,24 @@ export function generateProjetoMonitoriaPDF(
         </div>
         
         <div class="form-row">
-            <table>
-                <tr>
-                    <td>
-                        <span class="field-label">2.3 Gênero:</span>
-                        Feminino <span class="checkbox">${generoCheckboxes.feminino}</span> ( )
-                        Masculino <span class="checkbox">${generoCheckboxes.masculino}</span> ( )
-                        Outro <span class="checkbox">${generoCheckboxes.outro}</span> ( )
-                    </td>
-                </tr>
-            </table>
+            <span class="field-label">2.3 Gênero:</span>
+            <span class="field-value">
+                Feminino <span class="checkbox">${generoCheckboxes.feminino}</span> ( )
+                Masculino <span class="checkbox">${generoCheckboxes.masculino}</span> ( )
+                Outro <span class="checkbox">${generoCheckboxes.outro}</span> ( )
+            </span>
         </div>
         
         <div class="form-row">
-            <table>
+            <table class="inline-table">
                 <tr>
-                    <td style="width: 45%;">
-                        <span class="field-label">2.4 CPF:</span> ${data.professor.cpf}
+                    <td style="width: 40%;">
+                        <span class="field-label">2.4 CPF:</span> ${data.professor.cpf || '___.___.___-__'}
                     </td>
                     <td style="width: 30%;">
-                        <span class="field-label">2.5 SIAPE:</span> ${data.professor.siape}
+                        <span class="field-label">2.5 SIAPE:</span> ${data.professor.siape || '_______'}
                     </td>
-                    <td style="width: 25%;">
+                    <td style="width: 30%;">
                         <span class="field-label">2.6 Regime:</span>
                         20h <span class="checkbox">${regimeCheckboxes['20h']}</span> ( )
                         40h <span class="checkbox">${regimeCheckboxes['40h']}</span> ( )
@@ -296,10 +374,10 @@ export function generateProjetoMonitoriaPDF(
         </div>
         
         <div class="form-row">
-            <table>
+            <table class="inline-table">
                 <tr>
                     <td style="width: 50%;">
-                        <span class="field-label">2.7 Tel. Institucional:</span> ${data.professor.telefoneInstitucional || '( )'}
+                        <span class="field-label">2.7 Tel. Institucional:</span> ( ${data.professor.telefoneInstitucional || ''} )
                     </td>
                     <td style="width: 50%;">
                         <span class="field-label">2.8 Celular:</span> ( ${data.professor.celular || ''} )
@@ -328,7 +406,7 @@ export function generateProjetoMonitoriaPDF(
         <div class="activities-box">
             • Auxiliar o professor na elaboração de problemas para listas e provas<br>
             • Auxiliar os alunos no uso das plataformas de submissão de problemas<br>
-            • Auxiliar os alunos quanto ao uso de comandos e comandos de programação em Python e lógica de programação em sala<br>
+            • Auxiliar os alunos quanto ao uso de comandos e programação em Python e lógica de programação em sala<br>
             • Auxiliar os alunos em horário extra classe
         </div>
     </div>
@@ -338,22 +416,61 @@ export function generateProjetoMonitoriaPDF(
         <div class="section-header">5. DECLARAÇÃO</div>
         <div class="form-row">
             Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das normas descritas no Edital PROGRAD/UFBA Nº 001/2025 –
-            Programa de Monitoria 2025.1 <span class="checkbox">X</span> ( )
+            Programa de Monitoria ${semestreLabel} <span class="checkbox">X</span> ( )
         </div>
     </div>
 
+    <!-- SEÇÃO DE ASSINATURAS -->
     <div class="signature-section">
-        <div style="text-align: center; margin-top: 40px;">
-            <table style="width: 100%;">
-                <tr>
-                    <td style="text-align: left;">
-                        Data e Assinatura do(a) Prof(a). Responsável: ___/___/2025
-                    </td>
-                    <td style="text-align: right; width: 200px;">
-                        _________________________
-                    </td>
-                </tr>
-            </table>
+        <table class="signature-table">
+            <tr>
+                <td style="width: 60%; text-align: left;">
+                    <strong>Data e Assinatura do(a) Prof(a). Responsável:</strong> ___/___/${data.ano}
+                </td>
+                <td style="width: 40%; text-align: center;">
+                    <div class="signature-line"></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- SEÇÕES DE APROVAÇÃO ADMINISTRATIVA -->
+    <div class="approval-signatures">
+        <div style="text-align: center; font-weight: bold; margin-bottom: 20px; border-bottom: 1px solid #000; padding-bottom: 10px;">
+            PARA USO EXCLUSIVO DA ADMINISTRAÇÃO
+        </div>
+        
+        <div class="approval-row">
+            <div class="approval-field">
+                <strong>Coordenação do Curso:</strong><br>
+                <span class="small-text">Aprovado ( ) Rejeitado ( )</span><br>
+                Data: ___/___/${data.ano}
+            </div>
+            <div class="approval-signature">
+                <div class="signature-line"></div>
+                <div style="margin-top: 5px; font-size: 9px;">Assinatura e Carimbo</div>
+            </div>
+        </div>
+        
+        <div class="approval-row">
+            <div class="approval-field">
+                <strong>Coordenação Acadêmica:</strong><br>
+                <span class="small-text">Aprovado ( ) Rejeitado ( )</span><br>
+                <strong>Bolsas Disponibilizadas:</strong> ____<br>
+                Data: ___/___/${data.ano}
+            </div>
+            <div class="approval-signature">
+                <div class="signature-line"></div>
+                <div style="margin-top: 5px; font-size: 9px;">Assinatura e Carimbo</div>
+            </div>
+        </div>
+        
+        <div class="approval-row">
+            <div class="approval-field">
+                <strong>Observações:</strong><br>
+                <div style="border: 1px solid #000; min-height: 40px; padding: 5px; margin-top: 5px;"></div>
+            </div>
+            <div class="approval-signature"></div>
         </div>
     </div>
 </body>

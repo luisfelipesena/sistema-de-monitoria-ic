@@ -2,6 +2,7 @@ import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -21,6 +22,7 @@ import {
   FileText,
   Hand,
   Upload,
+  UserCheck,
   Users,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -37,6 +39,7 @@ interface CandidatoAvaliacao {
   notaDisciplina: number;
   notaFinal: number;
   status: 'PENDENTE' | 'AVALIADO';
+  selecionado?: boolean;
 }
 
 function SelecaoMonitoresPage() {
@@ -51,6 +54,13 @@ function SelecaoMonitoresPage() {
   const [avaliacoes, setAvaliacoes] = useState<
     Record<number, CandidatoAvaliacao>
   >({});
+  const [candidatosSelecionados, setCandidatosSelecionados] = useState<{
+    bolsistas: Set<number>;
+    voluntarios: Set<number>;
+  }>({
+    bolsistas: new Set(),
+    voluntarios: new Set(),
+  });
 
   // Filtrar projetos baseado no role
   const projetosFiltrados =
@@ -78,6 +88,75 @@ function SelecaoMonitoresPage() {
       (i) =>
         i.tipoVagaPretendida === 'VOLUNTARIO' || i.tipoVagaPretendida === 'ANY',
     ) || [];
+
+  const handleSelecionarCandidato = (
+    inscricaoId: number,
+    tipo: 'BOLSISTA' | 'VOLUNTARIO',
+    selecionado: boolean,
+  ) => {
+    setCandidatosSelecionados((prev) => {
+      const newState = { ...prev };
+      const tipoKey = tipo === 'BOLSISTA' ? 'bolsistas' : 'voluntarios';
+      const newSet = new Set(prev[tipoKey]);
+
+      if (selecionado) {
+        // Verificar limites de vagas
+        const limite =
+          tipo === 'BOLSISTA'
+            ? projetoAtual?.bolsasSolicitadas || 0
+            : projetoAtual?.voluntariosSolicitados || 0;
+
+        if (newSet.size >= limite) {
+          toast.error(
+            `Limite de ${limite} vaga(s) para ${tipo.toLowerCase()} atingido`,
+          );
+          return prev;
+        }
+        newSet.add(inscricaoId);
+      } else {
+        newSet.delete(inscricaoId);
+      }
+
+      newState[tipoKey] = newSet;
+      return newState;
+    });
+  };
+
+  const handleConfirmarSelecao = async () => {
+    if (!projetoSelecionado) return;
+
+    try {
+      const selecoes = {
+        bolsistas: Array.from(candidatosSelecionados.bolsistas),
+        voluntarios: Array.from(candidatosSelecionados.voluntarios),
+      };
+
+      const response = await fetch(
+        `/api/projeto/${projetoSelecionado}/selecionar-monitores`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(selecoes),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error('Erro ao confirmar seleção');
+      }
+
+      toast.success('Seleção confirmada com sucesso!');
+
+      // Reset das seleções
+      setCandidatosSelecionados({
+        bolsistas: new Set(),
+        voluntarios: new Set(),
+      });
+    } catch (error) {
+      toast.error('Erro ao confirmar seleção');
+    }
+  };
 
   const handleAtualizarNota = (
     inscricaoId: number,
@@ -152,30 +231,65 @@ function SelecaoMonitoresPage() {
       );
     }
 
+    const tipoKey = tipo === 'BOLSISTA' ? 'bolsistas' : 'voluntarios';
+    const limite =
+      tipo === 'BOLSISTA'
+        ? projetoAtual?.bolsasSolicitadas || 0
+        : projetoAtual?.voluntariosSolicitados || 0;
+    const selecionados = candidatosSelecionados[tipoKey].size;
+
     return (
       <div className="space-y-4">
+        {/* Info sobre vagas */}
+        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <span className="text-sm font-medium">
+            Vagas disponíveis: {limite}
+          </span>
+          <span className="text-sm text-gray-600">
+            Selecionados: {selecionados}/{limite}
+          </span>
+        </div>
+
         {/* Header da tabela */}
         <div className="grid grid-cols-12 gap-4 p-4 border-b font-medium text-sm">
+          <div className="col-span-1">Selecionar</div>
           <div className="col-span-3">Nome</div>
           <div className="col-span-2">Matrícula</div>
           <div className="col-span-1">CR</div>
           <div className="col-span-2">Nota Disciplina</div>
           <div className="col-span-2">Nota Final</div>
-          <div className="col-span-2">Ações</div>
+          <div className="col-span-1">Status</div>
         </div>
 
         {/* Candidatos */}
         {candidatos.map((candidato) => {
           const avaliacao = avaliacoes[candidato.id];
           const isAvaliado = avaliacao?.status === 'AVALIADO';
+          const isSelecionado = candidatosSelecionados[tipoKey].has(
+            candidato.id,
+          );
 
           return (
             <div
               key={candidato.id}
-              className="grid grid-cols-12 gap-4 p-4 border-b"
+              className={`grid grid-cols-12 gap-4 p-4 border-b transition-colors ${
+                isSelecionado ? 'bg-green-50 border-green-200' : ''
+              }`}
             >
+              <div className="col-span-1 flex items-center">
+                <Checkbox
+                  checked={isSelecionado}
+                  onCheckedChange={(checked) =>
+                    handleSelecionarCandidato(candidato.id, tipo, !!checked)
+                  }
+                  disabled={!isSelecionado && selecionados >= limite}
+                />
+              </div>
               <div className="col-span-3 font-medium">
                 {candidato.aluno.nomeCompleto}
+                {isSelecionado && (
+                  <UserCheck className="inline h-4 w-4 ml-2 text-green-600" />
+                )}
               </div>
               <div className="col-span-2">{candidato.aluno.matricula}</div>
               <div className="col-span-1">{candidato.aluno.cr}</div>
@@ -195,6 +309,7 @@ function SelecaoMonitoresPage() {
                     )
                   }
                   disabled={isAvaliado}
+                  className="text-sm"
                 />
               </div>
               <div className="col-span-2">
@@ -213,17 +328,18 @@ function SelecaoMonitoresPage() {
                     )
                   }
                   disabled={isAvaliado}
+                  className="text-sm"
                 />
               </div>
-              <div className="col-span-2">
+              <div className="col-span-1">
                 {isAvaliado ? (
-                  <Badge variant="secondary" className="bg-gray-100">
+                  <Badge variant="secondary" className="bg-gray-100 text-xs">
                     Avaliado
                   </Badge>
                 ) : (
                   <Button
                     size="sm"
-                    className="bg-blue-500 hover:bg-blue-600"
+                    className="bg-blue-500 hover:bg-blue-600 text-xs px-2 py-1"
                     onClick={() => handleAvaliarCandidato(candidato.id)}
                     disabled={
                       !avaliacao?.notaDisciplina || !avaliacao?.notaFinal
@@ -355,6 +471,41 @@ function SelecaoMonitoresPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Botão de Confirmação da Seleção */}
+            {user?.role === 'professor' &&
+              (candidatosBolsistas.length > 0 ||
+                candidatosVoluntarios.length > 0) && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-lg">
+                          Confirmar Seleção
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Bolsistas selecionados:{' '}
+                          {candidatosSelecionados.bolsistas.size} | Voluntários
+                          selecionados:{' '}
+                          {candidatosSelecionados.voluntarios.size}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={handleConfirmarSelecao}
+                        size="lg"
+                        className="bg-green-600 hover:bg-green-700"
+                        disabled={
+                          candidatosSelecionados.bolsistas.size === 0 &&
+                          candidatosSelecionados.voluntarios.size === 0
+                        }
+                      >
+                        <UserCheck className="h-4 w-4 mr-2" />
+                        Confirmar Seleção Final
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
             {/* Documentos */}
             <Card>

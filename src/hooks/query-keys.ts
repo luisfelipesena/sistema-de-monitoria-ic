@@ -71,6 +71,7 @@ export const QueryKeys = {
     list: ['projeto', 'list'],
     byId: (id: string) => ['projeto', id],
     inscricoes: (id: number) => ['projeto', id, 'inscricoes'],
+    documents: (id: number) => ['projeto', id, 'documents'],
   },
 
   disciplina: {
@@ -87,5 +88,11 @@ export const QueryKeys = {
   // Analytics related queries
   analytics: {
     dashboard: ['analytics', 'dashboard'],
+  },
+
+  // User documents related queries
+  userDocuments: {
+    list: ['userDocuments', 'list'],
+    byType: (type: string) => ['userDocuments', type],
   },
 };

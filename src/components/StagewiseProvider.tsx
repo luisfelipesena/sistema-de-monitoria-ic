@@ -10,7 +10,7 @@ const StagewiseProvider: React.FC<{ children: React.ReactNode }> = ({
     if (
       typeof window !== 'undefined' &&
       env.NODE_ENV === 'development' &&
-      env.ENABLE_STAGEWISE === 'true'
+      env.VITE_ENABLE_STAGEWISE === 'true'
     ) {
       const initStagewise = async () => {
         try {
