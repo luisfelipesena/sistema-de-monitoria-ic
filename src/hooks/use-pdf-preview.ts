@@ -1,13 +1,7 @@
 import type { MonitoriaFormData } from '@/components/features/projects/MonitoriaFormTemplate';
-import type {
-  PDFPreviewState,
-  PDFPreviewStatus,
-  ProjetoFormData,
-} from '@/components/features/projects/types';
+import type { ProjetoFormData } from '@/components/features/projects/types';
 import type { DepartamentoResponse } from '@/routes/api/department/-types';
-import { useDebouncedValue } from '@tanstack/react-pacer';
-import { FileText } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 
 interface UsePDFPreviewProps {
   formData: Partial<ProjetoFormData>;
@@ -22,68 +16,62 @@ export function usePDFPreview({
   disciplinasFiltradas,
   user,
 }: UsePDFPreviewProps) {
-  const [state, setState] = useState<PDFPreviewState>({
-    isVisible: false,
-    shouldRender: false,
-    isUserTyping: false,
-    isRendering: false,
-  });
-
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Increase debounce time to 1 second for better performance
-  const [debouncedFormData] = useDebouncedValue(formData, { wait: 1000 });
+  const departamento = useMemo(() => {
+    return departamentos?.find((d) => d.id === formData.departamentoId);
+  }, [departamentos, formData.departamentoId]);
 
-  // Simple intersection observer to check if the preview is visible
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setState((prev) => ({ ...prev, isVisible: entry.isIntersecting }));
-      },
-      { threshold: 0.1, rootMargin: '50px' },
+  const disciplinasSelecionadas = useMemo(() => {
+    if (!disciplinasFiltradas || !formData.disciplinaIds) return [];
+    return disciplinasFiltradas.filter((d) =>
+      formData.disciplinaIds?.includes(d.id),
     );
+  }, [disciplinasFiltradas, formData.disciplinaIds]);
 
-    if (previewRef.current) {
-      observer.observe(previewRef.current);
-    }
+  const hasRequiredFields = useMemo(() => {
+    return !!(
+      formData.titulo &&
+      formData.descricao &&
+      departamento &&
+      formData.disciplinaIds?.length &&
+      formData.ano &&
+      formData.semestre &&
+      formData.tipoProposicao &&
+      formData.cargaHorariaSemana &&
+      formData.numeroSemanas &&
+      formData.publicoAlvo
+    );
+  }, [
+    formData.titulo,
+    formData.descricao,
+    departamento,
+    formData.disciplinaIds,
+    formData.ano,
+    formData.semestre,
+    formData.tipoProposicao,
+    formData.cargaHorariaSemana,
+    formData.numeroSemanas,
+    formData.publicoAlvo,
+  ]);
 
-    return () => observer.disconnect();
-  }, []);
-
-  const departamento = departamentos?.find(
-    (d) => d.id === debouncedFormData.departamentoId,
-  );
-
-  const disciplinasSelecionadas =
-    disciplinasFiltradas?.filter((d) =>
-      debouncedFormData.disciplinaIds?.includes(d.id),
-    ) || [];
-
-  const hasRequiredFields = !!(
-    debouncedFormData.titulo &&
-    debouncedFormData.descricao &&
-    departamento
-  );
-
-  // Memoize template data to prevent unnecessary recalculations
   const templateData = useMemo((): MonitoriaFormData | null => {
     if (!hasRequiredFields) return null;
 
     return {
-      titulo: debouncedFormData.titulo || '',
-      descricao: debouncedFormData.descricao || '',
+      titulo: formData.titulo || '',
+      descricao: formData.descricao || '',
       departamento,
-      coordenadorResponsavel: debouncedFormData.coordenadorResponsavel || '',
-      ano: debouncedFormData.ano || new Date().getFullYear(),
-      semestre: debouncedFormData.semestre || 'SEMESTRE_1',
-      tipoProposicao: debouncedFormData.tipoProposicao || 'INDIVIDUAL',
-      bolsasSolicitadas: debouncedFormData.bolsasSolicitadas || 0,
-      voluntariosSolicitados: debouncedFormData.voluntariosSolicitados || 0,
-      cargaHorariaSemana: debouncedFormData.cargaHorariaSemana || 4,
-      numeroSemanas: debouncedFormData.numeroSemanas || 16,
-      publicoAlvo: debouncedFormData.publicoAlvo || '',
-      estimativaPessoasBenificiadas:
-        debouncedFormData.estimativaPessoasBenificiadas,
+      coordenadorResponsavel: formData.coordenadorResponsavel || '',
+      ano: formData.ano || new Date().getFullYear(),
+      semestre: formData.semestre || 'SEMESTRE_1',
+      tipoProposicao: formData.tipoProposicao || 'INDIVIDUAL',
+      bolsasSolicitadas: formData.bolsasSolicitadas || 0,
+      voluntariosSolicitados: formData.voluntariosSolicitados || 0,
+      cargaHorariaSemana: formData.cargaHorariaSemana || 4,
+      numeroSemanas: formData.numeroSemanas || 16,
+      publicoAlvo: formData.publicoAlvo || '',
+      estimativaPessoasBenificiadas: formData.estimativaPessoasBenificiadas,
       disciplinas: disciplinasSelecionadas.map((d) => ({
         id: d.id,
         codigo: d.codigo,
@@ -92,44 +80,55 @@ export function usePDFPreview({
       user: {
         username: user?.username,
         email: user?.email,
+        nomeCompleto: user?.nomeCompleto,
+        role: user?.role,
       },
     };
   }, [
-    debouncedFormData,
-    departamento,
-    disciplinasSelecionadas,
-    user,
     hasRequiredFields,
+    formData.titulo,
+    formData.descricao,
+    departamento,
+    formData.coordenadorResponsavel,
+    formData.ano,
+    formData.semestre,
+    formData.tipoProposicao,
+    formData.bolsasSolicitadas,
+    formData.voluntariosSolicitados,
+    formData.cargaHorariaSemana,
+    formData.numeroSemanas,
+    formData.publicoAlvo,
+    formData.estimativaPessoasBenificiadas,
+    disciplinasSelecionadas,
+    user?.username,
+    user?.email,
+    user?.nomeCompleto,
+    user?.role,
   ]);
 
-  // Helper to get status info for display
-  const getStatusInfo = (): PDFPreviewStatus => {
+  const shouldShowPDF = hasRequiredFields;
+
+  const statusInfo = useMemo(() => {
     if (!hasRequiredFields) {
       return {
-        icon: FileText,
-        title: 'Preview do Formulário PDF',
+        title: 'Campos Obrigatórios Pendentes',
         message:
-          'Preencha os campos obrigatórios (Título, Descrição e Departamento) para habilitar o preview.',
-        color: 'text-gray-500',
+          'Preencha todos os campos obrigatórios para visualizar o documento PDF.',
+        color: 'text-orange-500',
       };
     }
 
     return {
-      icon: FileText,
       title: 'Preview Disponível',
-      message: 'Clique em "Mostrar Preview" para visualizar o documento PDF.',
+      message: 'Documento PDF pronto para visualização.',
       color: 'text-green-600',
     };
-  };
-
-  // Determine if PDF should be shown based on required fields and visibility
-  const shouldShowPDF = hasRequiredFields && state.isVisible;
+  }, [hasRequiredFields]);
 
   return {
     previewRef,
-    state,
     templateData,
-    statusInfo: getStatusInfo(),
+    statusInfo,
     shouldShowPDF,
     hasRequiredFields,
   };

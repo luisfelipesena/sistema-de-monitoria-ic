@@ -1,3 +1,4 @@
+import type { DisciplinaProfessorResponse } from '@/routes/api/disciplina/$id/professor';
 import {
   DisciplinaProfessorVinculo,
   DisciplinaResponse,
@@ -132,5 +133,18 @@ export function useDesvincularProfessorDisciplina() {
         });
       }
     },
+  });
+}
+
+export function useDisciplinaProfessor(disciplinaId: number | null) {
+  return useQuery<DisciplinaProfessorResponse>({
+    queryKey: QueryKeys.disciplina.professor(disciplinaId!),
+    queryFn: async () => {
+      const response = await apiClient.get<DisciplinaProfessorResponse>(
+        `/disciplina/${disciplinaId}/professor`,
+      );
+      return response.data;
+    },
+    enabled: disciplinaId != null,
   });
 }

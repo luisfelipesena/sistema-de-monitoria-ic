@@ -1,3 +1,4 @@
+import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '@/hooks/use-auth';
 import { createFileRoute, Navigate, Outlet } from '@tanstack/react-router';
 
@@ -6,7 +7,15 @@ export const Route = createFileRoute('/home/_layout/admin/_layout')({
 });
 
 function RouteComponent() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner />
+      </div>
+    );
+  }
+
   if (user?.role !== 'admin') {
     return <Navigate to="/home" />;
   }

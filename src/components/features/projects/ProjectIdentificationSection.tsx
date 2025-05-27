@@ -15,14 +15,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { DisciplinaWithProfessor } from '@/hooks/use-disciplina';
+import {
+  DisciplinaWithProfessor,
+  useDisciplinaProfessor,
+} from '@/hooks/use-disciplina';
 import type { DepartamentoResponse } from '@/routes/api/department/-types';
-import { CircleAlert, Loader2 } from 'lucide-react';
+import { ProfessorResponse } from '@/routes/api/professor';
+import { User } from 'lucia';
+import { CheckCircle, CircleAlert, Loader2, UserIcon } from 'lucide-react';
+import { useEffect } from 'react';
 import {
   Control,
   FieldErrors,
   UseFormRegister,
   UseFormSetValue,
+  UseFormWatch,
 } from 'react-hook-form';
 import type { ProjetoFormData } from './types';
 
@@ -30,13 +37,14 @@ interface ProjectIdentificationSectionProps {
   register: UseFormRegister<ProjetoFormData>;
   control: Control<ProjetoFormData>;
   setValue: UseFormSetValue<ProjetoFormData>;
+  watch: UseFormWatch<ProjetoFormData>;
   errors: FieldErrors<ProjetoFormData>;
   departamentos: DepartamentoResponse[] | undefined;
-  professores: any[] | undefined;
+  professores: ProfessorResponse[] | undefined;
   disciplinasFiltradas: DisciplinaWithProfessor[] | undefined;
   departamentoSelecionado: DepartamentoResponse | undefined;
   loadingDisciplinas: boolean;
-  user: any;
+  user: User | null;
   watchedDisciplinaIds: number[];
   isAdminForm?: boolean;
 }
@@ -45,6 +53,7 @@ export function ProjectIdentificationSection({
   register,
   control,
   setValue,
+  watch,
   errors,
   departamentos,
   professores,
@@ -55,6 +64,32 @@ export function ProjectIdentificationSection({
   watchedDisciplinaIds,
   isAdminForm = false,
 }: ProjectIdentificationSectionProps) {
+  // Auto-fill professor data when first discipline is selected
+  const firstDisciplinaId = watchedDisciplinaIds[0] || null;
+  const { data: professorData, isLoading: loadingProfessor } =
+    useDisciplinaProfessor(firstDisciplinaId);
+
+  // Watch professor fields to show auto-fill status
+  const watchedProfessorId = watch('professorResponsavelId');
+  const watchedCoordenador = watch('coordenadorResponsavel');
+
+  // Auto-fill professor data when it's available
+  useEffect(() => {
+    if (professorData) {
+      // For admin forms, always set the professor ID (hidden field)
+      if (isAdminForm && !watchedProfessorId) {
+        setValue('professorResponsavelId', professorData.id);
+      }
+    }
+  }, [professorData, watchedProfessorId, setValue, isAdminForm]);
+
+  // Auto-fill coordinator with admin's name for admin forms
+  useEffect(() => {
+    if (isAdminForm && user?.username && !watchedCoordenador) {
+      setValue('coordenadorResponsavel', user.username);
+    }
+  }, [isAdminForm, user?.username, watchedCoordenador, setValue]);
+
   // Function to handle checking/unchecking a disciplina
   const handleDisciplinaChange = (disciplinaId: number) => {
     const isSelected = watchedDisciplinaIds.includes(disciplinaId);
@@ -106,6 +141,8 @@ export function ProjectIdentificationSection({
                 onValueChange={(value) => {
                   field.onChange(parseInt(value));
                   setValue('disciplinaIds', []); // Limpar disciplinas ao mudar departamento
+                  setValue('professorResponsavelId', undefined); // Clear professor
+                  setValue('coordenadorResponsavel', ''); // Clear coordenador
                 }}
                 defaultValue={field.value?.toString()}
               >
@@ -236,35 +273,80 @@ export function ProjectIdentificationSection({
         />
       </div>
 
-      {isAdminForm && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={control}
-            name="professorResponsavelId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Professor Responsável</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(parseInt(value))}
-                  defaultValue={field.value?.toString()}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o professor responsável" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {professores?.map((prof) => (
-                      <SelectItem key={prof.id} value={prof.id.toString()}>
-                        {prof.nomeCompleto}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
+      {/* Professor Auto-fill Status */}
+      {firstDisciplinaId && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+          <div className="flex items-center gap-2 mb-2">
+            {loadingProfessor ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                <span className="text-sm font-medium text-blue-800">
+                  Buscando dados do professor responsável...
+                </span>
+              </>
+            ) : professorData ? (
+              <>
+                <CheckCircle className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium text-green-800">
+                  Dados do professor preenchidos automaticamente
+                </span>
+              </>
+            ) : (
+              <>
+                <UserIcon className="w-4 h-4 text-yellow-600" />
+                <span className="text-sm font-medium text-yellow-800">
+                  Professor responsável não encontrado para esta disciplina
+                </span>
+              </>
             )}
-          />
+          </div>
+          {professorData && (
+            <div className="text-xs text-blue-700 space-y-1">
+              <p>
+                <span className="font-medium">Professor:</span>{' '}
+                {professorData.nomeCompleto}
+              </p>
+              <p>
+                <span className="font-medium">Email:</span>{' '}
+                {professorData.emailInstitucional}
+              </p>
+              {professorData.matriculaSiape && (
+                <p>
+                  <span className="font-medium">SIAPE:</span>{' '}
+                  {professorData.matriculaSiape}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {isAdminForm && (
+        <div className="bg-green-50 border border-green-200 rounded-md p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="w-4 h-4 text-green-600" />
+            <span className="text-sm font-medium text-green-800">
+              Configuração Automática
+            </span>
+          </div>
+          <div className="text-xs text-green-700 space-y-1">
+            <p>
+              <span className="font-medium">Coordenador Responsável:</span>{' '}
+              {user?.username || 'Admin'}
+            </p>
+            {professorData && (
+              <p>
+                <span className="font-medium">Professor Responsável:</span>{' '}
+                {professorData.nomeCompleto}
+              </p>
+            )}
+            {!professorData && firstDisciplinaId && (
+              <p className="text-yellow-700">
+                <span className="font-medium">Professor Responsável:</span> Será
+                definido automaticamente conforme a disciplina selecionada
+              </p>
+            )}
+          </div>
         </div>
       )}
 
@@ -330,6 +412,14 @@ export function ProjectIdentificationSection({
           )}
         />
       </div>
+
+      {/* Hidden fields for admin forms to store auto-selected values */}
+      {isAdminForm && (
+        <>
+          <input type="hidden" {...register('professorResponsavelId')} />
+          <input type="hidden" {...register('coordenadorResponsavel')} />
+        </>
+      )}
     </div>
   );
 }

@@ -37,9 +37,12 @@ export function useProjectForm() {
     formState: { errors },
   } = form;
 
-  const departamentoSelecionado = watch('departamentoId');
+  const departamentoId = watch('departamentoId');
+  const departamentoSelecionado = departamentos?.find(
+    (d) => d.id === departamentoId,
+  );
   const { data: disciplinasFiltradas, isLoading: loadingDisciplinas } =
-    useDisciplinas(departamentoSelecionado);
+    useDisciplinas(departamentoId);
   const formData = watch();
 
   const isLoading = loadingDepartamentos || loadingProfessores;
@@ -50,9 +53,7 @@ export function useProjectForm() {
       return null;
     }
 
-    const departamento = departamentos?.find(
-      (d) => d.id === departamentoSelecionado,
-    );
+    const departamento = departamentoSelecionado;
     const disciplinasSelecionadas =
       disciplinasFiltradas?.filter((d) =>
         formData.disciplinaIds?.includes(d.id),

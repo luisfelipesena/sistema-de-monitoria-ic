@@ -3,6 +3,7 @@ import { ProjetoFormData } from '@/components/features/projects/types';
 import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form } from '@/components/ui/form';
 import { useProjectForm } from '@/hooks/use-project-form';
 import { useCreateProjeto } from '@/hooks/use-projeto';
 import { useNavigate } from '@tanstack/react-router';
@@ -19,6 +20,7 @@ export function ProjectForm() {
     professores,
     disciplinasFiltradas,
     formData,
+    form,
     register,
     control,
     watch,
@@ -159,28 +161,31 @@ export function ProjectForm() {
       subtitle="Formulário para criação de projeto de monitoria - rascunho"
     >
       <div className="mx-auto space-y-6">
-        <form className="space-y-6">
-          <ProjectIdentificationSection
-            register={register}
-            control={control}
-            setValue={setValue}
-            errors={errors}
-            departamentos={departamentos}
-            professores={professores}
-            disciplinasFiltradas={disciplinasFiltradas}
-            departamentoSelecionado={departamentoSelecionado}
-            loadingDisciplinas={loadingDisciplinas}
-            user={user}
-            watchedDisciplinaIds={watchedDisciplinaIds}
-            isAdminForm={user?.role === 'admin'}
-          />
+        <Form {...form}>
+          <form className="space-y-6">
+            <ProjectIdentificationSection
+              register={register}
+              control={control}
+              setValue={setValue}
+              watch={watch}
+              errors={errors}
+              departamentos={departamentos}
+              professores={professores}
+              disciplinasFiltradas={disciplinasFiltradas}
+              departamentoSelecionado={departamentoSelecionado}
+              loadingDisciplinas={loadingDisciplinas}
+              user={user}
+              watchedDisciplinaIds={watchedDisciplinaIds}
+              isAdminForm={user?.role === 'admin'}
+            />
 
-          <ProjectVacanciesSection
-            register={register}
-            control={control}
-            errors={errors}
-          />
-        </form>
+            <ProjectVacanciesSection
+              register={register}
+              control={control}
+              errors={errors}
+            />
+          </form>
+        </Form>
 
         <Card>
           <CardHeader className="pb-3">

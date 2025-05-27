@@ -90,6 +90,11 @@ export const QueryKeys = {
     all: ['disciplina'],
     list: ['disciplina', 'list'],
     byId: (id: string) => ['disciplina', id],
+    professor: (disciplinaId: number) => [
+      'disciplina',
+      disciplinaId,
+      'professor',
+    ],
   },
 
   // Período de inscrição related queries
