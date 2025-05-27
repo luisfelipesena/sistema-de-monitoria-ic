@@ -1,4 +1,4 @@
-import { ProjectPDFPreview } from '@/components/features/projects/ProjectPDFPreview';
+import { ProjectPDFPreview } from '@/components/features/projects/ProjectPdfPreview';
 import { ProjetoFormData } from '@/components/features/projects/types';
 import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Button } from '@/components/ui/button';
