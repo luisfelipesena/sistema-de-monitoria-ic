@@ -1,5 +1,10 @@
 import { db } from '@/server/database';
-import { professorTable, projetoTable } from '@/server/database/schema';
+import {
+  professorTable,
+  projetoTable,
+  userTable,
+} from '@/server/database/schema';
+import { sendEmail } from '@/server/lib/emailService';
 import {
   createAPIHandler,
   withRoleMiddleware,
@@ -67,6 +72,24 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/submit')({
           { projetoId, professorId: professor.id },
           'Projeto submetido para aprovação',
         );
+
+        // Enviar notificação para todos os admins
+        const admins = await db.query.userTable.findMany({
+          where: eq(userTable.role, 'admin'),
+        });
+
+        for (const admin of admins) {
+          await sendEmail({
+            to: admin.email,
+            subject: 'Novo Projeto para Assinatura - Monitoria',
+            html: `
+              <h2>Novo Projeto de Monitoria Submetido</h2>
+              <p>O professor ${professor.nomeCompleto} submeteu um novo projeto de monitoria que precisa da sua assinatura:</p>
+              <p><strong>Título:</strong> ${projeto.titulo}</p>
+              <p>Acesse a plataforma para revisar e assinar o projeto.</p>
+            `,
+          });
+        }
 
         return json(
           {

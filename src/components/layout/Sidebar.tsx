@@ -86,12 +86,6 @@ const menuConfig: MenuConfig[] = [
         roles: ['admin'],
       },
       {
-        label: 'Novo Projeto',
-        href: '/home/admin/projects',
-        icon: FilePlus,
-        roles: ['admin'],
-      },
-      {
         label: 'Assinatura de Documentos',
         href: '/home/admin/document-signing',
         icon: FileSignature,
@@ -187,6 +181,12 @@ const menuConfig: MenuConfig[] = [
     icon: FileText,
     roles: ['professor'],
     items: [
+      {
+        label: 'Novo Projeto',
+        href: '/home/professor/projects',
+        icon: FilePlus,
+        roles: ['professor'],
+      },
       {
         label: 'Assinaturas Pendentes',
         href: '/home/professor/pending-signatures',

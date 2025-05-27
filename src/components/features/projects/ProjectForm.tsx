@@ -40,6 +40,21 @@ export function ProjectForm() {
 
   const watchedDisciplinaIds = watch('disciplinaIds') || [];
 
+  // Verificar se o usuário é professor
+  if (user?.role !== 'professor') {
+    return (
+      <PagesLayout title="Acesso Negado">
+        <div className="text-center py-12 border rounded-md bg-muted/20">
+          <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium">Acesso Restrito</h3>
+          <p className="text-muted-foreground mb-4">
+            Apenas professores podem criar projetos de monitoria.
+          </p>
+        </div>
+      </PagesLayout>
+    );
+  }
+
   // Verificar se todos os campos obrigatórios estão preenchidos
   const isFormValid = useMemo(() => {
     // Verificar todos os campos obrigatórios
@@ -72,48 +87,30 @@ export function ProjectForm() {
     try {
       setSubmitting(true);
 
-      // Apply automatic professor assignment logic for admin users
-      if (user?.role === 'admin' && formData.disciplinaIds?.length > 0) {
-        const disciplina = disciplinasFiltradas?.find(
-          (d) => d.id === formData.disciplinaIds[0],
-        );
-
-        if (disciplina && disciplina.professorResponsavel) {
-          const professor = professores?.find(
-            (p) => p.nomeCompleto === disciplina.professorResponsavel,
-          );
-
-          if (professor) {
-            setValue('professorResponsavelId', professor.id);
-          }
-        }
+      // Para professores, usar seu próprio ID como professor responsável
+      const professor = professores?.find(
+        (p) => p.nomeCompleto === user.username,
+      );
+      if (professor) {
+        setValue('professorResponsavelId', professor.id);
       }
 
-      // Ensure the professorResponsavelId is set if required
+      // Garantir que o professorResponsavelId está definido
       const dataToSubmit = { ...formData };
 
-      // For professors, use their own ID
-      if (user?.role === 'professor' && !dataToSubmit.professorResponsavelId) {
-        // Find the professor by comparing with their username
-        const professor = professores?.find(
-          (p) => p.nomeCompleto === user.username,
-        );
-        if (professor) {
-          dataToSubmit.professorResponsavelId = professor.id;
-        }
-      }
-
-      // Save the project after a short delay to ensure all values are set
+      // Salvar o projeto
       setTimeout(async () => {
         try {
           const result = await createProjetoMutation.mutateAsync(
             dataToSubmit as any,
           );
-          toast.success('Rascunho do projeto salvo com sucesso!');
+          toast.success(
+            'Projeto criado e enviado para assinatura com sucesso!',
+          );
           navigate({ to: '/home' });
         } catch (error) {
           console.error('Error saving draft:', error);
-          toast.error('Erro ao salvar o rascunho do projeto');
+          toast.error('Erro ao criar o projeto');
         } finally {
           setSubmitting(false);
         }
@@ -158,7 +155,7 @@ export function ProjectForm() {
   return (
     <PagesLayout
       title="Novo projeto de monitoria"
-      subtitle="Formulário para criação de projeto de monitoria - rascunho"
+      subtitle="Preencha os dados do projeto. Após finalizar, você poderá baixar o PDF, assinar e enviar para aprovação dos administradores."
     >
       <div className="mx-auto space-y-6">
         <Form {...form}>
@@ -176,7 +173,7 @@ export function ProjectForm() {
               loadingDisciplinas={loadingDisciplinas}
               user={user}
               watchedDisciplinaIds={watchedDisciplinaIds}
-              isAdminForm={user?.role === 'admin'}
+              isAdminForm={false}
             />
 
             <ProjectVacanciesSection
@@ -214,12 +211,12 @@ export function ProjectForm() {
               {submitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Salvando...
+                  Enviando...
                 </>
               ) : (
                 <>
                   <FileText className="h-4 w-4 mr-2" />
-                  Salvar Rascunho
+                  Finalizar e Enviar para Assinatura
                 </>
               )}
             </Button>

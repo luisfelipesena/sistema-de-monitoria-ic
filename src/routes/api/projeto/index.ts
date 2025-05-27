@@ -146,52 +146,24 @@ export const APIRoute = createAPIFileRoute('/api/projeto')({
 
   // Criar projeto
   POST: createAPIHandler(
-    withRoleMiddleware(['professor', 'admin'], async (ctx) => {
+    withRoleMiddleware(['professor'], async (ctx) => {
       try {
         const body = await ctx.request.json();
         const validatedData = projetoInputSchema.parse(body);
 
-        let professorResponsavelId: number;
+        // Para professores, buscar seu próprio ID
+        const professor = await db.query.professorTable.findFirst({
+          where: eq(professorTable.userId, parseInt(ctx.state.user.userId)),
+        });
 
-        if (ctx.state.user.role === 'professor') {
-          // Para professores, buscar seu próprio ID
-          const professor = await db.query.professorTable.findFirst({
-            where: eq(professorTable.userId, parseInt(ctx.state.user.userId)),
-          });
-
-          if (!professor) {
-            return json(
-              { error: 'Perfil de professor não encontrado' },
-              { status: 404 },
-            );
-          }
-
-          professorResponsavelId = professor.id;
-        } else if (ctx.state.user.role === 'admin') {
-          // Para admins, usar o professorResponsavelId fornecido no body
-          if (!validatedData.professorResponsavelId) {
-            return json(
-              { error: 'Admins devem especificar o professor responsável' },
-              { status: 400 },
-            );
-          }
-
-          // Verificar se o professor existe
-          const professor = await db.query.professorTable.findFirst({
-            where: eq(professorTable.id, validatedData.professorResponsavelId),
-          });
-
-          if (!professor) {
-            return json(
-              { error: 'Professor responsável não encontrado' },
-              { status: 404 },
-            );
-          }
-
-          professorResponsavelId = validatedData.professorResponsavelId;
-        } else {
-          return json({ error: 'Acesso não autorizado' }, { status: 403 });
+        if (!professor) {
+          return json(
+            { error: 'Perfil de professor não encontrado' },
+            { status: 404 },
+          );
         }
+
+        const professorResponsavelId = professor.id;
 
         // Extrair campos específicos do projeto
         const {

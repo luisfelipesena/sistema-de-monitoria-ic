@@ -34,9 +34,7 @@ const uploadDocumentSchema = z.object({
   observacoes: z.string().optional(),
 });
 
-export const APIRoute = createAPIFileRoute(
-  '/api/projeto/$id/upload-document',
-)({
+export const APIRoute = createAPIFileRoute('/api/projeto/$id/upload-document')({
   POST: createAPIHandler(
     withRoleMiddleware(['professor', 'admin'], async (ctx) => {
       try {
@@ -154,7 +152,7 @@ export const APIRoute = createAPIFileRoute(
           })
           .returning();
 
-        // Enviar notificação por email
+        // Enviar notificação por email e atualizar status se necessário
         if (validatedData.tipoDocumento === 'PROPOSTA_ASSINADA_PROFESSOR') {
           // Notificar admins
           const admins = await db.query.userTable.findMany({
@@ -176,6 +174,12 @@ export const APIRoute = createAPIFileRoute(
             });
           }
         } else if (validatedData.tipoDocumento === 'PROPOSTA_ASSINADA_ADMIN') {
+          // Atualizar status do projeto para APPROVED
+          await db
+            .update(projetoTable)
+            .set({ status: 'APPROVED' })
+            .where(eq(projetoTable.id, projetoId));
+
           // Notificar professor responsável
           await sendEmail({
             to: projeto.professorResponsavel.user.email,
@@ -184,7 +188,7 @@ export const APIRoute = createAPIFileRoute(
               <h2>Proposta de Monitoria Aprovada</h2>
               <p>Sua proposta de monitoria foi aprovada e assinada pelo administrador:</p>
               <p><strong>Título:</strong> ${projeto.titulo}</p>
-              <p>O processo de assinatura foi concluído com sucesso.</p>
+              <p>O processo de assinatura foi concluído com sucesso e o projeto está oficialmente aprovado.</p>
             `,
           });
         }

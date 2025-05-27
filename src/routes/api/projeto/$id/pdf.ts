@@ -29,6 +29,8 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/pdf')({
       try {
         const projetoId = parseInt(ctx.params.id, 10);
         const userId = parseInt(ctx.state.user.userId, 10);
+        const url = new URL(ctx.request.url);
+        const download = url.searchParams.get('download') === 'true';
 
         if (isNaN(projetoId)) {
           return json({ error: 'ID do projeto inválido' }, { status: 400 });
@@ -142,7 +144,17 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/pdf')({
         // Gerar HTML do PDF
         const htmlContent = generateProjetoMonitoriaPDF(pdfData);
 
-        // Retornar HTML para o frontend converter em PDF
+        if (download) {
+          return new Response(htmlContent, {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/html; charset=utf-8',
+              'Content-Disposition': `attachment; filename="projeto-monitoria-${projetoId}.html"`,
+              'X-Download-PDF': 'true',
+            },
+          });
+        }
+
         return new Response(htmlContent, {
           status: 200,
           headers: {

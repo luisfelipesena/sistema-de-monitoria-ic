@@ -49,9 +49,11 @@ function DocumentSigningComponent() {
   }>({});
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
-  // Filter only DRAFT projects for admin signing
-  const draftProjetos =
-    projetos?.filter((projeto) => projeto.status === 'DRAFT') || [];
+  // Filter projects that need admin action
+  const pendingProjetos =
+    projetos?.filter(
+      (projeto) => projeto.status === 'DRAFT' || projeto.status === 'SUBMITTED',
+    ) || [];
 
   const handleDownloadPDF = async (projetoId: number, titulo: string) => {
     try {
@@ -74,6 +76,33 @@ function DocumentSigningComponent() {
     } catch (error) {
       console.error('Erro ao abrir documento:', error);
       toast.error('Erro ao abrir documento do projeto');
+    }
+  };
+
+  const handleDownloadProfessorSignedDocument = async (
+    projetoId: number,
+    titulo: string,
+  ) => {
+    try {
+      const response = await apiClient.get(
+        `/projeto/${projetoId}/download-document?tipo=PROPOSTA_ASSINADA_PROFESSOR`,
+      );
+
+      if (response.data.url) {
+        const link = document.createElement('a');
+        link.href = response.data.url;
+        link.download =
+          response.data.fileName ||
+          `documento-professor-${titulo.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast.success('Documento assinado pelo professor baixado com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao baixar documento do professor:', error);
+      toast.error('Erro ao baixar documento assinado pelo professor');
     }
   };
 
@@ -129,10 +158,10 @@ function DocumentSigningComponent() {
     switch (status) {
       case 'DRAFT':
         return <Badge variant="secondary">Aguardando Assinatura Admin</Badge>;
-      case 'PENDING_PROFESSOR_SIGNATURE':
-        return <Badge variant="warning">Aguardando Professor</Badge>;
       case 'SUBMITTED':
-        return <Badge variant="default">Submetido</Badge>;
+        return (
+          <Badge variant="warning">Professor Assinou - Aguardando Admin</Badge>
+        );
       case 'APPROVED':
         return <Badge variant="success">Aprovado</Badge>;
       case 'REJECTED':
@@ -172,15 +201,15 @@ function DocumentSigningComponent() {
             <CardTitle className="flex items-center gap-2">
               <FileSignature className="h-5 w-5" />
               Projetos Aguardando Assinatura Administrativa
-              {draftProjetos.length > 0 && (
+              {pendingProjetos.length > 0 && (
                 <Badge variant="outline" className="ml-2">
-                  {draftProjetos.length} projeto(s)
+                  {pendingProjetos.length} projeto(s)
                 </Badge>
               )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {draftProjetos.length === 0 ? (
+            {pendingProjetos.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <CheckCircle className="mx-auto h-12 w-12 mb-4" />
                 <h3 className="text-lg font-medium mb-2">
@@ -204,7 +233,7 @@ function DocumentSigningComponent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {draftProjetos.map((projeto) => (
+                  {pendingProjetos.map((projeto) => (
                     <TableRow key={projeto.id}>
                       <TableCell className="font-medium">
                         {projeto.titulo}
@@ -218,18 +247,40 @@ function DocumentSigningComponent() {
                       <TableCell>{renderStatusBadge(projeto.status)}</TableCell>
                       <TableCell>
                         <div className="space-y-2">
-                          {/* Download PDF Button */}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              handleDownloadPDF(projeto.id, projeto.titulo)
-                            }
-                            className="w-full"
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Visualizar/Imprimir
-                          </Button>
+                          {projeto.status === 'DRAFT' ? (
+                            <>
+                              {/* Download PDF Button for DRAFT projects */}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleDownloadPDF(projeto.id, projeto.titulo)
+                                }
+                                className="w-full"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Visualizar/Imprimir
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              {/* Download Professor Signed Document for SUBMITTED projects */}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  handleDownloadProfessorSignedDocument(
+                                    projeto.id,
+                                    projeto.titulo,
+                                  )
+                                }
+                                className="w-full"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Baixar Doc. do Professor
+                              </Button>
+                            </>
+                          )}
 
                           {/* File Upload Section */}
                           <div className="space-y-2">
@@ -301,27 +352,33 @@ function DocumentSigningComponent() {
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
               1
             </span>
-            <p>Baixe o PDF do projeto usando o botão "Baixar PDF"</p>
+            <p>
+              <strong>Para projetos DRAFT:</strong> Baixe o PDF original, assine
+              e faça upload
+            </p>
           </div>
           <div className="flex items-start gap-2">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
               2
             </span>
-            <p>Assine o documento fisicamente ou digitalmente</p>
+            <p>
+              <strong>Para projetos SUBMITTED:</strong> Baixe o documento já
+              assinado pelo professor
+            </p>
           </div>
           <div className="flex items-start gap-2">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
               3
             </span>
-            <p>Faça upload do documento assinado usando "Enviar Assinado"</p>
+            <p>Assine o documento fisicamente ou digitalmente</p>
           </div>
           <div className="flex items-start gap-2">
             <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs font-medium">
               4
             </span>
             <p>
-              O projeto será automaticamente liberado para assinatura do
-              professor responsável
+              Faça upload do documento final assinado - o projeto será
+              automaticamente APROVADO
             </p>
           </div>
         </CardContent>

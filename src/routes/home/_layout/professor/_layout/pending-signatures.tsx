@@ -50,11 +50,42 @@ function PendingSignaturesComponent() {
   }>({});
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
-  // Filter projects pending professor signature that belong to this professor
+  // Filter projects that need professor action (SUBMITTED status)
   const pendingProjetos =
-    projetos?.filter(
-      (projeto) => projeto.status === 'PENDING_PROFESSOR_SIGNATURE',
-    ) || [];
+    projetos?.filter((projeto) => projeto.status === 'SUBMITTED') || [];
+
+  const handleDownloadPDFForSigning = async (
+    projetoId: number,
+    titulo: string,
+  ) => {
+    try {
+      const response = await apiClient.get(
+        `/projeto/${projetoId}/pdf?download=true`,
+      );
+
+      if (response.headers['x-download-pdf']) {
+        // Handle HTML response for PDF generation
+        const htmlContent = response.data;
+
+        // Use html2pdf to convert HTML to PDF and download
+        const html2pdf = (await import('html2pdf.js' as any)).default;
+
+        const opt = {
+          margin: 15,
+          filename: `projeto-monitoria-${titulo.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        };
+
+        html2pdf().set(opt).from(htmlContent).save();
+        toast.success('PDF gerado e baixado com sucesso!');
+      }
+    } catch (error) {
+      console.error('Erro ao baixar PDF:', error);
+      toast.error('Erro ao gerar PDF do projeto');
+    }
+  };
 
   const handleDownloadAdminSignedPDF = async (
     projetoId: number,
@@ -253,12 +284,12 @@ function PendingSignaturesComponent() {
                       <TableCell>{renderStatusBadge(projeto.status)}</TableCell>
                       <TableCell>
                         <div className="space-y-2">
-                          {/* Download Admin-Signed PDF Button */}
+                          {/* Download PDF for Signing Button */}
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() =>
-                              handleDownloadAdminSignedPDF(
+                              handleDownloadPDFForSigning(
                                 projeto.id,
                                 projeto.titulo,
                               )
@@ -266,7 +297,7 @@ function PendingSignaturesComponent() {
                             className="w-full"
                           >
                             <Download className="h-4 w-4 mr-2" />
-                            Visualizar Doc. Assinado
+                            Baixar PDF para Assinatura
                           </Button>
 
                           {/* File Upload Section */}
@@ -362,8 +393,8 @@ function PendingSignaturesComponent() {
               1
             </span>
             <p>
-              Baixe o documento já assinado pelo administrador usando "Baixar
-              Doc. Assinado"
+              Baixe o PDF do projeto para assinar usando "Baixar PDF para
+              Assinatura"
             </p>
           </div>
           <div className="flex items-start gap-2">
