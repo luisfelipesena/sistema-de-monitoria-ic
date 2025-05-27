@@ -4,6 +4,7 @@ import { lucia } from '@/server/lib/auth';
 import { env } from '@/utils/env';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
+import axios from 'axios';
 import { eq } from 'drizzle-orm';
 import { XMLParser } from 'fast-xml-parser';
 const log = logger.child({
@@ -31,21 +32,26 @@ export class CasCallbackService {
     const validationUrl = `${casServerUrlPrefix}/serviceValidate?ticket=${ticket}&service=${encodeURIComponent(serviceUrl)}`;
 
     log.info(`Validating CAS ticket: ${ticket} at ${validationUrl}`);
-    const response = await fetch(validationUrl);
-    const data = await response.text();
 
-    if (response.status !== 200) {
-      log.error(
-        `CAS validation request failed with status ${response.status}:`,
-        data,
-      );
-      return this.redirectToError(
-        'CAS_HTTP_ERROR',
-        `Status ${response.status}`,
-      );
+    try {
+      const response = await axios.get(validationUrl);
+
+      if (response.status !== 200) {
+        log.error(
+          `CAS validation request failed with status ${response.status}:`,
+          response.data,
+        );
+        return this.redirectToError(
+          'CAS_HTTP_ERROR',
+          `Status ${response.status}`,
+        );
+      }
+
+      return this.parseValidationResponse(response.data);
+    } catch (error) {
+      log.error('CAS validation failed:', error);
+      return this.redirectToError('CAS_NETWORK_ERROR');
     }
-
-    return this.parseValidationResponse(data);
   }
 
   parseValidationResponse(data: string) {

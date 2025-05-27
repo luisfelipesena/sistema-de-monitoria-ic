@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/use-auth';
 import {
+  useDownloadProjectPDF,
   useProjetos,
   useUpdateProjetoStatus,
   useUploadProjetoDocument,
@@ -51,6 +52,7 @@ function ProfessorAssinaturasPage() {
   } = useProjetos();
   const uploadDocumentMutation = useUploadProjetoDocument();
   const updateStatusMutation = useUpdateProjetoStatus();
+  const downloadPDFMutation = useDownloadProjectPDF();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -75,13 +77,7 @@ function ProfessorAssinaturasPage() {
 
   const handleDownloadPDF = async (projetoId: number) => {
     try {
-      const response = await fetch(`/api/projeto/${projetoId}/pdf`);
-      if (!response.ok) throw new Error('Erro ao baixar PDF');
-      const htmlContent = await response.text();
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      URL.revokeObjectURL(url);
+      await downloadPDFMutation.mutateAsync(projetoId);
       toast.success('PDF aberto para visualização');
     } catch (error) {
       toast.error('Erro ao baixar PDF do projeto');
@@ -137,8 +133,8 @@ function ProfessorAssinaturasPage() {
         className="rounded-full flex items-center gap-1"
         onClick={() => {
           router.navigate({
-            to: '/home/admin/$project',
-            params: { project: project.id.toString() },
+            to: '/home/admin/project/$id',
+            params: { id: project.id.toString() },
           });
         }}
       >

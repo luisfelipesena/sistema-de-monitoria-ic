@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -11,17 +12,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/use-auth';
-import { useInscricoesProjeto } from '@/hooks/use-inscricao';
-import { useProjetos } from '@/hooks/use-projeto';
+import { useNotifyProjectResults } from '@/hooks/use-notificacoes';
+import { useGenerateAta, useProjetos } from '@/hooks/use-projeto';
+import {
+  AvaliacaoCandidato,
+  CriteriosAvaliacao,
+  useBulkEvaluation,
+  useFinalizeSelection,
+  useSelectionProcess,
+  useSelectionStatus,
+} from '@/hooks/use-selection-process';
 import { createFileRoute } from '@tanstack/react-router';
 import {
+  BarChart3,
   CheckCircle,
   Clock,
-  Download,
   FileText,
   Hand,
-  Upload,
+  Mail,
+  Star,
   UserCheck,
   Users,
 } from 'lucide-react';
@@ -34,12 +47,10 @@ export const Route = createFileRoute('/home/_layout/common/selecao-monitores/')(
   },
 );
 
-interface CandidatoAvaliacao {
+interface CandidatoEvaluation {
   inscricaoId: number;
-  notaDisciplina: number;
-  notaFinal: number;
-  status: 'PENDENTE' | 'AVALIADO';
-  selecionado?: boolean;
+  criterios: CriteriosAvaliacao;
+  observacoes?: string;
 }
 
 function SelecaoMonitoresPage() {
@@ -48,119 +59,67 @@ function SelecaoMonitoresPage() {
   const [projetoSelecionado, setProjetoSelecionado] = useState<number | null>(
     null,
   );
-  const { data: inscricoes, isLoading: loadingInscricoes } =
-    useInscricoesProjeto(projetoSelecionado || 0);
 
-  const [avaliacoes, setAvaliacoes] = useState<
-    Record<number, CandidatoAvaliacao>
-  >({});
-  const [candidatosSelecionados, setCandidatosSelecionados] = useState<{
-    bolsistas: Set<number>;
-    voluntarios: Set<number>;
-  }>({
-    bolsistas: new Set(),
-    voluntarios: new Set(),
-  });
+  const { data: selectionData, isLoading: loadingSelection } =
+    useSelectionProcess(projetoSelecionado || 0);
+  const { data: selectionStatus } = useSelectionStatus(projetoSelecionado || 0);
 
-  // Filtrar projetos baseado no role
-  const projetosFiltrados =
-    projetos?.filter((projeto) => {
-      if (user?.role === 'admin') return true;
-      // Para professores, mostrar apenas projetos aprovados onde é responsável
-      return projeto.status === 'APPROVED';
-    }) || [];
+  const bulkEvaluation = useBulkEvaluation();
+  const finalizeSelection = useFinalizeSelection();
+  const generateAtaMutation = useGenerateAta();
+  const notifyResultsMutation = useNotifyProjectResults();
 
-  const projetoAtual = projetosFiltrados.find(
-    (p) => p.id === projetoSelecionado,
-  );
-  const disciplinaNome =
-    projetoAtual?.disciplinas[0]?.codigo || 'Selecione um projeto';
-
-  // Separar candidatos por tipo
-  const candidatosBolsistas =
-    inscricoes?.filter(
-      (i) =>
-        i.tipoVagaPretendida === 'BOLSISTA' || i.tipoVagaPretendida === 'ANY',
-    ) || [];
-
-  const candidatosVoluntarios =
-    inscricoes?.filter(
-      (i) =>
-        i.tipoVagaPretendida === 'VOLUNTARIO' || i.tipoVagaPretendida === 'ANY',
-    ) || [];
-
-  const handleSelecionarCandidato = (
-    inscricaoId: number,
-    tipo: 'BOLSISTA' | 'VOLUNTARIO',
-    selecionado: boolean,
-  ) => {
-    setCandidatosSelecionados((prev) => {
-      const newState = { ...prev };
-      const tipoKey = tipo === 'BOLSISTA' ? 'bolsistas' : 'voluntarios';
-      const newSet = new Set(prev[tipoKey]);
-
-      if (selecionado) {
-        // Verificar limites de vagas
-        const limite =
-          tipo === 'BOLSISTA'
-            ? projetoAtual?.bolsasSolicitadas || 0
-            : projetoAtual?.voluntariosSolicitados || 0;
-
-        if (newSet.size >= limite) {
-          toast.error(
-            `Limite de ${limite} vaga(s) para ${tipo.toLowerCase()} atingido`,
-          );
-          return prev;
-        }
-        newSet.add(inscricaoId);
-      } else {
-        newSet.delete(inscricaoId);
-      }
-
-      newState[tipoKey] = newSet;
-      return newState;
-    });
-  };
-
-  const handleConfirmarSelecao = async () => {
+  const handleGerarAta = async () => {
     if (!projetoSelecionado) return;
 
     try {
-      const selecoes = {
-        bolsistas: Array.from(candidatosSelecionados.bolsistas),
-        voluntarios: Array.from(candidatosSelecionados.voluntarios),
-      };
-
-      const response = await fetch(
-        `/api/projeto/${projetoSelecionado}/selecionar-monitores`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(selecoes),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error('Erro ao confirmar seleção');
-      }
-
-      toast.success('Seleção confirmada com sucesso!');
-
-      // Reset das seleções
-      setCandidatosSelecionados({
-        bolsistas: new Set(),
-        voluntarios: new Set(),
-      });
+      await generateAtaMutation.mutateAsync(projetoSelecionado);
+      toast.success('Ata de seleção gerada com sucesso!');
     } catch (error) {
-      toast.error('Erro ao confirmar seleção');
+      toast.error('Erro ao gerar ata de seleção');
     }
   };
 
-  const handleAtualizarNota = (
+  const handleEnviarResultadosProjeto = async (projetoId: number) => {
+    try {
+      await notifyResultsMutation.mutateAsync(projetoId);
+      toast.success('Resultados enviados para todos os candidatos!');
+    } catch (error) {
+      toast.error('Erro ao enviar resultados');
+    }
+  };
+
+  const [activeTab, setActiveTab] = useState('candidatos');
+  const [avaliacoes, setAvaliacoes] = useState<
+    Record<number, CandidatoEvaluation>
+  >({});
+  const [candidatosSelecionados, setCandidatosSelecionados] = useState<
+    Set<number>
+  >(new Set());
+  const [enviarNotificacoes, setEnviarNotificacoes] = useState(true);
+  const [observacoesGerais, setObservacoesGerais] = useState('');
+
+  const projetosFiltrados =
+    projetos?.filter((projeto) => {
+      if (user?.role === 'admin') return true;
+      return projeto.status === 'APPROVED';
+    }) || [];
+
+  const candidatosBolsistas =
+    selectionData?.candidatos.filter(
+      (c) =>
+        c.tipoVagaPretendida === 'BOLSISTA' || c.tipoVagaPretendida === 'ANY',
+    ) || [];
+
+  const candidatosVoluntarios =
+    selectionData?.candidatos.filter(
+      (c) =>
+        c.tipoVagaPretendida === 'VOLUNTARIO' || c.tipoVagaPretendida === 'ANY',
+    ) || [];
+
+  const handleUpdateCriterios = (
     inscricaoId: number,
-    campo: 'notaDisciplina' | 'notaFinal',
+    criterio: keyof CriteriosAvaliacao,
     valor: number,
   ) => {
     setAvaliacoes((prev) => ({
@@ -168,55 +127,229 @@ function SelecaoMonitoresPage() {
       [inscricaoId]: {
         ...prev[inscricaoId],
         inscricaoId,
-        [campo]: valor,
-        status: prev[inscricaoId]?.status || 'PENDENTE',
+        criterios: {
+          ...prev[inscricaoId]?.criterios,
+          [criterio]: valor,
+        },
       },
     }));
   };
 
-  const handleAvaliarCandidato = (inscricaoId: number) => {
+  const handleUpdateObservacoes = (
+    inscricaoId: number,
+    observacoes: string,
+  ) => {
     setAvaliacoes((prev) => ({
       ...prev,
       [inscricaoId]: {
         ...prev[inscricaoId],
         inscricaoId,
-        status: 'AVALIADO',
+        observacoes,
       },
     }));
+  };
+
+  const handleSelecionarCandidato = (
+    inscricaoId: number,
+    selecionado: boolean,
+  ) => {
+    setCandidatosSelecionados((prev) => {
+      const newSet = new Set(prev);
+      if (selecionado) {
+        newSet.add(inscricaoId);
+      } else {
+        newSet.delete(inscricaoId);
+      }
+      return newSet;
+    });
   };
 
   const handleSalvarAvaliacoes = async () => {
     if (!projetoSelecionado) return;
 
     try {
-      const avaliacoesArray = Object.values(avaliacoes).filter(
-        (avaliacao) => avaliacao.notaDisciplina && avaliacao.notaFinal,
-      );
+      const avaliacoesArray: AvaliacaoCandidato[] = Object.values(avaliacoes)
+        .filter((av) => av.criterios)
+        .map((av) => ({
+          inscricaoId: av.inscricaoId,
+          criterios: av.criterios,
+          notaFinal: 0,
+          status: 'AVALIADO',
+          observacoes: av.observacoes,
+        }));
 
       if (avaliacoesArray.length === 0) {
         toast.error('Nenhuma avaliação para salvar');
         return;
       }
 
-      const response = await fetch(
-        `/api/projeto/${projetoSelecionado}/avaliacoes`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(avaliacoesArray),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error('Erro ao salvar avaliações');
-      }
+      await bulkEvaluation.mutateAsync({
+        projetoId: projetoSelecionado,
+        avaliacoes: avaliacoesArray,
+        autoCalcularNota: true,
+      });
 
       toast.success('Avaliações salvas com sucesso!');
+      setAvaliacoes({});
     } catch (error) {
       toast.error('Erro ao salvar avaliações');
     }
+  };
+
+  const handleFinalizarSelecao = async () => {
+    if (!projetoSelecionado || candidatosSelecionados.size === 0) return;
+
+    try {
+      const selecionados = Array.from(candidatosSelecionados).map(
+        (inscricaoId) => {
+          const candidato = selectionData?.candidatos.find(
+            (c) => c.inscricaoId === inscricaoId,
+          );
+
+          let tipoVaga: 'BOLSISTA' | 'VOLUNTARIO' = 'VOLUNTARIO';
+          if (
+            candidato?.tipoVagaPretendida === 'BOLSISTA' ||
+            (candidato?.tipoVagaPretendida === 'ANY' &&
+              candidatosBolsistas.some((c) => c.inscricaoId === inscricaoId))
+          ) {
+            tipoVaga = 'BOLSISTA';
+          }
+
+          return {
+            inscricaoId,
+            tipoVaga,
+          };
+        },
+      );
+
+      await finalizeSelection.mutateAsync({
+        projetoId: projetoSelecionado,
+        selecionados,
+        enviarNotificacoes,
+        observacoesGerais: observacoesGerais || undefined,
+      });
+
+      toast.success('Seleção finalizada com sucesso!');
+      setCandidatosSelecionados(new Set());
+      setObservacoesGerais('');
+    } catch (error) {
+      toast.error('Erro ao finalizar seleção');
+    }
+  };
+
+  const renderCriteriosAvaliacao = (inscricaoId: number, candidato: any) => {
+    const avaliacao =
+      avaliacoes[inscricaoId] ||
+      selectionData?.candidatos.find((c) => c.inscricaoId === inscricaoId)
+        ?.avaliacao;
+    const isReadOnly = !!selectionData?.candidatos.find(
+      (c) => c.inscricaoId === inscricaoId,
+    )?.avaliacao;
+
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mt-3">
+        <div>
+          <Label className="text-xs font-medium">CR (30%)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            min="0"
+            max="10"
+            placeholder="0.0"
+            value={avaliacao?.criterios?.cr || ''}
+            onChange={(e) =>
+              handleUpdateCriterios(
+                inscricaoId,
+                'cr',
+                parseFloat(e.target.value) || 0,
+              )
+            }
+            disabled={isReadOnly}
+            className="text-sm"
+          />
+        </div>
+        <div>
+          <Label className="text-xs font-medium">Experiência (20%)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            min="0"
+            max="10"
+            placeholder="0.0"
+            value={avaliacao?.criterios?.experienciaPrevia || ''}
+            onChange={(e) =>
+              handleUpdateCriterios(
+                inscricaoId,
+                'experienciaPrevia',
+                parseFloat(e.target.value) || 0,
+              )
+            }
+            disabled={isReadOnly}
+            className="text-sm"
+          />
+        </div>
+        <div>
+          <Label className="text-xs font-medium">Motivação (20%)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            min="0"
+            max="10"
+            placeholder="0.0"
+            value={avaliacao?.criterios?.motivacao || ''}
+            onChange={(e) =>
+              handleUpdateCriterios(
+                inscricaoId,
+                'motivacao',
+                parseFloat(e.target.value) || 0,
+              )
+            }
+            disabled={isReadOnly}
+            className="text-sm"
+          />
+        </div>
+        <div>
+          <Label className="text-xs font-medium">Disponibilidade (15%)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            min="0"
+            max="10"
+            placeholder="0.0"
+            value={avaliacao?.criterios?.disponibilidade || ''}
+            onChange={(e) =>
+              handleUpdateCriterios(
+                inscricaoId,
+                'disponibilidade',
+                parseFloat(e.target.value) || 0,
+              )
+            }
+            disabled={isReadOnly}
+            className="text-sm"
+          />
+        </div>
+        <div>
+          <Label className="text-xs font-medium">Entrevista (15%)</Label>
+          <Input
+            type="number"
+            step="0.1"
+            min="0"
+            max="10"
+            placeholder="0.0"
+            value={avaliacao?.criterios?.entrevista || ''}
+            onChange={(e) =>
+              handleUpdateCriterios(
+                inscricaoId,
+                'entrevista',
+                parseFloat(e.target.value) || 0,
+              )
+            }
+            disabled={isReadOnly}
+            className="text-sm"
+          />
+        </div>
+      </div>
+    );
   };
 
   const renderCandidatos = (
@@ -226,161 +359,185 @@ function SelecaoMonitoresPage() {
     if (candidatos.length === 0) {
       return (
         <div className="text-center py-8 text-muted-foreground">
-          <span>Sem inscritos</span>
+          <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <span>Nenhum candidato para {tipo.toLowerCase()}</span>
         </div>
       );
     }
 
-    const tipoKey = tipo === 'BOLSISTA' ? 'bolsistas' : 'voluntarios';
     const limite =
       tipo === 'BOLSISTA'
-        ? projetoAtual?.bolsasSolicitadas || 0
-        : projetoAtual?.voluntariosSolicitados || 0;
-    const selecionados = candidatosSelecionados[tipoKey].size;
+        ? selectionData?.projeto.vagasDisponiveis.bolsistas || 0
+        : selectionData?.projeto.vagasDisponiveis.voluntarios || 0;
 
     return (
       <div className="space-y-4">
-        {/* Info sobre vagas */}
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
           <span className="text-sm font-medium">
             Vagas disponíveis: {limite}
           </span>
           <span className="text-sm text-gray-600">
-            Selecionados: {selecionados}/{limite}
+            Selecionados:{' '}
+            {
+              candidatos.filter((c) =>
+                candidatosSelecionados.has(c.inscricaoId),
+              ).length
+            }
+            /{limite}
           </span>
         </div>
 
-        {/* Header da tabela */}
-        <div className="grid grid-cols-12 gap-4 p-4 border-b font-medium text-sm">
-          <div className="col-span-1">Selecionar</div>
-          <div className="col-span-3">Nome</div>
-          <div className="col-span-2">Matrícula</div>
-          <div className="col-span-1">CR</div>
-          <div className="col-span-2">Nota Disciplina</div>
-          <div className="col-span-2">Nota Final</div>
-          <div className="col-span-1">Status</div>
-        </div>
-
-        {/* Candidatos */}
         {candidatos.map((candidato) => {
-          const avaliacao = avaliacoes[candidato.id];
-          const isAvaliado = avaliacao?.status === 'AVALIADO';
-          const isSelecionado = candidatosSelecionados[tipoKey].has(
-            candidato.id,
+          const isSelecionado = candidatosSelecionados.has(
+            candidato.inscricaoId,
           );
+          const hasAvaliacao =
+            candidato.avaliacao || avaliacoes[candidato.inscricaoId]?.criterios;
 
           return (
-            <div
-              key={candidato.id}
-              className={`grid grid-cols-12 gap-4 p-4 border-b transition-colors ${
-                isSelecionado ? 'bg-green-50 border-green-200' : ''
-              }`}
+            <Card
+              key={candidato.inscricaoId}
+              className={isSelecionado ? 'ring-2 ring-green-500' : ''}
             >
-              <div className="col-span-1 flex items-center">
-                <Checkbox
-                  checked={isSelecionado}
-                  onCheckedChange={(checked) =>
-                    handleSelecionarCandidato(candidato.id, tipo, !!checked)
-                  }
-                  disabled={!isSelecionado && selecionados >= limite}
-                />
-              </div>
-              <div className="col-span-3 font-medium">
-                {candidato.aluno.nomeCompleto}
-                {isSelecionado && (
-                  <UserCheck className="inline h-4 w-4 ml-2 text-green-600" />
-                )}
-              </div>
-              <div className="col-span-2">{candidato.aluno.matricula}</div>
-              <div className="col-span-1">{candidato.aluno.cr}</div>
-              <div className="col-span-2">
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="10"
-                  placeholder="0.0"
-                  value={avaliacao?.notaDisciplina || ''}
-                  onChange={(e) =>
-                    handleAtualizarNota(
-                      candidato.id,
-                      'notaDisciplina',
-                      parseFloat(e.target.value) || 0,
-                    )
-                  }
-                  disabled={isAvaliado}
-                  className="text-sm"
-                />
-              </div>
-              <div className="col-span-2">
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="10"
-                  placeholder="0.0"
-                  value={avaliacao?.notaFinal || ''}
-                  onChange={(e) =>
-                    handleAtualizarNota(
-                      candidato.id,
-                      'notaFinal',
-                      parseFloat(e.target.value) || 0,
-                    )
-                  }
-                  disabled={isAvaliado}
-                  className="text-sm"
-                />
-              </div>
-              <div className="col-span-1">
-                {isAvaliado ? (
-                  <Badge variant="secondary" className="bg-gray-100 text-xs">
-                    Avaliado
-                  </Badge>
-                ) : (
-                  <Button
-                    size="sm"
-                    className="bg-blue-500 hover:bg-blue-600 text-xs px-2 py-1"
-                    onClick={() => handleAvaliarCandidato(candidato.id)}
-                    disabled={
-                      !avaliacao?.notaDisciplina || !avaliacao?.notaFinal
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={isSelecionado}
+                      onCheckedChange={(checked) =>
+                        handleSelecionarCandidato(
+                          candidato.inscricaoId,
+                          !!checked,
+                        )
+                      }
+                    />
+                    <div>
+                      <h3 className="font-semibold">{candidato.aluno.nome}</h3>
+                      <p className="text-sm text-gray-600">
+                        {candidato.aluno.matricula} • CR: {candidato.aluno.cr}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {candidato.avaliacao && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-green-100 text-green-800"
+                      >
+                        <Star className="h-3 w-3 mr-1" />
+                        Nota: {candidato.avaliacao.notaFinal.toFixed(1)}
+                      </Badge>
+                    )}
+                    <Badge
+                      variant={
+                        candidato.status.includes('SELECTED')
+                          ? 'default'
+                          : 'secondary'
+                      }
+                    >
+                      {candidato.status}
+                    </Badge>
+                  </div>
+                </div>
+
+                {renderCriteriosAvaliacao(candidato.inscricaoId, candidato)}
+
+                <div className="mt-3">
+                  <Label className="text-xs font-medium">Observações</Label>
+                  <Textarea
+                    placeholder="Observações sobre o candidato..."
+                    value={
+                      avaliacoes[candidato.inscricaoId]?.observacoes ||
+                      candidato.avaliacao?.observacoes ||
+                      ''
                     }
-                  >
-                    Avaliar
-                  </Button>
-                )}
-              </div>
-            </div>
+                    onChange={(e) =>
+                      handleUpdateObservacoes(
+                        candidato.inscricaoId,
+                        e.target.value,
+                      )
+                    }
+                    disabled={!!candidato.avaliacao}
+                    className="text-sm mt-1"
+                    rows={2}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           );
         })}
       </div>
     );
   };
 
-  const documentos = [
-    {
-      nome: 'Planilha Candidatos Bolsistas',
-      status: user?.role === 'professor' ? 'Aguardando Assinatura' : 'download',
-      tipo: 'PLANILHA_BOLSISTAS',
-    },
-    {
-      nome: 'Ata da Seleção',
-      status: user?.role === 'professor' ? 'download' : 'Assinatura Validada',
-      tipo: 'ATA_SELECAO',
-    },
-  ];
+  const renderEstatisticas = () => (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-blue-500" />
+            <div>
+              <p className="text-sm font-medium">Total Candidatos</p>
+              <p className="text-2xl font-bold">
+                {selectionData?.estatisticas.totalCandidatos || 0}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-  if (user?.role === 'professor') {
-    documentos.push({
-      nome: 'Ata da Seleção',
-      status: 'Assinatura Aprovado',
-      tipo: 'ATA_SELECAO_APROVADA',
-    });
-  }
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-500" />
+            <div>
+              <p className="text-sm font-medium">Avaliados</p>
+              <p className="text-2xl font-bold">
+                {selectionData?.estatisticas.avaliados || 0}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2">
+            <UserCheck className="h-5 w-5 text-purple-500" />
+            <div>
+              <p className="text-sm font-medium">Selecionados</p>
+              <p className="text-2xl font-bold">
+                {candidatosSelecionados.size}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-orange-500" />
+            <div>
+              <p className="text-sm font-medium">Status</p>
+              <p className="text-sm font-bold">
+                {selectionStatus?.processoFinalizado
+                  ? 'Finalizado'
+                  : 'Em Andamento'}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   return (
-    <PagesLayout title={disciplinaNome} subtitle="Seleção de monitores">
+    <PagesLayout
+      title={selectionData?.projeto.titulo || 'Seleção de Monitores'}
+      subtitle="Processo de avaliação e seleção de candidatos"
+    >
       <div className="space-y-6">
-        {/* Seletor de Projeto */}
         <Card>
           <CardContent className="pt-6">
             <Select
@@ -393,8 +550,7 @@ function SelecaoMonitoresPage() {
               <SelectContent>
                 {projetosFiltrados.map((projeto) => (
                   <SelectItem key={projeto.id} value={projeto.id.toString()}>
-                    {projeto.disciplinas[0]?.codigo} -{' '}
-                    {projeto.disciplinas[0]?.nome}
+                    {projeto.titulo}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -404,193 +560,182 @@ function SelecaoMonitoresPage() {
 
         {projetoSelecionado && (
           <>
-            {/* Candidatos Bolsistas */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-blue-500" />
-                  Candidatos Bolsistas
-                </CardTitle>
-                {user?.role === 'professor' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-blue-600 border-blue-600"
-                  >
-                    Gerar Documento
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent>
-                {loadingInscricoes ? (
-                  <div className="text-center py-8">
-                    Carregando candidatos...
-                  </div>
-                ) : (
-                  renderCandidatos(candidatosBolsistas, 'BOLSISTA')
-                )}
-              </CardContent>
-            </Card>
+            {renderEstatisticas()}
 
-            {/* Candidatos Voluntários */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Hand className="h-5 w-5 text-green-500" />
-                  Candidatos Voluntários
-                </CardTitle>
-                {user?.role === 'professor' && (
-                  <div className="flex gap-2">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="candidatos">Candidatos</TabsTrigger>
+                <TabsTrigger value="finalizacao">Finalização</TabsTrigger>
+                <TabsTrigger value="resultados">Resultados</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="candidatos" className="space-y-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-blue-500" />
+                      Candidatos Bolsistas
+                    </CardTitle>
                     <Button
                       onClick={handleSalvarAvaliacoes}
-                      size="sm"
+                      disabled={
+                        Object.keys(avaliacoes).length === 0 ||
+                        bulkEvaluation.isPending
+                      }
                       className="bg-blue-600 hover:bg-blue-700"
                     >
                       Salvar Avaliações
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-green-600 border-green-600"
-                    >
-                      Gerar Documento
-                    </Button>
-                  </div>
-                )}
-              </CardHeader>
-              <CardContent>
-                {candidatosVoluntarios.length > 0 ? (
-                  renderCandidatos(candidatosVoluntarios, 'VOLUNTARIO')
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="w-full text-green-600 border-green-600"
-                  >
-                    Solicitar Voluntário
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Botão de Confirmação da Seleção */}
-            {user?.role === 'professor' &&
-              (candidatosBolsistas.length > 0 ||
-                candidatosVoluntarios.length > 0) && (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold text-lg">
-                          Confirmar Seleção
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Bolsistas selecionados:{' '}
-                          {candidatosSelecionados.bolsistas.size} | Voluntários
-                          selecionados:{' '}
-                          {candidatosSelecionados.voluntarios.size}
-                        </p>
+                  </CardHeader>
+                  <CardContent>
+                    {loadingSelection ? (
+                      <div className="text-center py-8">
+                        Carregando candidatos...
                       </div>
-                      <Button
-                        onClick={handleConfirmarSelecao}
-                        size="lg"
-                        className="bg-green-600 hover:bg-green-700"
-                        disabled={
-                          candidatosSelecionados.bolsistas.size === 0 &&
-                          candidatosSelecionados.voluntarios.size === 0
-                        }
-                      >
-                        <UserCheck className="h-4 w-4 mr-2" />
-                        Confirmar Seleção Final
-                      </Button>
-                    </div>
+                    ) : (
+                      renderCandidatos(candidatosBolsistas, 'BOLSISTA')
+                    )}
                   </CardContent>
                 </Card>
-              )}
 
-            {/* Documentos */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Documentos
-                </CardTitle>
-                {user?.role === 'professor' && (
-                  <Button variant="outline" size="sm" className="text-blue-600">
-                    Adicionar Documento
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {documentos.map((doc, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <span className="font-medium">{doc.nome}</span>
-                    <div className="flex items-center gap-2">
-                      {doc.status === 'download' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-blue-600"
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          Baixar
-                        </Button>
-                      )}
-                      {doc.status === 'Aguardando Assinatura' && (
-                        <Badge
-                          variant="secondary"
-                          className="bg-yellow-100 text-yellow-800"
-                        >
-                          <Clock className="h-3 w-3 mr-1" />
-                          Aguardando Assinatura
-                        </Badge>
-                      )}
-                      {doc.status === 'Assinatura Validada' && (
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-blue-600"
-                          >
-                            <Download className="h-4 w-4 mr-1" />
-                            Baixar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-blue-600"
-                          >
-                            <Upload className="h-4 w-4 mr-1" />
-                            Validar Assinatura
-                          </Button>
-                        </div>
-                      )}
-                      {doc.status === 'Assinatura Aprovado' && (
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant="secondary"
-                            className="bg-green-100 text-green-800"
-                          >
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Assinatura Aprovado
-                          </Badge>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-blue-600"
-                          >
-                            <Download className="h-4 w-4 mr-1" />
-                            Baixar
-                          </Button>
-                        </div>
-                      )}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Hand className="h-5 w-5 text-green-500" />
+                      Candidatos Voluntários
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {renderCandidatos(candidatosVoluntarios, 'VOLUNTARIO')}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="finalizacao" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Finalizar Processo de Seleção</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="notificacoes"
+                        checked={enviarNotificacoes}
+                        onCheckedChange={(checked) =>
+                          setEnviarNotificacoes(checked === true)
+                        }
+                      />
+                      <Label
+                        htmlFor="notificacoes"
+                        className="flex items-center gap-2"
+                      >
+                        <Mail className="h-4 w-4" />
+                        Enviar notificações por email aos candidatos
+                      </Label>
                     </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+
+                    <div>
+                      <Label>Observações Gerais</Label>
+                      <Textarea
+                        placeholder="Observações que serão incluídas nas notificações..."
+                        value={observacoesGerais}
+                        onChange={(e) => setObservacoesGerais(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="space-y-2">
+                      <h4 className="font-semibold">Resumo da Seleção:</h4>
+                      <p className="text-sm text-gray-600">
+                        • Candidatos selecionados: {candidatosSelecionados.size}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        • Bolsistas:{' '}
+                        {
+                          candidatosBolsistas.filter((c) =>
+                            candidatosSelecionados.has(c.inscricaoId),
+                          ).length
+                        }
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        • Voluntários:{' '}
+                        {
+                          candidatosVoluntarios.filter((c) =>
+                            candidatosSelecionados.has(c.inscricaoId),
+                          ).length
+                        }
+                      </p>
+                    </div>
+
+                    <Button
+                      onClick={handleFinalizarSelecao}
+                      disabled={
+                        candidatosSelecionados.size === 0 ||
+                        finalizeSelection.isPending
+                      }
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      size="lg"
+                    >
+                      Finalizar Seleção
+                    </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="resultados" className="space-y-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Status do Processo
+                    </CardTitle>
+                    <Button
+                      onClick={handleGerarAta}
+                      variant="outline"
+                      className="flex items-center gap-2"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Gerar Ata de Seleção
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {selectionStatus && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-blue-600">
+                            {selectionStatus.estatisticas.pendentes}
+                          </p>
+                          <p className="text-sm text-gray-600">Pendentes</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-green-600">
+                            {selectionStatus.estatisticas.selecionadosBolsista}
+                          </p>
+                          <p className="text-sm text-gray-600">Bolsistas</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-purple-600">
+                            {
+                              selectionStatus.estatisticas
+                                .selecionadosVoluntario
+                            }
+                          </p>
+                          <p className="text-sm text-gray-600">Voluntários</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-2xl font-bold text-red-600">
+                            {selectionStatus.estatisticas.rejeitados}
+                          </p>
+                          <p className="text-sm text-gray-600">Rejeitados</p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </>
         )}
       </div>

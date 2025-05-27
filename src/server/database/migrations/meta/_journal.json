@@ -22,6 +22,20 @@
       "when": 1748304178934,
       "tag": "0002_outstanding_bushwacker",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1748315382196,
+      "tag": "0003_awesome_randall",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1748318274951,
+      "tag": "0004_milky_kronos",
+      "breakpoints": true
     }
   ]
 }

@@ -275,6 +275,9 @@ export const professorTable = pgTable('professor', {
   telefone: varchar('telefone'),
   telefoneInstitucional: varchar('telefone_institucional'),
   emailInstitucional: varchar('email_institucional').notNull(),
+  // Document file IDs for professor documents
+  curriculumVitaeFileId: text('curriculum_vitae_file_id'),
+  comprovanteVinculoFileId: text('comprovante_vinculo_file_id'),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',
@@ -340,6 +343,9 @@ export const alunoTable = pgTable('aluno', {
   cursoId: integer('curso_id')
     .references(() => cursoTable.id)
     .notNull(),
+  // Document file IDs for student documents
+  historicoEscolarFileId: text('historico_escolar_file_id'),
+  comprovanteMatriculaFileId: text('comprovante_matricula_file_id'),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',

@@ -7,6 +7,7 @@ import {
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
+import axios from 'axios';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -63,10 +64,13 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/reject')({
 
         // Enviar notificação por email automaticamente
         try {
-          const notifyResponse = await fetch(
-            `${ctx.request.url.split('/reject')[0]}/notify-approval`,
+          const baseUrl = ctx.request.url.split('/reject')[0];
+          const notifyUrl = `${baseUrl}/notify-approval`;
+
+          const notifyResponse = await axios.post(
+            notifyUrl,
+            {},
             {
-              method: 'POST',
               headers: {
                 Authorization: ctx.request.headers.get('Authorization') || '',
                 'Content-Type': 'application/json',
@@ -74,7 +78,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/reject')({
             },
           );
 
-          if (notifyResponse.ok) {
+          if (notifyResponse.status === 200) {
             log.info({ projetoId }, 'Notificação de rejeição enviada');
           } else {
             log.warn({ projetoId }, 'Falha ao enviar notificação de rejeição');

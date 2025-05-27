@@ -40,6 +40,7 @@ export const QueryKeys = {
   files: {
     all: ['files'],
     byId: (id: string) => ['files', id],
+    access: (id: string) => ['files', 'access', id],
     uploads: ['files', 'uploads'],
     admin: {
       list: ['files', 'admin', 'list'],
@@ -72,6 +73,11 @@ export const QueryKeys = {
     byId: (id: string) => ['projeto', id],
     inscricoes: (id: number) => ['projeto', id, 'inscricoes'],
     documents: (id: number) => ['projeto', id, 'documents'],
+    selectionProcess: (id: number) => ['projeto', id, 'selection-process'],
+    selectionStatus: (id: number) => ['projeto', id, 'selection-status'],
+    pdf: (id: number) => ['projeto', id, 'pdf'],
+    ata: (id: number) => ['projeto', id, 'ata'],
+    notifyResults: (id: number) => ['projeto', id, 'notify-results'],
   },
 
   disciplina: {
@@ -94,5 +100,16 @@ export const QueryKeys = {
   userDocuments: {
     list: ['userDocuments', 'list'],
     byType: (type: string) => ['userDocuments', type],
+  },
+
+  // Relatórios related queries
+  relatorios: {
+    planilhaPrograd: ['relatorios', 'planilha-prograd'],
+  },
+
+  // Notificações related queries
+  notificacoes: {
+    manual: ['notificacoes', 'manual'],
+    historico: ['notificacoes', 'historico'],
   },
 };

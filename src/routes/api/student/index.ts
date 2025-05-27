@@ -54,7 +54,7 @@ export const APIRoute = createAPIFileRoute('/api/student')({
         // Validate the input with Zod
         const validatedInput = alunoInputSchema.parse(body);
 
-        // Extrair os campos de upload antes de inserir no banco
+        // Incluir os campos de upload ao salvar no banco
         const {
           historicoEscolarFileId,
           comprovanteMatriculaFileId,
@@ -75,14 +75,18 @@ export const APIRoute = createAPIFileRoute('/api/student')({
 
         let result;
 
-        // TODO: Armazenar IDs de arquivos em uma tabela de documentos relacionada
-        // por enquanto apenas registramos o aluno
+        const dataToSave = {
+          ...alunoData,
+          historicoEscolarFileId,
+          comprovanteMatriculaFileId,
+        };
+
         if (!aluno) {
           // Criar novo aluno
           result = await db
             .insert(alunoTable)
             .values({
-              ...alunoData,
+              ...dataToSave,
               userId: parseInt(ctx.state.user.userId),
             })
             .returning();
@@ -90,7 +94,7 @@ export const APIRoute = createAPIFileRoute('/api/student')({
           // Atualizar aluno existente
           result = await db
             .update(alunoTable)
-            .set(alunoData)
+            .set(dataToSave)
             .where(eq(alunoTable.id, aluno.id))
             .returning();
         }

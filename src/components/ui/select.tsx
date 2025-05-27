@@ -31,7 +31,7 @@ const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        'flex w-full items-center justify-between rounded-md border bg-white px-4 py-3 text-base transition-colors outline-none',
+        'flex w-full items-center justify-between rounded-md border bg-white px-3 py-2.5 text-sm transition-colors outline-none h-[40px]',
         statusClasses[inputStatus],
         className,
       )}

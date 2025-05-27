@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '@/hooks/use-auth';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { FileText } from 'lucide-react';
 
 export const Route = createFileRoute('/home/_layout/common/status/')({
   component: RouteComponent,
@@ -16,6 +17,29 @@ function RouteComponent() {
   const navigate = useNavigate();
 
   const hasInscription = true;
+
+  const handleDownloadTermoCompromisso = async (vagaId: number) => {
+    try {
+      const response = await fetch(`/api/vaga/${vagaId}/termo-compromisso`);
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar termo');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `termo-compromisso-monitor.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Erro ao baixar termo:', error);
+    }
+  };
 
   const getStatus = (): StatusInscricao => {
     return 'em análise';
@@ -91,11 +115,22 @@ function RouteComponent() {
             </p>
           )}
           {status === 'aprovado' && (
-            <div className="space-y-2">
+            <div className="space-y-4">
               <p className="text-sm text-green-700 bg-green-50 p-3 rounded">
                 🎉 Parabéns! Sua inscrição foi aprovada. Verifique seu e-mail
                 para as próximas instruções.
               </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownloadTermoCompromisso(1)}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Baixar Termo de Compromisso
+                </Button>
+              </div>
             </div>
           )}
           {status === 'rejeitado' && (

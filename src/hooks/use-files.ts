@@ -1,4 +1,7 @@
-import { FileListItem, PresignedUrlResponse } from '@/routes/api/files/admin/-types';
+import {
+  FileListItem,
+  PresignedUrlResponse,
+} from '@/routes/api/files/admin/-types';
 import { DeleteResponse } from '@/routes/api/files/admin/delete';
 import { PresignedUrlBody } from '@/routes/api/files/admin/presigned-url';
 import { apiClient } from '@/utils/api-client';
@@ -48,13 +51,14 @@ export function useFileUpload() {
  */
 export function useFileAccess(fileId: string) {
   return useQuery({
-    queryKey: QueryKeys.files.byId(fileId),
+    queryKey: QueryKeys.files.access(fileId),
     queryFn: async () => {
       if (!fileId) return null;
       const response = await apiClient.get(`/files/access/${fileId}`);
       return response.data;
     },
     enabled: Boolean(fileId),
+    staleTime: 5 * 60 * 1000, // 5 minutos
   });
 }
 
@@ -83,7 +87,10 @@ export function useAdminFileDelete() {
 
   return useMutation<DeleteResponse, Error, { objectName: string }>({
     mutationFn: async ({ objectName }) => {
-      const response = await apiClient.post<DeleteResponse>('/files/admin/delete', { objectName });
+      const response = await apiClient.post<DeleteResponse>(
+        '/files/admin/delete',
+        { objectName },
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -98,7 +105,10 @@ export function useAdminFileDelete() {
 export function useAdminFilePresignedUrl() {
   return useMutation<PresignedUrlResponse, Error, PresignedUrlBody>({
     mutationFn: async ({ objectName }) => {
-      const response = await apiClient.post<PresignedUrlResponse>('/files/admin/presigned-url', { objectName });
+      const response = await apiClient.post<PresignedUrlResponse>(
+        '/files/admin/presigned-url',
+        { objectName },
+      );
       return response.data;
     },
   });

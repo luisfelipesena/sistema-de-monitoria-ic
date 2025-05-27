@@ -1,26 +1,34 @@
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
   BookOpen,
-  Calendar,
+  Building,
+  ChevronRight,
   FileCheck,
   FilePlus,
   FileSignature,
   FileText,
-  FolderKanban,
   GraduationCap,
+  Home,
   LayoutDashboard,
-  Mail,
-  Monitor,
+  Settings,
   TrendingUp,
   User,
   UserCog,
@@ -28,6 +36,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
+import { useState } from 'react';
 
 type SidebarLayoutProps = {
   pathname: string;
@@ -43,126 +52,198 @@ type MenuItemConfig = {
   isActive?: (pathname: string, itemHref: string) => boolean;
 };
 
-const menuItemsConfig: MenuItemConfig[] = [
+type MenuGroupConfig = {
+  label: string;
+  icon: LucideIcon;
+  roles: UserRole[];
+  items: MenuItemConfig[];
+};
+
+type MenuConfig = MenuItemConfig | MenuGroupConfig;
+
+const isMenuGroup = (item: MenuConfig): item is MenuGroupConfig => {
+  return 'items' in item;
+};
+
+const menuConfig: MenuConfig[] = [
+  // Home - sempre primeiro
+  {
+    label: 'Página Inicial',
+    href: '/',
+    icon: Home,
+    roles: ['admin', 'professor', 'student'],
+  },
+
+  // Dashboard - sempre segundo
   {
     label: 'Dashboard',
     href: (role) => `/home/${role}/dashboard`,
     icon: LayoutDashboard,
     roles: ['admin', 'professor', 'student'],
   },
+
+  // Admin - Projetos
   {
     label: 'Projetos',
-    href: '/home/admin/projects',
-    icon: FolderKanban,
+    icon: FileText,
     roles: ['admin'],
+    items: [
+      {
+        label: 'Gerenciar Projetos',
+        href: '/home/admin/manage-projects',
+        icon: FileText,
+        roles: ['admin'],
+      },
+      {
+        label: 'Novo Projeto',
+        href: '/home/admin/projects',
+        icon: FilePlus,
+        roles: ['admin'],
+      },
+      {
+        label: 'Assinatura de Documentos',
+        href: '/home/admin/document-signing',
+        icon: FileSignature,
+        roles: ['admin'],
+      },
+    ],
   },
+
+  // Admin - Usuários
   {
-    label: 'Novo Edital',
-    href: '/home/admin/edital',
-    icon: Calendar,
+    label: 'Usuários',
+    icon: Users,
     roles: ['admin'],
+    items: [
+      {
+        label: 'Professores',
+        href: '/home/admin/professores',
+        icon: UserCog,
+        roles: ['admin'],
+      },
+      {
+        label: 'Alunos',
+        href: '/home/admin/alunos',
+        icon: UserPlus,
+        roles: ['admin'],
+      },
+      {
+        label: 'Todos os Usuários',
+        href: '/home/admin/users',
+        icon: Users,
+        roles: ['admin'],
+      },
+    ],
   },
+
+  // Admin - Configurações Acadêmicas
   {
-    label: 'Seleção de monitores',
-    href: '/home/common/selecao-monitores',
-    icon: UserCog,
-    roles: ['professor', 'admin'],
+    label: 'Configurações',
+    icon: Settings,
+    roles: ['admin'],
+    items: [
+      {
+        label: 'Cursos',
+        href: '/home/admin/cursos',
+        icon: GraduationCap,
+        roles: ['admin'],
+      },
+      {
+        label: 'Departamentos',
+        href: '/home/admin/departamentos',
+        icon: Building,
+        roles: ['admin'],
+      },
+      {
+        label: 'Disciplinas',
+        href: '/home/admin/disciplinas',
+        icon: BookOpen,
+        roles: ['admin'],
+      },
+      {
+        label: 'Editais',
+        href: '/home/admin/edital',
+        icon: FileText,
+        roles: ['admin'],
+      },
+    ],
   },
+
+  // Admin - Sistema
   {
-    label: 'Assinaturas Pendentes',
-    href: '/home/professor/assinaturas-pendentes',
-    icon: FileSignature,
+    label: 'Sistema',
+    icon: TrendingUp,
+    roles: ['admin'],
+    items: [
+      {
+        label: 'Analytics',
+        href: '/home/admin/analytics',
+        icon: TrendingUp,
+        roles: ['admin'],
+      },
+      {
+        label: 'Arquivos',
+        href: '/home/admin/files',
+        icon: FileText,
+        roles: ['admin'],
+      },
+    ],
+  },
+
+  // Professor - Projetos
+  {
+    label: 'Projetos',
+    icon: FileText,
     roles: ['professor'],
+    items: [
+      {
+        label: 'Assinaturas Pendentes',
+        href: '/home/professor/pending-signatures',
+        icon: FileSignature,
+        roles: ['professor'],
+      },
+      {
+        label: 'Gerenciar Voluntários',
+        href: '/home/professor/volunteer-management',
+        icon: Users,
+        roles: ['professor'],
+      },
+      {
+        label: 'Seleção de Monitores',
+        href: '/home/common/selecao-monitores',
+        icon: UserCog,
+        roles: ['professor'],
+      },
+    ],
   },
+
+  // Student - Monitoria
   {
-    label: 'Gerenciar Projetos',
-    href: '/home/admin/projetos',
-    icon: FolderKanban,
-    roles: ['admin'],
+    label: 'Monitoria',
+    icon: GraduationCap,
+    roles: ['student'],
+    items: [
+      {
+        label: 'Inscrição em Monitoria',
+        href: '/home/student/inscricao-monitoria',
+        icon: FilePlus,
+        roles: ['student'],
+      },
+      {
+        label: 'Meu Status',
+        href: '/home/common/status',
+        icon: FileCheck,
+        roles: ['student'],
+      },
+    ],
   },
+
+  // Perfil - sempre último
   {
     label: 'Perfil',
     href: '/home/common/profile',
     icon: User,
     roles: ['admin', 'professor', 'student'],
-  },
-  {
-    label: 'Inscrição',
-    href: '/home/common/monitoria',
-    icon: FilePlus,
-    roles: ['student'],
-  },
-  {
-    label: 'Status',
-    href: '/home/common/status',
-    icon: FileCheck,
-    roles: ['student'],
-  },
-  {
-    label: 'Documentos',
-    href: '/home/common/documentos',
-    icon: FileText,
-    roles: ['student'],
-  },
-  {
-    label: 'Cursos',
-    href: '/home/admin/cursos',
-    icon: GraduationCap,
-    roles: ['admin'],
-  },
-  {
-    label: 'Departamentos',
-    href: '/home/admin/departamentos',
-    icon: Monitor,
-    roles: ['admin'],
-  },
-  {
-    label: 'Disciplinas',
-    href: '/home/admin/disciplinas',
-    icon: BookOpen,
-    roles: ['admin'],
-  },
-  {
-    label: 'Análise de Projetos',
-    href: '/home/admin/analise-projetos',
-    icon: FileCheck,
-    roles: ['admin'],
-  },
-  {
-    label: 'Analytics',
-    href: '/home/admin/analytics',
-    icon: TrendingUp,
-    roles: ['admin'],
-  },
-  {
-    label: 'Professores',
-    href: '/home/admin/professores',
-    icon: UserCog,
-    roles: ['admin'],
-  },
-  {
-    label: 'Alunos',
-    href: '/home/admin/alunos',
-    icon: UserPlus,
-    roles: ['admin'],
-  },
-  {
-    label: 'Usuários',
-    href: '/home/admin/users',
-    icon: Users,
-    roles: ['admin'],
-  },
-  {
-    label: 'Notificações',
-    href: '/home/admin/notificacoes',
-    icon: Mail,
-    roles: ['admin'],
-  },
-  {
-    label: 'Arquivos',
-    href: '/home/admin/files',
-    icon: FileText,
-    roles: ['admin'],
   },
 ];
 
@@ -170,11 +251,127 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
   const { user } = useAuth();
   const { isLessThanMediumDesktop, setOpenCompactSidebarView } = useSidebar();
   const navigate = useNavigate();
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
 
   function handleNavigate(to: string) {
     navigate({ to });
     if (isLessThanMediumDesktop) setOpenCompactSidebarView(false);
   }
+
+  function toggleGroup(groupLabel: string) {
+    const newOpenGroups = new Set(openGroups);
+    if (newOpenGroups.has(groupLabel)) {
+      newOpenGroups.delete(groupLabel);
+    } else {
+      newOpenGroups.add(groupLabel);
+    }
+    setOpenGroups(newOpenGroups);
+  }
+
+  function isItemActive(item: MenuItemConfig): boolean {
+    const actualHref =
+      typeof item.href === 'function'
+        ? item.href(user!.role as UserRole)
+        : item.href;
+
+    const checkIsActive =
+      item.isActive ||
+      ((currentPathname, itemHref) => currentPathname === itemHref);
+
+    return checkIsActive(pathname, actualHref);
+  }
+
+  function isGroupActive(group: MenuGroupConfig): boolean {
+    return group.items.some((item) => isItemActive(item));
+  }
+
+  function renderMenuItem(item: MenuItemConfig) {
+    const actualHref =
+      typeof item.href === 'function'
+        ? item.href(user!.role as UserRole)
+        : item.href;
+
+    return (
+      <SidebarMenuItem key={actualHref}>
+        <SidebarMenuButton
+          asChild
+          isActive={isItemActive(item)}
+          tooltip={item.label}
+          onClick={() => handleNavigate(actualHref)}
+          className="text-base py-3"
+        >
+          <Link to={actualHref}>
+            <item.icon className="h-5 w-5" />
+            <span className="text-base font-medium">{item.label}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  }
+
+  function renderMenuGroup(group: MenuGroupConfig) {
+    const isOpen = openGroups.has(group.label);
+    const isActive = isGroupActive(group);
+
+    return (
+      <Collapsible
+        key={group.label}
+        open={isOpen}
+        onOpenChange={() => toggleGroup(group.label)}
+      >
+        <SidebarMenuItem>
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton
+              tooltip={group.label}
+              isActive={isActive}
+              className="text-base py-3"
+            >
+              <group.icon className="h-5 w-5" />
+              <span className="text-base font-medium">{group.label}</span>
+              <ChevronRight
+                className={`ml-auto h-4 w-4 transition-transform duration-200 ${
+                  isOpen ? 'rotate-90' : ''
+                }`}
+              />
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SidebarMenuSub>
+              {group.items.map((item) => {
+                const actualHref =
+                  typeof item.href === 'function'
+                    ? item.href(user!.role as UserRole)
+                    : item.href;
+
+                return (
+                  <SidebarMenuSubItem key={actualHref}>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={isItemActive(item)}
+                      onClick={() => handleNavigate(actualHref)}
+                      className="text-sm py-2"
+                    >
+                      <Link to={actualHref}>
+                        <item.icon className="h-4 w-4" />
+                        <span className="text-sm font-medium">
+                          {item.label}
+                        </span>
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                );
+              })}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        </SidebarMenuItem>
+      </Collapsible>
+    );
+  }
+
+  const filteredMenuConfig = menuConfig.filter((config) => {
+    if (!user?.role) return false;
+    return config.roles.includes(user.role as UserRole);
+  });
 
   return (
     <Sidebar className="z-30">
@@ -190,39 +387,13 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu className="text-base">
-          {menuItemsConfig
-            .filter(
-              (item) =>
-                user?.role && item.roles.includes(user.role as UserRole),
-            )
-            .map((item) => {
-              const actualHref =
-                typeof item.href === 'function'
-                  ? item.href(user!.role as UserRole)
-                  : item.href;
-              const checkIsActive =
-                item.isActive ||
-                ((currentPathname, itemHref) => currentPathname === itemHref);
-
-              return (
-                <SidebarMenuItem key={actualHref}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={checkIsActive(pathname, actualHref)}
-                    tooltip={item.label}
-                    onClick={() => handleNavigate(actualHref)}
-                    className="text-base py-3"
-                  >
-                    <Link to={actualHref}>
-                      <item.icon className="h-5 w-5" />
-                      <span className="text-base font-medium">
-                        {item.label}
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
+          {filteredMenuConfig.map((config) => {
+            if (isMenuGroup(config)) {
+              return renderMenuGroup(config);
+            } else {
+              return renderMenuItem(config);
+            }
+          })}
         </SidebarMenu>
       </SidebarContent>
     </Sidebar>

@@ -3,7 +3,11 @@ import { TableComponent } from '@/components/layout/TableComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FilterModal, FilterValues } from '@/components/ui/FilterModal';
-import { useMinhasInscricoes } from '@/hooks/use-inscricao';
+import {
+  useAceitarInscricao,
+  useMinhasInscricoes,
+  useRecusarInscricao,
+} from '@/hooks/use-inscricao';
 import { InscricaoComDetalhes } from '@/routes/api/inscricao/-types';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
@@ -36,6 +40,9 @@ function DashboardStudent() {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
 
+  const aceitarInscricaoMutation = useAceitarInscricao();
+  const recusarInscricaoMutation = useRecusarInscricao();
+
   // Aplicar filtros às inscrições
   const inscricoesFiltradas = useMemo(() => {
     if (!inscricoes) return [];
@@ -58,45 +65,28 @@ function DashboardStudent() {
 
   const handleAceitarInscricao = async (inscricaoId: number) => {
     try {
-      const response = await fetch(`/api/inscricao/${inscricaoId}/aceitar`, {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erro ao aceitar inscrição');
-      }
-
-      const result = await response.json();
+      const result = await aceitarInscricaoMutation.mutateAsync(inscricaoId);
       toast.success(result.message || 'Monitoria aceita com sucesso!');
 
       // Recarregar dados
       window.location.reload();
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao aceitar inscrição');
+      toast.error(error.response?.data?.error || 'Erro ao aceitar inscrição');
     }
   };
 
   const handleRecusarInscricao = async (inscricaoId: number) => {
     try {
-      const response = await fetch(`/api/inscricao/${inscricaoId}/recusar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ motivo: 'Recusado pelo estudante' }),
+      const result = await recusarInscricaoMutation.mutateAsync({
+        inscricaoId,
+        motivo: 'Recusado pelo estudante',
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Erro ao recusar inscrição');
-      }
-
-      const result = await response.json();
       toast.success(result.message || 'Monitoria recusada');
 
       // Recarregar dados
       window.location.reload();
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao recusar inscrição');
+      toast.error(error.response?.data?.error || 'Erro ao recusar inscrição');
     }
   };
 

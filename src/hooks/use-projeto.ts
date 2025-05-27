@@ -272,3 +272,62 @@ export function useDeleteProjeto() {
     },
   });
 }
+
+export function useNotifyResults() {
+  return useMutation<any, Error, number>({
+    mutationFn: async (projetoId: number) => {
+      const response = await apiClient.post(
+        `/projeto/${projetoId}/notify-results`,
+      );
+      return response.data;
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao notificar resultados');
+    },
+  });
+}
+
+export function useGenerateAta() {
+  return useMutation<Blob, Error, number>({
+    mutationFn: async (projetoId: number) => {
+      const response = await apiClient.get(`/projeto/${projetoId}/gerar-ata`, {
+        responseType: 'blob',
+      });
+      return response.data;
+    },
+    onSuccess: (blob: Blob, projetoId: number) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `ata-selecao-projeto-${projetoId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao gerar ata');
+    },
+  });
+}
+
+export function useDownloadProjectPDF() {
+  return useMutation<string, Error, number>({
+    mutationFn: async (projetoId: number) => {
+      const response = await apiClient.get(`/projeto/${projetoId}/pdf`, {
+        responseType: 'text',
+      });
+      return response.data;
+    },
+    onSuccess: (htmlContent: string) => {
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      URL.revokeObjectURL(url);
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao baixar PDF do projeto');
+    },
+  });
+}

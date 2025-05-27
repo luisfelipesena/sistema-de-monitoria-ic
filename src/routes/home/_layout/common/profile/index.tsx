@@ -17,12 +17,15 @@ import { Spinner } from '@/components/ui/spinner';
 import { useAluno, useSetAluno } from '@/hooks/use-aluno';
 import { useAuth } from '@/hooks/use-auth';
 import { useCursos } from '@/hooks/use-curso';
-import { useFileUpload } from '@/hooks/use-files';
 import { useProfessor, useSetProfessor } from '@/hooks/use-professor';
 import { useToast } from '@/hooks/use-toast';
+import {
+  useUpdateUserDocument,
+  useUserDocuments,
+} from '@/hooks/use-user-documents';
 import { createFileRoute } from '@tanstack/react-router';
 import { Eye, Upload } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export const Route = createFileRoute('/home/_layout/common/profile/')({
   component: ProfilePage,
@@ -89,19 +92,6 @@ function StudentProfile() {
     cursoId: 0,
     cr: 0,
   });
-
-  const [documentos, setDocumentos] = useState<DocumentoUsuario[]>([
-    {
-      id: 'historico',
-      nome: 'Histórico Escolar',
-      status: 'pendente',
-    },
-    {
-      id: 'matricula',
-      nome: 'Comprovante de Matrícula',
-      status: 'pendente',
-    },
-  ]);
 
   useEffect(() => {
     if (aluno) {
@@ -286,10 +276,7 @@ function StudentProfile() {
           </div>
         </Card>
 
-        <DocumentsSection
-          documentos={documentos}
-          setDocumentos={setDocumentos}
-        />
+        <DocumentsSection />
       </div>
     </PagesLayout>
   );
@@ -479,37 +466,20 @@ function ProfessorProfile() {
   );
 }
 
-function DocumentsSection({
-  documentos,
-  setDocumentos,
-}: {
-  documentos: DocumentoUsuario[];
-  setDocumentos: React.Dispatch<React.SetStateAction<DocumentoUsuario[]>>;
-}) {
-  const fileUploadMutation = useFileUpload();
+function DocumentsSection() {
+  const { data: documentos, isLoading } = useUserDocuments();
+  const updateDocumentMutation = useUpdateUserDocument();
   const { toast } = useToast();
 
-  const handleUpload = async (file: File, docId: string) => {
+  const handleUpload = async (
+    file: File,
+    documentType: 'historico_escolar' | 'comprovante_matricula',
+  ) => {
     try {
-      const response = await fileUploadMutation.mutateAsync({
+      await updateDocumentMutation.mutateAsync({
         file,
-        entityType: 'profile_documento',
-        entityId: docId,
+        documentType,
       });
-
-      setDocumentos((prev) =>
-        prev.map((doc) =>
-          doc.id === docId
-            ? {
-                ...doc,
-                fileId: response.fileId,
-                fileName: file.name,
-                ultimaAtualizacao: new Date().toLocaleDateString('pt-BR'),
-                status: 'válido' as const,
-              }
-            : doc,
-        ),
-      );
 
       toast({
         title: 'Upload realizado',
@@ -524,10 +494,9 @@ function DocumentsSection({
     }
   };
 
-  const handleVisualize = (docId: string) => {
-    const doc = documentos.find((d) => d.id === docId);
-    if (doc && doc.fileId) {
-      window.open(`/api/files/access/${doc.fileId}`, '_blank');
+  const handleVisualize = (doc: { url?: string }) => {
+    if (doc && doc.url) {
+      window.open(doc.url, '_blank');
     } else {
       toast({
         title: 'Arquivo não encontrado',
@@ -537,11 +506,22 @@ function DocumentsSection({
     }
   };
 
+  if (isLoading) {
+    return (
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-6">📄 Documentos</h2>
+        <div className="flex justify-center py-4">
+          <Spinner />
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-6">
       <h2 className="text-xl font-semibold mb-6">📄 Documentos</h2>
       <div className="space-y-4">
-        {documentos.map((doc) => (
+        {documentos?.map((doc) => (
           <div
             key={doc.id}
             className="flex items-center justify-between p-4 border rounded-lg"
@@ -553,11 +533,12 @@ function DocumentsSection({
                   📄 {doc.fileName}
                 </p>
               )}
-              {doc.ultimaAtualizacao && (
-                <Badge variant="secondary" className="text-xs">
-                  Última atualização: {doc.ultimaAtualizacao}
-                </Badge>
-              )}
+              <Badge
+                variant={doc.status === 'valid' ? 'default' : 'secondary'}
+                className="text-xs"
+              >
+                Status: {doc.status === 'valid' ? 'Válido' : 'Pendente'}
+              </Badge>
             </div>
             <div className="flex gap-2">
               <input
@@ -568,7 +549,7 @@ function DocumentsSection({
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    handleUpload(file, doc.id);
+                    handleUpload(file, doc.tipo);
                   }
                 }}
               />
@@ -577,14 +558,15 @@ function DocumentsSection({
                 onClick={() =>
                   document.getElementById(`upload-${doc.id}`)?.click()
                 }
+                disabled={updateDocumentMutation.isPending}
               >
                 <Upload className="w-4 h-4 mr-2" />
                 {doc.fileName ? 'Alterar' : 'Enviar'}
               </Button>
-              {doc.fileId && (
+              {doc.fileId && doc.url && (
                 <Button
                   variant="secondary"
-                  onClick={() => handleVisualize(doc.id)}
+                  onClick={() => handleVisualize(doc)}
                 >
                   <Eye className="w-4 h-4 mr-2" />
                   Visualizar
@@ -592,7 +574,11 @@ function DocumentsSection({
               )}
             </div>
           </div>
-        ))}
+        )) || (
+          <p className="text-center text-muted-foreground py-4">
+            Nenhum documento encontrado
+          </p>
+        )}
       </div>
     </Card>
   );

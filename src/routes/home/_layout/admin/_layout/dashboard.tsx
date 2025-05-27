@@ -2,17 +2,25 @@ import { PagesLayout } from '@/components/layout/PagesLayout';
 import { TableComponent } from '@/components/layout/TableComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FilterModal, FilterValues } from '@/components/ui/FilterModal';
 import { useProjetos } from '@/hooks/use-projeto';
+import { useDownloadPlanilhaPrograd } from '@/hooks/use-relatorios';
 import { useUsers } from '@/hooks/use-user';
 import { ProjetoListItem } from '@/routes/api/projeto/-types';
 import { ApiUser } from '@/routes/api/user/-types';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import {
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Download,
   Eye,
+  FileSignature,
   Filter,
   FolderKanban,
   Hand,
@@ -32,6 +40,7 @@ function DashboardAdmin() {
   const navigate = useNavigate();
   const { data: projetos, isLoading: loadingProjetos } = useProjetos();
   const { data: users, isLoading: loadingUsers } = useUsers();
+  const downloadPlanilhaMutation = useDownloadPlanilhaPrograd();
 
   const [abaAtiva, setAbaAtiva] = useState<
     'projetos' | 'professores' | 'alunos'
@@ -40,9 +49,54 @@ function DashboardAdmin() {
   const [filters, setFilters] = useState<FilterValues>({});
   const [groupedView, setGroupedView] = useState(false);
 
+  const handleDownloadPlanilhaPrograd = async () => {
+    try {
+      await downloadPlanilhaMutation.mutateAsync();
+      toast.success('Planilha baixada com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao gerar planilha');
+    }
+  };
+
   // Filtrar professores e alunos dos usuários
   const professores = users?.filter((user) => user.role === 'professor') || [];
   const alunos = users?.filter((user) => user.role === 'student') || [];
+
+  // Calcular contadores de status dos projetos
+  const statusCounts = useMemo(() => {
+    if (!projetos)
+      return {
+        draft: 0,
+        pendingSignature: 0,
+        submitted: 0,
+        approved: 0,
+        rejected: 0,
+      };
+
+    return projetos.reduce(
+      (acc, projeto) => {
+        switch (projeto.status) {
+          case 'DRAFT':
+            acc.draft++;
+            break;
+          case 'PENDING_PROFESSOR_SIGNATURE':
+            acc.pendingSignature++;
+            break;
+          case 'SUBMITTED':
+            acc.submitted++;
+            break;
+          case 'APPROVED':
+            acc.approved++;
+            break;
+          case 'REJECTED':
+            acc.rejected++;
+            break;
+        }
+        return acc;
+      },
+      { draft: 0, pendingSignature: 0, submitted: 0, approved: 0, rejected: 0 },
+    );
+  }, [projetos]);
 
   // Aplicar filtros aos projetos
   const projetosFiltrados = useMemo(() => {
@@ -85,8 +139,8 @@ function DashboardAdmin() {
 
   const handleAnalisarProjeto = (projetoId: number) => {
     navigate({
-      to: '/home/common/projects/$projeto/inscricoes',
-      params: { projeto: projetoId.toString() },
+      to: '/home/admin/project/$id',
+      params: { id: projetoId.toString() },
     });
   };
 
@@ -316,6 +370,16 @@ function DashboardAdmin() {
   // Action buttons
   const dashboardActions = (
     <>
+      {abaAtiva === 'projetos' && (
+        <Button
+          variant="outline"
+          className="text-green-600 border-green-600 hover:bg-green-50"
+          onClick={handleDownloadPlanilhaPrograd}
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Planilhas PROGRAD
+        </Button>
+      )}
       <Button
         variant={groupedView ? 'secondary' : 'primary'}
         className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors"
@@ -383,6 +447,94 @@ function DashboardAdmin() {
             </div>
           ) : (
             <>
+              {/* Cards de Resumo */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Rascunhos
+                    </CardTitle>
+                    <AlertTriangle className="h-4 w-4 text-gray-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-gray-600">
+                      {statusCounts.draft}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Aguardando assinatura admin
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Pend. Professor
+                    </CardTitle>
+                    <FileSignature className="h-4 w-4 text-purple-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {statusCounts.pendingSignature}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Aguardando professor
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Em Análise
+                    </CardTitle>
+                    <Clock className="h-4 w-4 text-yellow-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {statusCounts.submitted}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Para aprovação
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Aprovados
+                    </CardTitle>
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">
+                      {statusCounts.approved}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Projetos ativos
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Rejeitados
+                    </CardTitle>
+                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-red-600">
+                      {statusCounts.rejected}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Requer revisão
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
               {filters.status ||
               filters.departamento ||
               filters.semestre ||

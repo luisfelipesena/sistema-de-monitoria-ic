@@ -20,42 +20,104 @@ export const onboardingStatusSchema = z.object({
   pending: z
     .boolean()
     .describe('Indica se o usuário ainda precisa completar o onboarding'),
+  profile: z.object({
+    exists: z.boolean().describe('Se o perfil do usuário existe'),
+    type: z.enum(['student', 'professor', 'admin']).optional(),
+  }),
+  documents: z.object({
+    required: z.array(z.string()).describe('Documentos obrigatórios'),
+    uploaded: z.array(z.string()).describe('Documentos já enviados'),
+    missing: z.array(z.string()).describe('Documentos em falta'),
+  }),
 });
 
 export type OnboardingStatus = z.infer<typeof onboardingStatusSchema>;
+
+// Definir documentos obrigatórios por tipo de usuário
+const REQUIRED_DOCUMENTS = {
+  student: ['comprovante_matricula', 'historico_escolar'],
+  professor: ['curriculum_vitae', 'comprovante_vinculo'],
+} as const;
 
 export const APIRoute = createAPIFileRoute('/api/onboarding/status')({
   GET: createAPIHandler(
     withAuthMiddleware(async (ctx) => {
       try {
-        // Verificar o papel do usuário
         const userRole = ctx.state.user.role;
+        const userId = parseInt(ctx.state.user.userId);
 
         // Admin não precisa de onboarding
         if (userRole === 'admin') {
-          return json({ pending: false });
+          return json({
+            pending: false,
+            profile: { exists: true, type: 'admin' },
+            documents: { required: [], uploaded: [], missing: [] },
+          });
         }
 
-        // Verificar se o usuário já completou o onboarding
-        // Exemplo: verificar se existe um registro de aluno ou professor para o usuário
+        // Verificar se existe perfil
         let hasProfile = false;
+        let profileData: any = null;
 
         if (userRole === 'student') {
-          // Verificar se existe perfil de aluno
-          const aluno = await db.query.alunoTable.findFirst({
-            where: eq(alunoTable.userId, parseInt(ctx.state.user.userId)),
+          profileData = await db.query.alunoTable.findFirst({
+            where: eq(alunoTable.userId, userId),
           });
-          hasProfile = !!aluno;
+          hasProfile = !!profileData;
         } else if (userRole === 'professor') {
-          // Verificar se existe perfil de professor
-          const professor = await db.query.professorTable.findFirst({
-            where: eq(professorTable.userId, parseInt(ctx.state.user.userId)),
+          profileData = await db.query.professorTable.findFirst({
+            where: eq(professorTable.userId, userId),
           });
-          hasProfile = !!professor;
+          hasProfile = !!profileData;
         }
 
-        // O onboarding está pendente se o usuário não tiver perfil
-        return json({ pending: !hasProfile });
+        // Verificar documentos obrigatórios
+        const requiredDocs =
+          REQUIRED_DOCUMENTS[userRole as keyof typeof REQUIRED_DOCUMENTS] || [];
+
+        // Verificar documentos já enviados baseado nos fileIds nos perfis
+        const uploadedDocTypes: string[] = [];
+
+        // Para estudantes, verificar se tem documentos obrigatórios no perfil
+        if (userRole === 'student' && profileData) {
+          if (profileData.comprovanteMatriculaFileId) {
+            uploadedDocTypes.push('comprovante_matricula');
+          }
+          if (profileData.historicoEscolarFileId) {
+            uploadedDocTypes.push('historico_escolar');
+          }
+        }
+
+        // Para professores, verificar documentos no perfil
+        if (userRole === 'professor' && profileData) {
+          if (profileData.curriculumVitaeFileId) {
+            uploadedDocTypes.push('curriculum_vitae');
+          }
+          if (profileData.comprovanteVinculoFileId) {
+            uploadedDocTypes.push('comprovante_vinculo');
+          }
+        }
+
+        const uniqueUploadedDocs = [...new Set(uploadedDocTypes)];
+        const missingDocs = requiredDocs.filter(
+          (doc) => !uniqueUploadedDocs.includes(doc),
+        );
+
+        // Onboarding está pendente se não tem perfil OU se faltam documentos obrigatórios
+        const pending = !hasProfile || missingDocs.length > 0;
+
+        return json({
+          pending,
+          profile: {
+            exists: hasProfile,
+            type: userRole as 'student' | 'professor' | 'admin',
+          },
+          documents: {
+            required: requiredDocs,
+            uploaded: uniqueUploadedDocs,
+            missing: missingDocs,
+          },
+        });
       } catch (error) {
         log.error({ error }, 'Erro ao verificar status de onboarding');
         return json(

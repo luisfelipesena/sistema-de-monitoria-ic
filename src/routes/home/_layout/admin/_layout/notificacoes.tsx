@@ -21,6 +21,10 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useInscricoesProjeto } from '@/hooks/use-inscricao';
+import {
+  useEnviarNotificacaoManual,
+  useNotifyProjectResults,
+} from '@/hooks/use-notificacoes';
 import { useProjetos } from '@/hooks/use-projeto';
 import { createFileRoute } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
@@ -101,6 +105,8 @@ function NotificacoesPage() {
   });
 
   const { data: inscricoes } = useInscricoesProjeto(selectedProjectId || 0);
+  const enviarNotificacaoMutation = useEnviarNotificacaoManual();
+  const notifyProjectMutation = useNotifyProjectResults();
 
   const handleEnviarNotificacao = async () => {
     try {
@@ -113,8 +119,7 @@ function NotificacoesPage() {
         return;
       }
 
-      // Implementar quando API de notificações manuais estiver disponível
-      console.log('Enviando notificação:', formData);
+      await enviarNotificacaoMutation.mutateAsync(formData as any);
       toast.success('Notificação enviada com sucesso!');
       setIsModalOpen(false);
       setFormData({
@@ -123,31 +128,17 @@ function NotificacoesPage() {
         assunto: '',
         conteudo: '',
       });
-    } catch (error) {
-      toast.error('Erro ao enviar notificação');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao enviar notificação');
     }
   };
 
   const handleEnviarResultadosProjeto = async (projetoId: number) => {
     try {
-      // Usar o endpoint existente para notificar resultados
-      const response = await fetch(`/api/projeto/${projetoId}/notify-results`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Falha ao enviar resultados');
-      }
-
-      const result = await response.json();
-      console.log('Enviando resultados do projeto:', projetoId, result);
+      await notifyProjectMutation.mutateAsync(projetoId);
       toast.success('Resultados enviados para todos os candidatos!');
-    } catch (error) {
-      console.error('Erro ao enviar resultados:', error);
-      toast.error('Erro ao enviar resultados');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao enviar resultados');
     }
   };
 

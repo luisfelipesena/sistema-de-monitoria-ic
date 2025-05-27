@@ -3,14 +3,19 @@ import { apiClient } from '@/utils/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from './query-keys';
 
+// Extended type for disciplinas that include professor information
+export interface DisciplinaWithProfessor extends DisciplinaResponse {
+  professorResponsavel?: string;
+}
+
 export function useDisciplinas(departamentoId?: number) {
-  return useQuery<DisciplinaResponse[]>({
+  return useQuery<DisciplinaWithProfessor[]>({
     queryKey: departamentoId
       ? [...QueryKeys.disciplina.list, departamentoId]
       : QueryKeys.disciplina.list,
     queryFn: async () => {
       const params = departamentoId ? `?departamentoId=${departamentoId}` : '';
-      const response = await apiClient.get<DisciplinaResponse[]>(
+      const response = await apiClient.get<DisciplinaWithProfessor[]>(
         `/disciplina${params}`,
       );
       return response.data;

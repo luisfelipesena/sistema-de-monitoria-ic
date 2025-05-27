@@ -5,13 +5,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
 import { useInscricoesProjeto } from '@/hooks/use-inscricao';
-import { useProjetos } from '@/hooks/use-projeto';
-import { createFileRoute } from '@tanstack/react-router';
-import { CheckCircle, Clock, Hand, Mail, Users, XCircle } from 'lucide-react';
+import { useNotifyResults, useProjetos } from '@/hooks/use-projeto';
+import { createFileRoute, useRouter } from '@tanstack/react-router';
+import {
+  ArrowLeft,
+  CheckCircle,
+  Clock,
+  Hand,
+  Mail,
+  Users,
+  XCircle,
+} from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-export const Route = createFileRoute('/home/_layout/admin/_layout/$project/')({
+export const Route = createFileRoute(
+  '/home/_layout/admin/_layout/project/$id/',
+)({
   component: InscricoesProjetoPage,
 });
 
@@ -24,7 +34,7 @@ interface CandidatoAvaliacao {
 }
 
 function InscricoesProjetoPage() {
-  const { project: projetoId } = Route.useParams();
+  const { id: projetoId } = Route.useParams();
   const { user } = useAuth();
   const { data: projetos, isLoading: loadingProjeto } = useProjetos();
   const projeto = projetos?.find((p) => p.id === parseInt(projetoId));
@@ -33,6 +43,10 @@ function InscricoesProjetoPage() {
   const [avaliacoes, setAvaliacoes] = useState<
     Record<number, CandidatoAvaliacao>
   >({});
+
+  const router = useRouter();
+
+  const notifyResultsMutation = useNotifyResults();
 
   // Verificar permissões
   if (user?.role !== 'admin' && user?.role !== 'professor') {
@@ -120,28 +134,19 @@ function InscricoesProjetoPage() {
 
   const handleNotificarResultados = async () => {
     try {
-      const response = await fetch(`/api/projeto/${projetoId}/notify-results`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro ao enviar notificações');
-      }
+      const result = await notifyResultsMutation.mutateAsync(
+        parseInt(projetoId),
+      );
 
       toast.success(
-        `Notificações enviadas! ${result.emailsEnviados} emails enviados com sucesso.`,
+        `Notificações enviadas! ${result.emailsEnviados || 0} emails enviados com sucesso.`,
       );
 
       if (result.emailsFalharam > 0) {
         toast.warning(`${result.emailsFalharam} emails falharam.`);
       }
-    } catch (error) {
-      toast.error('Erro ao enviar notificações');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Erro ao enviar notificações');
     }
   };
 
@@ -322,13 +327,17 @@ function InscricoesProjetoPage() {
       title={`${disciplinaNome} - Gerenciar Inscrições`}
       subtitle={projeto.titulo}
       actions={
-        <Button
-          onClick={handleNotificarResultados}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          <Mail className="h-4 w-4 mr-2" />
-          Notificar Resultados
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => router.history.back()} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+
+          <Button onClick={handleNotificarResultados}>
+            <Mail className="h-4 w-4 mr-2" />
+            Notificar Resultados
+          </Button>
+        </div>
       }
     >
       <div className="space-y-6">

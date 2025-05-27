@@ -1,0 +1,677 @@
+// MonitoriaFormTemplate.tsx
+import {
+  Document,
+  Image,
+  Page,
+  StyleSheet,
+  Text,
+  View,
+} from '@react-pdf/renderer';
+
+export interface MonitoriaFormData {
+  titulo: string;
+  descricao: string;
+  departamento?: {
+    id: number;
+    nome: string;
+  };
+  coordenadorResponsavel?: string;
+  professorResponsavel?: {
+    id: number;
+    nomeCompleto: string;
+  };
+  ano: number;
+  semestre: 'SEMESTRE_1' | 'SEMESTRE_2';
+  tipoProposicao: 'INDIVIDUAL' | 'COLETIVA';
+  bolsasSolicitadas: number;
+  voluntariosSolicitados: number;
+  cargaHorariaSemana: number;
+  numeroSemanas: number;
+  publicoAlvo: string;
+  estimativaPessoasBenificiadas?: number;
+  disciplinas: Array<{
+    id: number;
+    codigo: string;
+    nome: string;
+  }>;
+  user?: {
+    username?: string;
+    email?: string;
+    nomeCompleto?: string;
+    role?: string;
+  };
+}
+
+// Estilos
+const styles = StyleSheet.create({
+  page: {
+    padding: 20,
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: 15,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    marginRight: 15,
+  },
+  headerText: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  universityName: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  departmentName: {
+    fontSize: 9,
+    marginBottom: 1,
+  },
+  title: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 15,
+    paddingHorizontal: 10,
+  },
+  section: {
+    marginBottom: 8,
+    border: '1pt solid #000',
+  },
+  sectionHeader: {
+    backgroundColor: '#E0E0E0',
+    fontWeight: 'bold',
+    fontSize: 9,
+    padding: 3,
+    borderBottom: '1pt solid #000',
+    textAlign: 'center',
+  },
+  row: {
+    borderBottom: '1pt solid #000',
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    minHeight: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  lastRow: {
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    minHeight: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  label: {
+    fontWeight: 'bold',
+    fontSize: 8,
+  },
+  value: {
+    fontSize: 8,
+    marginLeft: 3,
+    flex: 1,
+  },
+  descriptionSection: {
+    padding: 4,
+    minHeight: 60,
+  },
+  descriptionText: {
+    fontSize: 8,
+    lineHeight: 1.3,
+    textAlign: 'justify',
+  },
+  professionalDataRow: {
+    paddingVertical: 1,
+    paddingHorizontal: 4,
+    flexDirection: 'row',
+    fontSize: 8,
+  },
+  declarationSection: {
+    padding: 4,
+    minHeight: 40,
+  },
+  declarationText: {
+    fontSize: 8,
+    lineHeight: 1.2,
+    marginBottom: 10,
+  },
+  signatureArea: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 15,
+  },
+  signatureText: {
+    fontSize: 8,
+  },
+  signatureLine: {
+    borderBottom: '1pt solid #000',
+    width: 200,
+    height: 20,
+  },
+});
+
+const MonitoriaFormTemplate = ({ data }: { data: MonitoriaFormData }) => {
+  const semestreLabel = `${data.ano}.${data.semestre === 'SEMESTRE_1' ? '1' : '2'}`;
+  const tipoProposicaoLabel =
+    data.tipoProposicao === 'INDIVIDUAL' ? 'Individual' : 'Coletiva';
+  const disciplinasText =
+    data.disciplinas?.map((d) => `${d.codigo} - ${d.nome}`).join(', ') ||
+    'Não informado';
+  const totalMonitores = data.bolsasSolicitadas + data.voluntariosSolicitados;
+  const cargaHorariaTotal = data.cargaHorariaSemana * data.numeroSemanas;
+
+  // Determinar se precisamos dividir o conteúdo em duas páginas
+  // baseado no tamanho do conteúdo anterior
+  const needsTwoPages = data.descricao && data.descricao.length > 500;
+
+  // Se precisar de duas páginas, vamos renderizar em páginas separadas
+  if (needsTwoPages) {
+    return (
+      <Document>
+        <Page size="A4" style={styles.page}>
+          <View style={styles.header}>
+            <Image style={styles.logo} src="/images/logo-ufba.png" />
+            <View style={styles.headerText}>
+              <Text style={styles.universityName}>
+                UNIVERSIDADE FEDERAL DA BAHIA
+              </Text>
+              <Text style={styles.departmentName}>
+                Pró - Reitoria de Ensino de Graduação
+              </Text>
+              <Text style={styles.departmentName}>
+                Coordenação Acadêmica de Graduação
+              </Text>
+            </View>
+          </View>
+
+          <Text style={styles.title}>
+            ANEXO I – FORMULÁRIO PARA SUBMISSÃO DE PROJETO DE MONITORIA
+          </Text>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>
+              1. IDENTIFICAÇÃO DO PROJETO
+            </Text>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>1.1 Unidade Universitária:</Text>
+              <Text style={styles.value}>Instituto de Computação</Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>
+                1.2 Órgão responsável (Departamento ou Coord. Acadêmica):
+              </Text>
+              <Text style={styles.value}>
+                {data.departamento?.nome || 'Não selecionado'}
+              </Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>
+                1.3 Data da aprovação do projeto:
+              </Text>
+              <Text style={styles.value}>_________________</Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>
+                1.4 Componente(s) curricular(es) (código e nome):
+              </Text>
+              <Text style={styles.value}>{disciplinasText}</Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>1.5 Semestre:</Text>
+              <Text style={styles.value}>{semestreLabel}</Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>1.6 Proposição:</Text>
+              <Text style={styles.value}>
+                {data.tipoProposicao === 'INDIVIDUAL' ? '( X )' : '(   )'}{' '}
+                Individual
+                {data.tipoProposicao === 'COLETIVA' ? '( X )' : '(   )'}{' '}
+                Coletiva - Nesse caso, informar quantos professores: ___
+              </Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>
+                1.7 Número desejado de monitores:
+              </Text>
+              <Text style={styles.value}>{totalMonitores}</Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>1.8 Carga horária semanal:</Text>
+              <Text style={styles.value}>
+                {data.cargaHorariaSemana}h (Resolução CAE Nº 05/2021, Art. 7º,
+                inciso I)
+              </Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>
+                1.9 Carga horária total pretendida (12h x Nº de semanas):
+              </Text>
+              <Text style={styles.value}>{cargaHorariaTotal}h</Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>1.10 Público-alvo:</Text>
+              <Text style={styles.value}>
+                ( X ) Estudantes de graduação ( ) Outros ( ) - Informar qual:{' '}
+                {data.publicoAlvo}
+              </Text>
+            </View>
+
+            <View style={styles.lastRow}>
+              <Text style={styles.label}>
+                1.11 Estimativa de quantas pessoas serão beneficiadas com o
+                projeto:
+              </Text>
+              <Text style={styles.value}>
+                ( {data.estimativaPessoasBenificiadas || '___'} )
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>
+              2. DADOS DO PROFESSOR RESPONSÁVEL PELO PROJETO (PROPONENTE)
+            </Text>
+
+            <View style={styles.professionalDataRow}>
+              <Text style={styles.label}>2.1 Nome Completo:</Text>
+              <Text style={styles.value}>
+                {data.professorResponsavel?.nomeCompleto ||
+                  (data.user?.role !== 'admin'
+                    ? data.user?.nomeCompleto
+                    : '') ||
+                  'Não informado'}
+              </Text>
+            </View>
+
+            <View style={styles.professionalDataRow}>
+              <Text style={styles.label}>2.2 Nome Social (se houver):</Text>
+              <Text style={styles.value}>
+                _________________________________
+              </Text>
+            </View>
+
+            <View style={styles.professionalDataRow}>
+              <Text style={styles.label}>2.3 Gênero:</Text>
+              <Text style={styles.value}>
+                ( ) Feminino ( ) Masculino ( ) Outro ( ):
+              </Text>
+            </View>
+
+            <View style={styles.professionalDataRow}>
+              <Text style={styles.label}>2.4 CPF:</Text>
+              <Text style={styles.value}>___.___.___ - __</Text>
+            </View>
+
+            <View style={styles.professionalDataRow}>
+              <Text style={styles.label}>2.5 SIAPE:</Text>
+              <Text style={styles.value}>_________________</Text>
+            </View>
+
+            <View style={styles.professionalDataRow}>
+              <Text style={styles.label}>2.6 Regime:</Text>
+              <Text style={styles.value}>20h ( ) 40h ( ) DE ( X )</Text>
+            </View>
+
+            <View style={styles.professionalDataRow}>
+              <Text style={styles.label}>2.7 Tel. Institucional ( ):</Text>
+              <Text style={styles.value}>_________________</Text>
+            </View>
+
+            <View style={styles.professionalDataRow}>
+              <Text style={styles.label}>2.8 Celular:</Text>
+              <Text style={styles.value}>_________________</Text>
+            </View>
+
+            <View style={styles.lastRow}>
+              <Text style={styles.label}>2.9 E-mail institucional:</Text>
+              <Text style={styles.value}>
+                {data.user?.email || 'professor@ufba.br'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>
+              3. BREVE DESCRIÇÃO DO PROJETO
+            </Text>
+            <View style={styles.descriptionSection}>
+              <Text style={styles.descriptionText}>
+                {data.descricao || 'Descrição do projeto não informada.'}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>
+              4. ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)
+            </Text>
+            <View style={styles.descriptionSection}>
+              <Text style={styles.descriptionText}>
+                • Auxiliar o professor na elaboração de problemas para listas e
+                provas{'\n'}• Auxiliar os alunos no uso das plataformas de
+                submissão de problemas{'\n'}• Auxiliar os alunos quanto ao uso
+                das técnicas e comandos de programação{'\n'}• Auxiliar os alunos
+                em horário extra classe{'\n'}• Outras atividades relacionadas ao
+                projeto de monitoria
+              </Text>
+            </View>
+          </View>
+        </Page>
+
+        {/* Segunda página para as seções de assinaturas */}
+        <Page size="A4" style={styles.page}>
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>5. DECLARAÇÃO</Text>
+            <View style={styles.declarationSection}>
+              <Text style={styles.declarationText}>
+                Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das
+                normas descritas no Edital PROGRAD/UFBA Nº 001/2025 – Programa
+                de Monitoria 2025.1 ( X )
+              </Text>
+
+              <View style={styles.signatureArea}>
+                <Text style={styles.signatureText}>
+                  Data e Assinatura do(a) Prof(a). Responsável: ___/___/______
+                </Text>
+                <View style={styles.signatureLine} />
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionHeader}>
+              6. APROVAÇÃO DO COORDENADOR
+            </Text>
+            <View style={styles.declarationSection}>
+              <Text style={styles.declarationText}>
+                Declaro que o projeto de monitoria acima descrito foi analisado
+                e aprovado pelo departamento/coordenação acadêmica responsável,
+                estando em conformidade com as diretrizes institucionais.
+              </Text>
+
+              <View style={styles.signatureArea}>
+                <Text style={styles.signatureText}>
+                  Coordenador Responsável:{' '}
+                  {data.coordenadorResponsavel ||
+                    (data.user?.role === 'admin'
+                      ? data.user?.nomeCompleto
+                      : '') ||
+                    'Coordernador'}
+                </Text>
+              </View>
+
+              <View style={styles.signatureArea}>
+                <Text style={styles.signatureText}>
+                  Data e Assinatura do(a) Coordenador(a): ___/___/______
+                </Text>
+                <View style={styles.signatureLine} />
+              </View>
+            </View>
+          </View>
+        </Page>
+      </Document>
+    );
+  }
+
+  // Versão de página única para descrições menores
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Image style={styles.logo} src="/images/logo-ufba.png" />
+          <View style={styles.headerText}>
+            <Text style={styles.universityName}>
+              UNIVERSIDADE FEDERAL DA BAHIA
+            </Text>
+            <Text style={styles.departmentName}>
+              Pró - Reitoria de Ensino de Graduação
+            </Text>
+            <Text style={styles.departmentName}>
+              Coordenação Acadêmica de Graduação
+            </Text>
+          </View>
+        </View>
+
+        <Text style={styles.title}>
+          ANEXO I – FORMULÁRIO PARA SUBMISSÃO DE PROJETO DE MONITORIA
+        </Text>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>1. IDENTIFICAÇÃO DO PROJETO</Text>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>1.1 Unidade Universitária:</Text>
+            <Text style={styles.value}>Instituto de Computação</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              1.2 Órgão responsável (Departamento ou Coord. Acadêmica):
+            </Text>
+            <Text style={styles.value}>
+              {data.departamento?.nome || 'Não selecionado'}
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>1.3 Data da aprovação do projeto:</Text>
+            <Text style={styles.value}>_________________</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              1.4 Componente(s) curricular(es) (código e nome):
+            </Text>
+            <Text style={styles.value}>{disciplinasText}</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>1.5 Semestre:</Text>
+            <Text style={styles.value}>{semestreLabel}</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>1.6 Proposição:</Text>
+            <Text style={styles.value}>
+              {data.tipoProposicao === 'INDIVIDUAL' ? '( X )' : '(   )'}{' '}
+              Individual
+              {data.tipoProposicao === 'COLETIVA' ? '( X )' : '(   )'} Coletiva
+              - Nesse caso, informar quantos professores: ___
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>1.7 Número desejado de monitores:</Text>
+            <Text style={styles.value}>{totalMonitores}</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>1.8 Carga horária semanal:</Text>
+            <Text style={styles.value}>
+              {data.cargaHorariaSemana}h (Resolução CAE Nº 05/2021, Art. 7º,
+              inciso I)
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              1.9 Carga horária total pretendida (12h x Nº de semanas):
+            </Text>
+            <Text style={styles.value}>{cargaHorariaTotal}h</Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={styles.label}>1.10 Público-alvo:</Text>
+            <Text style={styles.value}>
+              ( X ) Estudantes de graduação ( ) Outros ( ) - Informar qual:{' '}
+              {data.publicoAlvo}
+            </Text>
+          </View>
+
+          <View style={styles.lastRow}>
+            <Text style={styles.label}>
+              1.11 Estimativa de quantas pessoas serão beneficiadas com o
+              projeto:
+            </Text>
+            <Text style={styles.value}>
+              ( {data.estimativaPessoasBenificiadas || '___'} )
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>
+            2. DADOS DO PROFESSOR RESPONSÁVEL PELO PROJETO (PROPONENTE)
+          </Text>
+
+          <View style={styles.professionalDataRow}>
+            <Text style={styles.label}>2.1 Nome Completo:</Text>
+            <Text style={styles.value}>
+              {data.professorResponsavel?.nomeCompleto ||
+                (data.user?.role !== 'admin' ? data.user?.nomeCompleto : '') ||
+                'Não informado'}
+            </Text>
+          </View>
+
+          <View style={styles.professionalDataRow}>
+            <Text style={styles.label}>2.2 Nome Social (se houver):</Text>
+            <Text style={styles.value}>_________________________________</Text>
+          </View>
+
+          <View style={styles.professionalDataRow}>
+            <Text style={styles.label}>2.3 Gênero:</Text>
+            <Text style={styles.value}>
+              ( ) Feminino ( ) Masculino ( ) Outro ( ):
+            </Text>
+          </View>
+
+          <View style={styles.professionalDataRow}>
+            <Text style={styles.label}>2.4 CPF:</Text>
+            <Text style={styles.value}>___.___.___ - __</Text>
+          </View>
+
+          <View style={styles.professionalDataRow}>
+            <Text style={styles.label}>2.5 SIAPE:</Text>
+            <Text style={styles.value}>_________________</Text>
+          </View>
+
+          <View style={styles.professionalDataRow}>
+            <Text style={styles.label}>2.6 Regime:</Text>
+            <Text style={styles.value}>20h ( ) 40h ( ) DE ( X )</Text>
+          </View>
+
+          <View style={styles.professionalDataRow}>
+            <Text style={styles.label}>2.7 Tel. Institucional ( ):</Text>
+            <Text style={styles.value}>_________________</Text>
+          </View>
+
+          <View style={styles.professionalDataRow}>
+            <Text style={styles.label}>2.8 Celular:</Text>
+            <Text style={styles.value}>_________________</Text>
+          </View>
+
+          <View style={styles.lastRow}>
+            <Text style={styles.label}>2.9 E-mail institucional:</Text>
+            <Text style={styles.value}>
+              {data.user?.email || 'professor@ufba.br'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>
+            3. BREVE DESCRIÇÃO DO PROJETO
+          </Text>
+          <View style={styles.descriptionSection}>
+            <Text style={styles.descriptionText}>
+              {data.descricao || 'Descrição do projeto não informada.'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>
+            4. ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)
+          </Text>
+          <View style={styles.descriptionSection}>
+            <Text style={styles.descriptionText}>
+              • Auxiliar o professor na elaboração de problemas para listas e
+              provas{'\n'}• Auxiliar os alunos no uso das plataformas de
+              submissão de problemas{'\n'}• Auxiliar os alunos quanto ao uso das
+              técnicas e comandos de programação{'\n'}• Auxiliar os alunos em
+              horário extra classe{'\n'}• Outras atividades relacionadas ao
+              projeto de monitoria
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>5. DECLARAÇÃO</Text>
+          <View style={styles.declarationSection}>
+            <Text style={styles.declarationText}>
+              Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das
+              normas descritas no Edital PROGRAD/UFBA Nº 001/2025 – Programa de
+              Monitoria 2025.1 ( X )
+            </Text>
+
+            <View style={styles.signatureArea}>
+              <Text style={styles.signatureText}>
+                Data e Assinatura do(a) Prof(a). Responsável: ___/___/______
+              </Text>
+              <View style={styles.signatureLine} />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>6. APROVAÇÃO DO COORDENADOR</Text>
+          <View style={styles.declarationSection}>
+            <Text style={styles.declarationText}>
+              Declaro que o projeto de monitoria acima descrito foi analisado e
+              aprovado pelo departamento/coordenação acadêmica responsável,
+              estando em conformidade com as diretrizes institucionais.
+            </Text>
+
+            <View style={styles.signatureArea}>
+              <Text style={styles.signatureText}>
+                Coordenador Responsável:{' '}
+                {data.coordenadorResponsavel ||
+                  (data.user?.role === 'admin'
+                    ? data.user?.nomeCompleto
+                    : '') ||
+                  'Coordernador'}
+              </Text>
+            </View>
+
+            <View style={styles.signatureArea}>
+              <Text style={styles.signatureText}>
+                Data e Assinatura do(a) Coordenador(a): ___/___/______
+              </Text>
+              <View style={styles.signatureLine} />
+            </View>
+          </View>
+        </View>
+      </Page>
+    </Document>
+  );
+};
+
+export default MonitoriaFormTemplate;

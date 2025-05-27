@@ -1,302 +1,185 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  downloadPDFFile,
-  generateProjetoHTML,
-  ProjetoTemplateData,
-} from '@/utils/projeto-pdf-generator';
-import { FileText } from 'lucide-react';
-import { toast } from 'sonner';
+import { usePDFPreview } from '@/hooks/use-pdf-preview';
+import type { DepartamentoResponse } from '@/routes/api/department/-types';
+import { Eye, EyeOff, FileText } from 'lucide-react';
+import { lazy, memo, Suspense, useMemo, useState } from 'react';
+import MonitoriaFormTemplate from './MonitoriaFormTemplate';
+import type { ProjetoFormData } from './types';
 
-interface ProjetoPdfPreviewProps {
-  data: ProjetoTemplateData | null;
-  onGeneratePDF?: () => Promise<void>;
+interface ProjectPDFPreviewProps {
+  formData: Partial<ProjetoFormData>;
+  departamentos: DepartamentoResponse[] | undefined;
+  disciplinasFiltradas: any[] | undefined;
+  user: any;
 }
 
-export function ProjectPdfPreview({
-  data,
-  onGeneratePDF,
-}: ProjetoPdfPreviewProps) {
-  const handleGeneratePDF = async () => {
-    if (!data) {
-      toast.error('Dados do projeto não disponíveis');
-      return;
-    }
+// Lazy load the PDF template component
+const LazyPDFViewer = lazy(() =>
+  import('@react-pdf/renderer').then((module) => ({
+    default: module.PDFViewer,
+  })),
+);
 
-    if (onGeneratePDF) {
-      await onGeneratePDF();
-      return;
-    }
+// Use memo para evitar re-renders desnecessários do componente inteiro
+export const ProjectPDFPreview = memo(
+  function ProjectPDFPreviewComponent({
+    formData,
+    departamentos,
+    disciplinasFiltradas,
+    user,
+  }: ProjectPDFPreviewProps) {
+    const {
+      previewRef,
+      templateData,
+      statusInfo,
+      shouldShowPDF,
+      hasRequiredFields,
+    } = usePDFPreview({
+      formData,
+      departamentos,
+      disciplinasFiltradas,
+      user,
+    });
 
-    if (
-      !data.formData.titulo ||
-      !data.formData.descricao ||
-      !data.departamento
-    ) {
-      toast.error('Preencha todos os campos obrigatórios para gerar o PDF');
-      return;
-    }
+    // Add state to manually control PDF rendering
+    const [showPreview, setShowPreview] = useState(false);
 
-    try {
-      const { pdf, Document, Page, Text, View, StyleSheet } = await import(
-        '@react-pdf/renderer'
+    // Compute if PDF should be displayed based on form validity and user preference
+    const shouldRenderPDF = shouldShowPDF && showPreview && hasRequiredFields;
+
+    // Memoize o PDF Viewer para evitar re-renders desnecessários
+    const MemoizedPDFViewer = useMemo(() => {
+      if (!shouldRenderPDF || !templateData) return null;
+
+      return (
+        <Suspense
+          fallback={
+            <div className="h-[600px] w-full flex items-center justify-center bg-gray-50 border rounded-md">
+              <div className="text-center">
+                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <p className="text-gray-500">
+                  Carregando visualização do PDF...
+                </p>
+              </div>
+            </div>
+          }
+        >
+          <LazyPDFViewer width="100%" height="600px" showToolbar={false}>
+            <MonitoriaFormTemplate data={templateData} />
+          </LazyPDFViewer>
+        </Suspense>
       );
+      // Adicionar todas as dependências que podem causar mudança no PDF
+    }, [shouldRenderPDF, templateData]);
 
-      const styles = StyleSheet.create({
-        page: {
-          flexDirection: 'column',
-          backgroundColor: '#FFFFFF',
-          padding: 20,
-          fontSize: 11,
-          fontFamily: 'Helvetica',
-        },
-        header: {
-          textAlign: 'center',
-          marginBottom: 20,
-        },
-        title: {
-          fontSize: 14,
-          fontWeight: 'bold',
-          textAlign: 'center',
-          margin: '20 0',
-        },
-        section: {
-          border: '2px solid #000',
-          marginBottom: 10,
-        },
-        sectionHeader: {
-          backgroundColor: '#d0d0d0',
-          fontWeight: 'bold',
-          padding: 5,
-          borderBottom: '1px solid #000',
-        },
-        formRow: {
-          borderBottom: '1px solid #000',
-          padding: 4,
-          minHeight: 18,
-          flexDirection: 'row',
-          alignItems: 'center',
-        },
-        fieldLabel: {
-          fontWeight: 'bold',
-          marginRight: 5,
-        },
-        fieldValue: {
-          flex: 1,
-        },
-        descriptionBox: {
-          minHeight: 100,
-          padding: 10,
-          border: '1px solid #000',
-          margin: '10 0',
-        },
-      });
-
-      const semestreLabel =
-        data.formData.semestre === 'SEMESTRE_1'
-          ? `${data.formData.ano}.1`
-          : `${data.formData.ano}.2`;
-
-      const tipoProposicaoLabel =
-        data.formData.tipoProposicao === 'INDIVIDUAL'
-          ? 'Individual'
-          : 'Coletiva';
-
-      const disciplinasText = data.disciplinas
-        .map((d) => `${d.codigo} - ${d.nome}`)
-        .join(', ');
-
-      const MyDocument = () => (
-        <Document>
-          <Page size="A4" style={styles.page}>
-            <View style={styles.header}>
-              <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>
-                UNIVERSIDADE FEDERAL DA BAHIA{'\n'}
-                Pró - Reitoria de Ensino de Graduação{'\n'}
-                Coordenação Acadêmica de Graduação
-              </Text>
-            </View>
-
-            <Text style={styles.title}>
-              ANEXO I – FORMULÁRIO PARA SUBMISSÃO DE PROJETO DE MONITORIA
-            </Text>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionHeader}>
-                1. IDENTIFICAÇÃO DO PROJETO
-              </Text>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>
-                  1.1 Unidade Universitária:
-                </Text>
-                <Text style={styles.fieldValue}>Instituto de Computação</Text>
-              </View>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>1.2 Órgão responsável:</Text>
-                <Text style={styles.fieldValue}>
-                  {data.departamento?.nome || 'Não selecionado'}
-                </Text>
-              </View>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>1.3 Título:</Text>
-                <Text style={styles.fieldValue}>{data.formData.titulo}</Text>
-              </View>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>
-                  1.4 Componente(s) curricular(es):
-                </Text>
-                <Text style={styles.fieldValue}>
-                  {disciplinasText || 'Nenhuma disciplina selecionada'}
-                </Text>
-              </View>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>1.5 Semestre:</Text>
-                <Text style={styles.fieldValue}>{semestreLabel}</Text>
-              </View>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>1.6 Proposição:</Text>
-                <Text style={styles.fieldValue}>{tipoProposicaoLabel}</Text>
-              </View>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>1.7 Número de monitores:</Text>
-                <Text style={styles.fieldValue}>
-                  {(data.formData.bolsasSolicitadas || 0) +
-                    (data.formData.voluntariosSolicitados || 0)}
-                </Text>
-              </View>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>
-                  1.8 Carga horária semanal:
-                </Text>
-                <Text style={styles.fieldValue}>
-                  {data.formData.cargaHorariaSemana || 0}h
-                </Text>
-              </View>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>1.9 Carga horária total:</Text>
-                <Text style={styles.fieldValue}>
-                  {(data.formData.cargaHorariaSemana || 0) *
-                    (data.formData.numeroSemanas || 0)}
-                  h
-                </Text>
-              </View>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>1.10 Público-alvo:</Text>
-                <Text style={styles.fieldValue}>
-                  {data.formData.publicoAlvo || 'Não informado'}
-                </Text>
-              </View>
-
-              <View style={styles.formRow}>
-                <Text style={styles.fieldLabel}>
-                  1.11 Estimativa de beneficiados:
-                </Text>
-                <Text style={styles.fieldValue}>
-                  {data.formData.estimativaPessoasBenificiadas ||
-                    'Não informado'}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionHeader}>
-                2. DADOS DO PROFESSOR RESPONSÁVEL
-              </Text>
-              <View style={{ padding: 5 }}>
-                <Text>
-                  Nome: {data.user?.username || 'Professor Responsável'}
-                </Text>
-                <Text>E-mail: {data.user?.email || 'professor@ufba.br'}</Text>
-              </View>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionHeader}>3. DESCRIÇÃO DO PROJETO</Text>
-              <View style={styles.descriptionBox}>
-                <Text>{data.formData.descricao}</Text>
-              </View>
-            </View>
-          </Page>
-        </Document>
-      );
-
-      const blob = await pdf(<MyDocument />).toBlob();
-      const fileName = `projeto-monitoria-${data.formData.titulo?.replace(/[^a-zA-Z0-9]/g, '-')}.pdf`;
-
-      downloadPDFFile(blob, fileName);
-      toast.success('PDF gerado e download iniciado!');
-    } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      toast.error('Erro ao gerar PDF do projeto');
-    }
-  };
-
-  if (!data) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Pré-visualização do edital
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-muted/20 border rounded-md p-8 text-center">
-            <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">
-              Preencha os campos do formulário para ver a pré-visualização do
-              projeto
-            </p>
-            <p className="text-xs text-muted-foreground">
-              A pré-visualização será atualizada automaticamente conforme você
-              preenche o formulário
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const htmlPreview = generateProjetoHTML(data);
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          Pré-visualização do edital
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div
-            dangerouslySetInnerHTML={{ __html: htmlPreview }}
-            className="border rounded-lg"
-          />
-
-          <div className="flex justify-center">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              onClick={handleGeneratePDF}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Gerar PDF Prévia
-            </Button>
+      <div ref={previewRef} className="border rounded-lg bg-white shadow-sm">
+        <div className="bg-blue-50 border-b px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-2 ${statusInfo.color}`}>
+                <statusInfo.icon
+                  className={`h-4 w-4 ${statusInfo.spinning ? 'animate-spin' : ''}`}
+                />
+                <span className="text-sm font-medium">{statusInfo.title}</span>
+              </div>
+            </div>
+            {hasRequiredFields && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview(!showPreview)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                {showPreview ? (
+                  <>
+                    <EyeOff className="h-4 w-4 mr-1" />
+                    Ocultar Preview
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-1" />
+                    Mostrar Preview
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
+
+        <div className="p-2">
+          {!shouldShowPDF || !showPreview ? (
+            <div className="p-8 text-center">
+              {!hasRequiredFields ? (
+                <>
+                  <statusInfo.icon
+                    className={`mx-auto h-12 w-12 mb-4 ${statusInfo.color} ${
+                      statusInfo.spinning ? 'animate-spin' : ''
+                    }`}
+                  />
+                  <h4 className="text-lg font-medium text-gray-700 mb-2">
+                    {statusInfo.title}
+                  </h4>
+                  <p className="text-gray-500 text-sm">{statusInfo.message}</p>
+                </>
+              ) : !showPreview ? (
+                <>
+                  <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h4 className="text-lg font-medium text-gray-700 mb-2">
+                    Preview Desativado
+                  </h4>
+                  <p className="text-gray-500 text-sm">
+                    Clique em "Mostrar Preview" para visualizar o documento PDF.
+                  </p>
+                </>
+              ) : (
+                <statusInfo.icon
+                  className={`mx-auto h-12 w-12 mb-4 ${statusInfo.color} ${
+                    statusInfo.spinning ? 'animate-spin' : ''
+                  }`}
+                />
+              )}
+            </div>
+          ) : (
+            MemoizedPDFViewer
+          )}
+        </div>
+      </div>
+    );
+  },
+  // Função de comparação personalizada para evitar re-renders desnecessários
+  (prevProps, nextProps) => {
+    // Verificar se as disciplinas ou departamentos mudaram
+    if (
+      prevProps.disciplinasFiltradas !== nextProps.disciplinasFiltradas ||
+      prevProps.departamentos !== nextProps.departamentos ||
+      prevProps.user !== nextProps.user
+    ) {
+      return false;
+    }
+
+    // Comparação simplificada dos dados do formulário
+    const prevFormData = prevProps.formData || {};
+    const nextFormData = nextProps.formData || {};
+
+    // Verificar se as propriedades principais mudaram
+    const keysToCheck = [
+      'titulo',
+      'descricao',
+      'departamentoId',
+      'disciplinaIds',
+      'professorResponsavelId',
+      'ano',
+      'semestre',
+      'tipoProposicao',
+      'bolsasSolicitadas',
+      'voluntariosSolicitados',
+      'cargaHorariaSemana',
+      'numeroSemanas',
+      'publicoAlvo',
+      'estimativaPessoasBenificiadas',
+    ] as Array<keyof ProjetoFormData>;
+
+    return keysToCheck.every((key) => prevFormData[key] === nextFormData[key]);
+  },
+);

@@ -1,8 +1,10 @@
+import { useFileAccess } from '@/hooks/use-files';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
 import { X } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from './button';
+
 interface FileViewerProps {
   fileId: string;
   fileName?: string; // Nome opcional para exibição
@@ -18,68 +20,13 @@ export function FileViewer({
   fileName,
   showPreview = true,
 }: FileViewerProps) {
-  const [fileData, setFileData] = useState<{
-    url: string;
-    fileName: string;
-    mimeType: string;
-    fileSize: number;
-  } | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-
   const { toast } = useToast();
 
-  // Função para buscar a URL pré-assinada do arquivo
-  const fetchFileUrl = useCallback(async () => {
-    if (!fileId) return;
-
-    log.info(`Buscando arquivo com ID: ${fileId}`);
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/files/access/${fileId}`, {
-        credentials: 'include',
-      });
-
-      log.info(`Status da resposta: ${response.status}`);
-      const data = await response.json();
-      log.info('Dados recebidos:', data);
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Erro ao acessar o arquivo');
-      }
-
-      setFileData({
-        url: data.url,
-        fileName: data.fileName,
-        mimeType: data.mimeType,
-        fileSize: data.fileSize,
-      });
-    } catch (error) {
-      log.error('Erro ao buscar arquivo:', error);
-      setError(
-        error instanceof Error ? error.message : 'Erro ao buscar o arquivo',
-      );
-      toast({
-        title: 'Erro',
-        description:
-          error instanceof Error ? error.message : 'Erro ao buscar o arquivo',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fileId, toast]);
-
-  // Carregar a URL do arquivo ao montar o componente
-  useEffect(() => {
-    fetchFileUrl();
-  }, [fetchFileUrl]);
+  const { data: fileData, isLoading, error } = useFileAccess(fileId);
 
   // Função para visualizar o arquivo
-  const handleView = useCallback(() => {
+  const handleView = () => {
     if (!fileData) return;
 
     // Para PDFs e imagens, podemos usar o visualizador embutido
@@ -93,13 +40,13 @@ export function FileViewer({
       // Para outros tipos, abrir em nova aba
       window.open(fileData.url, '_blank');
     }
-  }, [fileData, showPreview]);
+  };
 
   // Função para baixar o arquivo
-  const handleDownload = useCallback(() => {
+  const handleDownload = () => {
     if (!fileData) return;
     window.open(fileData.url, '_blank');
-  }, [fileData]);
+  };
 
   if (isLoading) {
     return (
@@ -112,7 +59,7 @@ export function FileViewer({
   if (error) {
     return (
       <div className="px-4 py-2 text-red-600 border rounded bg-red-50">
-        {error}
+        {error instanceof Error ? error.message : 'Erro ao buscar o arquivo'}
       </div>
     );
   }
