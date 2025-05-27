@@ -331,3 +331,24 @@ export function useDownloadProjectPDF() {
     },
   });
 }
+
+export function useBulkReminder() {
+  return useMutation<
+    any,
+    Error,
+    {
+      type: 'PROJECT_SUBMISSION' | 'DOCUMENT_SIGNING' | 'SELECTION_PENDING';
+      customMessage?: string;
+      targetYear?: number;
+      targetSemester?: 'SEMESTRE_1' | 'SEMESTRE_2';
+    }
+  >({
+    mutationFn: async (input) => {
+      const response = await apiClient.post('/admin/bulk-reminder', input);
+      return response.data;
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao enviar lembretes em lote');
+    },
+  });
+}

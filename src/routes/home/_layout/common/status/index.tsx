@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '@/hooks/use-auth';
+import { useDownloadTermoCompromisso } from '@/hooks/use-vaga';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FileText } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/home/_layout/common/status/')({
   component: RouteComponent,
@@ -15,29 +17,16 @@ type StatusInscricao = 'em análise' | 'aprovado' | 'rejeitado';
 function RouteComponent() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const downloadTermoMutation = useDownloadTermoCompromisso();
 
   const hasInscription = true;
 
   const handleDownloadTermoCompromisso = async (vagaId: number) => {
     try {
-      const response = await fetch(`/api/vaga/${vagaId}/termo-compromisso`);
-
-      if (!response.ok) {
-        throw new Error('Erro ao gerar termo');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `termo-compromisso-monitor.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      await downloadTermoMutation.mutateAsync(vagaId);
+      toast.success('Termo de compromisso baixado com sucesso!');
     } catch (error) {
-      console.error('Erro ao baixar termo:', error);
+      toast.error('Erro ao baixar termo de compromisso. Tente novamente.');
     }
   };
 

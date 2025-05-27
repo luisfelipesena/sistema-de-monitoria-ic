@@ -68,6 +68,12 @@ export const QueryKeys = {
     inscricao: (id: string) => ['monitoria', 'inscricao', id],
   },
 
+  // Vaga related queries
+  vaga: {
+    byId: (id: number) => ['vaga', id],
+    termoCompromisso: (id: number) => ['vaga', id, 'termo-compromisso'],
+  },
+
   projeto: {
     list: ['projeto', 'list'],
     byId: (id: string) => ['projeto', id],

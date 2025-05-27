@@ -5,14 +5,46 @@ import { TableComponent } from '@/components/layout/TableComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { FilterModal, FilterValues } from '@/components/ui/FilterModal';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '@/hooks/use-auth';
-import { useProjetos } from '@/hooks/use-projeto';
+import {
+  useApproveProjeto,
+  useBulkReminder,
+  useDeleteProjeto,
+  useProjetos,
+  useRejectProjeto,
+} from '@/hooks/use-projeto';
+import { toast } from '@/hooks/use-toast';
 import { ProjetoListItem } from '@/routes/api/projeto/-types';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
-import { Eye, Filter, Plus, Users } from 'lucide-react';
+import {
+  AlertTriangle,
+  Download,
+  Eye,
+  Filter,
+  Plus,
+  Trash2,
+  Users,
+  X,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 export const Route = createFileRoute(
@@ -25,10 +57,19 @@ function ManageProjectsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: projetos, isLoading: loadingProjetos } = useProjetos();
+  const deleteProjeto = useDeleteProjeto();
+  const approveProjeto = useApproveProjeto();
+  const rejectProjeto = useRejectProjeto();
+  const bulkReminder = useBulkReminder();
 
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedProjects, setSelectedProjects] = useState<number[]>([]);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] =
+    useState<ProjetoListItem | null>(null);
+  const [bulkAction, setBulkAction] = useState<string>('');
 
   const projetosFiltrados = useMemo(() => {
     if (!projetos) return [];
@@ -65,7 +106,155 @@ function ManageProjectsPage() {
     });
   };
 
+  const handleDeleteClick = (projeto: ProjetoListItem) => {
+    setProjectToDelete(projeto);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!projectToDelete) return;
+
+    try {
+      await deleteProjeto.mutateAsync(projectToDelete.id);
+      toast({
+        title: 'Projeto deletado',
+        description: `O projeto "${projectToDelete.titulo}" foi deletado com sucesso.`,
+      });
+      setDeleteModalOpen(false);
+      setProjectToDelete(null);
+    } catch (error) {
+      toast({
+        title: 'Erro ao deletar projeto',
+        description: 'Ocorreu um erro ao deletar o projeto. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSelectProject = (projectId: number, selected: boolean) => {
+    if (selected) {
+      setSelectedProjects((prev) => [...prev, projectId]);
+    } else {
+      setSelectedProjects((prev) => prev.filter((id) => id !== projectId));
+    }
+  };
+
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
+      setSelectedProjects(projetosFiltrados.map((p) => p.id));
+    } else {
+      setSelectedProjects([]);
+    }
+  };
+
+  const handleBulkAction = async () => {
+    if (!bulkAction || selectedProjects.length === 0) return;
+
+    try {
+      if (bulkAction === 'approve') {
+        for (const projectId of selectedProjects) {
+          await approveProjeto.mutateAsync({
+            projetoId: projectId,
+            bolsasDisponibilizadas: 1, // Default value, could be improved
+          });
+        }
+        toast({
+          title: 'Projetos aprovados',
+          description: `${selectedProjects.length} projetos foram aprovados.`,
+        });
+      } else if (bulkAction === 'reject') {
+        for (const projectId of selectedProjects) {
+          await rejectProjeto.mutateAsync({
+            projetoId: projectId,
+            motivo: 'Rejeitado em lote pelo administrador',
+          });
+        }
+        toast({
+          title: 'Projetos rejeitados',
+          description: `${selectedProjects.length} projetos foram rejeitados.`,
+        });
+      }
+
+      setSelectedProjects([]);
+      setBulkAction('');
+    } catch (error) {
+      toast({
+        title: 'Erro na ação em lote',
+        description: 'Ocorreu um erro ao processar a ação. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const canDeleteProject = (projeto: ProjetoListItem) => {
+    return projeto.status === 'DRAFT' || projeto.status === 'REJECTED';
+  };
+
+  const handleExportReport = () => {
+    const currentYear = new Date().getFullYear();
+    const currentSemester = new Date().getMonth() <= 6 ? '1' : '2';
+    const url = `/api/relatorios/planilhas-prograd?ano=${currentYear}&semestre=SEMESTRE_${currentSemester}`;
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `monitores-${currentYear}-${currentSemester}-completo.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: 'Relatório sendo gerado',
+      description: 'O download do relatório será iniciado em breve.',
+    });
+  };
+
+  const handleSendReminder = async (
+    type: 'PROJECT_SUBMISSION' | 'DOCUMENT_SIGNING' | 'SELECTION_PENDING',
+  ) => {
+    try {
+      const result = await bulkReminder.mutateAsync({
+        type,
+        customMessage: 'Enviado através do painel administrativo',
+      });
+
+      toast({
+        title: 'Lembretes enviados',
+        description: `${result.emailsSent} emails foram enviados com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao enviar lembretes',
+        description: 'Ocorreu um erro ao enviar os lembretes. Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const columns: ColumnDef<ProjetoListItem>[] = [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <Checkbox
+          checked={table.getIsAllPageRowsSelected()}
+          onCheckedChange={(value) => {
+            table.toggleAllPageRowsSelected(!!value);
+            handleSelectAll(!!value);
+          }}
+          aria-label="Selecionar todos"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={selectedProjects.includes(row.original.id)}
+          onCheckedChange={(value) => {
+            handleSelectProject(row.original.id, !!value);
+          }}
+          aria-label="Selecionar projeto"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       header: 'Projeto',
       accessorKey: 'titulo',
@@ -152,6 +341,16 @@ function ManageProjectsPage() {
           >
             <Eye className="h-4 w-4" />
           </Button>
+          {canDeleteProject(row.original) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDeleteClick(row.original)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -180,6 +379,23 @@ function ManageProjectsPage() {
         Filtros
       </Button>
       <Button
+        variant="outline"
+        onClick={() => handleSendReminder('PROJECT_SUBMISSION')}
+        disabled={bulkReminder.isPending}
+        className="text-orange-600 border-orange-300 hover:bg-orange-50"
+      >
+        <Users className="w-4 h-4 mr-2" />
+        {bulkReminder.isPending ? 'Enviando...' : 'Enviar Lembretes'}
+      </Button>
+      <Button
+        variant="outline"
+        onClick={handleExportReport}
+        className="text-green-600 border-green-300 hover:bg-green-50"
+      >
+        <Download className="w-4 h-4 mr-2" />
+        Exportar Relatório
+      </Button>
+      <Button
         className="bg-[#1B2A50] text-white hover:bg-[#24376c]"
         onClick={() => navigate({ to: '/home/admin/projects' })}
       >
@@ -206,6 +422,36 @@ function ManageProjectsPage() {
             />
           </div>
         </div>
+
+        {selectedProjects.length > 0 && (
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-blue-700">
+                  {selectedProjects.length} projeto(s) selecionado(s)
+                </span>
+                <div className="flex items-center gap-2">
+                  <Select value={bulkAction} onValueChange={setBulkAction}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Ação em lote" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="approve">Aprovar</SelectItem>
+                      <SelectItem value="reject">Rejeitar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={handleBulkAction}
+                    disabled={!bulkAction}
+                    size="sm"
+                  >
+                    Executar
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
@@ -281,6 +527,50 @@ function ManageProjectsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirmar Exclusão
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja deletar o projeto{' '}
+              <strong>{projectToDelete?.titulo}</strong>?
+              <br />
+              <br />
+              Esta ação não pode ser desfeita e removerá permanentemente:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Todos os dados do projeto</li>
+                <li>Disciplinas associadas</li>
+                <li>Professores participantes</li>
+                <li>Atividades planejadas</li>
+                <li>Documentos relacionados</li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={deleteProjeto.isPending}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteProjeto.isPending}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {deleteProjeto.isPending ? 'Deletando...' : 'Confirmar Exclusão'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <FilterModal
         open={filterModalOpen}
