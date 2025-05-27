@@ -158,7 +158,11 @@ const styles = StyleSheet.create({
   },
 });
 
-const MonitoriaFormTemplate = ({ data }: { data: MonitoriaFormData }) => {
+export const MonitoriaFormTemplate = ({
+  data,
+}: {
+  data: MonitoriaFormData;
+}) => {
   const semestreLabel = `${data.ano}.${data.semestre === 'SEMESTRE_1' ? '1' : '2'}`;
   const tipoProposicaoLabel =
     data.tipoProposicao === 'INDIVIDUAL' ? 'Individual' : 'Coletiva';
@@ -673,5 +677,3 @@ const MonitoriaFormTemplate = ({ data }: { data: MonitoriaFormData }) => {
     </Document>
   );
 };
-
-export default MonitoriaFormTemplate;

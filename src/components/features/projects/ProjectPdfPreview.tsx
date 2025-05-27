@@ -1,24 +1,19 @@
-import MonitoriaFormTemplate from '@/components/features/projects/MonitoriaFormTemplate';
+import { MonitoriaFormTemplate } from '@/components/features/projects/MonitoriaFormTemplate';
 import { ProjetoFormData } from '@/components/features/projects/types';
 import { Button } from '@/components/ui/button';
+import { DisciplinaWithProfessor } from '@/hooks/use-disciplina';
 import { usePDFPreview } from '@/hooks/use-pdf-preview';
 import type { DepartamentoResponse } from '@/routes/api/department/-types';
+import { User } from 'lucia';
 import { Eye, EyeOff, FileText } from 'lucide-react';
-import { lazy, memo, Suspense, useMemo, useState } from 'react';
+import { memo, Suspense, useMemo, useState } from 'react';
 
 interface ProjectPDFPreviewProps {
   formData: Partial<ProjetoFormData>;
   departamentos: DepartamentoResponse[] | undefined;
-  disciplinasFiltradas: any[] | undefined;
-  user: any;
+  disciplinasFiltradas: DisciplinaWithProfessor[] | undefined;
+  user: User | null;
 }
-
-// Lazy load the PDF template component
-const LazyPDFViewer = lazy(() =>
-  import('@react-pdf/renderer').then((module) => ({
-    default: module.PDFViewer,
-  })),
-);
 
 // Use memo para evitar re-renders desnecessários do componente inteiro
 export const ProjectPDFPreview = memo(
@@ -64,9 +59,7 @@ export const ProjectPDFPreview = memo(
             </div>
           }
         >
-          <LazyPDFViewer width="100%" height="600px" showToolbar={false}>
-            <MonitoriaFormTemplate data={templateData} />
-          </LazyPDFViewer>
+          <MonitoriaFormTemplate data={templateData} />
         </Suspense>
       );
       // Adicionar todas as dependências que podem causar mudança no PDF
