@@ -12,23 +12,12 @@ export interface DisciplinaWithProfessor extends DisciplinaResponse {
   professorResponsavelId?: number | null;
 }
 
-// Key de cache para consultas
-export const DisciplinaKeys = {
-  all: ['disciplinas'],
-  detail: (id: number) => ['disciplinas', id],
-  byDepartamento: (departamentoId: number) => [
-    'disciplinas',
-    'byDepartamento',
-    departamentoId,
-  ],
-};
-
 // Função para buscar disciplinas por departamento
 export function useDisciplinas(departamentoId?: number) {
   return useQuery<DisciplinaWithProfessor[]>({
     queryKey: departamentoId
-      ? DisciplinaKeys.byDepartamento(departamentoId)
-      : DisciplinaKeys.all,
+      ? QueryKeys.disciplina.byId(departamentoId.toString())
+      : QueryKeys.disciplina.all,
     queryFn: async () => {
       const url = departamentoId
         ? `/disciplina?departamentoId=${departamentoId}`
@@ -99,17 +88,19 @@ export function useVincularProfessorDisciplina() {
   return useMutation<unknown, Error, DisciplinaProfessorVinculo>({
     mutationFn: async (data) => {
       const response = await apiClient.post(
-        '/api/disciplina/vincular-professor',
+        '/disciplina/vincular-professor',
         data,
       );
       return response.data;
     },
     onSuccess: (_, variables) => {
       // Invalidar caches relacionados
-      queryClient.invalidateQueries({ queryKey: DisciplinaKeys.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.all });
       if (variables.disciplinaId) {
         queryClient.invalidateQueries({
-          queryKey: DisciplinaKeys.detail(variables.disciplinaId),
+          queryKey: QueryKeys.disciplina.byId(
+            variables.disciplinaId.toString(),
+          ),
         });
       }
     },
@@ -123,7 +114,7 @@ export function useDesvincularProfessorDisciplina() {
   return useMutation<unknown, Error, Partial<DisciplinaProfessorVinculo>>({
     mutationFn: async (data) => {
       const response = await apiClient.delete(
-        '/api/disciplina/vincular-professor',
+        '/disciplina/vincular-professor',
         {
           data,
         },
@@ -132,10 +123,12 @@ export function useDesvincularProfessorDisciplina() {
     },
     onSuccess: (_, variables) => {
       // Invalidar caches relacionados
-      queryClient.invalidateQueries({ queryKey: DisciplinaKeys.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.all });
       if (variables.disciplinaId) {
         queryClient.invalidateQueries({
-          queryKey: DisciplinaKeys.detail(variables.disciplinaId),
+          queryKey: QueryKeys.disciplina.byId(
+            variables.disciplinaId.toString(),
+          ),
         });
       }
     },

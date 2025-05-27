@@ -87,6 +87,7 @@ export const QueryKeys = {
   },
 
   disciplina: {
+    all: ['disciplina'],
     list: ['disciplina', 'list'],
     byId: (id: string) => ['disciplina', id],
   },

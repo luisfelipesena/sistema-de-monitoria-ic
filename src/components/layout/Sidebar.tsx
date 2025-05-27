@@ -16,6 +16,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
   BookOpen,
@@ -35,7 +36,6 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import { useState } from 'react';
 
 type SidebarLayoutProps = {
   pathname: string;
@@ -65,7 +65,7 @@ const isMenuGroup = (item: MenuConfig): item is MenuGroupConfig => {
 };
 
 const menuConfig: MenuConfig[] = [
-  // Dashboard - sempre segundo
+  // Dashboard
   {
     label: 'Dashboard',
     href: (role) => `/home/${role}/dashboard`,
@@ -238,11 +238,16 @@ const menuConfig: MenuConfig[] = [
   },
 ];
 
+const SIDEBAR_OPEN_GROUPS_KEY = 'sidebar_open_groups';
+
 export function SidebarLayout({ pathname }: SidebarLayoutProps) {
   const { user } = useAuth();
   const { isLessThanMediumDesktop, setOpenCompactSidebarView } = useSidebar();
   const navigate = useNavigate();
-  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  const [openGroups, setOpenGroups] = useLocalStorage<string[]>(
+    SIDEBAR_OPEN_GROUPS_KEY,
+    [],
+  );
 
   function handleNavigate(to: string) {
     navigate({ to });
@@ -256,7 +261,7 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
     } else {
       newOpenGroups.add(groupLabel);
     }
-    setOpenGroups(newOpenGroups);
+    setOpenGroups(Array.from(newOpenGroups));
   }
 
   function isItemActive(item: MenuItemConfig): boolean {
@@ -301,7 +306,7 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
   }
 
   function renderMenuGroup(group: MenuGroupConfig) {
-    const isOpen = openGroups.has(group.label);
+    const isOpen = openGroups.includes(group.label);
     const isActive = isGroupActive(group);
 
     return (
