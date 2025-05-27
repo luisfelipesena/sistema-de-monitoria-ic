@@ -1,3 +1,5 @@
+import { ProjectPDFPreview } from '@/components/features/projects/ProjectPDFPreview';
+import { ProjetoFormData } from '@/components/features/projects/types';
 import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,9 +10,7 @@ import { FileText, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { ProjectIdentificationSection } from './ProjectIdentificationSection';
-import { ProjectPDFPreview } from './ProjectPDFPreview';
 import { ProjectVacanciesSection } from './ProjectVacanciesSection';
-import { ProjetoFormData } from './types';
 
 export function ProjectForm() {
   const {

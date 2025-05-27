@@ -1,10 +1,10 @@
+import MonitoriaFormTemplate from '@/components/features/projects/MonitoriaFormTemplate';
+import { ProjetoFormData } from '@/components/features/projects/types';
 import { Button } from '@/components/ui/button';
 import { usePDFPreview } from '@/hooks/use-pdf-preview';
 import type { DepartamentoResponse } from '@/routes/api/department/-types';
 import { Eye, EyeOff, FileText } from 'lucide-react';
 import { lazy, memo, Suspense, useMemo, useState } from 'react';
-import MonitoriaFormTemplate from './MonitoriaFormTemplate';
-import type { ProjetoFormData } from './types';
 
 interface ProjectPDFPreviewProps {
   formData: Partial<ProjetoFormData>;
