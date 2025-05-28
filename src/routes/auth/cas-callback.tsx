@@ -19,7 +19,7 @@ function CasCallbackPage() {
       return;
     }
 
-    // navigate({ to: '/home', replace: true });
+    navigate({ to: '/home', replace: true });
   }, [user]);
 
   useEffect(() => {
