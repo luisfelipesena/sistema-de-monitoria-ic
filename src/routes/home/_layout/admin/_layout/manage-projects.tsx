@@ -294,11 +294,11 @@ function ManageProjectsPage() {
         const status = row.original.status;
         const statusMap = {
           DRAFT: { label: 'Rascunho', variant: 'secondary' as const },
-          PENDING_PROFESSOR_SIGNATURE: {
-            label: 'Pend. Professor',
+          SUBMITTED: { label: 'Em Análise', variant: 'muted' as const },
+          PENDING_ADMIN_SIGNATURE: {
+            label: 'Pend. Assinatura',
             variant: 'warning' as const,
           },
-          SUBMITTED: { label: 'Em Análise', variant: 'muted' as const },
           APPROVED: { label: 'Aprovado', variant: 'success' as const },
           REJECTED: { label: 'Rejeitado', variant: 'destructive' as const },
         };

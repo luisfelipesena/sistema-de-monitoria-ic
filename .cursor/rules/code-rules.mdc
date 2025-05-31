@@ -43,7 +43,7 @@ This rule outlines the expected coding standards and practices for the Sistema d
 *   **API Design:** Implement API endpoints as defined in `docs/plan.md`, ensuring request/response shapes are consistent and validated (potentially using Zod).
 *   **Authentication & Authorization:** Utilize Lucia for authentication. Implement role-based authorization checks within route handlers or middleware, respecting the roles defined in `project-description.mdc`.
 *   **Error Handling:** Implement consistent error handling and logging.
-*   **Security:** Never expose sensitive keys or logic. Handle operations like email sending (Resend) securely within the backend.
+*   **Security:** Never expose sensitive keys or logic. Handle operations like email sending (Nodemailer) securely within the backend.
 
 ## Frontend Specifics (`apps/frontend/`)
 

@@ -64,11 +64,11 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/approve')({
           );
         }
 
-        // Aprovar o projeto
+        // Aprovar o projeto - set to PENDING_ADMIN_SIGNATURE
         const [projetoAtualizado] = await db
           .update(projetoTable)
           .set({
-            status: 'APPROVED',
+            status: 'PENDING_ADMIN_SIGNATURE',
             bolsasDisponibilizadas,
             feedbackAdmin: observacoes,
             updatedAt: new Date(),

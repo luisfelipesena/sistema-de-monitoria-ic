@@ -67,8 +67,8 @@ function DashboardAdmin() {
     if (!projetos)
       return {
         draft: 0,
-        pendingSignature: 0,
         submitted: 0,
+        pendingAdminSignature: 0,
         approved: 0,
         rejected: 0,
       };
@@ -79,11 +79,11 @@ function DashboardAdmin() {
           case 'DRAFT':
             acc.draft++;
             break;
-          case 'PENDING_PROFESSOR_SIGNATURE':
-            acc.pendingSignature++;
-            break;
           case 'SUBMITTED':
             acc.submitted++;
+            break;
+          case 'PENDING_ADMIN_SIGNATURE':
+            acc.pendingAdminSignature++;
             break;
           case 'APPROVED':
             acc.approved++;
@@ -94,7 +94,7 @@ function DashboardAdmin() {
         }
         return acc;
       },
-      { draft: 0, pendingSignature: 0, submitted: 0, approved: 0, rejected: 0 },
+      { draft: 0, submitted: 0, pendingAdminSignature: 0, approved: 0, rejected: 0 },
     );
   }, [projetos]);
 
@@ -469,16 +469,16 @@ function DashboardAdmin() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      Pend. Professor
+                      Pend. Assinatura
                     </CardTitle>
                     <FileSignature className="h-4 w-4 text-purple-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-purple-600">
-                      {statusCounts.pendingSignature}
+                      {statusCounts.pendingAdminSignature}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Aguardando professor
+                      Aguardando assinatura
                     </p>
                   </CardContent>
                 </Card>

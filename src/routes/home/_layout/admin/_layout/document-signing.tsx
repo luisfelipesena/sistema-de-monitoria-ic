@@ -49,9 +49,9 @@ function DocumentSigningComponent() {
   }>({});
   const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
-  // Filter only DRAFT projects for admin signing
-  const draftProjetos =
-    projetos?.filter((projeto) => projeto.status === 'DRAFT') || [];
+  // Filter projects that are PENDING_ADMIN_SIGNATURE (approved but need signing)
+  const pendingSignatureProjetos =
+    projetos?.filter((projeto) => projeto.status === 'PENDING_ADMIN_SIGNATURE') || [];
 
   const handleDownloadPDF = async (projetoId: number, titulo: string) => {
     try {
@@ -99,14 +99,14 @@ function DocumentSigningComponent() {
         observacoes: 'Documento assinado pelo administrador',
       });
 
-      // Update project status to enable professor submission
+      // Update project status to APPROVED after admin signs
       await updateStatus.mutateAsync({
         projetoId,
-        status: 'PENDING_PROFESSOR_SIGNATURE',
+        status: 'APPROVED',
       });
 
       toast.success(
-        'Documento assinado enviado! Projeto liberado para assinatura do professor.',
+        'Documento assinado enviado! Projeto aprovado com sucesso.',
       );
 
       // Clear the selected file and reset input
@@ -127,10 +127,10 @@ function DocumentSigningComponent() {
 
   const renderStatusBadge = (status: string) => {
     switch (status) {
-      case 'DRAFT':
+      case 'PENDING_ADMIN_SIGNATURE':
         return <Badge variant="secondary">Aguardando Assinatura Admin</Badge>;
-      case 'PENDING_PROFESSOR_SIGNATURE':
-        return <Badge variant="warning">Aguardando Professor</Badge>;
+      case 'DRAFT':
+        return <Badge variant="outline">Rascunho</Badge>;
       case 'SUBMITTED':
         return <Badge variant="default">Submetido</Badge>;
       case 'APPROVED':
@@ -172,23 +172,23 @@ function DocumentSigningComponent() {
             <CardTitle className="flex items-center gap-2">
               <FileSignature className="h-5 w-5" />
               Projetos Aguardando Assinatura Administrativa
-              {draftProjetos.length > 0 && (
+              {pendingSignatureProjetos.length > 0 && (
                 <Badge variant="outline" className="ml-2">
-                  {draftProjetos.length} projeto(s)
+                  {pendingSignatureProjetos.length} projeto(s)
                 </Badge>
               )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {draftProjetos.length === 0 ? (
+            {pendingSignatureProjetos.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <CheckCircle className="mx-auto h-12 w-12 mb-4" />
                 <h3 className="text-lg font-medium mb-2">
                   Nenhum projeto aguardando assinatura
                 </h3>
                 <p>
-                  Todos os projetos foram processados ou não há projetos em
-                  rascunho.
+                  Todos os projetos foram processados ou não há projetos
+                  aprovados aguardando assinatura.
                 </p>
               </div>
             ) : (
@@ -204,7 +204,7 @@ function DocumentSigningComponent() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {draftProjetos.map((projeto) => (
+                  {pendingSignatureProjetos.map((projeto) => (
                     <TableRow key={projeto.id}>
                       <TableCell className="font-medium">
                         {projeto.titulo}

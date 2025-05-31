@@ -51,7 +51,7 @@ This project aims to create a web application to manage the workflow of the UFBA
 *   **Application & Selection:**
     *   Views applications submitted specifically for their projects.
     *   Selects or rejects applicants for their project vacancies.
-    *   Triggers email notifications to applicants regarding their selection status (using Resend via backend).
+    *   Triggers email notifications to applicants regarding their selection status (using Nodemailer via backend).
 
 ### 3. Aluno (Student)
 
@@ -78,6 +78,6 @@ This project aims to create a web application to manage the workflow of the UFBA
 4.  **Application Window:** Students can only apply during defined Application Periods.
 5.  **Selection:** Professors select students for their projects.
 6.  **Acceptance Constraint:** Students are limited to one concurrent scholarship position.
-7.  **Notifications:** Email notifications (via Resend) are key for proposal signing requests, application results, and acceptance confirmations.
+7.  **Notifications:** Email notifications (via Nodemailer) are key for proposal signing requests, application results, and acceptance confirmations.
 8.  **Document Storage:** A system is needed to store various documents (proposals, signed proposals, editais, atas).
 9.  **Reporting:** Generation of specific Excel spreadsheets is required for PROGRAD/Departments.

@@ -165,7 +165,7 @@ export function useUpdateProjetoStatus() {
         | 'SUBMITTED'
         | 'APPROVED'
         | 'REJECTED'
-        | 'PENDING_PROFESSOR_SIGNATURE';
+        | 'PENDING_ADMIN_SIGNATURE';
     }
   >({
     mutationFn: async ({ projetoId, status }) => {

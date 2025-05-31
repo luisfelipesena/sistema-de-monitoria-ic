@@ -16,7 +16,7 @@ const log = logger.child({
 });
 
 const bulkReminderSchema = z.object({
-  type: z.enum(['PROJECT_SUBMISSION', 'DOCUMENT_SIGNING', 'SELECTION_PENDING']),
+  type: z.enum(['PROJECT_SUBMISSION', 'SELECTION_PENDING']),
   customMessage: z.string().optional(),
   targetYear: z.number().optional(),
   targetSemester: z.enum(['SEMESTRE_1', 'SEMESTRE_2']).optional(),
@@ -115,69 +115,6 @@ export const APIRoute = createAPIFileRoute('/api/admin/bulk-reminder')({
               log.error(
                 { error, professorId: professor.id },
                 'Erro ao enviar email de lembrete',
-              );
-              emailsFailed++;
-            }
-          }
-        } else if (type === 'DOCUMENT_SIGNING') {
-          // Buscar projetos que precisam de assinatura
-          const projetosPendentes = await db
-            .select({
-              id: projetoTable.id,
-              titulo: projetoTable.titulo,
-              professorId: projetoTable.professorResponsavelId,
-              professorNome: professorTable.nomeCompleto,
-              professorEmail: professorTable.emailInstitucional,
-            })
-            .from(projetoTable)
-            .innerJoin(
-              professorTable,
-              eq(projetoTable.professorResponsavelId, professorTable.id),
-            )
-            .where(eq(projetoTable.status, 'PENDING_PROFESSOR_SIGNATURE'));
-
-          for (const projeto of projetosPendentes) {
-            try {
-              await sendEmail({
-                to: projeto.professorEmail,
-                subject: `Lembrete: Assinatura Pendente - ${projeto.titulo}`,
-                html: `
-                  <html>
-                  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                      <h2 style="color: #1B2A50;">Lembrete: Assinatura Pendente</h2>
-                      
-                      <p>Caro(a) Professor(a) ${projeto.professorNome},</p>
-                      
-                      <p>Este é um lembrete sobre a assinatura pendente do seu projeto de monitoria:</p>
-                      
-                      <div style="background-color: #e8f5e8; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                        <h3 style="margin: 0; color: #1b5e20;">${projeto.titulo}</h3>
-                      </div>
-                      
-                      <p>Seu projeto foi aprovado e aguarda sua assinatura. Por favor:</p>
-                      
-                      <ol>
-                        <li>Acesse a plataforma de monitoria</li>
-                        <li>Baixe o PDF do projeto</li>
-                        <li>Assine digitalmente o documento</li>
-                        <li>Faça o upload do documento assinado</li>
-                      </ol>
-                      
-                      ${customMessage ? `<div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;"><p><strong>Mensagem adicional:</strong> ${customMessage}</p></div>` : ''}
-                      
-                      <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
-                      <p style="font-size: 12px; color: #666;">Sistema de Monitoria - UFBA</p>
-                    </div>
-                  </body>
-                  </html>
-                `,
-              });
-              emailsSent++;
-            } catch (error) {
-              log.error(
-                { error, projetoId: projeto.id },
-                'Erro ao enviar email de lembrete de assinatura',
               );
               emailsFailed++;
             }

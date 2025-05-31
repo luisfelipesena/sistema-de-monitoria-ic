@@ -77,11 +77,11 @@ export const tipoVagaEnum = pgEnum('tipo_vaga_enum', [
 ]);
 
 export const projetoStatusEnum = pgEnum('projeto_status_enum', [
-  'DRAFT', // Added Draft status
-  'SUBMITTED',
-  'APPROVED',
-  'REJECTED',
-  'PENDING_PROFESSOR_SIGNATURE', // New status after admin signs
+  'DRAFT', // Professor creating the project
+  'SUBMITTED', // Professor submitted for admin approval
+  'APPROVED', // Admin approved and signed
+  'REJECTED', // Admin rejected
+  'PENDING_ADMIN_SIGNATURE', // Admin approved but needs to sign (optional status)
 ]);
 
 export const generoEnum = pgEnum('genero_enum', [

@@ -72,23 +72,6 @@ export function ProjectForm() {
     try {
       setSubmitting(true);
 
-      // Apply automatic professor assignment logic for admin users
-      if (user?.role === 'admin' && formData.disciplinaIds?.length > 0) {
-        const disciplina = disciplinasFiltradas?.find(
-          (d) => d.id === formData.disciplinaIds[0],
-        );
-
-        if (disciplina && disciplina.professorResponsavel) {
-          const professor = professores?.find(
-            (p) => p.nomeCompleto === disciplina.professorResponsavel,
-          );
-
-          if (professor) {
-            setValue('professorResponsavelId', professor.id);
-          }
-        }
-      }
-
       // Ensure the professorResponsavelId is set if required
       const dataToSubmit = { ...formData };
 
@@ -110,7 +93,7 @@ export function ProjectForm() {
             dataToSubmit as any,
           );
           toast.success('Rascunho do projeto salvo com sucesso!');
-          navigate({ to: '/home' });
+          navigate({ to: '/home/professor/dashboard' });
         } catch (error) {
           console.error('Error saving draft:', error);
           toast.error('Erro ao salvar o rascunho do projeto');

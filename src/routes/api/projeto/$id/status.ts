@@ -39,18 +39,26 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/status')({
           return json({ error: 'Projeto não encontrado' }, { status: 404 });
         }
 
-        // Add any specific logic for status transitions if needed
-        // For example, admin can only move DRAFT to PENDING_PROFESSOR_SIGNATURE here
-        if (
-          projeto.status === 'DRAFT' &&
-          status !== 'PENDING_PROFESSOR_SIGNATURE'
-        ) {
-          // Or any other status an admin might set from DRAFT, e.g. directly to SUBMITTED or REJECTED by admin
-          // This example is specific to the admin signing flow
-          if (status !== 'SUBMITTED' && status !== 'REJECTED') {
+        // Validate status transitions based on new flow:
+        // Professor: DRAFT -> SUBMITTED
+        // Admin: SUBMITTED -> APPROVED/REJECTED/PENDING_ADMIN_SIGNATURE
+        
+        // Admin should not be able to change DRAFT status (only professor can submit)
+        if (projeto.status === 'DRAFT') {
+          return json(
+            {
+              error: 'Somente o professor pode submeter um projeto em rascunho',
+            },
+            { status: 400 },
+          );
+        }
+        
+        // Admin can only change SUBMITTED projects
+        if (projeto.status === 'SUBMITTED') {
+          if (!['APPROVED', 'REJECTED', 'PENDING_ADMIN_SIGNATURE'].includes(status)) {
             return json(
               {
-                error: `Admin não pode alterar status de DRAFT para ${status} diretamente aqui.`,
+                error: `Status inválido. Projetos submetidos podem ser aprovados, rejeitados ou aguardar assinatura do admin.`,
               },
               { status: 400 },
             );

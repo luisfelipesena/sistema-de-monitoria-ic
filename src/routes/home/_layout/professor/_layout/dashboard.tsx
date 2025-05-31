@@ -59,7 +59,7 @@ function DashboardProfessor() {
   };
 
   const handleCriarProjeto = () => {
-    navigate({ to: '/home/common/projects' });
+    navigate({ to: '/home/professor/projects' });
   };
 
   const handleSubmitProjeto = async (projetoId: number) => {
@@ -187,6 +187,7 @@ function DashboardProfessor() {
               size="sm"
               className="rounded-full flex items-center gap-1 bg-blue-600 hover:bg-blue-700"
               onClick={() => handleSubmitProjeto(row.original.id)}
+              disabled={submitProjetoMutation.isPending}
             >
               <Send className="h-4 w-4" />
               Submeter

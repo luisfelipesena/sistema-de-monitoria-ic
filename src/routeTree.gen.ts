@@ -28,12 +28,11 @@ import { Route as HomeLayoutCommonMonitoriaIndexImport } from './routes/home/_la
 import { Route as HomeLayoutStudentLayoutInscricaoMonitoriaImport } from './routes/home/_layout/student/_layout/inscricao-monitoria'
 import { Route as HomeLayoutStudentLayoutDashboardImport } from './routes/home/_layout/student/_layout/dashboard'
 import { Route as HomeLayoutProfessorLayoutVolunteerManagementImport } from './routes/home/_layout/professor/_layout/volunteer-management'
-import { Route as HomeLayoutProfessorLayoutPendingSignsImport } from './routes/home/_layout/professor/_layout/pending-signs'
-import { Route as HomeLayoutProfessorLayoutPendingSignaturesImport } from './routes/home/_layout/professor/_layout/pending-signatures'
+import { Route as HomeLayoutProfessorLayoutProjectsImport } from './routes/home/_layout/professor/_layout/projects'
 import { Route as HomeLayoutProfessorLayoutDashboardImport } from './routes/home/_layout/professor/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutUsersImport } from './routes/home/_layout/admin/_layout/users'
-import { Route as HomeLayoutAdminLayoutProjectsImport } from './routes/home/_layout/admin/_layout/projects'
 import { Route as HomeLayoutAdminLayoutProfessoresImport } from './routes/home/_layout/admin/_layout/professores'
+import { Route as HomeLayoutAdminLayoutPendingApprovalsImport } from './routes/home/_layout/admin/_layout/pending-approvals'
 import { Route as HomeLayoutAdminLayoutNotificacoesImport } from './routes/home/_layout/admin/_layout/notificacoes'
 import { Route as HomeLayoutAdminLayoutManageProjectsImport } from './routes/home/_layout/admin/_layout/manage-projects'
 import { Route as HomeLayoutAdminLayoutFilesImport } from './routes/home/_layout/admin/_layout/files'
@@ -174,17 +173,10 @@ const HomeLayoutProfessorLayoutVolunteerManagementRoute =
     getParentRoute: () => HomeLayoutProfessorLayoutRoute,
   } as any)
 
-const HomeLayoutProfessorLayoutPendingSignsRoute =
-  HomeLayoutProfessorLayoutPendingSignsImport.update({
-    id: '/pending-signs',
-    path: '/pending-signs',
-    getParentRoute: () => HomeLayoutProfessorLayoutRoute,
-  } as any)
-
-const HomeLayoutProfessorLayoutPendingSignaturesRoute =
-  HomeLayoutProfessorLayoutPendingSignaturesImport.update({
-    id: '/pending-signatures',
-    path: '/pending-signatures',
+const HomeLayoutProfessorLayoutProjectsRoute =
+  HomeLayoutProfessorLayoutProjectsImport.update({
+    id: '/projects',
+    path: '/projects',
     getParentRoute: () => HomeLayoutProfessorLayoutRoute,
   } as any)
 
@@ -203,17 +195,17 @@ const HomeLayoutAdminLayoutUsersRoute = HomeLayoutAdminLayoutUsersImport.update(
   } as any,
 )
 
-const HomeLayoutAdminLayoutProjectsRoute =
-  HomeLayoutAdminLayoutProjectsImport.update({
-    id: '/projects',
-    path: '/projects',
-    getParentRoute: () => HomeLayoutAdminLayoutRoute,
-  } as any)
-
 const HomeLayoutAdminLayoutProfessoresRoute =
   HomeLayoutAdminLayoutProfessoresImport.update({
     id: '/professores',
     path: '/professores',
+    getParentRoute: () => HomeLayoutAdminLayoutRoute,
+  } as any)
+
+const HomeLayoutAdminLayoutPendingApprovalsRoute =
+  HomeLayoutAdminLayoutPendingApprovalsImport.update({
+    id: '/pending-approvals',
+    path: '/pending-approvals',
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any)
 
@@ -460,18 +452,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminLayoutNotificacoesImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
+    '/home/_layout/admin/_layout/pending-approvals': {
+      id: '/home/_layout/admin/_layout/pending-approvals'
+      path: '/pending-approvals'
+      fullPath: '/home/admin/pending-approvals'
+      preLoaderRoute: typeof HomeLayoutAdminLayoutPendingApprovalsImport
+      parentRoute: typeof HomeLayoutAdminLayoutImport
+    }
     '/home/_layout/admin/_layout/professores': {
       id: '/home/_layout/admin/_layout/professores'
       path: '/professores'
       fullPath: '/home/admin/professores'
       preLoaderRoute: typeof HomeLayoutAdminLayoutProfessoresImport
-      parentRoute: typeof HomeLayoutAdminLayoutImport
-    }
-    '/home/_layout/admin/_layout/projects': {
-      id: '/home/_layout/admin/_layout/projects'
-      path: '/projects'
-      fullPath: '/home/admin/projects'
-      preLoaderRoute: typeof HomeLayoutAdminLayoutProjectsImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
     '/home/_layout/admin/_layout/users': {
@@ -488,18 +480,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutProfessorLayoutDashboardImport
       parentRoute: typeof HomeLayoutProfessorLayoutImport
     }
-    '/home/_layout/professor/_layout/pending-signatures': {
-      id: '/home/_layout/professor/_layout/pending-signatures'
-      path: '/pending-signatures'
-      fullPath: '/home/professor/pending-signatures'
-      preLoaderRoute: typeof HomeLayoutProfessorLayoutPendingSignaturesImport
-      parentRoute: typeof HomeLayoutProfessorLayoutImport
-    }
-    '/home/_layout/professor/_layout/pending-signs': {
-      id: '/home/_layout/professor/_layout/pending-signs'
-      path: '/pending-signs'
-      fullPath: '/home/professor/pending-signs'
-      preLoaderRoute: typeof HomeLayoutProfessorLayoutPendingSignsImport
+    '/home/_layout/professor/_layout/projects': {
+      id: '/home/_layout/professor/_layout/projects'
+      path: '/projects'
+      fullPath: '/home/professor/projects'
+      preLoaderRoute: typeof HomeLayoutProfessorLayoutProjectsImport
       parentRoute: typeof HomeLayoutProfessorLayoutImport
     }
     '/home/_layout/professor/_layout/volunteer-management': {
@@ -582,8 +567,8 @@ interface HomeLayoutAdminLayoutRouteChildren {
   HomeLayoutAdminLayoutFilesRoute: typeof HomeLayoutAdminLayoutFilesRoute
   HomeLayoutAdminLayoutManageProjectsRoute: typeof HomeLayoutAdminLayoutManageProjectsRoute
   HomeLayoutAdminLayoutNotificacoesRoute: typeof HomeLayoutAdminLayoutNotificacoesRoute
+  HomeLayoutAdminLayoutPendingApprovalsRoute: typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   HomeLayoutAdminLayoutProfessoresRoute: typeof HomeLayoutAdminLayoutProfessoresRoute
-  HomeLayoutAdminLayoutProjectsRoute: typeof HomeLayoutAdminLayoutProjectsRoute
   HomeLayoutAdminLayoutUsersRoute: typeof HomeLayoutAdminLayoutUsersRoute
   HomeLayoutAdminLayoutProjectIdIndexRoute: typeof HomeLayoutAdminLayoutProjectIdIndexRoute
 }
@@ -604,8 +589,9 @@ const HomeLayoutAdminLayoutRouteChildren: HomeLayoutAdminLayoutRouteChildren = {
     HomeLayoutAdminLayoutManageProjectsRoute,
   HomeLayoutAdminLayoutNotificacoesRoute:
     HomeLayoutAdminLayoutNotificacoesRoute,
+  HomeLayoutAdminLayoutPendingApprovalsRoute:
+    HomeLayoutAdminLayoutPendingApprovalsRoute,
   HomeLayoutAdminLayoutProfessoresRoute: HomeLayoutAdminLayoutProfessoresRoute,
-  HomeLayoutAdminLayoutProjectsRoute: HomeLayoutAdminLayoutProjectsRoute,
   HomeLayoutAdminLayoutUsersRoute: HomeLayoutAdminLayoutUsersRoute,
   HomeLayoutAdminLayoutProjectIdIndexRoute:
     HomeLayoutAdminLayoutProjectIdIndexRoute,
@@ -630,8 +616,7 @@ const HomeLayoutAdminRouteWithChildren = HomeLayoutAdminRoute._addFileChildren(
 
 interface HomeLayoutProfessorLayoutRouteChildren {
   HomeLayoutProfessorLayoutDashboardRoute: typeof HomeLayoutProfessorLayoutDashboardRoute
-  HomeLayoutProfessorLayoutPendingSignaturesRoute: typeof HomeLayoutProfessorLayoutPendingSignaturesRoute
-  HomeLayoutProfessorLayoutPendingSignsRoute: typeof HomeLayoutProfessorLayoutPendingSignsRoute
+  HomeLayoutProfessorLayoutProjectsRoute: typeof HomeLayoutProfessorLayoutProjectsRoute
   HomeLayoutProfessorLayoutVolunteerManagementRoute: typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
 }
 
@@ -639,10 +624,8 @@ const HomeLayoutProfessorLayoutRouteChildren: HomeLayoutProfessorLayoutRouteChil
   {
     HomeLayoutProfessorLayoutDashboardRoute:
       HomeLayoutProfessorLayoutDashboardRoute,
-    HomeLayoutProfessorLayoutPendingSignaturesRoute:
-      HomeLayoutProfessorLayoutPendingSignaturesRoute,
-    HomeLayoutProfessorLayoutPendingSignsRoute:
-      HomeLayoutProfessorLayoutPendingSignsRoute,
+    HomeLayoutProfessorLayoutProjectsRoute:
+      HomeLayoutProfessorLayoutProjectsRoute,
     HomeLayoutProfessorLayoutVolunteerManagementRoute:
       HomeLayoutProfessorLayoutVolunteerManagementRoute,
   }
@@ -750,12 +733,11 @@ export interface FileRoutesByFullPath {
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/admin/manage-projects': typeof HomeLayoutAdminLayoutManageProjectsRoute
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
+  '/home/admin/pending-approvals': typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   '/home/admin/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
-  '/home/admin/projects': typeof HomeLayoutAdminLayoutProjectsRoute
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
-  '/home/professor/pending-signatures': typeof HomeLayoutProfessorLayoutPendingSignaturesRoute
-  '/home/professor/pending-signs': typeof HomeLayoutProfessorLayoutPendingSignsRoute
+  '/home/professor/projects': typeof HomeLayoutProfessorLayoutProjectsRoute
   '/home/professor/volunteer-management': typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/student/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
@@ -785,12 +767,11 @@ export interface FileRoutesByTo {
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/admin/manage-projects': typeof HomeLayoutAdminLayoutManageProjectsRoute
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
+  '/home/admin/pending-approvals': typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   '/home/admin/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
-  '/home/admin/projects': typeof HomeLayoutAdminLayoutProjectsRoute
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
-  '/home/professor/pending-signatures': typeof HomeLayoutProfessorLayoutPendingSignaturesRoute
-  '/home/professor/pending-signs': typeof HomeLayoutProfessorLayoutPendingSignsRoute
+  '/home/professor/projects': typeof HomeLayoutProfessorLayoutProjectsRoute
   '/home/professor/volunteer-management': typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/student/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
@@ -826,12 +807,11 @@ export interface FileRoutesById {
   '/home/_layout/admin/_layout/files': typeof HomeLayoutAdminLayoutFilesRoute
   '/home/_layout/admin/_layout/manage-projects': typeof HomeLayoutAdminLayoutManageProjectsRoute
   '/home/_layout/admin/_layout/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
+  '/home/_layout/admin/_layout/pending-approvals': typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   '/home/_layout/admin/_layout/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
-  '/home/_layout/admin/_layout/projects': typeof HomeLayoutAdminLayoutProjectsRoute
   '/home/_layout/admin/_layout/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/_layout/professor/_layout/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
-  '/home/_layout/professor/_layout/pending-signatures': typeof HomeLayoutProfessorLayoutPendingSignaturesRoute
-  '/home/_layout/professor/_layout/pending-signs': typeof HomeLayoutProfessorLayoutPendingSignsRoute
+  '/home/_layout/professor/_layout/projects': typeof HomeLayoutProfessorLayoutProjectsRoute
   '/home/_layout/professor/_layout/volunteer-management': typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
   '/home/_layout/student/_layout/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/_layout/student/_layout/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
@@ -864,12 +844,11 @@ export interface FileRouteTypes {
     | '/home/admin/files'
     | '/home/admin/manage-projects'
     | '/home/admin/notificacoes'
+    | '/home/admin/pending-approvals'
     | '/home/admin/professores'
-    | '/home/admin/projects'
     | '/home/admin/users'
     | '/home/professor/dashboard'
-    | '/home/professor/pending-signatures'
-    | '/home/professor/pending-signs'
+    | '/home/professor/projects'
     | '/home/professor/volunteer-management'
     | '/home/student/dashboard'
     | '/home/student/inscricao-monitoria'
@@ -898,12 +877,11 @@ export interface FileRouteTypes {
     | '/home/admin/files'
     | '/home/admin/manage-projects'
     | '/home/admin/notificacoes'
+    | '/home/admin/pending-approvals'
     | '/home/admin/professores'
-    | '/home/admin/projects'
     | '/home/admin/users'
     | '/home/professor/dashboard'
-    | '/home/professor/pending-signatures'
-    | '/home/professor/pending-signs'
+    | '/home/professor/projects'
     | '/home/professor/volunteer-management'
     | '/home/student/dashboard'
     | '/home/student/inscricao-monitoria'
@@ -937,12 +915,11 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/_layout/files'
     | '/home/_layout/admin/_layout/manage-projects'
     | '/home/_layout/admin/_layout/notificacoes'
+    | '/home/_layout/admin/_layout/pending-approvals'
     | '/home/_layout/admin/_layout/professores'
-    | '/home/_layout/admin/_layout/projects'
     | '/home/_layout/admin/_layout/users'
     | '/home/_layout/professor/_layout/dashboard'
-    | '/home/_layout/professor/_layout/pending-signatures'
-    | '/home/_layout/professor/_layout/pending-signs'
+    | '/home/_layout/professor/_layout/projects'
     | '/home/_layout/professor/_layout/volunteer-management'
     | '/home/_layout/student/_layout/dashboard'
     | '/home/_layout/student/_layout/inscricao-monitoria'
@@ -1035,8 +1012,8 @@ export const routeTree = rootRoute
         "/home/_layout/admin/_layout/files",
         "/home/_layout/admin/_layout/manage-projects",
         "/home/_layout/admin/_layout/notificacoes",
+        "/home/_layout/admin/_layout/pending-approvals",
         "/home/_layout/admin/_layout/professores",
-        "/home/_layout/admin/_layout/projects",
         "/home/_layout/admin/_layout/users",
         "/home/_layout/admin/_layout/project/$id/"
       ]
@@ -1053,8 +1030,7 @@ export const routeTree = rootRoute
       "parent": "/home/_layout/professor",
       "children": [
         "/home/_layout/professor/_layout/dashboard",
-        "/home/_layout/professor/_layout/pending-signatures",
-        "/home/_layout/professor/_layout/pending-signs",
+        "/home/_layout/professor/_layout/projects",
         "/home/_layout/professor/_layout/volunteer-management"
       ]
     },
@@ -1117,12 +1093,12 @@ export const routeTree = rootRoute
       "filePath": "home/_layout/admin/_layout/notificacoes.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
-    "/home/_layout/admin/_layout/professores": {
-      "filePath": "home/_layout/admin/_layout/professores.tsx",
+    "/home/_layout/admin/_layout/pending-approvals": {
+      "filePath": "home/_layout/admin/_layout/pending-approvals.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
-    "/home/_layout/admin/_layout/projects": {
-      "filePath": "home/_layout/admin/_layout/projects.tsx",
+    "/home/_layout/admin/_layout/professores": {
+      "filePath": "home/_layout/admin/_layout/professores.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
     "/home/_layout/admin/_layout/users": {
@@ -1133,12 +1109,8 @@ export const routeTree = rootRoute
       "filePath": "home/_layout/professor/_layout/dashboard.tsx",
       "parent": "/home/_layout/professor/_layout"
     },
-    "/home/_layout/professor/_layout/pending-signatures": {
-      "filePath": "home/_layout/professor/_layout/pending-signatures.tsx",
-      "parent": "/home/_layout/professor/_layout"
-    },
-    "/home/_layout/professor/_layout/pending-signs": {
-      "filePath": "home/_layout/professor/_layout/pending-signs.tsx",
+    "/home/_layout/professor/_layout/projects": {
+      "filePath": "home/_layout/professor/_layout/projects.tsx",
       "parent": "/home/_layout/professor/_layout"
     },
     "/home/_layout/professor/_layout/volunteer-management": {

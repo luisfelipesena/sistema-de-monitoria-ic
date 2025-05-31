@@ -86,9 +86,9 @@ const menuConfig: MenuConfig[] = [
         roles: ['admin'],
       },
       {
-        label: 'Novo Projeto',
-        href: '/home/admin/projects',
-        icon: FilePlus,
+        label: 'Projetos Pendentes',
+        href: '/home/admin/pending-approvals',
+        icon: FileCheck,
         roles: ['admin'],
       },
       {
@@ -107,6 +107,12 @@ const menuConfig: MenuConfig[] = [
     roles: ['admin'],
     items: [
       {
+        label: 'Todos os Usuários',
+        href: '/home/admin/users',
+        icon: Users,
+        roles: ['admin'],
+      },
+      {
         label: 'Professores',
         href: '/home/admin/professores',
         icon: UserCog,
@@ -116,12 +122,6 @@ const menuConfig: MenuConfig[] = [
         label: 'Alunos',
         href: '/home/admin/alunos',
         icon: UserPlus,
-        roles: ['admin'],
-      },
-      {
-        label: 'Todos os Usuários',
-        href: '/home/admin/users',
-        icon: Users,
         roles: ['admin'],
       },
     ],
@@ -188,9 +188,15 @@ const menuConfig: MenuConfig[] = [
     roles: ['professor'],
     items: [
       {
-        label: 'Assinaturas Pendentes',
-        href: '/home/professor/pending-signatures',
-        icon: FileSignature,
+        label: 'Novo Projeto',
+        href: '/home/professor/projects',
+        icon: FilePlus,
+        roles: ['professor'],
+      },
+      {
+        label: 'Meus Projetos',
+        href: '/home/professor/dashboard',
+        icon: FileText,
         roles: ['professor'],
       },
       {

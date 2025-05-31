@@ -80,14 +80,14 @@ Abaixo estão as bibliotecas chave para funcionalidades específicas:
   - _Nenhuma biblioteca específica_ se for apenas redirecionamento ou iframe simples.
 - **Ação:** Pesquisar o SDK/componente React do serviço de assinatura _após_ ele ser definido.
 
-### 5. Disparo de Emails (Resend) (Planejado)
+### 5. Disparo de Emails (Nodemailer) (Planejado)
 
-- **Abordagem:** O envio de emails com Resend (ou qualquer serviço similar que use chaves de API secretas) **DEVE** ser feito exclusivamente pela **lógica do servidor** (`src/server/...`).
+- **Abordagem:** O envio de emails com Nodemailer (ou qualquer serviço similar que use chaves de API secretas) **DEVE** ser feito exclusivamente pela **lógica do servidor** (`src/server/...`).
 - **Responsabilidade do Cliente (Componentes React):**
   1.  O usuário realiza uma ação que dispara um email (ex: Professor clica em "Notificar Resultados").
   2.  O componente cliente faz uma chamada para um endpoint específico na API interna (ex: `POST /api/projects/:id/notify-results`) usando `useMutation` do TanStack Query.
-  3.  Nenhum dado sensível (como chave de API do Resend) é manipulado ou armazenado no código do cliente.
-- **Bibliotecas Cliente Necessárias:** Nenhuma específica para Resend. Apenas `TanStack Query` + `fetch` para chamar o endpoint da API.
+  3.  Nenhum dado sensível (como chave de API do Nodemailer) é manipulado ou armazenado no código do cliente.
+- **Bibliotecas Cliente Necessárias:** Nenhuma específica para Nodemailer. Apenas `TanStack Query` + `fetch` para chamar o endpoint da API.
 
 ### 6. Notificações / Toasts
 
