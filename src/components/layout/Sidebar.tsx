@@ -25,6 +25,7 @@ import {
   FileCheck,
   FilePlus,
   FileSignature,
+  FileSpreadsheet,
   FileText,
   GraduationCap,
   LayoutDashboard,
@@ -173,6 +174,12 @@ const menuConfig: MenuConfig[] = [
         roles: ['admin'],
       },
       {
+        label: 'Relatórios PROGRAD',
+        href: '/home/admin/relatorios',
+        icon: FileSpreadsheet,
+        roles: ['admin'],
+      },
+      {
         label: 'Arquivos',
         href: '/home/admin/files',
         icon: FileText,
@@ -224,6 +231,12 @@ const menuConfig: MenuConfig[] = [
         label: 'Inscrição em Monitoria',
         href: '/home/student/inscricao-monitoria',
         icon: FilePlus,
+        roles: ['student'],
+      },
+      {
+        label: 'Resultados das Seleções',
+        href: '/home/student/resultados',
+        icon: FileCheck,
         roles: ['student'],
       },
       {

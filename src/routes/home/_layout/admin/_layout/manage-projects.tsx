@@ -397,7 +397,7 @@ function ManageProjectsPage() {
       </Button>
       <Button
         className="bg-[#1B2A50] text-white hover:bg-[#24376c]"
-        onClick={() => navigate({ to: '/home/admin/projects' })}
+        onClick={() => navigate({ to: '/home/professor/projects' })}
       >
         <Plus className="w-4 h-4 mr-2" />
         Novo Projeto

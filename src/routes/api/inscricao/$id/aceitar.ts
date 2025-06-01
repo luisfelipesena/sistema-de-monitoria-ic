@@ -64,34 +64,44 @@ export const APIRoute = createAPIFileRoute('/api/inscricao/$id/aceitar')({
           );
         }
 
-        // Se for bolsista, verificar se já tem bolsa ativa
+        // Se for bolsista, verificar se já tem bolsa ativa no mesmo período
         if (inscricao.status === 'SELECTED_BOLSISTA') {
-          const bolsaAtiva = await db.query.vagaTable.findFirst({
-            where: and(
-              eq(vagaTable.alunoId, aluno.id),
-              eq(vagaTable.tipo, 'BOLSISTA'),
-            ),
+          // Buscar o projeto para obter o período
+          const projeto = await db.query.projetoTable.findFirst({
+            where: eq(projetoTable.id, inscricao.projetoId),
           });
 
-          if (bolsaAtiva) {
+          if (!projeto) {
+            return json({ error: 'Projeto não encontrado' }, { status: 404 });
+          }
+
+          // Verificar se tem bolsa ativa no mesmo ano/semestre
+          const bolsasAtivas = await db
+            .select({
+              vaga: vagaTable,
+              projeto: projetoTable,
+            })
+            .from(vagaTable)
+            .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
+            .where(
+              and(
+                eq(vagaTable.alunoId, aluno.id),
+                eq(vagaTable.tipo, 'BOLSISTA'),
+                eq(projetoTable.ano, projeto.ano),
+                eq(projetoTable.semestre, projeto.semestre),
+              ),
+            );
+
+          if (bolsasAtivas.length > 0) {
             return json(
               {
-                error:
-                  'Você já possui uma bolsa de monitoria ativa. Só é permitida uma bolsa por vez.',
+                error: `Você já possui uma bolsa de monitoria ativa no período ${projeto.ano}.${projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}. Só é permitida uma bolsa por semestre.`,
               },
               { status: 400 },
             );
           }
         }
 
-        // Buscar dados do projeto
-        const projeto = await db.query.projetoTable.findFirst({
-          where: eq(projetoTable.id, inscricao.projetoId),
-        });
-
-        if (!projeto) {
-          return json({ error: 'Projeto não encontrado' }, { status: 404 });
-        }
 
         // Definir novo status e tipo de vaga
         const novoStatus =

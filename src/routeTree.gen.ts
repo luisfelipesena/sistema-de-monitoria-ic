@@ -25,6 +25,7 @@ import { Route as HomeLayoutCommonSelecaoMonitoresIndexImport } from './routes/h
 import { Route as HomeLayoutCommonProfileIndexImport } from './routes/home/_layout/common/profile/index'
 import { Route as HomeLayoutCommonOnboardingIndexImport } from './routes/home/_layout/common/onboarding/index'
 import { Route as HomeLayoutCommonMonitoriaIndexImport } from './routes/home/_layout/common/monitoria/index'
+import { Route as HomeLayoutStudentLayoutResultadosImport } from './routes/home/_layout/student/_layout/resultados'
 import { Route as HomeLayoutStudentLayoutInscricaoMonitoriaImport } from './routes/home/_layout/student/_layout/inscricao-monitoria'
 import { Route as HomeLayoutStudentLayoutDashboardImport } from './routes/home/_layout/student/_layout/dashboard'
 import { Route as HomeLayoutProfessorLayoutVolunteerManagementImport } from './routes/home/_layout/professor/_layout/volunteer-management'
@@ -32,6 +33,7 @@ import { Route as HomeLayoutProfessorLayoutProjectsImport } from './routes/home/
 import { Route as HomeLayoutProfessorLayoutProjectApplicationsImport } from './routes/home/_layout/professor/_layout/project-applications'
 import { Route as HomeLayoutProfessorLayoutDashboardImport } from './routes/home/_layout/professor/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutUsersImport } from './routes/home/_layout/admin/_layout/users'
+import { Route as HomeLayoutAdminLayoutRelatoriosImport } from './routes/home/_layout/admin/_layout/relatorios'
 import { Route as HomeLayoutAdminLayoutProfessoresImport } from './routes/home/_layout/admin/_layout/professores'
 import { Route as HomeLayoutAdminLayoutPendingApprovalsImport } from './routes/home/_layout/admin/_layout/pending-approvals'
 import { Route as HomeLayoutAdminLayoutNotificacoesImport } from './routes/home/_layout/admin/_layout/notificacoes'
@@ -153,6 +155,13 @@ const HomeLayoutCommonMonitoriaIndexRoute =
     getParentRoute: () => HomeLayoutRoute,
   } as any)
 
+const HomeLayoutStudentLayoutResultadosRoute =
+  HomeLayoutStudentLayoutResultadosImport.update({
+    id: '/resultados',
+    path: '/resultados',
+    getParentRoute: () => HomeLayoutStudentLayoutRoute,
+  } as any)
+
 const HomeLayoutStudentLayoutInscricaoMonitoriaRoute =
   HomeLayoutStudentLayoutInscricaoMonitoriaImport.update({
     id: '/inscricao-monitoria',
@@ -202,6 +211,13 @@ const HomeLayoutAdminLayoutUsersRoute = HomeLayoutAdminLayoutUsersImport.update(
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any,
 )
+
+const HomeLayoutAdminLayoutRelatoriosRoute =
+  HomeLayoutAdminLayoutRelatoriosImport.update({
+    id: '/relatorios',
+    path: '/relatorios',
+    getParentRoute: () => HomeLayoutAdminLayoutRoute,
+  } as any)
 
 const HomeLayoutAdminLayoutProfessoresRoute =
   HomeLayoutAdminLayoutProfessoresImport.update({
@@ -474,6 +490,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminLayoutProfessoresImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
+    '/home/_layout/admin/_layout/relatorios': {
+      id: '/home/_layout/admin/_layout/relatorios'
+      path: '/relatorios'
+      fullPath: '/home/admin/relatorios'
+      preLoaderRoute: typeof HomeLayoutAdminLayoutRelatoriosImport
+      parentRoute: typeof HomeLayoutAdminLayoutImport
+    }
     '/home/_layout/admin/_layout/users': {
       id: '/home/_layout/admin/_layout/users'
       path: '/users'
@@ -521,6 +544,13 @@ declare module '@tanstack/react-router' {
       path: '/inscricao-monitoria'
       fullPath: '/home/student/inscricao-monitoria'
       preLoaderRoute: typeof HomeLayoutStudentLayoutInscricaoMonitoriaImport
+      parentRoute: typeof HomeLayoutStudentLayoutImport
+    }
+    '/home/_layout/student/_layout/resultados': {
+      id: '/home/_layout/student/_layout/resultados'
+      path: '/resultados'
+      fullPath: '/home/student/resultados'
+      preLoaderRoute: typeof HomeLayoutStudentLayoutResultadosImport
       parentRoute: typeof HomeLayoutStudentLayoutImport
     }
     '/home/_layout/common/monitoria/': {
@@ -584,6 +614,7 @@ interface HomeLayoutAdminLayoutRouteChildren {
   HomeLayoutAdminLayoutNotificacoesRoute: typeof HomeLayoutAdminLayoutNotificacoesRoute
   HomeLayoutAdminLayoutPendingApprovalsRoute: typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   HomeLayoutAdminLayoutProfessoresRoute: typeof HomeLayoutAdminLayoutProfessoresRoute
+  HomeLayoutAdminLayoutRelatoriosRoute: typeof HomeLayoutAdminLayoutRelatoriosRoute
   HomeLayoutAdminLayoutUsersRoute: typeof HomeLayoutAdminLayoutUsersRoute
   HomeLayoutAdminLayoutProjectIdIndexRoute: typeof HomeLayoutAdminLayoutProjectIdIndexRoute
 }
@@ -607,6 +638,7 @@ const HomeLayoutAdminLayoutRouteChildren: HomeLayoutAdminLayoutRouteChildren = {
   HomeLayoutAdminLayoutPendingApprovalsRoute:
     HomeLayoutAdminLayoutPendingApprovalsRoute,
   HomeLayoutAdminLayoutProfessoresRoute: HomeLayoutAdminLayoutProfessoresRoute,
+  HomeLayoutAdminLayoutRelatoriosRoute: HomeLayoutAdminLayoutRelatoriosRoute,
   HomeLayoutAdminLayoutUsersRoute: HomeLayoutAdminLayoutUsersRoute,
   HomeLayoutAdminLayoutProjectIdIndexRoute:
     HomeLayoutAdminLayoutProjectIdIndexRoute,
@@ -667,6 +699,7 @@ const HomeLayoutProfessorRouteWithChildren =
 interface HomeLayoutStudentLayoutRouteChildren {
   HomeLayoutStudentLayoutDashboardRoute: typeof HomeLayoutStudentLayoutDashboardRoute
   HomeLayoutStudentLayoutInscricaoMonitoriaRoute: typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
+  HomeLayoutStudentLayoutResultadosRoute: typeof HomeLayoutStudentLayoutResultadosRoute
 }
 
 const HomeLayoutStudentLayoutRouteChildren: HomeLayoutStudentLayoutRouteChildren =
@@ -675,6 +708,8 @@ const HomeLayoutStudentLayoutRouteChildren: HomeLayoutStudentLayoutRouteChildren
       HomeLayoutStudentLayoutDashboardRoute,
     HomeLayoutStudentLayoutInscricaoMonitoriaRoute:
       HomeLayoutStudentLayoutInscricaoMonitoriaRoute,
+    HomeLayoutStudentLayoutResultadosRoute:
+      HomeLayoutStudentLayoutResultadosRoute,
   }
 
 const HomeLayoutStudentLayoutRouteWithChildren =
@@ -753,6 +788,7 @@ export interface FileRoutesByFullPath {
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
   '/home/admin/pending-approvals': typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   '/home/admin/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
+  '/home/admin/relatorios': typeof HomeLayoutAdminLayoutRelatoriosRoute
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/professor/project-applications': typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
@@ -760,6 +796,7 @@ export interface FileRoutesByFullPath {
   '/home/professor/volunteer-management': typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/student/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
+  '/home/student/resultados': typeof HomeLayoutStudentLayoutResultadosRoute
   '/home/common/monitoria': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
@@ -788,6 +825,7 @@ export interface FileRoutesByTo {
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
   '/home/admin/pending-approvals': typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   '/home/admin/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
+  '/home/admin/relatorios': typeof HomeLayoutAdminLayoutRelatoriosRoute
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/professor/project-applications': typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
@@ -795,6 +833,7 @@ export interface FileRoutesByTo {
   '/home/professor/volunteer-management': typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/student/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
+  '/home/student/resultados': typeof HomeLayoutStudentLayoutResultadosRoute
   '/home/common/monitoria': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
@@ -829,6 +868,7 @@ export interface FileRoutesById {
   '/home/_layout/admin/_layout/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
   '/home/_layout/admin/_layout/pending-approvals': typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   '/home/_layout/admin/_layout/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
+  '/home/_layout/admin/_layout/relatorios': typeof HomeLayoutAdminLayoutRelatoriosRoute
   '/home/_layout/admin/_layout/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/_layout/professor/_layout/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/_layout/professor/_layout/project-applications': typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
@@ -836,6 +876,7 @@ export interface FileRoutesById {
   '/home/_layout/professor/_layout/volunteer-management': typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
   '/home/_layout/student/_layout/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/_layout/student/_layout/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
+  '/home/_layout/student/_layout/resultados': typeof HomeLayoutStudentLayoutResultadosRoute
   '/home/_layout/common/monitoria/': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/_layout/common/onboarding/': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/_layout/common/profile/': typeof HomeLayoutCommonProfileIndexRoute
@@ -867,6 +908,7 @@ export interface FileRouteTypes {
     | '/home/admin/notificacoes'
     | '/home/admin/pending-approvals'
     | '/home/admin/professores'
+    | '/home/admin/relatorios'
     | '/home/admin/users'
     | '/home/professor/dashboard'
     | '/home/professor/project-applications'
@@ -874,6 +916,7 @@ export interface FileRouteTypes {
     | '/home/professor/volunteer-management'
     | '/home/student/dashboard'
     | '/home/student/inscricao-monitoria'
+    | '/home/student/resultados'
     | '/home/common/monitoria'
     | '/home/common/onboarding'
     | '/home/common/profile'
@@ -901,6 +944,7 @@ export interface FileRouteTypes {
     | '/home/admin/notificacoes'
     | '/home/admin/pending-approvals'
     | '/home/admin/professores'
+    | '/home/admin/relatorios'
     | '/home/admin/users'
     | '/home/professor/dashboard'
     | '/home/professor/project-applications'
@@ -908,6 +952,7 @@ export interface FileRouteTypes {
     | '/home/professor/volunteer-management'
     | '/home/student/dashboard'
     | '/home/student/inscricao-monitoria'
+    | '/home/student/resultados'
     | '/home/common/monitoria'
     | '/home/common/onboarding'
     | '/home/common/profile'
@@ -940,6 +985,7 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/_layout/notificacoes'
     | '/home/_layout/admin/_layout/pending-approvals'
     | '/home/_layout/admin/_layout/professores'
+    | '/home/_layout/admin/_layout/relatorios'
     | '/home/_layout/admin/_layout/users'
     | '/home/_layout/professor/_layout/dashboard'
     | '/home/_layout/professor/_layout/project-applications'
@@ -947,6 +993,7 @@ export interface FileRouteTypes {
     | '/home/_layout/professor/_layout/volunteer-management'
     | '/home/_layout/student/_layout/dashboard'
     | '/home/_layout/student/_layout/inscricao-monitoria'
+    | '/home/_layout/student/_layout/resultados'
     | '/home/_layout/common/monitoria/'
     | '/home/_layout/common/onboarding/'
     | '/home/_layout/common/profile/'
@@ -1038,6 +1085,7 @@ export const routeTree = rootRoute
         "/home/_layout/admin/_layout/notificacoes",
         "/home/_layout/admin/_layout/pending-approvals",
         "/home/_layout/admin/_layout/professores",
+        "/home/_layout/admin/_layout/relatorios",
         "/home/_layout/admin/_layout/users",
         "/home/_layout/admin/_layout/project/$id/"
       ]
@@ -1071,7 +1119,8 @@ export const routeTree = rootRoute
       "parent": "/home/_layout/student",
       "children": [
         "/home/_layout/student/_layout/dashboard",
-        "/home/_layout/student/_layout/inscricao-monitoria"
+        "/home/_layout/student/_layout/inscricao-monitoria",
+        "/home/_layout/student/_layout/resultados"
       ]
     },
     "/home/_layout/admin/_layout/alunos": {
@@ -1126,6 +1175,10 @@ export const routeTree = rootRoute
       "filePath": "home/_layout/admin/_layout/professores.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
+    "/home/_layout/admin/_layout/relatorios": {
+      "filePath": "home/_layout/admin/_layout/relatorios.tsx",
+      "parent": "/home/_layout/admin/_layout"
+    },
     "/home/_layout/admin/_layout/users": {
       "filePath": "home/_layout/admin/_layout/users.tsx",
       "parent": "/home/_layout/admin/_layout"
@@ -1152,6 +1205,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/student/_layout/inscricao-monitoria": {
       "filePath": "home/_layout/student/_layout/inscricao-monitoria.tsx",
+      "parent": "/home/_layout/student/_layout"
+    },
+    "/home/_layout/student/_layout/resultados": {
+      "filePath": "home/_layout/student/_layout/resultados.tsx",
       "parent": "/home/_layout/student/_layout"
     },
     "/home/_layout/common/monitoria/": {

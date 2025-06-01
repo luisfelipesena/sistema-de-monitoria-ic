@@ -23,14 +23,7 @@ import {
 import { ProjetoListItem } from '@/routes/api/projeto/-types';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
-import {
-  CheckCircle,
-  Clock,
-  Eye,
-  FileSignature,
-  Loader,
-  X,
-} from 'lucide-react';
+import { CheckCircle, Eye, FileSignature, Loader, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -47,9 +40,8 @@ function PendingApprovalsComponent() {
   const approveMutation = useApproveProjeto();
   const rejectMutation = useRejectProjeto();
 
-  const [selectedProject, setSelectedProject] = useState<ProjetoListItem | null>(
-    null,
-  );
+  const [selectedProject, setSelectedProject] =
+    useState<ProjetoListItem | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
@@ -60,7 +52,10 @@ function PendingApprovalsComponent() {
 
   const handleApprove = async (projeto: ProjetoListItem) => {
     try {
-      await approveMutation.mutateAsync(projeto.id);
+      await approveMutation.mutateAsync({
+        projetoId: projeto.id,
+        bolsasDisponibilizadas: projeto.bolsasSolicitadas,
+      });
       toast.success(
         'Projeto aprovado! Você será redirecionado para assinar o documento.',
       );
@@ -101,7 +96,9 @@ function PendingApprovalsComponent() {
         <div>
           <div className="font-medium">{row.original.titulo}</div>
           <div className="text-sm text-muted-foreground">
-            {row.original.descricao.substring(0, 100)}...
+            {row.original.description
+              ? row.original.description.substring(0, 100) + '...'
+              : ''}
           </div>
         </div>
       ),
@@ -153,7 +150,7 @@ function PendingApprovalsComponent() {
           </Button>
           <Button
             size="sm"
-            variant="default"
+            variant="primary"
             className="bg-green-600 hover:bg-green-700"
             onClick={() => handleApprove(row.original)}
             disabled={approveMutation.isPending}
@@ -251,9 +248,7 @@ function PendingApprovalsComponent() {
                 <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
                   1
                 </span>
-                <p>
-                  Revise os detalhes do projeto clicando em "Ver Detalhes"
-                </p>
+                <p>Revise os detalhes do projeto clicando em "Ver Detalhes"</p>
               </div>
               <div className="flex items-start gap-2">
                 <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
@@ -266,8 +261,7 @@ function PendingApprovalsComponent() {
                   3
                 </span>
                 <p>
-                  Aprove o projeto para prosseguir com a assinatura do
-                  documento
+                  Aprove o projeto para prosseguir com a assinatura do documento
                 </p>
               </div>
               <div className="flex items-start gap-2">
