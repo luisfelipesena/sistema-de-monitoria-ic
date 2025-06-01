@@ -8,23 +8,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/use-auth';
+import { useMinhasInscricoes } from '@/hooks/use-inscricao';
 import { useProjetos } from '@/hooks/use-projeto';
-import { useInscricoes } from '@/hooks/use-inscricao';
+import { apiClient } from '@/utils/api-client';
 import { createFileRoute } from '@tanstack/react-router';
 import {
+  AlertCircle,
   BookOpen,
+  CheckCircle,
   Clock,
   FileText,
   GraduationCap,
   Search,
   Users,
-  CheckCircle,
   XCircle,
-  AlertCircle,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { apiClient } from '@/utils/api-client';
 
 export const Route = createFileRoute(
   '/home/_layout/student/_layout/inscricao-monitoria',
@@ -32,7 +32,13 @@ export const Route = createFileRoute(
   component: InscricaoMonitoriaPage,
 });
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ApplicationModalProps {
   isOpen: boolean;
@@ -114,9 +120,15 @@ function ApplicationModal({
                 <SelectValue placeholder="Selecione o tipo de vaga" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="BOLSISTA">Bolsista (apenas bolsa)</SelectItem>
-                <SelectItem value="VOLUNTARIO">Voluntário (apenas voluntário)</SelectItem>
-                <SelectItem value="ANY">Qualquer (bolsa ou voluntário)</SelectItem>
+                <SelectItem value="BOLSISTA">
+                  Bolsista (apenas bolsa)
+                </SelectItem>
+                <SelectItem value="VOLUNTARIO">
+                  Voluntário (apenas voluntário)
+                </SelectItem>
+                <SelectItem value="ANY">
+                  Qualquer (bolsa ou voluntário)
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -185,10 +197,19 @@ function ApplicationModal({
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancelar
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? 'Enviando...' : 'Enviar Inscrição'}
             </Button>
           </div>
@@ -201,7 +222,11 @@ function ApplicationModal({
 function InscricaoMonitoriaPage() {
   const { user } = useAuth();
   const { data: projetos, isLoading } = useProjetos();
-  const { data: inscricoes, isLoading: loadingInscricoes, refetch: refetchInscricoes } = useInscricoes();
+  const {
+    data: inscricoes,
+    isLoading: loadingInscricoes,
+    refetch: refetchInscricoes,
+  } = useMinhasInscricoes();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -266,7 +291,7 @@ function InscricaoMonitoriaPage() {
 
   const handleSubmitApplication = async (applicationData: any) => {
     if (!applicationModal.project) return;
-    
+
     setIsSubmitting(true);
     try {
       const response = await apiClient.post('/api/monitoria/inscricao', {
@@ -276,12 +301,12 @@ function InscricaoMonitoriaPage() {
         // documentos: [],
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         toast.success('Inscrição enviada com sucesso!');
         setApplicationModal({ isOpen: false, project: null });
         refetchInscricoes(); // Refresh applications list
       } else {
-        const error = await response.json();
+        const error = await response.data;
         toast.error(error.error || 'Erro ao enviar inscrição');
       }
     } catch (error) {
@@ -366,12 +391,17 @@ function InscricaoMonitoriaPage() {
                     className="flex items-center justify-between p-3 border rounded-lg"
                   >
                     <div>
-                      <h4 className="font-medium">{inscricao.projeto.titulo}</h4>
+                      <h4 className="font-medium">
+                        {inscricao.projeto.titulo}
+                      </h4>
                       <p className="text-sm text-gray-600">
                         {inscricao.projeto.professorResponsavel.nomeCompleto}
                       </p>
                       <p className="text-sm text-gray-500">
-                        Tipo pretendido: {inscricao.tipoVagaPretendida === 'ANY' ? 'Qualquer' : inscricao.tipoVagaPretendida}
+                        Tipo pretendido:{' '}
+                        {inscricao.tipoVagaPretendida === 'ANY'
+                          ? 'Qualquer'
+                          : inscricao.tipoVagaPretendida}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -520,7 +550,10 @@ function InscricaoMonitoriaPage() {
                         </div>
                       </div>
                       {hasApplied ? (
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-100 text-green-800"
+                        >
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Inscrito
                         </Badge>
