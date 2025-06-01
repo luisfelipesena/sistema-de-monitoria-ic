@@ -1,0 +1,171 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+🚀 PR Creator - GitHub Chat Workflow
+
+Crie Pull Requests automaticamente com apenas um comando no chat do Cursor. Este fluxo analisa suas mudanças, gera um título e uma descrição inteligentes, executa comandos Git e cria o PR no GitHub.
+
+⚠️ Não usamos mais scripts Python
+✅ Funciona com GitHub e o CLI gh configurado
+✅ Aceita qualquer tag identificadora, ex: @pr-creator my-task
+
+⸻
+
+✅ Como Usar
+
+Execute no chat:
+
+@pr-creator minha-tag-ou-id
+
+Exemplos:
+
+@pr-creator SAOP-235
+@pr-creator fix-settings-refactor
+@pr-creator jita-core-update
+
+
+⸻
+
+🤖 Fluxo Automatizado do Chat
+
+1. 🔍 Análise Inicial
+
+	•	Executa: @Commit (Diff of Working State)
+	•	Detecta arquivos alterados
+	•	Identifica branch atual (git branch --show-current)
+	•	Classifica tipo de branch: feature, release, hotfix, production
+
+⸻
+
+2. 📄 Geração de Título e Descrição
+
+🌐 Sempre em inglês!
+
+Título:
+
+[qualquer-tag]: [brief, intelligent change summary]
+
+Exemplos:
+	•	SAOP-235: Fix login validation for OAuth
+	•	jita-refactor: Simplified event emitter core
+	•	🔥 Hotfix prod-bug: Fix N+1 issue in query engine
+
+Descrição Markdown:
+
+🔗 **Task/Tag:** minha-tag-ou-id
+
+### 📋 Summary
+- [short bullet points of what was done]
+
+### 🔧 Technical Details
+- [details on implementation, decisions, edge cases]
+
+### 📁 Files Modified ([n]):
+- `[file1]` - [summary of change]
+- `[file2]` - [summary of change]
+
+
+⸻
+
+3. 🌿 Criação de Branch e Commit
+
+# Sugestão de nome de branch (slugified)
+[minha-tag-slug]-[resumo-slug]
+
+# Git:
+git checkout -b [nome-da-branch]
+git add . -- ':!**/settings.py' ':!**/*settings*.py'
+git commit -m "feat([tag]): [resumo] ([número] files)"
+git push origin [nome-da-branch]
+
+
+⸻
+
+4. 🚀 Criação do PR no GitHub
+
+Usando gh CLI:
+
+gh pr create \
+  --title "[título-gerado]" \
+  --body "[descrição-gerada]" \
+  --head "$(git branch --show-current)" \
+  --base "main" \
+  --draft \
+  | cat
+
+
+⸻
+
+5. ✅ Resposta Final
+
+✅ PR CRIADO COM SUCESSO!
+
+📂 Branch: main → [nova-branch]
+🏷️ Tag: [qualquer-tag]
+📝 Título: [título-gerado]
+🔗 PR Link: [url do PR]
+
+💡 Próximos passos:
+- Atualize seu sistema de tickets (se aplicável)
+- Remova [DRAFT] quando pronto para review
+- Faça merge após aprovação
+
+
+⸻
+
+🧠 Addressing PR Comments
+
+Para revisar e responder comentários existentes no PR atual:
+
+🎯 Objetivo: Address PR comments
+
+# Encontrar PR da branch atual
+gh pr list --head $(git branch --show-current) | cat
+
+# Obter comentários inline
+gh api repos/:owner/:repo/pulls/PR_NUMBER/comments \
+  --jq '.[] | {author: .user.login, body: .body, path: .path, line: .line}' | cat
+
+# (Opcional) Obter comentários de revisão
+gh api repos/:owner/:repo/pulls/PR_NUMBER/reviews \
+  --jq '.[] | select(.body != "") | {author: .user.login, body: .body}' | cat
+
+	•	Se nenhum PR for encontrado → Abortar com aviso
+	•	Para cada comentário:
+	•	Gerar sugestão de código ou explicação técnica
+	•	Listar modificações sugeridas
+
+⸻
+
+🛠️ Configurações e Restrições
+
+Arquivos Ignorados:
+
+**/settings.py
+**/*settings*.py
+*.pyc, *.pyo, __pycache__/
+.DS_Store, Thumbs.db, .git/
+
+Categorias de Arquivos:
+	•	Backend: .py, .sh, .yml, .sql, api/**
+	•	Frontend: .ts, .tsx, .js, .jsx, .html, .css
+	•	Config: *.json, *.ini, package.json, requirements.txt
+	•	Tests: *_test.*, .spec.*
+	•	Docs: .md, .rst, .txt
+
+⸻
+
+✅ Resultado Final
+
+Comando:
+
+@pr-creator minha-tag
+
+Resultado:
+	•	📄 Título e descrição gerados automaticamente
+	•	🌿 Branch criada com nome apropriado
+	•	🧠 PR criado como draft no GitHub
+	•	📎 Link direto do PR
+	•	💬 Sugestões automáticas para PR comments, se existirem
