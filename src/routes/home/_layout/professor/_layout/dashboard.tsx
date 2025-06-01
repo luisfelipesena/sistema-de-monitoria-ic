@@ -53,7 +53,7 @@ function DashboardProfessor() {
 
   const handleAnalisarProjeto = (projetoId: number) => {
     navigate({
-      to: '/home/common/projects/$projeto/inscricoes',
+      to: '/home/professor/project-applications',
       params: { projeto: projetoId.toString() },
     });
   };

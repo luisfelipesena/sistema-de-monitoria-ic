@@ -15,11 +15,18 @@ export interface CriteriosAvaliacao {
   entrevista?: number;
 }
 
+export const AvaliacaoStatus = {
+  PENDENTE: 'PENDENTE',
+  AVALIADO: 'AVALIADO',
+  SELECIONADO: 'SELECIONADO',
+  REJEITADO: 'REJEITADO',
+} as const;
+
 export interface AvaliacaoCandidato {
   inscricaoId: number;
   criterios: CriteriosAvaliacao;
   notaFinal: number;
-  status: 'PENDENTE' | 'AVALIADO' | 'SELECIONADO' | 'REJEITADO';
+  status: (typeof AvaliacaoStatus)[keyof typeof AvaliacaoStatus];
   observacoes?: string;
   prioridade?: number;
 }

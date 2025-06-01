@@ -4,33 +4,33 @@ import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/use-auth';
 import { useProjetos } from '@/hooks/use-projeto';
-import { useSelectionProcess, useBulkEvaluation } from '@/hooks/use-selection-process';
+import {
+  AvaliacaoStatus,
+  useBulkEvaluation,
+  useSelectionProcess,
+} from '@/hooks/use-selection-process';
 import { createFileRoute } from '@tanstack/react-router';
 import {
-  Users,
-  Clock,
-  Star,
-  CheckCircle,
-  XCircle,
-  FileText,
-  AlertCircle,
-  GraduationCap,
   BookOpen,
+  CheckCircle,
+  Clock,
+  GraduationCap,
+  Star,
+  Users,
 } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute(
@@ -49,12 +49,14 @@ interface QuickEvaluation {
 function ProjectApplicationsPage() {
   const { user } = useAuth();
   const { data: projetos, isLoading: loadingProjetos } = useProjetos();
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
+    null,
+  );
   const [quickEvaluations, setQuickEvaluations] = useState<
     Record<number, QuickEvaluation>
   >({});
-  
-  const { data: selectionData, isLoading: loadingSelection } = 
+
+  const { data: selectionData, isLoading: loadingSelection } =
     useSelectionProcess(selectedProjectId || 0);
   const bulkEvaluation = useBulkEvaluation();
 
@@ -64,34 +66,38 @@ function ProjectApplicationsPage() {
     return projetos.filter((projeto) => projeto.status === 'APPROVED');
   }, [projetos]);
 
-  const selectedProject = myApprovedProjects.find(p => p.id === selectedProjectId);
+  const selectedProject = myApprovedProjects.find(
+    (p) => p.id === selectedProjectId,
+  );
 
   const candidatesByType = useMemo(() => {
     if (!selectionData?.candidatos) return { scholarship: [], volunteer: [] };
-    
+
     const scholarship = selectionData.candidatos.filter(
-      (c) => c.tipoVagaPretendida === 'BOLSISTA' || c.tipoVagaPretendida === 'ANY'
+      (c) =>
+        c.tipoVagaPretendida === 'BOLSISTA' || c.tipoVagaPretendida === 'ANY',
     );
-    
+
     const volunteer = selectionData.candidatos.filter(
-      (c) => c.tipoVagaPretendida === 'VOLUNTARIO' || c.tipoVagaPretendida === 'ANY'
+      (c) =>
+        c.tipoVagaPretendida === 'VOLUNTARIO' || c.tipoVagaPretendida === 'ANY',
     );
-    
+
     return { scholarship, volunteer };
   }, [selectionData]);
 
   const handleQuickEvaluation = (
-    inscricaoId: number, 
-    field: keyof QuickEvaluation, 
-    value: any
+    inscricaoId: number,
+    field: keyof QuickEvaluation,
+    value: any,
   ) => {
-    setQuickEvaluations(prev => ({
+    setQuickEvaluations((prev) => ({
       ...prev,
       [inscricaoId]: {
         ...prev[inscricaoId],
         inscricaoId,
         [field]: value,
-      }
+      },
     }));
   };
 
@@ -100,19 +106,25 @@ function ProjectApplicationsPage() {
 
     try {
       const evaluationsToSave = Object.values(quickEvaluations)
-        .filter(eval => eval.rating && eval.decision !== 'PENDING')
-        .map(eval => ({
-          inscricaoId: eval.inscricaoId,
+        .filter(
+          (evaluation) =>
+            evaluation.rating && evaluation.decision !== 'PENDING',
+        )
+        .map((evaluation) => ({
+          inscricaoId: evaluation.inscricaoId,
           criterios: {
-            cr: eval.rating * 2, // Convert 1-5 rating to 0-10 scale
-            experienciaPrevia: eval.rating * 2,
-            motivacao: eval.rating * 2,
-            disponibilidade: eval.rating * 2,
-            entrevista: eval.rating * 2,
+            cr: evaluation.rating * 2, // Convert 1-5 rating to 0-10 scale
+            experienciaPrevia: evaluation.rating * 2,
+            motivacao: evaluation.rating * 2,
+            disponibilidade: evaluation.rating * 2,
+            entrevista: evaluation.rating * 2,
           },
-          notaFinal: eval.rating * 2,
-          status: eval.decision === 'REJECT' ? 'REJEITADO' : 'SELECIONADO',
-          observacoes: eval.notes,
+          notaFinal: evaluation.rating * 2,
+          status:
+            evaluation.decision === 'REJECT'
+              ? AvaliacaoStatus.REJEITADO
+              : AvaliacaoStatus.SELECIONADO,
+          observacoes: evaluation.notes,
         }));
 
       if (evaluationsToSave.length === 0) {
@@ -138,13 +150,29 @@ function ProjectApplicationsPage() {
       case 'SUBMITTED':
         return <Badge variant="secondary">Aguardando Avaliação</Badge>;
       case 'SELECTED_BOLSISTA':
-        return <Badge variant="default" className="bg-green-600">Selecionado (Bolsista)</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-600">
+            Selecionado (Bolsista)
+          </Badge>
+        );
       case 'SELECTED_VOLUNTARIO':
-        return <Badge variant="default" className="bg-blue-600">Selecionado (Voluntário)</Badge>;
+        return (
+          <Badge variant="default" className="bg-blue-600">
+            Selecionado (Voluntário)
+          </Badge>
+        );
       case 'ACCEPTED_BOLSISTA':
-        return <Badge variant="default" className="bg-green-800">Aceito (Bolsista)</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-800">
+            Aceito (Bolsista)
+          </Badge>
+        );
       case 'ACCEPTED_VOLUNTARIO':
-        return <Badge variant="default" className="bg-blue-800">Aceito (Voluntário)</Badge>;
+        return (
+          <Badge variant="default" className="bg-blue-800">
+            Aceito (Voluntário)
+          </Badge>
+        );
       case 'REJECTED_BY_PROFESSOR':
         return <Badge variant="destructive">Rejeitado</Badge>;
       case 'REJECTED_BY_STUDENT':
@@ -154,7 +182,10 @@ function ProjectApplicationsPage() {
     }
   };
 
-  const renderCandidateCard = (candidate: any, type: 'scholarship' | 'volunteer') => {
+  const renderCandidateCard = (
+    candidate: any,
+    type: 'scholarship' | 'volunteer',
+  ) => {
     const evaluation = quickEvaluations[candidate.inscricaoId];
     const hasExistingEvaluation = candidate.avaliacao;
 
@@ -165,7 +196,8 @@ function ProjectApplicationsPage() {
             <div>
               <CardTitle className="text-lg">{candidate.aluno.nome}</CardTitle>
               <p className="text-sm text-gray-600">
-                Matrícula: {candidate.aluno.matricula} • CR: {candidate.aluno.cr}
+                Matrícula: {candidate.aluno.matricula} • CR:{' '}
+                {candidate.aluno.cr}
               </p>
               <p className="text-sm text-gray-500">
                 Email: {candidate.aluno.email}
@@ -184,17 +216,25 @@ function ProjectApplicationsPage() {
             </div>
           </div>
         </CardHeader>
-        
+
         {!hasExistingEvaluation && candidate.status === 'SUBMITTED' && (
           <CardContent className="pt-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label className="text-sm font-medium">Avaliação Rápida (1-5 estrelas)</Label>
+                <Label className="text-sm font-medium">
+                  Avaliação Rápida (1-5 estrelas)
+                </Label>
                 <div className="flex gap-1 mt-1">
                   {[1, 2, 3, 4, 5].map((rating) => (
                     <button
                       key={rating}
-                      onClick={() => handleQuickEvaluation(candidate.inscricaoId, 'rating', rating)}
+                      onClick={() =>
+                        handleQuickEvaluation(
+                          candidate.inscricaoId,
+                          'rating',
+                          rating,
+                        )
+                      }
                       className={`p-1 ${
                         evaluation?.rating >= rating
                           ? 'text-yellow-500'
@@ -206,13 +246,17 @@ function ProjectApplicationsPage() {
                   ))}
                 </div>
               </div>
-              
+
               <div>
                 <Label className="text-sm font-medium">Decisão</Label>
                 <Select
                   value={evaluation?.decision || 'PENDING'}
-                  onValueChange={(value) => 
-                    handleQuickEvaluation(candidate.inscricaoId, 'decision', value)
+                  onValueChange={(value) =>
+                    handleQuickEvaluation(
+                      candidate.inscricaoId,
+                      'decision',
+                      value,
+                    )
                   }
                 >
                   <SelectTrigger>
@@ -220,20 +264,28 @@ function ProjectApplicationsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="PENDING">Pendente</SelectItem>
-                    <SelectItem value="SELECT_SCHOLARSHIP">Selecionar (Bolsista)</SelectItem>
-                    <SelectItem value="SELECT_VOLUNTEER">Selecionar (Voluntário)</SelectItem>
+                    <SelectItem value="SELECT_SCHOLARSHIP">
+                      Selecionar (Bolsista)
+                    </SelectItem>
+                    <SelectItem value="SELECT_VOLUNTEER">
+                      Selecionar (Voluntário)
+                    </SelectItem>
                     <SelectItem value="REJECT">Rejeitar</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label className="text-sm font-medium">Observações</Label>
                 <Textarea
                   placeholder="Observações sobre o candidato..."
                   value={evaluation?.notes || ''}
-                  onChange={(e) => 
-                    handleQuickEvaluation(candidate.inscricaoId, 'notes', e.target.value)
+                  onChange={(e) =>
+                    handleQuickEvaluation(
+                      candidate.inscricaoId,
+                      'notes',
+                      e.target.value,
+                    )
                   }
                   rows={2}
                   className="text-sm"
@@ -242,11 +294,12 @@ function ProjectApplicationsPage() {
             </div>
           </CardContent>
         )}
-        
+
         {hasExistingEvaluation && (
           <CardContent className="pt-0">
             <div className="text-sm text-gray-600">
-              <strong>Observações:</strong> {candidate.avaliacao.observacoes || 'Nenhuma observação'}
+              <strong>Observações:</strong>{' '}
+              {candidate.avaliacao.observacoes || 'Nenhuma observação'}
             </div>
           </CardContent>
         )}
@@ -308,43 +361,51 @@ function ProjectApplicationsPage() {
                   <Users className="h-5 w-5 text-blue-500" />
                   <div>
                     <p className="text-sm font-medium">Total de Candidatos</p>
-                    <p className="text-2xl font-bold">{selectionData?.estatisticas.totalCandidatos || 0}</p>
+                    <p className="text-2xl font-bold">
+                      {selectionData?.estatisticas.totalCandidatos || 0}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-5 w-5 text-green-500" />
                   <div>
                     <p className="text-sm font-medium">Bolsas Disponíveis</p>
-                    <p className="text-2xl font-bold">{selectedProject.bolsasDisponibilizadas || 0}</p>
+                    <p className="text-2xl font-bold">
+                      {selectedProject.bolsasDisponibilizadas || 0}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-purple-500" />
                   <div>
                     <p className="text-sm font-medium">Vagas Voluntárias</p>
-                    <p className="text-2xl font-bold">{selectedProject.voluntariosSolicitados || 0}</p>
+                    <p className="text-2xl font-bold">
+                      {selectedProject.voluntariosSolicitados || 0}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-orange-500" />
                   <div>
                     <p className="text-sm font-medium">Avaliados</p>
-                    <p className="text-2xl font-bold">{selectionData?.estatisticas.avaliados || 0}</p>
+                    <p className="text-2xl font-bold">
+                      {selectionData?.estatisticas.avaliados || 0}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -368,12 +429,13 @@ function ProjectApplicationsPage() {
                       Candidatos a Bolsa ({candidatesByType.scholarship.length})
                     </TabsTrigger>
                     <TabsTrigger value="volunteer">
-                      Candidatos Voluntários ({candidatesByType.volunteer.length})
+                      Candidatos Voluntários (
+                      {candidatesByType.volunteer.length})
                     </TabsTrigger>
                   </TabsList>
-                  
+
                   {Object.keys(quickEvaluations).length > 0 && (
-                    <Button 
+                    <Button
                       onClick={handleSaveEvaluations}
                       disabled={bulkEvaluation.isPending}
                       className="bg-green-600 hover:bg-green-700"
@@ -393,13 +455,14 @@ function ProjectApplicationsPage() {
                           Nenhum candidato a bolsa
                         </h3>
                         <p className="text-gray-500">
-                          Ainda não há candidatos interessados em bolsas para este projeto.
+                          Ainda não há candidatos interessados em bolsas para
+                          este projeto.
                         </p>
                       </CardContent>
                     </Card>
                   ) : (
-                    candidatesByType.scholarship.map((candidate) => 
-                      renderCandidateCard(candidate, 'scholarship')
+                    candidatesByType.scholarship.map((candidate) =>
+                      renderCandidateCard(candidate, 'scholarship'),
                     )
                   )}
                 </TabsContent>
@@ -413,13 +476,14 @@ function ProjectApplicationsPage() {
                           Nenhum candidato voluntário
                         </h3>
                         <p className="text-gray-500">
-                          Ainda não há candidatos interessados em vagas voluntárias para este projeto.
+                          Ainda não há candidatos interessados em vagas
+                          voluntárias para este projeto.
                         </p>
                       </CardContent>
                     </Card>
                   ) : (
-                    candidatesByType.volunteer.map((candidate) => 
-                      renderCandidateCard(candidate, 'volunteer')
+                    candidatesByType.volunteer.map((candidate) =>
+                      renderCandidateCard(candidate, 'volunteer'),
                     )
                   )}
                 </TabsContent>
