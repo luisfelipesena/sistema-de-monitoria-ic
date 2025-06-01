@@ -314,7 +314,7 @@ function PendingApprovalsComponent() {
               {rejectMutation.isPending ? (
                 <>
                   <Loader className="h-4 w-4 mr-2 animate-spin" />
-                  Rejeitando...
+                  Rejeitando ...
                 </>
               ) : (
                 'Confirmar Rejeição'
