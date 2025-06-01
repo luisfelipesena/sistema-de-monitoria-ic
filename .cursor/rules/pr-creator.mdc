@@ -85,15 +85,33 @@ git push origin [nome-da-branch]
 
 4. 🚀 Criação do PR no GitHub
 
-Usando gh CLI:
+**IMPORTANTE: Para formatação correta da descrição, use um arquivo temporário:**
 
+# Primeiro, criar um arquivo temporário com a descrição
+cat > /tmp/pr_description.md << 'EOF'
+🔗 **Task/Tag:** [tag]
+
+### 📋 Summary
+- [bullet points da mudança]
+
+### 🔧 Technical Details  
+- [detalhes da implementação]
+
+### 📁 Files Modified ([n]):
+- `[file1]` - [resumo da mudança]
+- `[file2]` - [resumo da mudança]
+EOF
+
+# Então usar o arquivo para criar o PR
 gh pr create \
   --title "[título-gerado]" \
-  --body "[descrição-gerada]" \
+  --body-file /tmp/pr_description.md \
   --head "$(git branch --show-current)" \
   --base "main" \
-  --draft \
-  | cat
+  --draft
+
+# Limpar o arquivo temporário
+rm /tmp/pr_description.md
 
 
 ⸻
