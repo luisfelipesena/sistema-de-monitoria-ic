@@ -1,6 +1,12 @@
 import { projetoComRelationsSchema } from '@/routes/api/projeto/-types';
 import { db } from '@/server/database';
-import { professorTable, projetoTable } from '@/server/database/schema';
+import {
+  departamentoTable,
+  professorTable,
+  projetoTable,
+  userTable,
+} from '@/server/database/schema';
+import { sendProjetoSubmissionNotification } from '@/server/lib/emailService';
 import {
   createAPIHandler,
   withAuthMiddleware,
@@ -85,6 +91,58 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$projeto/submit')({
             { projectId, newStatus: 'SUBMITTED' },
             'Projeto submetido para aprovação',
           );
+
+          // Send email notification to all admins
+          try {
+            // Get admin emails
+            const admins = await db.query.userTable.findMany({
+              where: eq(userTable.role, 'admin'),
+            });
+
+            const adminEmails = admins
+              .map((admin) => admin.email)
+              .filter((email) => email && email.length > 0);
+
+            if (adminEmails.length > 0) {
+              // Get project details for email
+              const professor = await db.query.professorTable.findFirst({
+                where: eq(professorTable.id, updatedProjeto.professorResponsavelId),
+              });
+
+              const departamento = await db.query.departamentoTable.findFirst({
+                where: eq(departamentoTable.id, updatedProjeto.departamentoId),
+              });
+
+              await sendProjetoSubmissionNotification(
+                {
+                  professorNome: professor?.nomeCompleto || 'Professor',
+                  projetoTitulo: updatedProjeto.titulo,
+                  projetoId: updatedProjeto.id,
+                  departamento: departamento?.nome || 'Departamento',
+                  semestre: updatedProjeto.semestre,
+                  ano: updatedProjeto.ano,
+                },
+                adminEmails,
+              );
+
+              log.info(
+                { projectId, adminCount: adminEmails.length },
+                'Notificação de submissão enviada para administradores',
+              );
+            } else {
+              log.warn(
+                { projectId },
+                'Nenhum administrador encontrado para enviar notificação',
+              );
+            }
+          } catch (emailError) {
+            log.error(
+              { emailError, projectId },
+              'Erro ao enviar notificação de submissão, mas o projeto foi submetido com sucesso',
+            );
+            // Don't fail the submission if email fails
+          }
+
           return json(projetoComRelationsSchema.parse(updatedProjeto), {
             status: 200,
           });

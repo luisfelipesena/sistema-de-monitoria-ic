@@ -1,5 +1,6 @@
 import { db } from '@/server/database';
-import { projetoTable } from '@/server/database/schema';
+import { professorTable, projetoTable, userTable } from '@/server/database/schema';
+import { sendProjetoApprovalStatusNotification } from '@/server/lib/emailService';
 import {
   createAPIHandler,
   withRoleMiddleware,
@@ -7,7 +8,6 @@ import {
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
-import axios from 'axios';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -62,32 +62,37 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/reject')({
 
         log.info({ projetoId }, 'Projeto rejeitado');
 
-        // Enviar notificação por email automaticamente
+        // Send email notification to professor
         try {
-          const baseUrl = ctx.request.url.split('/reject')[0];
-          const notifyUrl = `${baseUrl}/notify-approval`;
+          // Get professor details
+          const professor = await db.query.professorTable.findFirst({
+            where: eq(professorTable.id, projeto.professorResponsavelId),
+          });
 
-          const notifyResponse = await axios.post(
-            notifyUrl,
-            {},
-            {
-              headers: {
-                Authorization: ctx.request.headers.get('Authorization') || '',
-                'Content-Type': 'application/json',
-              },
-            },
-          );
+          const professorUser = professor ? await db.query.userTable.findFirst({
+            where: eq(userTable.id, professor.userId),
+          }) : null;
 
-          if (notifyResponse.status === 200) {
-            log.info({ projetoId }, 'Notificação de rejeição enviada');
+          if (professor && professorUser) {
+            await sendProjetoApprovalStatusNotification({
+              professorNome: professor.nomeCompleto,
+              professorEmail: professorUser.email,
+              projetoTitulo: projeto.titulo,
+              projetoId: projeto.id,
+              status: 'REJECTED',
+              feedbackAdmin: motivo,
+            });
+
+            log.info({ projetoId }, 'Notificação de rejeição enviada ao professor');
           } else {
-            log.warn({ projetoId }, 'Falha ao enviar notificação de rejeição');
+            log.warn({ projetoId }, 'Professor não encontrado para enviar notificação');
           }
         } catch (notifyError) {
           log.error(
             { notifyError, projetoId },
             'Erro ao enviar notificação de rejeição',
           );
+          // Don't fail the rejection if email fails
         }
 
         return json(

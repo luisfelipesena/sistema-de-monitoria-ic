@@ -210,9 +210,21 @@ function DashboardProfessor() {
     },
   ];
 
+  const handleGerenciarCandidatos = () => {
+    navigate({ to: '/home/professor/project-applications' });
+  };
+
   // Action buttons
   const dashboardActions = (
     <>
+      <Button
+        variant="primary"
+        className="bg-green-600 text-white hover:bg-green-700 transition-colors"
+        onClick={handleGerenciarCandidatos}
+      >
+        <Users className="w-4 h-4 mr-2" />
+        Gerenciar Candidatos
+      </Button>
       <Button
         variant="primary"
         className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors"

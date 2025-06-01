@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/use-auth';
 import { useProjetos } from '@/hooks/use-projeto';
+import { useInscricoes } from '@/hooks/use-inscricao';
 import { createFileRoute } from '@tanstack/react-router';
 import {
   BookOpen,
@@ -17,9 +18,13 @@ import {
   GraduationCap,
   Search,
   Users,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { apiClient } from '@/utils/api-client';
 
 export const Route = createFileRoute(
   '/home/_layout/student/_layout/inscricao-monitoria',
@@ -27,11 +32,14 @@ export const Route = createFileRoute(
   component: InscricaoMonitoriaPage,
 });
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 interface ApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
   project: any;
   onSubmit: (data: any) => void;
+  isSubmitting?: boolean;
 }
 
 function ApplicationModal({
@@ -39,8 +47,10 @@ function ApplicationModal({
   onClose,
   project,
   onSubmit,
+  isSubmitting = false,
 }: ApplicationModalProps) {
   const [formData, setFormData] = useState({
+    tipoVagaPretendida: 'ANY' as 'BOLSISTA' | 'VOLUNTARIO' | 'ANY',
     motivation: '',
     experience: '',
     availability: '',
@@ -53,6 +63,10 @@ function ApplicationModal({
       toast.error('Motivação é obrigatória');
       return;
     }
+    if (!formData.tipoVagaPretendida) {
+      toast.error('Selecione o tipo de vaga pretendida');
+      return;
+    }
     onSubmit(formData);
   };
 
@@ -63,7 +77,7 @@ function ApplicationModal({
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Inscrição em Monitoria</h2>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             ×
           </Button>
         </div>
@@ -76,9 +90,37 @@ function ApplicationModal({
           <p className="text-sm text-blue-700">
             Departamento: {project?.departamentoNome}
           </p>
+          <div className="mt-2 flex gap-4 text-sm">
+            <span className="text-green-700">
+              Bolsas: {project?.bolsasDisponibilizadas || 0}
+            </span>
+            <span className="text-blue-700">
+              Voluntários: {project?.voluntariosSolicitados || 0}
+            </span>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="tipoVaga">Tipo de Vaga Pretendida*</Label>
+            <Select
+              value={formData.tipoVagaPretendida}
+              onValueChange={(value: 'BOLSISTA' | 'VOLUNTARIO' | 'ANY') =>
+                setFormData({ ...formData, tipoVagaPretendida: value })
+              }
+              disabled={isSubmitting}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o tipo de vaga" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BOLSISTA">Bolsista (apenas bolsa)</SelectItem>
+                <SelectItem value="VOLUNTARIO">Voluntário (apenas voluntário)</SelectItem>
+                <SelectItem value="ANY">Qualquer (bolsa ou voluntário)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <Label htmlFor="motivation">
               Motivação para a Monitoria* (máx. 500 caracteres)
@@ -92,6 +134,7 @@ function ApplicationModal({
               placeholder="Descreva sua motivação para participar desta monitoria..."
               rows={4}
               maxLength={500}
+              disabled={isSubmitting}
             />
             <div className="text-sm text-gray-500 text-right">
               {formData.motivation.length}/500
@@ -109,6 +152,7 @@ function ApplicationModal({
               placeholder="Descreva sua experiência prévia relacionada à disciplina..."
               rows={3}
               maxLength={300}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -123,6 +167,7 @@ function ApplicationModal({
               placeholder="Informe sua disponibilidade de horários..."
               rows={2}
               maxLength={200}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -135,15 +180,16 @@ function ApplicationModal({
                 setFormData({ ...formData, phone: e.target.value })
               }
               placeholder="(xx) xxxxx-xxxx"
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancelar
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-              Enviar Inscrição
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
+              {isSubmitting ? 'Enviando...' : 'Enviar Inscrição'}
             </Button>
           </div>
         </form>
@@ -155,8 +201,10 @@ function ApplicationModal({
 function InscricaoMonitoriaPage() {
   const { user } = useAuth();
   const { data: projetos, isLoading } = useProjetos();
+  const { data: inscricoes, isLoading: loadingInscricoes, refetch: refetchInscricoes } = useInscricoes();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [applicationModal, setApplicationModal] = useState<{
     isOpen: boolean;
     project: any;
@@ -164,6 +212,12 @@ function InscricaoMonitoriaPage() {
     isOpen: false,
     project: null,
   });
+
+  // Get IDs of projects user has already applied to
+  const appliedProjectIds = useMemo(() => {
+    if (!inscricoes) return new Set();
+    return new Set(inscricoes.map((inscricao) => inscricao.projetoId));
+  }, [inscricoes]);
 
   // Filter only approved projects for student applications
   const availableProjects = useMemo(() => {
@@ -211,17 +265,30 @@ function InscricaoMonitoriaPage() {
   };
 
   const handleSubmitApplication = async (applicationData: any) => {
+    if (!applicationModal.project) return;
+    
+    setIsSubmitting(true);
     try {
-      // Here would be the API call to submit the application
-      console.log('Submitting application:', {
-        projectId: applicationModal.project.id,
-        ...applicationData,
+      const response = await apiClient.post('/api/monitoria/inscricao', {
+        projetoId: applicationModal.project.id,
+        tipoVagaPretendida: applicationData.tipoVagaPretendida,
+        // TODO: Add document support later
+        // documentos: [],
       });
 
-      toast.success('Inscrição enviada com sucesso!');
-      setApplicationModal({ isOpen: false, project: null });
+      if (response.ok) {
+        toast.success('Inscrição enviada com sucesso!');
+        setApplicationModal({ isOpen: false, project: null });
+        refetchInscricoes(); // Refresh applications list
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Erro ao enviar inscrição');
+      }
     } catch (error) {
+      console.error('Error submitting application:', error);
       toast.error('Erro ao enviar inscrição');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -237,12 +304,89 @@ function InscricaoMonitoriaPage() {
     );
   }
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'SUBMITTED':
+        return <AlertCircle className="h-4 w-4 text-yellow-500" />;
+      case 'SELECTED_BOLSISTA':
+      case 'SELECTED_VOLUNTARIO':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'ACCEPTED_BOLSISTA':
+      case 'ACCEPTED_VOLUNTARIO':
+        return <CheckCircle className="h-4 w-4 text-blue-500" />;
+      case 'REJECTED_BY_PROFESSOR':
+      case 'REJECTED_BY_STUDENT':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <AlertCircle className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'SUBMITTED':
+        return 'Enviada';
+      case 'SELECTED_BOLSISTA':
+        return 'Selecionado (Bolsista)';
+      case 'SELECTED_VOLUNTARIO':
+        return 'Selecionado (Voluntário)';
+      case 'ACCEPTED_BOLSISTA':
+        return 'Aceito (Bolsista)';
+      case 'ACCEPTED_VOLUNTARIO':
+        return 'Aceito (Voluntário)';
+      case 'REJECTED_BY_PROFESSOR':
+        return 'Não Selecionado';
+      case 'REJECTED_BY_STUDENT':
+        return 'Recusado';
+      default:
+        return status;
+    }
+  };
+
   return (
     <PagesLayout
       title="Inscrição em Monitoria"
       subtitle="Candidate-se às vagas de monitoria disponíveis"
     >
       <div className="space-y-6">
+        {/* My Applications Section */}
+        {inscricoes && inscricoes.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Minhas Inscrições
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {inscricoes.map((inscricao) => (
+                  <div
+                    key={inscricao.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
+                    <div>
+                      <h4 className="font-medium">{inscricao.projeto.titulo}</h4>
+                      <p className="text-sm text-gray-600">
+                        {inscricao.projeto.professorResponsavel.nomeCompleto}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Tipo pretendido: {inscricao.tipoVagaPretendida === 'ANY' ? 'Qualquer' : inscricao.tipoVagaPretendida}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(inscricao.status)}
+                      <span className="text-sm font-medium">
+                        {getStatusText(inscricao.status)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
@@ -347,87 +491,98 @@ function InscricaoMonitoriaPage() {
           </Card>
         ) : (
           <div className="grid gap-6">
-            {availableProjects.map((projeto) => (
-              <Card
-                key={projeto.id}
-                className="hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">
-                        {projeto.titulo}
-                      </CardTitle>
-                      <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {projeto.professorResponsavelNome}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <BookOpen className="h-4 w-4" />
-                          {projeto.departamentoNome}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {projeto.cargaHorariaSemana}h/semana
-                        </span>
+            {availableProjects.map((projeto) => {
+              const hasApplied = appliedProjectIds.has(projeto.id);
+              return (
+                <Card
+                  key={projeto.id}
+                  className="hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg mb-2">
+                          {projeto.titulo}
+                        </CardTitle>
+                        <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+                          <span className="flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            {projeto.professorResponsavelNome}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <BookOpen className="h-4 w-4" />
+                            {projeto.departamentoNome}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {projeto.cargaHorariaSemana}h/semana
+                          </span>
+                        </div>
                       </div>
+                      {hasApplied ? (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Inscrito
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">Disponível</Badge>
+                      )}
                     </div>
-                    <Badge variant="success">Disponível</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-medium mb-2">Disciplinas:</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {projeto.disciplinas.map((disciplina: any) => (
-                          <Badge key={disciplina.id} variant="outline">
-                            {disciplina.codigo} - {disciplina.nome}
-                          </Badge>
-                        ))}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-2">Disciplinas:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {projeto.disciplinas.map((disciplina: any) => (
+                            <Badge key={disciplina.id} variant="outline">
+                              {disciplina.codigo} - {disciplina.nome}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <h4 className="font-medium mb-2">Informações:</h4>
-                      <p className="text-gray-700 text-sm">
-                        Público-alvo: {projeto.publicoAlvo || 'Não informado'}
-                      </p>
-                    </div>
+                      <div>
+                        <h4 className="font-medium mb-2">Informações:</h4>
+                        <p className="text-gray-700 text-sm">
+                          Público-alvo: {projeto.publicoAlvo || 'Não informado'}
+                        </p>
+                      </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-green-50 p-3 rounded">
-                        <div className="font-medium text-green-800">
-                          Bolsas Disponíveis
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-green-50 p-3 rounded">
+                          <div className="font-medium text-green-800">
+                            Bolsas Disponíveis
+                          </div>
+                          <div className="text-2xl font-bold text-green-600">
+                            {projeto.bolsasDisponibilizadas || 0}
+                          </div>
                         </div>
-                        <div className="text-2xl font-bold text-green-600">
-                          {projeto.bolsasDisponibilizadas || 0}
+                        <div className="bg-blue-50 p-3 rounded">
+                          <div className="font-medium text-blue-800">
+                            Vagas Voluntárias
+                          </div>
+                          <div className="text-2xl font-bold text-blue-600">
+                            {projeto.voluntariosSolicitados}
+                          </div>
                         </div>
                       </div>
-                      <div className="bg-blue-50 p-3 rounded">
-                        <div className="font-medium text-blue-800">
-                          Vagas Voluntárias
-                        </div>
-                        <div className="text-2xl font-bold text-blue-600">
-                          {projeto.voluntariosSolicitados}
-                        </div>
+
+                      <div className="flex justify-end">
+                        <Button
+                          onClick={() => handleApplyToProject(projeto)}
+                          className="bg-blue-600 hover:bg-blue-700"
+                          disabled={hasApplied}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          {hasApplied ? 'Já Inscrito' : 'Candidatar-se'}
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="flex justify-end">
-                      <Button
-                        onClick={() => handleApplyToProject(projeto)}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        <FileText className="h-4 w-4 mr-2" />
-                        Candidatar-se
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
@@ -437,6 +592,7 @@ function InscricaoMonitoriaPage() {
         onClose={() => setApplicationModal({ isOpen: false, project: null })}
         project={applicationModal.project}
         onSubmit={handleSubmitApplication}
+        isSubmitting={isSubmitting}
       />
     </PagesLayout>
   );
