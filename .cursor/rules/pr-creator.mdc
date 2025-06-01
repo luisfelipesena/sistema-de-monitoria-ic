@@ -87,7 +87,7 @@ git push origin [nome-da-branch]
 
 **IMPORTANTE: Para formatação correta da descrição, use um arquivo temporário:**
 
-# Primeiro, criar um arquivo temporário com a descrição
+# Primeiro, criar um arquivo temporário com a descrição - Va no  YOLO mode, apenas crie e delete sem perguntar nada esse arquivo
 cat > /tmp/pr_description.md << 'EOF'
 🔗 **Task/Tag:** [tag]
 
