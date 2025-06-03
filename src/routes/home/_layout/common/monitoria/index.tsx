@@ -3,6 +3,7 @@ import { NecessaryDocuments } from '@/components/features/registration/Necessary
 import { RegisterActions } from '@/components/features/registration/RegisterActions';
 import SelecaoDeVagaTable from '@/components/features/registration/SelecaoDeVagaTable';
 import { PagesLayout } from '@/components/layout/PagesLayout';
+import { PdfViewerWithSignature } from '@/components/ui/pdf-viewer-with-signature';
 import { useFileUpload } from '@/hooks/use-files';
 import { useCriarInscricao, useVagasDisponiveis } from '@/hooks/use-monitoria';
 import { useToast } from '@/hooks/use-toast';
@@ -62,6 +63,7 @@ function RouteComponent() {
       status: 'pendente',
     },
   ]);
+  const [signingTermo, setSigningTermo] = useState(false);
 
   const handleSelecionarVaga = (id: string) => {
     setSelectedVagaId(id);
@@ -99,6 +101,34 @@ function RouteComponent() {
         description: 'Não foi possível enviar o arquivo',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleTermoSignComplete = async (signedPdfBlob: Blob) => {
+    setSigningTermo(true);
+    try {
+      // Convert Blob to File
+      const signedFile = new File(
+        [signedPdfBlob], 
+        `termo_compromisso_assinado_${selectedVagaId}.pdf`, 
+        { type: 'application/pdf' }
+      );
+
+      // Upload the signed termo
+      await handleUploadDocumento(signedFile, 'termo');
+
+      toast({
+        title: 'Termo assinado com sucesso!',
+        description: 'O termo de compromisso foi assinado digitalmente.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao salvar termo assinado',
+        description: error.message || 'Não foi possível salvar o documento assinado',
+        variant: 'destructive',
+      });
+    } finally {
+      setSigningTermo(false);
     }
   };
 
@@ -196,11 +226,33 @@ function RouteComponent() {
         </section>
 
         <section>
+          <h2 className="text-2xl font-semibold mb-6">Documentos Necessários</h2>
+          
+          {/* Termo de Compromisso with Digital Signature */}
+          {selectedVagaId && (
+            <div className="mb-6">
+              <PdfViewerWithSignature
+                pdfUrl={`/api/vaga/${selectedVagaId}/termo-compromisso`}
+                projectTitle="Termo de Compromisso"
+                onSignComplete={handleTermoSignComplete}
+                loading={signingTermo}
+              />
+              {documents.find(d => d.id === 'termo')?.status === 'válido' && (
+                <p className="text-green-600 text-sm mt-2">
+                  ✓ Termo de compromisso assinado digitalmente
+                </p>
+              )}
+            </div>
+          )}
+          
+          {/* Other Documents */}
           <NecessaryDocuments
-            documents={documents.map((d) => ({
-              ...d,
-              selectedFileName: d.fileName,
-            }))}
+            documents={documents
+              .filter(d => d.id !== 'termo')
+              .map((d) => ({
+                ...d,
+                selectedFileName: d.fileName,
+              }))}
             onUpload={handleUploadDocumento}
             onAccess={(id) => {
               const doc = documents.find((d) => d.id === id);

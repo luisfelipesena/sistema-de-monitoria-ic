@@ -15,7 +15,6 @@ import { PdfViewerWithSignature } from '@/components/ui/pdf-viewer-with-signatur
 import { useAuth } from '@/hooks/use-auth';
 import {
   useProjetos,
-  useUpdateProjetoStatus,
   useUploadProjetoDocument,
 } from '@/hooks/use-projeto';
 import { createFileRoute } from '@tanstack/react-router';
@@ -27,21 +26,25 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute(
-  '/home/_layout/admin/_layout/document-signing',
+  '/home/_layout/professor/_layout/document-signing',
 )({
-  component: DocumentSigningComponent,
+  component: ProfessorDocumentSigningComponent,
 });
 
-function DocumentSigningComponent() {
+function ProfessorDocumentSigningComponent() {
   const { user } = useAuth();
   const { data: projetos, isLoading: loadingProjetos, refetch } = useProjetos();
   const uploadDocument = useUploadProjetoDocument();
-  const updateStatus = useUpdateProjetoStatus();
   const [signingProject, setSigningProject] = useState<number | null>(null);
 
-  // Filter projects that are PENDING_ADMIN_SIGNATURE (approved but need signing)
-  const pendingSignatureProjetos =
-    projetos?.filter((projeto) => projeto.status === 'PENDING_ADMIN_SIGNATURE') || [];
+  // Filter projects that need professor signature
+  // In the current flow, professors don't need to sign separately
+  // This page is kept for future use if needed
+  const projectsNeedingSignature = projetos?.filter((projeto) => {
+    // Currently, professors sign when they submit the project
+    // This could be used in the future for a separate signing step
+    return false; // Disabled for now as per current workflow
+  }) || [];
 
   const handleSignComplete = async (projetoId: number, signedPdfBlob: Blob) => {
     setSigningProject(projetoId);
@@ -49,7 +52,7 @@ function DocumentSigningComponent() {
       // Convert Blob to File
       const signedFile = new File(
         [signedPdfBlob], 
-        `projeto_${projetoId}_assinado_admin.pdf`, 
+        `projeto_${projetoId}_assinado_professor.pdf`, 
         { type: 'application/pdf' }
       );
 
@@ -57,18 +60,12 @@ function DocumentSigningComponent() {
       await uploadDocument.mutateAsync({
         projetoId,
         file: signedFile,
-        tipoDocumento: 'PROPOSTA_ASSINADA_ADMIN',
-        observacoes: 'Documento assinado digitalmente pelo administrador',
-      });
-
-      // Update project status to APPROVED after admin signs
-      await updateStatus.mutateAsync({
-        projetoId,
-        status: 'APPROVED',
+        tipoDocumento: 'PROPOSTA_ASSINADA_PROFESSOR',
+        observacoes: 'Documento assinado digitalmente pelo professor',
       });
 
       toast.success(
-        'Documento assinado com sucesso! Projeto aprovado.',
+        'Documento assinado com sucesso! Aguardando assinatura do administrador.',
       );
 
       refetch();
@@ -81,27 +78,21 @@ function DocumentSigningComponent() {
 
   const renderStatusBadge = (status: string) => {
     switch (status) {
-      case 'PENDING_ADMIN_SIGNATURE':
-        return <Badge variant="secondary">Aguardando Assinatura Admin</Badge>;
-      case 'DRAFT':
-        return <Badge variant="outline">Rascunho</Badge>;
-      case 'SUBMITTED':
-        return <Badge variant="default">Submetido</Badge>;
       case 'APPROVED':
         return <Badge variant="success">Aprovado</Badge>;
-      case 'REJECTED':
-        return <Badge variant="destructive">Rejeitado</Badge>;
+      case 'PENDING_ADMIN_SIGNATURE':
+        return <Badge variant="secondary">Aguardando Assinatura Admin</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
   };
 
-  if (user?.role !== 'admin') {
+  if (user?.role !== 'professor') {
     return (
       <PagesLayout title="Acesso Negado">
         <div className="text-center py-12">
           <p className="text-muted-foreground">
-            Apenas administradores podem acessar esta página.
+            Apenas professores podem acessar esta página.
           </p>
         </div>
       </PagesLayout>
@@ -110,8 +101,8 @@ function DocumentSigningComponent() {
 
   return (
     <PagesLayout
-      title="Assinatura de Documentos - Admin"
-      subtitle="Gerencie projetos de monitoria que aguardam assinatura administrativa"
+      title="Assinatura de Documentos - Professor"
+      subtitle="Assine digitalmente seus projetos aprovados"
     >
       {loadingProjetos ? (
         <div className="flex justify-center items-center py-8">
@@ -125,24 +116,24 @@ function DocumentSigningComponent() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileSignature className="h-5 w-5" />
-              Projetos Aguardando Assinatura Administrativa
-              {pendingSignatureProjetos.length > 0 && (
+              Projetos Aguardando Sua Assinatura
+              {projectsNeedingSignature.length > 0 && (
                 <Badge variant="outline" className="ml-2">
-                  {pendingSignatureProjetos.length} projeto(s)
+                  {projectsNeedingSignature.length} projeto(s)
                 </Badge>
               )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {pendingSignatureProjetos.length === 0 ? (
+            {projectsNeedingSignature.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <CheckCircle className="mx-auto h-12 w-12 mb-4" />
                 <h3 className="text-lg font-medium mb-2">
                   Nenhum projeto aguardando assinatura
                 </h3>
                 <p>
-                  Todos os projetos foram processados ou não há projetos
-                  aprovados aguardando assinatura.
+                  Todos os seus projetos foram assinados ou não há projetos
+                  aprovados aguardando sua assinatura.
                 </p>
               </div>
             ) : (
@@ -151,20 +142,18 @@ function DocumentSigningComponent() {
                   <TableRow>
                     <TableHead>Título</TableHead>
                     <TableHead>Departamento</TableHead>
-                    <TableHead>Professor Responsável</TableHead>
                     <TableHead>Semestre</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pendingSignatureProjetos.map((projeto) => (
+                  {projectsNeedingSignature.map((projeto) => (
                     <TableRow key={projeto.id}>
                       <TableCell className="font-medium">
                         {projeto.titulo}
                       </TableCell>
                       <TableCell>{projeto.departamentoNome}</TableCell>
-                      <TableCell>{projeto.professorResponsavelNome}</TableCell>
                       <TableCell>
                         {projeto.ano}.
                         {projeto.semestre === 'SEMESTRE_1' ? 1 : 2}
@@ -190,14 +179,14 @@ function DocumentSigningComponent() {
       {/* Instructions Card */}
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle className="text-lg">Como Funciona o Processo</CardTitle>
+          <CardTitle className="text-lg">Como Funciona a Assinatura Digital</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <div className="flex items-start gap-2">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
               1
             </span>
-            <p>Visualize o PDF do projeto clicando em "Visualizar PDF"</p>
+            <p>Visualize o PDF do seu projeto aprovado</p>
           </div>
           <div className="flex items-start gap-2">
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
@@ -209,14 +198,14 @@ function DocumentSigningComponent() {
             <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
               3
             </span>
-            <p>Desenhe sua assinatura e clique em "Assinar Documento"</p>
+            <p>Desenhe sua assinatura e confirme</p>
           </div>
           <div className="flex items-start gap-2">
             <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs font-medium">
               4
             </span>
             <p>
-              O documento será automaticamente assinado e o projeto aprovado
+              Após sua assinatura, o projeto será enviado para assinatura do administrador
             </p>
           </div>
         </CardContent>

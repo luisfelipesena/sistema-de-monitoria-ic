@@ -13,7 +13,7 @@ function LandingPageComponent() {
   const { signIn } = useAuth();
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[hsl(195,71%,95%)] to-white">
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <header className="sticky top-0 z-10 p-4 border-b bg-white/80 backdrop-blur-sm">
         <div className="container flex items-center justify-between mx-auto">
           <div className="flex items-center gap-2">
@@ -26,7 +26,7 @@ function LandingPageComponent() {
               Sistema de Monitoria IC
             </span>
           </div>
-          <Button onClick={signIn}>Entrar com Email UFBA</Button>
+          <Button onClick={signIn}>Acessar Dashboard com Login UFBA</Button>
         </div>
       </header>
 
@@ -41,7 +41,7 @@ function LandingPageComponent() {
               monitores para projetos acadêmicos da UFBA.
             </p>
             <Button size="lg" onClick={signIn}>
-              Entrar com Email UFBA
+              Acessar Dashboard com Login UFBA
             </Button>
           </div>
 
@@ -95,11 +95,12 @@ function LandingPageComponent() {
                   1
                 </span>
                 <h3 className="font-semibold text-[hsl(210,40%,20%)]">
-                  Proposta do Projeto
+                  Criação e Submissão de Projetos
                 </h3>
                 <p className="text-gray-600">
-                  Professores criam e submetem propostas de projetos de
-                  monitoria para aprovação.
+                  Professores criam propostas de monitoria definindo objetivos,
+                  disciplinas vinculadas e professores participantes. Após
+                  finalização, submetem para análise administrativa.
                 </p>
               </li>
               <li className="mb-10 ml-6">
@@ -107,11 +108,12 @@ function LandingPageComponent() {
                   2
                 </span>
                 <h3 className="font-semibold text-[hsl(210,40%,20%)]">
-                  Aprovação Administrativa
+                  Análise Administrativa e Criação do Edital
                 </h3>
                 <p className="text-gray-600">
-                  Administradores revisam, aprovam projetos e definem vagas com
-                  bolsa.
+                  Administradores analisam projetos submetidos, aprovam ou rejeitam
+                  propostas, definem quantidade de vagas com bolsa e criam o
+                  edital oficial do período de inscrição.
                 </p>
               </li>
               <li className="mb-10 ml-6">
@@ -119,11 +121,12 @@ function LandingPageComponent() {
                   3
                 </span>
                 <h3 className="font-semibold text-[hsl(210,40%,20%)]">
-                  Período de Inscrição
+                  Abertura de Inscrições para Alunos
                 </h3>
                 <p className="text-gray-600">
-                  Alunos se candidatam a projetos durante o período de inscrição
-                  definido.
+                  Durante o período definido no edital, alunos visualizam
+                  projetos aprovados e se candidatam às vagas de monitoria
+                  (bolsistas ou voluntárias).
                 </p>
               </li>
               <li className="mb-10 ml-6">
@@ -131,11 +134,12 @@ function LandingPageComponent() {
                   4
                 </span>
                 <h3 className="font-semibold text-[hsl(210,40%,20%)]">
-                  Seleção de Candidatos
+                  Processo Seletivo e Definição de Vagas
                 </h3>
                 <p className="text-gray-600">
-                  Professores selecionam candidatos para suas vagas de
-                  monitoria.
+                  Professores analisam candidaturas, realizam processo seletivo,
+                  definem vagas voluntárias adicionais e registram resultados
+                  através da ata de seleção.
                 </p>
               </li>
               <li className="ml-6">
@@ -143,10 +147,12 @@ function LandingPageComponent() {
                   5
                 </span>
                 <h3 className="font-semibold text-[hsl(210,40%,20%)]">
-                  Confirmação e Início
+                  Aceite e Início das Atividades
                 </h3>
                 <p className="text-gray-600">
-                  Alunos aceitam ofertas e iniciam atividades de monitoria.
+                  Alunos selecionados aceitam ou recusam ofertas (máximo 1 bolsa
+                  por semestre), assinam termos de compromisso e iniciam as
+                  atividades de monitoria.
                 </p>
               </li>
             </ol>
