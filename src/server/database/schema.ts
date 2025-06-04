@@ -1007,5 +1007,47 @@ export const assinaturaDocumentoRelations = relations(assinaturaDocumentoTable, 
   }),
 }));
 
+// Tabela para templates de projeto, para pré-preenchimento na importação
+export const projetoTemplateTable = pgTable('projeto_template', {
+  id: serial('id').primaryKey(),
+  disciplinaId: integer('disciplina_id')
+    .references(() => disciplinaTable.id)
+    .notNull()
+    .unique(), // Cada disciplina pode ter um template
+  tituloDefault: varchar('titulo_default', { length: 255 }),
+  descricaoDefault: text('descricao_default'), // Objetivos/Justificativa padrão
+  cargaHorariaSemanaDefault: integer('carga_horaria_semana_default'),
+  numeroSemanasDefault: integer('numero_semanas_default'),
+  publicoAlvoDefault: text('publico_alvo_default'),
+  atividadesDefault: text('atividades_default'), // e.g., JSON array de strings ou ;-separadas
+  criadoPorUserId: integer('criado_por_user_id') 
+    .references(() => userTable.id)
+    .notNull(),
+  ultimaAtualizacaoUserId: integer('ultima_atualizacao_user_id')
+    .references(() => userTable.id),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
+    .$onUpdate(() => new Date()),
+});
+
+export const projetoTemplateRelations = relations(projetoTemplateTable, ({ one }) => ({
+  disciplina: one(disciplinaTable, {
+    fields: [projetoTemplateTable.disciplinaId],
+    references: [disciplinaTable.id],
+  }),
+  criadoPor: one(userTable, {
+    fields: [projetoTemplateTable.criadoPorUserId],
+    references: [userTable.id],
+    relationName: 'templateCriadoPor',
+  }),
+  ultimaAtualizacaoPor: one(userTable, {
+    fields: [projetoTemplateTable.ultimaAtualizacaoUserId],
+    references: [userTable.id],
+    relationName: 'templateAtualizadoPor',
+  }),
+}));
+
 // Export all schemas and relations
 // export * from './schema'; // This line seems to cause issues if present, ensure it's handled correctly or removed if not standard for the project setup

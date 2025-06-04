@@ -184,6 +184,12 @@ const menuConfig: MenuConfig[] = [
         icon: FilePlus,
         roles: ['admin'],
       },
+      {
+        label: 'Templates de Projeto',
+        href: '/home/admin/projeto-templates',
+        icon: FileText,
+        roles: ['admin'],
+      },
     ],
   },
 

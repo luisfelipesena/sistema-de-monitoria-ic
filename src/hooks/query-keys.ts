@@ -135,7 +135,12 @@ export const QueryKeys = {
   // Novas chaves para Edital
   edital: {
     list: ['edital', 'list'],
-    detail: (id: number) => ['edital', 'detail', id],
+    byId: (id: string) => ['edital', 'details', id],
+  },
+
+  projetoTemplate: {
+    list: ['projetoTemplate', 'list'],
+    byId: (id: string) => ['projetoTemplate', 'details', id],
   },
 };
 

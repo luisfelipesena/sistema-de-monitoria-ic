@@ -26,14 +26,6 @@ interface PeriodoInscricaoFormModalProps {
   periodo: PeriodoInscricaoComStatus | PeriodoInscricaoInput | null; 
 }
 
-// Helper to format Date to YYYY-MM-DD string for input type="date"
-const formatDateForInput = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ isOpen, onClose, periodo }) => {
   const isEditMode = !!(periodo && 'id' in periodo);
   const createMutation = useCreatePeriodoInscricao();
@@ -73,11 +65,7 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
   }, [isOpen, isEditMode, periodo, form]);
 
   const onSubmit = async (data: PeriodoInscricaoInput) => {
-    // react-hook-form with Zod resolver and Calendar should provide Date objects
-    const payload: PeriodoInscricaoInput = {
-      ...data, 
-      // dataInicio and dataFim should already be Date objects here from the Calendar
-    };
+    const payload: PeriodoInscricaoInput = data;
 
     try {
       if (isEditMode && periodo && 'id' in periodo) {
@@ -96,7 +84,7 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
       });
     }
   };
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[480px]">
@@ -134,6 +122,7 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
                 <PopoverTrigger asChild>
                     <Button
                         variant={"outline"}
+                        type="button"
                         className={cn(
                             "w-full justify-start text-left font-normal",
                             !form.watch('dataInicio') && "text-muted-foreground"
@@ -161,6 +150,7 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
                 <PopoverTrigger asChild>
                     <Button
                         variant={"outline"}
+                        type="button"
                         className={cn(
                             "w-full justify-start text-left font-normal",
                             !form.watch('dataFim') && "text-muted-foreground"
