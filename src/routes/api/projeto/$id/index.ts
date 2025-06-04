@@ -1,4 +1,4 @@
-import { projetoInputSchema } from '@/routes/api/projeto/-types';
+import { projetoInputSchema, projetoAllocationsInputSchema } from '@/routes/api/projeto/-types';
 import { db } from '@/server/database';
 import {
   atividadeProjetoTable,
@@ -75,6 +75,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id')({
     withRoleMiddleware(['professor', 'admin'], async (ctx) => {
       try {
         const projetoId = parseInt(ctx.params.id, 10);
+        const userRole = ctx.state.user.role;
         const userId = parseInt(ctx.state.user.userId, 10);
 
         if (isNaN(projetoId)) {
@@ -89,7 +90,11 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id')({
           return json({ error: 'Projeto não encontrado' }, { status: 404 });
         }
 
-        if (ctx.state.user.role === 'professor') {
+        const body = await ctx.request.json();
+        let updatedFields: Partial<typeof projetoTable.$inferInsert> = {};
+        let updateRelations = false;
+
+        if (userRole === 'professor') {
           const professor = await db.query.professorTable.findFirst({
             where: eq(professorTable.userId, userId),
           });
@@ -101,83 +106,102 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id')({
             );
           }
 
-          if (projeto.status !== 'DRAFT' && projeto.status !== 'SUBMITTED') {
+          if (projeto.status !== 'DRAFT' && projeto.status !== 'PENDING_PROFESSOR_SIGNATURE') {
             return json(
               {
-                error: `Projetos com status ${projeto.status} não podem ser editados.`,
+                error: `Projetos com status ${projeto.status} não podem ser editados pelo professor.`,
               },
+              { status: 400 },
+            );
+          }
+          const validatedData = projetoInputSchema.parse(body);
+          const {
+            disciplinaIds,
+            professoresParticipantes,
+            atividades,
+            ...directProjetoData
+          } = validatedData;
+          updatedFields = directProjetoData;
+          updateRelations = true;
+
+        } else if (userRole === 'admin') {
+          if (projeto.status === 'SUBMITTED' || projeto.status === 'PENDING_ADMIN_SIGNATURE' || projeto.status === 'APPROVED') {
+            const validatedData = projetoAllocationsInputSchema.parse(body);
+            if (validatedData.bolsasDisponibilizadas !== undefined) {
+              if (validatedData.bolsasDisponibilizadas > projeto.bolsasSolicitadas) {
+                return json(
+                  { error: 'Não é possível disponibilizar mais bolsas do que o solicitado pelo professor.' },
+                  { status: 400 }
+                );
+              }
+            }
+            updatedFields = validatedData;
+          } else {
+            return json(
+              { error: `Administradores podem editar alocações apenas em projetos SUBMITTED, PENDING_ADMIN_SIGNATURE ou APPROVED. Status atual: ${projeto.status}` },
               { status: 400 },
             );
           }
         }
 
-        const body = await ctx.request.json();
-        const validatedData = projetoInputSchema.parse(body);
+        if (Object.keys(updatedFields).length === 0 && !updateRelations) {
+          return json({ error: 'Nenhum dado válido para atualização fornecido' }, { status: 400 });
+        }
 
-        const {
-          disciplinaIds,
-          professoresParticipantes,
-          atividades,
-          ...directProjetoData
-        } = validatedData;
+        const finalUpdatedFields = {
+          ...updatedFields,
+          updatedAt: new Date(),
+        };
 
-        const updatedProjeto = await db.transaction(async (tx) => {
-          const [updatedDirectFields] = await tx
+        await db.transaction(async (tx) => {
+          await tx
             .update(projetoTable)
-            .set({
-              ...directProjetoData,
-              updatedAt: new Date(),
-            })
-            .where(eq(projetoTable.id, projetoId))
-            .returning();
+            .set(finalUpdatedFields)
+            .where(eq(projetoTable.id, projetoId));
 
-          if (!updatedDirectFields) {
-            throw new Error('Falha ao atualizar dados diretos do projeto.');
-          }
+          if (updateRelations && userRole === 'professor') {
+            const validatedData = projetoInputSchema.parse(body);
+            const { disciplinaIds, professoresParticipantes, atividades } = validatedData;
 
-          await tx
-            .delete(projetoDisciplinaTable)
-            .where(eq(projetoDisciplinaTable.projetoId, projetoId));
-          if (disciplinaIds && disciplinaIds.length > 0) {
-            const disciplinaValues = disciplinaIds.map(
-              (disciplinaId: number) => ({
-                projetoId: projetoId,
-                disciplinaId,
-              }),
-            );
-            await tx.insert(projetoDisciplinaTable).values(disciplinaValues);
-          }
-
-          await tx
-            .delete(projetoProfessorParticipanteTable)
-            .where(eq(projetoProfessorParticipanteTable.projetoId, projetoId));
-          if (professoresParticipantes && professoresParticipantes.length > 0) {
-            const participanteValues = professoresParticipantes.map(
-              (professorId: number) => ({
-                projetoId: projetoId,
-                professorId,
-              }),
-            );
             await tx
-              .insert(projetoProfessorParticipanteTable)
-              .values(participanteValues);
-          }
+              .delete(projetoDisciplinaTable)
+              .where(eq(projetoDisciplinaTable.projetoId, projetoId));
+            if (disciplinaIds && disciplinaIds.length > 0) {
+              await tx.insert(projetoDisciplinaTable).values(
+                disciplinaIds.map((disciplinaId: number) => ({
+                  projetoId: projetoId,
+                  disciplinaId,
+                })),
+              );
+            }
 
-          await tx
-            .delete(atividadeProjetoTable)
-            .where(eq(atividadeProjetoTable.projetoId, projetoId));
-          if (atividades && atividades.length > 0) {
-            const atividadeValues = atividades.map((descricao: string) => ({
-              projetoId: projetoId,
-              descricao,
-            }));
-            await tx.insert(atividadeProjetoTable).values(atividadeValues);
-          }
+            await tx
+              .delete(projetoProfessorParticipanteTable)
+              .where(eq(projetoProfessorParticipanteTable.projetoId, projetoId));
+            if (professoresParticipantes && professoresParticipantes.length > 0) {
+              await tx.insert(projetoProfessorParticipanteTable).values(
+                professoresParticipantes.map((professorId: number) => ({
+                  projetoId: projetoId,
+                  professorId,
+                })),
+              );
+            }
 
-          return updatedDirectFields;
+            await tx
+              .delete(atividadeProjetoTable)
+              .where(eq(atividadeProjetoTable.projetoId, projetoId));
+            if (atividades && atividades.length > 0) {
+              await tx.insert(atividadeProjetoTable).values(
+                atividades.map((descricao: string) => ({
+                  projetoId: projetoId,
+                  descricao,
+                })),
+              );
+            }
+          }
         });
 
-        log.info({ projetoId }, 'Projeto atualizado com sucesso com relações.');
+        log.info({ projetoId, userRole }, 'Projeto atualizado com sucesso.');
         const projetoCompleto = await db.query.projetoTable.findFirst({
           where: eq(projetoTable.id, projetoId),
           with: {
@@ -197,7 +221,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id')({
             { status: 400 },
           );
         }
-        log.error(error, 'Erro ao atualizar projeto com relações');
+        log.error(error, 'Erro ao atualizar projeto');
         return json({ error: 'Erro ao atualizar projeto' }, { status: 500 });
       }
     }),

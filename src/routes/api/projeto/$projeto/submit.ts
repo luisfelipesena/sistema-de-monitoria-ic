@@ -6,7 +6,7 @@ import {
   projetoTable,
   userTable,
 } from '@/server/database/schema';
-import { sendProjetoSubmissionNotification } from '@/server/lib/emailService';
+import { emailService } from '@/server/lib/emailService';
 import {
   createAPIHandler,
   withAuthMiddleware,
@@ -94,17 +94,15 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$projeto/submit')({
 
           // Send email notification to all admins
           try {
-            // Get admin emails
             const admins = await db.query.userTable.findMany({
               where: eq(userTable.role, 'admin'),
             });
 
             const adminEmails = admins
               .map((admin) => admin.email)
-              .filter((email) => email && email.length > 0);
+              .filter((email): email is string => !!email && email.length > 0);
 
             if (adminEmails.length > 0) {
-              // Get project details for email
               const professor = await db.query.professorTable.findFirst({
                 where: eq(professorTable.id, updatedProjeto.professorResponsavelId),
               });
@@ -113,12 +111,12 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$projeto/submit')({
                 where: eq(departamentoTable.id, updatedProjeto.departamentoId),
               });
 
-              await sendProjetoSubmissionNotification(
+              await emailService.sendProjetoSubmetidoParaAdminsNotification(
                 {
-                  professorNome: professor?.nomeCompleto || 'Professor',
+                  professorNome: professor?.nomeCompleto || 'Professor Desconhecido',
                   projetoTitulo: updatedProjeto.titulo,
                   projetoId: updatedProjeto.id,
-                  departamento: departamento?.nome || 'Departamento',
+                  departamento: departamento?.nome,
                   semestre: updatedProjeto.semestre,
                   ano: updatedProjeto.ano,
                 },

@@ -4,7 +4,6 @@ import {
   projetoTable,
   userTable,
 } from '@/server/database/schema';
-import { sendEmail } from '@/server/lib/emailService';
 import minioClient, {
   bucketName,
   ensureBucketExists,
@@ -21,6 +20,7 @@ import path from 'path';
 import { Readable } from 'stream';
 import { v4 as uuidv4 } from 'uuid';
 import { z } from 'zod';
+import { emailService } from '@/server/lib/emailService';
 
 const log = logger.child({
   context: 'ProjetoDocumentUpload',
@@ -40,14 +40,14 @@ export const APIRoute = createAPIFileRoute(
   POST: createAPIHandler(
     withRoleMiddleware(['professor', 'admin'], async (ctx) => {
       try {
-        const projetoId = parseInt(ctx.params.projetoId);
+        const projetoId = parseInt(ctx.params.id);
         const userId = ctx.state.user.userId;
+        const userRole = ctx.state.user.role;
 
         if (isNaN(projetoId)) {
           return json({ error: 'ID do projeto inválido' }, { status: 400 });
         }
 
-        // Verificar se o projeto existe
         const projeto = await db.query.projetoTable.findFirst({
           where: eq(projetoTable.id, projetoId),
           with: {
@@ -63,8 +63,7 @@ export const APIRoute = createAPIFileRoute(
           return json({ error: 'Projeto não encontrado' }, { status: 404 });
         }
 
-        // Verificar permissões
-        if (ctx.state.user.role === 'professor') {
+        if (userRole === 'professor') {
           if (projeto.professorResponsavel.userId !== parseInt(userId)) {
             return json({ error: 'Acesso negado' }, { status: 403 });
           }
@@ -89,9 +88,8 @@ export const APIRoute = createAPIFileRoute(
           observacoes,
         });
 
-        // Verificar se o usuário pode fazer upload deste tipo de documento
         if (
-          ctx.state.user.role === 'professor' &&
+          userRole === 'professor' &&
           validatedData.tipoDocumento !== 'PROPOSTA_ASSINADA_PROFESSOR'
         ) {
           return json(
@@ -104,7 +102,7 @@ export const APIRoute = createAPIFileRoute(
         }
 
         if (
-          ctx.state.user.role === 'admin' &&
+          userRole === 'admin' &&
           validatedData.tipoDocumento !== 'PROPOSTA_ASSINADA_ADMIN'
         ) {
           return json(
@@ -115,6 +113,25 @@ export const APIRoute = createAPIFileRoute(
             { status: 403 },
           );
         }
+        
+        // Lógica de transição de status
+        let novoStatusProjeto = projeto.status;
+        if (userRole === 'professor' && validatedData.tipoDocumento === 'PROPOSTA_ASSINADA_PROFESSOR') {
+          if (projeto.status === 'DRAFT' || projeto.status === 'PENDING_PROFESSOR_SIGNATURE') {
+            novoStatusProjeto = 'SUBMITTED';
+          } else {
+            log.warn({ projetoId, currentStatus: projeto.status }, "Professor tentou enviar assinatura para projeto que não está em DRAFT ou PENDING_PROFESSOR_SIGNATURE");
+            // Não impede o upload do documento, mas não altera o status se não for o caso esperado.
+            // Poderia retornar um erro se a regra de negócio exigir.
+          }
+        } else if (userRole === 'admin' && validatedData.tipoDocumento === 'PROPOSTA_ASSINADA_ADMIN') {
+          if (projeto.status === 'PENDING_ADMIN_SIGNATURE') {
+            novoStatusProjeto = 'APPROVED';
+          } else {
+             log.warn({ projetoId, currentStatus: projeto.status }, "Admin tentou enviar assinatura para projeto que não está em PENDING_ADMIN_SIGNATURE");
+          }
+        }
+
 
         const fileId = uuidv4();
         const originalFilename = file.name;
@@ -142,7 +159,6 @@ export const APIRoute = createAPIFileRoute(
           metaData,
         );
 
-        // Salvar na base de dados
         const [novoDocumento] = await db
           .insert(projetoDocumentoTable)
           .values({
@@ -154,39 +170,51 @@ export const APIRoute = createAPIFileRoute(
           })
           .returning();
 
+        // Atualizar status do projeto se necessário
+        let statusFinalDoProjeto = projeto.status;
+        if (novoStatusProjeto !== projeto.status) {
+          const [resultadoUpdate] = await db.update(projetoTable)
+            .set({ status: novoStatusProjeto, updatedAt: new Date() })
+            .where(eq(projetoTable.id, projetoId))
+            .returning({ status: projetoTable.status });
+          
+          if (resultadoUpdate && resultadoUpdate.status) {
+            statusFinalDoProjeto = resultadoUpdate.status;
+          }
+          log.info({ projetoId, oldStatus: projeto.status, newStatus: statusFinalDoProjeto }, "Status do projeto atualizado após upload de documento.");
+        }
+        
+
         // Enviar notificação por email
-        if (validatedData.tipoDocumento === 'PROPOSTA_ASSINADA_PROFESSOR') {
-          // Notificar admins
+        if (userRole === 'professor' && validatedData.tipoDocumento === 'PROPOSTA_ASSINADA_PROFESSOR') {
           const admins = await db.query.userTable.findMany({
             where: eq(userTable.role, 'admin'),
           });
+          const adminEmails = admins.map(admin => admin.email).filter((email): email is string => !!email);
 
-          for (const admin of admins) {
-            await sendEmail({
-              to: admin.email,
-              subject:
-                'Nova Proposta de Monitoria Assinada - Requer Assinatura Admin',
-              html: `
-                <h2>Nova Proposta de Monitoria Assinada</h2>
-                <p>O professor ${projeto.professorResponsavel.nomeCompleto} enviou uma proposta assinada para o projeto:</p>
-                <p><strong>Título:</strong> ${projeto.titulo}</p>
-                <p>A proposta precisa da sua assinatura como administrador.</p>
-                <p>Acesse o sistema para revisar e assinar a proposta.</p>
-              `,
-            });
+          if (adminEmails.length > 0) {
+            await emailService.sendProfessorAssinouPropostaNotification(
+              {
+                professorNome: projeto.professorResponsavel.nomeCompleto,
+                projetoTitulo: projeto.titulo,
+                projetoId: projeto.id,
+                novoStatusProjeto: statusFinalDoProjeto,
+              },
+              adminEmails,
+            );
           }
-        } else if (validatedData.tipoDocumento === 'PROPOSTA_ASSINADA_ADMIN') {
-          // Notificar professor responsável
-          await sendEmail({
-            to: projeto.professorResponsavel.user.email,
-            subject: 'Proposta de Monitoria Aprovada e Assinada',
-            html: `
-              <h2>Proposta de Monitoria Aprovada</h2>
-              <p>Sua proposta de monitoria foi aprovada e assinada pelo administrador:</p>
-              <p><strong>Título:</strong> ${projeto.titulo}</p>
-              <p>O processo de assinatura foi concluído com sucesso.</p>
-            `,
-          });
+        } else if (userRole === 'admin' && validatedData.tipoDocumento === 'PROPOSTA_ASSINADA_ADMIN') {
+          if (projeto.professorResponsavel?.user?.email) {
+            await emailService.sendAdminAssinouPropostaNotification({
+              professorEmail: projeto.professorResponsavel.user.email,
+              professorNome: projeto.professorResponsavel.nomeCompleto,
+              projetoTitulo: projeto.titulo,
+              projetoId: projeto.id,
+              novoStatusProjeto: novoStatusProjeto,
+            });
+          } else {
+            log.warn({ projetoId }, "Email do professor responsável não encontrado para notificação de assinatura do admin.")
+          }
         }
 
         log.info(
@@ -195,6 +223,7 @@ export const APIRoute = createAPIFileRoute(
             fileId,
             tipoDocumento: validatedData.tipoDocumento,
             userId,
+            novoStatusProjetoLog: statusFinalDoProjeto !== projeto.status ? statusFinalDoProjeto : undefined
           },
           'Documento de projeto enviado com sucesso',
         );
@@ -206,6 +235,7 @@ export const APIRoute = createAPIFileRoute(
             tipoDocumento: novoDocumento.tipoDocumento,
             observacoes: novoDocumento.observacoes,
             createdAt: novoDocumento.createdAt,
+            statusProjeto: statusFinalDoProjeto
           },
           { status: 201 },
         );

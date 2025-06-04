@@ -294,11 +294,9 @@ function InscricaoMonitoriaPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await apiClient.post('/api/monitoria/inscricao', {
+      const response = await apiClient.post('/monitoria/inscricao', {
         projetoId: applicationModal.project.id,
         tipoVagaPretendida: applicationData.tipoVagaPretendida,
-        // TODO: Add document support later
-        // documentos: [],
       });
 
       if (response.status === 200) {

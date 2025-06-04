@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   date,
   integer,
@@ -9,9 +9,15 @@ import {
   text,
   timestamp,
   varchar,
+  boolean,
+  uniqueIndex,
+  primaryKey,
+  foreignKey,
+  decimal,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
-// --- Auth Schema --- TODO: Review if all user fields are needed directly in lucia attributes
+import { z } from 'zod';
+// --- Auth Schema ---
 
 export const userRoleEnum = pgEnum('user_role', [
   'admin',
@@ -82,6 +88,7 @@ export const projetoStatusEnum = pgEnum('projeto_status_enum', [
   'APPROVED', // Admin approved and signed
   'REJECTED', // Admin rejected
   'PENDING_ADMIN_SIGNATURE', // Admin approved but needs to sign (optional status)
+  'PENDING_PROFESSOR_SIGNATURE', // Generated from import, needs professor signature
 ]);
 
 export const generoEnum = pgEnum('genero_enum', [
@@ -103,6 +110,13 @@ export const tipoDocumentoProjetoEnum = pgEnum('tipo_documento_projeto_enum', [
   'PROPOSTA_ASSINADA_PROFESSOR',
   'PROPOSTA_ASSINADA_ADMIN',
   'ATA_SELECAO',
+]);
+
+export const tipoAssinaturaEnum = pgEnum('tipo_assinatura_enum', [
+  'PROJETO_PROFESSOR_RESPONSAVEL',
+  'TERMO_COMPROMISSO_ALUNO',
+  'EDITAL_ADMIN',
+  'ATA_SELECAO_PROFESSOR',
 ]);
 
 export const statusInscricaoEnum = pgEnum('status_inscricao_enum', [
@@ -810,5 +824,188 @@ export const disciplinaProfessorResponsavelRelations = relations(
   }),
 );
 
+// Tabela para histórico de importações de planejamento
+export const importacaoPlanejamentoTable = pgTable('importacao_planejamento', {
+  id: serial('id').primaryKey(),
+  fileId: text('file_id').notNull(), // ID do arquivo no MinIO
+  nomeArquivo: varchar('nome_arquivo').notNull(),
+  ano: integer('ano').notNull(),
+  semestre: semestreEnum('semestre').notNull(),
+  totalProjetos: integer('total_projetos').notNull().default(0),
+  projetosCriados: integer('projetos_criados').notNull().default(0),
+  projetosComErro: integer('projetos_com_erro').notNull().default(0),
+  status: varchar('status').notNull().default('PROCESSANDO'), // PROCESSANDO, CONCLUIDO, ERRO
+  erros: text('erros'), // JSON com detalhes dos erros
+  importadoPorUserId: integer('importado_por_user_id')
+    .references(() => userTable.id)
+    .notNull(),
+  createdAt: timestamp('created_at', {
+    withTimezone: true,
+    mode: 'date',
+  })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', {
+    withTimezone: true,
+    mode: 'date',
+  }).$onUpdate(() => new Date()),
+});
+
+export const importacaoPlanejamentoRelations = relations(
+  importacaoPlanejamentoTable,
+  ({ one }) => ({
+    importadoPor: one(userTable, {
+      fields: [importacaoPlanejamentoTable.importadoPorUserId],
+      references: [userTable.id],
+    }),
+  }),
+);
+
+export const statusEnvioEnum = pgEnum('status_envio_enum', [
+  'ENVIADO',
+  'FALHOU',
+]);
+
+export const notificacaoHistoricoTable = pgTable('notificacao_historico', {
+  id: serial('id').primaryKey(),
+  destinatarioEmail: text('destinatario_email').notNull(),
+  assunto: varchar('assunto', { length: 255 }).notNull(),
+  tipoNotificacao: varchar('tipo_notificacao', { length: 100 }).notNull(),
+  statusEnvio: statusEnvioEnum('status_envio').notNull(),
+  dataEnvio: timestamp('data_envio', { withTimezone: true, mode: 'date' })
+    .defaultNow()
+    .notNull(),
+  mensagemErro: text('mensagem_erro'),
+  projetoId: integer('projeto_id').references(() => projetoTable.id),
+  alunoId: integer('aluno_id').references(() => alunoTable.id),
+  remetenteUserId: integer('remetente_user_id').references(() => userTable.id),
+});
+
+export const notificacaoHistoricoRelations = relations(notificacaoHistoricoTable, ({ one }) => ({
+  projeto: one(projetoTable, {
+    fields: [notificacaoHistoricoTable.projetoId],
+    references: [projetoTable.id],
+  }),
+  aluno: one(alunoTable, {
+    fields: [notificacaoHistoricoTable.alunoId],
+    references: [alunoTable.id],
+  }),
+  remetente: one(userTable, {
+    fields: [notificacaoHistoricoTable.remetenteUserId],
+    references: [userTable.id],
+  }),
+}));
+
+// Tabela para Editais
+export const editalTable = pgTable('edital', {
+  id: serial('id').primaryKey(),
+  periodoInscricaoId: integer('periodo_inscricao_id')
+    .references(() => periodoInscricaoTable.id)
+    .notNull()
+    .unique(),
+  numeroEdital: varchar('numero_edital', { length: 50 }).notNull().unique(),
+  titulo: varchar('titulo', { length: 255 })
+    .notNull()
+    .default('Edital Interno de Seleção de Monitores'),
+  descricaoHtml: text('descricao_html'),
+  fileIdAssinado: text('file_id_assinado'), // PDF do edital assinado
+  dataPublicacao: date('data_publicacao', { mode: 'date' }),
+  publicado: boolean('publicado').default(false).notNull(),
+  criadoPorUserId: integer('criado_por_user_id')
+    .references(() => userTable.id)
+    .notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
+    .$onUpdate(() => new Date()),
+});
+
+export const editalRelations = relations(editalTable, ({ one }) => ({
+  periodoInscricao: one(periodoInscricaoTable, {
+    fields: [editalTable.periodoInscricaoId],
+    references: [periodoInscricaoTable.id],
+  }),
+  criadoPor: one(userTable, {
+    fields: [editalTable.criadoPorUserId],
+    references: [userTable.id],
+  }),
+}));
+
+// Enum para status de convite de professor
+export const professorInvitationStatusEnum = pgEnum(
+  'professor_invitation_status_enum',
+  ['PENDING', 'ACCEPTED', 'EXPIRED'],
+);
+
+// Tabela para armazenar convites para professores
+export const professorInvitationTable = pgTable('professor_invitation', {
+  id: serial('id').primaryKey(),
+  email: varchar('email', { length: 255 }).notNull().unique(), // Email do professor convidado
+  token: varchar('token', { length: 255 }).notNull().unique(), // Token único para o link do convite
+  status: professorInvitationStatusEnum('status').notNull().default('PENDING'),
+  expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull(),
+  invitedByUserId: integer('invited_by_user_id') // Admin que enviou o convite
+    .references(() => userTable.id)
+    .notNull(),
+  acceptedByUserId: integer('accepted_by_user_id').references( // Usuário que aceitou (após criação/login)
+    () => userTable.id,
+  ),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' })
+    .$onUpdate(() => new Date()),
+});
+
+export const professorInvitationRelations = relations(
+  professorInvitationTable,
+  ({ one }) => ({
+    invitedByUser: one(userTable, {
+      fields: [professorInvitationTable.invitedByUserId],
+      references: [userTable.id],
+      relationName: 'invitedByUser',
+    }),
+    acceptedByUser: one(userTable, {
+      fields: [professorInvitationTable.acceptedByUserId],
+      references: [userTable.id],
+      relationName: 'acceptedByUser',
+    }),
+  }),
+);
+
+// Tabela para armazenar dados de assinaturas digitais
+export const assinaturaDocumentoTable = pgTable('assinatura_documento', {
+  id: serial('id').primaryKey(),
+  assinaturaData: text('assinatura_data').notNull(), // Base64 data URL da imagem da assinatura
+  tipoAssinatura: tipoAssinaturaEnum('tipo_assinatura').notNull(),
+  userId: integer('user_id').references(() => userTable.id).notNull(), // Quem assinou
+  projetoId: integer('projeto_id').references(() => projetoTable.id), // Se assinatura de um projeto
+  vagaId: integer('vaga_id').references(() => vagaTable.id), // Se assinatura de um termo (vinculado à vaga)
+  editalId: integer('edital_id').references(() => editalTable.id), // Se assinatura de um edital
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
+    .defaultNow()
+    .notNull(),
+});
+
+export const assinaturaDocumentoRelations = relations(assinaturaDocumentoTable, ({ one }) => ({
+  user: one(userTable, {
+    fields: [assinaturaDocumentoTable.userId],
+    references: [userTable.id],
+  }),
+  projeto: one(projetoTable, {
+    fields: [assinaturaDocumentoTable.projetoId],
+    references: [projetoTable.id],
+  }),
+  vaga: one(vagaTable, {
+    fields: [assinaturaDocumentoTable.vagaId],
+    references: [vagaTable.id],
+  }),
+  edital: one(editalTable, {
+    fields: [assinaturaDocumentoTable.editalId],
+    references: [editalTable.id],
+  }),
+}));
+
 // Export all schemas and relations
-export * from './schema';
+// export * from './schema'; // This line seems to cause issues if present, ensure it's handled correctly or removed if not standard for the project setup

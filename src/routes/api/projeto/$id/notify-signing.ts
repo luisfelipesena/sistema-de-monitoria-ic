@@ -1,6 +1,6 @@
 import { db } from '@/server/database';
 import { projetoTable } from '@/server/database/schema';
-import { sendEmail } from '@/server/lib/emailService';
+import { emailService } from '@/server/lib/emailService';
 import {
   createAPIHandler,
   withRoleMiddleware,
@@ -58,29 +58,14 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/notify-signing')({
         }
 
         // Enviar email de notificação para o professor responsável
-        await sendEmail({
-          to: projeto.professorResponsavel.user.email,
-          subject: 'Assinatura Necessária - Proposta de Monitoria',
-          html: `
-            <h2>Assinatura Necessária</h2>
-            <p>Sua proposta de monitoria foi gerada e precisa ser assinada:</p>
-            <p><strong>Título:</strong> ${projeto.titulo}</p>
-            <p><strong>Departamento:</strong> ${projeto.departamento?.nome || 'N/A'}</p>
-            <p><strong>Ano/Semestre:</strong> ${projeto.ano}.${projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}</p>
-            
-            <h3>Próximos passos:</h3>
-            <ol>
-              <li>Faça o download do PDF da proposta no sistema</li>
-              <li>Assine digitalmente o documento</li>
-              <li>Faça o upload do documento assinado no sistema</li>
-            </ol>
-            
-            ${validatedData.message ? `<p><strong>Observação:</strong> ${validatedData.message}</p>` : ''}
-            
-            <p>Acesse o sistema para realizar a assinatura.</p>
-          `,
+        await emailService.sendProjetoGeradoParaAssinaturaNotification({
+          professorEmail: projeto.professorResponsavel.user.email,
+          professorNome: projeto.professorResponsavel.nomeCompleto,
+          projetoTitulo: projeto.titulo,
+          projetoId: projeto.id,
+          remetenteUserId: parseInt(userId),
         });
-
+            
         log.info(
           {
             projetoId,

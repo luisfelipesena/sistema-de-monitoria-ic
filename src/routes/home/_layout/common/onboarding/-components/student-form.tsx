@@ -47,7 +47,7 @@ export function StudentForm() {
     resolver: zodResolver(alunoInputSchema),
     defaultValues: {
       emailInstitucional: user?.email || '',
-      genero: 'OUTRO', // TODO: Ver q porra eh isso
+      genero: 'OUTRO',
     },
   });
 

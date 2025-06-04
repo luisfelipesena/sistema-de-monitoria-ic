@@ -2,6 +2,7 @@
 
 import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -11,19 +12,33 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PdfViewerWithSignature } from '@/components/ui/pdf-viewer-with-signature';
+// import { PdfViewerWithSignature } from '@/components/ui/pdf-viewer-with-signature'; // To be removed
 import { useAuth } from '@/hooks/use-auth';
 import {
   useProjetos,
-  useUploadProjetoDocument,
+  useProjectProfessorSignature, // New hook
+  // useUploadProjetoDocument, // To be removed if only used by old flow
 } from '@/hooks/use-projeto';
+import { ProjetoListItem } from '@/routes/api/projeto/-types'; // For typing projectToSign
 import { createFileRoute } from '@tanstack/react-router';
 import {
   CheckCircle,
   FileSignature,
+  Edit,
+  Loader2
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react'; // Removed useEffect as it's not used
+import SignatureCanvas from 'react-signature-canvas'; // New import
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+  DialogClose,
+} from '@/components/ui/dialog'; // For the new signature modal
 
 export const Route = createFileRoute(
   '/home/_layout/professor/_layout/document-signing',
@@ -34,58 +49,66 @@ export const Route = createFileRoute(
 function ProfessorDocumentSigningComponent() {
   const { user } = useAuth();
   const { data: projetos, isLoading: loadingProjetos, refetch } = useProjetos();
-  const uploadDocument = useUploadProjetoDocument();
-  const [signingProject, setSigningProject] = useState<number | null>(null);
+  // const uploadDocument = useUploadProjetoDocument(); // Remove if not used elsewhere
+  const projectSignatureMutation = useProjectProfessorSignature();
 
-  // Filter projects that need professor signature
-  // In the current flow, professors don't need to sign separately
-  // This page is kept for future use if needed
+  const [projectToSign, setProjectToSign] = useState<ProjetoListItem | null>(null);
+  const sigPad = useRef<SignatureCanvas>(null);
+
   const projectsNeedingSignature = projetos?.filter((projeto) => {
-    // Currently, professors sign when they submit the project
-    // This could be used in the future for a separate signing step
-    return false; // Disabled for now as per current workflow
+    return (
+      projeto.professorResponsavelId === user?.id &&
+      (projeto.status === 'DRAFT' || projeto.status === 'PENDING_PROFESSOR_SIGNATURE')
+    );
   }) || [];
 
-  const handleSignComplete = async (projetoId: number, signedPdfBlob: Blob) => {
-    setSigningProject(projetoId);
-    try {
-      // Convert Blob to File
-      const signedFile = new File(
-        [signedPdfBlob], 
-        `projeto_${projetoId}_assinado_professor.pdf`, 
-        { type: 'application/pdf' }
-      );
-
-      // Upload the signed document
-      await uploadDocument.mutateAsync({
-        projetoId,
-        file: signedFile,
-        tipoDocumento: 'PROPOSTA_ASSINADA_PROFESSOR',
-        observacoes: 'Documento assinado digitalmente pelo professor',
-      });
-
-      toast.success(
-        'Documento assinado com sucesso! Aguardando assinatura do administrador.',
-      );
-
-      refetch();
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao salvar documento assinado');
-    } finally {
-      setSigningProject(null);
-    }
+  const handleOpenSignatureModal = (projeto: ProjetoListItem) => {
+    setProjectToSign(projeto);
   };
 
+  const handleClearSignature = () => {
+    sigPad.current?.clear();
+  };
+
+  const handleSubmitSignature = async () => {
+    if (!projectToSign || !sigPad.current) return;
+
+    if (sigPad.current.isEmpty()) {
+      toast.error('Por favor, forneça sua assinatura.');
+      return;
+    }
+
+    const assinaturaData = sigPad.current.toDataURL('image/png');
+
+    projectSignatureMutation.mutate(
+      { projetoId: projectToSign.id, assinaturaData },
+      {
+        onSuccess: () => {
+          toast.success('Projeto assinado e submetido com sucesso!');
+          setProjectToSign(null);
+          sigPad.current?.clear(); // Clear signature after successful submission
+      refetch();
+        },
+        onError: (error) => {
+          toast.error(error.message || 'Erro ao submeter assinatura.');
+        },
+      },
+    );
+  };
+
+  // ... (renderStatusBadge can be kept or simplified if status display changes)
   const renderStatusBadge = (status: string) => {
     switch (status) {
-      case 'APPROVED':
-        return <Badge variant="success">Aprovado</Badge>;
-      case 'PENDING_ADMIN_SIGNATURE':
-        return <Badge variant="secondary">Aguardando Assinatura Admin</Badge>;
+      case 'DRAFT':
+        return <Badge variant="outline">Rascunho</Badge>;
+      case 'PENDING_PROFESSOR_SIGNATURE':
+        return <Badge variant="secondary">Aguardando Assinatura</Badge>;
+      // Add other relevant statuses if needed
       default:
         return <Badge>{status}</Badge>;
     }
   };
+
 
   if (user?.role !== 'professor') {
     return (
@@ -101,22 +124,19 @@ function ProfessorDocumentSigningComponent() {
 
   return (
     <PagesLayout
-      title="Assinatura de Documentos - Professor"
-      subtitle="Assine digitalmente seus projetos aprovados"
+      title="Assinatura de Projetos - Professor"
+      subtitle="Assine e submeta seus projetos de monitoria."
     >
       {loadingProjetos ? (
         <div className="flex justify-center items-center py-8">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            <p className="mt-2">Carregando projetos...</p>
-          </div>
+          <Loader2 className="mx-auto h-12 w-12 animate-spin text-blue-600" />
         </div>
       ) : (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileSignature className="h-5 w-5" />
-              Projetos Aguardando Sua Assinatura
+              Projetos Aguardando Sua Assinatura/Submissão
               {projectsNeedingSignature.length > 0 && (
                 <Badge variant="outline" className="ml-2">
                   {projectsNeedingSignature.length} projeto(s)
@@ -129,11 +149,10 @@ function ProfessorDocumentSigningComponent() {
               <div className="text-center py-12 text-muted-foreground">
                 <CheckCircle className="mx-auto h-12 w-12 mb-4" />
                 <h3 className="text-lg font-medium mb-2">
-                  Nenhum projeto aguardando assinatura
+                  Nenhum projeto aguardando sua ação
                 </h3>
                 <p>
-                  Todos os seus projetos foram assinados ou não há projetos
-                  aprovados aguardando sua assinatura.
+                  Todos os seus projetos que requerem assinatura foram processados ou não há projetos pendentes.
                 </p>
               </div>
             ) : (
@@ -142,7 +161,6 @@ function ProfessorDocumentSigningComponent() {
                   <TableRow>
                     <TableHead>Título</TableHead>
                     <TableHead>Departamento</TableHead>
-                    <TableHead>Semestre</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
@@ -154,18 +172,16 @@ function ProfessorDocumentSigningComponent() {
                         {projeto.titulo}
                       </TableCell>
                       <TableCell>{projeto.departamentoNome}</TableCell>
-                      <TableCell>
-                        {projeto.ano}.
-                        {projeto.semestre === 'SEMESTRE_1' ? 1 : 2}
-                      </TableCell>
                       <TableCell>{renderStatusBadge(projeto.status)}</TableCell>
-                      <TableCell>
-                        <PdfViewerWithSignature
-                          pdfUrl={`/api/projeto/${projeto.id}/pdf`}
-                          projectTitle={projeto.titulo}
-                          onSignComplete={(blob) => handleSignComplete(projeto.id, blob)}
-                          loading={signingProject === projeto.id}
-                        />
+                      <TableCell className="text-right">
+                        <Button 
+                          size="sm"
+                          onClick={() => handleOpenSignatureModal(projeto)}
+                          disabled={projectSignatureMutation.isPending && projectSignatureMutation.variables?.projetoId === projeto.id}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Assinar e Submeter
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -176,40 +192,46 @@ function ProfessorDocumentSigningComponent() {
         </Card>
       )}
 
-      {/* Instructions Card */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Como Funciona a Assinatura Digital</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
-              1
-            </span>
-            <p>Visualize o PDF do seu projeto aprovado</p>
+      {projectToSign && (
+        <Dialog open={!!projectToSign} onOpenChange={(isOpen) => {
+          if (!isOpen) setProjectToSign(null);
+        }}>
+          <DialogContent className="sm:max-w-[525px]">
+            <DialogHeader>
+              <DialogTitle>Assinar Projeto: {projectToSign.titulo}</DialogTitle>
+              <DialogDescription>
+                Desenhe sua assinatura no campo abaixo. Esta ação submeterá o projeto.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <SignatureCanvas
+                ref={sigPad}
+                canvasProps={{
+                  className: 'border rounded-md w-full h-48 bg-white',
+                }}
+              />
           </div>
-          <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
-              2
-            </span>
-            <p>Clique em "Assinar Digitalmente" para abrir o modal de assinatura</p>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
-              3
-            </span>
-            <p>Desenhe sua assinatura e confirme</p>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs font-medium">
-              4
-            </span>
-            <p>
-              Após sua assinatura, o projeto será enviado para assinatura do administrador
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            <DialogFooter className="gap-2 sm:justify-between">
+              <Button variant="outline" onClick={handleClearSignature} disabled={projectSignatureMutation.isPending}>
+                Limpar
+              </Button>
+              <DialogClose asChild>
+                 <Button variant="outline" onClick={() => setProjectToSign(null)} disabled={projectSignatureMutation.isPending}>Cancelar</Button>
+              </DialogClose>
+              <Button onClick={handleSubmitSignature} disabled={projectSignatureMutation.isPending}>
+                {projectSignatureMutation.isPending ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Confirmando...
+                  </>
+                ) : (
+                  'Confirmar Assinatura e Submeter'
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Remove old Instructions Card if it refers to PDF signing */}
     </PagesLayout>
   );
 }

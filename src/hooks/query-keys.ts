@@ -75,8 +75,10 @@ export const QueryKeys = {
   },
 
   projeto: {
+    all: ['projeto'],
     list: ['projeto', 'list'],
     byId: (id: string) => ['projeto', id],
+    detail: (id: string) => ['projeto', 'detail', id],
     inscricoes: (id: number) => ['projeto', id, 'inscricoes'],
     documents: (id: number) => ['projeto', id, 'documents'],
     selectionProcess: (id: number) => ['projeto', id, 'selection-process'],
@@ -124,4 +126,17 @@ export const QueryKeys = {
     manual: ['notificacoes', 'manual'],
     historico: ['notificacoes', 'historico'],
   },
+
+  // Import history related queries
+  importHistory: {
+    list: ['importHistory', 'list'],
+  },
+
+  // Novas chaves para Edital
+  edital: {
+    list: ['edital', 'list'],
+    detail: (id: number) => ['edital', 'detail', id],
+  },
 };
+
+export const QUERY_KEYS = QueryKeys;

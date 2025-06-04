@@ -31,10 +31,12 @@ import {
   LayoutDashboard,
   Settings,
   TrendingUp,
+  Upload,
   User,
   UserCog,
   UserPlus,
   Users,
+  Award,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -93,6 +95,18 @@ const menuConfig: MenuConfig[] = [
         roles: ['admin'],
       },
       {
+        label: 'Importar Planejamento',
+        href: '/home/admin/importar-planejamento',
+        icon: Upload,
+        roles: ['admin'],
+      },
+      {
+        label: 'Alocação de Bolsas',
+        href: '/home/admin/scholarship-allocation',
+        icon: Award,
+        roles: ['admin'],
+      },
+      {
         label: 'Assinatura de Documentos',
         href: '/home/admin/document-signing',
         icon: FileSignature,
@@ -122,6 +136,12 @@ const menuConfig: MenuConfig[] = [
       {
         label: 'Alunos',
         href: '/home/admin/alunos',
+        icon: UserPlus,
+        roles: ['admin'],
+      },
+      {
+        label: 'Convidar Professor',
+        href: '/home/admin/invite-professor',
         icon: UserPlus,
         roles: ['admin'],
       },

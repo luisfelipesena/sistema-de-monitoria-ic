@@ -94,3 +94,11 @@ export const projetoListItemSchema = z.object({
 
 export type ProjetoInput = z.infer<typeof projetoInputSchema>;
 export type ProjetoListItem = z.infer<typeof projetoListItemSchema>;
+
+// Novo schema para atualização de alocações pelo Admin
+export const projetoAllocationsInputSchema = z.object({
+  bolsasDisponibilizadas: z.number().min(0).optional(),
+  voluntariosSolicitados: z.number().min(0).optional(), // Permitir admin ajustar se necessário
+  feedbackAdmin: z.string().optional(),
+});
+export type ProjetoAllocationsInput = z.infer<typeof projetoAllocationsInputSchema>;

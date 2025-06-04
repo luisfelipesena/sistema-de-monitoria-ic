@@ -1,6 +1,6 @@
 import { db } from '@/server/database';
 import { professorTable, projetoTable, userTable } from '@/server/database/schema';
-import { sendProjetoApprovalStatusNotification } from '@/server/lib/emailService';
+import { emailService } from '@/server/lib/emailService';
 import {
   createAPIHandler,
   withRoleMiddleware,
@@ -64,23 +64,19 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/reject')({
 
         // Send email notification to professor
         try {
-          // Get professor details
           const professor = await db.query.professorTable.findFirst({
             where: eq(professorTable.id, projeto.professorResponsavelId),
           });
 
-          const professorUser = professor ? await db.query.userTable.findFirst({
-            where: eq(userTable.id, professor.userId),
-          }) : null;
-
-          if (professor && professorUser) {
-            await sendProjetoApprovalStatusNotification({
+          if (professor) {
+            await emailService.sendAdminAtualizouStatusProjetoNotification({
+              professorEmail: professor.emailInstitucional,
               professorNome: professor.nomeCompleto,
-              professorEmail: professorUser.email,
-              projetoTitulo: projeto.titulo,
-              projetoId: projeto.id,
-              status: 'REJECTED',
-              feedbackAdmin: motivo,
+              projetoTitulo: projetoAtualizado.titulo,
+              projetoId: projetoAtualizado.id,
+              novoStatus: 'REJECTED',
+              feedback: projetoAtualizado.feedbackAdmin === null ? undefined : projetoAtualizado.feedbackAdmin,
+              bolsasDisponibilizadas: projeto.bolsasDisponibilizadas === null ? undefined : projeto.bolsasDisponibilizadas,
             });
 
             log.info({ projetoId }, 'Notificação de rejeição enviada ao professor');
@@ -92,7 +88,6 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/reject')({
             { notifyError, projetoId },
             'Erro ao enviar notificação de rejeição',
           );
-          // Don't fail the rejection if email fails
         }
 
         return json(

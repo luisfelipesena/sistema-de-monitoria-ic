@@ -25,362 +25,239 @@ import {
   useUpdatePeriodoInscricao,
 } from '@/hooks/use-periodo-inscricao';
 import { PeriodoInscricaoInput } from '@/routes/api/periodo-inscricao/-types';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText, Loader, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { useEditaisList, useDeleteEdital, usePublishEdital, useGenerateEditalPdf, useUploadSignedEditalPdf } from '@/hooks/use-edital';
+import { useToast } from '@/hooks/use-toast';
+import { PlusCircle, Edit, Eye, UploadCloud, Send } from 'lucide-react';
+import { EditalListItem } from '@/routes/api/edital/-types';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import EditalFormModal from '@/components/features/admin/EditalFormModal';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export const Route = createFileRoute('/home/_layout/admin/_layout/edital')({
-  component: NovoEditalPage,
+  component: EditalManagementPage,
 });
 
-function NovoEditalPage() {
-  const { data: periodos, isLoading: loadingPeriodos } = usePeriodosInscricao();
-  const createPeriodoMutation = useCreatePeriodoInscricao();
-  const updatePeriodoMutation = useUpdatePeriodoInscricao();
-  const deletePeriodoMutation = useDeletePeriodoInscricao();
+function EditalManagementPage() {
+  const { data: editais, isLoading, error } = useEditaisList();
+  const deleteEditalMutation = useDeleteEdital();
+  const publishEditalMutation = usePublishEdital();
+  const generatePdfMutation = useGenerateEditalPdf();
+  const uploadSignedPdfMutation = useUploadSignedEditalPdf();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingPeriodoId, setEditingPeriodoId] = useState<number | null>(null);
-  const [formData, setFormData] = useState<Partial<PeriodoInscricaoInput>>({});
+  const [currentEdital, setCurrentEdital] = useState<EditalListItem | null>(null);
 
-  const handleCreateEdital = async () => {
-    if (
-      !formData.semestre ||
-      !formData.ano ||
-      !formData.dataInicio ||
-      !formData.dataFim
-    ) {
-      toast.error('Preencha todos os campos obrigatórios');
-      return;
-    }
-
-    // Validar datas
-    if (formData.dataFim <= formData.dataInicio) {
-      toast.error('Data de fim deve ser posterior à data de início');
-      return;
-    }
-
-    try {
-      const periodoData: PeriodoInscricaoInput = {
-        semestre: formData.semestre,
-        ano: formData.ano,
-        dataInicio: formData.dataInicio,
-        dataFim: formData.dataFim,
-      };
-
-      if (isEditMode && editingPeriodoId) {
-        await updatePeriodoMutation.mutateAsync({
-          id: editingPeriodoId,
-          data: periodoData,
-        });
-        toast.success('Edital atualizado com sucesso!');
-      } else {
-        await createPeriodoMutation.mutateAsync(periodoData);
-        toast.success('Edital criado com sucesso!');
-      }
-
-      setIsModalOpen(false);
-      setFormData({});
-      setIsEditMode(false);
-      setEditingPeriodoId(null);
-    } catch (error) {
-      console.error('Erro ao criar/atualizar edital:', error);
-      toast.error(
-        isEditMode ? 'Erro ao atualizar edital' : 'Erro ao criar edital',
-      );
-    }
-  };
-
-  const handleEditEdital = (periodo: any) => {
-    setIsEditMode(true);
-    setEditingPeriodoId(periodo.id);
-    setFormData({
-      semestre: periodo.semestre,
-      ano: periodo.ano,
-      dataInicio: new Date(periodo.dataInicio),
-      dataFim: new Date(periodo.dataFim),
-    });
+  const handleCreateNew = () => {
+    setCurrentEdital(null);
     setIsModalOpen(true);
   };
 
-  const handleDeleteEdital = async (periodoId: number) => {
-    if (confirm('Tem certeza que deseja excluir este edital?')) {
-      try {
-        await deletePeriodoMutation.mutateAsync(periodoId);
-        toast.success('Edital excluído com sucesso!');
-      } catch (error) {
-        toast.error('Erro ao excluir edital');
+  const handleEdit = (edital: EditalListItem) => {
+    setCurrentEdital(edital);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (editalId: number) => {
+    deleteEditalMutation.mutate(editalId, {
+      onSuccess: () => toast({ title: 'Edital excluído com sucesso!' }),
+      onError: (err) => toast({ title: 'Erro ao excluir edital', description: err.message, variant: 'destructive' }),
+    });
+  };
+
+  const handlePublish = (editalId: number) => {
+    publishEditalMutation.mutate(editalId, {
+      onSuccess: () => toast({ title: 'Edital publicado com sucesso!' }),
+      onError: (err) => toast({ title: 'Erro ao publicar edital', description: err.message, variant: 'destructive' }),
+    });
+  };
+
+  const handleGeneratePdf = (editalId: number) => {
+    generatePdfMutation.mutate(editalId);
+  };
+
+  const handleFileSelectedAndUpload = async (event: React.ChangeEvent<HTMLInputElement>, editalId: number) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        toast({ title: 'Arquivo inválido', description: 'Apenas arquivos PDF são permitidos.', variant: 'destructive' });
+        event.target.value = '';
+        return;
       }
+      try {
+        await uploadSignedPdfMutation.mutateAsync({ editalId, file });
+        toast({ title: 'PDF assinado enviado com sucesso!' });
+      } catch (err: any) {
+        toast({ title: 'Erro ao enviar PDF assinado', description: err.message, variant: 'destructive' });
+      }
+      event.target.value = '';
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ATIVO':
-        return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
-      case 'FUTURO':
-        return <Badge className="bg-blue-100 text-blue-800">Futuro</Badge>;
-      case 'FINALIZADO':
-        return <Badge className="bg-gray-100 text-gray-800">Finalizado</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
+  const getStatusBadgeVariant = (status?: 'ATIVO' | 'FUTURO' | 'FINALIZADO') => {
+    if (status === 'ATIVO') return 'success' as const;
+    if (status === 'FUTURO') return 'default' as const;
+    if (status === 'FINALIZADO') return 'outline' as const;
+    return 'secondary' as const;
   };
 
-  const getSemestreLabel = (semestre: string) => {
-    return semestre === 'SEMESTRE_1' ? '1º Semestre' : '2º Semestre';
-  };
-
-  const columns: ColumnDef<any>[] = [
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-gray-400" />
-          Edital
-        </div>
-      ),
-      accessorKey: 'titulo',
-      cell: ({ row }) => (
-        <div>
-          <span className="font-semibold text-base">
-            Edital {row.original.ano}.
-            {row.original.semestre === 'SEMESTRE_1' ? '1' : '2'}
-          </span>
-          <p className="text-sm text-gray-600">
-            Monitoria {row.original.ano} -{' '}
-            {getSemestreLabel(row.original.semestre)}
-          </p>
-        </div>
-      ),
-    },
-    {
-      header: 'Período de Inscrição',
-      accessorKey: 'dataInicio',
-      cell: ({ row }) => (
-        <div className="text-sm">
-          <div>
-            {new Date(row.original.dataInicio).toLocaleDateString('pt-BR')}
-          </div>
-          <div className="text-gray-500">
-            até {new Date(row.original.dataFim).toLocaleDateString('pt-BR')}
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: 'Status',
-      accessorKey: 'status',
-      cell: ({ row }) => getStatusBadge(row.original.status),
-    },
-    {
-      header: 'Projetos',
-      accessorKey: 'totalProjetos',
-      cell: ({ row }) => (
-        <span className="font-medium">{row.original.totalProjetos}</span>
-      ),
-    },
-    {
-      header: 'Inscrições',
-      accessorKey: 'totalInscricoes',
-      cell: ({ row }) => (
-        <span className="font-medium">{row.original.totalInscricoes}</span>
-      ),
-    },
-    {
-      header: 'Ações',
-      accessorKey: 'acoes',
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="rounded-full flex items-center gap-1"
-            onClick={() => handleEditEdital(row.original)}
-            disabled={row.original.totalInscricoes > 0}
-          >
-            <Pencil className="h-4 w-4" />
-            Editar
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="rounded-full flex items-center gap-1"
-            onClick={() => handleDeleteEdital(row.original.id)}
-            disabled={row.original.totalInscricoes > 0}
-          >
-            <Trash2 className="h-4 w-4" />
-            Excluir
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
-  const actions = (
-    <Button
-      variant="primary"
-      className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors"
-      onClick={() => {
-        setIsEditMode(false);
-        setEditingPeriodoId(null);
-        setFormData({});
-        setIsModalOpen(true);
-      }}
-    >
-      <Plus className="w-4 h-4 mr-2" />
-      Novo Edital
-    </Button>
-  );
+  if (isLoading) return <div className="p-6">Carregando editais...</div>;
+  if (error) return <div className="p-6 text-red-600">Erro ao carregar editais: {error.message}</div>;
 
   return (
-    <PagesLayout title="Editais de Monitoria" actions={actions}>
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h3 className="font-semibold text-blue-900 mb-2">Sobre os Editais</h3>
-        <p className="text-blue-800 text-sm">
-          Os editais definem os períodos de inscrição para monitoria, incluindo
-          datas, projetos disponíveis e documentação oficial. Cada edital
-          representa um processo seletivo completo para um semestre específico.
-        </p>
+    <PagesLayout
+      title="Gerenciamento de Editais"
+      subtitle="Crie, edite e publique os editais de monitoria."
+    >
+      <div className="mb-4 flex justify-end">
+        <Button onClick={handleCreateNew}>
+          <PlusCircle className="mr-2 h-4 w-4" /> Novo Edital
+        </Button>
       </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Editais</CardTitle>
+          <CardDescription>
+            Total de {editais?.length || 0} editais cadastrados.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {editais && editais.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Número</TableHead>
+                  <TableHead>Título</TableHead>
+                  <TableHead>Período Inscrição</TableHead>
+                  <TableHead>Status Período</TableHead>
+                  <TableHead>Publicado</TableHead>
+                  <TableHead>Data Publicação</TableHead>
+                  <TableHead className="text-right w-[280px]">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {editais.map((edital) => (
+                  <TableRow key={edital.id}>
+                    <TableCell className="font-medium">{edital.numeroEdital}</TableCell>
+                    <TableCell>{edital.titulo}</TableCell>
+                    <TableCell>
+                      {edital.periodoInscricao ? 
+                        `${new Date(edital.periodoInscricao.dataInicio).toLocaleDateString('pt-BR')} - ${new Date(edital.periodoInscricao.dataFim).toLocaleDateString('pt-BR')}`
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {edital.periodoInscricao?.status ? (
+                        <Badge variant={getStatusBadgeVariant(edital.periodoInscricao.status)}>
+                          {edital.periodoInscricao.status}
+                        </Badge>
+                      ) : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={edital.publicado ? 'success' : 'outline'}>
+                        {edital.publicado ? 'Sim' : 'Não'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {edital.dataPublicacao ? format(new Date(edital.dataPublicacao), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
+                    </TableCell>
+                    <TableCell className="text-right space-x-1">
+                      <input 
+                        type="file" 
+                        id={`file-upload-${edital.id}`} 
+                        className="hidden" 
+                        accept=".pdf"
+                        onChange={(e) => handleFileSelectedAndUpload(e, edital.id)}
+                      />
+                      <Button variant="outline" size="icon" title="Editar" onClick={() => handleEdit(edital)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="icon" title="Visualizar/Gerar PDF" onClick={() => handleGeneratePdf(edital.id)}>
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      {!edital.publicado && (
+                        <Button variant="outline" size="icon" title="Publicar Edital" onClick={() => handlePublish(edital.id)} disabled={publishEditalMutation.isPending && publishEditalMutation.variables === edital.id}>
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {edital.publicado && (
+                        <Button variant="outline" size="icon" title="Enviar PDF Assinado" onClick={() => document.getElementById(`file-upload-${edital.id}`)?.click()} disabled={uploadSignedPdfMutation.isPending && uploadSignedPdfMutation.variables?.editalId === edital.id}>
+                            <UploadCloud className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {!edital.publicado && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="icon" title="Excluir" disabled={deleteEditalMutation.isPending && deleteEditalMutation.variables === edital.id}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir o edital "{edital.titulo}"? Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(edital.id)} className="bg-destructive hover:bg-destructive/90">
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-10">
+              <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-2 text-sm font-medium text-muted-foreground">
+                Nenhum edital encontrado.
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Crie um novo edital para começar.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {loadingPeriodos ? (
-        <div className="flex justify-center items-center py-8">
-          <Loader className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Carregando editais...</span>
-        </div>
-      ) : (
-        <TableComponent columns={columns} data={periodos || []} />
+      {isModalOpen && (
+        <EditalFormModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setCurrentEdital(null);
+          }}
+          edital={currentEdital}
+        />
       )}
-
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              {isEditMode ? 'Editar Edital' : 'Novo Edital de Monitoria'}
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <h4 className="font-semibold text-gray-900">
-                Informações Básicas
-              </h4>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Ano *</Label>
-                  <Input
-                    type="number"
-                    value={formData.ano || ''}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        ano: parseInt(e.target.value) || undefined,
-                      }))
-                    }
-                    placeholder="Ex: 2025"
-                  />
-                </div>
-
-                <div>
-                  <Label>Semestre *</Label>
-                  <Select
-                    value={formData.semestre || ''}
-                    onValueChange={(value) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        semestre: value as any,
-                      }))
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
-                      <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold text-gray-900">
-                Período de Inscrição
-              </h4>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Data de Início *</Label>
-                  <Input
-                    type="date"
-                    value={
-                      formData.dataInicio
-                        ? new Date(formData.dataInicio)
-                            .toISOString()
-                            .split('T')[0]
-                        : ''
-                    }
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        dataInicio: new Date(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>Data de Fim *</Label>
-                  <Input
-                    type="date"
-                    value={
-                      formData.dataFim
-                        ? new Date(formData.dataFim).toISOString().split('T')[0]
-                        : ''
-                    }
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        dataFim: new Date(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleCreateEdital}
-              disabled={
-                createPeriodoMutation.isPending ||
-                updatePeriodoMutation.isPending
-              }
-            >
-              {createPeriodoMutation.isPending ||
-              updatePeriodoMutation.isPending ? (
-                <>
-                  <Loader className="h-4 w-4 mr-2 animate-spin" />
-                  {isEditMode ? 'Atualizando...' : 'Criando...'}
-                </>
-              ) : isEditMode ? (
-                'Atualizar Edital'
-              ) : (
-                'Criar Edital'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </PagesLayout>
   );
 }

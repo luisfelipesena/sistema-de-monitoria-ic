@@ -5,7 +5,7 @@ import {
   professorTable,
   projetoTable,
 } from '@/server/database/schema';
-import { sendEmail } from '@/server/lib/emailService';
+import { emailService } from '@/server/lib/emailService';
 import {
   createAPIHandler,
   withAuthMiddleware,
@@ -16,6 +16,7 @@ import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
+import { env } from '@/utils/env';
 
 const log = logger.child({
   context: 'FinalizeSelectionAPI',
@@ -43,7 +44,7 @@ export const APIRoute = createAPIFileRoute(
       withRoleMiddleware(['professor', 'admin'], async (ctx) => {
         try {
           const projetoId = parseInt(ctx.params.id, 10);
-          const userId = parseInt(ctx.state.user.userId, 10);
+          const remetenteUserId = parseInt(ctx.state.user.userId, 10);
 
           if (isNaN(projetoId)) {
             return json({ error: 'ID do projeto inválido' }, { status: 400 });
@@ -53,21 +54,21 @@ export const APIRoute = createAPIFileRoute(
           const { selecionados, enviarNotificacoes, observacoesGerais } =
             selecaoFinalSchema.parse(body);
 
-          // Verificar se o projeto existe
           const projeto = await db.query.projetoTable.findFirst({
             where: eq(projetoTable.id, projetoId),
+            with: {
+              professorResponsavel: true,
+            }
           });
 
           if (!projeto) {
             return json({ error: 'Projeto não encontrado' }, { status: 404 });
           }
 
-          // Verificar permissões do professor
           if (ctx.state.user.role === 'professor') {
             const professor = await db.query.professorTable.findFirst({
-              where: eq(professorTable.userId, userId),
+              where: eq(professorTable.userId, remetenteUserId),
             });
-
             if (!professor || projeto.professorResponsavelId !== professor.id) {
               return json(
                 { error: 'Acesso não autorizado a este projeto' },
@@ -76,7 +77,6 @@ export const APIRoute = createAPIFileRoute(
             }
           }
 
-          // Validar limites de vagas
           const bolsistasSelecionados = selecionados.filter(
             (s) => s.tipoVaga === 'BOLSISTA',
           ).length;
@@ -93,7 +93,7 @@ export const APIRoute = createAPIFileRoute(
             );
           }
 
-          if (voluntariosSelecionados > projeto.voluntariosSolicitados) {
+          if (voluntariosSelecionados > (projeto.voluntariosSolicitados || 0)) {
             return json(
               {
                 error: `Muitos voluntários selecionados. Máximo: ${projeto.voluntariosSolicitados}`,
@@ -102,158 +102,107 @@ export const APIRoute = createAPIFileRoute(
             );
           }
 
-          // Buscar todas as inscrições do projeto
           const todasInscricoes = await db
             .select({
               id: inscricaoTable.id,
               alunoId: inscricaoTable.alunoId,
-              tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
-              status: inscricaoTable.status,
+              statusAnterior: inscricaoTable.status,
             })
             .from(inscricaoTable)
             .where(eq(inscricaoTable.projetoId, projetoId));
 
-          const idsInscrições = todasInscricoes.map((i) => i.id);
+          const idsInscricoes = todasInscricoes.map((i) => i.id);
           const idsSelecionados = selecionados.map((s) => s.inscricaoId);
 
-          // Atualizar status das inscrições
-          const resultados = await db.transaction(async (tx) => {
-            const resultadosAtualizacao = [];
-
-            // Atualizar selecionados
+          await db.transaction(async (tx) => {
             for (const selecionado of selecionados) {
               const novoStatus =
                 selecionado.tipoVaga === 'BOLSISTA'
                   ? 'SELECTED_BOLSISTA'
                   : 'SELECTED_VOLUNTARIO';
-
-              const [inscricaoAtualizada] = await tx
+              await tx
                 .update(inscricaoTable)
                 .set({
                   status: novoStatus,
+                  feedbackProfessor: observacoesGerais,
                   updatedAt: new Date(),
                 })
-                .where(eq(inscricaoTable.id, selecionado.inscricaoId))
-                .returning();
-
-              resultadosAtualizacao.push({
-                inscricaoId: selecionado.inscricaoId,
-                status: novoStatus,
-                tipo: 'SELECIONADO',
-              });
+                .where(eq(inscricaoTable.id, selecionado.inscricaoId));
             }
-
-            // Atualizar rejeitados (não selecionados)
-            const idsRejeitados = idsInscrições.filter(
+            const idsRejeitados = idsInscricoes.filter(
               (id) => !idsSelecionados.includes(id),
             );
-
             if (idsRejeitados.length > 0) {
               await tx
                 .update(inscricaoTable)
                 .set({
                   status: 'REJECTED_BY_PROFESSOR',
+                  feedbackProfessor: observacoesGerais,
                   updatedAt: new Date(),
                 })
                 .where(inArray(inscricaoTable.id, idsRejeitados));
-
-              idsRejeitados.forEach((id) => {
-                resultadosAtualizacao.push({
-                  inscricaoId: id,
-                  status: 'REJECTED_BY_PROFESSOR',
-                  tipo: 'REJEITADO',
-                });
-              });
             }
-
-            return resultadosAtualizacao;
           });
 
-          // Enviar notificações se solicitado
           let notificacoesEnviadas = 0;
           let notificacoesFalharam = 0;
+          const clientUrl = env.CLIENT_URL || 'http://localhost:3000';
 
           if (enviarNotificacoes) {
-            try {
-              // Buscar dados dos candidatos para notificações
-              const candidatosNotificacao = await db
-                .select({
-                  inscricaoId: inscricaoTable.id,
-                  status: inscricaoTable.status,
-                  alunoNome: alunoTable.nomeCompleto,
-                  alunoEmail: alunoTable.emailInstitucional,
-                })
-                .from(inscricaoTable)
-                .innerJoin(
-                  alunoTable,
-                  eq(inscricaoTable.alunoId, alunoTable.id),
-                )
-                .where(inArray(inscricaoTable.id, idsInscrições));
+            const candidatosParaNotificacao = await db
+              .select({
+                inscricaoId: inscricaoTable.id,
+                alunoId: inscricaoTable.alunoId,
+                status: inscricaoTable.status,
+                alunoNome: alunoTable.nomeCompleto,
+                alunoEmail: alunoTable.emailInstitucional,
+                feedbackProfessor: inscricaoTable.feedbackProfessor,
+              })
+              .from(inscricaoTable)
+              .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
+              .where(inArray(inscricaoTable.id, idsInscricoes));
 
-              // Enviar notificações
-              for (const candidato of candidatosNotificacao) {
-                try {
-                  const isSelected = candidato.status.includes('SELECTED');
-                  const tipoVaga =
-                    candidato.status === 'SELECTED_BOLSISTA'
-                      ? 'Bolsista'
-                      : 'Voluntário';
-
-                  let assunto, conteudo;
-
-                  if (isSelected) {
-                    assunto = `🎉 Parabéns! Você foi selecionado para monitoria - ${projeto.titulo}`;
-                    conteudo = `
-                      <h2>Parabéns, ${candidato.alunoNome}!</h2>
-                      <p>Você foi <strong>selecionado(a)</strong> como <strong>${tipoVaga}</strong> para a monitoria:</p>
-                      <div style="background-color: #e8f5e8; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                        <h3>${projeto.titulo}</h3>
-                      </div>
-                      <p>Próximos passos:</p>
-                      <ol>
-                        <li>Acesse a plataforma para confirmar sua participação</li>
-                        <li>Aguarde orientações do professor responsável</li>
-                      </ol>
-                      ${observacoesGerais ? `<p><strong>Observações:</strong> ${observacoesGerais}</p>` : ''}
-                    `;
-                  } else {
-                    assunto = `Resultado da seleção para monitoria - ${projeto.titulo}`;
-                    conteudo = `
-                      <h2>Resultado da Seleção</h2>
-                      <p>Caro(a) ${candidato.alunoNome},</p>
-                      <p>Agradecemos seu interesse na monitoria de <strong>${projeto.titulo}</strong>.</p>
-                      <p>Infelizmente, você não foi selecionado(a) para esta monitoria neste momento.</p>
-                      <p>Encorajamos você a se candidatar para outras oportunidades de monitoria.</p>
-                      ${observacoesGerais ? `<p><strong>Observações:</strong> ${observacoesGerais}</p>` : ''}
-                    `;
-                  }
-
-                  await sendEmail({
-                    to: candidato.alunoEmail,
-                    subject: assunto,
-                    html: conteudo,
-                  });
-
-                  notificacoesEnviadas++;
-                } catch (emailError) {
-                  log.error(
-                    { emailError, inscricaoId: candidato.inscricaoId },
-                    'Erro ao enviar notificação',
-                  );
-                  notificacoesFalharam++;
-                }
+            for (const candidato of candidatosParaNotificacao) {
+              if (!candidato.alunoEmail) {
+                log.warn({ inscricaoId: candidato.inscricaoId }, 'Candidato sem email, pulando notificação.');
+                notificacoesFalharam++;
+                continue;
               }
-            } catch (error) {
-              log.error(error, 'Erro geral ao enviar notificações');
+              if (candidato.status !== 'SELECTED_BOLSISTA' && 
+                  candidato.status !== 'SELECTED_VOLUNTARIO' && 
+                  candidato.status !== 'REJECTED_BY_PROFESSOR') {
+                continue; 
+              }
+
+              try {
+                await emailService.sendStudentSelectionResultNotification({
+                  studentName: candidato.alunoNome,
+                  studentEmail: candidato.alunoEmail,
+                  projectTitle: projeto.titulo,
+                  professorName: projeto.professorResponsavel.nomeCompleto,
+                  status: candidato.status as 'SELECTED_BOLSISTA' | 'SELECTED_VOLUNTARIO' | 'REJECTED_BY_PROFESSOR',
+                  linkConfirmacao: `${clientUrl}/home/student/resultados`,
+                  feedbackProfessor: candidato.feedbackProfessor === null ? observacoesGerais : candidato.feedbackProfessor,
+                  projetoId: projetoId,
+                  alunoId: candidato.alunoId,
+                  remetenteUserId: remetenteUserId,
+                });
+                notificacoesEnviadas++;
+              } catch (emailError) {
+                log.error(
+                  { emailError, inscricaoId: candidato.inscricaoId },
+                  'Erro ao enviar notificação de resultado da seleção',
+                );
+                notificacoesFalharam++;
+              }
             }
           }
 
-          // Log do processo finalizado
           log.info(
             {
               projetoId,
-              selecionados: selecionados.length,
-              rejeitados: idsInscrições.length - selecionados.length,
+              selecionadosCount: selecionados.length,
+              rejeitadosCount: idsInscricoes.length - selecionados.length,
               notificacoesEnviadas,
               notificacoesFalharam,
             },
@@ -265,8 +214,8 @@ export const APIRoute = createAPIFileRoute(
             message: 'Processo de seleção finalizado com sucesso',
             resultados: {
               selecionados: selecionados.length,
-              rejeitados: idsInscrições.length - selecionados.length,
-              totalCandidatos: idsInscrições.length,
+              rejeitados: idsInscricoes.length - selecionados.length,
+              totalCandidatos: idsInscricoes.length,
             },
             notificacoes: enviarNotificacoes
               ? {

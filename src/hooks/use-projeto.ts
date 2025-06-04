@@ -1,12 +1,21 @@
 import {
-  ProjetoInput,
+  type ProjetoInput,
   ProjetoListItem,
-  ProjetoResponse,
+  type ProjetoResponse,
 } from '@/routes/api/projeto/-types';
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from './query-keys';
+import { projetoStatusEnum } from '@/server/database/schema';
+import type { ProfessorSignatureInput } from '@/routes/api/projeto/$id/professor-signature';
+
+// Interface for the API response of professor signature submission
+interface ProfessorSignatureApiResponse {
+  success: boolean;
+  projeto: ProjetoResponse; // Re-uses ProjetoResponse from @/routes/api/projeto/-types
+  signatureId: number;
+}
 
 const log = logger.child({
   context: 'projeto-hooks',
@@ -72,7 +81,7 @@ export function useSubmitProjeto() {
   return useMutation<ProjetoResponse, Error, number>({
     mutationFn: async (projetoId) => {
       const response = await apiClient.patch<ProjetoResponse>(
-        `/api/projeto/${projetoId}/submit`,
+        `/projeto/${projetoId}/submit`,
       );
       return response.data;
     },
@@ -152,38 +161,41 @@ export function useUpdateProjeto() {
   });
 }
 
+interface UpdateProjetoStatusResponse {
+  success: boolean;
+  message: string;
+  projeto: ProjetoResponse;
+}
+
+type StatusEnumValue = (typeof projetoStatusEnum.enumValues)[number];
+
 export function useUpdateProjetoStatus() {
   const queryClient = useQueryClient();
 
   return useMutation<
-    any, // Replace any with the actual response type if available
+    UpdateProjetoStatusResponse,
     Error,
     {
       projetoId: number;
-      status:
-        | 'DRAFT'
-        | 'SUBMITTED'
-        | 'APPROVED'
-        | 'REJECTED'
-        | 'PENDING_ADMIN_SIGNATURE';
+      status: StatusEnumValue;
     }
   >({
     mutationFn: async ({ projetoId, status }) => {
-      const response = await apiClient.put(`/api/projeto/${projetoId}/status`, {
+      const response = await apiClient.put<UpdateProjetoStatusResponse>(`/projeto/${projetoId}/status`, {
         status,
       });
       return response.data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.projeto.list,
+      });
       queryClient.invalidateQueries({
         queryKey: QueryKeys.projeto.byId(variables.projetoId.toString()),
       });
-      // Optionally, refetch other queries that might depend on project status
     },
     onError: (error) => {
       log.error(error, 'Error updating project status');
-      // Handle or display the error as needed
     },
   });
 }
@@ -349,6 +361,42 @@ export function useBulkReminder() {
     },
     onError: (error) => {
       log.error({ error }, 'Erro ao enviar lembretes em lote');
+    },
+  });
+}
+
+export function useProjectProfessorSignature() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    ProfessorSignatureApiResponse,
+    Error,
+    { projetoId: number; assinaturaData: string }
+  >({
+    mutationFn: async ({ projetoId, assinaturaData }) => {
+      const payload: ProfessorSignatureInput = { assinaturaData };
+      const response = await apiClient.post<ProfessorSignatureApiResponse>(
+        `/projeto/${projetoId}/professor-signature`,
+        payload,
+      );
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      log.info(
+        { projectId: variables.projetoId, signatureId: data.signatureId },
+        'Professor signature submitted successfully, invalidating queries',
+      );
+      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.projeto.byId(variables.projetoId.toString()),
+      });
+    },
+    onError: (error, variables) => {
+      log.error(
+        error,
+        'Error submitting professor signature for project',
+        { projectId: variables.projetoId },
+      );
     },
   });
 }
