@@ -178,6 +178,12 @@ const menuConfig: MenuConfig[] = [
         icon: FileText,
         roles: ['admin'],
       },
+      {
+        label: 'Períodos de Inscrição',
+        href: '/home/admin/periodos-inscricao',
+        icon: FilePlus,
+        roles: ['admin'],
+      },
     ],
   },
 
