@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, addDays, isBefore, startOfDay } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 
 interface PeriodoInscricaoFormModalProps {
@@ -49,6 +49,45 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
     } : defaultValues,
   });
 
+  const watchedDataInicio = form.watch('dataInicio');
+  const watchedDataFim = form.watch('dataFim');
+
+  // Função para validar e ajustar data fim
+  const handleDataInicioChange = (date: Date | undefined) => {
+    if (!date) return;
+    
+    form.setValue('dataInicio', date, { shouldValidate: true });
+    
+    // Se a data fim for anterior à nova data início, ajusta automaticamente
+    const currentDataFim = form.getValues('dataFim');
+    if (currentDataFim && isBefore(startOfDay(currentDataFim), startOfDay(date))) {
+      const newDataFim = addDays(date, 1);
+      form.setValue('dataFim', newDataFim, { shouldValidate: true });
+      toast({
+        title: 'Data ajustada',
+        description: 'A data de fim foi ajustada para ser posterior à data de início.',
+        variant: 'default'
+      });
+    }
+  };
+
+  const handleDataFimChange = (date: Date | undefined) => {
+    if (!date) return;
+    
+    // Verifica se a data selecionada é anterior à data início
+    const dataInicio = form.getValues('dataInicio');
+    if (dataInicio && isBefore(startOfDay(date), startOfDay(dataInicio))) {
+      toast({
+        title: 'Data inválida',
+        description: 'A data de fim não pode ser anterior à data de início.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    form.setValue('dataFim', date, { shouldValidate: true });
+  };
+
   useEffect(() => {
     if (isOpen) {
       if (isEditMode && periodo) {
@@ -65,6 +104,16 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
   }, [isOpen, isEditMode, periodo, form]);
 
   const onSubmit = async (data: PeriodoInscricaoInput) => {
+    // Validação final antes do submit
+    if (isBefore(startOfDay(data.dataFim), startOfDay(data.dataInicio))) {
+      toast({
+        title: 'Erro de validação',
+        description: 'A data de fim deve ser posterior à data de início.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     const payload: PeriodoInscricaoInput = data;
 
     try {
@@ -125,18 +174,19 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
                         type="button"
                         className={cn(
                             "w-full justify-start text-left font-normal",
-                            !form.watch('dataInicio') && "text-muted-foreground"
+                            !watchedDataInicio && "text-muted-foreground"
                         )}
                     >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {form.watch('dataInicio') ? format(new Date(form.watch('dataInicio')), "PPP", { locale: ptBR }) : <span>Escolha uma data</span>}
+                        {watchedDataInicio ? format(new Date(watchedDataInicio), "PPP", { locale: ptBR }) : <span>Escolha uma data</span>}
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                     <Calendar
                         mode="single"
-                        selected={form.watch('dataInicio') ? new Date(form.watch('dataInicio')) : undefined}
-                        onSelect={(date: Date | undefined) => form.setValue('dataInicio', date || new Date(), { shouldValidate: true })}
+                        selected={watchedDataInicio ? new Date(watchedDataInicio) : undefined}
+                        onSelect={handleDataInicioChange}
+                        disabled={(date) => isBefore(startOfDay(date), startOfDay(new Date()))}
                         initialFocus
                     />
                 </PopoverContent>
@@ -153,18 +203,24 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
                         type="button"
                         className={cn(
                             "w-full justify-start text-left font-normal",
-                            !form.watch('dataFim') && "text-muted-foreground"
+                            !watchedDataFim && "text-muted-foreground"
                         )}
                     >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {form.watch('dataFim') ? format(new Date(form.watch('dataFim')), "PPP", { locale: ptBR }) : <span>Escolha uma data</span>}
+                        {watchedDataFim ? format(new Date(watchedDataFim), "PPP", { locale: ptBR }) : <span>Escolha uma data</span>}
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                     <Calendar
                         mode="single"
-                        selected={form.watch('dataFim') ? new Date(form.watch('dataFim')) : undefined}
-                        onSelect={(date: Date | undefined) => form.setValue('dataFim', date || new Date(), { shouldValidate: true })}
+                        selected={watchedDataFim ? new Date(watchedDataFim) : undefined}
+                        onSelect={handleDataFimChange}
+                        disabled={(date) => {
+                          // Desabilita datas anteriores à hoje e datas anteriores à data início
+                          const today = startOfDay(new Date());
+                          const dataInicio = watchedDataInicio ? startOfDay(new Date(watchedDataInicio)) : today;
+                          return isBefore(startOfDay(date), today) || isBefore(startOfDay(date), dataInicio);
+                        }}
                         initialFocus
                     />
                 </PopoverContent>
