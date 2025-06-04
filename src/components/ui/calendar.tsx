@@ -55,8 +55,7 @@ function Calendar({
             : "[&>button]:bg-primary [&>button]:text-primary-foreground [&>button]:hover:bg-primary/90 [&>button]:focus:bg-primary [&>button]:focus:text-primary-foreground [&>button]:shadow-lg [&>button]:scale-105"
         ),
         today: cn(
-          "bg-accent text-accent-foreground !rounded-md font-semibold",
-          "[&>button]:ring-2 [&>button]:ring-primary/30"
+          "bg-accent/80 text-accent-foreground !rounded-full font-bold shadow-sm",
         ),
         outside:
           "day-outside text-muted-foreground opacity-50 !aria-selected:bg-accent/50 !aria-selected:text-muted-foreground !aria-selected:opacity-30",
