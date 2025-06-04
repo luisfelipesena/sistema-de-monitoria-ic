@@ -26,7 +26,6 @@ export function useDisciplinas(departamentoId?: number) {
       const response = await apiClient.get<DisciplinaWithProfessor[]>(url);
       return response.data;
     },
-    enabled: !!departamentoId,
   });
 }
 
@@ -43,7 +42,7 @@ export function useCreateDisciplina() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.list });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.all });
     },
   });
 }
@@ -63,7 +62,7 @@ export function useUpdateDisciplina() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.list });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.all });
     },
   });
 }
@@ -77,7 +76,7 @@ export function useDeleteDisciplina() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.list });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.all });
     },
   });
 }
