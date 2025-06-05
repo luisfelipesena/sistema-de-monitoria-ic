@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = useCallback(() => {
     if (user) {
-      // router.navigate({ to: '/home' });
+      window.location.href = '/home';
       return;
     }
     window.location.href = '/api/auth/cas-login';

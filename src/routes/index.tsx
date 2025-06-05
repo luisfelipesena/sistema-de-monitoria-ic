@@ -15,7 +15,7 @@ function LandingPageComponent() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <header className="sticky top-0 z-10 p-4 border-b bg-white/80 backdrop-blur-sm">
-        <div className="container flex items-center justify-between mx-auto">
+        <div className="container flex flex-col sm:flex-row items-center justify-between mx-auto gap-4 sm:gap-0">
           <div className="flex items-center gap-2">
             <img
               src="/images/ic-logo-clean.png"
@@ -26,7 +26,11 @@ function LandingPageComponent() {
               Sistema de Monitoria IC
             </span>
           </div>
-          <Button onClick={signIn}>Acessar Dashboard com Login UFBA</Button>
+          <div className="w-full sm:w-auto flex justify-center sm:justify-end mt-4 sm:mt-0">
+            <Button className="w-full sm:w-auto" onClick={signIn}>
+              Acessar Dashboard com Login UFBA
+            </Button>
+          </div>
         </div>
       </header>
 
