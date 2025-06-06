@@ -17,6 +17,10 @@ import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import {
+  projetoDetalhesSchema,
+  projetoListItemSchema,
+} from '@/routes/api/projeto/-types';
 
 const log = logger.child({
   context: 'ProjetoDetailAPI',
@@ -26,20 +30,34 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id')({
   GET: createAPIHandler(
     withAuthMiddleware(async (ctx) => {
       try {
-        const projetoId = parseInt(ctx.params.id, 10);
-        const userId = parseInt(ctx.state.user.userId, 10);
-
-        if (isNaN(projetoId)) {
-          return json({ error: 'ID do projeto inválido' }, { status: 400 });
+        const id = parseInt(ctx.params.id);
+        if (isNaN(id)) {
+          return json({ error: 'ID inválido' }, { status: 400 });
         }
 
         const projeto = await db.query.projetoTable.findFirst({
-          where: eq(projetoTable.id, projetoId),
+          where: eq(projetoTable.id, id),
           with: {
-            professorResponsavel: true,
             departamento: true,
-            disciplinas: { with: { disciplina: true } },
-            professoresParticipantes: { with: { professor: true } },
+            professorResponsavel: {
+              with: {
+                user: {
+                  columns: {
+                    id: true,
+                  },
+                },
+              },
+            },
+            disciplinas: {
+              with: {
+                disciplina: true,
+              },
+            },
+            professoresParticipantes: {
+              with: {
+                professor: true,
+              },
+            },
             atividades: true,
           },
         });
@@ -47,25 +65,12 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id')({
         if (!projeto) {
           return json({ error: 'Projeto não encontrado' }, { status: 404 });
         }
+        
+        const validatedProjeto = projetoDetalhesSchema.parse(projeto);
 
-        if (ctx.state.user.role === 'professor') {
-          const professor = await db.query.professorTable.findFirst({
-            where: eq(professorTable.userId, userId),
-          });
-
-          if (!professor || projeto.professorResponsavelId !== professor.id) {
-            return json(
-              { error: 'Acesso não autorizado a este projeto' },
-              { status: 403 },
-            );
-          }
-        } else if (ctx.state.user.role !== 'admin') {
-          return json({ error: 'Acesso não autorizado' }, { status: 403 });
-        }
-
-        return json(projeto);
+        return json(validatedProjeto);
       } catch (error) {
-        log.error(error, 'Erro ao buscar projeto');
+        log.error({ error }, 'Erro ao buscar projeto');
         return json({ error: 'Erro ao buscar projeto' }, { status: 500 });
       }
     }),

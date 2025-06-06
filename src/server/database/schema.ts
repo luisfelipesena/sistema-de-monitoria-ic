@@ -183,6 +183,7 @@ export const projetoTable = pgTable('projeto', {
   titulo: varchar('titulo').notNull(), // Added title
   descricao: text('descricao').notNull(), // Objectives/Justification
   status: projetoStatusEnum('status').notNull().default('DRAFT'),
+  assinaturaProfessor: text('assinatura_professor'), // base64 data URL
   // analiseSubmissao: text('analise_submissao'), // Renamed/Repurposed
   feedbackAdmin: text('feedback_admin'), // Admin feedback on approval/rejection
   // documentoUniqueId: text('documento_unique_id'), // Link to separate document table
@@ -270,6 +271,8 @@ export const atividadeProjetoTable = pgTable('atividade_projeto', {
   // }),
 });
 
+export const selectAtividadeProjetoTableSchema = createSelectSchema(atividadeProjetoTable);
+
 export const professorTable = pgTable('professor', {
   id: serial('id').primaryKey(),
   userId: integer('user_id')
@@ -336,6 +339,8 @@ export const disciplinaTable = pgTable('disciplina', {
     mode: 'date',
   }),
 });
+
+export const selectDisciplinaTableSchema = createSelectSchema(disciplinaTable);
 
 export const alunoTable = pgTable('aluno', {
   id: serial('id').primaryKey(),

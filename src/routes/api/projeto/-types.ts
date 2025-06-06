@@ -7,6 +7,11 @@ import {
   projetoDisciplinaTable,
   projetoProfessorParticipanteTable,
   projetoStatusEnum,
+  selectAlunoTableSchema,
+  selectAtividadeProjetoTableSchema,
+  selectDepartamentoTableSchema,
+  selectDisciplinaTableSchema,
+  selectProfessorTableSchema,
   selectProjetoTableSchema,
 } from '@/server/database/schema';
 import { createSelectSchema } from 'drizzle-zod';
@@ -55,45 +60,61 @@ export const projetoComRelationsSchema = baseProjetoSchema.extend({
 
 export type ProjetoResponse = z.infer<typeof projetoComRelationsSchema>;
 
-export const projetoInputSchema = insertProjetoTableSchema.extend({
-  disciplinaIds: z
-    .array(z.number())
-    .min(1, 'Pelo menos uma disciplina deve ser selecionada'),
-  professoresParticipantes: z.array(z.number()).optional(),
-  atividades: z.array(z.string()).optional(),
-});
-
-export const projetoListItemSchema = z.object({
-  id: z.number(),
-  titulo: z.string(),
+export const projetoInputSchema = z.object({
+  titulo: z.string().min(5),
+  descricao: z.string().min(10),
   departamentoId: z.number(),
-  departamentoNome: z.string(),
-  professorResponsavelId: z.number(),
-  professorResponsavelNome: z.string(),
-  disciplinas: z.array(simpleDisciplinaSchema),
-  status: z.enum(projetoStatusEnum.enumValues),
+  disciplinaIds: z.array(z.number()).min(1),
   ano: z.number(),
   semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-  bolsasSolicitadas: z.number(),
-  voluntariosSolicitados: z.number(),
-  bolsasDisponibilizadas: z.number().nullable().optional(),
+  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
+  bolsasSolicitadas: z.number().optional(),
+  voluntariosSolicitados: z.number().optional(),
+  cargaHorariaSemana: z.number(),
+  numeroSemanas: z.number(),
+  publicoAlvo: z.string(),
+  estimativaPessoasBenificiadas: z.number().optional(),
+  atividades: z.array(z.string()).optional(),
+  professoresParticipantes: z.array(z.number()).optional(),
+  professorResponsavelId: z.number().optional(), // Obrigatório para admin
+});
+
+export const projetoListItemSchema = selectProjetoTableSchema.extend({
+  departamentoNome: z.string(),
+  professorResponsavelNome: z.string(),
+  disciplinas: z.array(
+    z.object({
+      id: z.number(),
+      nome: z.string(),
+      codigo: z.string(),
+    }),
+  ),
   totalInscritos: z.number(),
   inscritosBolsista: z.number(),
   inscritosVoluntario: z.number(),
-  createdAt: z.date(),
-  feedbackAdmin: z.string().nullable().optional(),
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']).optional(),
-  cargaHorariaSemana: z.number().optional(),
-  numeroSemanas: z.number().optional(),
-  publicoAlvo: z.string().optional(),
-  estimativaPessoasBenificiadas: z.number().nullable().optional(),
-  updatedAt: z.date().nullable().optional(),
-  deletedAt: z.date().nullable().optional(),
-  description: z.string().optional(),
+});
+
+export const projetoDetalhesSchema = selectProjetoTableSchema.extend({
+  departamento: selectDepartamentoTableSchema,
+  professorResponsavel: selectProfessorTableSchema.extend({
+    user: z.object({ id: z.number() }),
+  }),
+  disciplinas: z.array(
+    z.object({
+      disciplina: selectDisciplinaTableSchema,
+    }),
+  ),
+  professoresParticipantes: z.array(
+    z.object({
+      professor: selectProfessorTableSchema,
+    }),
+  ),
+  atividades: z.array(selectAtividadeProjetoTableSchema),
 });
 
 export type ProjetoInput = z.infer<typeof projetoInputSchema>;
 export type ProjetoListItem = z.infer<typeof projetoListItemSchema>;
+export type ProjetoDetalhes = z.infer<typeof projetoDetalhesSchema>;
 
 // Novo schema para atualização de alocações pelo Admin
 export const projetoAllocationsInputSchema = z.object({

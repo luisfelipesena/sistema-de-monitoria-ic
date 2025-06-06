@@ -53,6 +53,7 @@ import { Route as HomeLayoutAdminLayoutDashboardImport } from './routes/home/_la
 import { Route as HomeLayoutAdminLayoutCursosImport } from './routes/home/_layout/admin/_layout/cursos'
 import { Route as HomeLayoutAdminLayoutAnalyticsImport } from './routes/home/_layout/admin/_layout/analytics'
 import { Route as HomeLayoutAdminLayoutAlunosImport } from './routes/home/_layout/admin/_layout/alunos'
+import { Route as HomeLayoutProfessorLayoutProjectIdImport } from './routes/home/_layout/professor/_layout/project/$id'
 import { Route as HomeLayoutAdminLayoutProjectIdIndexImport } from './routes/home/_layout/admin/_layout/project/$id/index'
 
 // Create Virtual Routes
@@ -357,6 +358,13 @@ const HomeLayoutAdminLayoutAlunosRoute =
     id: '/alunos',
     path: '/alunos',
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
+  } as any)
+
+const HomeLayoutProfessorLayoutProjectIdRoute =
+  HomeLayoutProfessorLayoutProjectIdImport.update({
+    id: '/project/$id',
+    path: '/project/$id',
+    getParentRoute: () => HomeLayoutProfessorLayoutRoute,
   } as any)
 
 const HomeLayoutAdminLayoutProjectIdIndexRoute =
@@ -678,6 +686,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutCommonStatusIndexImport
       parentRoute: typeof HomeLayoutImport
     }
+    '/home/_layout/professor/_layout/project/$id': {
+      id: '/home/_layout/professor/_layout/project/$id'
+      path: '/project/$id'
+      fullPath: '/home/professor/project/$id'
+      preLoaderRoute: typeof HomeLayoutProfessorLayoutProjectIdImport
+      parentRoute: typeof HomeLayoutProfessorLayoutImport
+    }
     '/home/_layout/admin/_layout/project/$id/': {
       id: '/home/_layout/admin/_layout/project/$id/'
       path: '/project/$id'
@@ -772,6 +787,7 @@ interface HomeLayoutProfessorLayoutRouteChildren {
   HomeLayoutProfessorLayoutProjectApplicationsRoute: typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
   HomeLayoutProfessorLayoutProjectsRoute: typeof HomeLayoutProfessorLayoutProjectsRoute
   HomeLayoutProfessorLayoutVolunteerManagementRoute: typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
+  HomeLayoutProfessorLayoutProjectIdRoute: typeof HomeLayoutProfessorLayoutProjectIdRoute
 }
 
 const HomeLayoutProfessorLayoutRouteChildren: HomeLayoutProfessorLayoutRouteChildren =
@@ -786,6 +802,8 @@ const HomeLayoutProfessorLayoutRouteChildren: HomeLayoutProfessorLayoutRouteChil
       HomeLayoutProfessorLayoutProjectsRoute,
     HomeLayoutProfessorLayoutVolunteerManagementRoute:
       HomeLayoutProfessorLayoutVolunteerManagementRoute,
+    HomeLayoutProfessorLayoutProjectIdRoute:
+      HomeLayoutProfessorLayoutProjectIdRoute,
   }
 
 const HomeLayoutProfessorLayoutRouteWithChildren =
@@ -916,6 +934,7 @@ export interface FileRoutesByFullPath {
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
   '/home/common/selecao-monitores': typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
   '/home/common/status': typeof HomeLayoutCommonStatusIndexRoute
+  '/home/professor/project/$id': typeof HomeLayoutProfessorLayoutProjectIdRoute
   '/home/admin/project/$id': typeof HomeLayoutAdminLayoutProjectIdIndexRoute
 }
 
@@ -959,6 +978,7 @@ export interface FileRoutesByTo {
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
   '/home/common/selecao-monitores': typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
   '/home/common/status': typeof HomeLayoutCommonStatusIndexRoute
+  '/home/professor/project/$id': typeof HomeLayoutProfessorLayoutProjectIdRoute
   '/home/admin/project/$id': typeof HomeLayoutAdminLayoutProjectIdIndexRoute
 }
 
@@ -1008,6 +1028,7 @@ export interface FileRoutesById {
   '/home/_layout/common/profile/': typeof HomeLayoutCommonProfileIndexRoute
   '/home/_layout/common/selecao-monitores/': typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
   '/home/_layout/common/status/': typeof HomeLayoutCommonStatusIndexRoute
+  '/home/_layout/professor/_layout/project/$id': typeof HomeLayoutProfessorLayoutProjectIdRoute
   '/home/_layout/admin/_layout/project/$id/': typeof HomeLayoutAdminLayoutProjectIdIndexRoute
 }
 
@@ -1054,6 +1075,7 @@ export interface FileRouteTypes {
     | '/home/common/profile'
     | '/home/common/selecao-monitores'
     | '/home/common/status'
+    | '/home/professor/project/$id'
     | '/home/admin/project/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1096,6 +1118,7 @@ export interface FileRouteTypes {
     | '/home/common/profile'
     | '/home/common/selecao-monitores'
     | '/home/common/status'
+    | '/home/professor/project/$id'
     | '/home/admin/project/$id'
   id:
     | '__root__'
@@ -1143,6 +1166,7 @@ export interface FileRouteTypes {
     | '/home/_layout/common/profile/'
     | '/home/_layout/common/selecao-monitores/'
     | '/home/_layout/common/status/'
+    | '/home/_layout/professor/_layout/project/$id'
     | '/home/_layout/admin/_layout/project/$id/'
   fileRoutesById: FileRoutesById
 }
@@ -1254,7 +1278,8 @@ export const routeTree = rootRoute
         "/home/_layout/professor/_layout/document-signing",
         "/home/_layout/professor/_layout/project-applications",
         "/home/_layout/professor/_layout/projects",
-        "/home/_layout/professor/_layout/volunteer-management"
+        "/home/_layout/professor/_layout/volunteer-management",
+        "/home/_layout/professor/_layout/project/$id"
       ]
     },
     "/home/_layout/student": {
@@ -1404,6 +1429,10 @@ export const routeTree = rootRoute
     "/home/_layout/common/status/": {
       "filePath": "home/_layout/common/status/index.tsx",
       "parent": "/home/_layout"
+    },
+    "/home/_layout/professor/_layout/project/$id": {
+      "filePath": "home/_layout/professor/_layout/project/$id.tsx",
+      "parent": "/home/_layout/professor/_layout"
     },
     "/home/_layout/admin/_layout/project/$id/": {
       "filePath": "home/_layout/admin/_layout/project/$id/index.tsx",

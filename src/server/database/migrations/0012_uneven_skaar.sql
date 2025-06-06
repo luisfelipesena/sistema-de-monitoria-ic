@@ -1,0 +1,1 @@
+ALTER TABLE "projeto" ADD COLUMN "assinatura_professor" text;

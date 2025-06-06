@@ -2,6 +2,7 @@ import {
   type ProjetoInput,
   ProjetoListItem,
   type ProjetoResponse,
+  ProjetoDetalhes,
 } from '@/routes/api/projeto/-types';
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
@@ -72,6 +73,20 @@ export function useCreateProjeto() {
     onSuccess: () => {
       queryClient.invalidateQueries();
     },
+  });
+}
+
+/**
+ * Hook to get a single project by its ID
+ */
+export function useProjetoById(id: number) {
+  return useQuery<ProjetoDetalhes, Error>({
+    queryKey: QueryKeys.projeto.byId(id.toString()),
+    queryFn: async () => {
+      const response = await apiClient.get(`/projeto/${id}`);
+      return response.data;
+    },
+    enabled: !!id,
   });
 }
 
@@ -397,6 +412,23 @@ export function useProjectProfessorSignature() {
         'Error submitting professor signature for project',
         { projectId: variables.projetoId },
       );
+    },
+  });
+}
+
+/**
+ * Hook to save a project signature
+ */
+export function useSaveProjectSignature() {
+  const queryClient = useQueryClient();
+  return useMutation<ProjetoResponse, Error, { id: number; signatureImage: string }>({
+    mutationFn: async ({ id, signatureImage }) => {
+      const response = await apiClient.post(`/projeto/${id}/assinatura`, { signatureImage });
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.byId(variables.id.toString()) });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.detail(variables.id.toString()) });
     },
   });
 }
