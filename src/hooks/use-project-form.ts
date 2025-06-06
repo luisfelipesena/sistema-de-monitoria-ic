@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useDepartamentoList } from '@/hooks/use-departamento';
 import { useDisciplinas } from '@/hooks/use-disciplina';
 import { useProfessores } from '@/hooks/use-professor';
+import type { ProfessorResponse } from '@/routes/api/professor';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
@@ -76,18 +77,34 @@ export function useProjectForm() {
           professorResponsavel = {
             id: professor.id,
             nomeCompleto: professor.nomeCompleto,
+            nomeSocial: professor.nomeSocial || undefined,
+            genero: professor.genero,
+            cpf: professor.cpf,
+            matriculaSiape: professor.matriculaSiape || undefined,
+            regime: professor.regime,
+            telefone: professor.telefone || undefined,
+            telefoneInstitucional: professor.telefoneInstitucional || undefined,
+            emailInstitucional: professor.emailInstitucional,
           };
         }
       }
     } else if (user?.role === 'professor') {
-      // For professors, use their own info - find by username instead of userId
+      // For professors, use their own info - find by userId instead of username
       const professor = professores?.find(
-        (p) => p.nomeCompleto === user.username,
+        (p) => p.userId === user.id,
       );
       if (professor) {
         professorResponsavel = {
           id: professor.id,
           nomeCompleto: professor.nomeCompleto,
+          nomeSocial: professor.nomeSocial || undefined,
+          genero: professor.genero,
+          cpf: professor.cpf,
+          matriculaSiape: professor.matriculaSiape || undefined,
+          regime: professor.regime,
+          telefone: professor.telefone || undefined,
+          telefoneInstitucional: professor.telefoneInstitucional || undefined,
+          emailInstitucional: professor.emailInstitucional,
         };
       }
     } else if (formData.professorResponsavelId) {
@@ -99,6 +116,14 @@ export function useProjectForm() {
         professorResponsavel = {
           id: professor.id,
           nomeCompleto: professor.nomeCompleto,
+          nomeSocial: professor.nomeSocial || undefined,
+          genero: professor.genero,
+          cpf: professor.cpf,
+          matriculaSiape: professor.matriculaSiape || undefined,
+          regime: professor.regime,
+          telefone: professor.telefone || undefined,
+          telefoneInstitucional: professor.telefoneInstitucional || undefined,
+          emailInstitucional: professor.emailInstitucional,
         };
       }
     }

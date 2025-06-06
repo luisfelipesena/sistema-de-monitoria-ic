@@ -233,12 +233,6 @@ const menuConfig: MenuConfig[] = [
         roles: ['professor'],
       },
       {
-        label: 'Meus Projetos',
-        href: '/home/professor/dashboard',
-        icon: FileText,
-        roles: ['professor'],
-      },
-      {
         label: 'Gerenciar Voluntários',
         href: '/home/professor/volunteer-management',
         icon: Users,

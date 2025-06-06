@@ -19,6 +19,14 @@ export interface MonitoriaFormData {
   professorResponsavel?: {
     id: number;
     nomeCompleto: string;
+    nomeSocial?: string;
+    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO';
+    cpf: string;
+    matriculaSiape?: string;
+    regime: '20H' | '40H' | 'DE';
+    telefone?: string;
+    telefoneInstitucional?: string;
+    emailInstitucional: string;
   };
   ano: number;
   semestre: 'SEMESTRE_1' | 'SEMESTRE_2';
@@ -292,45 +300,57 @@ export const MonitoriaFormTemplate = ({
 
           <View style={styles.professionalDataRow}>
             <Text style={styles.label}>2.2 Nome Social (se houver):</Text>
-            <Text style={styles.value}>_________________________________</Text>
+            <Text style={styles.value}>
+              {data.professorResponsavel?.nomeSocial || '_________________________________'}
+            </Text>
           </View>
 
           <View style={styles.professionalDataRow}>
             <Text style={styles.label}>2.3 Gênero:</Text>
             <Text style={styles.value}>
-              ( ) Feminino ( ) Masculino ( ) Outro ( ):
+              ({data.professorResponsavel?.genero === 'FEMININO' ? ' X ' : '   '}) Feminino ({data.professorResponsavel?.genero === 'MASCULINO' ? ' X ' : '   '}) Masculino ({data.professorResponsavel?.genero === 'OUTRO' ? ' X ' : '   '}) Outro ( ):
             </Text>
           </View>
 
           <View style={styles.professionalDataRow}>
             <Text style={styles.label}>2.4 CPF:</Text>
-            <Text style={styles.value}>___.___.___ - __</Text>
+            <Text style={styles.value}>
+              {data.professorResponsavel?.cpf || '___.___.___ - __'}
+            </Text>
           </View>
 
           <View style={styles.professionalDataRow}>
             <Text style={styles.label}>2.5 SIAPE:</Text>
-            <Text style={styles.value}>_________________</Text>
+            <Text style={styles.value}>
+              {data.professorResponsavel?.matriculaSiape || '_________________'}
+            </Text>
           </View>
 
           <View style={styles.professionalDataRow}>
             <Text style={styles.label}>2.6 Regime:</Text>
-            <Text style={styles.value}>20h ( ) 40h ( ) DE ( X )</Text>
+            <Text style={styles.value}>
+              20h ({data.professorResponsavel?.regime === '20H' ? ' X ' : '   '}) 40h ({data.professorResponsavel?.regime === '40H' ? ' X ' : '   '}) DE ({data.professorResponsavel?.regime === 'DE' ? ' X ' : '   '})
+            </Text>
           </View>
 
           <View style={styles.professionalDataRow}>
             <Text style={styles.label}>2.7 Tel. Institucional ( ):</Text>
-            <Text style={styles.value}>_________________</Text>
+            <Text style={styles.value}>
+              {data.professorResponsavel?.telefoneInstitucional || '_________________'}
+            </Text>
           </View>
 
           <View style={styles.professionalDataRow}>
             <Text style={styles.label}>2.8 Celular:</Text>
-            <Text style={styles.value}>_________________</Text>
+            <Text style={styles.value}>
+              {data.professorResponsavel?.telefone || '_________________'}
+            </Text>
           </View>
 
           <View style={styles.lastRow}>
             <Text style={styles.label}>2.9 E-mail institucional:</Text>
             <Text style={styles.value}>
-              {data.user?.email || 'professor@ufba.br'}
+              {data.professorResponsavel?.emailInstitucional || data.user?.email || 'professor@ufba.br'}
             </Text>
           </View>
         </View>

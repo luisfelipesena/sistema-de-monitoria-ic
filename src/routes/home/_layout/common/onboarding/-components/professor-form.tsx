@@ -31,6 +31,8 @@ const professorSchema = z.object({
   nomeSocial: z.string().optional(),
   matriculaSiape: z.string().min(1, 'Matrícula SIAPE é obrigatória'),
   cpf: z.string().min(1, 'CPF é obrigatório'),
+  telefone: z.string().optional(),
+  telefoneInstitucional: z.string().optional(),
   regime: z.string().min(1, 'Regime é obrigatório'),
   emailInstitucional: z.string().min(1, 'E-mail institucional é obrigatório'),
   departamentoId: z.number().optional(),
@@ -181,6 +183,8 @@ export function ProfessorForm() {
         cpf: values.cpf,
         matriculaSiape: values.matriculaSiape,
         nomeSocial: values.nomeSocial,
+        telefone: values.telefone,
+        telefoneInstitucional: values.telefoneInstitucional,
         emailInstitucional: values.emailInstitucional,
         genero: 'OUTRO',
         regime: tipoRegime,
@@ -315,6 +319,24 @@ export function ProfessorForm() {
                 {form.formState.errors.cpf.message}
               </p>
             )}
+          </div>
+
+          <div>
+            <Label htmlFor="telefone">Telefone Pessoal</Label>
+            <Input
+              id="telefone"
+              {...form.register('telefone')}
+              placeholder="(xx) xxxxx-xxxx"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="telefoneInstitucional">Telefone Institucional</Label>
+            <Input
+              id="telefoneInstitucional"
+              {...form.register('telefoneInstitucional')}
+              placeholder="(xx) xxxx-xxxx"
+            />
           </div>
         </div>
       </div>

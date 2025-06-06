@@ -31,16 +31,19 @@ const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        'flex w-full items-center justify-between rounded-md border bg-white px-3 py-2.5 text-sm transition-colors outline-none h-[40px]',
+        'flex w-full items-center justify-between rounded-md border px-3 py-2.5 text-sm transition-colors outline-none h-[40px]',
         statusClasses[inputStatus],
+        disabled && 'bg-gray-100 text-gray-400 cursor-not-allowed',
         className,
       )}
       disabled={disabled}
+      aria-disabled={disabled}
+      tabIndex={disabled ? -1 : 0}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="h-4 w-4 opacity-50" />
+        <ChevronDown className={cn('h-4 w-4', disabled ? 'opacity-40' : 'opacity-50')} />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );

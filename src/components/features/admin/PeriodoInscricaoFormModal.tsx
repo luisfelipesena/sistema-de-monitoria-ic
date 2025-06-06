@@ -13,12 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreatePeriodoInscricao, useUpdatePeriodoInscricao } from '@/hooks/use-periodo-inscricao';
 import { useToast } from '@/hooks/use-toast';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { format, addDays, isBefore, startOfDay } from "date-fns";
-import { ptBR } from 'date-fns/locale';
+import DateTimeRangeSelector, { DateTimeRangeData } from '@/components/date-time-range-selector';
+import { isBefore, startOfDay } from "date-fns";
 
 interface PeriodoInscricaoFormModalProps {
   isOpen: boolean;
@@ -52,40 +48,22 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
   const watchedDataInicio = form.watch('dataInicio');
   const watchedDataFim = form.watch('dataFim');
 
-  // Função para validar e ajustar data fim
-  const handleDataInicioChange = (date: Date | undefined) => {
-    if (!date) return;
-    
-    form.setValue('dataInicio', date, { shouldValidate: true });
-    
-    // Se a data fim for anterior à nova data início, ajusta automaticamente
-    const currentDataFim = form.getValues('dataFim');
-    if (currentDataFim && isBefore(startOfDay(currentDataFim), startOfDay(date))) {
-      const newDataFim = addDays(date, 1);
-      form.setValue('dataFim', newDataFim, { shouldValidate: true });
-      toast({
-        title: 'Data ajustada',
-        description: 'A data de fim foi ajustada para ser posterior à data de início.',
-        variant: 'default'
-      });
-    }
-  };
-
-  const handleDataFimChange = (date: Date | undefined) => {
-    if (!date) return;
-    
-    // Verifica se a data selecionada é anterior à data início
-    const dataInicio = form.getValues('dataInicio');
-    if (dataInicio && isBefore(startOfDay(date), startOfDay(dataInicio))) {
-      toast({
-        title: 'Data inválida',
-        description: 'A data de fim não pode ser anterior à data de início.',
-        variant: 'destructive'
-      });
-      return;
+  const handleDateRangeChange = (dateRange: DateTimeRangeData) => {
+    if (dateRange.fromDate) {
+      form.setValue('dataInicio', dateRange.fromDate, { shouldValidate: true });
     }
     
-    form.setValue('dataFim', date, { shouldValidate: true });
+    if (dateRange.toDate) {
+      if (dateRange.fromDate && isBefore(startOfDay(dateRange.toDate), startOfDay(dateRange.fromDate))) {
+        toast({
+          title: 'Data inválida',
+          description: 'A data de fim não pode ser anterior à data de início.',
+          variant: 'destructive'
+        });
+        return;
+      }
+      form.setValue('dataFim', dateRange.toDate, { shouldValidate: true });
+    }
   };
 
   useEffect(() => {
@@ -104,7 +82,6 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
   }, [isOpen, isEditMode, periodo, form]);
 
   const onSubmit = async (data: PeriodoInscricaoInput) => {
-    // Validação final antes do submit
     if (isBefore(startOfDay(data.dataFim), startOfDay(data.dataInicio))) {
       toast({
         title: 'Erro de validação',
@@ -132,6 +109,11 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
         variant: 'destructive' 
       });
     }
+  };
+
+  const dateRangeValue: DateTimeRangeData = {
+    fromDate: watchedDataInicio,
+    toDate: watchedDataFim,
   };
 
   return (
@@ -166,66 +148,19 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
           </div>
 
           <div>
-            <Label htmlFor="dataInicio">Data de Início *</Label>
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant={"outline"}
-                        type="button"
-                        className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !watchedDataInicio && "text-muted-foreground"
-                        )}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {watchedDataInicio ? format(new Date(watchedDataInicio), "PPP", { locale: ptBR }) : <span>Escolha uma data</span>}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                    <Calendar
-                        mode="single"
-                        selected={watchedDataInicio ? new Date(watchedDataInicio) : undefined}
-                        onSelect={handleDataInicioChange}
-                        disabled={(date) => isBefore(startOfDay(date), startOfDay(new Date()))}
-                        initialFocus
-                    />
-                </PopoverContent>
-            </Popover>
-            {form.formState.errors.dataInicio && <p className="text-sm text-red-500 mt-1">{form.formState.errors.dataInicio.message}</p>}
-          </div>
-
-          <div>
-            <Label htmlFor="dataFim">Data de Fim *</Label>
-             <Popover>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant={"outline"}
-                        type="button"
-                        className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !watchedDataFim && "text-muted-foreground"
-                        )}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {watchedDataFim ? format(new Date(watchedDataFim), "PPP", { locale: ptBR }) : <span>Escolha uma data</span>}
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                    <Calendar
-                        mode="single"
-                        selected={watchedDataFim ? new Date(watchedDataFim) : undefined}
-                        onSelect={handleDataFimChange}
-                        disabled={(date) => {
-                          // Desabilita datas anteriores à hoje e datas anteriores à data início
-                          const today = startOfDay(new Date());
-                          const dataInicio = watchedDataInicio ? startOfDay(new Date(watchedDataInicio)) : today;
-                          return isBefore(startOfDay(date), today) || isBefore(startOfDay(date), dataInicio);
-                        }}
-                        initialFocus
-                    />
-                </PopoverContent>
-            </Popover>
-            {form.formState.errors.dataFim && <p className="text-sm text-red-500 mt-1">{form.formState.errors.dataFim.message}</p>}
+            <Label>Período de Inscrição *</Label>
+            <DateTimeRangeSelector
+              value={dateRangeValue}
+              onChange={handleDateRangeChange}
+              includeTime={false}
+              showSearchButton={false}
+              className="mt-2"
+            />
+            {(form.formState.errors.dataInicio || form.formState.errors.dataFim) && (
+              <p className="text-sm text-red-500 mt-1">
+                {form.formState.errors.dataInicio?.message || form.formState.errors.dataFim?.message}
+              </p>
+            )}
           </div>
 
           <DialogFooter>

@@ -75,11 +75,10 @@ export function ProjectForm() {
       // Ensure the professorResponsavelId is set if required
       const dataToSubmit = { ...formData };
 
-      // For professors, use their own ID
+      // For professors, use their own ID - find by userId instead of username
       if (user?.role === 'professor' && !dataToSubmit.professorResponsavelId) {
-        // Find the professor by comparing with their username
         const professor = professores?.find(
-          (p) => p.nomeCompleto === user.username,
+          (p) => p.userId === user.id,
         );
         if (professor) {
           dataToSubmit.professorResponsavelId = professor.id;
@@ -183,6 +182,7 @@ export function ProjectForm() {
               departamentos={departamentos}
               disciplinasFiltradas={disciplinasFiltradas}
               user={user}
+              professores={professores}
             />
           </CardContent>
         </Card>

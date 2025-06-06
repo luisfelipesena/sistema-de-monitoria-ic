@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DisciplinaWithProfessor } from '@/hooks/use-disciplina';
 import { usePDFPreview } from '@/hooks/use-pdf-preview';
 import type { DepartamentoResponse } from '@/routes/api/department/-types';
+import type { ProfessorResponse } from '@/routes/api/professor';
 import { PDFViewer } from '@react-pdf/renderer';
 import { User } from 'lucia';
 import {
@@ -22,6 +23,7 @@ interface ProjectPDFPreviewProps {
   departamentos: DepartamentoResponse[] | undefined;
   disciplinasFiltradas: DisciplinaWithProfessor[] | undefined;
   user: User | null;
+  professores?: ProfessorResponse[];
 }
 
 export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
@@ -29,6 +31,7 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
   departamentos,
   disciplinasFiltradas,
   user,
+  professores,
 }: ProjectPDFPreviewProps) {
   const {
     previewRef,
@@ -41,6 +44,7 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
     departamentos,
     disciplinasFiltradas,
     user,
+    professores,
   });
 
   // Simple state management

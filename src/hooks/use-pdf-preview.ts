@@ -1,6 +1,7 @@
 import type { MonitoriaFormData } from '@/components/features/projects/MonitoriaFormTemplate';
 import type { ProjetoFormData } from '@/components/features/projects/types';
 import type { DepartamentoResponse } from '@/routes/api/department/-types';
+import type { ProfessorResponse } from '@/routes/api/professor';
 import { useMemo, useRef } from 'react';
 
 interface UsePDFPreviewProps {
@@ -8,6 +9,7 @@ interface UsePDFPreviewProps {
   departamentos: DepartamentoResponse[] | undefined;
   disciplinasFiltradas: any[] | undefined;
   user: any;
+  professores?: ProfessorResponse[];
 }
 
 export function usePDFPreview({
@@ -15,6 +17,7 @@ export function usePDFPreview({
   departamentos,
   disciplinasFiltradas,
   user,
+  professores,
 }: UsePDFPreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -55,6 +58,22 @@ export function usePDFPreview({
     formData.publicoAlvo,
   ]);
 
+  const professorResponsavel = useMemo(() => {
+    if (!professores) return undefined;
+    
+    // Find professor by formData.professorResponsavelId if set
+    if (formData.professorResponsavelId) {
+      return professores.find(p => p.id === formData.professorResponsavelId);
+    }
+    
+    // For professors, find by userId
+    if (user?.role === 'professor') {
+      return professores.find(p => p.userId === user.id);
+    }
+    
+    return undefined;
+  }, [professores, formData.professorResponsavelId, user]);
+
   const templateData = useMemo((): MonitoriaFormData | null => {
     if (!hasRequiredFields) return null;
 
@@ -63,6 +82,18 @@ export function usePDFPreview({
       descricao: formData.descricao || '',
       departamento,
       coordenadorResponsavel: formData.coordenadorResponsavel || '',
+      professorResponsavel: professorResponsavel ? {
+        id: professorResponsavel.id,
+        nomeCompleto: professorResponsavel.nomeCompleto,
+        nomeSocial: professorResponsavel.nomeSocial ?? undefined,
+        genero: professorResponsavel.genero,
+        cpf: professorResponsavel.cpf,
+        matriculaSiape: professorResponsavel.matriculaSiape ?? undefined,
+        regime: professorResponsavel.regime,
+        telefone: professorResponsavel.telefone ?? undefined,
+        telefoneInstitucional: professorResponsavel.telefoneInstitucional ?? undefined,
+        emailInstitucional: professorResponsavel.emailInstitucional,
+      } : undefined,
       ano: formData.ano || new Date().getFullYear(),
       semestre: formData.semestre || 'SEMESTRE_1',
       tipoProposicao: formData.tipoProposicao || 'INDIVIDUAL',
@@ -90,6 +121,7 @@ export function usePDFPreview({
     formData.descricao,
     departamento,
     formData.coordenadorResponsavel,
+    professorResponsavel,
     formData.ano,
     formData.semestre,
     formData.tipoProposicao,

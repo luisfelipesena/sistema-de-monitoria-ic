@@ -292,6 +292,8 @@ function ProfessorProfile() {
     nomeCompleto: '',
     matriculaSiape: '',
     cpf: '',
+    telefone: '',
+    telefoneInstitucional: '',
     regime: '' as '20H' | '40H' | 'DE' | '',
   });
 
@@ -301,6 +303,8 @@ function ProfessorProfile() {
         nomeCompleto: professor.nomeCompleto || '',
         matriculaSiape: professor.matriculaSiape || '',
         cpf: professor.cpf || '',
+        telefone: professor.telefone || '',
+        telefoneInstitucional: professor.telefoneInstitucional || '',
         regime: professor.regime || '',
       });
     }
@@ -346,6 +350,8 @@ function ProfessorProfile() {
         nomeCompleto: professor.nomeCompleto || '',
         matriculaSiape: professor.matriculaSiape || '',
         cpf: professor.cpf || '',
+        telefone: professor.telefone || '',
+        telefoneInstitucional: professor.telefoneInstitucional || '',
         regime: professor.regime || '',
       });
     }
@@ -442,6 +448,32 @@ function ProfessorProfile() {
           </div>
 
           <div>
+            <Label htmlFor="telefone">Telefone Pessoal</Label>
+            <Input
+              id="telefone"
+              value={formData.telefone}
+              onChange={(e) =>
+                setFormData({ ...formData, telefone: e.target.value })
+              }
+              disabled={!isEditing}
+              placeholder="(xx) xxxxx-xxxx"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="telefoneInstitucional">Telefone Institucional</Label>
+            <Input
+              id="telefoneInstitucional"
+              value={formData.telefoneInstitucional}
+              onChange={(e) =>
+                setFormData({ ...formData, telefoneInstitucional: e.target.value })
+              }
+              disabled={!isEditing}
+              placeholder="(xx) xxxx-xxxx"
+            />
+          </div>
+
+          <div>
             <Label htmlFor="regime">Regime de Trabalho</Label>
             <Select
               value={formData.regime}
@@ -462,6 +494,8 @@ function ProfessorProfile() {
           </div>
         </div>
       </Card>
+
+      <DocumentsSection />
     </PagesLayout>
   );
 }
@@ -473,7 +507,7 @@ function DocumentsSection() {
 
   const handleUpload = async (
     file: File,
-    documentType: 'historico_escolar' | 'comprovante_matricula',
+    documentType: 'historico_escolar' | 'comprovante_matricula' | 'curriculum_vitae' | 'comprovante_vinculo',
   ) => {
     try {
       await updateDocumentMutation.mutateAsync({

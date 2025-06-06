@@ -1,4 +1,6 @@
+import { useAuth } from '@/hooks/use-auth';
 import { useAluno } from '@/hooks/use-aluno';
+import { useProfessor } from '@/hooks/use-professor';
 import { useFileUpload } from '@/hooks/use-files';
 import { apiClient } from '@/utils/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -7,13 +9,11 @@ import { QueryKeys } from './query-keys';
 export interface UserDocument {
   id: string;
   nome: string;
-  tipo: 'historico_escolar' | 'comprovante_matricula';
+  tipo: 'comprovante_matricula' | 'historico_escolar' | 'curriculum_vitae' | 'comprovante_vinculo';
   fileId?: string;
   fileName?: string;
   url?: string;
-  uploadDate?: Date;
-  status: 'missing' | 'valid' | 'expired';
-  needsUpdate?: boolean;
+  status: 'valid' | 'pending';
 }
 
 export interface FileAccessResponse {
@@ -24,118 +24,91 @@ export interface FileAccessResponse {
 }
 
 export function useUserDocuments() {
+  const { user } = useAuth();
   const { data: aluno } = useAluno();
-  const queryClient = useQueryClient();
+  const { data: professor } = useProfessor();
 
-  return useQuery<UserDocument[]>({
-    queryKey: QueryKeys.userDocuments.list,
-    queryFn: async () => {
-      if (!aluno) {
-        return [];
-      }
+  if (user?.role === 'student') {
+    const documents: UserDocument[] = [
+      {
+        id: 'comprovante-matricula',
+        nome: 'Comprovante de Matrícula',
+        tipo: 'comprovante_matricula',
+        fileId: aluno?.comprovanteMatriculaFileId || undefined,
+        fileName: aluno?.comprovanteMatriculaFileId ? 'comprovante_matricula.pdf' : undefined,
+        url: aluno?.comprovanteMatriculaFileId ? `/api/files/access/${aluno.comprovanteMatriculaFileId}` : undefined,
+        status: aluno?.comprovanteMatriculaFileId ? 'valid' : 'pending',
+      },
+      {
+        id: 'historico-escolar',
+        nome: 'Histórico Escolar',
+        tipo: 'historico_escolar',
+        fileId: aluno?.historicoEscolarFileId || undefined,
+        fileName: aluno?.historicoEscolarFileId ? 'historico_escolar.pdf' : undefined,
+        url: aluno?.historicoEscolarFileId ? `/api/files/access/${aluno.historicoEscolarFileId}` : undefined,
+        status: aluno?.historicoEscolarFileId ? 'valid' : 'pending',
+      },
+    ];
 
-      const documents: UserDocument[] = [
-        {
-          id: 'historico_escolar',
-          nome: 'Histórico Escolar',
-          tipo: 'historico_escolar',
-          status: 'missing',
-        },
-        {
-          id: 'comprovante_matricula',
-          nome: 'Comprovante de Matrícula',
-          tipo: 'comprovante_matricula',
-          status: 'missing',
-        },
-      ];
+    return {
+      data: documents,
+      isLoading: false,
+    };
+  }
 
-      // Check if student has file IDs in their profile
-      const alunoWithFiles = aluno as any;
+  if (user?.role === 'professor') {
+    const documents: UserDocument[] = [
+      {
+        id: 'curriculum-vitae',
+        nome: 'Currículo Vitae',
+        tipo: 'curriculum_vitae',
+        fileId: professor?.curriculumVitaeFileId || undefined,
+        fileName: professor?.curriculumVitaeFileId ? 'curriculum_vitae.pdf' : undefined,
+        url: professor?.curriculumVitaeFileId ? `/api/files/access/${professor.curriculumVitaeFileId}` : undefined,
+        status: professor?.curriculumVitaeFileId ? 'valid' : 'pending',
+      },
+      {
+        id: 'comprovante-vinculo',
+        nome: 'Comprovante de Vínculo',
+        tipo: 'comprovante_vinculo',
+        fileId: professor?.comprovanteVinculoFileId || undefined,
+        fileName: professor?.comprovanteVinculoFileId ? 'comprovante_vinculo.pdf' : undefined,
+        url: professor?.comprovanteVinculoFileId ? `/api/files/access/${professor.comprovanteVinculoFileId}` : undefined,
+        status: professor?.comprovanteVinculoFileId ? 'valid' : 'pending',
+      },
+    ];
 
-      if (alunoWithFiles.historicoEscolarFileId) {
-        try {
-          const response = await apiClient.get<FileAccessResponse>(
-            `/files/access/${alunoWithFiles.historicoEscolarFileId}`,
-          );
-          const fileData = response.data;
+    return {
+      data: documents,
+      isLoading: false,
+    };
+  }
 
-          const historicoDoc = documents.find(
-            (d) => d.tipo === 'historico_escolar',
-          );
-          if (historicoDoc) {
-            historicoDoc.fileId = alunoWithFiles.historicoEscolarFileId;
-            historicoDoc.fileName = fileData.fileName;
-            historicoDoc.url = fileData.url;
-            historicoDoc.status = 'valid';
-          }
-        } catch (error) {
-          console.warn('Error fetching historico escolar file:', error);
-        }
-      }
-
-      if (alunoWithFiles.comprovanteMatriculaFileId) {
-        try {
-          const response = await apiClient.get<FileAccessResponse>(
-            `/files/access/${alunoWithFiles.comprovanteMatriculaFileId}`,
-          );
-          const fileData = response.data;
-
-          const comprovanteDoc = documents.find(
-            (d) => d.tipo === 'comprovante_matricula',
-          );
-          if (comprovanteDoc) {
-            comprovanteDoc.fileId = alunoWithFiles.comprovanteMatriculaFileId;
-            comprovanteDoc.fileName = fileData.fileName;
-            comprovanteDoc.url = fileData.url;
-            comprovanteDoc.status = 'valid';
-          }
-        } catch (error) {
-          console.warn('Error fetching comprovante matricula file:', error);
-        }
-      }
-
-      return documents;
-    },
-    enabled: !!aluno,
-  });
+  return {
+    data: [],
+    isLoading: false,
+  };
 }
 
 export function useUpdateUserDocument() {
-  const queryClient = useQueryClient();
+  const { user } = useAuth();
   const fileUploadMutation = useFileUpload();
+  const queryClient = useQueryClient();
 
-  return useMutation<
-    { success: boolean; message: string },
-    Error,
-    { file: File; documentType: 'historico_escolar' | 'comprovante_matricula' }
-  >({
-    mutationFn: async ({ file, documentType }) => {
-      // Upload the file
-      const uploadResponse = await fileUploadMutation.mutateAsync({
+  return useMutation({
+    mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
+      const response = await fileUploadMutation.mutateAsync({
         file,
-        entityType: documentType,
-        entityId: 'student_document',
+        entityType: documentType as any,
+        entityId: user?.id?.toString() || '0',
       });
-
-      // Update the student profile with the new file ID
-      const fieldName =
-        documentType === 'historico_escolar'
-          ? 'historicoEscolarFileId'
-          : 'comprovanteMatriculaFileId';
-
-      await apiClient.post('/student', {
-        [fieldName]: uploadResponse.fileId,
-      });
-
-      return {
-        success: true,
-        message: 'Documento atualizado com sucesso',
-      };
+      return response;
     },
     onSuccess: () => {
-      // Invalidate queries to refetch data
-      queryClient.invalidateQueries({ queryKey: QueryKeys.userDocuments.list });
+      // Invalidar queries relacionadas
       queryClient.invalidateQueries({ queryKey: QueryKeys.aluno.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.professor.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.onboarding.status });
     },
   });
 }
