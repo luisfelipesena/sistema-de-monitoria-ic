@@ -8,7 +8,7 @@ import { useProjectForm } from '@/hooks/use-project-form';
 import { useCreateProjeto } from '@/hooks/use-projeto';
 import { useNavigate } from '@tanstack/react-router';
 import { FileText, Loader2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ProjectIdentificationSection } from './ProjectIdentificationSection';
 import { ProjectVacanciesSection } from './ProjectVacanciesSection';
@@ -37,6 +37,17 @@ export function ProjectForm() {
   const createProjetoMutation = useCreateProjeto();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === 'professor' && professores?.length) {
+      const professor = professores.find(
+        (p) => p.userId === Number(user.id),
+      );
+      if (professor) {
+        setValue('professorResponsavelId', professor.id, { shouldValidate: true });
+      }
+    }
+  }, [user, professores, setValue]);
 
   const watchedDisciplinaIds = watch('disciplinaIds') || [];
 
@@ -71,21 +82,16 @@ export function ProjectForm() {
   const handleSaveDraft = async () => {
     try {
       setSubmitting(true);
-
-      // Ensure the professorResponsavelId is set if required
       const dataToSubmit = { ...formData };
-
-      // For professors, use their own ID - find by userId instead of username
       if (user?.role === 'professor' && !dataToSubmit.professorResponsavelId) {
         const professor = professores?.find(
-          (p) => p.userId === user.id,
+          (p) => p.userId === Number(user.id),
         );
         if (professor) {
           dataToSubmit.professorResponsavelId = professor.id;
         }
       }
-
-      // Save the project after a short delay to ensure all values are set
+      
       setTimeout(async () => {
         try {
           const result = await createProjetoMutation.mutateAsync(

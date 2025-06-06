@@ -15,11 +15,12 @@ const log = logger.child({
 export const APIRoute = createAPIFileRoute('/api/professor/list')({
   GET: createAPIHandler(
     withAuthMiddleware(
-      withRoleMiddleware(['admin'], async (ctx) => {
+      withRoleMiddleware(['admin', 'professor'], async (ctx) => {
         try {
           const professores = await db.query.professorTable.findMany({
             columns: {
               id: true,
+              userId: true,
               nomeCompleto: true,
               emailInstitucional: true,
               departamentoId: true,

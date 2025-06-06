@@ -6,12 +6,11 @@ export const periodoInscricaoResponseSchema = createSelectSchema(
   periodoInscricaoTable,
 );
 
-export const periodoInscricaoInputSchema = createInsertSchema(
-  periodoInscricaoTable,
-).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const periodoInscricaoInputSchema = z.object({
+  ano: z.number(),
+  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+  dataInicio: z.coerce.date(),
+  dataFim: z.coerce.date(),
 });
 
 export const periodoInscricaoComStatusSchema =

@@ -204,6 +204,9 @@ function DateTimeRangeSelector({
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
+                captionLayout="dropdown"
+                fromYear={new Date().getFullYear() - 10}
+                toYear={new Date().getFullYear() + 1}
                 selected={dateTimeRange.fromDate}
                 onSelect={(date) => handleSequentialPopover("fromDate", date)}
                 disabled={(date) => date < today}
@@ -279,6 +282,9 @@ function DateTimeRangeSelector({
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
                 mode="single"
+                captionLayout="dropdown"
+                fromYear={new Date().getFullYear() - 10}
+                toYear={new Date().getFullYear() + 1}
                 selected={dateTimeRange.toDate}
                 onSelect={(date) => handleSequentialPopover("toDate", date)}
                 disabled={(date) => {

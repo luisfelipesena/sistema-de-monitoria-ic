@@ -6,6 +6,8 @@ import { projectGeneratorService } from '@/server/lib/projectGenerator';
 import minioClient from '@/server/lib/minio';
 import { env } from '@/utils/env';
 import { logger } from '@/utils/logger';
+import { db } from '@/server/database';
+import { importacaoPlanejamentoTable } from '@/server/database/schema';
 
 const log = logger.child({
   context: 'ImportarPlanejamentoAPI',
@@ -108,7 +110,17 @@ export const APIRoute = createAPIFileRoute('/api/projeto/importar-planejamento')
   GET: createAPIHandler(
     withRoleMiddleware(['admin'], async (ctx) => {
       try {
-        const history = await projectGeneratorService.getImportHistory();
+        const history = await db.query.importacaoPlanejamentoTable.findMany({
+          with: {
+            importadoPor: {
+              columns: {
+                username: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: (table, { desc }) => [desc(table.createdAt)],
+        });
         
         log.info('Import history fetched successfully');
         return json({ history });

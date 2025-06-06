@@ -528,13 +528,13 @@ function DocumentsSection() {
     }
   };
 
-  const handleVisualize = (doc: { url?: string }) => {
-    if (doc && doc.url) {
-      window.open(doc.url, '_blank');
+  const handleVisualize = (doc: { fileId?: string }) => {
+    if (doc.fileId) {
+      window.open(`/api/files/access/${doc.fileId}`, '_blank');
     } else {
       toast({
         title: 'Arquivo não encontrado',
-        description: 'Este documento ainda não foi enviado',
+        description: 'Este documento ainda não foi enviado.',
         variant: 'destructive',
       });
     }
@@ -597,7 +597,7 @@ function DocumentsSection() {
                 <Upload className="w-4 h-4 mr-2" />
                 {doc.fileName ? 'Alterar' : 'Enviar'}
               </Button>
-              {doc.fileId && doc.url && (
+              {doc.fileId && (
                 <Button
                   variant="secondary"
                   onClick={() => handleVisualize(doc)}
