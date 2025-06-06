@@ -2,82 +2,67 @@ import { db } from '@/server/database';
 import { professorTable, projetoTable } from '@/server/database/schema';
 import {
   createAPIHandler,
+  withAuthMiddleware,
   withRoleMiddleware,
 } from '@/server/middleware/common';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 const log = logger.child({
-  context: 'ProjetoSubmitAPI',
+  context: 'SubmitProjetoAPI',
 });
 
 export const APIRoute = createAPIFileRoute('/api/projeto/$id/submit')({
   POST: createAPIHandler(
     withRoleMiddleware(['professor'], async (ctx) => {
+      const { id } = ctx.params;
+      const projectId = parseInt(id, 10);
+
       try {
-        const projetoId = parseInt(ctx.params.id, 10);
-        const userId = parseInt(ctx.state.user.userId, 10);
-
-        if (isNaN(projetoId)) {
-          return json({ error: 'ID do projeto inválido' }, { status: 400 });
-        }
-
-        // Buscar o projeto
-        const projeto = await db.query.projetoTable.findFirst({
-          where: eq(projetoTable.id, projetoId),
-        });
-
-        if (!projeto) {
-          return json({ error: 'Projeto não encontrado' }, { status: 404 });
-        }
-
-        // Verificar se o professor é o responsável pelo projeto
         const professor = await db.query.professorTable.findFirst({
-          where: eq(professorTable.userId, userId),
+          where: eq(
+            professorTable.userId,
+            parseInt(ctx.state.user.userId, 10),
+          ),
         });
 
-        if (!professor || projeto.professorResponsavelId !== professor.id) {
+        if (!professor) {
+          return json({ error: 'Perfil de professor não encontrado' }, { status: 404 });
+        }
+
+        const project = await db.query.projetoTable.findFirst({
+          where: and(
+            eq(projetoTable.id, projectId),
+            eq(projetoTable.professorResponsavelId, professor.id),
+          ),
+        });
+
+        if (!project) {
           return json(
-            { error: 'Apenas o professor responsável pode submeter o projeto' },
-            { status: 403 },
+            { error: 'Projeto não encontrado ou você não é o responsável' },
+            { status: 404 },
           );
         }
 
-        // Verificar se o projeto está em status DRAFT
-        if (projeto.status !== 'DRAFT') {
+        if (project.status !== 'DRAFT') {
           return json(
-            { error: 'Apenas projetos em rascunho podem ser submetidos' },
+            { error: 'Este projeto não pode ser submetido pois não é um rascunho.' },
             { status: 400 },
           );
         }
 
-        // Atualizar status para SUBMITTED
-        const [projetoAtualizado] = await db
+        const [updatedProject] = await db
           .update(projetoTable)
-          .set({
-            status: 'SUBMITTED',
-            updatedAt: new Date(),
-          })
-          .where(eq(projetoTable.id, projetoId))
+          .set({ status: 'SUBMITTED', updatedAt: new Date() })
+          .where(eq(projetoTable.id, projectId))
           .returning();
 
-        log.info(
-          { projetoId, professorId: professor.id },
-          'Projeto submetido para aprovação',
-        );
-
-        return json(
-          {
-            success: true,
-            message: 'Projeto submetido para aprovação com sucesso',
-            projeto: projetoAtualizado,
-          },
-          { status: 200 },
-        );
+        log.info({ projectId }, 'Projeto submetido com sucesso');
+        return json(updatedProject);
       } catch (error) {
-        log.error(error, 'Erro ao submeter projeto');
+        log.error(error, `Erro ao submeter projeto ${projectId}`);
         return json({ error: 'Erro ao submeter projeto' }, { status: 500 });
       }
     }),

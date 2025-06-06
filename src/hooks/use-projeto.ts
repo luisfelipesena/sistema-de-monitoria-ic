@@ -70,25 +70,25 @@ export function useCreateProjeto() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
+      queryClient.invalidateQueries();
     },
   });
 }
 
+/**
+ * Hook to submit a project for approval
+ */
 export function useSubmitProjeto() {
   const queryClient = useQueryClient();
-
-  return useMutation<ProjetoResponse, Error, number>({
-    mutationFn: async (projetoId) => {
-      const response = await apiClient.patch<ProjetoResponse>(
-        `/projeto/${projetoId}/submit`,
-      );
+  return useMutation<ProjetoResponse, Error, { id: number }>({
+    mutationFn: async ({ id }) => {
+      const response = await apiClient.post(`/projeto/${id}/submit`);
       return response.data;
     },
-    onSuccess: (_, projetoId) => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
       queryClient.invalidateQueries({
-        queryKey: QueryKeys.projeto.byId(projetoId.toString()),
+        queryKey: QueryKeys.projeto.byId(variables.id.toString()),
       });
     },
   });

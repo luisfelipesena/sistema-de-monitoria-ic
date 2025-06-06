@@ -9,6 +9,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
+import { Link } from '@tanstack/react-router';
 
 import {
   Eye,
@@ -33,6 +35,7 @@ function DashboardProfessor() {
   const submitProjetoMutation = useSubmitProjeto();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
+  const { toast } = useToast();
 
   // Aplicar filtros aos projetos
   const projetosFiltrados = useMemo(() => {
@@ -62,13 +65,26 @@ function DashboardProfessor() {
     navigate({ to: '/home/professor/projects' });
   };
 
-  const handleSubmitProjeto = async (projetoId: number) => {
-    try {
-      await submitProjetoMutation.mutateAsync(projetoId);
-      toast.success('Projeto submetido para aprovação com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao submeter projeto. Tente novamente.');
-    }
+  const handleSubmit = (id: number) => {
+    submitProjetoMutation.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          toast({
+            title: 'Projeto Submetido',
+            description: 'Seu projeto foi enviado para avaliação.',
+          });
+        },
+        onError: (err) => {
+          toast({
+            title: 'Erro ao Submeter',
+            description:
+              err.message || 'Não foi possível submeter o projeto.',
+            variant: 'destructive',
+          });
+        },
+      },
+    );
   };
 
   // Column definitions for the projects table
@@ -186,7 +202,7 @@ function DashboardProfessor() {
               variant="primary"
               size="sm"
               className="rounded-full flex items-center gap-1 bg-blue-600 hover:bg-blue-700"
-              onClick={() => handleSubmitProjeto(row.original.id)}
+              onClick={() => handleSubmit(row.original.id)}
               disabled={submitProjetoMutation.isPending}
             >
               <Send className="h-4 w-4" />

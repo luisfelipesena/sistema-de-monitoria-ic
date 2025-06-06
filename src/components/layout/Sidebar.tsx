@@ -73,7 +73,7 @@ const menuConfig: MenuConfig[] = [
     label: 'Dashboard',
     href: (role) => `/home/${role}/dashboard`,
     icon: LayoutDashboard,
-    roles: ['admin', 'professor', 'student'],
+    roles: ['admin', 'student'],
   },
 
   // Admin - Projetos
@@ -226,6 +226,12 @@ const menuConfig: MenuConfig[] = [
     icon: FileText,
     roles: ['professor'],
     items: [
+      {
+        label: 'Meus Projetos',
+        href: '/home/professor/dashboard',
+        icon: LayoutDashboard,
+        roles: ['professor'],
+      },
       {
         label: 'Novo Projeto',
         href: '/home/professor/projects',

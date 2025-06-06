@@ -24,6 +24,9 @@ export const APIRoute = createAPIFileRoute('/api/professor/list')({
               nomeCompleto: true,
               emailInstitucional: true,
               departamentoId: true,
+              cpf: true,
+              telefone: true,
+              regime: true,
             },
             orderBy: (professores, { asc }) => [asc(professores.nomeCompleto)],
           });

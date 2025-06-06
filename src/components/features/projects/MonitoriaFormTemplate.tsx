@@ -165,6 +165,26 @@ const styles = StyleSheet.create({
     width: 200,
     height: 20,
   },
+  tableRow: {
+    borderBottom: '1pt solid #000',
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    minHeight: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  tableCell: {
+    fontSize: 8,
+    marginLeft: 3,
+    flex: 1,
+  },
+  sectionTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 15,
+    paddingHorizontal: 10,
+  },
 });
 
 export const MonitoriaFormTemplate = ({
@@ -289,69 +309,29 @@ export const MonitoriaFormTemplate = ({
             2. DADOS DO PROFESSOR RESPONSÁVEL PELO PROJETO (PROPONENTE)
           </Text>
 
-          <View style={styles.professionalDataRow}>
-            <Text style={styles.label}>2.1 Nome Completo:</Text>
-            <Text style={styles.value}>
-              {data.professorResponsavel?.nomeCompleto ||
-                (data.user?.role !== 'admin' ? data.user?.nomeCompleto : '') ||
-                'Não informado'}
-            </Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>2.1 Nome Completo: {data.professorResponsavel?.nomeCompleto || (data.user?.role !== 'admin' ? data.user?.nomeCompleto : '') || 'Não informado'}</Text>
           </View>
-
-          <View style={styles.professionalDataRow}>
-            <Text style={styles.label}>2.2 Nome Social (se houver):</Text>
-            <Text style={styles.value}>
-              {data.professorResponsavel?.nomeSocial || '_________________________________'}
-            </Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>2.2 Nome Social (se houver): {data.professorResponsavel?.nomeSocial || '_________________________________'}</Text>
           </View>
-
-          <View style={styles.professionalDataRow}>
-            <Text style={styles.label}>2.3 Gênero:</Text>
-            <Text style={styles.value}>
-              ({data.professorResponsavel?.genero === 'FEMININO' ? ' X ' : '   '}) Feminino ({data.professorResponsavel?.genero === 'MASCULINO' ? ' X ' : '   '}) Masculino ({data.professorResponsavel?.genero === 'OUTRO' ? ' X ' : '   '}) Outro ( ):
-            </Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>2.3 CPF: {data.professorResponsavel?.cpf || '___.___.___ - __'}</Text>
           </View>
-
-          <View style={styles.professionalDataRow}>
-            <Text style={styles.label}>2.4 CPF:</Text>
-            <Text style={styles.value}>
-              {data.professorResponsavel?.cpf || '___.___.___ - __'}
-            </Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>2.4 SIAPE: {data.professorResponsavel?.matriculaSiape || '_________________'}</Text>
           </View>
-
-          <View style={styles.professionalDataRow}>
-            <Text style={styles.label}>2.5 SIAPE:</Text>
-            <Text style={styles.value}>
-              {data.professorResponsavel?.matriculaSiape || '_________________'}
-            </Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>2.5 Regime: 20h ({data.professorResponsavel?.regime === '20H' ? 'X' : ' '}) 40h ({data.professorResponsavel?.regime === '40H' ? 'X' : ' '}) DE ({data.professorResponsavel?.regime === 'DE' ? 'X' : ' '})</Text>
           </View>
-
-          <View style={styles.professionalDataRow}>
-            <Text style={styles.label}>2.6 Regime:</Text>
-            <Text style={styles.value}>
-              20h ({data.professorResponsavel?.regime === '20H' ? ' X ' : '   '}) 40h ({data.professorResponsavel?.regime === '40H' ? ' X ' : '   '}) DE ({data.professorResponsavel?.regime === 'DE' ? ' X ' : '   '})
-            </Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>2.6 Tel. Institucional (): {data.professorResponsavel?.telefoneInstitucional || '_________________'}</Text>
           </View>
-
-          <View style={styles.professionalDataRow}>
-            <Text style={styles.label}>2.7 Tel. Institucional ( ):</Text>
-            <Text style={styles.value}>
-              {data.professorResponsavel?.telefoneInstitucional || '_________________'}
-            </Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>2.7 Celular: {data.professorResponsavel?.telefone || '_________________'}</Text>
           </View>
-
-          <View style={styles.professionalDataRow}>
-            <Text style={styles.label}>2.8 Celular:</Text>
-            <Text style={styles.value}>
-              {data.professorResponsavel?.telefone || '_________________'}
-            </Text>
-          </View>
-
-          <View style={styles.lastRow}>
-            <Text style={styles.label}>2.9 E-mail institucional:</Text>
-            <Text style={styles.value}>
-              {data.professorResponsavel?.emailInstitucional || data.user?.email || 'professor@ufba.br'}
-            </Text>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>2.8 E-mail institucional: {data.professorResponsavel?.emailInstitucional || data.user?.email || 'professor@ufba.br'}</Text>
           </View>
         </View>
 
