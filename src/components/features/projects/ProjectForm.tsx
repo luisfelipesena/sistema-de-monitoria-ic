@@ -7,6 +7,8 @@ import { Form } from '@/components/ui/form';
 import { useProjectForm } from '@/hooks/use-project-form';
 import { useCreateProjeto } from '@/hooks/use-projeto';
 import { useNavigate } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKeys } from '@/hooks/query-keys';
 import { FileText, Loader2 } from 'lucide-react';
 import { useMemo, useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -36,6 +38,7 @@ export function ProjectForm() {
 
   const createProjetoMutation = useCreateProjeto();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -97,8 +100,18 @@ export function ProjectForm() {
           const result = await createProjetoMutation.mutateAsync(
             dataToSubmit as any,
           );
+          
+          // Invalidate projeto-related queries
+          await queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.all });
+          await queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
+          
           toast.success('Rascunho do projeto salvo com sucesso!');
-          navigate({ to: '/home/professor/dashboard' });
+          
+          // Redirect to document signing flow
+          navigate({ 
+            to: '/home/professor/document-signing',
+            search: { projectId: result.id }
+          });
         } catch (error) {
           console.error('Error saving draft:', error);
           toast.error('Erro ao salvar o rascunho do projeto');

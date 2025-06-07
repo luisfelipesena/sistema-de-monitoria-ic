@@ -32,6 +32,7 @@ import { Route as HomeLayoutProfessorLayoutVolunteerManagementImport } from './r
 import { Route as HomeLayoutProfessorLayoutProjectsImport } from './routes/home/_layout/professor/_layout/projects'
 import { Route as HomeLayoutProfessorLayoutProjectApplicationsImport } from './routes/home/_layout/professor/_layout/project-applications'
 import { Route as HomeLayoutProfessorLayoutDocumentSigningImport } from './routes/home/_layout/professor/_layout/document-signing'
+import { Route as HomeLayoutProfessorLayoutDisciplinasImport } from './routes/home/_layout/professor/_layout/disciplinas'
 import { Route as HomeLayoutProfessorLayoutDashboardImport } from './routes/home/_layout/professor/_layout/dashboard'
 import { Route as HomeLayoutAdminLayoutUsersImport } from './routes/home/_layout/admin/_layout/users'
 import { Route as HomeLayoutAdminLayoutScholarshipAllocationImport } from './routes/home/_layout/admin/_layout/scholarship-allocation'
@@ -208,6 +209,13 @@ const HomeLayoutProfessorLayoutDocumentSigningRoute =
   HomeLayoutProfessorLayoutDocumentSigningImport.update({
     id: '/document-signing',
     path: '/document-signing',
+    getParentRoute: () => HomeLayoutProfessorLayoutRoute,
+  } as any)
+
+const HomeLayoutProfessorLayoutDisciplinasRoute =
+  HomeLayoutProfessorLayoutDisciplinasImport.update({
+    id: '/disciplinas',
+    path: '/disciplinas',
     getParentRoute: () => HomeLayoutProfessorLayoutRoute,
   } as any)
 
@@ -602,6 +610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutProfessorLayoutDashboardImport
       parentRoute: typeof HomeLayoutProfessorLayoutImport
     }
+    '/home/_layout/professor/_layout/disciplinas': {
+      id: '/home/_layout/professor/_layout/disciplinas'
+      path: '/disciplinas'
+      fullPath: '/home/professor/disciplinas'
+      preLoaderRoute: typeof HomeLayoutProfessorLayoutDisciplinasImport
+      parentRoute: typeof HomeLayoutProfessorLayoutImport
+    }
     '/home/_layout/professor/_layout/document-signing': {
       id: '/home/_layout/professor/_layout/document-signing'
       path: '/document-signing'
@@ -783,6 +798,7 @@ const HomeLayoutAdminRouteWithChildren = HomeLayoutAdminRoute._addFileChildren(
 
 interface HomeLayoutProfessorLayoutRouteChildren {
   HomeLayoutProfessorLayoutDashboardRoute: typeof HomeLayoutProfessorLayoutDashboardRoute
+  HomeLayoutProfessorLayoutDisciplinasRoute: typeof HomeLayoutProfessorLayoutDisciplinasRoute
   HomeLayoutProfessorLayoutDocumentSigningRoute: typeof HomeLayoutProfessorLayoutDocumentSigningRoute
   HomeLayoutProfessorLayoutProjectApplicationsRoute: typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
   HomeLayoutProfessorLayoutProjectsRoute: typeof HomeLayoutProfessorLayoutProjectsRoute
@@ -794,6 +810,8 @@ const HomeLayoutProfessorLayoutRouteChildren: HomeLayoutProfessorLayoutRouteChil
   {
     HomeLayoutProfessorLayoutDashboardRoute:
       HomeLayoutProfessorLayoutDashboardRoute,
+    HomeLayoutProfessorLayoutDisciplinasRoute:
+      HomeLayoutProfessorLayoutDisciplinasRoute,
     HomeLayoutProfessorLayoutDocumentSigningRoute:
       HomeLayoutProfessorLayoutDocumentSigningRoute,
     HomeLayoutProfessorLayoutProjectApplicationsRoute:
@@ -922,6 +940,7 @@ export interface FileRoutesByFullPath {
   '/home/admin/scholarship-allocation': typeof HomeLayoutAdminLayoutScholarshipAllocationRoute
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
+  '/home/professor/disciplinas': typeof HomeLayoutProfessorLayoutDisciplinasRoute
   '/home/professor/document-signing': typeof HomeLayoutProfessorLayoutDocumentSigningRoute
   '/home/professor/project-applications': typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
   '/home/professor/projects': typeof HomeLayoutProfessorLayoutProjectsRoute
@@ -966,6 +985,7 @@ export interface FileRoutesByTo {
   '/home/admin/scholarship-allocation': typeof HomeLayoutAdminLayoutScholarshipAllocationRoute
   '/home/admin/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
+  '/home/professor/disciplinas': typeof HomeLayoutProfessorLayoutDisciplinasRoute
   '/home/professor/document-signing': typeof HomeLayoutProfessorLayoutDocumentSigningRoute
   '/home/professor/project-applications': typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
   '/home/professor/projects': typeof HomeLayoutProfessorLayoutProjectsRoute
@@ -1016,6 +1036,7 @@ export interface FileRoutesById {
   '/home/_layout/admin/_layout/scholarship-allocation': typeof HomeLayoutAdminLayoutScholarshipAllocationRoute
   '/home/_layout/admin/_layout/users': typeof HomeLayoutAdminLayoutUsersRoute
   '/home/_layout/professor/_layout/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
+  '/home/_layout/professor/_layout/disciplinas': typeof HomeLayoutProfessorLayoutDisciplinasRoute
   '/home/_layout/professor/_layout/document-signing': typeof HomeLayoutProfessorLayoutDocumentSigningRoute
   '/home/_layout/professor/_layout/project-applications': typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
   '/home/_layout/professor/_layout/projects': typeof HomeLayoutProfessorLayoutProjectsRoute
@@ -1063,6 +1084,7 @@ export interface FileRouteTypes {
     | '/home/admin/scholarship-allocation'
     | '/home/admin/users'
     | '/home/professor/dashboard'
+    | '/home/professor/disciplinas'
     | '/home/professor/document-signing'
     | '/home/professor/project-applications'
     | '/home/professor/projects'
@@ -1106,6 +1128,7 @@ export interface FileRouteTypes {
     | '/home/admin/scholarship-allocation'
     | '/home/admin/users'
     | '/home/professor/dashboard'
+    | '/home/professor/disciplinas'
     | '/home/professor/document-signing'
     | '/home/professor/project-applications'
     | '/home/professor/projects'
@@ -1154,6 +1177,7 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/_layout/scholarship-allocation'
     | '/home/_layout/admin/_layout/users'
     | '/home/_layout/professor/_layout/dashboard'
+    | '/home/_layout/professor/_layout/disciplinas'
     | '/home/_layout/professor/_layout/document-signing'
     | '/home/_layout/professor/_layout/project-applications'
     | '/home/_layout/professor/_layout/projects'
@@ -1275,6 +1299,7 @@ export const routeTree = rootRoute
       "parent": "/home/_layout/professor",
       "children": [
         "/home/_layout/professor/_layout/dashboard",
+        "/home/_layout/professor/_layout/disciplinas",
         "/home/_layout/professor/_layout/document-signing",
         "/home/_layout/professor/_layout/project-applications",
         "/home/_layout/professor/_layout/projects",
@@ -1380,6 +1405,10 @@ export const routeTree = rootRoute
     },
     "/home/_layout/professor/_layout/dashboard": {
       "filePath": "home/_layout/professor/_layout/dashboard.tsx",
+      "parent": "/home/_layout/professor/_layout"
+    },
+    "/home/_layout/professor/_layout/disciplinas": {
+      "filePath": "home/_layout/professor/_layout/disciplinas.tsx",
       "parent": "/home/_layout/professor/_layout"
     },
     "/home/_layout/professor/_layout/document-signing": {

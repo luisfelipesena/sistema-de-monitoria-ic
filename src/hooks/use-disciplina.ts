@@ -1,7 +1,10 @@
 import type { DisciplinaProfessorResponse } from '@/routes/api/disciplina/$id/professor';
 import {
-  DisciplinaProfessorVinculo,
+  Disciplina,
+  DisciplinaInput,
   DisciplinaResponse,
+  ProfessorDisciplina,
+  DisciplinaProfessorVinculo,
 } from '@/routes/api/disciplina/-types';
 import { apiClient } from '@/utils/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,16 +17,13 @@ export interface DisciplinaWithProfessor extends DisciplinaResponse {
 }
 
 // Função para buscar disciplinas por departamento
-export function useDisciplinas(departamentoId?: number) {
-  return useQuery<DisciplinaWithProfessor[]>({
-    queryKey: departamentoId
-      ? QueryKeys.disciplina.byId(departamentoId.toString())
-      : QueryKeys.disciplina.all,
+export function useDisciplinas(filters: { departamentoId?: number } = {}) {
+  return useQuery<Disciplina[]>({
+    queryKey: QueryKeys.disciplinas.list(filters),
     queryFn: async () => {
-      const url = departamentoId
-        ? `/disciplina?departamentoId=${departamentoId}`
-        : '/disciplina';
-      const response = await apiClient.get<DisciplinaWithProfessor[]>(url);
+      const response = await apiClient.get('/disciplina', {
+        params: filters,
+      });
       return response.data;
     },
   });
@@ -31,18 +31,13 @@ export function useDisciplinas(departamentoId?: number) {
 
 export function useCreateDisciplina() {
   const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: {
-      nome: string;
-      codigo: string;
-      departamentoId: number;
-    }) => {
+  return useMutation<Disciplina, Error, DisciplinaInput>({
+    mutationFn: async (data) => {
       const response = await apiClient.post('/disciplina', data);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplinas.list() });
     },
   });
 }
@@ -62,7 +57,7 @@ export function useUpdateDisciplina() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplinas.list() });
     },
   });
 }
@@ -76,7 +71,7 @@ export function useDeleteDisciplina() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplinas.list() });
     },
   });
 }
@@ -95,7 +90,7 @@ export function useVincularProfessorDisciplina() {
     },
     onSuccess: (_, variables) => {
       // Invalidar caches relacionados
-      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplinas.list() });
       if (variables.disciplinaId) {
         queryClient.invalidateQueries({
           queryKey: QueryKeys.disciplina.byId(
@@ -123,7 +118,7 @@ export function useDesvincularProfessorDisciplina() {
     },
     onSuccess: (_, variables) => {
       // Invalidar caches relacionados
-      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplina.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplinas.list() });
       if (variables.disciplinaId) {
         queryClient.invalidateQueries({
           queryKey: QueryKeys.disciplina.byId(
@@ -145,5 +140,43 @@ export function useDisciplinaProfessor(disciplinaId: number | null) {
       return response.data;
     },
     enabled: disciplinaId != null,
+  });
+}
+
+// Hook for a professor to get their associated disciplines for the current semester
+export function useProfessorDisciplinas() {
+  return useQuery<ProfessorDisciplina[]>({
+    queryKey: QueryKeys.disciplinas.professor,
+    queryFn: async () => {
+      const response = await apiClient.get('/professor/disciplinas');
+      return response.data;
+    },
+  });
+}
+
+// Hook for a professor to add a discipline association
+export function useAddProfessorDisciplina() {
+  const queryClient = useQueryClient();
+  return useMutation<ProfessorDisciplina, Error, { disciplinaId: number }>({
+    mutationFn: async (data) => {
+      const response = await apiClient.post('/professor/disciplinas', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplinas.professor });
+    },
+  });
+}
+
+// Hook for a professor to remove a discipline association
+export function useRemoveProfessorDisciplina() {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, number>({
+    mutationFn: async (associationId) => {
+      await apiClient.delete(`/professor/disciplinas/${associationId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.disciplinas.professor });
+    },
   });
 }

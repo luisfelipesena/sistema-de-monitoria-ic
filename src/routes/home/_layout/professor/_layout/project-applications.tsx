@@ -30,13 +30,19 @@ import {
   Star,
   Users,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { z } from 'zod';
+
+const searchSchema = z.object({
+  projectId: z.number().optional(),
+});
 
 export const Route = createFileRoute(
   '/home/_layout/professor/_layout/project-applications',
 )({
   component: ProjectApplicationsPage,
+  validateSearch: searchSchema,
 });
 
 interface QuickEvaluation {
@@ -48,9 +54,10 @@ interface QuickEvaluation {
 
 function ProjectApplicationsPage() {
   const { user } = useAuth();
+  const search = Route.useSearch();
   const { data: projetos, isLoading: loadingProjetos } = useProjetos();
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
-    null,
+    search.projectId || null,
   );
   const [quickEvaluations, setQuickEvaluations] = useState<
     Record<number, QuickEvaluation>
@@ -59,6 +66,13 @@ function ProjectApplicationsPage() {
   const { data: selectionData, isLoading: loadingSelection } =
     useSelectionProcess(selectedProjectId || 0);
   const bulkEvaluation = useBulkEvaluation();
+
+  // Auto-select project if coming from dashboard
+  useEffect(() => {
+    if (search.projectId && search.projectId !== selectedProjectId) {
+      setSelectedProjectId(search.projectId);
+    }
+  }, [search.projectId, selectedProjectId]);
 
   // Filter projects that are approved and belong to the current professor
   const myApprovedProjects = useMemo(() => {
@@ -337,9 +351,16 @@ function ProjectApplicationsPage() {
             <Select
               value={selectedProjectId?.toString() || ''}
               onValueChange={(value) => setSelectedProjectId(parseInt(value))}
+              disabled={myApprovedProjects.length === 0}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecione um projeto para avaliar candidatos" />
+                <SelectValue 
+                  placeholder={
+                    myApprovedProjects.length === 0 
+                      ? "Nenhum projeto aprovado disponível" 
+                      : "Selecione um projeto aprovado para avaliar candidatos"
+                  } 
+                />
               </SelectTrigger>
               <SelectContent>
                 {myApprovedProjects.map((projeto) => (
@@ -349,6 +370,15 @@ function ProjectApplicationsPage() {
                 ))}
               </SelectContent>
             </Select>
+            
+            {myApprovedProjects.length === 0 && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-blue-700">
+                  <strong>Nenhum projeto aprovado:</strong> Para gerenciar candidatos, você precisa ter projetos aprovados pelo administrador. 
+                  Candidatos só podem se inscrever em projetos com status "Aprovado".
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

@@ -62,7 +62,7 @@ export type ProjetoResponse = z.infer<typeof projetoComRelationsSchema>;
 
 export const projetoInputSchema = z.object({
   titulo: z.string().min(5),
-  descricao: z.string().min(10),
+  descricao: z.string().min(5),
   departamentoId: z.number(),
   disciplinaIds: z.array(z.number()).min(1),
   ano: z.number(),

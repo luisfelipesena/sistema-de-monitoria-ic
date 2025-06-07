@@ -48,6 +48,11 @@ export interface MonitoriaFormData {
     nomeCompleto?: string;
     role?: string;
   };
+  assinaturaProfessor?: string;
+  assinaturaAdmin?: string;
+  allowSigning?: boolean;
+  signingMode?: 'professor' | 'admin' | 'view';
+  projetoId?: number;
 }
 
 // Estilos
@@ -164,6 +169,16 @@ const styles = StyleSheet.create({
     borderBottom: '1pt solid #000',
     width: 200,
     height: 20,
+  },
+  signatureImage: {
+    width: 200,
+    height: 60,
+    objectFit: 'contain',
+  },
+  activeSignatureArea: {
+    borderColor: '#0066cc',
+    borderWidth: '2pt',
+    backgroundColor: '#f0f8ff',
   },
   tableRow: {
     borderBottom: '1pt solid #000',
@@ -373,9 +388,13 @@ export const MonitoriaFormTemplate = ({
 
             <View style={styles.signatureArea}>
               <Text style={styles.signatureText}>
-                Data e Assinatura do(a) Prof(a). Responsável: ___/___/______
+                Data e Assinatura do(a) Prof(a). Responsável: {new Date().toLocaleDateString('pt-BR')}
               </Text>
-              <View style={styles.signatureLine} />
+              {data.assinaturaProfessor ? (
+                <Image src={data.assinaturaProfessor} style={styles.signatureImage} />
+              ) : (
+                <View style={data.signingMode === 'professor' ? [styles.signatureLine, styles.activeSignatureArea] : styles.signatureLine} />
+              )}
             </View>
           </View>
         </View>
@@ -402,9 +421,13 @@ export const MonitoriaFormTemplate = ({
 
             <View style={styles.signatureArea}>
               <Text style={styles.signatureText}>
-                Data e Assinatura do(a) Coordenador(a): ___/___/______
+                Data e Assinatura do(a) Coordenador(a): {new Date().toLocaleDateString('pt-BR')}
               </Text>
-              <View style={styles.signatureLine} />
+              {data.assinaturaAdmin ? (
+                <Image src={data.assinaturaAdmin} style={styles.signatureImage} />
+              ) : (
+                <View style={data.signingMode === 'admin' ? [styles.signatureLine, styles.activeSignatureArea] : styles.signatureLine} />
+              )}
             </View>
           </View>
         </View>

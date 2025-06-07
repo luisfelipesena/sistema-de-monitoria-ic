@@ -2,7 +2,7 @@ import * as z from 'zod';
 
 export const projetoFormSchema = z.object({
   titulo: z.string().min(1, 'Título é obrigatório'),
-  descricao: z.string().min(10, 'Descrição deve ter pelo menos 10 caracteres'),
+  descricao: z.string().min(5, 'Descrição deve ter pelo menos 5 caracteres'),
   departamentoId: z.number().min(1, 'Departamento é obrigatório'),
   professorResponsavelId: z
     .number({

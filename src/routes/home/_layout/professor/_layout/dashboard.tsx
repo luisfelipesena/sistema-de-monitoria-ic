@@ -3,13 +3,11 @@ import { TableComponent } from '@/components/layout/TableComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FilterModal, FilterValues } from '@/components/ui/FilterModal';
-import { useProjetos, useSubmitProjeto } from '@/hooks/use-projeto';
+import { useProjetos } from '@/hooks/use-projeto';
 import { ProjetoListItem } from '@/routes/api/projeto/-types';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { useToast } from '@/hooks/use-toast';
 import { Link } from '@tanstack/react-router';
 
 import {
@@ -19,8 +17,8 @@ import {
   List,
   Loader,
   Plus,
-  Send,
   Users,
+  FileSignature,
 } from 'lucide-react';
 
 export const Route = createFileRoute(
@@ -32,10 +30,8 @@ export const Route = createFileRoute(
 function DashboardProfessor() {
   const navigate = useNavigate();
   const { data: projetos, isLoading: loadingProjetos } = useProjetos();
-  const submitProjetoMutation = useSubmitProjeto();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
-  const { toast } = useToast();
 
   // Aplicar filtros aos projetos
   const projetosFiltrados = useMemo(() => {
@@ -57,34 +53,23 @@ function DashboardProfessor() {
   const handleAnalisarProjeto = (projetoId: number) => {
     navigate({
       to: '/home/professor/project-applications',
-      params: { projeto: projetoId.toString() },
+      search: { projectId: projetoId },
+    });
+  };
+
+  const handleViewPDF = (projetoId: number) => {
+    window.open(`/api/projeto/${projetoId}/pdf`, '_blank');
+  };
+
+  const handleEditProject = (projetoId: number) => {
+    navigate({
+      to: '/home/professor/document-signing',
+      search: { projectId: projetoId },
     });
   };
 
   const handleCriarProjeto = () => {
     navigate({ to: '/home/professor/projects' });
-  };
-
-  const handleSubmit = (id: number) => {
-    submitProjetoMutation.mutate(
-      { id },
-      {
-        onSuccess: () => {
-          toast({
-            title: 'Projeto Submetido',
-            description: 'Seu projeto foi enviado para avaliação.',
-          });
-        },
-        onError: (err) => {
-          toast({
-            title: 'Erro ao Submeter',
-            description:
-              err.message || 'Não foi possível submeter o projeto.',
-            variant: 'destructive',
-          });
-        },
-      },
-    );
   };
 
   // Column definitions for the projects table
@@ -195,52 +180,66 @@ function DashboardProfessor() {
         </div>
       ),
       accessorKey: 'acoes',
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          {row.original.status === 'DRAFT' ? (
-            <Button
-              variant="primary"
-              size="sm"
-              className="rounded-full flex items-center gap-1 bg-blue-600 hover:bg-blue-700"
-              onClick={() => handleSubmit(row.original.id)}
-              disabled={submitProjetoMutation.isPending}
-            >
-              <Send className="h-4 w-4" />
-              Submeter
-            </Button>
-          ) : (
-            <Button
-              variant="primary"
-              size="sm"
-              className="rounded-full flex items-center gap-1"
-              onClick={() => handleAnalisarProjeto(row.original.id)}
-            >
-              <Eye className="h-4 w-4" />
-              {row.original.status === 'APPROVED'
-                ? 'Ver Candidatos'
-                : 'Analisar'}
-            </Button>
-          )}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const projeto = row.original;
+        
+        return (
+          <div className="flex gap-2">
+            {projeto.status === 'DRAFT' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full flex items-center gap-1"
+                onClick={() => handleEditProject(projeto.id)}
+              >
+                <FileSignature className="h-4 w-4" />
+                Assinar
+              </Button>
+            )}
+            
+            {(projeto.status === 'SUBMITTED' || projeto.status === 'REJECTED') && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full flex items-center gap-1"
+                onClick={() => handleViewPDF(projeto.id)}
+              >
+                <Eye className="h-4 w-4" />
+                Ver PDF
+              </Button>
+            )}
+            
+            {projeto.status === 'APPROVED' && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full flex items-center gap-1"
+                  onClick={() => handleViewPDF(projeto.id)}
+                >
+                  <Eye className="h-4 w-4" />
+                  Ver PDF
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="rounded-full flex items-center gap-1"
+                  onClick={() => handleAnalisarProjeto(projeto.id)}
+                >
+                  <Users className="h-4 w-4" />
+                  Ver Candidatos
+                </Button>
+              </>
+            )}
+          </div>
+        );
+      },
     },
   ];
-
-  const handleGerenciarCandidatos = () => {
-    navigate({ to: '/home/professor/project-applications' });
-  };
 
   // Action buttons
   const dashboardActions = (
     <>
-      <Button
-        variant="primary"
-        className="bg-green-600 text-white hover:bg-green-700 transition-colors"
-        onClick={handleGerenciarCandidatos}
-      >
-        <Users className="w-4 h-4 mr-2" />
-        Gerenciar Candidatos
-      </Button>
       <Button
         variant="primary"
         className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors"

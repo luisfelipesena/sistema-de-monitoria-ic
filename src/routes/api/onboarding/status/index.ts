@@ -1,14 +1,19 @@
 import { db } from '@/server/database';
-import { alunoTable, professorTable } from '@/server/database/schema';
+import {
+  alunoTable,
+  disciplinaProfessorResponsavelTable,
+  professorTable,
+} from '@/server/database/schema';
 import {
   createAPIHandler,
   withAuthMiddleware,
 } from '@/server/middleware/common';
+import { getCurrentSemester } from '@/utils/get-current-semester';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 
 import { createAPIFileRoute } from '@tanstack/react-start/api';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 const log = logger.child({
@@ -29,6 +34,15 @@ export const onboardingStatusSchema = z.object({
     uploaded: z.array(z.string()).describe('Documentos já enviados'),
     missing: z.array(z.string()).describe('Documentos em falta'),
   }),
+  disciplinas: z
+    .object({
+      configured: z
+        .boolean()
+        .describe(
+          'Indica se o professor configurou suas disciplinas para o semestre',
+        ),
+    })
+    .optional(),
 });
 
 export type OnboardingStatus = z.infer<typeof onboardingStatusSchema>;
@@ -58,6 +72,7 @@ export const APIRoute = createAPIFileRoute('/api/onboarding/status')({
         // Verificar se existe perfil
         let hasProfile = false;
         let profileData: any = null;
+        let hasDisciplinas = false;
 
         if (userRole === 'student') {
           profileData = await db.query.alunoTable.findFirst({
@@ -69,6 +84,22 @@ export const APIRoute = createAPIFileRoute('/api/onboarding/status')({
             where: eq(professorTable.userId, userId),
           });
           hasProfile = !!profileData;
+
+          if (hasProfile) {
+            const { year, semester } = getCurrentSemester();
+            const result =
+              await db.query.disciplinaProfessorResponsavelTable.findFirst({
+                where: and(
+                  eq(
+                    disciplinaProfessorResponsavelTable.professorId,
+                    profileData.id,
+                  ),
+                  eq(disciplinaProfessorResponsavelTable.ano, year),
+                  eq(disciplinaProfessorResponsavelTable.semestre, semester),
+                ),
+              });
+            hasDisciplinas = !!result;
+          }
         }
 
         // Verificar documentos obrigatórios
@@ -104,7 +135,10 @@ export const APIRoute = createAPIFileRoute('/api/onboarding/status')({
         );
 
         // Onboarding está pendente se não tem perfil OU se faltam documentos obrigatórios
-        const pending = !hasProfile || missingDocs.length > 0;
+        let pending = !hasProfile || missingDocs.length > 0;
+        if (userRole === 'professor') {
+          pending = pending || !hasDisciplinas;
+        }
 
         return json({
           pending,
@@ -117,6 +151,9 @@ export const APIRoute = createAPIFileRoute('/api/onboarding/status')({
             uploaded: uniqueUploadedDocs,
             missing: missingDocs,
           },
+          ...(userRole === 'professor' && {
+            disciplinas: { configured: hasDisciplinas },
+          }),
         });
       } catch (error) {
         log.error({ error }, 'Erro ao verificar status de onboarding');

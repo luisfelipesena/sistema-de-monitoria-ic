@@ -7,13 +7,14 @@ import { useRouter } from '@tanstack/react-router';
 import { User } from 'lucia';
 import React, { createContext, useCallback, useContext, useMemo } from 'react';
 import { QueryKeys } from './query-keys';
+import { AppUser } from '@/routes/api/auth/me';
 
 const log = logger.child({
   context: 'useAuth',
 });
 
 interface AuthState {
-  user: User | null;
+  user: AppUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
 }
@@ -26,11 +27,11 @@ interface AuthContextProps extends AuthState {
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 const useMeQuery = () => {
-  return useQuery<User | null, Error>({
+  return useQuery<AppUser | null, Error>({
     queryKey: QueryKeys.auth.me,
     queryFn: async () => {
       try {
-        const response = await apiClient.get<User>('/auth/me');
+        const response = await apiClient.get<AppUser>('/auth/me');
         return response.data;
       } catch (error) {
         log.error({ error }, 'Erro ao buscar usuário');

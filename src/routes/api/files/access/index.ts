@@ -11,20 +11,24 @@ import {
   projetoDocumentoTable,
 } from '@/server/database/schema';
 import { eq, or } from 'drizzle-orm';
+import { z } from 'zod';
 
 const log = logger.child({
   context: 'FileAccessAPI',
 });
 
-// This route is responsible for generating a presigned URL and redirecting the user to it.
-// It ensures that only authorized users can access files.
-export const APIRoute = createAPIFileRoute('/api/files/access/$fileId')({
-  GET: createAPIHandler(
-    withAuthMiddleware(async (ctx) => {
-      const { fileId } = ctx.params;
-      const userId = parseInt(ctx.state.user.userId, 10);
+const fileAccessSchema = z.object({
+  fileId: z.string().min(1, 'File ID é obrigatório'),
+});
 
+export const APIRoute = createAPIFileRoute('/api/files/access')({
+  POST: createAPIHandler(
+    withAuthMiddleware(async (ctx) => {
       try {
+        const body = await ctx.request.json();
+        const { fileId } = fileAccessSchema.parse(body);
+        const userId = parseInt(ctx.state.user.userId, 10);
+
         // We need to verify the user has permission to access this file.
         // For now, we check if the fileId is referenced in their user-related tables.
         // This logic should be expanded as more document types are added.
@@ -81,6 +85,8 @@ export const APIRoute = createAPIFileRoute('/api/files/access/$fileId')({
           log.warn(`Unauthorized access attempt for fileId: ${fileId} by userId: ${userId}`);
           return json({ error: 'Acesso não autorizado' }, { status: 403 });
         }
+
+        log.info(`Generating presigned URL for authorized access - fileId: ${fileId} by userId: ${userId}`);
         
         const bucketName = env.MINIO_BUCKET_NAME;
         const presignedUrl = await minioClient.presignedGetObject(
@@ -89,15 +95,19 @@ export const APIRoute = createAPIFileRoute('/api/files/access/$fileId')({
           60 * 5, // 5 minutes validity
         );
 
-        // Instead of returning JSON, we issue a redirect.
-        return new Response(null, {
-          status: 302,
-          headers: {
-            Location: presignedUrl,
-          },
-        });
+        return json({ url: presignedUrl }, { status: 200 });
       } catch (error) {
-        log.error(error, `Error generating presigned URL for fileId: ${fileId}`);
+        // Tratamento específico para arquivo não encontrado no MinIO
+        if (error instanceof Error && (error.message.includes('NoSuchKey') || (error as any).code === 'NoSuchKey')) {
+          log.warn({ fileId: (error as any).fileId, userId: (error as any).userId, error }, 'Arquivo não encontrado no MinIO');
+          return json({ error: 'Arquivo não encontrado' }, { status: 404 });
+        }
+        
+        if (error instanceof z.ZodError) {
+          return json({ error: 'Dados inválidos', details: error.errors }, { status: 400 });
+        }
+        
+        log.error(error, `Error generating presigned URL`);
         return json({ error: 'Erro ao acessar o arquivo' }, { status: 500 });
       }
     }),

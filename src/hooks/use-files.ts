@@ -4,6 +4,7 @@ import {
 } from '@/routes/api/files/admin/-types';
 import { DeleteResponse } from '@/routes/api/files/admin/delete';
 import { PresignedUrlBody } from '@/routes/api/files/admin/presigned-url';
+import { FileMetadataResponse } from '@/routes/api/files/metadata';
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -47,7 +48,55 @@ export function useFileUpload() {
 }
 
 /**
- * Hook para acessar um arquivo
+ * Hook para obter metadados de um arquivo do usuário
+ */
+export function useFileMetadata(fileId: string) {
+  return useQuery<FileMetadataResponse>({
+    queryKey: QueryKeys.files.metadata(fileId),
+    queryFn: async () => {
+      const response = await apiClient.post<FileMetadataResponse>('/files/metadata', { fileId });
+      return response.data;
+    },
+    enabled: Boolean(fileId),
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
+}
+
+/**
+ * Hook para acessar um arquivo do usuário atual
+ */
+export function useUserFileAccess() {
+  return useMutation<string, Error, { fileId: string }>({
+    mutationFn: async ({ fileId }) => {
+      try {
+        const response = await apiClient.post('/files/access', { fileId });
+        
+        if (!response.data.url) {
+          throw new Error('URL de acesso não retornada pelo servidor');
+        }
+        
+        return response.data.url;
+      } catch (error: any) {
+        if (error.response?.status === 403) {
+          throw new Error('Acesso não autorizado a este arquivo');
+        }
+        if (error.response?.status === 404) {
+          throw new Error('Arquivo não encontrado');
+        }
+        if (error.response?.data?.error) {
+          throw new Error(error.response.data.error);
+        }
+        throw new Error('Erro ao acessar o arquivo');
+      }
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao acessar arquivo do usuário');
+    },
+  });
+}
+
+/**
+ * Hook para acessar um arquivo (legacy)
  */
 export function useFileAccess(fileId: string) {
   return useQuery({

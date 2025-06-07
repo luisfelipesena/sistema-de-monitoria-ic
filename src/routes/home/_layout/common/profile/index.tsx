@@ -20,9 +20,11 @@ import { useCursos } from '@/hooks/use-curso';
 import { useProfessor, useSetProfessor } from '@/hooks/use-professor';
 import { useToast } from '@/hooks/use-toast';
 import {
+  DocumentType,
   useUpdateUserDocument,
   useUserDocuments,
 } from '@/hooks/use-user-documents';
+import { useUserFileAccess, useFileMetadata } from '@/hooks/use-files';
 import { createFileRoute } from '@tanstack/react-router';
 import { Eye, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -500,6 +502,115 @@ function ProfessorProfile() {
   );
 }
 
+type DocumentItemProps = {
+  doc: {
+    id: string;
+    nome: string;
+    tipo: DocumentType;
+    fileId?: string;
+    status: 'valid' | 'pending';
+  };
+  onUpload: (file: File, documentType: DocumentType) => void;
+  isUploading: boolean;
+};
+
+function DocumentItem({ doc, onUpload, isUploading }: DocumentItemProps) {
+  const { data: metadata, isLoading: isLoadingMetadata } = useFileMetadata(doc.fileId || '');
+  const userFileAccessMutation = useUserFileAccess();
+  const { toast } = useToast();
+
+  const handleVisualize = () => {
+    if (!doc.fileId) {
+      toast({
+        title: 'Arquivo não encontrado',
+        description: 'Este documento ainda não foi enviado.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    userFileAccessMutation.mutate(
+      { fileId: doc.fileId },
+      {
+        onSuccess: (presignedUrl) => {
+          window.open(presignedUrl, '_blank');
+        },
+        onError: (error) => {
+          toast({
+            title: 'Erro ao acessar arquivo',
+            description: error.message || 'Não foi possível acessar o arquivo',
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
+
+  const displayFileName = metadata?.originalFilename || 'Carregando...';
+
+  return (
+    <div className="flex items-center justify-between p-4 border rounded-lg">
+      <div className="space-y-1">
+        <span className="font-medium">{doc.nome}</span>
+        {doc.fileId && (
+          <p className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded w-fit">
+            📄 {isLoadingMetadata ? 'Carregando...' : displayFileName}
+          </p>
+        )}
+        <Badge
+          variant={doc.status === 'valid' ? 'default' : 'secondary'}
+          className="text-xs"
+        >
+          Status: {doc.status === 'valid' ? 'Válido' : 'Pendente'}
+        </Badge>
+      </div>
+      <div className="flex gap-2">
+        <input
+          type="file"
+          id={`upload-${doc.id}`}
+          accept=".pdf"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              onUpload(file, doc.tipo);
+            }
+          }}
+        />
+        <Button
+          variant="outline"
+          onClick={() =>
+            document.getElementById(`upload-${doc.id}`)?.click()
+          }
+          disabled={isUploading}
+        >
+          <Upload className="w-4 h-4 mr-2" />
+          {doc.fileId ? 'Alterar' : 'Enviar'}
+        </Button>
+        {doc.fileId && (
+          <Button
+            variant="secondary"
+            onClick={handleVisualize}
+            disabled={userFileAccessMutation.isPending}
+          >
+            {userFileAccessMutation.isPending ? (
+              <div className="flex items-center gap-2">
+                <Spinner />
+                Carregando...
+              </div>
+            ) : (
+              <>
+                <Eye className="w-4 h-4 mr-2" />
+                Visualizar
+              </>
+            )}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function DocumentsSection() {
   const { data: documentos, isLoading } = useUserDocuments();
   const updateDocumentMutation = useUpdateUserDocument();
@@ -507,7 +618,7 @@ function DocumentsSection() {
 
   const handleUpload = async (
     file: File,
-    documentType: 'historico_escolar' | 'comprovante_matricula' | 'curriculum_vitae' | 'comprovante_vinculo',
+    documentType: DocumentType,
   ) => {
     try {
       await updateDocumentMutation.mutateAsync({
@@ -523,18 +634,6 @@ function DocumentsSection() {
       toast({
         title: 'Erro no upload',
         description: 'Não foi possível enviar o arquivo',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleVisualize = (doc: { fileId?: string }) => {
-    if (doc.fileId) {
-      window.open(`/api/files/access/${doc.fileId}`, '_blank');
-    } else {
-      toast({
-        title: 'Arquivo não encontrado',
-        description: 'Este documento ainda não foi enviado.',
         variant: 'destructive',
       });
     }
@@ -556,58 +655,12 @@ function DocumentsSection() {
       <h2 className="text-xl font-semibold mb-6">📄 Documentos</h2>
       <div className="space-y-4">
         {documentos?.map((doc) => (
-          <div
+          <DocumentItem
             key={doc.id}
-            className="flex items-center justify-between p-4 border rounded-lg"
-          >
-            <div className="space-y-1">
-              <span className="font-medium">{doc.nome}</span>
-              {doc.fileName && (
-                <p className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded w-fit">
-                  📄 {doc.fileName}
-                </p>
-              )}
-              <Badge
-                variant={doc.status === 'valid' ? 'default' : 'secondary'}
-                className="text-xs"
-              >
-                Status: {doc.status === 'valid' ? 'Válido' : 'Pendente'}
-              </Badge>
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="file"
-                id={`upload-${doc.id}`}
-                accept=".pdf"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    handleUpload(file, doc.tipo);
-                  }
-                }}
-              />
-              <Button
-                variant="outline"
-                onClick={() =>
-                  document.getElementById(`upload-${doc.id}`)?.click()
-                }
-                disabled={updateDocumentMutation.isPending}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                {doc.fileName ? 'Alterar' : 'Enviar'}
-              </Button>
-              {doc.fileId && (
-                <Button
-                  variant="secondary"
-                  onClick={() => handleVisualize(doc)}
-                >
-                  <Eye className="w-4 h-4 mr-2" />
-                  Visualizar
-                </Button>
-              )}
-            </div>
-          </div>
+            doc={doc}
+            onUpload={handleUpload}
+            isUploading={updateDocumentMutation.isPending}
+          />
         )) || (
           <p className="text-center text-muted-foreground py-4">
             Nenhum documento encontrado

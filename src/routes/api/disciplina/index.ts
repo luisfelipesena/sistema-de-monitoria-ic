@@ -1,9 +1,6 @@
-import { disciplinaComProfessorSchema } from '@/routes/api/disciplina/-types';
 import { db } from '@/server/database';
 import {
-  disciplinaProfessorResponsavelTable,
   disciplinaTable,
-  professorTable,
 } from '@/server/database/schema';
 import {
   createAPIHandler,
@@ -13,7 +10,6 @@ import {
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
-import { and, eq, inArray, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 const log = logger.child({
@@ -26,113 +22,32 @@ const disciplinaInputSchema = z.object({
   departamentoId: z.number().min(1, 'Departamento é obrigatório'),
 });
 
+const searchSchema = z.object({
+  departamentoId: z.coerce.number().optional(),
+});
+
 export const APIRoute = createAPIFileRoute('/api/disciplina')({
   GET: createAPIHandler(
     withAuthMiddleware(async (ctx) => {
-      try {
-        const url = new URL(ctx.request.url);
-        const departamentoId = url.searchParams.get('departamentoId');
-        const currentYear = new Date().getFullYear();
-        const currentMonth = new Date().getMonth();
-        const currentSemester = currentMonth <= 6 ? 'SEMESTRE_1' : 'SEMESTRE_2';
+      const url = new URL(ctx.request.url);
+      const queryParams = Object.fromEntries(url.searchParams.entries());
+      const { departamentoId } = searchSchema.parse(queryParams);
 
-        let whereCondition;
-        if (departamentoId) {
-          whereCondition = eq(
-            disciplinaTable.departamentoId,
-            parseInt(departamentoId),
-          );
-        } else {
-          // Se não especificar departamento, buscar apenas disciplinas não deletadas
-          whereCondition = isNull(disciplinaTable.deletedAt);
-        }
+      const disciplinas = await db.query.disciplinaTable.findMany({
+        where: departamentoId
+          ? (table, { eq }) => eq(table.departamentoId, departamentoId)
+          : undefined,
+        with: {
+          departamento: true,
+        },
+      });
 
-        // Buscar as disciplinas
-        const disciplinas = await db
-          .select({
-            id: disciplinaTable.id,
-            nome: disciplinaTable.nome,
-            codigo: disciplinaTable.codigo,
-            departamentoId: disciplinaTable.departamentoId,
-            createdAt: disciplinaTable.createdAt,
-            updatedAt: disciplinaTable.updatedAt,
-            deletedAt: disciplinaTable.deletedAt,
-          })
-          .from(disciplinaTable)
-          .where(whereCondition)
-          .orderBy(disciplinaTable.nome);
-
-        // Buscar vínculos de professores para o semestre atual
-        const disciplinaIds = disciplinas.map((d) => d.id);
-
-        const vinculos = await db
-          .select({
-            disciplinaId: disciplinaProfessorResponsavelTable.disciplinaId,
-            professorId: disciplinaProfessorResponsavelTable.professorId,
-            professorNome: professorTable.nomeCompleto,
-          })
-          .from(disciplinaProfessorResponsavelTable)
-          .innerJoin(
-            professorTable,
-            eq(
-              disciplinaProfessorResponsavelTable.professorId,
-              professorTable.id,
-            ),
-          )
-          .where(
-            and(
-              disciplinaIds.length > 0
-                ? inArray(
-                    disciplinaProfessorResponsavelTable.disciplinaId,
-                    disciplinaIds,
-                  )
-                : undefined,
-              eq(disciplinaProfessorResponsavelTable.ano, currentYear),
-              eq(disciplinaProfessorResponsavelTable.semestre, currentSemester),
-            ),
-          );
-
-        // Criar mapa de professores por disciplina
-        const professorPorDisciplina = new Map();
-        vinculos.forEach((v) => {
-          professorPorDisciplina.set(v.disciplinaId, {
-            professorResponsavel: v.professorNome,
-            professorResponsavelId: v.professorId,
-          });
-        });
-
-        // Combinar os dados
-        const disciplinasComProfessor = disciplinas.map((disciplina) => {
-          const professorInfo = professorPorDisciplina.get(disciplina.id) || {
-            professorResponsavel: null,
-            professorResponsavelId: null,
-          };
-
-          return {
-            ...disciplina,
-            ...professorInfo,
-          };
-        });
-
-        log.info(
-          { count: disciplinasComProfessor.length },
-          'Disciplinas recuperadas com sucesso',
-        );
-        return json(
-          z.array(disciplinaComProfessorSchema).parse(disciplinasComProfessor),
-          {
-            status: 200,
-          },
-        );
-      } catch (error) {
-        log.error(error, 'Erro ao recuperar disciplinas');
-        return json({ error: 'Erro interno do servidor' }, { status: 500 });
-      }
+      return json(disciplinas);
     }),
   ),
 
   POST: createAPIHandler(
-    withRoleMiddleware(['admin'], async (ctx) => {
+    withRoleMiddleware(['admin', 'professor'], async (ctx) => {
       try {
         const body = await ctx.request.json();
         const validatedData = disciplinaInputSchema.parse(body);

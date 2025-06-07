@@ -19,10 +19,11 @@ export const config = {
 };
 
 export const uploadResponseSchema = z.object({
-  fileId: z.string().min(1, 'ID do arquivo é obrigatório'),
+  fileId: z.string().min(1, 'ID do arquivo é obrigatório (path completo no MinIO)'),
   fileName: z.string().min(1, 'Nome do arquivo é obrigatório'),
   mimeType: z.string().min(1, 'Tipo de mídia é obrigatório'),
   fileSize: z.number().min(1, 'Tamanho do arquivo é obrigatório'),
+  objectName: z.string().min(1, 'Nome do objeto no MinIO é obrigatório'),
 });
 
 export type UploadResponse = z.infer<typeof uploadResponseSchema>;
@@ -79,11 +80,16 @@ export const APIRoute = createAPIFileRoute('/api/files/upload')({
             userId,
           }, 'Arquivo enviado com sucesso');
 
+          // IMPORTANTE: Retornamos o objectName completo como fileId para garantir
+          // que o frontend salve o path correto no banco de dados.
+          // Isso resolve o problema onde MinIO não conseguia encontrar arquivos
+          // porque estava procurando apenas pelo UUID ao invés do path completo.
           return json({
-            fileId,
+            fileId: objectName, // Path completo no MinIO (ex: user_document/123/uuid.pdf)
             fileName: originalFilename,
             mimeType: file.type,
             fileSize: file.size,
+            objectName: objectName, // Mantido para compatibilidade
           }, {
             status: 200,
           });

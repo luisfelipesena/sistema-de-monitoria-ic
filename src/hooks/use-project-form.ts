@@ -6,11 +6,12 @@ import {
 } from '@/components/features/projects/types';
 import { useAuth } from '@/hooks/use-auth';
 import { useDepartamentoList } from '@/hooks/use-departamento';
-import { useDisciplinas } from '@/hooks/use-disciplina';
+import { useDisciplinas, useProfessorDisciplinas } from '@/hooks/use-disciplina';
 import { useProfessores } from '@/hooks/use-professor';
 import type { ProfessorResponse } from '@/routes/api/professor';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useMemo } from 'react';
 
 export function useProjectForm() {
   const { user } = useAuth();
@@ -42,8 +43,32 @@ export function useProjectForm() {
   const departamentoSelecionado = departamentos?.find(
     (d) => d.id === departamentoId,
   );
-  const { data: disciplinasFiltradas, isLoading: loadingDisciplinas } =
-    useDisciplinas(departamentoId);
+  const {
+    data: disciplinas,
+    isLoading: loadingDisciplinas,
+  } = useDisciplinas({ departamentoId: departamentoId });
+
+  const { data: professorDisciplinas } = useProfessorDisciplinas();
+
+  const disciplinasFiltradas = useMemo(() => {
+    if (!disciplinas || !professores) return [];
+
+    const professorMap = new Map(professores.map((p) => [p.id, p]));
+    const disciplinaProfessorMap = new Map(
+      professorDisciplinas?.map((pd) => [pd.disciplinaId, pd.professorId]) ||
+        [],
+    );
+
+    return disciplinas.map((d) => {
+      const professorId = disciplinaProfessorMap.get(d.id);
+      const professor = professorId ? professorMap.get(professorId) : null;
+      return {
+        ...d,
+        professorResponsavel: professor?.nomeCompleto || null,
+      };
+    });
+  }, [disciplinas, professorDisciplinas, professores]);
+
   const formData = watch();
 
   const isLoading = loadingDepartamentos || loadingProfessores;

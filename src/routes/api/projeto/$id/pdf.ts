@@ -4,10 +4,7 @@ import {
   assinaturaDocumentoTable,
   tipoAssinaturaEnum,
 } from '@/server/database/schema';
-import {
-  generateProjetoMonitoriaPDF,
-  ProjetoMonitoriaData,
-} from '@/server/lib/email-templates/pdf/projeto-monitoria-pdf';
+import { MonitoriaFormTemplate } from '@/components/features/projects/MonitoriaFormTemplate';
 import {
   createAPIHandler,
   withAuthMiddleware,
@@ -16,7 +13,7 @@ import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { and, eq } from 'drizzle-orm';
-import puppeteer from 'puppeteer';
+import { renderToBuffer } from '@react-pdf/renderer';
 
 const log = logger.child({
   context: 'ProjetoPDFAPI',
@@ -61,17 +58,17 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/pdf')({
           return json({ error: 'Acesso não autorizado' }, { status: 403 });
         }
 
-        let assinaturaProfessorBase64: string | undefined = undefined;
+        let assinaturaProfessor: string | undefined = undefined;
         const signatureRecord = await db.query.assinaturaDocumentoTable.findFirst({
           where: and(
             eq(assinaturaDocumentoTable.projetoId, projetoId),
-            eq(assinaturaDocumentoTable.tipoAssinatura, tipoAssinaturaEnum.enumValues[0] /* PROJETO_PROFESSOR_RESPONSAVEL */)
+            eq(assinaturaDocumentoTable.tipoAssinatura, tipoAssinaturaEnum.enumValues[0])
           ),
           orderBy: (fields, operators) => [operators.desc(fields.createdAt)],
         });
 
         if (signatureRecord) {
-          assinaturaProfessorBase64 = signatureRecord.assinaturaData;
+          assinaturaProfessor = signatureRecord.assinaturaData;
         }
 
         const professor = projeto.professorResponsavel;
@@ -84,62 +81,45 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/pdf')({
              return json({ error: 'Dados essenciais do projeto ausentes.' }, { status: 500});
         }
 
-        const pdfData: ProjetoMonitoriaData = {
+        const formData = {
           titulo: projeto.titulo,
           descricao: projeto.descricao,
-          departamentoId: projeto.departamentoId,
+          departamento: {
+            id: departamento.id,
+            nome: departamento.nome,
+          },
+          professorResponsavel: {
+            id: professor.id,
+            nomeCompleto: professor.nomeCompleto,
+            nomeSocial: professor.nomeSocial || undefined,
+            genero: professor.genero as 'MASCULINO' | 'FEMININO' | 'OUTRO',
+            cpf: professor.cpf,
+            matriculaSiape: professor.matriculaSiape || undefined,
+            regime: professor.regime as '20H' | '40H' | 'DE',
+            telefone: professor.telefone || undefined,
+            telefoneInstitucional: professor.telefoneInstitucional || undefined,
+            emailInstitucional: professor.emailInstitucional,
+          },
           ano: projeto.ano,
-          semestre: projeto.semestre,
-          tipoProposicao: projeto.tipoProposicao,
+          semestre: projeto.semestre as 'SEMESTRE_1' | 'SEMESTRE_2',
+          tipoProposicao: projeto.tipoProposicao as 'INDIVIDUAL' | 'COLETIVA',
           bolsasSolicitadas: projeto.bolsasSolicitadas,
           voluntariosSolicitados: projeto.voluntariosSolicitados,
           cargaHorariaSemana: projeto.cargaHorariaSemana,
           numeroSemanas: projeto.numeroSemanas,
           publicoAlvo: projeto.publicoAlvo,
-          estimativaPessoasBeneficiadas: projeto.estimativaPessoasBenificiadas || undefined,
-          professor: {
-            nomeCompleto: professor.nomeCompleto,
-            nomeSocial: professor.nomeSocial || undefined,
-            genero: professor.genero as string,
-            cpf: professor.cpf,
-            siape: professor.matriculaSiape || '',
-            regime: professor.regime as string,
-            telefoneInstitucional: professor.telefoneInstitucional || undefined,
-            celular: professor.telefone || undefined,
-            emailInstitucional: professor.emailInstitucional,
-          },
-          departamento: {
-            nome: departamento.nome,
-            unidadeUniversitaria: departamento.unidadeUniversitaria || undefined,
-          },
+          estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas ?? undefined,
           disciplinas: disciplinasRel.map((pd) => ({
+            id: pd.disciplina.id,
             codigo: pd.disciplina.codigo,
             nome: pd.disciplina.nome,
           })),
-          atividades: atividadesRel.map(a => ({
-            id: a.id,
-            descricao: a.descricao
-          })),
-          dataAprovacao: projeto.status === 'APPROVED' ? new Date().toLocaleDateString('pt-BR') : undefined,
-          assinaturaProfessorBase64,
+          assinaturaProfessor: assinaturaProfessor,
         };
 
-        const htmlContent = generateProjetoMonitoriaPDF(pdfData);
+        const pdfBuffer = await renderToBuffer(MonitoriaFormTemplate({ data: formData }));
 
-        const browser = await puppeteer.launch({ 
-            headless: true, 
-            args: ['--no-sandbox', '--disable-setuid-sandbox']
-        });
-        const page = await browser.newPage();
-        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-        const pdfBuffer = await page.pdf({
-          format: 'A4',
-          printBackground: true,
-          margin: { top: '20mm', right: '20mm', bottom: '20mm', left: '20mm' },
-        });
-        await browser.close();
-
-        return new Response(pdfBuffer as any, {
+        return new Response(new Uint8Array(pdfBuffer), {
           status: 200,
           headers: {
             'Content-Type': 'application/pdf',

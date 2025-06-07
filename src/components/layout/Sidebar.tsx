@@ -239,8 +239,14 @@ const menuConfig: MenuConfig[] = [
         roles: ['professor'],
       },
       {
-        label: 'Gerenciar Voluntários',
-        href: '/home/professor/volunteer-management',
+        label: 'Assinatura de Projetos',
+        href: '/home/professor/document-signing',
+        icon: FileSignature,
+        roles: ['professor'],
+      },
+      {
+        label: 'Gerenciar Candidatos',
+        href: '/home/professor/project-applications',
         icon: Users,
         roles: ['professor'],
       },
@@ -248,6 +254,27 @@ const menuConfig: MenuConfig[] = [
         label: 'Seleção de Monitores',
         href: '/home/common/selecao-monitores',
         icon: UserCog,
+        roles: ['professor'],
+      },
+    ],
+  },
+
+  // Professor - Gestão Acadêmica
+  {
+    label: 'Gestão Acadêmica',
+    icon: BookOpen,
+    roles: ['professor'],
+    items: [
+      {
+        label: 'Minhas Disciplinas',
+        href: '/home/professor/disciplinas',
+        icon: BookOpen,
+        roles: ['professor'],
+      },
+      {
+        label: 'Gerenciar Voluntários',
+        href: '/home/professor/volunteer-management',
+        icon: Users,
         roles: ['professor'],
       },
     ],

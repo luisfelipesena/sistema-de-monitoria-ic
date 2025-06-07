@@ -15,7 +15,7 @@ export function useAluno() {
   return useQuery<AlunoResponse>({
     queryKey: QueryKeys.aluno.all,
     queryFn: async () => {
-      const response = await apiClient.get<AlunoResponse>('/aluno');
+      const response = await apiClient.get<AlunoResponse>('/student');
       return response.data;
     },
     retry: false,
@@ -30,7 +30,7 @@ export function useSetAluno() {
 
   return useMutation({
     mutationFn: async (data: AlunoInput) => {
-      const response = await apiClient.post('/aluno', data);
+      const response = await apiClient.post('/student', data);
       return response.data;
     },
     onSuccess: () => {

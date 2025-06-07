@@ -18,6 +18,7 @@ const buttonVariants = cva(
           'bg-destructive hover:bg-destructive-foreground text-white rounded-full',
         outline:
           'bg-transparent border border-primary text-primary hover:bg-primary/10 rounded-full',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
         disabled: 'bg-[#A7A7A7] text-white rounded-full',
         transparent: 'bg-transparent text-black rounded-full',
       },

@@ -1,19 +1,23 @@
 import { useAuth } from '@/hooks/use-auth';
 import { useAluno } from '@/hooks/use-aluno';
 import { useProfessor } from '@/hooks/use-professor';
-import { useFileUpload } from '@/hooks/use-files';
+import { useFileUpload, useFileMetadata } from '@/hooks/use-files';
 import { apiClient } from '@/utils/api-client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from './query-keys';
 
+export type DocumentType = 'historico_escolar' | 'comprovante_matricula' | 'curriculum_vitae' | 'comprovante_vinculo';
+
 export interface UserDocument {
   id: string;
   nome: string;
-  tipo: 'comprovante_matricula' | 'historico_escolar' | 'curriculum_vitae' | 'comprovante_vinculo';
+  tipo: DocumentType;
   fileId?: string;
   fileName?: string;
+  originalFileName?: string;
   url?: string;
   status: 'valid' | 'pending';
+  isLoadingMetadata?: boolean;
 }
 
 export interface FileAccessResponse {
@@ -29,57 +33,49 @@ export function useUserDocuments() {
   const { data: professor } = useProfessor();
 
   if (user?.role === 'student') {
-    const documents: UserDocument[] = [
+    const baseDocuments = [
       {
         id: 'comprovante-matricula',
         nome: 'Comprovante de Matrícula',
-        tipo: 'comprovante_matricula',
+        tipo: 'comprovante_matricula' as const,
         fileId: aluno?.comprovanteMatriculaFileId || undefined,
-        fileName: aluno?.comprovanteMatriculaFileId ? 'comprovante_matricula.pdf' : undefined,
-        url: aluno?.comprovanteMatriculaFileId ? `/api/files/access/${aluno.comprovanteMatriculaFileId}` : undefined,
-        status: aluno?.comprovanteMatriculaFileId ? 'valid' : 'pending',
+        status: aluno?.comprovanteMatriculaFileId ? 'valid' as const : 'pending' as const,
       },
       {
         id: 'historico-escolar',
         nome: 'Histórico Escolar',
-        tipo: 'historico_escolar',
+        tipo: 'historico_escolar' as const,
         fileId: aluno?.historicoEscolarFileId || undefined,
-        fileName: aluno?.historicoEscolarFileId ? 'historico_escolar.pdf' : undefined,
-        url: aluno?.historicoEscolarFileId ? `/api/files/access/${aluno.historicoEscolarFileId}` : undefined,
-        status: aluno?.historicoEscolarFileId ? 'valid' : 'pending',
+        status: aluno?.historicoEscolarFileId ? 'valid' as const : 'pending' as const,
       },
     ];
 
     return {
-      data: documents,
+      data: baseDocuments,
       isLoading: false,
     };
   }
 
   if (user?.role === 'professor') {
-    const documents: UserDocument[] = [
+    const baseDocuments = [
       {
         id: 'curriculum-vitae',
         nome: 'Currículo Vitae',
-        tipo: 'curriculum_vitae',
+        tipo: 'curriculum_vitae' as const,
         fileId: professor?.curriculumVitaeFileId || undefined,
-        fileName: professor?.curriculumVitaeFileId ? 'curriculum_vitae.pdf' : undefined,
-        url: professor?.curriculumVitaeFileId ? `/api/files/access/${professor.curriculumVitaeFileId}` : undefined,
-        status: professor?.curriculumVitaeFileId ? 'valid' : 'pending',
+        status: professor?.curriculumVitaeFileId ? 'valid' as const : 'pending' as const,
       },
       {
         id: 'comprovante-vinculo',
         nome: 'Comprovante de Vínculo',
-        tipo: 'comprovante_vinculo',
+        tipo: 'comprovante_vinculo' as const,
         fileId: professor?.comprovanteVinculoFileId || undefined,
-        fileName: professor?.comprovanteVinculoFileId ? 'comprovante_vinculo.pdf' : undefined,
-        url: professor?.comprovanteVinculoFileId ? `/api/files/access/${professor.comprovanteVinculoFileId}` : undefined,
-        status: professor?.comprovanteVinculoFileId ? 'valid' : 'pending',
+        status: professor?.comprovanteVinculoFileId ? 'valid' as const : 'pending' as const,
       },
     ];
 
     return {
-      data: documents,
+      data: baseDocuments,
       isLoading: false,
     };
   }

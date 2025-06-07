@@ -6,7 +6,7 @@
 export const QueryKeys = {
   // Auth related queries
   auth: {
-    me: ['auth', 'me'],
+    me: ['user', 'me'],
   },
 
   // User related queries
@@ -16,6 +16,8 @@ export const QueryKeys = {
     admin: {
       list: ['users', 'admin', 'list'],
     },
+    list: ['users', 'list'],
+    detail: (id: string) => ['users', 'detail', id],
   },
 
   // Aluno related queries
@@ -41,6 +43,7 @@ export const QueryKeys = {
     all: ['files'],
     byId: (id: string) => ['files', id],
     access: (id: string) => ['files', 'access', id],
+    metadata: (id: string) => ['files', 'metadata', id],
     uploads: ['files', 'uploads'],
     admin: {
       list: ['files', 'admin', 'list'],
@@ -141,6 +144,29 @@ export const QueryKeys = {
   projetoTemplate: {
     list: ['projetoTemplate', 'list'],
     byId: (id: string) => ['projetoTemplate', 'details', id],
+  },
+
+  // Cursos related queries
+  cursos: {
+    list: ['cursos', 'list'],
+    detail: (id: number) => ['cursos', 'detail', id],
+  },
+
+  // Departamentos related queries
+  departamentos: {
+    list: ['departamentos', 'list'],
+    detail: (id: number) => ['departamentos', 'detail', id],
+  },
+
+  // Disciplinas related queries
+  disciplinas: {
+    list: (filters: { departamentoId?: number } = {}) => [
+      'disciplinas',
+      'list',
+      filters,
+    ],
+    detail: (id: number) => ['disciplinas', 'detail', id],
+    professor: ['disciplinas', 'professor'],
   },
 };
 

@@ -64,10 +64,20 @@ export const APIRoute = createAPIFileRoute('/api/projeto')({
             status: projetoTable.status,
             ano: projetoTable.ano,
             semestre: projetoTable.semestre,
+            tipoProposicao: projetoTable.tipoProposicao,
             bolsasSolicitadas: projetoTable.bolsasSolicitadas,
             voluntariosSolicitados: projetoTable.voluntariosSolicitados,
             bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
+            cargaHorariaSemana: projetoTable.cargaHorariaSemana,
+            numeroSemanas: projetoTable.numeroSemanas,
+            publicoAlvo: projetoTable.publicoAlvo,
+            estimativaPessoasBenificiadas: projetoTable.estimativaPessoasBenificiadas,
+            descricao: projetoTable.descricao,
+            assinaturaProfessor: projetoTable.assinaturaProfessor,
+            feedbackAdmin: projetoTable.feedbackAdmin,
             createdAt: projetoTable.createdAt,
+            updatedAt: projetoTable.updatedAt,
+            deletedAt: projetoTable.deletedAt,
           })
           .from(projetoTable)
           .innerJoin(
@@ -198,14 +208,25 @@ export const APIRoute = createAPIFileRoute('/api/projeto')({
           disciplinaIds,
           professoresParticipantes,
           atividades,
-          ...projetoData
+          ...rest
         } = validatedData;
 
-        // Criar o projeto
+        // Criar o projeto com apenas os campos que existem na tabela
         const [novoProjeto] = await db
           .insert(projetoTable)
           .values({
-            ...projetoData,
+            departamentoId: rest.departamentoId,
+            ano: rest.ano,
+            semestre: rest.semestre,
+            tipoProposicao: rest.tipoProposicao,
+            bolsasSolicitadas: rest.bolsasSolicitadas || 0,
+            voluntariosSolicitados: rest.voluntariosSolicitados || 0,
+            cargaHorariaSemana: rest.cargaHorariaSemana,
+            numeroSemanas: rest.numeroSemanas,
+            publicoAlvo: rest.publicoAlvo,
+            estimativaPessoasBenificiadas: rest.estimativaPessoasBenificiadas,
+            titulo: rest.titulo,
+            descricao: rest.descricao,
             professorResponsavelId,
           })
           .returning();

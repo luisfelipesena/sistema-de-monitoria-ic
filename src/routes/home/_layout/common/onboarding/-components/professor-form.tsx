@@ -14,6 +14,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useAuth } from '@/hooks/use-auth';
 import { useDepartamentoList } from '@/hooks/use-departamento';
 import {
+  useCreateDisciplina,
   useDisciplinas,
   useVincularProfessorDisciplina,
 } from '@/hooks/use-disciplina';
@@ -25,6 +26,14 @@ import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const professorSchema = z.object({
   nomeCompleto: z.string().min(1, 'Nome completo é obrigatório'),
@@ -51,11 +60,17 @@ export function ProfessorForm() {
     number | null
   >(null);
   const [selectedDisciplinas, setSelectedDisciplinas] = useState<number[]>([]);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newDisciplina, setNewDisciplina] = useState({ nome: '', codigo: '' });
 
   // Buscar departamentos e disciplinas
   const { data: departamentos } = useDepartamentoList();
-  const { data: disciplinas, isLoading: loadingDisciplinas } = useDisciplinas(
-    selectedDepartamentoId || undefined,
+  const {
+    data: disciplinas,
+    isLoading: loadingDisciplinas,
+    refetch: refetchDisciplinas,
+  } = useDisciplinas(
+    selectedDepartamentoId ? { departamentoId: selectedDepartamentoId } : {}
   );
 
   // Arquivos obrigatórios para professor
@@ -69,6 +84,7 @@ export function ProfessorForm() {
   const fileUploadMutation = useFileUpload();
   const setProfessorMutation = useSetProfessor();
   const vincularDisciplinaMutation = useVincularProfessorDisciplina();
+  const createDisciplinaMutation = useCreateDisciplina();
 
   const form = useForm<ProfessorFormData>({
     resolver: zodResolver(professorSchema),
@@ -104,6 +120,36 @@ export function ProfessorForm() {
       form.setValue('disciplinaIds', updated);
       return updated;
     });
+  };
+
+  const handleCreateDisciplina = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedDepartamentoId) return;
+
+    createDisciplinaMutation.mutate(
+      {
+        ...newDisciplina,
+        departamentoId: selectedDepartamentoId,
+      },
+      {
+        onSuccess: (created) => {
+          toast({ title: 'Disciplina criada com sucesso!' });
+          setCreateDialogOpen(false);
+          setNewDisciplina({ nome: '', codigo: '' });
+          // Auto-seleciona a nova disciplina
+          handleDisciplinaToggle(created.id);
+          // Refresca a lista de disciplinas
+          refetchDisciplinas();
+        },
+        onError: (error: any) => {
+          toast({
+            title: 'Erro ao criar disciplina',
+            description: error?.response?.data?.error,
+            variant: 'destructive',
+          });
+        },
+      }
+    );
   };
 
   const onSubmit = async (values: ProfessorFormData) => {
@@ -426,6 +472,17 @@ export function ProfessorForm() {
             <p className="text-xs text-muted-foreground mt-1">
               Selecione as disciplinas que você leciona neste semestre
             </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Não encontrou a disciplina?{' '}
+              <Button
+                type="button"
+                variant="ghost"
+                className="p-0 h-auto"
+                onClick={() => setCreateDialogOpen(true)}
+              >
+                Cadastre uma nova.
+              </Button>
+            </p>
           </div>
         )}
       </div>
@@ -506,6 +563,63 @@ export function ProfessorForm() {
           Erro ao salvar: {setProfessorMutation.error.message}
         </p>
       )}
+
+      {/* Create Disciplina Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cadastrar Nova Disciplina</DialogTitle>
+            <DialogDescription>
+              Preencha os dados da nova disciplina. Ela será associada ao
+              departamento selecionado.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={handleCreateDisciplina}
+            className="space-y-4 py-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="codigo-create">Código da Disciplina</Label>
+              <Input
+                id="codigo-create"
+                value={newDisciplina.codigo}
+                onChange={(e) =>
+                  setNewDisciplina({ ...newDisciplina, codigo: e.target.value })
+                }
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="nome-create">Nome da Disciplina</Label>
+              <Input
+                id="nome-create"
+                value={newDisciplina.nome}
+                onChange={(e) =>
+                  setNewDisciplina({ ...newDisciplina, nome: e.target.value })
+                }
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setCreateDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={createDisciplinaMutation.isPending}
+              >
+                {createDisciplinaMutation.isPending
+                  ? 'Criando...'
+                  : 'Criar e Selecionar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }
