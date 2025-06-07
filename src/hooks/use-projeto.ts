@@ -482,3 +482,54 @@ export function useSaveProjectSignature() {
     },
   });
 }
+
+export type AtaData = {
+  projetoTitulo: string;
+  departamento: string;
+  semestre: string;
+  dataReuniao: string;
+  professorResponsavel: string;
+  candidatos: {
+    classificacao: number;
+    nome: string;
+    matricula: string;
+    notaFinal: number;
+    status: 'Aprovado (Bolsista)' | 'Aprovado (Voluntário)' | 'Reprovado';
+  }[];
+}
+
+export function useGenerateAtaData() {
+  return useMutation<AtaData, Error, number>({
+    mutationFn: async (projetoId: number) => {
+      const response = await apiClient.get<AtaData>(`/projeto/${projetoId}/gerar-ata-data`);
+      return response.data;
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao gerar dados da ata');
+    },
+  });
+}
+
+export type ResultadoData = {
+  projetoTitulo: string;
+  departamento: string;
+  semestre: string;
+  dataPublicacao: string;
+  aprovados: {
+    nome: string;
+    matricula: string;
+    tipoVaga: 'Bolsista' | 'Voluntário';
+  }[];
+}
+
+export function usePublishResultsData() {
+  return useMutation<ResultadoData, Error, number>({
+    mutationFn: async (projetoId: number) => {
+      const response = await apiClient.get<ResultadoData>(`/projeto/${projetoId}/publish-results-data`);
+      return response.data;
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao gerar dados do resultado');
+    },
+  });
+}

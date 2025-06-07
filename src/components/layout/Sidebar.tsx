@@ -96,7 +96,7 @@ const menuConfig: MenuConfig[] = [
       },
       {
         label: 'Importar Planejamento',
-        href: '/home/admin/importar-planejamento',
+        href: '/home/admin/import-projects',
         icon: Upload,
         roles: ['admin'],
       },
@@ -167,8 +167,8 @@ const menuConfig: MenuConfig[] = [
         roles: ['admin'],
       },
       {
-        label: 'Editais',
-        href: '/home/admin/edital',
+        label: 'Gerenciar Editais',
+        href: '/home/admin/edital-management',
         icon: FileText,
         roles: ['admin'],
       },
@@ -242,6 +242,18 @@ const menuConfig: MenuConfig[] = [
         label: 'Seleção de Monitores',
         href: '/home/common/selecao-monitores',
         icon: UserCog,
+        roles: ['professor'],
+      },
+      {
+        label: 'Gerar Ata de Seleção',
+        href: '/home/professor/gerar-ata',
+        icon: FileText,
+        roles: ['professor'],
+      },
+      {
+        label: 'Publicar Resultados',
+        href: '/home/professor/publish-results',
+        icon: FileCheck,
         roles: ['professor'],
       },
     ],

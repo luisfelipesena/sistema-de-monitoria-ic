@@ -15,9 +15,22 @@ import { logger } from '@/utils/logger';
 
 const log = logger.child({ context: 'use-edital' });
 
+interface GenerateEditalInput {
+  periodoInscricaoId: number;
+  numeroEdital: string;
+  titulo?: string;
+  descricaoHtml?: string;
+}
+
+interface GenerateEditalResponse {
+  edital: EditalResponse;
+  downloadUrl: string;
+  totalProjetos: number;
+}
+
 // Hook para listar todos os editais
 export function useEditaisList() {
-  return useQuery<EditalListItem[], Error>({
+  return useQuery<EditalListItem[]>({
     queryKey: QueryKeys.edital.list,
     queryFn: async () => {
       const response = await apiClient.get<EditalListItem[]>('/edital');
@@ -26,10 +39,10 @@ export function useEditaisList() {
   });
 }
 
-// Hook para buscar detalhes de um edital
-export function useEditalDetail(editalId: number) {
-  return useQuery<EditalListItem, Error>({
-    queryKey: QueryKeys.edital.detail(editalId),
+  // Hook para buscar detalhes de um edital
+  export function useEditalDetail(editalId: number) {
+    return useQuery<EditalListItem>({
+      queryKey: QueryKeys.edital.byId(editalId.toString()),
     queryFn: async () => {
       const response = await apiClient.get<EditalListItem>(`/edital/${editalId}`);
       return response.data;
@@ -72,7 +85,7 @@ export function useUpdateEdital() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QueryKeys.edital.list });
-      queryClient.invalidateQueries({ queryKey: QueryKeys.edital.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.edital.byId(data.id.toString()) });
       toast({ title: 'Edital atualizado com sucesso!' });
     },
     onError: (error) => {
@@ -96,32 +109,6 @@ export function useDeleteEdital() {
     },
     onError: (error) => {
       toast({ title: 'Erro ao excluir edital', description: error.message, variant: 'destructive' });
-    },
-  });
-}
-
-// Hook para publicar um edital
-export function usePublishEdital() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  return useMutation<
-    { success: boolean; message: string; edital: EditalResponse }, 
-    Error, 
-    number
-  >({
-    mutationFn: async (editalId) => {
-      const response = await apiClient.post<{ success: boolean; message: string; edital: EditalResponse }>(
-        `/edital/${editalId}/publish`, 
-        {}); // POST sem corpo, apenas para disparar a ação
-      return response.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.edital.list });
-      queryClient.invalidateQueries({ queryKey: QueryKeys.edital.detail(data.edital.id) });
-      toast({ title: 'Edital publicado com sucesso!' });
-    },
-    onError: (error) => {
-      toast({ title: 'Erro ao publicar edital', description: error.message, variant: 'destructive' });
     },
   });
 }
@@ -179,11 +166,92 @@ export function useUploadSignedEditalPdf() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: QueryKeys.edital.list });
-      queryClient.invalidateQueries({ queryKey: QueryKeys.edital.detail(data.edital.id) });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.edital.byId(data.edital.id.toString()) });
       toast({ title: 'PDF assinado do edital enviado com sucesso!' });
     },
     onError: (error) => {
       toast({ title: 'Erro ao enviar PDF assinado', description: error.message, variant: 'destructive' });
+    },
+  });
+}
+
+export function useGenerateEdital() {
+  const queryClient = useQueryClient();
+
+  return useMutation<GenerateEditalResponse, Error, GenerateEditalInput>({
+    mutationFn: async (input) => {
+      const response = await apiClient.post<GenerateEditalResponse>('/edital/generate', input);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.edital.list });
+      log.info({ editalId: data.edital.id }, 'Edital gerado com sucesso');
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao gerar edital');
+    },
+  });
+}
+
+export function useEditalList() {
+  return useQuery<EditalResponse[]>({
+    queryKey: QueryKeys.edital.list,
+    queryFn: async () => {
+      const response = await apiClient.get<EditalResponse[]>('/edital');
+      return response.data;
+    },
+  });
+}
+
+export function useEdital(id: number) {
+  return useQuery<EditalResponse>({
+    queryKey: QueryKeys.edital.byId(id.toString()),
+    queryFn: async () => {
+      const response = await apiClient.get<EditalResponse>(`/edital/${id}`);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useDownloadEdital() {
+  return useMutation<void, Error, { editalId: number; fileName?: string }>({
+    mutationFn: async ({ editalId, fileName }) => {
+      const response = await apiClient.get(`/edital/${editalId}/download`, {
+        responseType: 'blob',
+      });
+      
+      const downloadFileName = fileName || `edital-${editalId}.pdf`;
+      // Dynamic import to avoid SSR issues
+      if (typeof window !== 'undefined') {
+        const { saveAs } = await import('file-saver');
+        saveAs(response.data, downloadFileName);
+      }
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao baixar edital');
+    },
+  });
+}
+
+export function usePublishEdital() {
+  const queryClient = useQueryClient();
+
+  return useMutation<EditalResponse, Error, { editalId: number; publicado: boolean }>({
+    mutationFn: async ({ editalId, publicado }) => {
+      const response = await apiClient.patch<EditalResponse>(`/edital/${editalId}/publish`, {
+        publicado,
+      });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.edital.list });
+      queryClient.invalidateQueries({ 
+        queryKey: QueryKeys.edital.byId(data.id.toString())
+      });
+    },
+    onError: (error) => {
+      log.error({ error }, 'Erro ao atualizar status de publicação do edital');
     },
   });
 }

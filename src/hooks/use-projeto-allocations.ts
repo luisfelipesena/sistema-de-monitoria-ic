@@ -45,3 +45,28 @@ export function useUpdateProjectAllocations() {
     },
   });
 }
+
+interface ScholarshipAllocationParams {
+  projetoId: number;
+  bolsasDisponibilizadas: number;
+}
+
+export function useScholarshipAllocation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ProjetoResponse, Error, ScholarshipAllocationParams>({
+    mutationFn: async ({ projetoId, bolsasDisponibilizadas }) => {
+      const response = await apiClient.post<ProjetoResponse>(
+        `/projeto/${projetoId}/allocate-scholarships`,
+        { bolsasDisponibilizadas },
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.projeto.byId(data.id.toString()),
+      });
+    },
+  });
+}

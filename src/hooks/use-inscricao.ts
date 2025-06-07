@@ -82,3 +82,38 @@ export function useRecusarInscricao() {
     },
   });
 }
+
+interface ApplicationGrades {
+  inscricaoId: number;
+  notaDisciplina: number;
+  notaSelecao: number;
+  coeficienteRendimento: number;
+}
+
+export function useApplicationGrading() {
+  const queryClient = useQueryClient();
+
+  return useMutation<InscricaoComDetalhes, Error, ApplicationGrades>({
+    mutationFn: async ({ inscricaoId, ...grades }) => {
+      const response = await apiClient.post<InscricaoComDetalhes>(
+        `/inscricao/${inscricaoId}/grades`,
+        grades,
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      // Invalidate the list of applications for the specific project
+      if (data.projetoId) {
+        queryClient.invalidateQueries({
+          queryKey: [
+            ...QueryKeys.projeto.byId(data.projetoId.toString()),
+            'inscricoes',
+          ],
+        });
+      }
+    },
+    onError: (error) => {
+      log.error(error, 'Error submitting application grades');
+    },
+  });
+}

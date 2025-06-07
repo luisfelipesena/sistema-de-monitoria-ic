@@ -8,7 +8,7 @@ import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { and, eq } from 'drizzle-orm';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { z } from 'zod';
 
 const log = logger.child({
@@ -87,6 +87,26 @@ export const APIRoute = createAPIFileRoute('/api/relatorios/planilhas-prograd')(
             },
           });
 
+          const workbook = new ExcelJS.Workbook();
+          workbook.creator = 'Sistema de Monitoria IC';
+          workbook.created = new Date();
+
+          // Helper to add a worksheet with styled headers
+          const addWorksheet = (name: string, columns: any[], data: any[]) => {
+            const worksheet = workbook.addWorksheet(name);
+            worksheet.columns = columns;
+            worksheet.addRows(data);
+            worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            worksheet.getRow(1).fill = {
+                type: 'pattern',
+                pattern:'solid',
+                fgColor:{argb:'FF203764'}
+            };
+            columns.forEach((col, index) => {
+                worksheet.getColumn(index + 1).width = col.width || 20;
+            });
+          };
+
           // Preparar dados para planilhas
           const dadosMonitores: any[] = [];
           const dadosProjetos: any[] = [];
@@ -108,9 +128,6 @@ export const APIRoute = createAPIFileRoute('/api/relatorios/planilhas-prograd')(
               'Bolsas Solicitadas': projeto.bolsasSolicitadas,
               'Bolsas Disponibilizadas': projeto.bolsasDisponibilizadas || 0,
               'Voluntários Solicitados': projeto.voluntariosSolicitados,
-              'Carga Horária Semanal': projeto.cargaHorariaSemana,
-              'Número de Semanas': projeto.numeroSemanas,
-              'Público Alvo': projeto.publicoAlvo,
               Status: projeto.status,
             });
 
@@ -173,53 +190,33 @@ export const APIRoute = createAPIFileRoute('/api/relatorios/planilhas-prograd')(
             resumo['Total de Monitores'] += projeto.vagas.length;
           });
 
-          // Criar workbook Excel
-          const workbook = XLSX.utils.book_new();
+          // Define columns for each sheet
+          const projetosColumns = [
+              { header: 'ID', key: 'id', width: 10 },
+              { header: 'Título do Projeto', key: 'titulo', width: 40 },
+              { header: 'Departamento', key: 'departamento', width: 30 },
+              { header: 'Professor Responsável', key: 'professor', width: 30 },
+              { header: 'Disciplinas', key: 'disciplinas', width: 40 },
+              { header: 'Bolsas Solicitadas', key: 'bolsasSolicitadas', width: 20 },
+              { header: 'Bolsas Concedidas', key: 'bolsasDisponibilizadas', width: 20 },
+              { header: 'Voluntários Solicitados', key: 'voluntariosSolicitados', width: 25 },
+          ];
 
-          // Planilha 1: Resumo por Departamento
-          const wsResumo = XLSX.utils.json_to_sheet(
-            Object.values(resumoPorDepartamento),
-          );
-          XLSX.utils.book_append_sheet(
-            workbook,
-            wsResumo,
-            'Resumo por Departamento',
-          );
+          const monitoresColumns = [
+              { header: 'Projeto', key: 'projeto', width: 40 },
+              { header: 'Tipo de Vaga', key: 'tipoVaga', width: 15 },
+              { header: 'Nome do Monitor', key: 'nomeMonitor', width: 30 },
+              { header: 'Matrícula', key: 'matricula', width: 15 },
+              { header: 'CPF', key: 'cpf', width: 15 },
+              { header: 'Email', key: 'email', width: 30 },
+              { header: 'Curso', key: 'curso', width: 30 },
+              { header: 'CR', key: 'cr', width: 10 },
+          ];
 
-          // Planilha 2: Dados dos Monitores
-          const wsMonitores = XLSX.utils.json_to_sheet(dadosMonitores);
-          XLSX.utils.book_append_sheet(
-            workbook,
-            wsMonitores,
-            'Monitores Ativos',
-          );
-
-          // Planilha 3: Dados dos Projetos
-          const wsProjetos = XLSX.utils.json_to_sheet(dadosProjetos);
-          XLSX.utils.book_append_sheet(
-            workbook,
-            wsProjetos,
-            'Projetos Aprovados',
-          );
-
-          // Adicionar informações de cabeçalho
-          const infoSheet = XLSX.utils.json_to_sheet([
-            {
-              Relatório: 'Planilha de Monitores para PROGRAD',
-              Período: `${ano}.${semestre === 'SEMESTRE_1' ? '1' : '2'}`,
-              'Data de Geração': new Date().toLocaleDateString('pt-BR'),
-              'Hora de Geração': new Date().toLocaleTimeString('pt-BR'),
-              'Total de Projetos': projetos.length,
-              'Total de Monitores': dadosMonitores.length,
-            },
-          ]);
-          XLSX.utils.book_append_sheet(workbook, infoSheet, 'Informações');
-
-          // Gerar arquivo Excel
-          const excelBuffer = XLSX.write(workbook, {
-            type: 'buffer',
-            bookType: 'xlsx',
-          });
+          addWorksheet('Projetos Aprovados', projetosColumns, dadosProjetos);
+          addWorksheet('Monitores Selecionados', monitoresColumns, dadosMonitores);
+          
+          const buffer = await workbook.xlsx.writeBuffer();
 
           log.info(
             {
@@ -237,11 +234,10 @@ export const APIRoute = createAPIFileRoute('/api/relatorios/planilhas-prograd')(
             ? `monitores-${ano}-${semestre === 'SEMESTRE_1' ? '1' : '2'}-dept-${params.departamentoId}.xlsx`
             : `monitores-${ano}-${semestre === 'SEMESTRE_1' ? '1' : '2'}-completo.xlsx`;
 
-          return new Response(new Uint8Array(excelBuffer), {
+          return new Response(buffer, {
             status: 200,
             headers: {
-              'Content-Type':
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
               'Content-Disposition': `attachment; filename="${fileName}"`,
             },
           });

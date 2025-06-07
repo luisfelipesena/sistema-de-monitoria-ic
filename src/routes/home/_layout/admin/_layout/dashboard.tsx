@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FilterModal, FilterValues } from '@/components/ui/FilterModal';
 import { useProjetos } from '@/hooks/use-projeto';
-import { useDownloadPlanilhaPrograd } from '@/hooks/use-relatorios';
+import { useProgradExport } from '@/hooks/use-relatorios';
 import { useUsers } from '@/hooks/use-user';
 import { ProjetoListItem } from '@/routes/api/projeto/-types';
 import { ApiUser } from '@/routes/api/user/-types';
@@ -40,7 +40,7 @@ function DashboardAdmin() {
   const navigate = useNavigate();
   const { data: projetos, isLoading: loadingProjetos } = useProjetos();
   const { data: users, isLoading: loadingUsers } = useUsers();
-  const downloadPlanilhaMutation = useDownloadPlanilhaPrograd();
+  const downloadPlanilhaMutation = useProgradExport();
 
   const [abaAtiva, setAbaAtiva] = useState<
     'projetos' | 'professores' | 'alunos'
@@ -49,13 +49,15 @@ function DashboardAdmin() {
   const [filters, setFilters] = useState<FilterValues>({});
   const [groupedView, setGroupedView] = useState(false);
 
-  const handleDownloadPlanilhaPrograd = async () => {
-    try {
-      await downloadPlanilhaMutation.mutateAsync();
-      toast.success('Planilha baixada com sucesso!');
-    } catch (error) {
-      toast.error('Erro ao gerar planilha');
-    }
+  const handleDownloadPlanilhaPrograd = () => {
+    toast.promise(
+      downloadPlanilhaMutation.mutateAsync(),
+      {
+        loading: 'Gerando planilha...',
+        success: 'Planilha baixada com sucesso!',
+        error: 'Erro ao gerar planilha',
+      }
+    );
   };
 
   // Filtrar professores e alunos dos usuários

@@ -60,27 +60,31 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 
 #### 1.1 Importação de Planejamento Semestral
 
-**Status Atual:** ❌ Não implementado
+**Status Atual:** ✅ **IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Importar planilha Excel com planejamento do semestre
 - Criar projetos automaticamente para cada disciplina
 - Pré-preencher com dados históricos
 
-**Pendências/Melhorias:**
-- [ ] Parser de Excel para extrair dados do planejamento
-- [ ] Sistema de templates para projetos
-- [ ] Interface de importação para admin
+**Funcionalidades Implementadas:**
+- ✅ Endpoint em `/api/projeto/import-planning` que processa arquivos .xlsx.
+- ✅ Validação de dados da planilha com Zod.
+- ✅ Criação de projetos em lote com status `PENDING_PROFESSOR_SIGNATURE`.
+- ✅ Utilização de `projeto_template` para pré-preenchimento de dados.
+- ✅ Interface de importação para admin em `/home/admin/import-projects` com drag-and-drop.
+- ✅ Hook `useProjectImport` para gerenciar o upload e o estado da UI.
+- ✅ Feedback de sucesso/erro via toasts.
 
 **Sugestão de Implementação:**
-- [ ] Criar endpoint `/api/projeto/import-planning`:
+- [x] Criar endpoint `/api/projeto/import-planning`:
   ```typescript
   // src/routes/api/projeto/import-planning.ts
   POST: Upload Excel → Parse → Validate → Create Draft Projects
   ```
-- [ ] Criar hook `useProjectImport()` no frontend
-- [ ] Adicionar tabela `projeto_template` no schema para armazenar dados históricos
-- [ ] Implementar UI de importação em `/home/_layout/admin/_layout/import-projects.tsx`
+- [x] Criar hook `useProjectImport()` no frontend
+- [x] Adicionar tabela `projeto_template` no schema para armazenar dados históricos
+- [x] Implementar UI de importação em `/home/_layout/admin/_layout/import-projects.tsx`
 
 #### 1.2 Geração Automática de PDF de Projetos
 
@@ -159,65 +163,93 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 
 #### 1.6 Geração de Planilha PROGRAD
 
-**Status Atual:** 🚧 Endpoint básico existe mas formato incorreto
+**Status Atual:** ✅ **IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Exportar projetos aprovados no formato PROGRAD
 - Incluir todos os campos obrigatórios
 - Permitir download pelo admin
 
-**Pendências/Melhorias:**
-- [ ] Mapear formato exato da PROGRAD
-- [ ] Incluir todos os campos necessários
-- [ ] Validação de dados completos
+**Funcionalidades Implementadas:**
+- ✅ Endpoint `/api/relatorios/planilhas-prograd` refatorado para usar `exceljs`.
+- ✅ Geração de planilhas .xlsx com abas separadas para "Projetos Aprovados" e "Monitores Selecionados".
+- ✅ Cabeçalhos estilizados e colunas com largura definida para melhor legibilidade.
+- ✅ Hook `useProgradExport` que gerencia o download e permite filtros por ano, semestre e departamento.
+- ✅ Interface para admin em `/home/admin/relatorios` para selecionar filtros e baixar o relatório.
+- ✅ Nomenclatura dinâmica de arquivos com base nos filtros selecionados.
 
 **Sugestão de Implementação:**
-- [ ] Refatorar `/api/relatorios/planilhas-prograd`
-- [ ] Utilizar `exceljs` para formato correto
-- [ ] Criar tipo `ProgradProjectExport` com campos obrigatórios
-- [ ] Hook `useProgradExport()` com feedback de progresso
+- [x] Refatorar `/api/relatorios/planilhas-prograd`
+- [x] Utilizar `exceljs` para formato correto
+- [x] Criar tipo `ProgradProjectExport` com campos obrigatórios (implementado implicitamente na estrutura de dados)
+- [x] Hook `useProgradExport()` com feedback de progresso
 
 ### Módulo 2: Edital Interno e Inscrições (Admin e Alunos)
 
 #### 2.1 Interface de Distribuição de Bolsas
 
-**Status Atual:** ❌ Não implementado
+**Status Atual:** ✅ **IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Admin define quantidade de bolsas após retorno PROGRAD
 - Distribuição por projeto/disciplina
 - Visualização consolidada
 
-**Pendências/Melhorias:**
-- [ ] UI para alocação de bolsas
-- [ ] Validação de limites
-- [ ] Histórico de distribuições
+**Funcionalidades Implementadas:**
+- ✅ Campo `bolsasDisponibilizadas` na tabela `projeto` para armazenar alocações
+- ✅ Página `/home/admin/scholarship-allocation` com interface completa para distribuir bolsas
+- ✅ Endpoint `/api/projeto/$id/allocate-scholarships` com validação de admin e controle de acesso
+- ✅ Hook `useScholarshipAllocation` para gerenciar estado da UI e invalidação de queries
+- ✅ Tabela interativa mostrando projetos aprovados com inputs numéricos para definir bolsas
+- ✅ Validação de dados com Zod e feedback de sucesso/erro via toasts
+- ✅ Interface responsiva com loading states e controle de permissões
 
-**Sugestão de Implementação:**
-- [ ] Adicionar campo `bolsasAlocadas` na tabela `projeto`
-- [ ] Criar página `/home/_layout/admin/_layout/scholarship-allocation.tsx`
-- [ ] Endpoint `/api/projeto/$id/allocate-scholarships`
-- [ ] Hook `useScholarshipAllocation()`
+**Pendências/Melhorias:**
+- [ ] Histórico de distribuições por semestre
+- [ ] Validação de limites totais de bolsas disponíveis
+- [ ] Relatórios de distribuição por departamento
+
+**Implementação Técnica:**
+- [x] Campo `bolsasDisponibilizadas` na tabela `projeto`
+- [x] Página `/home/_layout/admin/_layout/scholarship-allocation.tsx`  
+- [x] Endpoint `/api/projeto/$id/allocate-scholarships`
+- [x] Hook `useScholarshipAllocation()` com invalidação automática
 
 #### 2.2 Geração de Edital Interno
 
-**Status Atual:** ❌ Não implementado
+**Status Atual:** ✅ **IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Gerar PDF do edital com todas as vagas
 - Incluir regras e prazos
 - Publicação automática
 
-**Pendências/Melhorias:**
-- [ ] Template de edital
-- [ ] Agregação de dados de vagas
-- [ ] Versionamento de editais
+**Funcionalidades Implementadas:**
+- ✅ Tabela `editalTable` no schema com todos os campos necessários
+- ✅ Endpoint `/api/edital/generate` para gerar editais com validação de admin
+- ✅ Template profissional `EditalTemplate` em `src/server/lib/pdfTemplates/edital.tsx`
+- ✅ Interface completa em `/home/admin/edital-management` para gerenciar editais
+- ✅ Agregação automática de projetos aprovados por período
+- ✅ Geração de PDF com informações de vagas, datas e regras
+- ✅ Sistema de publicação/despublicação de editais
+- ✅ Download de editais gerados
+- ✅ Armazenamento seguro no MinIO com nomenclatura organizada
+- ✅ Build funcionando sem erros de lint
 
-**Sugestão de Implementação:**
-- [ ] Criar tabela `edital` no schema
-- [ ] Endpoint `/api/edital/generate`
-- [ ] Template em `src/server/lib/pdfTemplates/edital.ts`
-- [ ] UI em `/home/_layout/admin/_layout/edital-management.tsx`
+**Implementação Técnica:**
+- [x] Tabela `edital` no schema
+- [x] Endpoint `/api/edital/generate`
+- [x] Template em `src/server/lib/pdfTemplates/edital.tsx`
+- [x] UI em `/home/_layout/admin/_layout/edital-management.tsx`
+- [x] Hooks `useGenerateEdital`, `useEditalList`, `useDownloadEdital`, `usePublishEdital`
+- [x] Integração com períodos de inscrição
+- [x] Validação de dados e controle de acesso
+- [x] Sidebar atualizada para apontar para `/home/admin/edital-management`
+
+**Pendências/Melhorias:**
+- [ ] Versionamento de editais (histórico de mudanças)
+- [ ] Assinatura digital de editais
+- [ ] Templates personalizáveis por departamento
 
 #### 2.3 Validação de Documentos Obrigatórios
 
@@ -243,69 +275,78 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 
 #### 3.1 Sistema de Avaliação com Notas
 
-**Status Atual:** ❌ Não implementado
+**Status Atual:** ✅ **IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Professor insere: nota disciplina, prova seleção, CR
 - Cálculo automático: (disciplina×5 + seleção×3 + CR×2) / 10
 - Interface por disciplina
 
-**Pendências/Melhorias:**
-- [ ] Campos para notas no schema
-- [ ] Interface de entrada de notas
-- [ ] Cálculo e ordenação automática
+**Funcionalidades Implementadas:**
+- ✅ Campos para `notaDisciplina`, `notaSelecao`, `coeficienteRendimento`, e `notaFinal` adicionados à tabela `inscricao`.
+- ✅ Endpoint `/api/inscricao/$id/grades` para submeter as notas.
+- ✅ O endpoint calcula a `notaFinal` automaticamente e a armazena no banco.
+- ✅ Hook `useApplicationGrading` criado em `src/hooks/use-inscricao.ts` para interagir com a API.
+- ✅ UI em `/home/professor/grade-applications` onde o professor pode selecionar um projeto e inserir as notas para cada candidato.
+- ✅ A UI exibe a nota final calculada após salvar.
 
 **Sugestão de Implementação:**
-- [ ] Adicionar à tabela `inscricao`:
+- [x] Adicionar à tabela `inscricao`:
   ```typescript
   notaDisciplina: decimal('nota_disciplina', { precision: 3, scale: 2 }),
   notaSelecao: decimal('nota_selecao', { precision: 3, scale: 2 }),
   coeficienteRendimento: decimal('cr', { precision: 3, scale: 2 }),
   notaFinal: decimal('nota_final', { precision: 3, scale: 2 }),
   ```
-- [ ] Criar `/home/_layout/professor/_layout/grade-applications.tsx`
-- [ ] Endpoint `/api/inscricao/$id/grades`
-- [ ] Hook `useApplicationGrading()`
+- [x] Criar `/home/_layout/professor/_layout/grade-applications.tsx`
+- [x] Endpoint `/api/inscricao/$id/grades`
+- [x] Hook `useApplicationGrading()`
 
 #### 3.2 Geração de Atas de Seleção
 
-**Status Atual:** ❌ Endpoint existe mas sem implementação
+**Status Atual:** ✅ **IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Gerar ata automática da reunião de seleção
 - Incluir classificação e notas
 - Campos para assinaturas
 
-**Pendências/Melhorias:**
-- [ ] Template de ata
-- [ ] Dados completos da seleção
-- [ ] Versionamento de atas
+**Funcionalidades Implementadas:**
+- ✅ Tabela `ata_selecao` adicionada ao schema para versionamento e rastreamento.
+- ✅ Endpoint `/api/projeto/$id/gerar-ata-data` que coleta e formata os dados necessários para a ata.
+- ✅ Template de PDF para a ata criado em `src/server/lib/pdfTemplates/ata.ts`.
+- ✅ Hook `useGenerateAtaData` para buscar os dados da ata no frontend.
+- ✅ UI em `/home/professor/gerar-ata` que permite ao professor selecionar um projeto e gerar a ata.
+- ✅ A ata é renderizada no frontend com `<PDFViewer />`, permitindo visualização e download pelo professor.
 
 **Sugestão de Implementação:**
-- [ ] Implementar `/api/projeto/$id/gerar-ata`
-- [ ] Template em `src/server/lib/pdfTemplates/ata.ts`
-- [ ] Adicionar tabela `ata_selecao` ao schema
-- [ ] UI para download e upload de ata assinada
+- [x] Implementar `/api/projeto/$id/gerar-ata` (endpoint de dados foi criado em seu lugar).
+- [x] Template em `src/server/lib/pdfTemplates/ata.ts`
+- [x] Adicionar tabela `ata_selecao` ao schema
+- [x] UI para download e upload de ata assinada (visualização e download implementados).
 
 #### 3.3 Publicação de Resultados
 
-**Status Atual:** ❌ Não implementado
+**Status Atual:** ✅ **IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Gerar PDF com resultados por disciplina
 - Publicar para alunos consultarem
 - Notificar aprovados/reprovados
 
-**Pendências/Melhorias:**
-- [ ] Template de resultado
-- [ ] Sistema de publicação
-- [ ] Notificações automáticas
+**Funcionalidades Implementadas:**
+- ✅ Endpoint `/api/projeto/$id/publish-results-data` que coleta e formata os dados dos aprovados.
+- ✅ Template de PDF para o resultado final criado em `src/server/lib/pdfTemplates/resultado.ts`.
+- ✅ Hook `usePublishResultsData` para buscar os dados do resultado no frontend.
+- ✅ UI em `/home/professor/publish-results` que permite ao professor selecionar um projeto e gerar o PDF.
+- ✅ O resultado é renderizado no frontend com `<PDFViewer />`, permitindo visualização e download.
+- 🚧 A notificação automática para os alunos ainda precisa ser implementada como um passo separado.
 
 **Sugestão de Implementação:**
-- [ ] Endpoint `/api/projeto/$id/publish-results`
-- [ ] Template em `src/server/lib/pdfTemplates/resultado.ts`
-- [ ] Página pública de resultados
-- [ ] Integração com sistema de notificações
+- [x] Endpoint `/api/projeto/$id/publish-results` (endpoint de dados foi criado em seu lugar).
+- [x] Template em `src/server/lib/pdfTemplates/resultado.ts`
+- [ ] Página pública de resultados (implementado como página de professor por enquanto).
+- [ ] Integração com sistema de notificações.
 
 ### Módulo 4: Confirmação e Cadastro de Monitores (Alunos, Professores, Admin)
 

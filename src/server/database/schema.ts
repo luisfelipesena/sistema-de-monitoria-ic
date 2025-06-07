@@ -490,7 +490,10 @@ export const inscricaoTable = pgTable('inscricao', {
     .notNull(),
   tipoVagaPretendida: tipoInscricaoEnum('tipo_vaga_pretendida'), // What the student wants
   status: statusInscricaoEnum('status').notNull().default('SUBMITTED'),
-  // notaProva: real('nota_prova'), // If applicable
+  notaDisciplina: decimal('nota_disciplina', { precision: 4, scale: 2 }),
+  notaSelecao: decimal('nota_selecao', { precision: 4, scale: 2 }),
+  coeficienteRendimento: decimal('cr', { precision: 4, scale: 2 }),
+  notaFinal: decimal('nota_final', { precision: 4, scale: 2 }),
   feedbackProfessor: text('feedback_professor'), // Reason for selection/rejection
   createdAt: timestamp('created_at', {
     withTimezone: true,
@@ -1053,6 +1056,35 @@ export const projetoTemplateRelations = relations(projetoTemplateTable, ({ one }
     references: [userTable.id],
     relationName: 'templateAtualizadoPor',
   }),
+}));
+
+export const ataSelecaoTable = pgTable('ata_selecao', {
+  id: serial('id').primaryKey(),
+  projetoId: integer('projeto_id')
+    .references(() => projetoTable.id, { onDelete: 'cascade' })
+    .notNull()
+    .unique(), // Cada projeto tem uma ata de seleção
+  fileId: text('file_id'), // ID do PDF da ata no MinIO
+  conteudoHtml: text('conteudo_html'), // Conteúdo da ata para renderização
+  dataGeracao: timestamp('data_geracao', { withTimezone: true, mode: 'date' })
+    .defaultNow()
+    .notNull(),
+  geradoPorUserId: integer('gerado_por_user_id')
+    .references(() => userTable.id)
+    .notNull(),
+  assinado: boolean('assinado').default(false).notNull(),
+  dataAssinatura: timestamp('data_assinatura', { withTimezone: true, mode: 'date' }),
+});
+
+export const ataSelecaoRelations = relations(ataSelecaoTable, ({ one }) => ({
+    projeto: one(projetoTable, {
+        fields: [ataSelecaoTable.projetoId],
+        references: [projetoTable.id],
+    }),
+    geradoPor: one(userTable, {
+        fields: [ataSelecaoTable.geradoPorUserId],
+        references: [userTable.id],
+    }),
 }));
 
 // Export all schemas and relations

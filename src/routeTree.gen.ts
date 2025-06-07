@@ -29,8 +29,11 @@ import { Route as HomeLayoutStudentLayoutResultadosImport } from './routes/home/
 import { Route as HomeLayoutStudentLayoutInscricaoMonitoriaImport } from './routes/home/_layout/student/_layout/inscricao-monitoria'
 import { Route as HomeLayoutStudentLayoutDashboardImport } from './routes/home/_layout/student/_layout/dashboard'
 import { Route as HomeLayoutProfessorLayoutVolunteerManagementImport } from './routes/home/_layout/professor/_layout/volunteer-management'
+import { Route as HomeLayoutProfessorLayoutPublishResultsImport } from './routes/home/_layout/professor/_layout/publish-results'
 import { Route as HomeLayoutProfessorLayoutProjectsImport } from './routes/home/_layout/professor/_layout/projects'
 import { Route as HomeLayoutProfessorLayoutProjectApplicationsImport } from './routes/home/_layout/professor/_layout/project-applications'
+import { Route as HomeLayoutProfessorLayoutGradeApplicationsImport } from './routes/home/_layout/professor/_layout/grade-applications'
+import { Route as HomeLayoutProfessorLayoutGerarAtaImport } from './routes/home/_layout/professor/_layout/gerar-ata'
 import { Route as HomeLayoutProfessorLayoutDocumentSigningImport } from './routes/home/_layout/professor/_layout/document-signing'
 import { Route as HomeLayoutProfessorLayoutDisciplinasImport } from './routes/home/_layout/professor/_layout/disciplinas'
 import { Route as HomeLayoutProfessorLayoutDashboardImport } from './routes/home/_layout/professor/_layout/dashboard'
@@ -45,8 +48,9 @@ import { Route as HomeLayoutAdminLayoutNotificacoesImport } from './routes/home/
 import { Route as HomeLayoutAdminLayoutManageProjectsImport } from './routes/home/_layout/admin/_layout/manage-projects'
 import { Route as HomeLayoutAdminLayoutInviteProfessorImport } from './routes/home/_layout/admin/_layout/invite-professor'
 import { Route as HomeLayoutAdminLayoutImportarPlanejamentoImport } from './routes/home/_layout/admin/_layout/importar-planejamento'
+import { Route as HomeLayoutAdminLayoutImportProjectsImport } from './routes/home/_layout/admin/_layout/import-projects'
 import { Route as HomeLayoutAdminLayoutFilesImport } from './routes/home/_layout/admin/_layout/files'
-import { Route as HomeLayoutAdminLayoutEditalImport } from './routes/home/_layout/admin/_layout/edital'
+import { Route as HomeLayoutAdminLayoutEditalManagementImport } from './routes/home/_layout/admin/_layout/edital-management'
 import { Route as HomeLayoutAdminLayoutDocumentSigningImport } from './routes/home/_layout/admin/_layout/document-signing'
 import { Route as HomeLayoutAdminLayoutDisciplinasImport } from './routes/home/_layout/admin/_layout/disciplinas'
 import { Route as HomeLayoutAdminLayoutDepartamentosImport } from './routes/home/_layout/admin/_layout/departamentos'
@@ -191,6 +195,13 @@ const HomeLayoutProfessorLayoutVolunteerManagementRoute =
     getParentRoute: () => HomeLayoutProfessorLayoutRoute,
   } as any)
 
+const HomeLayoutProfessorLayoutPublishResultsRoute =
+  HomeLayoutProfessorLayoutPublishResultsImport.update({
+    id: '/publish-results',
+    path: '/publish-results',
+    getParentRoute: () => HomeLayoutProfessorLayoutRoute,
+  } as any)
+
 const HomeLayoutProfessorLayoutProjectsRoute =
   HomeLayoutProfessorLayoutProjectsImport.update({
     id: '/projects',
@@ -202,6 +213,20 @@ const HomeLayoutProfessorLayoutProjectApplicationsRoute =
   HomeLayoutProfessorLayoutProjectApplicationsImport.update({
     id: '/project-applications',
     path: '/project-applications',
+    getParentRoute: () => HomeLayoutProfessorLayoutRoute,
+  } as any)
+
+const HomeLayoutProfessorLayoutGradeApplicationsRoute =
+  HomeLayoutProfessorLayoutGradeApplicationsImport.update({
+    id: '/grade-applications',
+    path: '/grade-applications',
+    getParentRoute: () => HomeLayoutProfessorLayoutRoute,
+  } as any)
+
+const HomeLayoutProfessorLayoutGerarAtaRoute =
+  HomeLayoutProfessorLayoutGerarAtaImport.update({
+    id: '/gerar-ata',
+    path: '/gerar-ata',
     getParentRoute: () => HomeLayoutProfessorLayoutRoute,
   } as any)
 
@@ -304,6 +329,13 @@ const HomeLayoutAdminLayoutImportarPlanejamentoRoute =
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any)
 
+const HomeLayoutAdminLayoutImportProjectsRoute =
+  HomeLayoutAdminLayoutImportProjectsImport.update({
+    id: '/import-projects',
+    path: '/import-projects',
+    getParentRoute: () => HomeLayoutAdminLayoutRoute,
+  } as any)
+
 const HomeLayoutAdminLayoutFilesRoute = HomeLayoutAdminLayoutFilesImport.update(
   {
     id: '/files',
@@ -312,10 +344,10 @@ const HomeLayoutAdminLayoutFilesRoute = HomeLayoutAdminLayoutFilesImport.update(
   } as any,
 )
 
-const HomeLayoutAdminLayoutEditalRoute =
-  HomeLayoutAdminLayoutEditalImport.update({
-    id: '/edital',
-    path: '/edital',
+const HomeLayoutAdminLayoutEditalManagementRoute =
+  HomeLayoutAdminLayoutEditalManagementImport.update({
+    id: '/edital-management',
+    path: '/edital-management',
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any)
 
@@ -512,11 +544,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminLayoutDocumentSigningImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
-    '/home/_layout/admin/_layout/edital': {
-      id: '/home/_layout/admin/_layout/edital'
-      path: '/edital'
-      fullPath: '/home/admin/edital'
-      preLoaderRoute: typeof HomeLayoutAdminLayoutEditalImport
+    '/home/_layout/admin/_layout/edital-management': {
+      id: '/home/_layout/admin/_layout/edital-management'
+      path: '/edital-management'
+      fullPath: '/home/admin/edital-management'
+      preLoaderRoute: typeof HomeLayoutAdminLayoutEditalManagementImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
     '/home/_layout/admin/_layout/files': {
@@ -524,6 +556,13 @@ declare module '@tanstack/react-router' {
       path: '/files'
       fullPath: '/home/admin/files'
       preLoaderRoute: typeof HomeLayoutAdminLayoutFilesImport
+      parentRoute: typeof HomeLayoutAdminLayoutImport
+    }
+    '/home/_layout/admin/_layout/import-projects': {
+      id: '/home/_layout/admin/_layout/import-projects'
+      path: '/import-projects'
+      fullPath: '/home/admin/import-projects'
+      preLoaderRoute: typeof HomeLayoutAdminLayoutImportProjectsImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
     '/home/_layout/admin/_layout/importar-planejamento': {
@@ -624,6 +663,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutProfessorLayoutDocumentSigningImport
       parentRoute: typeof HomeLayoutProfessorLayoutImport
     }
+    '/home/_layout/professor/_layout/gerar-ata': {
+      id: '/home/_layout/professor/_layout/gerar-ata'
+      path: '/gerar-ata'
+      fullPath: '/home/professor/gerar-ata'
+      preLoaderRoute: typeof HomeLayoutProfessorLayoutGerarAtaImport
+      parentRoute: typeof HomeLayoutProfessorLayoutImport
+    }
+    '/home/_layout/professor/_layout/grade-applications': {
+      id: '/home/_layout/professor/_layout/grade-applications'
+      path: '/grade-applications'
+      fullPath: '/home/professor/grade-applications'
+      preLoaderRoute: typeof HomeLayoutProfessorLayoutGradeApplicationsImport
+      parentRoute: typeof HomeLayoutProfessorLayoutImport
+    }
     '/home/_layout/professor/_layout/project-applications': {
       id: '/home/_layout/professor/_layout/project-applications'
       path: '/project-applications'
@@ -636,6 +689,13 @@ declare module '@tanstack/react-router' {
       path: '/projects'
       fullPath: '/home/professor/projects'
       preLoaderRoute: typeof HomeLayoutProfessorLayoutProjectsImport
+      parentRoute: typeof HomeLayoutProfessorLayoutImport
+    }
+    '/home/_layout/professor/_layout/publish-results': {
+      id: '/home/_layout/professor/_layout/publish-results'
+      path: '/publish-results'
+      fullPath: '/home/professor/publish-results'
+      preLoaderRoute: typeof HomeLayoutProfessorLayoutPublishResultsImport
       parentRoute: typeof HomeLayoutProfessorLayoutImport
     }
     '/home/_layout/professor/_layout/volunteer-management': {
@@ -728,8 +788,9 @@ interface HomeLayoutAdminLayoutRouteChildren {
   HomeLayoutAdminLayoutDepartamentosRoute: typeof HomeLayoutAdminLayoutDepartamentosRoute
   HomeLayoutAdminLayoutDisciplinasRoute: typeof HomeLayoutAdminLayoutDisciplinasRoute
   HomeLayoutAdminLayoutDocumentSigningRoute: typeof HomeLayoutAdminLayoutDocumentSigningRoute
-  HomeLayoutAdminLayoutEditalRoute: typeof HomeLayoutAdminLayoutEditalRoute
+  HomeLayoutAdminLayoutEditalManagementRoute: typeof HomeLayoutAdminLayoutEditalManagementRoute
   HomeLayoutAdminLayoutFilesRoute: typeof HomeLayoutAdminLayoutFilesRoute
+  HomeLayoutAdminLayoutImportProjectsRoute: typeof HomeLayoutAdminLayoutImportProjectsRoute
   HomeLayoutAdminLayoutImportarPlanejamentoRoute: typeof HomeLayoutAdminLayoutImportarPlanejamentoRoute
   HomeLayoutAdminLayoutInviteProfessorRoute: typeof HomeLayoutAdminLayoutInviteProfessorRoute
   HomeLayoutAdminLayoutManageProjectsRoute: typeof HomeLayoutAdminLayoutManageProjectsRoute
@@ -754,8 +815,11 @@ const HomeLayoutAdminLayoutRouteChildren: HomeLayoutAdminLayoutRouteChildren = {
   HomeLayoutAdminLayoutDisciplinasRoute: HomeLayoutAdminLayoutDisciplinasRoute,
   HomeLayoutAdminLayoutDocumentSigningRoute:
     HomeLayoutAdminLayoutDocumentSigningRoute,
-  HomeLayoutAdminLayoutEditalRoute: HomeLayoutAdminLayoutEditalRoute,
+  HomeLayoutAdminLayoutEditalManagementRoute:
+    HomeLayoutAdminLayoutEditalManagementRoute,
   HomeLayoutAdminLayoutFilesRoute: HomeLayoutAdminLayoutFilesRoute,
+  HomeLayoutAdminLayoutImportProjectsRoute:
+    HomeLayoutAdminLayoutImportProjectsRoute,
   HomeLayoutAdminLayoutImportarPlanejamentoRoute:
     HomeLayoutAdminLayoutImportarPlanejamentoRoute,
   HomeLayoutAdminLayoutInviteProfessorRoute:
@@ -800,8 +864,11 @@ interface HomeLayoutProfessorLayoutRouteChildren {
   HomeLayoutProfessorLayoutDashboardRoute: typeof HomeLayoutProfessorLayoutDashboardRoute
   HomeLayoutProfessorLayoutDisciplinasRoute: typeof HomeLayoutProfessorLayoutDisciplinasRoute
   HomeLayoutProfessorLayoutDocumentSigningRoute: typeof HomeLayoutProfessorLayoutDocumentSigningRoute
+  HomeLayoutProfessorLayoutGerarAtaRoute: typeof HomeLayoutProfessorLayoutGerarAtaRoute
+  HomeLayoutProfessorLayoutGradeApplicationsRoute: typeof HomeLayoutProfessorLayoutGradeApplicationsRoute
   HomeLayoutProfessorLayoutProjectApplicationsRoute: typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
   HomeLayoutProfessorLayoutProjectsRoute: typeof HomeLayoutProfessorLayoutProjectsRoute
+  HomeLayoutProfessorLayoutPublishResultsRoute: typeof HomeLayoutProfessorLayoutPublishResultsRoute
   HomeLayoutProfessorLayoutVolunteerManagementRoute: typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
   HomeLayoutProfessorLayoutProjectIdRoute: typeof HomeLayoutProfessorLayoutProjectIdRoute
 }
@@ -814,10 +881,16 @@ const HomeLayoutProfessorLayoutRouteChildren: HomeLayoutProfessorLayoutRouteChil
       HomeLayoutProfessorLayoutDisciplinasRoute,
     HomeLayoutProfessorLayoutDocumentSigningRoute:
       HomeLayoutProfessorLayoutDocumentSigningRoute,
+    HomeLayoutProfessorLayoutGerarAtaRoute:
+      HomeLayoutProfessorLayoutGerarAtaRoute,
+    HomeLayoutProfessorLayoutGradeApplicationsRoute:
+      HomeLayoutProfessorLayoutGradeApplicationsRoute,
     HomeLayoutProfessorLayoutProjectApplicationsRoute:
       HomeLayoutProfessorLayoutProjectApplicationsRoute,
     HomeLayoutProfessorLayoutProjectsRoute:
       HomeLayoutProfessorLayoutProjectsRoute,
+    HomeLayoutProfessorLayoutPublishResultsRoute:
+      HomeLayoutProfessorLayoutPublishResultsRoute,
     HomeLayoutProfessorLayoutVolunteerManagementRoute:
       HomeLayoutProfessorLayoutVolunteerManagementRoute,
     HomeLayoutProfessorLayoutProjectIdRoute:
@@ -926,8 +999,9 @@ export interface FileRoutesByFullPath {
   '/home/admin/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
   '/home/admin/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/admin/document-signing': typeof HomeLayoutAdminLayoutDocumentSigningRoute
-  '/home/admin/edital': typeof HomeLayoutAdminLayoutEditalRoute
+  '/home/admin/edital-management': typeof HomeLayoutAdminLayoutEditalManagementRoute
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
+  '/home/admin/import-projects': typeof HomeLayoutAdminLayoutImportProjectsRoute
   '/home/admin/importar-planejamento': typeof HomeLayoutAdminLayoutImportarPlanejamentoRoute
   '/home/admin/invite-professor': typeof HomeLayoutAdminLayoutInviteProfessorRoute
   '/home/admin/manage-projects': typeof HomeLayoutAdminLayoutManageProjectsRoute
@@ -942,8 +1016,11 @@ export interface FileRoutesByFullPath {
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/professor/disciplinas': typeof HomeLayoutProfessorLayoutDisciplinasRoute
   '/home/professor/document-signing': typeof HomeLayoutProfessorLayoutDocumentSigningRoute
+  '/home/professor/gerar-ata': typeof HomeLayoutProfessorLayoutGerarAtaRoute
+  '/home/professor/grade-applications': typeof HomeLayoutProfessorLayoutGradeApplicationsRoute
   '/home/professor/project-applications': typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
   '/home/professor/projects': typeof HomeLayoutProfessorLayoutProjectsRoute
+  '/home/professor/publish-results': typeof HomeLayoutProfessorLayoutPublishResultsRoute
   '/home/professor/volunteer-management': typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/student/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
@@ -971,8 +1048,9 @@ export interface FileRoutesByTo {
   '/home/admin/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
   '/home/admin/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/admin/document-signing': typeof HomeLayoutAdminLayoutDocumentSigningRoute
-  '/home/admin/edital': typeof HomeLayoutAdminLayoutEditalRoute
+  '/home/admin/edital-management': typeof HomeLayoutAdminLayoutEditalManagementRoute
   '/home/admin/files': typeof HomeLayoutAdminLayoutFilesRoute
+  '/home/admin/import-projects': typeof HomeLayoutAdminLayoutImportProjectsRoute
   '/home/admin/importar-planejamento': typeof HomeLayoutAdminLayoutImportarPlanejamentoRoute
   '/home/admin/invite-professor': typeof HomeLayoutAdminLayoutInviteProfessorRoute
   '/home/admin/manage-projects': typeof HomeLayoutAdminLayoutManageProjectsRoute
@@ -987,8 +1065,11 @@ export interface FileRoutesByTo {
   '/home/professor/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/professor/disciplinas': typeof HomeLayoutProfessorLayoutDisciplinasRoute
   '/home/professor/document-signing': typeof HomeLayoutProfessorLayoutDocumentSigningRoute
+  '/home/professor/gerar-ata': typeof HomeLayoutProfessorLayoutGerarAtaRoute
+  '/home/professor/grade-applications': typeof HomeLayoutProfessorLayoutGradeApplicationsRoute
   '/home/professor/project-applications': typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
   '/home/professor/projects': typeof HomeLayoutProfessorLayoutProjectsRoute
+  '/home/professor/publish-results': typeof HomeLayoutProfessorLayoutPublishResultsRoute
   '/home/professor/volunteer-management': typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/student/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
@@ -1022,8 +1103,9 @@ export interface FileRoutesById {
   '/home/_layout/admin/_layout/departamentos': typeof HomeLayoutAdminLayoutDepartamentosRoute
   '/home/_layout/admin/_layout/disciplinas': typeof HomeLayoutAdminLayoutDisciplinasRoute
   '/home/_layout/admin/_layout/document-signing': typeof HomeLayoutAdminLayoutDocumentSigningRoute
-  '/home/_layout/admin/_layout/edital': typeof HomeLayoutAdminLayoutEditalRoute
+  '/home/_layout/admin/_layout/edital-management': typeof HomeLayoutAdminLayoutEditalManagementRoute
   '/home/_layout/admin/_layout/files': typeof HomeLayoutAdminLayoutFilesRoute
+  '/home/_layout/admin/_layout/import-projects': typeof HomeLayoutAdminLayoutImportProjectsRoute
   '/home/_layout/admin/_layout/importar-planejamento': typeof HomeLayoutAdminLayoutImportarPlanejamentoRoute
   '/home/_layout/admin/_layout/invite-professor': typeof HomeLayoutAdminLayoutInviteProfessorRoute
   '/home/_layout/admin/_layout/manage-projects': typeof HomeLayoutAdminLayoutManageProjectsRoute
@@ -1038,8 +1120,11 @@ export interface FileRoutesById {
   '/home/_layout/professor/_layout/dashboard': typeof HomeLayoutProfessorLayoutDashboardRoute
   '/home/_layout/professor/_layout/disciplinas': typeof HomeLayoutProfessorLayoutDisciplinasRoute
   '/home/_layout/professor/_layout/document-signing': typeof HomeLayoutProfessorLayoutDocumentSigningRoute
+  '/home/_layout/professor/_layout/gerar-ata': typeof HomeLayoutProfessorLayoutGerarAtaRoute
+  '/home/_layout/professor/_layout/grade-applications': typeof HomeLayoutProfessorLayoutGradeApplicationsRoute
   '/home/_layout/professor/_layout/project-applications': typeof HomeLayoutProfessorLayoutProjectApplicationsRoute
   '/home/_layout/professor/_layout/projects': typeof HomeLayoutProfessorLayoutProjectsRoute
+  '/home/_layout/professor/_layout/publish-results': typeof HomeLayoutProfessorLayoutPublishResultsRoute
   '/home/_layout/professor/_layout/volunteer-management': typeof HomeLayoutProfessorLayoutVolunteerManagementRoute
   '/home/_layout/student/_layout/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/_layout/student/_layout/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
@@ -1070,8 +1155,9 @@ export interface FileRouteTypes {
     | '/home/admin/departamentos'
     | '/home/admin/disciplinas'
     | '/home/admin/document-signing'
-    | '/home/admin/edital'
+    | '/home/admin/edital-management'
     | '/home/admin/files'
+    | '/home/admin/import-projects'
     | '/home/admin/importar-planejamento'
     | '/home/admin/invite-professor'
     | '/home/admin/manage-projects'
@@ -1086,8 +1172,11 @@ export interface FileRouteTypes {
     | '/home/professor/dashboard'
     | '/home/professor/disciplinas'
     | '/home/professor/document-signing'
+    | '/home/professor/gerar-ata'
+    | '/home/professor/grade-applications'
     | '/home/professor/project-applications'
     | '/home/professor/projects'
+    | '/home/professor/publish-results'
     | '/home/professor/volunteer-management'
     | '/home/student/dashboard'
     | '/home/student/inscricao-monitoria'
@@ -1114,8 +1203,9 @@ export interface FileRouteTypes {
     | '/home/admin/departamentos'
     | '/home/admin/disciplinas'
     | '/home/admin/document-signing'
-    | '/home/admin/edital'
+    | '/home/admin/edital-management'
     | '/home/admin/files'
+    | '/home/admin/import-projects'
     | '/home/admin/importar-planejamento'
     | '/home/admin/invite-professor'
     | '/home/admin/manage-projects'
@@ -1130,8 +1220,11 @@ export interface FileRouteTypes {
     | '/home/professor/dashboard'
     | '/home/professor/disciplinas'
     | '/home/professor/document-signing'
+    | '/home/professor/gerar-ata'
+    | '/home/professor/grade-applications'
     | '/home/professor/project-applications'
     | '/home/professor/projects'
+    | '/home/professor/publish-results'
     | '/home/professor/volunteer-management'
     | '/home/student/dashboard'
     | '/home/student/inscricao-monitoria'
@@ -1163,8 +1256,9 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/_layout/departamentos'
     | '/home/_layout/admin/_layout/disciplinas'
     | '/home/_layout/admin/_layout/document-signing'
-    | '/home/_layout/admin/_layout/edital'
+    | '/home/_layout/admin/_layout/edital-management'
     | '/home/_layout/admin/_layout/files'
+    | '/home/_layout/admin/_layout/import-projects'
     | '/home/_layout/admin/_layout/importar-planejamento'
     | '/home/_layout/admin/_layout/invite-professor'
     | '/home/_layout/admin/_layout/manage-projects'
@@ -1179,8 +1273,11 @@ export interface FileRouteTypes {
     | '/home/_layout/professor/_layout/dashboard'
     | '/home/_layout/professor/_layout/disciplinas'
     | '/home/_layout/professor/_layout/document-signing'
+    | '/home/_layout/professor/_layout/gerar-ata'
+    | '/home/_layout/professor/_layout/grade-applications'
     | '/home/_layout/professor/_layout/project-applications'
     | '/home/_layout/professor/_layout/projects'
+    | '/home/_layout/professor/_layout/publish-results'
     | '/home/_layout/professor/_layout/volunteer-management'
     | '/home/_layout/student/_layout/dashboard'
     | '/home/_layout/student/_layout/inscricao-monitoria'
@@ -1271,8 +1368,9 @@ export const routeTree = rootRoute
         "/home/_layout/admin/_layout/departamentos",
         "/home/_layout/admin/_layout/disciplinas",
         "/home/_layout/admin/_layout/document-signing",
-        "/home/_layout/admin/_layout/edital",
+        "/home/_layout/admin/_layout/edital-management",
         "/home/_layout/admin/_layout/files",
+        "/home/_layout/admin/_layout/import-projects",
         "/home/_layout/admin/_layout/importar-planejamento",
         "/home/_layout/admin/_layout/invite-professor",
         "/home/_layout/admin/_layout/manage-projects",
@@ -1301,8 +1399,11 @@ export const routeTree = rootRoute
         "/home/_layout/professor/_layout/dashboard",
         "/home/_layout/professor/_layout/disciplinas",
         "/home/_layout/professor/_layout/document-signing",
+        "/home/_layout/professor/_layout/gerar-ata",
+        "/home/_layout/professor/_layout/grade-applications",
         "/home/_layout/professor/_layout/project-applications",
         "/home/_layout/professor/_layout/projects",
+        "/home/_layout/professor/_layout/publish-results",
         "/home/_layout/professor/_layout/volunteer-management",
         "/home/_layout/professor/_layout/project/$id"
       ]
@@ -1351,12 +1452,16 @@ export const routeTree = rootRoute
       "filePath": "home/_layout/admin/_layout/document-signing.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
-    "/home/_layout/admin/_layout/edital": {
-      "filePath": "home/_layout/admin/_layout/edital.tsx",
+    "/home/_layout/admin/_layout/edital-management": {
+      "filePath": "home/_layout/admin/_layout/edital-management.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
     "/home/_layout/admin/_layout/files": {
       "filePath": "home/_layout/admin/_layout/files.tsx",
+      "parent": "/home/_layout/admin/_layout"
+    },
+    "/home/_layout/admin/_layout/import-projects": {
+      "filePath": "home/_layout/admin/_layout/import-projects.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
     "/home/_layout/admin/_layout/importar-planejamento": {
@@ -1415,12 +1520,24 @@ export const routeTree = rootRoute
       "filePath": "home/_layout/professor/_layout/document-signing.tsx",
       "parent": "/home/_layout/professor/_layout"
     },
+    "/home/_layout/professor/_layout/gerar-ata": {
+      "filePath": "home/_layout/professor/_layout/gerar-ata.tsx",
+      "parent": "/home/_layout/professor/_layout"
+    },
+    "/home/_layout/professor/_layout/grade-applications": {
+      "filePath": "home/_layout/professor/_layout/grade-applications.tsx",
+      "parent": "/home/_layout/professor/_layout"
+    },
     "/home/_layout/professor/_layout/project-applications": {
       "filePath": "home/_layout/professor/_layout/project-applications.tsx",
       "parent": "/home/_layout/professor/_layout"
     },
     "/home/_layout/professor/_layout/projects": {
       "filePath": "home/_layout/professor/_layout/projects.tsx",
+      "parent": "/home/_layout/professor/_layout"
+    },
+    "/home/_layout/professor/_layout/publish-results": {
+      "filePath": "home/_layout/professor/_layout/publish-results.tsx",
       "parent": "/home/_layout/professor/_layout"
     },
     "/home/_layout/professor/_layout/volunteer-management": {
