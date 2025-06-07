@@ -50,6 +50,9 @@ export interface MonitoriaFormData {
   };
   assinaturaProfessor?: string;
   assinaturaAdmin?: string;
+  dataAprovacao?: string;
+  dataAssinaturaProfessor?: string;
+  dataAssinaturaAdmin?: string;
   allowSigning?: boolean;
   signingMode?: 'professor' | 'admin' | 'view';
   projetoId?: number;
@@ -62,23 +65,26 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: 'Helvetica',
     backgroundColor: '#FFFFFF',
+    break: false,
   },
   header: {
     textAlign: 'center',
-    marginBottom: 15,
-    flexDirection: 'column',
+    marginBottom: 20,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    wrap: false,
+    break: false,
   },
   logo: {
     width: 60,
     height: 80,
     marginRight: 15,
-    marginBottom: 8,
   },
   headerText: {
     flexDirection: 'column',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   universityName: {
     fontSize: 11,
@@ -95,10 +101,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 15,
     paddingHorizontal: 10,
+    wrap: false,
   },
   section: {
     marginBottom: 8,
     border: '1pt solid #000',
+    break: false,
   },
   sectionHeader: {
     backgroundColor: '#E0E0E0',
@@ -115,6 +123,7 @@ const styles = StyleSheet.create({
     minHeight: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    break: false,
   },
   lastRow: {
     paddingVertical: 2,
@@ -122,6 +131,7 @@ const styles = StyleSheet.create({
     minHeight: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    break: false,
   },
   label: {
     fontWeight: 'bold',
@@ -135,6 +145,7 @@ const styles = StyleSheet.create({
   descriptionSection: {
     padding: 4,
     minHeight: 60,
+    break: false,
   },
   descriptionText: {
     fontSize: 8,
@@ -146,10 +157,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     flexDirection: 'row',
     fontSize: 8,
+    break: false,
   },
   declarationSection: {
     padding: 4,
     minHeight: 40,
+    break: false,
   },
   declarationText: {
     fontSize: 8,
@@ -161,19 +174,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 15,
+    break: false,
   },
   signatureText: {
     fontSize: 8,
+    flex: 1,
   },
   signatureLine: {
     borderBottom: '1pt solid #000',
     width: 200,
     height: 20,
+    marginLeft: 10,
   },
   signatureImage: {
     width: 200,
     height: 60,
     objectFit: 'contain',
+    marginLeft: 10,
   },
   activeSignatureArea: {
     borderColor: '#0066cc',
@@ -187,6 +204,7 @@ const styles = StyleSheet.create({
     minHeight: 16,
     flexDirection: 'row',
     alignItems: 'center',
+    break: false,
   },
   tableCell: {
     fontSize: 8,
@@ -199,6 +217,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 15,
     paddingHorizontal: 10,
+    wrap: false,
   },
 });
 
@@ -255,7 +274,7 @@ export const MonitoriaFormTemplate = ({
 
           <View style={styles.row}>
             <Text style={styles.label}>1.3 Data da aprovação do projeto:</Text>
-            <Text style={styles.value}>_________________</Text>
+            <Text style={styles.value}>{data.dataAprovacao || '_________________'}</Text>
           </View>
 
           <View style={styles.row}>
@@ -340,7 +359,7 @@ export const MonitoriaFormTemplate = ({
             <Text style={styles.tableCell}>2.5 Regime: 20h ({data.professorResponsavel?.regime === '20H' ? 'X' : ' '}) 40h ({data.professorResponsavel?.regime === '40H' ? 'X' : ' '}) DE ({data.professorResponsavel?.regime === 'DE' ? 'X' : ' '})</Text>
           </View>
           <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>2.6 Tel. Institucional (): {data.professorResponsavel?.telefoneInstitucional || '_________________'}</Text>
+            <Text style={styles.tableCell}>2.6 Tel. Institucional: {data.professorResponsavel?.telefoneInstitucional || '_________________'}</Text>
           </View>
           <View style={styles.tableRow}>
             <Text style={styles.tableCell}>2.7 Celular: {data.professorResponsavel?.telefone || '_________________'}</Text>
@@ -388,7 +407,7 @@ export const MonitoriaFormTemplate = ({
 
             <View style={styles.signatureArea}>
               <Text style={styles.signatureText}>
-                Data e Assinatura do(a) Prof(a). Responsável: {new Date().toLocaleDateString('pt-BR')}
+                Data e Assinatura do(a) Prof(a). Responsável: {data.dataAssinaturaProfessor || new Date().toLocaleDateString('pt-BR')}
               </Text>
               {data.assinaturaProfessor ? (
                 <Image src={data.assinaturaProfessor} style={styles.signatureImage} />
@@ -421,7 +440,7 @@ export const MonitoriaFormTemplate = ({
 
             <View style={styles.signatureArea}>
               <Text style={styles.signatureText}>
-                Data e Assinatura do(a) Coordenador(a): {new Date().toLocaleDateString('pt-BR')}
+                Data e Assinatura do(a) Coordenador(a): {data.dataAssinaturaAdmin || new Date().toLocaleDateString('pt-BR')}
               </Text>
               {data.assinaturaAdmin ? (
                 <Image src={data.assinaturaAdmin} style={styles.signatureImage} />

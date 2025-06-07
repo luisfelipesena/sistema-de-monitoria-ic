@@ -115,6 +115,7 @@ function ProfessorDocumentSigningComponent() {
       },
       projetoId: selectedProject.id !== null ? selectedProject.id : undefined,
       assinaturaProfessor: selectedProject.assinaturaProfessor || undefined,
+      dataAssinaturaProfessor: selectedProject.assinaturaProfessor ? new Date().toLocaleDateString('pt-BR') : undefined,
     };
   }, [selectedProject, departamentos, professores, user]);
 

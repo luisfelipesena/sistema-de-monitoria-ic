@@ -117,6 +117,7 @@ export const tipoAssinaturaEnum = pgEnum('tipo_assinatura_enum', [
   'TERMO_COMPROMISSO_ALUNO',
   'EDITAL_ADMIN',
   'ATA_SELECAO_PROFESSOR',
+  'PROJETO_COORDENADOR_DEPARTAMENTO',
 ]);
 
 export const statusInscricaoEnum = pgEnum('status_inscricao_enum', [

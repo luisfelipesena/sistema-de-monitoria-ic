@@ -106,12 +106,6 @@ const menuConfig: MenuConfig[] = [
         icon: Award,
         roles: ['admin'],
       },
-      {
-        label: 'Assinatura de Documentos',
-        href: '/home/admin/document-signing',
-        icon: FileSignature,
-        roles: ['admin'],
-      },
     ],
   },
 
@@ -236,12 +230,6 @@ const menuConfig: MenuConfig[] = [
         label: 'Novo Projeto',
         href: '/home/professor/projects',
         icon: FilePlus,
-        roles: ['professor'],
-      },
-      {
-        label: 'Assinatura de Projetos',
-        href: '/home/professor/document-signing',
-        icon: FileSignature,
         roles: ['professor'],
       },
       {

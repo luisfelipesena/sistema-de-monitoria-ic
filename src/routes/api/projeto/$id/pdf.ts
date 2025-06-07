@@ -59,7 +59,11 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/pdf')({
         }
 
         let assinaturaProfessor: string | undefined = undefined;
-        const signatureRecord = await db.query.assinaturaDocumentoTable.findFirst({
+        let dataAssinaturaProfessor: string | undefined = undefined;
+        let dataAprovacao: string | undefined = undefined;
+
+        // Buscar assinatura do professor
+        const professorSignatureRecord = await db.query.assinaturaDocumentoTable.findFirst({
           where: and(
             eq(assinaturaDocumentoTable.projetoId, projetoId),
             eq(assinaturaDocumentoTable.tipoAssinatura, tipoAssinaturaEnum.enumValues[0])
@@ -67,8 +71,14 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/pdf')({
           orderBy: (fields, operators) => [operators.desc(fields.createdAt)],
         });
 
-        if (signatureRecord) {
-          assinaturaProfessor = signatureRecord.assinaturaData;
+        if (professorSignatureRecord) {
+          assinaturaProfessor = professorSignatureRecord.assinaturaData;
+          dataAssinaturaProfessor = professorSignatureRecord.createdAt.toLocaleDateString('pt-BR');
+        }
+
+        // Se o projeto foi aprovado, usar a data de aprovação baseada no status
+        if (projeto.status === 'APPROVED') {
+          dataAprovacao = projeto.updatedAt?.toLocaleDateString('pt-BR');
         }
 
         const professor = projeto.professorResponsavel;
@@ -115,6 +125,8 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/pdf')({
             nome: pd.disciplina.nome,
           })),
           assinaturaProfessor: assinaturaProfessor,
+          dataAssinaturaProfessor: dataAssinaturaProfessor,
+          dataAprovacao: dataAprovacao,
         };
 
         const pdfBuffer = await renderToBuffer(MonitoriaFormTemplate({ data: formData }));

@@ -2,7 +2,7 @@ import { MonitoriaFormTemplate, MonitoriaFormData } from '@/components/features/
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useProjectProfessorSignature } from '@/hooks/use-projeto';
+import { useProfessorSignature, useAdminSignature } from '@/hooks/use-projeto';
 import { PDFViewer } from '@react-pdf/renderer';
 import { CheckCircle, FileSignature, Loader2 } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -25,13 +25,10 @@ export function InteractiveProjectPDF({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const signatureRef = useRef<SignatureCanvas>(null);
   
-  const professorSignatureMutation = useProjectProfessorSignature();
+  const professorSignatureMutation = useProfessorSignature();
+  const adminSignatureMutation = useAdminSignature();
 
   const handleOpenSignature = () => {
-    if (userRole !== 'professor') {
-      toast.error('Apenas professores podem assinar projetos');
-      return;
-    }
     setShowSignatureDialog(true);
   };
 
@@ -47,18 +44,34 @@ export function InteractiveProjectPDF({
       try {
         const signatureDataURL = signatureRef.current.toDataURL();
         
-        await professorSignatureMutation.mutateAsync({
-          projetoId: formData.projetoId,
-          assinaturaData: signatureDataURL,
-        });
+        if (userRole === 'professor') {
+          await professorSignatureMutation.mutateAsync({
+            projetoId: formData.projetoId,
+            signatureImage: signatureDataURL,
+          });
 
-        const updatedFormData = {
-          ...formData,
-          assinaturaProfessor: signatureDataURL,
-        };
-        setSignedData(updatedFormData);
-        setShowSignatureDialog(false);
+          const updatedFormData = {
+            ...formData,
+            assinaturaProfessor: signatureDataURL,
+            dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
+          };
+          setSignedData(updatedFormData);
+        } else if (userRole === 'admin') {
+          await adminSignatureMutation.mutateAsync({
+            projetoId: formData.projetoId,
+            signatureImage: signatureDataURL,
+          });
+
+          const updatedFormData = {
+            ...formData,
+            assinaturaAdmin: signatureDataURL,
+            dataAssinaturaAdmin: new Date().toLocaleDateString('pt-BR'),
+            dataAprovacao: new Date().toLocaleDateString('pt-BR'),
+          };
+          setSignedData(updatedFormData);
+        }
         
+        setShowSignatureDialog(false);
         toast.success('Assinatura salva com sucesso!');
         onSignatureComplete?.();
       } catch (error) {
@@ -72,8 +85,16 @@ export function InteractiveProjectPDF({
     }
   };
 
-  const currentFormData = signedData.assinaturaProfessor ? signedData : formData;
-  const hasSignature = !!currentFormData.assinaturaProfessor;
+  const currentFormData = {
+    ...signedData,
+    signingMode: userRole,
+  };
+  
+  const hasSignature = userRole === 'professor' 
+    ? !!currentFormData.assinaturaProfessor 
+    : !!currentFormData.assinaturaAdmin;
+
+  const roleLabel = userRole === 'professor' ? 'Professor' : 'Coordenador';
 
   return (
     <div className="space-y-6">
@@ -84,16 +105,16 @@ export function InteractiveProjectPDF({
               <FileSignature className="h-5 w-5" />
               Documento do Projeto - {currentFormData.titulo}
             </span>
-            {!hasSignature && userRole === 'professor' && (
+            {!hasSignature && (
               <Button onClick={handleOpenSignature} className="ml-4">
                 <FileSignature className="h-4 w-4 mr-2" />
-                Assinar Projeto
+                Assinar como {roleLabel}
               </Button>
             )}
             {hasSignature && (
               <div className="flex items-center gap-2 text-green-600">
                 <CheckCircle className="h-5 w-5" />
-                <span className="font-medium">Projeto Assinado</span>
+                <span className="font-medium">Assinado por {roleLabel}</span>
               </div>
             )}
           </CardTitle>
@@ -110,7 +131,7 @@ export function InteractiveProjectPDF({
       <Dialog open={showSignatureDialog} onOpenChange={setShowSignatureDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Assinatura Digital do Projeto</DialogTitle>
+            <DialogTitle>Assinatura Digital - {roleLabel}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="text-sm text-muted-foreground">

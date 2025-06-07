@@ -9,10 +9,10 @@ import { logger } from '@/utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from './query-keys';
 import { projetoStatusEnum } from '@/server/database/schema';
-import type { ProfessorSignatureInput } from '@/routes/api/projeto/$id/professor-signature';
+import type { AssinaturaInput } from '@/routes/api/projeto/$id/assinatura';
 
-// Interface for the API response of professor signature submission
-interface ProfessorSignatureApiResponse {
+// Interface for the API response of signature submission
+interface SignatureApiResponse {
   success: boolean;
   projeto: ProjetoResponse; // Re-uses ProjetoResponse from @/routes/api/projeto/-types
   signatureId: number;
@@ -380,26 +380,76 @@ export function useBulkReminder() {
   });
 }
 
-export function useProjectProfessorSignature() {
+// Hook removido - usar useProfessorSignature() que usa o endpoint unificado
+
+/**
+ * Hook para assinatura do admin/coordenador
+ */
+export function useAdminSignature() {
   const queryClient = useQueryClient();
 
   return useMutation<
-    ProfessorSignatureApiResponse,
+    any,
     Error,
-    { projetoId: number; assinaturaData: string }
+    { projetoId: number; signatureImage: string }
   >({
-    mutationFn: async ({ projetoId, assinaturaData }) => {
-      const payload: ProfessorSignatureInput = { assinaturaData };
-      const response = await apiClient.post<ProfessorSignatureApiResponse>(
-        `/projeto/${projetoId}/professor-signature`,
+    mutationFn: async ({ projetoId, signatureImage }) => {
+      const payload: AssinaturaInput = { 
+        signatureImage, 
+        tipoAssinatura: 'admin' 
+      };
+      const response = await apiClient.post(
+        `/projeto/${projetoId}/assinatura`,
         payload,
       );
       return response.data;
     },
     onSuccess: (data, variables) => {
       log.info(
-        { projectId: variables.projetoId, signatureId: data.signatureId },
-        'Professor signature submitted successfully, invalidating queries',
+        { projectId: variables.projetoId },
+        'Admin signature submitted successfully',
+      );
+      queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.projeto.byId(variables.projetoId.toString()),
+      });
+    },
+    onError: (error, variables) => {
+      log.error(
+        error,
+        'Error submitting admin signature for project',
+        { projectId: variables.projetoId },
+      );
+    },
+  });
+}
+
+/**
+ * Hook para assinatura do professor (atualizado para usar novo endpoint)
+ */
+export function useProfessorSignature() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    any,
+    Error,
+    { projetoId: number; signatureImage: string }
+  >({
+    mutationFn: async ({ projetoId, signatureImage }) => {
+      const payload: AssinaturaInput = { 
+        signatureImage, 
+        tipoAssinatura: 'professor' 
+      };
+      const response = await apiClient.post(
+        `/projeto/${projetoId}/assinatura`,
+        payload,
+      );
+      return response.data;
+    },
+    onSuccess: (data, variables) => {
+      log.info(
+        { projectId: variables.projetoId },
+        'Professor signature submitted successfully',
       );
       queryClient.invalidateQueries({ queryKey: QueryKeys.projeto.list });
       queryClient.invalidateQueries({

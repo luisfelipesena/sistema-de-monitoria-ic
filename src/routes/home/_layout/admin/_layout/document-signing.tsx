@@ -2,6 +2,7 @@
 
 import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -11,19 +12,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PdfViewerWithSignature } from '@/components/ui/pdf-viewer-with-signature';
+import { InteractiveProjectPDF } from '@/components/features/projects/InteractiveProjectPDF';
+import { MonitoriaFormData } from '@/components/features/projects/MonitoriaFormTemplate';
 import { useAuth } from '@/hooks/use-auth';
+import { useDepartamentoList } from '@/hooks/use-departamento';
+import { useProfessores } from '@/hooks/use-professor';
 import {
   useProjetos,
+  useProjeto,
   useUpdateProjetoStatus,
   useUploadProjetoDocument,
 } from '@/hooks/use-projeto';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
+  ArrowLeft,
   CheckCircle,
   FileSignature,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute(
@@ -34,49 +40,87 @@ export const Route = createFileRoute(
 
 function DocumentSigningComponent() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: projetos, isLoading: loadingProjetos, refetch } = useProjetos();
+  const { data: departamentos } = useDepartamentoList();
+  const { data: professores } = useProfessores();
   const uploadDocument = useUploadProjetoDocument();
   const updateStatus = useUpdateProjetoStatus();
   const [signingProject, setSigningProject] = useState<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+
+  const { data: selectedProject, isLoading: loadingProject } = useProjeto(
+    selectedProjectId || 0
+  );
 
   // Filter projects that are PENDING_ADMIN_SIGNATURE (approved but need signing)
   const pendingSignatureProjetos =
     projetos?.filter((projeto) => projeto.status === 'PENDING_ADMIN_SIGNATURE') || [];
 
-  const handleSignComplete = async (projetoId: number, signedPdfBlob: Blob) => {
-    setSigningProject(projetoId);
-    try {
-      // Convert Blob to File
-      const signedFile = new File(
-        [signedPdfBlob], 
-        `projeto_${projetoId}_assinado_admin.pdf`, 
-        { type: 'application/pdf' }
-      );
+  const templateData = useMemo((): MonitoriaFormData | null => {
+    if (!selectedProject || !departamentos || !professores) return null;
 
-      // Upload the signed document
-      await uploadDocument.mutateAsync({
-        projetoId,
-        file: signedFile,
-        tipoDocumento: 'PROPOSTA_ASSINADA_ADMIN',
-        observacoes: 'Documento assinado digitalmente pelo administrador',
-      });
+    const departamento = departamentos.find(d => d.id === selectedProject.departamento?.id);
+    const professor = professores.find((p: any) => p.id === selectedProject.professorResponsavel?.id);
 
-      // Update project status to APPROVED after admin signs
-      await updateStatus.mutateAsync({
-        projetoId,
-        status: 'APPROVED',
-      });
+    return {
+      titulo: selectedProject.titulo,
+      descricao: selectedProject.descricao,
+      departamento: departamento ? {
+        id: departamento.id,
+        nome: departamento.nome,
+      } : undefined,
+      professorResponsavel: professor ? {
+        id: professor.id,
+        nomeCompleto: professor.nomeCompleto,
+        nomeSocial: professor.nomeSocial || undefined,
+        genero: professor.genero,
+        cpf: professor.cpf,
+        matriculaSiape: professor.matriculaSiape || undefined,
+        regime: professor.regime,
+        telefone: professor.telefone || undefined,
+        telefoneInstitucional: professor.telefoneInstitucional || undefined,
+        emailInstitucional: professor.emailInstitucional,
+      } : undefined,
+      coordenadorResponsavel: user?.username || 'Coordenador',
+      ano: selectedProject.ano,
+      semestre: selectedProject.semestre,
+      tipoProposicao: selectedProject.tipoProposicao,
+      bolsasSolicitadas: selectedProject.bolsasSolicitadas,
+      voluntariosSolicitados: selectedProject.voluntariosSolicitados,
+      cargaHorariaSemana: selectedProject.cargaHorariaSemana,
+      numeroSemanas: selectedProject.numeroSemanas,
+      publicoAlvo: selectedProject.publicoAlvo,
+      estimativaPessoasBenificiadas: selectedProject.estimativaPessoasBenificiadas ?? undefined,
+      disciplinas: selectedProject.disciplinas?.map(pd => ({
+        id: pd.disciplina.id,
+        codigo: pd.disciplina.codigo,
+        nome: pd.disciplina.nome,
+      })) || [],
+      user: {
+        username: user?.username,
+        email: user?.email,
+        nomeCompleto: user?.username,
+        role: user?.role,
+      },
+      projetoId: selectedProject.id !== null ? selectedProject.id : undefined,
+      assinaturaProfessor: selectedProject.assinaturaProfessor || undefined,
+      dataAprovacao: selectedProject.status === 'APPROVED' ? new Date().toLocaleDateString('pt-BR') : undefined,
+    };
+  }, [selectedProject, departamentos, professores, user]);
 
-      toast.success(
-        'Documento assinado com sucesso! Projeto aprovado.',
-      );
+  const handleBackToDashboard = () => {
+    navigate({ to: '/home/admin/dashboard' });
+  };
 
-      refetch();
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao salvar documento assinado');
-    } finally {
-      setSigningProject(null);
-    }
+  const handleBackToList = () => {
+    setSelectedProjectId(null);
+  };
+
+  const handleSignComplete = () => {
+    refetch();
+    toast.success('Projeto assinado com sucesso!');
+    setSelectedProjectId(null);
   };
 
   const renderStatusBadge = (status: string) => {
@@ -108,11 +152,50 @@ function DocumentSigningComponent() {
     );
   }
 
+  // Show signing interface if a project is selected
+  if (selectedProjectId && templateData) {
+    return (
+      <PagesLayout
+        title="Assinatura de Projeto - Admin"
+        subtitle={`Assine o projeto: ${templateData.titulo}`}
+      >
+        <div className="mb-4">
+          <Button variant="outline" onClick={handleBackToList}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar para Lista
+          </Button>
+        </div>
+        
+        {loadingProject ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+              <p className="mt-2">Carregando projeto...</p>
+            </div>
+          </div>
+        ) : (
+          <InteractiveProjectPDF
+            formData={templateData}
+            userRole="admin"
+            onSignatureComplete={handleSignComplete}
+          />
+        )}
+      </PagesLayout>
+    );
+  }
+
   return (
     <PagesLayout
       title="Assinatura de Documentos - Admin"
       subtitle="Gerencie projetos de monitoria que aguardam assinatura administrativa"
     >
+      <div className="mb-4">
+        <Button variant="outline" onClick={handleBackToDashboard}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar ao Dashboard
+        </Button>
+      </div>
+
       {loadingProjetos ? (
         <div className="flex justify-center items-center py-8">
           <div className="text-center">
@@ -171,12 +254,14 @@ function DocumentSigningComponent() {
                       </TableCell>
                       <TableCell>{renderStatusBadge(projeto.status)}</TableCell>
                       <TableCell>
-                        <PdfViewerWithSignature
-                          pdfUrl={`/api/projeto/${projeto.id}/pdf`}
-                          projectTitle={projeto.titulo}
-                          onSignComplete={(blob) => handleSignComplete(projeto.id, blob)}
-                          loading={signingProject === projeto.id}
-                        />
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={() => setSelectedProjectId(projeto.id)}
+                        >
+                          <FileSignature className="h-4 w-4 mr-2" />
+                          Assinar Projeto
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

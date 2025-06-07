@@ -84,69 +84,80 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 
 #### 1.2 Geração Automática de PDF de Projetos
 
-**Status Atual:** 🚧 Parcial (preview existe, geração completa pendente de integração com assinatura digital)
+**Status Atual:** ✅ **IMPLEMENTADO** (geração completa com assinatura digital)
 
-**Requisitos do Cliente:**
-- Gerar PDF do projeto com todos os dados
-- Incluir campos para assinatura
-- Permitir download pelo professor
+**Funcionalidades Implementadas:**
+- ✅ Template PDF profissional com `@react-pdf/renderer`
+- ✅ Geração server-side via endpoint `/api/projeto/$id/pdf`
+- ✅ Campos de assinatura digital integrados
+- ✅ Preenchimento automático de datas (aprovação, assinatura)
+- ✅ Download direto pelo professor e admin
 
-**Pendências/Melhorias:**
-- [ ] Template PDF profissional
-- [ ] Geração server-side
-- [ ] Campos de assinatura digital
-
-**Sugestão de Implementação:**
-- [ ] Expandir `/api/projeto/$id/pdf` para gerar PDFs completos
-- [ ] Utilizar biblioteca como `@react-pdf/renderer` ou `puppeteer`
-- [ ] Criar templates em `src/server/lib/pdfTemplates/projeto.ts`
-- [ ] Hook `useProjectPdf()` para gerenciar downloads
+**Implementação Atual:**
+- ✅ `MonitoriaFormTemplate` como template principal
+- ✅ Geração server-side com `renderToBuffer`
+- ✅ Controle de acesso por role (professor, admin)
+- ✅ Integração com sistema de assinaturas
 
 #### 1.3 Fluxo de Assinatura pelo Professor
 
-**Status Atual:** 🚧 Parcial (apenas admin assina após aprovação)
+**Status Atual:** ✅ **IMPLEMENTADO** (assinatura digital integrada)
 
-**Requisitos do Cliente:**
-- Professor baixa PDF → assina → faz upload
-- Sistema rastreia status de assinatura
-- Notificações de lembrete
+**Funcionalidades Implementadas:**
+- ✅ Professor assina digitalmente via `react-signature-canvas`
+- ✅ Sistema atualiza status DRAFT → SUBMITTED automaticamente  
+- ✅ Notificação automática para todos os admins
+- ✅ Interface PDF interativa com preenchimento de datas
+
+**Implementação Atual:**
+- ✅ Endpoint unificado `/api/projeto/$id/assinatura` (suporta professor e admin)
+- ✅ UI em `InteractiveProjectPDF` para assinatura digital
+- ✅ Hook `useProfessorSignature()` para gerenciar fluxo
+- ✅ Integração com `MonitoriaFormTemplate` para geração de PDF
+
+#### 1.4 Sistema de Assinatura Digital Unificado
+
+**Status Atual:** ✅ **IMPLEMENTADO** (fluxo completo integrado)
+
+**Funcionalidades Implementadas:**
+- ✅ Endpoint unificado `/api/projeto/$id/assinatura` (professor e admin)
+- ✅ Interface de assinatura digital com `react-signature-canvas`
+- ✅ Auto-preenchimento de datas (aprovação e assinatura)
+- ✅ Fluxo automático: Professor → Admin → Notificações
+- ✅ Interface administrativa para assinatura (`/home/admin/document-signing`)
+
+**Fluxo Completo Implementado:**
+1. **Professor:** DRAFT → assina → SUBMITTED + notifica admins
+2. **Admin:** SUBMITTED → assina → APPROVED + notifica professor
+3. **Sistema:** Gerencia estados e notificações automaticamente
+
+**Implementação Técnica:**
+- ✅ `InteractiveProjectPDF` - componente de assinatura unificado
+- ✅ `useProfessorSignature()` e `useAdminSignature()` - hooks específicos
+- ✅ `MonitoriaFormTemplate` - template PDF com campos de assinatura
+- ✅ Controle de acesso por role e validação de permissões
+
+#### 1.5 Sistema de Notificações por Email
+
+**Status Atual:** ✅ **IMPLEMENTADO** (integrado ao fluxo de assinatura)
+
+**Funcionalidades Implementadas:**
+- ✅ Notificação automática para admins quando professor submete
+- ✅ Notificação automática para professor quando admin aprova
+- ✅ Templates personalizados por contexto
+- ✅ Integração com `emailService` existente
 
 **Pendências/Melhorias:**
-- [ ] Estado "PENDING_PROFESSOR_SIGNATURE" antes de submissão
-- [ ] Interface de upload de documento assinado
-- [ ] Validação de assinatura
+- [ ] Lembretes automáticos para assinaturas pendentes
+- [ ] Histórico de notificações enviadas
+- [ ] Templates HTML mais elaborados
 
 **Sugestão de Implementação:**
-- [ ] Adicionar status no enum `projectStatus`:
-  ```typescript
-  'PENDING_PROFESSOR_SIGNATURE' // Antes de SUBMITTED
-  ```
-- [ ] Criar endpoint `/api/projeto/$id/professor-signature`
-- [ ] Implementar UI em `ProjectForm.tsx` para upload
-- [ ] Hook `useProjectSignature()` para gerenciar fluxo
-
-#### 1.4 Sistema de Notificações por Email
-
-**Status Atual:** ❌ Configurado mas não integrado
-
-**Requisitos do Cliente:**
-- Lembretes automáticos para assinaturas pendentes
-- Notificações de mudança de status
-- Emails em lote para coordenação
-
-**Pendências/Melhorias:**
-- [ ] Templates de email
-- [ ] Agendamento de lembretes
-- [ ] Histórico de notificações
-
-**Sugestão de Implementação:**
-- [ ] Criar serviço de notificações em `src/server/lib/notificationService.ts`
-- [ ] Implementar templates em `src/server/lib/emailTemplates/`
 - [ ] Adicionar tabela `notificacao_historico` ao schema
 - [ ] Criar job scheduler para lembretes automáticos
 - [ ] Endpoint `/api/notifications/send-reminders`
 
-#### 1.5 Geração de Planilha PROGRAD
+#### 1.6 Geração de Planilha PROGRAD
 
 **Status Atual:** 🚧 Endpoint básico existe mas formato incorreto
 
