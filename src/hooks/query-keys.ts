@@ -168,6 +168,11 @@ export const QueryKeys = {
     detail: (id: number) => ['disciplinas', 'detail', id],
     professor: ['disciplinas', 'professor'],
   },
+
+  planejamento: {
+    import: ['planejamento', 'import'],
+    history: ['planejamento', 'history'],
+  },
 };
 
 export const QUERY_KEYS = QueryKeys;

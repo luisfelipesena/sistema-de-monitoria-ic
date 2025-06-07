@@ -3,12 +3,23 @@ import { TableComponent } from '@/components/layout/TableComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FilterModal, FilterValues } from '@/components/ui/FilterModal';
-import { useProjetos } from '@/hooks/use-projeto';
+import { useProjetos, useDeleteProjeto } from '@/hooks/use-projeto';
 import { ProjetoListItem } from '@/routes/api/projeto/-types';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { Link } from '@tanstack/react-router';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 import {
   Eye,
@@ -19,6 +30,7 @@ import {
   Plus,
   Users,
   FileSignature,
+  Trash2,
 } from 'lucide-react';
 
 export const Route = createFileRoute(
@@ -29,9 +41,13 @@ export const Route = createFileRoute(
 
 function DashboardProfessor() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { data: projetos, isLoading: loadingProjetos } = useProjetos();
+  const deleteProjeto = useDeleteProjeto();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projetoToDelete, setProjetoToDelete] = useState<ProjetoListItem | null>(null);
 
   // Aplicar filtros aos projetos
   const projetosFiltrados = useMemo(() => {
@@ -70,6 +86,33 @@ function DashboardProfessor() {
 
   const handleCriarProjeto = () => {
     navigate({ to: '/home/professor/projects' });
+  };
+
+  const handleDeleteProjeto = (projeto: ProjetoListItem) => {
+    setProjetoToDelete(projeto);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteProjeto = () => {
+    if (!projetoToDelete) return;
+
+    deleteProjeto.mutate(projetoToDelete.id, {
+      onSuccess: () => {
+        toast({
+          title: 'Projeto excluído',
+          description: 'O projeto foi excluído com sucesso.',
+        });
+        setDeleteDialogOpen(false);
+        setProjetoToDelete(null);
+      },
+      onError: (error) => {
+        toast({
+          title: 'Erro ao excluir projeto',
+          description: error.message || 'Ocorreu um erro ao excluir o projeto.',
+          variant: 'destructive',
+        });
+      },
+    });
   };
 
   // Column definitions for the projects table
@@ -186,15 +229,27 @@ function DashboardProfessor() {
         return (
           <div className="flex gap-2">
             {projeto.status === 'DRAFT' && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-full flex items-center gap-1"
-                onClick={() => handleEditProject(projeto.id)}
-              >
-                <FileSignature className="h-4 w-4" />
-                Assinar
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full flex items-center gap-1"
+                  onClick={() => handleEditProject(projeto.id)}
+                >
+                  <FileSignature className="h-4 w-4" />
+                  Assinar
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="rounded-full flex items-center gap-1"
+                  onClick={() => handleDeleteProjeto(projeto)}
+                  disabled={deleteProjeto.isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </Button>
+              </>
             )}
             
             {(projeto.status === 'SUBMITTED' || projeto.status === 'REJECTED') && (
@@ -312,6 +367,43 @@ function DashboardProfessor() {
         onApplyFilters={handleApplyFilters}
         initialFilters={filters}
       />
+
+      {/* Modal de Confirmação de Exclusão */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o projeto{' '}
+              <span className="font-semibold">
+                {projetoToDelete?.disciplinas?.[0]?.codigo || 'N/A'}
+              </span>
+              ? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setProjetoToDelete(null);
+              }}
+              disabled={deleteProjeto.isPending}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteProjeto}
+              disabled={deleteProjeto.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteProjeto.isPending ? (
+                <Loader className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PagesLayout>
   );
 }

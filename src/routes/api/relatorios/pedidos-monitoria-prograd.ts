@@ -107,7 +107,7 @@ export const APIRoute = createAPIFileRoute(
 
           const docAssinadoProfessor = projeto.documentos && projeto.documentos[0];
           const linkDocAssinado = docAssinadoProfessor 
-            ? `${clientUrl}/api/files/access/${docAssinadoProfessor.fileId}` // Ajustar rota se necessário
+            ? `${env.SERVER_URL}/public/documents/${docAssinadoProfessor.fileId}`
             : 'Documento não encontrado';
 
           dadosPlanilha.push({

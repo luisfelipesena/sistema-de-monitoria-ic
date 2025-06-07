@@ -3,7 +3,7 @@ import {
   assinaturaDocumentoTable,
   projetoStatusEnum,
   projetoTable,
-  // userTable, // Not directly used for selection here, user comes from context
+  userTable, // Not directly used for selection here, user comes from context
 } from '@/server/database/schema';
 import {
   createAPIHandler,
@@ -15,6 +15,8 @@ import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { eq } from 'drizzle-orm'; // 'and' was not used
 import { z } from 'zod';
+import { emailService } from '@/server/lib/emailService';
+import { departamentoTable, professorTable } from '@/server/database/schema';
 
 const log = logger.child({
   context: 'ProfessorSignatureAPI',
@@ -143,8 +145,64 @@ export const APIRoute = createAPIFileRoute(
             throw new Error('Erro ao atualizar status do projeto após assinatura.');
           }
 
+          // Send email notification to all admins
+          try {
+            const admins = await tx.query.userTable.findMany({
+              where: eq(userTable.role, 'admin'),
+            });
+            const adminEmails = admins
+              .map((admin) => admin.email)
+              .filter((email): email is string => !!email && email.length > 0);
+
+            if (adminEmails.length > 0) {
+              const professor = await tx.query.professorTable.findFirst({
+                where: eq(
+                  professorTable.id,
+                  updatedProjeto.professorResponsavelId,
+                ),
+              });
+              const departamento = await tx.query.departamentoTable.findFirst({
+                where: eq(
+                  departamentoTable.id,
+                  updatedProjeto.departamentoId,
+                ),
+              });
+
+              await emailService.sendProjetoSubmetidoParaAdminsNotification(
+                {
+                  professorNome:
+                    professor?.nomeCompleto || 'Professor Desconhecido',
+                  projetoTitulo: updatedProjeto.titulo,
+                  projetoId: updatedProjeto.id,
+                  departamento: departamento?.nome,
+                  semestre: updatedProjeto.semestre,
+                  ano: updatedProjeto.ano,
+                },
+                adminEmails,
+              );
+              log.info(
+                { projectId: projetoId, adminCount: adminEmails.length },
+                'Notification of submission sent to administrators',
+              );
+            } else {
+              log.warn(
+                { projectId: projetoId },
+                'No administrators found to send notification',
+              );
+            }
+          } catch (emailError) {
+            log.error(
+              { emailError, projectId: projetoId },
+              'Error sending submission notification, but the project was submitted successfully',
+            );
+          }
+
           log.info(
-            { projectId: projetoId, userId: userNumericId, signatureId: newSignature.id },
+            {
+              projectId: projetoId,
+              userId: userNumericId,
+              signatureId: newSignature.id,
+            },
             'Professor signature submitted and project status updated',
           );
           return { success: true, projeto: updatedProjeto, signatureId: newSignature.id };
