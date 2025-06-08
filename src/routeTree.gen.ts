@@ -14,6 +14,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
+import { Route as PublicEditaisImport } from './routes/public/editais'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
@@ -79,6 +80,12 @@ const HomeRoute = HomeImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PublicEditaisRoute = PublicEditaisImport.update({
+  id: '/public/editais',
+  path: '/public/editais',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -445,6 +452,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/home'
       preLoaderRoute: typeof HomeLayoutImport
       parentRoute: typeof HomeRoute
+    }
+    '/public/editais': {
+      id: '/public/editais'
+      path: '/public/editais'
+      fullPath: '/public/editais'
+      preLoaderRoute: typeof PublicEditaisImport
+      parentRoute: typeof rootRoute
     }
     '/home/_layout/': {
       id: '/home/_layout/'
@@ -988,6 +1002,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutRouteWithChildren
+  '/public/editais': typeof PublicEditaisRoute
   '/home/': typeof HomeLayoutIndexRoute
   '/home/admin': typeof HomeLayoutAdminLayoutRouteWithChildren
   '/home/professor': typeof HomeLayoutProfessorLayoutRouteWithChildren
@@ -1038,6 +1053,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutIndexRoute
+  '/public/editais': typeof PublicEditaisRoute
   '/home/admin': typeof HomeLayoutAdminLayoutRouteWithChildren
   '/home/professor': typeof HomeLayoutProfessorLayoutRouteWithChildren
   '/home/student': typeof HomeLayoutStudentLayoutRouteWithChildren
@@ -1089,6 +1105,7 @@ export interface FileRoutesById {
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
+  '/public/editais': typeof PublicEditaisRoute
   '/home/_layout/': typeof HomeLayoutIndexRoute
   '/home/_layout/admin': typeof HomeLayoutAdminRouteWithChildren
   '/home/_layout/admin/_layout': typeof HomeLayoutAdminLayoutRouteWithChildren
@@ -1144,6 +1161,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/cas-callback'
     | '/home'
+    | '/public/editais'
     | '/home/'
     | '/home/admin'
     | '/home/professor'
@@ -1193,6 +1211,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/cas-callback'
     | '/home'
+    | '/public/editais'
     | '/home/admin'
     | '/home/professor'
     | '/home/student'
@@ -1242,6 +1261,7 @@ export interface FileRouteTypes {
     | '/auth/cas-callback'
     | '/home'
     | '/home/_layout'
+    | '/public/editais'
     | '/home/_layout/'
     | '/home/_layout/admin'
     | '/home/_layout/admin/_layout'
@@ -1296,12 +1316,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthCasCallbackRoute: typeof AuthCasCallbackRoute
   HomeRoute: typeof HomeRouteWithChildren
+  PublicEditaisRoute: typeof PublicEditaisRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthCasCallbackRoute: AuthCasCallbackRoute,
   HomeRoute: HomeRouteWithChildren,
+  PublicEditaisRoute: PublicEditaisRoute,
 }
 
 export const routeTree = rootRoute
@@ -1316,7 +1338,8 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/auth/cas-callback",
-        "/home"
+        "/home",
+        "/public/editais"
       ]
     },
     "/": {
@@ -1345,6 +1368,9 @@ export const routeTree = rootRoute
         "/home/_layout/common/selecao-monitores/",
         "/home/_layout/common/status/"
       ]
+    },
+    "/public/editais": {
+      "filePath": "public/editais.tsx"
     },
     "/home/_layout/": {
       "filePath": "home/_layout/index.tsx",

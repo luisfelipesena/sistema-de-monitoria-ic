@@ -53,16 +53,14 @@ export const QueryKeys = {
 
   // Curso related queries
   curso: {
-    all: ['curso'],
+    list: ['curso', 'list'],
     byId: (id: string) => ['curso', id],
-    admin: {
-      list: ['curso', 'admin', 'list'],
-    },
   },
 
   // Departamento related queries
   departamento: {
     list: ['departamento', 'list'],
+    byId: (id: string) => ['departamento', id],
   },
 
   monitoria: {
@@ -146,11 +144,7 @@ export const QueryKeys = {
     byId: (id: string) => ['projetoTemplate', 'details', id],
   },
 
-  // Cursos related queries
-  cursos: {
-    list: ['cursos', 'list'],
-    detail: (id: number) => ['cursos', 'detail', id],
-  },
+  // Cursos related queries - REMOVED TO AVOID DUPLICATION, USE 'curso'
 
   // Departamentos related queries
   departamentos: {

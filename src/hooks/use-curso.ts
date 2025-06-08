@@ -1,87 +1,97 @@
-import { QueryKeys } from '@/hooks/query-keys';
-import { CursoInput, CursoResponse } from '@/routes/api/course/-types';
 import { apiClient } from '@/utils/api-client';
-import { logger } from '@/utils/logger';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { QueryKeys } from './query-keys';
+import { toast } from 'sonner';
+import type { selectCursoTableSchema } from '@/server/database/schema';
+import { z } from 'zod';
 
-const log = logger.child({
-  context: 'curso-hooks',
-});
+type Curso = z.infer<typeof selectCursoTableSchema>;
+type CursoInput = Omit<Curso, 'id' | 'createdAt' | 'updatedAt'>;
 
-/**
- * Hook para listar cursos
- */
+// Hook para listar todos os cursos
 export function useCursos() {
-  return useQuery<CursoResponse[]>({
-    queryKey: QueryKeys.curso.all,
+  return useQuery<Curso[]>({
+    queryKey: QueryKeys.curso.list,
     queryFn: async () => {
-      try {
-        const response = await apiClient.get('/course');
-        return response.data;
-      } catch (error) {
-        log.error({ error }, 'Erro ao buscar cursos');
-        throw error;
-      }
+      const response = await apiClient.get<Curso[]>('/course');
+      return response.data;
     },
   });
 }
 
-/**
- * Hook para criar um curso
- */
+// Hook para buscar detalhes de um curso
+export function useCurso(id: number) {
+  return useQuery<Curso>({
+    queryKey: QueryKeys.curso.byId(id.toString()),
+    queryFn: async () => {
+      const response = await apiClient.get<Curso>(`/course/${id}`);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+}
+
+// Hook para criar um novo curso
 export function useCreateCurso() {
   const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: CursoInput) => {
-      const response = await apiClient.post('/course', data);
+  return useMutation<Curso, Error, CursoInput>({
+    mutationFn: async (data) => {
+      const response = await apiClient.post<Curso>('/course', data);
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.curso.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.curso.list });
+      toast.success('Curso criado com sucesso!');
     },
     onError: (error) => {
-      log.error({ error }, 'Erro ao criar curso');
+      toast.error('Erro ao criar curso', {
+        description: error.message,
+      });
     },
   });
 }
 
-/**
- * Hook para atualizar um curso
- */
+// Hook para atualizar um curso
 export function useUpdateCurso() {
   const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: CursoInput }) => {
-      const response = await apiClient.put(`/course/${id}`, data);
+  return useMutation<Curso, Error, { id: number; data: Partial<CursoInput> }>({
+    mutationFn: async ({ id, data }) => {
+      const response = await apiClient.put<Curso>(`/course/${id}`, data);
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.curso.all });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QueryKeys.curso.list });
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.curso.byId(data.id.toString()),
+      });
+      toast.success('Curso atualizado com sucesso!');
     },
     onError: (error) => {
-      log.error({ error }, 'Erro ao atualizar curso');
+      toast.error('Erro ao atualizar curso', {
+        description: error.message,
+      });
     },
   });
 }
 
-/**
- * Hook para excluir um curso
- */
+// Hook para excluir um curso
 export function useDeleteCurso() {
   const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: number) => {
-      const response = await apiClient.delete(`/course/${id}`);
+  return useMutation<{ success: boolean }, Error, number>({
+    mutationFn: async (id) => {
+      const response = await apiClient.delete<{ success: boolean }>(
+        `/course/${id}`,
+      );
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.curso.all });
+      queryClient.invalidateQueries({ queryKey: QueryKeys.curso.list });
+      toast.success('Curso excluído com sucesso!');
     },
     onError: (error) => {
-      log.error({ error }, 'Erro ao excluir curso');
+      toast.error('Erro ao excluir curso', {
+        description: error.message,
+      });
     },
   });
 }

@@ -133,7 +133,7 @@ export const statusInscricaoEnum = pgEnum('status_inscricao_enum', [
 
 export const departamentoTable = pgTable('departamento', {
   id: serial('id').primaryKey(),
-  unidadeUniversitaria: varchar('unidade_universitaria'),
+  unidadeUniversitaria: varchar('unidade_universitaria').notNull(),
   nome: varchar('nome').notNull(),
   sigla: varchar('sigla'),
   createdAt: timestamp('created_at', {
@@ -321,7 +321,7 @@ export const insertProfessorTableSchema = createInsertSchema(
 export const disciplinaTable = pgTable('disciplina', {
   id: serial('id').primaryKey(),
   nome: varchar('nome').notNull(),
-  codigo: varchar('codigo').notNull().unique(), // Make code unique
+  codigo: varchar('codigo').notNull(),
   departamentoId: integer('departamento_id')
     .references(() => departamentoTable.id)
     .notNull(), // Add department link
@@ -339,9 +339,25 @@ export const disciplinaTable = pgTable('disciplina', {
     withTimezone: true,
     mode: 'date',
   }),
-});
+},
+(table) => {
+  return {
+    codigoUnicoPorDepartamento: uniqueIndex(
+      'codigo_unico_por_departamento_idx',
+    ).on(table.codigo, table.departamentoId),
+  };
+},
+);
 
 export const selectDisciplinaTableSchema = createSelectSchema(disciplinaTable);
+export const insertDisciplinaTableSchema = createInsertSchema(
+  disciplinaTable,
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true,
+});
 
 export const alunoTable = pgTable('aluno', {
   id: serial('id').primaryKey(),
@@ -414,7 +430,7 @@ export const enderecoTable = pgTable('endereco', {
 export const cursoTable = pgTable('curso', {
   id: serial('id').primaryKey(),
   nome: varchar('nome').notNull(),
-  codigo: integer('codigo'), // Nullable?
+  codigo: integer('codigo').notNull(), // Nullable?
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',
@@ -425,6 +441,13 @@ export const cursoTable = pgTable('curso', {
     withTimezone: true,
     mode: 'date',
   }).$onUpdate(() => new Date()),
+});
+
+export const selectCursoTableSchema = createSelectSchema(cursoTable);
+export const insertCursoTableSchema = createInsertSchema(cursoTable).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const notaAlunoTable = pgTable('nota_aluno', {

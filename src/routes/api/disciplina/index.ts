@@ -1,10 +1,10 @@
 import { db } from '@/server/database';
 import {
   disciplinaTable,
+  insertDisciplinaTableSchema,
 } from '@/server/database/schema';
 import {
   createAPIHandler,
-  withAuthMiddleware,
   withRoleMiddleware,
 } from '@/server/middleware/common';
 import { logger } from '@/utils/logger';
@@ -13,64 +13,47 @@ import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { z } from 'zod';
 
 const log = logger.child({
-  context: 'DisciplinaAPI',
-});
-
-const disciplinaInputSchema = z.object({
-  nome: z.string().min(1, 'Nome é obrigatório'),
-  codigo: z.string().min(1, 'Código é obrigatório'),
-  departamentoId: z.number().min(1, 'Departamento é obrigatório'),
-});
-
-const searchSchema = z.object({
-  departamentoId: z.coerce.number().optional(),
+  context: 'DisciplinasAPI',
 });
 
 export const APIRoute = createAPIFileRoute('/api/disciplina')({
-  GET: createAPIHandler(
-    withAuthMiddleware(async (ctx) => {
-      const url = new URL(ctx.request.url);
-      const queryParams = Object.fromEntries(url.searchParams.entries());
-      const { departamentoId } = searchSchema.parse(queryParams);
-
+  GET: createAPIHandler(async () => {
+    try {
       const disciplinas = await db.query.disciplinaTable.findMany({
-        where: departamentoId
-          ? (table, { eq }) => eq(table.departamentoId, departamentoId)
-          : undefined,
         with: {
           departamento: true,
         },
       });
-
-      return json(disciplinas);
-    }),
-  ),
-
+      return json(disciplinas, { status: 200 });
+    } catch (error) {
+      log.error(error, 'Erro ao buscar disciplinas');
+      return json({ error: 'Erro ao buscar disciplinas' }, { status: 500 });
+    }
+  }),
   POST: createAPIHandler(
-    withRoleMiddleware(['admin', 'professor'], async (ctx) => {
+    withRoleMiddleware(['admin'], async (ctx) => {
       try {
         const body = await ctx.request.json();
-        const validatedData = disciplinaInputSchema.parse(body);
+        const parsedData = insertDisciplinaTableSchema.parse(body);
 
-        const result = await db
+        const [newDisciplina] = await db
           .insert(disciplinaTable)
-          .values({
-            nome: validatedData.nome,
-            codigo: validatedData.codigo,
-            departamentoId: validatedData.departamentoId,
-          })
+          .values(parsedData)
           .returning();
 
-        return json(result[0], { status: 201 });
+        log.info(
+          { disciplinaId: newDisciplina.id },
+          'Disciplina criada com sucesso',
+        );
+        return json(newDisciplina, { status: 201 });
       } catch (error) {
+        log.error(error, 'Erro ao criar disciplina');
         if (error instanceof z.ZodError) {
           return json(
-            { error: 'Dados inválidos', details: error.errors },
+            { error: 'Dados inválidos', details: error.format() },
             { status: 400 },
           );
         }
-
-        log.error(error, 'Erro ao criar disciplina');
         return json({ error: 'Erro ao criar disciplina' }, { status: 500 });
       }
     }),

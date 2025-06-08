@@ -32,7 +32,7 @@ export const Route = createFileRoute(
 interface DepartamentoFormData {
   nome: string;
   sigla?: string;
-  unidadeUniversitaria?: string;
+  unidadeUniversitaria: string;
 }
 
 function DepartamentosPage() {

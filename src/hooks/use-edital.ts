@@ -255,3 +255,13 @@ export function usePublishEdital() {
     },
   });
 }
+
+export function usePublicEditaisList() {
+  return useQuery<EditalListItem[]>({
+    queryKey: ['public', 'editais', 'list'],
+    queryFn: async () => {
+      const response = await apiClient.get<EditalListItem[]>('/public/editais');
+      return response.data;
+    },
+  });
+}

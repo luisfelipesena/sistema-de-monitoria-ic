@@ -18,7 +18,7 @@ import { useProjetos } from '@/hooks/use-projeto';
 import { useApplicationGrading, useInscricoesProjeto } from '@/hooks/use-inscricao';
 import { createFileRoute } from '@tanstack/react-router';
 import { Loader2, ArrowLeft, Save } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 export const Route = createFileRoute('/home/_layout/professor/_layout/grade-applications')({
@@ -31,8 +31,25 @@ function ApplicantGradingRow({ applicant }: { applicant: any }) {
     notaSelecao: applicant.notaSelecao || '',
     coeficienteRendimento: applicant.coeficienteRendimento || '',
   });
+  const [notaFinal, setNotaFinal] = useState<string | null>(
+    applicant.notaFinal || null,
+  );
 
   const gradingMutation = useApplicationGrading();
+
+  useEffect(() => {
+    const { notaDisciplina, notaSelecao, coeficienteRendimento } = grades;
+    const nD = parseFloat(notaDisciplina);
+    const nS = parseFloat(notaSelecao);
+    const cR = parseFloat(coeficienteRendimento);
+
+    if (!isNaN(nD) && !isNaN(nS) && !isNaN(cR)) {
+      const final = (nD * 5 + nS * 3 + cR * 2) / 10;
+      setNotaFinal(final.toFixed(2));
+    } else {
+      setNotaFinal(null);
+    }
+  }, [grades]);
 
   const handleGradeChange = (field: keyof typeof grades, value: string) => {
     setGrades((prev) => ({ ...prev, [field]: value }));
@@ -47,6 +64,13 @@ function ApplicantGradingRow({ applicant }: { applicant: any }) {
 
     if (Object.values(parsedGrades).some(isNaN)) {
       toast.error('Todas as notas devem ser números válidos.');
+      return;
+    }
+
+    if (
+      Object.values(parsedGrades).some((nota) => nota < 0 || nota > 10)
+    ) {
+      toast.error('As notas devem estar entre 0 and 10.');
       return;
     }
 
@@ -100,7 +124,7 @@ function ApplicantGradingRow({ applicant }: { applicant: any }) {
           className="w-24"
         />
       </TableCell>
-      <TableCell className="text-center">{applicant.notaFinal || '-'}</TableCell>
+      <TableCell className="text-center">{notaFinal || '-'}</TableCell>
       <TableCell className="text-right">
         <Button size="sm" onClick={handleSaveGrades} disabled={gradingMutation.isPending}>
           <Save className="h-4 w-4 mr-2" />

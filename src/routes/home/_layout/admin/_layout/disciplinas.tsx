@@ -1,6 +1,5 @@
 import { PagesLayout } from '@/components/layout/PagesLayout';
 import { TableComponent } from '@/components/layout/TableComponent';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -31,11 +30,11 @@ import { BookOpen, Loader, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-export const Route = createFileRoute('/home/_layout/admin/_layout/disciplinas')(
-  {
-    component: DisciplinasPage,
-  },
-);
+export const Route = createFileRoute(
+  '/home/_layout/admin/_layout/disciplinas',
+)({
+  component: DisciplinasPage,
+});
 
 interface DisciplinaFormData {
   nome: string;
@@ -52,12 +51,12 @@ function DisciplinasPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editingDisciplinaId, setEditingDisciplinaId] = useState<number | null>(
-    null,
-  );
+  const [editingDisciplinaId, setEditingDisciplinaId] = useState<
+    number | null
+  >(null);
   const [formData, setFormData] = useState<Partial<DisciplinaFormData>>({});
 
-  const handleCreateDisciplina = async () => {
+  const handleSaveDisciplina = async () => {
     if (!formData.nome || !formData.codigo || !formData.departamentoId) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
@@ -117,30 +116,23 @@ function DisciplinasPage() {
       header: () => (
         <div className="flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-gray-400" />
-          Código
+          Nome
         </div>
       ),
-      accessorKey: 'codigo',
+      accessorKey: 'nome',
       cell: ({ row }) => (
         <span className="font-semibold text-base text-gray-900">
-          {row.original.codigo}
+          {row.original.nome}
         </span>
       ),
     },
     {
-      header: 'Nome da Disciplina',
-      accessorKey: 'nome',
-      cell: ({ row }) => <span className="text-sm">{row.original.nome}</span>,
+      header: 'Código',
+      accessorKey: 'codigo',
     },
     {
       header: 'Departamento',
-      accessorKey: 'departamentoId',
-      cell: ({ row }) => {
-        const departamento = departamentos?.find(
-          (d) => d.id === row.original.departamentoId,
-        );
-        return <Badge variant="outline">{departamento?.sigla || 'N/A'}</Badge>;
-      },
+      accessorKey: 'departamento.nome',
     },
     {
       header: 'Ações',
@@ -207,17 +199,6 @@ function DisciplinasPage() {
 
           <div className="space-y-4">
             <div>
-              <Label>Código da Disciplina *</Label>
-              <Input
-                value={formData.codigo || ''}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, codigo: e.target.value }))
-                }
-                placeholder="Ex: MATA40"
-              />
-            </div>
-
-            <div>
               <Label>Nome da Disciplina *</Label>
               <Input
                 value={formData.nome || ''}
@@ -229,23 +210,34 @@ function DisciplinasPage() {
             </div>
 
             <div>
+              <Label>Código da Disciplina *</Label>
+              <Input
+                value={formData.codigo || ''}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, codigo: e.target.value }))
+                }
+                placeholder="Ex: MATA40"
+              />
+            </div>
+
+            <div>
               <Label>Departamento *</Label>
               <Select
-                value={formData.departamentoId?.toString() || ''}
+                value={formData.departamentoId?.toString()}
                 onValueChange={(value) =>
                   setFormData((prev) => ({
                     ...prev,
-                    departamentoId: parseInt(value),
+                    departamentoId: Number(value),
                   }))
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione o departamento" />
+                  <SelectValue placeholder="Selecione um departamento" />
                 </SelectTrigger>
                 <SelectContent>
                   {departamentos?.map((dept) => (
                     <SelectItem key={dept.id} value={dept.id.toString()}>
-                      {dept.nome} ({dept.sigla})
+                      {dept.nome}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -257,7 +249,7 @@ function DisciplinasPage() {
             <Button variant="outline" onClick={() => setIsModalOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleCreateDisciplina}>
+            <Button onClick={handleSaveDisciplina}>
               {isEditMode ? 'Atualizar Disciplina' : 'Criar Disciplina'}
             </Button>
           </DialogFooter>
