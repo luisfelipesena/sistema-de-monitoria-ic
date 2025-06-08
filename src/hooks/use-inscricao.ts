@@ -1,4 +1,6 @@
 import { InscricaoComDetalhes } from '@/routes/api/inscricao/-types';
+import { CriarInscricaoInput } from '@/routes/api/monitoria/-types';
+import { RequiredDocumentType } from '@/lib/document-validation';
 import { apiClient } from '@/utils/api-client';
 import { logger } from '@/utils/logger';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -114,6 +116,47 @@ export function useApplicationGrading() {
     },
     onError: (error) => {
       log.error(error, 'Error submitting application grades');
+    },
+  });
+}
+
+// Hook for creating a new inscription with document validation
+export function useCriarInscricao() {
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, CriarInscricaoInput>({
+    mutationFn: async (data: CriarInscricaoInput) => {
+      const response = await apiClient.post('/monitoria/inscricao', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: QueryKeys.monitoria.inscricoes,
+      });
+    },
+    onError: (error: any) => {
+      log.error({ error }, 'Erro ao criar inscrição');
+    },
+  });
+}
+
+// Hook for document upload
+export function useUploadInscricaoDocument() {
+  return useMutation<{ fileId: string }, Error, { file: File; tipoDocumento: RequiredDocumentType }>({
+    mutationFn: async ({ file, tipoDocumento }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('tipoDocumento', tipoDocumento);
+
+      const response = await apiClient.post<{ fileId: string }>('/files/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+    onError: (error) => {
+      log.error(error, 'Error uploading inscription document');
     },
   });
 }

@@ -8,9 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/hooks/use-auth';
-import { useMinhasInscricoes } from '@/hooks/use-inscricao';
+import { useMinhasInscricoes, useCriarInscricao, useUploadInscricaoDocument } from '@/hooks/use-inscricao';
 import { useProjetos } from '@/hooks/use-projeto';
-import { apiClient } from '@/utils/api-client';
+import { DocumentChecklist } from '@/components/features/registration/DocumentChecklist';
+import { RequiredDocumentType, REQUIRED_DOCUMENTS_BY_TYPE, validateRequiredDocuments } from '@/lib/document-validation';
 import { createFileRoute } from '@tanstack/react-router';
 import {
   AlertCircle,
@@ -40,6 +41,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+interface UploadedDocument {
+  id: string;
+  tipoDocumento: RequiredDocumentType;
+  fileId: string;
+  fileName: string;
+  uploadedAt: Date;
+}
+
 interface ApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -55,6 +64,7 @@ function ApplicationModal({
   onSubmit,
   isSubmitting = false,
 }: ApplicationModalProps) {
+  const uploadDocumentMutation = useUploadInscricaoDocument();
   const [formData, setFormData] = useState({
     tipoVagaPretendida: 'ANY' as 'BOLSISTA' | 'VOLUNTARIO' | 'ANY',
     motivation: '',
@@ -62,9 +72,44 @@ function ApplicationModal({
     availability: '',
     phone: '',
   });
+  
+  const [uploadedDocuments, setUploadedDocuments] = useState<UploadedDocument[]>([]);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+
+  // Get validation status for current form
+  const documentValidation = validateRequiredDocuments(
+    formData.tipoVagaPretendida as keyof typeof REQUIRED_DOCUMENTS_BY_TYPE,
+    uploadedDocuments.map(doc => doc.tipoDocumento)
+  );
+
+  const handleDocumentUpload = async (data: { tipoDocumento: RequiredDocumentType; file: File }) => {
+    setIsUploadingDocument(true);
+    try {
+      const result = await uploadDocumentMutation.mutateAsync(data);
+      
+      const newDocument: UploadedDocument = {
+        id: `${data.tipoDocumento}-${Date.now()}`,
+        tipoDocumento: data.tipoDocumento,
+        fileId: result.fileId,
+        fileName: data.file.name,
+        uploadedAt: new Date(),
+      };
+      
+      setUploadedDocuments(prev => [...prev, newDocument]);
+    } catch (error) {
+      throw error; // Re-throw to let DocumentChecklist handle the error
+    } finally {
+      setIsUploadingDocument(false);
+    }
+  };
+
+  const handleDocumentRemove = async (documentId: string) => {
+    setUploadedDocuments(prev => prev.filter(doc => doc.id !== documentId));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!formData.motivation.trim()) {
       toast.error('Motivação é obrigatória');
       return;
@@ -73,17 +118,46 @@ function ApplicationModal({
       toast.error('Selecione o tipo de vaga pretendida');
       return;
     }
-    onSubmit(formData);
+    
+    // Validate documents
+    if (!documentValidation.isValid) {
+      toast.error(`Documentos obrigatórios faltando: ${documentValidation.missingDocuments.join(', ')}`);
+      return;
+    }
+
+    // Convert documents to expected format
+    const documentos = uploadedDocuments.map(doc => ({
+      tipoDocumento: doc.tipoDocumento,
+      fileId: doc.fileId,
+    }));
+
+    onSubmit({
+      ...formData,
+      documentos,
+    });
+  };
+
+  // Reset form when modal closes
+  const handleClose = () => {
+    setFormData({
+      tipoVagaPretendida: 'ANY',
+      motivation: '',
+      experience: '',
+      availability: '',
+      phone: '',
+    });
+    setUploadedDocuments([]);
+    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Inscrição em Monitoria</h2>
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+          <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
             ×
           </Button>
         </div>
@@ -106,101 +180,117 @@ function ApplicationModal({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="tipoVaga">Tipo de Vaga Pretendida*</Label>
-            <Select
-              value={formData.tipoVagaPretendida}
-              onValueChange={(value: 'BOLSISTA' | 'VOLUNTARIO' | 'ANY') =>
-                setFormData({ ...formData, tipoVagaPretendida: value })
-              }
-              disabled={isSubmitting}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo de vaga" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="BOLSISTA">
-                  Bolsista (apenas bolsa)
-                </SelectItem>
-                <SelectItem value="VOLUNTARIO">
-                  Voluntário (apenas voluntário)
-                </SelectItem>
-                <SelectItem value="ANY">
-                  Qualquer (bolsa ou voluntário)
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column: Basic Form */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="tipoVaga">Tipo de Vaga Pretendida*</Label>
+                <Select
+                  value={formData.tipoVagaPretendida}
+                  onValueChange={(value: 'BOLSISTA' | 'VOLUNTARIO' | 'ANY') =>
+                    setFormData({ ...formData, tipoVagaPretendida: value })
+                  }
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo de vaga" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="BOLSISTA">
+                      Bolsista (apenas bolsa)
+                    </SelectItem>
+                    <SelectItem value="VOLUNTARIO">
+                      Voluntário (apenas voluntário)
+                    </SelectItem>
+                    <SelectItem value="ANY">
+                      Qualquer (bolsa ou voluntário)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div>
-            <Label htmlFor="motivation">
-              Motivação para a Monitoria* (máx. 500 caracteres)
-            </Label>
-            <Textarea
-              id="motivation"
-              value={formData.motivation}
-              onChange={(e) =>
-                setFormData({ ...formData, motivation: e.target.value })
-              }
-              placeholder="Descreva sua motivação para participar desta monitoria..."
-              rows={4}
-              maxLength={500}
-              disabled={isSubmitting}
-            />
-            <div className="text-sm text-gray-500 text-right">
-              {formData.motivation.length}/500
+              <div>
+                <Label htmlFor="motivation">
+                  Motivação para a Monitoria* (máx. 500 caracteres)
+                </Label>
+                <Textarea
+                  id="motivation"
+                  value={formData.motivation}
+                  onChange={(e) =>
+                    setFormData({ ...formData, motivation: e.target.value })
+                  }
+                  placeholder="Descreva sua motivação para participar desta monitoria..."
+                  rows={4}
+                  maxLength={500}
+                  disabled={isSubmitting}
+                />
+                <div className="text-sm text-gray-500 text-right">
+                  {formData.motivation.length}/500
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="experience">Experiência Prévia (opcional)</Label>
+                <Textarea
+                  id="experience"
+                  value={formData.experience}
+                  onChange={(e) =>
+                    setFormData({ ...formData, experience: e.target.value })
+                  }
+                  placeholder="Descreva sua experiência prévia relacionada à disciplina..."
+                  rows={3}
+                  maxLength={300}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="availability">Disponibilidade de Horários</Label>
+                <Textarea
+                  id="availability"
+                  value={formData.availability}
+                  onChange={(e) =>
+                    setFormData({ ...formData, availability: e.target.value })
+                  }
+                  placeholder="Informe sua disponibilidade de horários..."
+                  rows={2}
+                  maxLength={200}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Telefone para Contato</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  placeholder="(xx) xxxxx-xxxx"
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            {/* Right Column: Document Upload */}
+            <div>
+              <DocumentChecklist
+                tipoVaga={formData.tipoVagaPretendida as keyof typeof REQUIRED_DOCUMENTS_BY_TYPE}
+                uploadedDocuments={uploadedDocuments}
+                onDocumentUpload={handleDocumentUpload}
+                onDocumentRemove={handleDocumentRemove}
+                isUploading={isUploadingDocument}
+              />
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="experience">Experiência Prévia (opcional)</Label>
-            <Textarea
-              id="experience"
-              value={formData.experience}
-              onChange={(e) =>
-                setFormData({ ...formData, experience: e.target.value })
-              }
-              placeholder="Descreva sua experiência prévia relacionada à disciplina..."
-              rows={3}
-              maxLength={300}
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="availability">Disponibilidade de Horários</Label>
-            <Textarea
-              id="availability"
-              value={formData.availability}
-              onChange={(e) =>
-                setFormData({ ...formData, availability: e.target.value })
-              }
-              placeholder="Informe sua disponibilidade de horários..."
-              rows={2}
-              maxLength={200}
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="phone">Telefone para Contato</Label>
-            <Input
-              id="phone"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-              placeholder="(xx) xxxxx-xxxx"
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 border-t">
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isSubmitting}
             >
               Cancelar
@@ -208,7 +298,7 @@ function ApplicationModal({
             <Button
               type="submit"
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !documentValidation.isValid}
             >
               {isSubmitting ? 'Enviando...' : 'Enviar Inscrição'}
             </Button>
@@ -227,6 +317,7 @@ function InscricaoMonitoriaPage() {
     isLoading: loadingInscricoes,
     refetch: refetchInscricoes,
   } = useMinhasInscricoes();
+  const criarInscricaoMutation = useCriarInscricao();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -294,22 +385,19 @@ function InscricaoMonitoriaPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await apiClient.post('/monitoria/inscricao', {
+      await criarInscricaoMutation.mutateAsync({
         projetoId: applicationModal.project.id,
         tipoVagaPretendida: applicationData.tipoVagaPretendida,
+        documentos: applicationData.documentos,
       });
 
-      if (response.status === 200) {
-        toast.success('Inscrição enviada com sucesso!');
-        setApplicationModal({ isOpen: false, project: null });
-        refetchInscricoes(); // Refresh applications list
-      } else {
-        const error = await response.data;
-        toast.error(error.error || 'Erro ao enviar inscrição');
-      }
-    } catch (error) {
+      toast.success('Inscrição enviada com sucesso!');
+      setApplicationModal({ isOpen: false, project: null });
+      refetchInscricoes(); // Refresh applications list
+    } catch (error: any) {
       console.error('Error submitting application:', error);
-      toast.error('Erro ao enviar inscrição');
+      const errorMessage = error?.response?.data?.error || error?.message || 'Erro ao enviar inscrição';
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

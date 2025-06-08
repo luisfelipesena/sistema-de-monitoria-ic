@@ -15,6 +15,7 @@ import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { validateRequiredDocuments, REQUIRED_DOCUMENTS_BY_TYPE } from '@/lib/document-validation';
 
 const log = logger.child({ context: 'MonitoriaInscricaoAPI' });
 
@@ -64,6 +65,24 @@ export const APIRoute = createAPIFileRoute('/api/monitoria/inscricao')({
         if (existing) {
           return json(
             { error: 'Você já se candidatou para este projeto neste período' },
+            { status: 400 },
+          );
+        }
+
+        // Validar documentos obrigatórios
+        const tipoVaga = input.tipoVagaPretendida as keyof typeof REQUIRED_DOCUMENTS_BY_TYPE;
+        const uploadedDocuments = input.documentos?.map((doc: any) => doc.tipoDocumento) || [];
+        
+        const documentValidation = validateRequiredDocuments(tipoVaga, uploadedDocuments);
+        
+        if (!documentValidation.isValid) {
+          const missingDocsNames = documentValidation.missingDocuments.join(', ');
+          return json(
+            { 
+              error: 'Documentos obrigatórios faltando',
+              details: `Os seguintes documentos são obrigatórios: ${missingDocsNames}`,
+              missingDocuments: documentValidation.missingDocuments
+            },
             { status: 400 },
           );
         }

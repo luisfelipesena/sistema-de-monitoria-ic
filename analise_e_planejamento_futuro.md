@@ -253,23 +253,39 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 
 #### 2.3 Validação de Documentos Obrigatórios
 
-**Status Atual:** 🚧 Upload funciona mas sem validação
+**Status Atual:** ✅ **IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Verificar documentos obrigatórios por tipo de vaga
 - Alertar alunos sobre pendências
 - Bloquear inscrições incompletas
 
-**Pendências/Melhorias:**
-- [ ] Lista de documentos por tipo
-- [ ] Validação no submit
-- [ ] Feedback visual de pendências
+**Funcionalidades Implementadas:**
+- ✅ Enum `RequiredDocumentType` definindo tipos de documentos por vaga (`BOLSISTA`, `VOLUNTARIO`, `ANY`)
+- ✅ Biblioteca de validação em `src/lib/document-validation.ts` com metadados completos
+- ✅ Componente `DocumentChecklist` com interface visual para upload e validação
+- ✅ Validação no endpoint `/api/monitoria/inscricao/index.ts` que bloqueia inscrições incompletas
+- ✅ Hooks `useCriarInscricao()` e `useUploadInscricaoDocument()` para gerenciar o fluxo
+- ✅ Interface integrada no modal de inscrição com feedback visual em tempo real
+- ✅ Sistema de upload com preview, remoção e validação de tipos de arquivo
 
-**Sugestão de Implementação:**
-- [ ] Criar enum `RequiredDocuments` por tipo de vaga
-- [ ] Validação em `useInscricao()` hook
-- [ ] Componente `DocumentChecklist` 
-- [ ] Middleware de validação no endpoint de inscrição
+**Implementação Técnica:**
+- [x] Criar enum `RequiredDocuments` por tipo de vaga
+- [x] Validação em `useInscricao()` hook  
+- [x] Componente `DocumentChecklist` com upload visual
+- [x] Middleware de validação no endpoint de inscrição
+- [x] Interface responsiva com progresso e feedback de erro
+- [x] Metadados por documento (formatos aceitos, tamanho máximo, descrições)
+
+**Documentos por Tipo de Vaga:**
+- **BOLSISTA**: Histórico Escolar, Comprovante de Matrícula, Comprovante de CR, RG/CPF, Foto 3x4
+- **VOLUNTARIO**: Histórico Escolar, Comprovante de Matrícula, Comprovante de CR  
+- **ANY**: Histórico Escolar, Comprovante de Matrícula, Comprovante de CR
+
+**Pendências/Melhorias:**
+- [ ] Validação adicional de conteúdo dos documentos
+- [ ] Histórico de documentos enviados por aluno
+- [ ] Notificações automáticas para documentos pendentes
 
 ### Módulo 3: Seleção de Monitores e Atas (Professores e Admin)
 
