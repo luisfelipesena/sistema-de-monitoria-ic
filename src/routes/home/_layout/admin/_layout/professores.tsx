@@ -372,7 +372,7 @@ function ProfessoresPage() {
 
       {/* Modal para adicionar/editar professor */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {isEditMode ? 'Editar Professor' : 'Adicionar Professor'}

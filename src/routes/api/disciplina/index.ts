@@ -46,11 +46,18 @@ export const APIRoute = createAPIFileRoute('/api/disciplina')({
           'Disciplina criada com sucesso',
         );
         return json(newDisciplina, { status: 201 });
-      } catch (error) {
+      } catch (error: any) {
         log.error(error, 'Erro ao criar disciplina');
         if (error instanceof z.ZodError) {
           return json(
             { error: 'Dados inválidos', details: error.format() },
+            { status: 400 },
+          );
+        }
+        // Check for unique constraint violation
+        if (error.code === '23505' && error.constraint === 'codigo_unico_por_departamento_idx') {
+          return json(
+            { error: 'Já existe uma disciplina com este código neste departamento' },
             { status: 400 },
           );
         }

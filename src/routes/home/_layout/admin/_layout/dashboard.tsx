@@ -575,7 +575,29 @@ function DashboardAdmin() {
               <span className="ml-2">Carregando professores...</span>
             </div>
           ) : (
-            <TableComponent columns={colunasProfessores} data={professores} />
+            <>
+              {filters.status ||
+              filters.departamento ||
+              filters.semestre ||
+              filters.ano ? (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-blue-700">
+                      Filtros ativos:{' '}
+                      {Object.values(filters).filter(Boolean).length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFilters({})}
+                    >
+                      Limpar filtros
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+              <TableComponent columns={colunasProfessores} data={professores} />
+            </>
           )}
         </>
       )}
@@ -589,7 +611,29 @@ function DashboardAdmin() {
               <span className="ml-2">Carregando alunos...</span>
             </div>
           ) : (
-            <TableComponent columns={colunasAlunos} data={alunos} />
+            <>
+              {filters.status ||
+              filters.departamento ||
+              filters.semestre ||
+              filters.ano ? (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-blue-700">
+                      Filtros ativos:{' '}
+                      {Object.values(filters).filter(Boolean).length}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFilters({})}
+                    >
+                      Limpar filtros
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+              <TableComponent columns={colunasAlunos} data={alunos} />
+            </>
           )}
         </>
       )}

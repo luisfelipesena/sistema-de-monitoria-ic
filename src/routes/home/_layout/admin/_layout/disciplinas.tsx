@@ -80,12 +80,18 @@ function DisciplinasPage() {
       setFormData({});
       setIsEditMode(false);
       setEditingDisciplinaId(null);
-    } catch (error) {
-      toast.error(
-        isEditMode
-          ? 'Erro ao atualizar disciplina'
-          : 'Erro ao criar disciplina',
-      );
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.error || error?.message;
+      
+      if (errorMessage?.includes('duplicate') || errorMessage?.includes('já existe') || errorMessage?.includes('unique')) {
+        toast.error('Já existe uma disciplina com este código neste departamento');
+      } else {
+        toast.error(
+          isEditMode
+            ? `Erro ao atualizar disciplina: ${errorMessage || 'Erro desconhecido'}`
+            : `Erro ao criar disciplina: ${errorMessage || 'Erro desconhecido'}`,
+        );
+      }
     }
   };
 
@@ -190,7 +196,7 @@ function DisciplinasPage() {
       )}
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {isEditMode ? 'Editar Disciplina' : 'Adicionar Disciplina'}

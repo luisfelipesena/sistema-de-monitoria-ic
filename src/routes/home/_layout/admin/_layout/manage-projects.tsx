@@ -190,13 +190,11 @@ function ManageProjectsPage() {
   };
 
   const handleExportReport = () => {
-    const currentYear = new Date().getFullYear();
-    const currentSemester = new Date().getMonth() <= 6 ? '1' : '2';
-    const url = `/api/relatorios/planilhas-prograd?ano=${currentYear}&semestre=SEMESTRE_${currentSemester}`;
+    const url = `/api/relatorios/planilhas-prograd`;
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = `monitores-${currentYear}-${currentSemester}-completo.xlsx`;
+    link.download = `planilha-prograd.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -392,7 +390,7 @@ function ManageProjectsPage() {
         className="text-green-600 border-green-300 hover:bg-green-50"
       >
         <Download className="w-4 h-4 mr-2" />
-        Exportar Relatório
+        Planilhas PROGRAD
       </Button>
     </>
   );

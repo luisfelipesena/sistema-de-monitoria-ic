@@ -10,8 +10,18 @@ export function getCurrentSemester(): CurrentSemester {
   const year = now.getFullYear();
   const month = now.getMonth(); // 0-11
 
-  // January to June is SEMESTRE_1, July to December is SEMESTRE_2
-  const semester = month < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2';
-
-  return { year, semester };
+  // UFBA semesters:
+  // SEMESTRE_1: starts in March and ends in July
+  // SEMESTRE_2: starts in August and ends in December
+  // January and February belong to SEMESTRE_2 of the previous year
+  if (month === 0 || month === 1) {
+    // January or February
+    return { year: year - 1, semester: 'SEMESTRE_2' };
+  } else if (month >= 2 && month <= 6) {
+    // March to July is SEMESTRE_1
+    return { year, semester: 'SEMESTRE_1' };
+  } else {
+    // August to December is SEMESTRE_2
+    return { year, semester: 'SEMESTRE_2' };
+  }
 } 

@@ -117,7 +117,18 @@ export const FileUploader = forwardRef<HTMLInputElement, FileUploaderProps>(
               </p>
               <p className="text-xs text-center text-gray-400 mt-1">
                 {allowedTypes.length > 0
-                  ? `Tipos permitidos: ${allowedTypes.join(', ')}`
+                  ? `Tipos permitidos: ${allowedTypes.map(type => {
+                      const extensions = {
+                        'application/pdf': 'PDF',
+                        'image/jpeg': 'JPEG',
+                        'image/jpg': 'JPG',
+                        'image/png': 'PNG',
+                        'text/csv': 'CSV',
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
+                        'application/vnd.ms-excel': 'XLS'
+                      };
+                      return extensions[type] || type;
+                    }).join(', ')}`
                   : ''}
                 {maxSizeInMB ? ` | Máximo: ${maxSizeInMB}MB` : ''}
               </p>

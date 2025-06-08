@@ -117,7 +117,7 @@ function RelatoriosComponent() {
             </div>
 
             <Button type="submit" disabled={exportMutation.isPending} className="w-full">
-              {exportMutation.isPending ? 'Gerando...' : 'Baixar Relatório PROGRAD'}
+              {exportMutation.isPending ? 'Gerando...' : 'Gerar Planilha'}
             </Button>
           </form>
           </CardContent>
