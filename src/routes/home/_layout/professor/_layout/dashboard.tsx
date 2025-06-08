@@ -68,7 +68,7 @@ function DashboardProfessor() {
 
   const handleAnalisarProjeto = (projetoId: number) => {
     navigate({
-      to: '/home/professor/project-applications',
+      to: '/home/professor/document-signing',
       search: { projectId: projetoId },
     });
   };

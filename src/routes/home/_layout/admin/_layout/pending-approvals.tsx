@@ -96,8 +96,8 @@ function PendingApprovalsComponent() {
         <div>
           <div className="font-medium">{row.original.titulo}</div>
           <div className="text-sm text-muted-foreground">
-            {row.original.description
-              ? row.original.description.substring(0, 100) + '...'
+            {row.original.descricao
+              ? row.original.descricao.substring(0, 100) + '...'
               : ''}
           </div>
         </div>
@@ -134,7 +134,7 @@ function PendingApprovalsComponent() {
       id: 'actions',
       header: 'Ações',
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             size="sm"
             variant="outline"
@@ -147,6 +147,20 @@ function PendingApprovalsComponent() {
           >
             <Eye className="h-4 w-4 mr-1" />
             Ver Detalhes
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            onClick={() =>
+              navigate({
+                to: '/home/admin/document-signing',
+                search: { projectId: row.original.id },
+              })
+            }
+          >
+            <FileSignature className="h-4 w-4 mr-1" />
+            Ver/Assinar PDF
           </Button>
           <Button
             size="sm"
