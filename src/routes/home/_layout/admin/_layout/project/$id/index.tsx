@@ -3,21 +3,33 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/use-auth';
 import { useInscricoesProjeto } from '@/hooks/use-inscricao';
-import { useNotifyResults, useProjetos } from '@/hooks/use-projeto';
+import { useNotifyResults, useProjetoById } from '@/hooks/use-projeto';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import {
   ArrowLeft,
+  Calendar,
   CheckCircle,
   Clock,
+  FileSignature,
+  GraduationCap,
   Hand,
   Mail,
+  MapPin,
+  PenTool,
+  School,
+  User,
   Users,
+  UserCheck,
   XCircle,
+  Info,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export const Route = createFileRoute(
   '/home/_layout/admin/_layout/project/$id/',
@@ -36,8 +48,7 @@ interface CandidatoAvaliacao {
 function InscricoesProjetoPage() {
   const { id: projetoId } = Route.useParams();
   const { user } = useAuth();
-  const { data: projetos, isLoading: loadingProjeto } = useProjetos();
-  const projeto = projetos?.find((p) => p.id === parseInt(projetoId));
+  const { data: projeto, isLoading: loadingProjeto } = useProjetoById(parseInt(projetoId));
   const { data: inscricoes, isLoading: loadingInscricoes } =
     useInscricoesProjeto(parseInt(projetoId));
   const [avaliacoes, setAvaliacoes] = useState<
@@ -148,6 +159,37 @@ function InscricoesProjetoPage() {
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Erro ao enviar notificações');
     }
+  };
+
+  const renderStatusBadge = (status: string) => {
+    const statusConfig = {
+      DRAFT: { variant: 'secondary' as const, label: 'Rascunho', icon: PenTool },
+      SUBMITTED: { variant: 'warning' as const, label: 'Submetido', icon: Clock },
+      PENDING_ADMIN_SIGNATURE: { variant: 'default' as const, label: 'Aguardando Assinatura', icon: FileSignature },
+      APPROVED: { variant: 'success' as const, label: 'Aprovado', icon: CheckCircle },
+      REJECTED: { variant: 'destructive' as const, label: 'Rejeitado', icon: XCircle },
+    };
+
+    const config = statusConfig[status as keyof typeof statusConfig] || { 
+      variant: 'secondary' as const, 
+      label: status, 
+      icon: Info 
+    };
+    
+    const Icon = config.icon;
+
+    return (
+      <Badge variant={config.variant} className="flex items-center gap-1">
+        <Icon className="h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const formatDate = (dateString: string | Date | null) => {
+    if (!dateString) return 'Não informado';
+    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+    return format(date, "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR });
   };
 
   const renderCandidatos = (
@@ -313,7 +355,7 @@ function InscricoesProjetoPage() {
     );
   };
 
-  const disciplinaNome = projeto.disciplinas[0]?.codigo || 'Projeto';
+  const disciplinaNome = projeto.disciplinas?.[0]?.disciplina?.codigo || 'Projeto';
   const totalInscricoes = inscricoes?.length || 0;
   const selecionados = Object.values(avaliacoes).filter(
     (a) => a.status === 'SELECIONADO',
@@ -341,10 +383,243 @@ function InscricoesProjetoPage() {
       }
     >
       <div className="space-y-6">
-        {/* Resumo do Projeto */}
+        {/* Informações Detalhadas do Projeto */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Card Principal do Projeto */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <School className="h-5 w-5 text-blue-500" />
+                Informações do Projeto
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Status</p>
+                <div className="mt-1">
+                  {renderStatusBadge(projeto.status)}
+                </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <p className="text-sm text-muted-foreground">Descrição</p>
+                <p className="text-sm mt-1">{projeto.descricao}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Ano/Semestre</p>
+                  <p className="text-sm font-medium">
+                    {projeto.ano}.{projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Tipo</p>
+                  <p className="text-sm font-medium">{projeto.tipoProposicao}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Carga Horária</p>
+                  <p className="text-sm font-medium">{projeto.cargaHorariaSemana}h/semana</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Duração</p>
+                  <p className="text-sm font-medium">{projeto.numeroSemanas} semanas</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground">Público Alvo</p>
+                <p className="text-sm mt-1">{projeto.publicoAlvo}</p>
+              </div>
+
+              {projeto.estimativaPessoasBenificiadas && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Estimativa de Pessoas Beneficiadas</p>
+                  <p className="text-sm font-medium">{projeto.estimativaPessoasBenificiadas}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Card do Professor Responsável */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-green-500" />
+                Professor Responsável
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Nome Completo</p>
+                <p className="text-lg font-semibold">{projeto.professorResponsavel?.nomeCompleto}</p>
+              </div>
+
+              {projeto.professorResponsavel?.nomeSocial && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Nome Social</p>
+                  <p className="text-sm">{projeto.professorResponsavel.nomeSocial}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">SIAPE</p>
+                  <p className="text-sm font-medium">{projeto.professorResponsavel?.matriculaSiape || 'Não informado'}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Regime</p>
+                  <p className="text-sm font-medium">{projeto.professorResponsavel?.regime}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground">Email Institucional</p>
+                <p className="text-sm">{projeto.professorResponsavel?.emailInstitucional}</p>
+              </div>
+
+              {projeto.professorResponsavel?.telefone && (
+                <div>
+                  <p className="text-sm text-muted-foreground">Telefone</p>
+                  <p className="text-sm">{projeto.professorResponsavel.telefone}</p>
+                </div>
+              )}
+
+              {projeto.assinaturaProfessor && (
+                <div>
+                  <div className="flex items-center gap-2 text-green-600">
+                    <UserCheck className="h-4 w-4" />
+                    <span className="text-sm font-medium">Projeto assinado pelo professor</span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Card de Departamento e Disciplinas */}
         <Card>
           <CardHeader>
-            <CardTitle>Resumo do Projeto</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-purple-500" />
+              Departamento e Disciplinas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Departamento</p>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-base px-3 py-1">
+                    {projeto.departamento?.nome}
+                  </Badge>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Disciplinas Vinculadas</p>
+                <div className="flex flex-wrap gap-2">
+                  {projeto.disciplinas?.map((pd: any) => (
+                    <Badge key={pd.disciplina.id} variant="secondary" className="text-sm">
+                      {pd.disciplina.codigo} - {pd.disciplina.nome}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card de Vagas e Controle */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-orange-500" />
+              Controle de Vagas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">
+                  {projeto.bolsasSolicitadas}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Bolsas Solicitadas
+                </div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {projeto.bolsasDisponibilizadas || 0}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Bolsas Disponibilizadas
+                </div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">
+                  {projeto.voluntariosSolicitados}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Vagas Voluntário
+                </div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-gray-600">
+                  {totalInscricoes}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Total Inscrições
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card de Datas e Histórico */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-indigo-500" />
+              Histórico e Datas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground">Criado em</p>
+                  <p className="text-sm font-medium">{formatDate(projeto.createdAt)}</p>
+                </div>
+                {projeto.updatedAt && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Última Atualização</p>
+                    <p className="text-sm font-medium">{formatDate(projeto.updatedAt)}</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-3">
+                {projeto.feedbackAdmin && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Feedback do Admin</p>
+                    <p className="text-sm bg-gray-50 p-2 rounded">{projeto.feedbackAdmin}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Resumo de Avaliações */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Resumo das Avaliações</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
