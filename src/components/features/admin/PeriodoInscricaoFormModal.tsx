@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,10 +11,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { useCreatePeriodoInscricao, useUpdatePeriodoInscricao } from '@/hooks/use-periodo-inscricao';
 import { useToast } from '@/hooks/use-toast';
-import DateTimeRangeSelector, { DateTimeRangeData } from '@/components/date-time-range-selector';
-import { isBefore, startOfDay } from "date-fns";
+import { isBefore, startOfDay, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PeriodoInscricaoFormModalProps {
   isOpen: boolean;
@@ -47,23 +51,37 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
 
   const watchedDataInicio = form.watch('dataInicio');
   const watchedDataFim = form.watch('dataFim');
+  const [openInicio, setOpenInicio] = useState(false);
+  const [openFim, setOpenFim] = useState(false);
 
-  const handleDateRangeChange = (dateRange: DateTimeRangeData) => {
-    if (dateRange.fromDate) {
-      form.setValue('dataInicio', dateRange.fromDate, { shouldValidate: true });
+  const handleDataInicioChange = (date: Date | undefined) => {
+    if (!date) return;
+    
+    form.setValue('dataInicio', date, { shouldValidate: true });
+    setOpenInicio(false);
+    
+    // Se a data de fim já estiver definida e for anterior à nova data de início, limpar
+    const dataFim = form.getValues('dataFim');
+    if (dataFim && isBefore(startOfDay(dataFim), startOfDay(date))) {
+      form.setValue('dataFim', new Date(date.getTime() + 24 * 60 * 60 * 1000), { shouldValidate: true });
+    }
+  };
+
+  const handleDataFimChange = (date: Date | undefined) => {
+    if (!date) return;
+    
+    const dataInicio = form.getValues('dataInicio');
+    if (dataInicio && isBefore(startOfDay(date), startOfDay(dataInicio))) {
+      toast({
+        title: 'Data inválida',
+        description: 'A data de fim não pode ser anterior à data de início.',
+        variant: 'destructive'
+      });
+      return;
     }
     
-    if (dateRange.toDate) {
-      if (dateRange.fromDate && isBefore(startOfDay(dateRange.toDate), startOfDay(dateRange.fromDate))) {
-        toast({
-          title: 'Data inválida',
-          description: 'A data de fim não pode ser anterior à data de início.',
-          variant: 'destructive'
-        });
-        return;
-      }
-      form.setValue('dataFim', dateRange.toDate, { shouldValidate: true });
-    }
+    form.setValue('dataFim', date, { shouldValidate: true });
+    setOpenFim(false);
   };
 
   useEffect(() => {
@@ -78,6 +96,10 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
       } else {
         form.reset(defaultValues);
       }
+    } else {
+      // Resetar estado dos popovers quando modal é fechado
+      setOpenInicio(false);
+      setOpenFim(false);
     }
   }, [isOpen, isEditMode, periodo, form]);
 
@@ -111,14 +133,9 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
     }
   };
 
-  const dateRangeValue: DateTimeRangeData = {
-    fromDate: watchedDataInicio,
-    toDate: watchedDataFim,
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle>{isEditMode ? 'Editar Período' : 'Criar Novo Período de Inscrição'}</DialogTitle>
           <DialogDescription>
@@ -149,13 +166,62 @@ const PeriodoInscricaoFormModal: React.FC<PeriodoInscricaoFormModalProps> = ({ i
 
           <div>
             <Label>Período de Inscrição *</Label>
-            <DateTimeRangeSelector
-              value={dateRangeValue}
-              onChange={handleDateRangeChange}
-              includeTime={false}
-              showSearchButton={false}
-              className="mt-2"
-            />
+            <div className="grid grid-cols-2 gap-4 mt-2">
+              <div>
+                <Label className="text-sm text-muted-foreground">Início</Label>
+                <Popover open={openInicio} onOpenChange={setOpenInicio}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !watchedDataInicio && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {watchedDataInicio ? format(watchedDataInicio, "dd/MM/yyyy", { locale: ptBR }) : "Selecione"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={watchedDataInicio}
+                      onSelect={handleDataInicioChange}
+                      defaultMonth={watchedDataInicio}
+                      className="rounded-lg border shadow-sm"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              <div>
+                <Label className="text-sm text-muted-foreground">Fim</Label>
+                <Popover open={openFim} onOpenChange={setOpenFim}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !watchedDataFim && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {watchedDataFim ? format(watchedDataFim, "dd/MM/yyyy", { locale: ptBR }) : "Selecione"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={watchedDataFim}
+                      onSelect={handleDataFimChange}
+                      defaultMonth={watchedDataFim || watchedDataInicio}
+                      disabled={(date) => watchedDataInicio ? isBefore(startOfDay(date), startOfDay(watchedDataInicio)) : false}
+                      className="rounded-lg border shadow-sm"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
             {(form.formState.errors.dataInicio || form.formState.errors.dataFim) && (
               <p className="text-sm text-red-500 mt-1">
                 {form.formState.errors.dataInicio?.message || form.formState.errors.dataFim?.message}

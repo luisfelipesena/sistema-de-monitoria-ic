@@ -96,7 +96,7 @@
     "pino": "^9.6.0",
     "pino-pretty": "^13.0.0",
     "react": "^19.0.0",
-    "react-day-picker": "^9.4.3",
+    "react-day-picker": "^9.7.0",
     "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.56.3",
     "react-resizable-panels": "^3.0.1",

@@ -95,6 +95,12 @@ const menuConfig: MenuConfig[] = [
         roles: ['admin'],
       },
       {
+        label: 'Assinatura de Documentos',
+        href: '/home/admin/document-signing',
+        icon: FileSignature,
+        roles: ['admin'],
+      },
+      {
         label: 'Importar Planejamento',
         href: '/home/admin/import-projects',
         icon: Upload,
@@ -104,12 +110,6 @@ const menuConfig: MenuConfig[] = [
         label: 'Alocação de Bolsas',
         href: '/home/admin/scholarship-allocation',
         icon: Award,
-        roles: ['admin'],
-      },
-      {
-        label: 'Assinatura de Documentos',
-        href: '/home/admin/document-signing',
-        icon: FileSignature,
         roles: ['admin'],
       },
     ],
