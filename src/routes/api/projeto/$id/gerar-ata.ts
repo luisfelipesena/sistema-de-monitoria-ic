@@ -63,6 +63,14 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/gerar-ata')({
           orderBy: [inscricaoTable.status, inscricaoTable.createdAt],
         });
 
+        // Validar se existem inscrições para gerar a ata
+        if (inscricoes.length === 0) {
+          return json(
+            { error: 'Não é possível gerar ata sem candidatos inscritos no projeto' },
+            { status: 400 },
+          );
+        }
+
         // Separar inscrições por status
         const selecionados = inscricoes.filter(
           (i) =>

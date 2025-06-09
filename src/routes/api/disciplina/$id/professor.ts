@@ -4,6 +4,7 @@ import {
   professorTable,
 } from '@/server/database/schema';
 import { createAPIHandler } from '@/server/middleware/common';
+import { getCurrentSemester } from '@/utils/get-current-semester';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
@@ -37,9 +38,7 @@ export const APIRoute = createAPIFileRoute('/api/disciplina/$id/professor')({
   GET: createAPIHandler(async (ctx) => {
     try {
       const params = paramsSchema.parse(ctx.params);
-      const currentYear = new Date().getFullYear();
-      const currentSemester =
-        new Date().getMonth() <= 6 ? 'SEMESTRE_1' : 'SEMESTRE_2';
+      const { year: currentYear, semester: currentSemester } = getCurrentSemester();
 
       log.info(
         `Fetching professor for discipline ${params.id} in ${currentYear}.${currentSemester}`,

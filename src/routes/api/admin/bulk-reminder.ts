@@ -5,6 +5,7 @@ import {
   createAPIHandler,
   withRoleMiddleware,
 } from '@/server/middleware/common';
+import { getCurrentSemester } from '@/utils/get-current-semester';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
@@ -39,10 +40,9 @@ export const APIRoute = createAPIFileRoute('/api/admin/bulk-reminder')({
 
         const adminUserId = parseInt(ctx.state.user.userId, 10);
 
-        const currentYear = targetYear || new Date().getFullYear();
-        const currentSemester =
-          targetSemester ||
-          (new Date().getMonth() <= 5 ? 'SEMESTRE_1' : 'SEMESTRE_2');
+        const { year: defaultYear, semester: defaultSemester } = getCurrentSemester();
+        const currentYear = targetYear || defaultYear;
+        const currentSemester = targetSemester || defaultSemester;
 
         let emailsSent = 0;
         let emailsFailed = 0;

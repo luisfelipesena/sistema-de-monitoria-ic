@@ -49,7 +49,7 @@ export type OnboardingStatus = z.infer<typeof onboardingStatusSchema>;
 
 // Definir documentos obrigatórios por tipo de usuário
 const REQUIRED_DOCUMENTS = {
-  student: ['comprovante_matricula', 'historico_escolar'],
+  student: ['comprovante_matricula'], // Apenas comprovante de matrícula é obrigatório
   professor: ['curriculum_vitae', 'comprovante_vinculo'],
 } as const;
 
