@@ -749,8 +749,12 @@ export const notaAlunoRelations = relations(notaAlunoTable, ({ one }) => ({
 
 export const periodoInscricaoRelations = relations(
   periodoInscricaoTable,
-  ({ many }) => ({
+  ({ many, one }) => ({
     inscricoes: many(inscricaoTable),
+    edital: one(editalTable, {
+      fields: [periodoInscricaoTable.id],
+      references: [editalTable.periodoInscricaoId],
+    }),
   }),
 );
 

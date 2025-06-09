@@ -104,16 +104,44 @@ export const APIRoute = createAPIFileRoute('/api/edital/generate')({
             titulo: titulo || 'Edital Interno de Seleção de Monitores',
             descricaoHtml,
             fileIdAssinado: fileId,
-            dataPublicacao: new Date(),
-            publicado: true,
+            dataPublicacao: null, // Será definido quando publicar
+            publicado: false, // Começa como rascunho
             criadoPorUserId: parseInt(user.userId, 10),
           })
           .returning();
 
-        log.info({ editalId: newEdital.id, periodoInscricaoId }, 'Edital gerado com sucesso');
+        // Buscar o edital recém-criado com relações para resposta completa
+        const editalCompleto = await db.query.editalTable.findFirst({
+          where: eq(editalTable.id, newEdital.id),
+          with: {
+            periodoInscricao: true,
+            criadoPor: {
+              columns: {
+                id: true,
+                username: true,
+                email: true,
+              },
+            },
+          },
+        });
+
+        // Adicionar status do período para compatibilidade
+        const editalComStatus = {
+          ...editalCompleto!,
+          periodoInscricao: editalCompleto!.periodoInscricao
+            ? {
+                ...editalCompleto!.periodoInscricao,
+                status: 'FUTURO' as const, // Assumir futuro para novos editais
+                totalProjetos: projetosAprovados.length,
+                totalInscricoes: 0, // Novo edital não tem inscrições ainda
+              }
+            : null,
+        };
+
+        log.info({ editalId: newEdital.id, periodoInscricaoId, totalProjetos: projetosAprovados.length }, 'Edital gerado com sucesso');
 
         return json({
-          edital: newEdital,
+          edital: editalComStatus,
           downloadUrl: `/api/public/documents/${fileId}`,
           totalProjetos: projetosAprovados.length,
         }, { status: 201 });

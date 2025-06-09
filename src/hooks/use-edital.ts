@@ -194,10 +194,10 @@ export function useGenerateEdital() {
 }
 
 export function useEditalList() {
-  return useQuery<EditalResponse[]>({
+  return useQuery<EditalListItem[]>({
     queryKey: QueryKeys.edital.list,
     queryFn: async () => {
-      const response = await apiClient.get<EditalResponse[]>('/edital');
+      const response = await apiClient.get<EditalListItem[]>('/edital');
       return response.data;
     },
   });

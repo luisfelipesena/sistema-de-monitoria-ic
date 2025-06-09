@@ -4,7 +4,7 @@ import {
   editalListItemSchema
 } from '@/routes/api/edital/-types';
 import { db } from '@/server/database';
-import { editalTable } from '@/server/database/schema';
+import { editalTable, projetoTable, inscricaoTable, periodoInscricaoTable } from '@/server/database/schema';
 import {
   createAPIHandler,
   withAuthMiddleware,
@@ -13,7 +13,7 @@ import {
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
-import { eq, and, not } from 'drizzle-orm';
+import { eq, and, not, count } from 'drizzle-orm';
 import { z } from 'zod';
 
 const log = logger.child({
@@ -23,6 +23,46 @@ const log = logger.child({
 const paramsSchema = z.object({
   id: z.string().transform(Number),
 });
+
+// Função auxiliar para calcular métricas do período de inscrição
+async function calcularMetricasPeriodo(periodoInscricaoId: number) {
+  try {
+    // Buscar período de inscrição
+    const periodo = await db.query.periodoInscricaoTable.findFirst({
+      where: (table, { eq }) => eq(table.id, periodoInscricaoId),
+    });
+
+    if (!periodo) {
+      return { totalProjetos: 0, totalInscricoes: 0 };
+    }
+
+    // Contar projetos aprovados do período
+    const [projetosResult] = await db
+      .select({ count: count() })
+      .from(projetoTable)
+      .where(
+        and(
+          eq(projetoTable.ano, periodo.ano),
+          eq(projetoTable.semestre, periodo.semestre),
+          eq(projetoTable.status, 'APPROVED')
+        )
+      );
+
+    // Contar inscrições do período
+    const [inscricoesResult] = await db
+      .select({ count: count() })
+      .from(inscricaoTable)
+      .where(eq(inscricaoTable.periodoInscricaoId, periodoInscricaoId));
+
+    return {
+      totalProjetos: projetosResult?.count || 0,
+      totalInscricoes: inscricoesResult?.count || 0,
+    };
+  } catch (error) {
+    log.warn({ periodoInscricaoId, error }, 'Erro ao calcular métricas do período');
+    return { totalProjetos: 0, totalInscricoes: 0 };
+  }
+}
 
 export const APIRoute = createAPIFileRoute('/api/edital/[id]')({
   GET: createAPIHandler(
@@ -44,21 +84,33 @@ export const APIRoute = createAPIFileRoute('/api/edital/[id]')({
         
         // Calcular status do período de inscrição associado
         let statusPeriodo: 'ATIVO' | 'FUTURO' | 'FINALIZADO' = 'FINALIZADO';
+        let metricas = { totalProjetos: 0, totalInscricoes: 0 };
+        
         if (edital.periodoInscricao) {
             const now = new Date();
             const inicio = new Date(edital.periodoInscricao.dataInicio);
             const fim = new Date(edital.periodoInscricao.dataFim);
+            
             if (now >= inicio && now <= fim) {
                 statusPeriodo = 'ATIVO';
             } else if (now < inicio) {
                 statusPeriodo = 'FUTURO';
             }
+            
+            // Calcular métricas reais do período
+            metricas = await calcularMetricasPeriodo(edital.periodoInscricao.id);
         }
+        
         const editalComStatusPeriodo = {
             ...edital,
             periodoInscricao: edital.periodoInscricao 
-                ? { ...edital.periodoInscricao, status: statusPeriodo }
-                : undefined,
+                ? { 
+                    ...edital.periodoInscricao, 
+                    status: statusPeriodo,
+                    totalProjetos: metricas.totalProjetos,
+                    totalInscricoes: metricas.totalInscricoes,
+                  }
+                : null,
         };
 
         const validatedData = editalListItemSchema.parse(editalComStatusPeriodo);
@@ -187,7 +239,20 @@ export const APIRoute = createAPIFileRoute('/api/edital/[id]')({
           );
         }
 
-        // Adicionar verificação de outras dependências se necessário (ex: inscrições vinculadas ao período)
+        // Verificar se há inscrições vinculadas ao período do edital
+        const [inscricoesCount] = await db
+          .select({ count: count() })
+          .from(inscricaoTable)
+          .where(eq(inscricaoTable.periodoInscricaoId, edital.periodoInscricaoId));
+
+        if (inscricoesCount.count > 0) {
+          return json(
+            { 
+              error: `Não é possível excluir este edital pois existem ${inscricoesCount.count} inscrições vinculadas ao período.` 
+            },
+            { status: 400 },
+          );
+        }
 
         await db.delete(editalTable).where(eq(editalTable.id, editalId));
 

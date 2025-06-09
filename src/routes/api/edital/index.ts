@@ -23,6 +23,8 @@ export const APIRoute = createAPIFileRoute('/api/edital')({
   GET: createAPIHandler(
     withAuthMiddleware(async (ctx) => {
       try {
+        log.info('Iniciando busca de editais');
+        
         const editaisComPeriodo = await db.query.editalTable.findMany({
           with: {
             periodoInscricao: true,
@@ -36,35 +38,63 @@ export const APIRoute = createAPIFileRoute('/api/edital')({
           },
           orderBy: (table, { desc }) => [
             desc(table.createdAt),
-          ], // Ordenar por mais recente
+          ],
         });
+        
+        log.info({ count: editaisComPeriodo.length }, 'Editais encontrados no banco');
         
         // Calcular status para cada período de inscrição associado
         const now = new Date();
         const resultadoFinal = editaisComPeriodo.map(edital => {
           let statusPeriodo: 'ATIVO' | 'FUTURO' | 'FINALIZADO' = 'FINALIZADO';
           if (edital.periodoInscricao) {
-            const inicio = new Date(edital.periodoInscricao.dataInicio);
-            const fim = new Date(edital.periodoInscricao.dataFim);
-            if (now >= inicio && now <= fim) {
-              statusPeriodo = 'ATIVO';
-            } else if (now < inicio) {
-              statusPeriodo = 'FUTURO';
+            try {
+              const inicio = new Date(edital.periodoInscricao.dataInicio);
+              const fim = new Date(edital.periodoInscricao.dataFim);
+              
+              // Verificar se as datas são válidas
+              if (!isNaN(inicio.getTime()) && !isNaN(fim.getTime())) {
+                if (now >= inicio && now <= fim) {
+                  statusPeriodo = 'ATIVO';
+                } else if (now < inicio) {
+                  statusPeriodo = 'FUTURO';
+                }
+              }
+            } catch (error) {
+              log.warn({ editalId: edital.id, error }, 'Erro ao calcular status do período');
             }
           }
           return {
             ...edital,
             periodoInscricao: edital.periodoInscricao 
-              ? { ...edital.periodoInscricao, status: statusPeriodo }
-              : undefined,
+              ? { 
+                  ...edital.periodoInscricao, 
+                  status: statusPeriodo,
+                  totalProjetos: 0, // TODO: calcular quando necessário
+                  totalInscricoes: 0, // TODO: calcular quando necessário
+                }
+              : null,
           };
         });
 
+        log.info({ count: resultadoFinal.length }, 'Processando validação dos editais');
+        
         const validatedData = z.array(editalListItemSchema).parse(resultadoFinal);
+        
+        log.info({ validatedCount: validatedData.length }, 'Editais validados com sucesso');
         return json(validatedData, { status: 200 });
+        
       } catch (error) {
+        if (error instanceof z.ZodError) {
+          log.error({ zodError: error.errors }, 'Erro de validação de schema');
+          return json({ 
+            error: 'Erro de validação dos dados dos editais',
+            details: error.errors 
+          }, { status: 500 });
+        }
+        
         log.error(error, 'Erro ao listar editais');
-        return json({ error: 'Erro ao listar editais' }, { status: 500 });
+        return json({ error: 'Erro interno ao listar editais' }, { status: 500 });
       }
     }),
   ),
