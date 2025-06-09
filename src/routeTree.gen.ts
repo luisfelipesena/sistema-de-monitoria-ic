@@ -25,7 +25,6 @@ import { Route as HomeLayoutCommonStatusIndexImport } from './routes/home/_layou
 import { Route as HomeLayoutCommonSelecaoMonitoresIndexImport } from './routes/home/_layout/common/selecao-monitores/index'
 import { Route as HomeLayoutCommonProfileIndexImport } from './routes/home/_layout/common/profile/index'
 import { Route as HomeLayoutCommonOnboardingIndexImport } from './routes/home/_layout/common/onboarding/index'
-import { Route as HomeLayoutCommonMonitoriaIndexImport } from './routes/home/_layout/common/monitoria/index'
 import { Route as HomeLayoutStudentLayoutResultadosImport } from './routes/home/_layout/student/_layout/resultados'
 import { Route as HomeLayoutStudentLayoutInscricaoMonitoriaImport } from './routes/home/_layout/student/_layout/inscricao-monitoria'
 import { Route as HomeLayoutStudentLayoutDashboardImport } from './routes/home/_layout/student/_layout/dashboard'
@@ -164,13 +163,6 @@ const HomeLayoutCommonOnboardingIndexRoute =
   HomeLayoutCommonOnboardingIndexImport.update({
     id: '/common/onboarding/',
     path: '/common/onboarding/',
-    getParentRoute: () => HomeLayoutRoute,
-  } as any)
-
-const HomeLayoutCommonMonitoriaIndexRoute =
-  HomeLayoutCommonMonitoriaIndexImport.update({
-    id: '/common/monitoria/',
-    path: '/common/monitoria/',
     getParentRoute: () => HomeLayoutRoute,
   } as any)
 
@@ -740,13 +732,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutStudentLayoutResultadosImport
       parentRoute: typeof HomeLayoutStudentLayoutImport
     }
-    '/home/_layout/common/monitoria/': {
-      id: '/home/_layout/common/monitoria/'
-      path: '/common/monitoria'
-      fullPath: '/home/common/monitoria'
-      preLoaderRoute: typeof HomeLayoutCommonMonitoriaIndexImport
-      parentRoute: typeof HomeLayoutImport
-    }
     '/home/_layout/common/onboarding/': {
       id: '/home/_layout/common/onboarding/'
       path: '/common/onboarding'
@@ -964,7 +949,6 @@ interface HomeLayoutRouteChildren {
   HomeLayoutAdminRoute: typeof HomeLayoutAdminRouteWithChildren
   HomeLayoutProfessorRoute: typeof HomeLayoutProfessorRouteWithChildren
   HomeLayoutStudentRoute: typeof HomeLayoutStudentRouteWithChildren
-  HomeLayoutCommonMonitoriaIndexRoute: typeof HomeLayoutCommonMonitoriaIndexRoute
   HomeLayoutCommonOnboardingIndexRoute: typeof HomeLayoutCommonOnboardingIndexRoute
   HomeLayoutCommonProfileIndexRoute: typeof HomeLayoutCommonProfileIndexRoute
   HomeLayoutCommonSelecaoMonitoresIndexRoute: typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
@@ -976,7 +960,6 @@ const HomeLayoutRouteChildren: HomeLayoutRouteChildren = {
   HomeLayoutAdminRoute: HomeLayoutAdminRouteWithChildren,
   HomeLayoutProfessorRoute: HomeLayoutProfessorRouteWithChildren,
   HomeLayoutStudentRoute: HomeLayoutStudentRouteWithChildren,
-  HomeLayoutCommonMonitoriaIndexRoute: HomeLayoutCommonMonitoriaIndexRoute,
   HomeLayoutCommonOnboardingIndexRoute: HomeLayoutCommonOnboardingIndexRoute,
   HomeLayoutCommonProfileIndexRoute: HomeLayoutCommonProfileIndexRoute,
   HomeLayoutCommonSelecaoMonitoresIndexRoute:
@@ -1040,7 +1023,6 @@ export interface FileRoutesByFullPath {
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/student/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
   '/home/student/resultados': typeof HomeLayoutStudentLayoutResultadosRoute
-  '/home/common/monitoria': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
   '/home/common/selecao-monitores': typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
@@ -1090,7 +1072,6 @@ export interface FileRoutesByTo {
   '/home/student/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/student/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
   '/home/student/resultados': typeof HomeLayoutStudentLayoutResultadosRoute
-  '/home/common/monitoria': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/common/onboarding': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/common/profile': typeof HomeLayoutCommonProfileIndexRoute
   '/home/common/selecao-monitores': typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
@@ -1146,7 +1127,6 @@ export interface FileRoutesById {
   '/home/_layout/student/_layout/dashboard': typeof HomeLayoutStudentLayoutDashboardRoute
   '/home/_layout/student/_layout/inscricao-monitoria': typeof HomeLayoutStudentLayoutInscricaoMonitoriaRoute
   '/home/_layout/student/_layout/resultados': typeof HomeLayoutStudentLayoutResultadosRoute
-  '/home/_layout/common/monitoria/': typeof HomeLayoutCommonMonitoriaIndexRoute
   '/home/_layout/common/onboarding/': typeof HomeLayoutCommonOnboardingIndexRoute
   '/home/_layout/common/profile/': typeof HomeLayoutCommonProfileIndexRoute
   '/home/_layout/common/selecao-monitores/': typeof HomeLayoutCommonSelecaoMonitoresIndexRoute
@@ -1199,7 +1179,6 @@ export interface FileRouteTypes {
     | '/home/student/dashboard'
     | '/home/student/inscricao-monitoria'
     | '/home/student/resultados'
-    | '/home/common/monitoria'
     | '/home/common/onboarding'
     | '/home/common/profile'
     | '/home/common/selecao-monitores'
@@ -1248,7 +1227,6 @@ export interface FileRouteTypes {
     | '/home/student/dashboard'
     | '/home/student/inscricao-monitoria'
     | '/home/student/resultados'
-    | '/home/common/monitoria'
     | '/home/common/onboarding'
     | '/home/common/profile'
     | '/home/common/selecao-monitores'
@@ -1302,7 +1280,6 @@ export interface FileRouteTypes {
     | '/home/_layout/student/_layout/dashboard'
     | '/home/_layout/student/_layout/inscricao-monitoria'
     | '/home/_layout/student/_layout/resultados'
-    | '/home/_layout/common/monitoria/'
     | '/home/_layout/common/onboarding/'
     | '/home/_layout/common/profile/'
     | '/home/_layout/common/selecao-monitores/'
@@ -1362,7 +1339,6 @@ export const routeTree = rootRoute
         "/home/_layout/admin",
         "/home/_layout/professor",
         "/home/_layout/student",
-        "/home/_layout/common/monitoria/",
         "/home/_layout/common/onboarding/",
         "/home/_layout/common/profile/",
         "/home/_layout/common/selecao-monitores/",
@@ -1581,10 +1557,6 @@ export const routeTree = rootRoute
     "/home/_layout/student/_layout/resultados": {
       "filePath": "home/_layout/student/_layout/resultados.tsx",
       "parent": "/home/_layout/student/_layout"
-    },
-    "/home/_layout/common/monitoria/": {
-      "filePath": "home/_layout/common/monitoria/index.tsx",
-      "parent": "/home/_layout"
     },
     "/home/_layout/common/onboarding/": {
       "filePath": "home/_layout/common/onboarding/index.tsx",

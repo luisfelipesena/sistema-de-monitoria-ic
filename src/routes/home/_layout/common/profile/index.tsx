@@ -245,9 +245,8 @@ function StudentProfile() {
                 onValueChange={(value) =>
                   setFormData({ ...formData, cursoId: parseInt(value) })
                 }
-                disabled={!isEditing}
               >
-                <SelectTrigger>
+                <SelectTrigger disabled={!isEditing}>
                   <SelectValue placeholder="Selecione seu curso" />
                 </SelectTrigger>
                 <SelectContent>
@@ -550,7 +549,7 @@ function DocumentItem({ doc, onUpload, isUploading }: DocumentItemProps) {
 
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg">
-      <div className="space-y-1">
+      <div className="space-y-1 flex flex-col">
         <span className="font-medium">{doc.nome}</span>
         {doc.fileId && (
           <p className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded w-fit">
@@ -558,8 +557,8 @@ function DocumentItem({ doc, onUpload, isUploading }: DocumentItemProps) {
           </p>
         )}
         <Badge
-          variant={doc.status === 'valid' ? 'default' : 'secondary'}
-          className="text-xs"
+          variant={doc.status === 'valid' ? 'retaVerde' : 'retaVermelha'}
+          className="text-xs w-fit"
         >
           Status: {doc.status === 'valid' ? 'Válido' : 'Pendente'}
         </Badge>

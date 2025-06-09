@@ -191,9 +191,9 @@ function ApplicationModal({
                   onValueChange={(value: 'BOLSISTA' | 'VOLUNTARIO' | 'ANY') =>
                     setFormData({ ...formData, tipoVagaPretendida: value })
                   }
-                  disabled={isSubmitting}
+            
                 >
-                  <SelectTrigger>
+                  <SelectTrigger disabled={isSubmitting}>
                     <SelectValue placeholder="Selecione o tipo de vaga" />
                   </SelectTrigger>
                   <SelectContent>
@@ -514,18 +514,23 @@ function InscricaoMonitoriaPage() {
               className="pl-10"
             />
           </div>
-          <select
+          <div className="flex-0 w-1/3 relative">
+          <Select
             value={selectedDepartment}
-            onChange={(e) => setSelectedDepartment(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onValueChange={(value) => setSelectedDepartment(value)}
           >
-            <option value="">Todos os Departamentos</option>
-            {departments.map((dept) => (
-              <option key={dept.id} value={dept.id.toString()}>
-                {dept.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger>
+              <SelectValue placeholder="Todos os Departamentos" />
+            </SelectTrigger>
+            <SelectContent>
+              {departments.map((dept) => (
+                <SelectItem key={dept.id} value={dept.id.toString()}>
+                  {dept.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          </div>
         </div>
 
         {/* Summary */}

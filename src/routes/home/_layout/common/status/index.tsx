@@ -1,3 +1,4 @@
+import { PagesLayout } from '@/components/layout/PagesLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -59,7 +60,7 @@ function RouteComponent() {
           <p className="text-lg text-muted-foreground">
             Você ainda não possui inscrições ativas para monitoria.
           </p>
-          <Button onClick={() => navigate({ to: '/home/common/monitoria' })}>
+          <Button onClick={() => navigate({ to: '/home/student/inscricao-monitoria' })}>
             Fazer inscrição
           </Button>
         </Card>
@@ -68,8 +69,12 @@ function RouteComponent() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12 space-y-8">
-      <h1 className="text-3xl font-bold">Status da sua inscrição</h1>
+    <PagesLayout title="Status da sua inscrição" 
+    actions={
+    <Button variant="outline" onClick={() => navigate({ to: '/home/student/inscricao-monitoria' })}>
+      Nova inscrição
+    </Button>}
+    >
 
       <Card className="p-6 space-y-4">
         <div className="flex justify-between items-start">
@@ -132,16 +137,10 @@ function RouteComponent() {
       </Card>
 
       <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={() => navigate({ to: '/home/common/monitoria' })}
-        >
-          Nova inscrição
-        </Button>
         <Button variant="outline" onClick={() => navigate({ to: '/home' })}>
           Voltar ao início
         </Button>
       </div>
-    </div>
+    </PagesLayout>
   );
 }

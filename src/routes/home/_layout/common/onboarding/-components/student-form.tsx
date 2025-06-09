@@ -21,6 +21,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+
+const studentFormSchema = alunoInputSchema.omit({
+  comprovanteMatriculaFileId: true,
+  historicoEscolarFileId: true,
+});
+
+type StudentFormData = z.infer<typeof studentFormSchema>;
 
 export function StudentForm() {
   const navigate = useNavigate();
@@ -43,8 +51,8 @@ export function StudentForm() {
   const fileUploadMutation = useFileUpload();
   const setAlunoMutation = useSetAluno();
 
-  const form = useForm<AlunoInput>({
-    resolver: zodResolver(alunoInputSchema),
+  const form = useForm<StudentFormData>({
+    resolver: zodResolver(studentFormSchema),
     defaultValues: {
       emailInstitucional: user?.email || '',
       genero: 'OUTRO',
@@ -59,7 +67,16 @@ export function StudentForm() {
     setHistoricoEscolarFile(file);
   };
 
-  const onSubmit = async (values: AlunoInput) => {
+  const onError = (errors: any) => {
+    console.error('Erros de validação do formulário:', errors);
+    toast({
+      title: 'Formulário inválido',
+      description: 'Por favor, corrija os erros indicados antes de submeter.',
+      variant: 'destructive',
+    });
+  };
+
+  const onSubmit = async (values: StudentFormData) => {
     if (!comprovanteMatriculaFile) {
       toast({
         title: 'Documento obrigatório',
@@ -145,7 +162,7 @@ export function StudentForm() {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Informações Pessoais</h2>
 

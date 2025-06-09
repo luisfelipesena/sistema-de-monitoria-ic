@@ -60,7 +60,7 @@ function DashboardStudent() {
   };
 
   const handleVerVagas = () => {
-    navigate({ to: '/home/common/monitoria' });
+    navigate({ to: '/home/student/inscricao-monitoria' });
   };
 
   const handleAceitarInscricao = async (inscricaoId: number) => {
