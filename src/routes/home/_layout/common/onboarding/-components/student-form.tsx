@@ -59,7 +59,7 @@ export function StudentForm() {
     setHistoricoEscolarFile(file);
   };
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = async (values: AlunoInput) => {
     if (!comprovanteMatriculaFile) {
       toast({
         title: 'Documento obrigatório',
@@ -142,10 +142,10 @@ export function StudentForm() {
     } finally {
       setIsSubmitting(false);
     }
-  });
+  };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Informações Pessoais</h2>
 
