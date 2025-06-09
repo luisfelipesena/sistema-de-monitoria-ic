@@ -42,7 +42,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/documents')(
     GET: createAPIHandler(
       withRoleMiddleware(['professor', 'admin'], async (ctx) => {
         try {
-          const projetoId = parseInt(ctx.params.projetoId);
+          const projetoId = parseInt(ctx.params.id);
           const userId = ctx.state.user.userId;
 
           if (isNaN(projetoId)) {
@@ -97,10 +97,6 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/documents')(
             createdAt: doc.createdAt,
           }));
 
-          const validatedDocuments = z
-            .array(documentResponseSchema)
-            .parse(documentosFormatados);
-
           log.info(
             {
               projetoId,
@@ -110,7 +106,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/documents')(
             'Documentos do projeto listados com sucesso',
           );
 
-          return json(validatedDocuments, { status: 200 });
+          return json(documentosFormatados, { status: 200 });
         } catch (error) {
           log.error(error, 'Erro ao buscar documentos do projeto');
           return json({ error: 'Erro interno do servidor' }, { status: 500 });

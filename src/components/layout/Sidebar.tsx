@@ -251,6 +251,12 @@ const menuConfig: MenuConfig[] = [
         roles: ['professor'],
       },
       {
+        label: 'Avaliar Candidatos',
+        href: '/home/professor/grade-applications',
+        icon: FileCheck,
+        roles: ['professor'],
+      },
+      {
         label: 'Gerar Ata de Seleção',
         href: '/home/professor/gerar-ata',
         icon: FileText,
@@ -272,25 +278,25 @@ const menuConfig: MenuConfig[] = [
   },
 
   // Professor - Gestão Acadêmica
-  {
-    label: 'Gestão Acadêmica',
-    icon: BookOpen,
-    roles: ['professor'],
-    items: [
-      {
-        label: 'Minhas Disciplinas',
-        href: '/home/professor/disciplinas',
+        {
+        label: 'Gestão Acadêmica',
         icon: BookOpen,
         roles: ['professor'],
+        items: [
+          {
+            label: 'Minhas Disciplinas',
+            href: '/home/professor/disciplinas',
+            icon: BookOpen,
+            roles: ['professor'],
+          },
+          {
+            label: 'Gerenciar Voluntários',
+            href: '/home/professor/volunteer-management',
+            icon: Users,
+            roles: ['professor'],
+          },
+        ],
       },
-      {
-        label: 'Gerenciar Voluntários',
-        href: '/home/professor/volunteer-management',
-        icon: Users,
-        roles: ['professor'],
-      },
-    ],
-  },
 
   // Student - Monitoria
   {

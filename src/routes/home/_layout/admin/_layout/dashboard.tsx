@@ -13,6 +13,11 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/utils/api-client';
+import { QueryKeys } from '@/hooks/query-keys';
+import type { DocumentResponse } from '@/routes/api/projeto/$id/documents';
+
 
 import {
   AlertTriangle,
@@ -31,6 +36,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
+import { getCurrentSemester } from '@/utils/get-current-semester';
 
 export const Route = createFileRoute('/home/_layout/admin/_layout/dashboard')({
   component: DashboardAdmin,
@@ -38,6 +44,7 @@ export const Route = createFileRoute('/home/_layout/admin/_layout/dashboard')({
 
 function DashboardAdmin() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: projetos, isLoading: loadingProjetos } = useProjetos();
   const { data: users, isLoading: loadingUsers } = useUsers();
   const downloadPlanilhaMutation = useProgradExport();
@@ -50,14 +57,65 @@ function DashboardAdmin() {
   const [groupedView, setGroupedView] = useState(false);
 
   const handleDownloadPlanilhaPrograd = () => {
-    toast.promise(
-      downloadPlanilhaMutation.mutateAsync(),
-      {
-        loading: 'Gerando planilha...',
-        success: 'Planilha baixada com sucesso!',
-        error: 'Erro ao gerar planilha',
+    const { year, semester } = getCurrentSemester();
+    toast.promise(downloadPlanilhaMutation.mutateAsync({
+      ano: filters.ano ? Number(filters.ano) : year,
+      semestre: (filters.semestre as 'SEMESTRE_1' | 'SEMESTRE_2' | undefined) || semester,
+      departamentoId: filters.departamento ? Number(filters.departamento) : undefined,
+    }), {
+      loading: 'Gerando planilha...',
+      success: 'Planilha baixada com sucesso!',
+      error: 'Erro ao gerar planilha',
+    });
+  };
+
+  const handleViewStoredPDF = async (projetoId: number) => {
+    toast('Preparando visualização...');
+    try {
+      const documents = await queryClient.fetchQuery<DocumentResponse[]>({
+        queryKey: QueryKeys.projeto.documents(projetoId),
+        queryFn: async () => {
+          const response = await apiClient.get(`/projeto/${projetoId}/documents`);
+          return response.data;
+        },
+      });
+
+      const adminSignedDoc = documents.find(
+        (d) => d.tipoDocumento === 'PROPOSTA_ASSINADA_ADMIN',
+      );
+      const professorSignedDoc = documents.find(
+        (d) => d.tipoDocumento === 'PROPOSTA_ASSINADA_PROFESSOR',
+      );
+      const docToView = adminSignedDoc || professorSignedDoc;
+
+      if (!docToView || !docToView.fileId) {
+        toast.error('Documento não encontrado', {
+          description: 'Nenhum documento assinado foi encontrado para visualização.',
+        });
+        return;
       }
-    );
+
+          const accessResponse = await apiClient.post('/files/access', {
+      fileId: docToView.fileId,
+      action: 'view',
+    });
+    const { url } = accessResponse.data;
+
+    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!newWindow) {
+      toast.error('Popup bloqueado', {
+        description: 'Permita popups para visualizar o PDF em nova aba.',
+      });
+      return;
+    }
+    
+    toast.success('PDF aberto em nova aba');
+    } catch (error) {
+      toast.error('Erro ao abrir PDF', {
+        description: 'Não foi possível abrir o documento para visualização.',
+      });
+      console.error('View PDF error:', error);
+    }
   };
 
   // Filtrar professores e alunos dos usuários
@@ -208,6 +266,10 @@ function DashboardAdmin() {
           return <Badge variant="warning">Em análise</Badge>;
         } else if (status === 'DRAFT') {
           return <Badge variant="muted">Rascunho</Badge>;
+        } else if (status === 'PENDING_ADMIN_SIGNATURE') {
+          return <Badge variant="warning">Pendente de assinatura</Badge>;
+        } else if (status === 'PENDING_PROFESSOR_SIGNATURE') {
+          return <Badge variant="warning">Pendente de assinatura do professor</Badge>;
         }
         return <Badge variant="muted">{status}</Badge>;
       },
@@ -260,15 +322,26 @@ function DashboardAdmin() {
       ),
       accessorKey: 'acoes',
       cell: ({ row }) => (
-        <Button
-          variant="primary"
-          size="sm"
-          className="rounded-full flex items-center gap-1"
-          onClick={() => handleAnalisarProjeto(row.original.id)}
-        >
-          <Eye className="h-4 w-4" />
-          Analisar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="primary"
+            size="sm"
+            className="rounded-full flex items-center gap-1"
+            onClick={() => handleAnalisarProjeto(row.original.id)}
+          >
+            <Eye className="h-4 w-4" />
+            Analisar
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full flex items-center gap-1"
+            onClick={() => handleViewStoredPDF(row.original.id)}
+          >
+            <Download className="h-4 w-4" />
+            PDF
+          </Button>
+        </div>
       ),
     },
   ];

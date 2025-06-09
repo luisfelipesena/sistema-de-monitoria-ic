@@ -1,5 +1,5 @@
 import { db } from '@/server/database';
-import { professorTable, projetoTable } from '@/server/database/schema';
+import { professorTable, projetoTable, userTable, departamentoTable } from '@/server/database/schema';
 import {
   createAPIHandler,
   withAuthMiddleware,
@@ -8,63 +8,159 @@ import {
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
+import { emailService } from '@/server/lib/emailService';
+import { projetoComRelationsSchema } from '@/routes/api/projeto/-types';
+import { z } from 'zod';
 
 const log = logger.child({
   context: 'SubmitProjetoAPI',
 });
 
 export const APIRoute = createAPIFileRoute('/api/projeto/$id/submit')({
-  POST: createAPIHandler(
-    withRoleMiddleware(['professor'], async (ctx) => {
-      const { id } = ctx.params;
-      const projectId = parseInt(id, 10);
+  PATCH: createAPIHandler(
+    withAuthMiddleware(
+      withRoleMiddleware(['admin', 'professor'], async (ctx) => {
+        try {
+          const projectId = parseInt(ctx.params.id, 10);
+          const userId = parseInt(ctx.state.user.userId, 10);
 
-      try {
-        const professor = await db.query.professorTable.findFirst({
-          where: eq(
-            professorTable.userId,
-            parseInt(ctx.state.user.userId, 10),
-          ),
-        });
+          if (isNaN(projectId)) {
+            return json({ error: 'ID do projeto inválido' }, { status: 400 });
+          }
 
-        if (!professor) {
-          return json({ error: 'Perfil de professor não encontrado' }, { status: 404 });
-        }
+          const projeto = await db.query.projetoTable.findFirst({
+            where: eq(projetoTable.id, projectId),
+          });
 
-        const project = await db.query.projetoTable.findFirst({
-          where: and(
-            eq(projetoTable.id, projectId),
-            eq(projetoTable.professorResponsavelId, professor.id),
-          ),
-        });
+          if (!projeto) {
+            return json({ error: 'Projeto não encontrado' }, { status: 404 });
+          }
 
-        if (!project) {
+          if (ctx.state.user.role === 'professor') {
+            const professorProfile = await db.query.professorTable.findFirst({
+              where: eq(professorTable.userId, userId),
+            });
+            if (
+              !professorProfile ||
+              projeto.professorResponsavelId !== professorProfile.id
+            ) {
+              return json(
+                { error: 'Acesso não autorizado para submeter este projeto' },
+                { status: 403 },
+              );
+            }
+          }
+          
+          if (projeto.status !== 'DRAFT') {
+            return json(
+              {
+                error: `Projeto com status ${projeto.status} não pode ser submetido.`,
+              },
+              { status: 400 },
+            );
+          }
+
+          const [updatedProjeto] = await db
+            .update(projetoTable)
+            .set({
+              status: 'SUBMITTED',
+              updatedAt: new Date(),
+            })
+            .where(eq(projetoTable.id, projectId))
+            .returning();
+
+          if (!updatedProjeto) {
+            return json(
+              { error: 'Falha ao atualizar o status do projeto' },
+              { status: 500 },
+            );
+          }
+
+          log.info(
+            { projectId, newStatus: 'SUBMITTED' },
+            'Projeto submetido para aprovação',
+          );
+
+          try {
+            const admins = await db.query.userTable.findMany({
+              where: eq(userTable.role, 'admin'),
+            });
+
+            const adminEmails = admins
+              .map((admin) => admin.email)
+              .filter((email): email is string => !!email && email.length > 0);
+
+            if (adminEmails.length > 0) {
+              const professor = await db.query.professorTable.findFirst({
+                where: eq(professorTable.id, updatedProjeto.professorResponsavelId),
+              });
+
+              const departamento = await db.query.departamentoTable.findFirst({
+                where: eq(departamentoTable.id, updatedProjeto.departamentoId),
+              });
+
+              await emailService.sendProjetoSubmetidoParaAdminsNotification(
+                {
+                  professorNome: professor?.nomeCompleto || 'Professor Desconhecido',
+                  projetoTitulo: updatedProjeto.titulo,
+                  projetoId: updatedProjeto.id,
+                  departamento: departamento?.nome,
+                  semestre: updatedProjeto.semestre,
+                  ano: updatedProjeto.ano,
+                },
+                adminEmails,
+              );
+
+              log.info(
+                { projectId, adminCount: adminEmails.length },
+                'Notificação de submissão enviada para administradores',
+              );
+            } else {
+              log.warn(
+                { projectId },
+                'Nenhum administrador encontrado para enviar notificação',
+              );
+            }
+          } catch (emailError) {
+            log.error(
+              { emailError, projectId },
+              'Erro ao enviar notificação de submissão',
+            );
+          }
+
+          const result = await db.query.projetoTable.findFirst({
+              where: eq(projetoTable.id, updatedProjeto.id),
+              with: {
+                  professorResponsavel: true,
+                  departamento: true,
+                  disciplinas: { with: { disciplina: true } },
+                  professoresParticipantes: { with: { professor: true } },
+                  atividades: true,
+              }
+          });
+
+          return json(projetoComRelationsSchema.parse(result), {
+            status: 200,
+          });
+        } catch (error) {
+          if (error instanceof z.ZodError) {
+            log.error(
+              { error: error.flatten() },
+              'Erro de validação Zod ao submeter projeto',
+            );
+            return json(
+              { error: 'Dados de resposta inválidos', details: error.errors },
+              { status: 500 },
+            );
+          }
+          log.error(error, 'Erro ao submeter projeto para aprovação');
           return json(
-            { error: 'Projeto não encontrado ou você não é o responsável' },
-            { status: 404 },
+            { error: 'Erro interno do servidor ao submeter projeto' },
+            { status: 500 },
           );
         }
-
-        if (project.status !== 'DRAFT') {
-          return json(
-            { error: 'Este projeto não pode ser submetido pois não é um rascunho.' },
-            { status: 400 },
-          );
-        }
-
-        const [updatedProject] = await db
-          .update(projetoTable)
-          .set({ status: 'SUBMITTED', updatedAt: new Date() })
-          .where(eq(projetoTable.id, projectId))
-          .returning();
-
-        log.info({ projectId }, 'Projeto submetido com sucesso');
-        return json(updatedProject);
-      } catch (error) {
-        log.error(error, `Erro ao submeter projeto ${projectId}`);
-        return json({ error: 'Erro ao submeter projeto' }, { status: 500 });
-      }
-    }),
+      }),
+    ),
   ),
 });

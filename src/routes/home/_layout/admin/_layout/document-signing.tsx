@@ -104,7 +104,7 @@ function DocumentSigningComponent() {
         role: user?.role,
       },
       projetoId: selectedProject.id !== null ? selectedProject.id : undefined,
-      assinaturaProfessor: selectedProject.assinaturaProfessor || undefined,
+      assinaturaProfessor: undefined, // Será carregada via getProjectPdfData no InteractiveProjectPDF
       dataAprovacao: selectedProject.status === 'APPROVED' ? new Date().toLocaleDateString('pt-BR') : undefined,
     };
   }, [selectedProject, departamentos, professores, user]);
@@ -135,6 +135,10 @@ function DocumentSigningComponent() {
         return <Badge variant="success">Aprovado</Badge>;
       case 'REJECTED':
         return <Badge variant="destructive">Rejeitado</Badge>;
+      case 'PENDING_ADMIN_SIGNATURE':
+        return <Badge variant="warning">Pendente de assinatura</Badge>;
+      case 'PENDING_PROFESSOR_SIGNATURE':
+        return <Badge variant="warning">Pendente de assinatura do professor</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }

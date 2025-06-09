@@ -20,6 +20,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import { apiClient } from '@/utils/api-client';
+import { QueryKeys } from '@/hooks/query-keys';
+import type { DocumentResponse } from '@/routes/api/projeto/$id/documents';
 
 import {
   Eye,
@@ -31,6 +35,7 @@ import {
   Users,
   FileSignature,
   Trash2,
+  Download,
 } from 'lucide-react';
 
 export const Route = createFileRoute(
@@ -42,12 +47,15 @@ export const Route = createFileRoute(
 function DashboardProfessor() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: projetos, isLoading: loadingProjetos } = useProjetos();
   const deleteProjeto = useDeleteProjeto();
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [projetoToDelete, setProjetoToDelete] = useState<ProjetoListItem | null>(null);
+  const [projetoToDelete, setProjetoToDelete] = useState<ProjetoListItem | null>(
+    null,
+  );
 
   // Aplicar filtros aos projetos
   const projetosFiltrados = useMemo(() => {
@@ -73,8 +81,41 @@ function DashboardProfessor() {
     });
   };
 
-  const handleViewPDF = (projetoId: number) => {
-    window.open(`/api/projeto/${projetoId}/pdf`, '_blank');
+  const handleDownloadStoredPDF = async (projetoId: number) => {
+    toast({ title: 'Preparando download...' });
+    try {
+      const documents = await queryClient.fetchQuery<DocumentResponse[]>({
+        queryKey: QueryKeys.projeto.documents(projetoId),
+        queryFn: async () => {
+            const response = await apiClient.get(`/projeto/${projetoId}/documents`);
+            return response.data;
+        }
+      });
+      
+      const adminSignedDoc = documents.find(d => d.tipoDocumento === 'PROPOSTA_ASSINADA_ADMIN');
+      const professorSignedDoc = documents.find(d => d.tipoDocumento === 'PROPOSTA_ASSINADA_PROFESSOR');
+      const docToDownload = adminSignedDoc || professorSignedDoc;
+
+      if (!docToDownload || !docToDownload.fileId) {
+        toast({ title: 'Erro', description: 'Nenhum documento assinado para download foi encontrado.', variant: 'destructive' });
+        return;
+      }
+
+      const accessResponse = await apiClient.post('/files/access', { fileId: docToDownload.fileId });
+      const { url } = accessResponse.data;
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `proposta_projeto_${projetoId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+      
+      toast({ title: 'Download iniciado', description: 'Seu arquivo começará a ser baixado.' });
+    } catch (error) {
+      toast({ title: 'Erro no Download', description: 'Não foi possível obter o link para download do arquivo.', variant: 'destructive' });
+      console.error("Download error:", error);
+    }
   };
 
   const handleEditProject = (projetoId: number) => {
@@ -154,6 +195,10 @@ function DashboardProfessor() {
           return <Badge variant="warning">Em análise</Badge>;
         } else if (status === 'DRAFT') {
           return <Badge variant="muted">Rascunho</Badge>;
+        } else if (status === 'PENDING_PROFESSOR_SIGNATURE') {
+          return <Badge variant="secondary">Aguardando Assinatura do Professor</Badge>;
+        } else if (status === 'PENDING_ADMIN_SIGNATURE') {
+          return <Badge variant="warning">Aguardando Assinatura do Admin</Badge>;
         }
         return <Badge variant="muted">{status}</Badge>;
       },
@@ -225,10 +270,10 @@ function DashboardProfessor() {
       accessorKey: 'acoes',
       cell: ({ row }) => {
         const projeto = row.original;
-        
+
         return (
           <div className="flex gap-2">
-            {projeto.status === 'DRAFT' && (
+            {(projeto.status === 'DRAFT' || projeto.status === 'PENDING_PROFESSOR_SIGNATURE') && (
               <>
                 <Button
                   variant="outline"
@@ -251,40 +296,29 @@ function DashboardProfessor() {
                 </Button>
               </>
             )}
-            
-            {(projeto.status === 'SUBMITTED' || projeto.status === 'REJECTED') && (
+
+            {(projeto.status === 'SUBMITTED' || projeto.status === 'REJECTED' || projeto.status === 'APPROVED') && (
               <Button
                 variant="outline"
                 size="sm"
                 className="rounded-full flex items-center gap-1"
-                onClick={() => handleViewPDF(projeto.id)}
+                onClick={() => handleDownloadStoredPDF(projeto.id)}
               >
-                <Eye className="h-4 w-4" />
-                Ver PDF
+                <Download className="h-4 w-4" />
+                Baixar PDF
               </Button>
             )}
-            
+
             {projeto.status === 'APPROVED' && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full flex items-center gap-1"
-                  onClick={() => handleViewPDF(projeto.id)}
-                >
-                  <Eye className="h-4 w-4" />
-                  Ver PDF
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="rounded-full flex items-center gap-1"
-                  onClick={() => handleAnalisarProjeto(projeto.id)}
-                >
-                  <Users className="h-4 w-4" />
-                  Ver Candidatos
-                </Button>
-              </>
+              <Button
+                variant="primary"
+                size="sm"
+                className="rounded-full flex items-center gap-1"
+                onClick={() => handleAnalisarProjeto(projeto.id)}
+              >
+                <Users className="h-4 w-4" />
+                Ver Candidatos
+              </Button>
             )}
           </div>
         );
@@ -382,7 +416,7 @@ function DashboardProfessor() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel 
+            <AlertDialogCancel
               onClick={() => {
                 setDeleteDialogOpen(false);
                 setProjetoToDelete(null);

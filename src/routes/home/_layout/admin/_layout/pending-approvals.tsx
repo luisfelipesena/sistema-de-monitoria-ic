@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
 import {
   useApproveProjeto,
@@ -23,7 +24,16 @@ import {
 import { ProjetoListItem } from '@/routes/api/projeto/-types';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
-import { CheckCircle, Eye, FileSignature, Loader, X } from 'lucide-react';
+import { 
+  CheckCircle, 
+  Eye, 
+  FileSignature, 
+  Loader, 
+  X, 
+  AlertCircle,
+  ArrowRight,
+  Info
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -57,11 +67,14 @@ function PendingApprovalsComponent() {
         bolsasDisponibilizadas: projeto.bolsasSolicitadas,
       });
       toast.success(
-        'Projeto aprovado! Você será redirecionado para assinar o documento.',
+        'Projeto aprovado! Agora você pode assinar o documento.',
       );
       refetch();
-      // Redirect to document signing page
-      navigate({ to: '/home/admin/document-signing' });
+      // Redirect to document signing page for this specific project
+      navigate({ 
+        to: '/home/admin/document-signing',
+        search: { projectId: projeto.id }
+      });
     } catch (error: any) {
       toast.error(error.message || 'Erro ao aprovar projeto');
     }
@@ -97,7 +110,7 @@ function PendingApprovalsComponent() {
           <div className="font-medium">{row.original.titulo}</div>
           <div className="text-sm text-muted-foreground">
             {row.original.descricao
-              ? row.original.descricao.substring(0, 100) + '...'
+              ? row.original.descricao.substring(0, 80) + '...'
               : ''}
           </div>
         </div>
@@ -106,89 +119,108 @@ function PendingApprovalsComponent() {
     {
       accessorKey: 'professorResponsavelNome',
       header: 'Professor Responsável',
-    },
-    {
-      accessorKey: 'departamentoNome',
-      header: 'Departamento',
+      cell: ({ row }) => (
+        <div className="text-sm">
+          <div className="font-medium">{row.original.professorResponsavelNome}</div>
+          <div className="text-muted-foreground">{row.original.departamentoNome}</div>
+        </div>
+      ),
     },
     {
       accessorKey: 'semestre',
       header: 'Período',
       cell: ({ row }) => (
-        <span>
+        <Badge variant="outline">
           {row.original.ano}.{row.original.semestre === 'SEMESTRE_1' ? 1 : 2}
-        </span>
+        </Badge>
       ),
     },
     {
       accessorKey: 'bolsasSolicitadas',
-      header: 'Vagas',
+      header: 'Vagas Solicitadas',
       cell: ({ row }) => (
         <div className="text-sm">
-          <div>Bolsas: {row.original.bolsasSolicitadas}</div>
-          <div>Voluntários: {row.original.voluntariosSolicitados}</div>
+          <div className="flex items-center gap-1">
+            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+              {row.original.bolsasSolicitadas}
+            </span>
+            <span className="text-muted-foreground">Bolsas</span>
+          </div>
+          <div className="flex items-center gap-1 mt-1">
+            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-blue-700 bg-blue-100 rounded-full">
+              {row.original.voluntariosSolicitados}
+            </span>
+            <span className="text-muted-foreground">Voluntários</span>
+          </div>
         </div>
       ),
     },
     {
       id: 'actions',
-      header: 'Ações',
+      header: 'Ações Requeridas',
       cell: ({ row }) => (
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              navigate({
-                to: '/home/admin/project/$id',
-                params: { id: row.original.id.toString() },
-              })
-            }
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            Ver Detalhes
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className="border-blue-500 text-blue-600 hover:bg-blue-50"
-            onClick={() =>
-              navigate({
-                to: '/home/admin/document-signing',
-                search: { projectId: row.original.id },
-              })
-            }
-          >
-            <FileSignature className="h-4 w-4 mr-1" />
-            Ver/Assinar PDF
-          </Button>
-          <Button
-            size="sm"
-            variant="primary"
-            className="bg-green-600 hover:bg-green-700"
-            onClick={() => handleApprove(row.original)}
-            disabled={approveMutation.isPending}
-          >
-            {approveMutation.isPending ? (
-              <Loader className="h-4 w-4 animate-spin" />
-            ) : (
-              <>
-                <CheckCircle className="h-4 w-4 mr-1" />
-                Aprovar
-              </>
-            )}
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => {
-              setSelectedProject(row.original);
-              setRejectDialogOpen(true);
-            }}
-          >
-            <X className="h-4 w-4 mr-1" />
-            Rejeitar
-          </Button>
+        <div className="space-y-2">
+          {/* Step 1: Review */}
+          <div className="flex items-center gap-2">
+            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
+              1
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                navigate({
+                  to: '/home/admin/project/$id',
+                  params: { id: row.original.id.toString() },
+                })
+              }
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Revisar Projeto
+            </Button>
+          </div>
+          
+          {/* Step 2: Decision */}
+          <div className="flex items-center gap-2">
+            <span className="flex-shrink-0 w-6 h-6 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center text-xs font-medium">
+              2
+            </span>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="primary"
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => handleApprove(row.original)}
+                disabled={approveMutation.isPending}
+              >
+                {approveMutation.isPending ? (
+                  <Loader className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Aprovar
+                  </>
+                )}
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  setSelectedProject(row.original);
+                  setRejectDialogOpen(true);
+                }}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Rejeitar
+              </Button>
+            </div>
+          </div>
+          
+          {/* Step 3: Next Action */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <ArrowRight className="h-4 w-4" />
+            <span>Após aprovação → Assinar documento</span>
+          </div>
         </div>
       ),
     },
@@ -220,13 +252,24 @@ function PendingApprovalsComponent() {
         </div>
       ) : (
         <>
+          {/* Alert with process flow */}
+          <Alert className="mb-6 border-blue-200 bg-blue-50">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-800">
+              <strong>Processo de Aprovação:</strong> 
+              <span className="ml-2">
+                1. Revise o projeto → 2. Aprove/Rejeite → 3. Assine o documento (após aprovação)
+              </span>
+            </AlertDescription>
+          </Alert>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileSignature className="h-5 w-5" />
-                Projetos Aguardando Aprovação
+                <AlertCircle className="h-5 w-5 text-yellow-500" />
+                Projetos Aguardando Sua Aprovação
                 {pendingProjetos.length > 0 && (
-                  <Badge variant="outline" className="ml-2">
+                  <Badge variant="secondary" className="ml-2 bg-yellow-100 text-yellow-800">
                     {pendingProjetos.length} projeto(s)
                   </Badge>
                 )}
@@ -235,14 +278,21 @@ function PendingApprovalsComponent() {
             <CardContent>
               {pendingProjetos.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
-                  <CheckCircle className="mx-auto h-12 w-12 mb-4" />
+                  <CheckCircle className="mx-auto h-12 w-12 mb-4 text-green-500" />
                   <h3 className="text-lg font-medium mb-2">
-                    Nenhum projeto pendente
+                    Nenhum projeto pendente de aprovação
                   </h3>
-                  <p>
+                  <p className="mb-4">
                     Todos os projetos foram revisados ou não há projetos
                     aguardando aprovação.
                   </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate({ to: '/home/admin/document-signing' })}
+                  >
+                    <FileSignature className="h-4 w-4 mr-2" />
+                    Ver Projetos para Assinatura
+                  </Button>
                 </div>
               ) : (
                 <TableComponent data={pendingProjetos} columns={columns} />
@@ -250,42 +300,45 @@ function PendingApprovalsComponent() {
             </CardContent>
           </Card>
 
-          {/* Instructions Card */}
+          {/* Process Instructions */}
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle className="text-lg">
-                Processo de Aprovação de Projetos
+              <CardTitle className="text-lg flex items-center gap-2">
+                <FileSignature className="h-5 w-5" />
+                Como Funciona o Processo de Aprovação
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-start gap-2">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
-                  1
-                </span>
-                <p>Revise os detalhes do projeto clicando em "Ver Detalhes"</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
-                  2
-                </span>
-                <p>Verifique se o projeto atende aos requisitos do programa</p>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs font-medium">
-                  3
-                </span>
-                <p>
-                  Aprove o projeto para prosseguir com a assinatura do documento
-                </p>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xs font-medium">
-                  4
-                </span>
-                <p>
-                  Ou rejeite o projeto fornecendo um motivo para o professor
-                  fazer ajustes
-                </p>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-col items-center text-center p-4 rounded-lg border border-blue-200 bg-blue-50">
+                  <div className="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
+                    1
+                  </div>
+                  <h4 className="font-medium text-blue-900 mb-2">Revisar Projeto</h4>
+                  <p className="text-sm text-blue-700">
+                    Clique em "Revisar Projeto" para verificar detalhes, objetivos e requisitos
+                  </p>
+                </div>
+                
+                <div className="flex flex-col items-center text-center p-4 rounded-lg border border-yellow-200 bg-yellow-50">
+                  <div className="w-10 h-10 bg-yellow-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
+                    2
+                  </div>
+                  <h4 className="font-medium text-yellow-900 mb-2">Tomar Decisão</h4>
+                  <p className="text-sm text-yellow-700">
+                    Aprove o projeto se atender aos critérios ou rejeite com feedback
+                  </p>
+                </div>
+                
+                <div className="flex flex-col items-center text-center p-4 rounded-lg border border-green-200 bg-green-50">
+                  <div className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold mb-3">
+                    3
+                  </div>
+                  <h4 className="font-medium text-green-900 mb-2">Assinar Documento</h4>
+                  <p className="text-sm text-green-700">
+                    Após aprovação, você será redirecionado para assinar o documento oficial
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -296,19 +349,26 @@ function PendingApprovalsComponent() {
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rejeitar Projeto</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <X className="h-5 w-5 text-red-500" />
+              Rejeitar Projeto
+            </DialogTitle>
             <DialogDescription>
-              Por favor, forneça um motivo para a rejeição. Este feedback será
-              enviado ao professor responsável.
+              Por favor, forneça um motivo detalhado para a rejeição. Este feedback será
+              enviado ao professor responsável para que possa fazer os ajustes necessários.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <Textarea
-              placeholder="Descreva o motivo da rejeição e possíveis ajustes necessários..."
+              placeholder="Exemplo: O projeto precisa de mais detalhes sobre os objetivos de aprendizagem, as atividades propostas não estão claras, o número de vagas solicitadas não condiz com a carga horária..."
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              rows={4}
+              rows={5}
+              className="resize-none"
             />
+            <p className="text-sm text-muted-foreground">
+              Um feedback detalhado ajuda o professor a entender melhor o que precisa ser ajustado.
+            </p>
           </div>
           <DialogFooter>
             <Button
@@ -316,6 +376,7 @@ function PendingApprovalsComponent() {
               onClick={() => {
                 setRejectDialogOpen(false);
                 setRejectReason('');
+                setSelectedProject(null);
               }}
             >
               Cancelar
@@ -331,7 +392,10 @@ function PendingApprovalsComponent() {
                   Rejeitando...
                 </>
               ) : (
-                'Confirmar Rejeição'
+                <>
+                  <X className="h-4 w-4 mr-2" />
+                  Confirmar Rejeição
+                </>
               )}
             </Button>
           </DialogFooter>

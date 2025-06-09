@@ -22,6 +22,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { selectDepartamentoTableSchema } from '@/server/database/schema';
+import { Input } from '@/components/ui/input';
 
 export const Route = createFileRoute('/home/_layout/admin/_layout/relatorios')({
   component: RelatoriosComponent,
@@ -71,11 +72,10 @@ function RelatoriosComponent() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="ano">Ano</Label>
-                <input
+                <Input
                   id="ano"
                   type="number"
                   {...form.register('ano')}
-                  className="w-full p-2 border rounded"
                 />
                 </div>
                 <div>

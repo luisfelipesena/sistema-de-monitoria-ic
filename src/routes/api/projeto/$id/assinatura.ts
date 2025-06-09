@@ -6,7 +6,8 @@ import {
   tipoAssinaturaEnum,
   projetoStatusEnum,
   userTable,
-  departamentoTable
+  departamentoTable,
+  projetoDocumentoTable
 } from '@/server/database/schema';
 import {
   createAPIHandler,
@@ -18,6 +19,11 @@ import { createAPIFileRoute } from '@tanstack/react-start/api';
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { emailService } from '@/server/lib/emailService';
+import { getProjectPdfData } from '@/server/lib/pdf-generation';
+import { renderToBuffer } from '@react-pdf/renderer';
+import { MonitoriaFormTemplate } from '@/components/features/projects/MonitoriaFormTemplate';
+import minioClient, { bucketName } from '@/server/lib/minio';
+import { v4 as uuidv4 } from 'uuid';
 
 const log = logger.child({
   context: 'AssinaturaProjetoAPI',
@@ -60,8 +66,9 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
             throw err;
           }
 
+          let updatedProjeto;
+
           if (tipoAssinatura === 'professor') {
-            // Lógica para assinatura do professor
             if (ctx.state.user.role !== 'professor') {
               const err = new Error('Apenas professores podem assinar como professor.');
               (err as any).status = 403;
@@ -90,7 +97,6 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
               throw err;
             }
 
-            // Salvar assinatura do professor
             const [newSignature] = await tx
               .insert(assinaturaDocumentoTable)
               .values({
@@ -101,8 +107,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
               })
               .returning();
 
-            // Atualizar status do projeto para SUBMITTED
-            const [updatedProjeto] = await tx
+            [updatedProjeto] = await tx
               .update(projetoTable)
               .set({
                 status: 'SUBMITTED',
@@ -111,7 +116,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
               .where(eq(projetoTable.id, projectId))
               .returning();
 
-            // Notificar admins sobre submissão
+            // Notify admins
             try {
               const admins = await tx.query.userTable.findMany({
                 where: eq(userTable.role, 'admin'),
@@ -145,10 +150,8 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
             }
 
             log.info({ projectId, signatureId: newSignature.id }, 'Assinatura do professor salva com sucesso');
-            return { success: true, projeto: updatedProjeto, signatureId: newSignature.id };
 
           } else if (tipoAssinatura === 'admin') {
-            // Lógica para assinatura do admin
             if (ctx.state.user.role !== 'admin') {
               const err = new Error('Apenas administradores podem assinar como admin.');
               (err as any).status = 403;
@@ -161,7 +164,6 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
               throw err;
             }
 
-            // Salvar assinatura do admin
             const [newSignature] = await tx
               .insert(assinaturaDocumentoTable)
               .values({
@@ -172,8 +174,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
               })
               .returning();
 
-            // Atualizar status do projeto para APPROVED
-            const [updatedProjeto] = await tx
+            [updatedProjeto] = await tx
               .update(projetoTable)
               .set({
                 status: 'APPROVED',
@@ -182,7 +183,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
               .where(eq(projetoTable.id, projectId))
               .returning();
 
-            // Notificar professor sobre aprovação
+            // Notify professor
             try {
               const professor = await tx.query.professorTable.findFirst({
                 where: eq(professorTable.id, updatedProjeto.professorResponsavelId),
@@ -191,29 +192,75 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
                 where: eq(userTable.id, professor?.userId || 0),
               });
 
-                             if (user?.email) {
-                 await emailService.sendProjetoStatusChangeNotification(
-                   {
-                     professorNome: professor?.nomeCompleto || 'Professor',
-                     professorEmail: user.email,
-                     projetoTitulo: updatedProjeto.titulo,
-                     projetoId: updatedProjeto.id,
-                     novoStatus: 'APPROVED',
-                     feedback: 'Projeto aprovado e assinado pelo coordenador.',
-                   },
-                 );
-               }
+              if (user?.email) {
+                await emailService.sendProjetoStatusChangeNotification({
+                  professorNome: professor?.nomeCompleto || 'Professor',
+                  professorEmail: user.email,
+                  projetoTitulo: updatedProjeto.titulo,
+                  projetoId: updatedProjeto.id,
+                  novoStatus: 'APPROVED',
+                  feedback: 'Projeto aprovado e assinado pelo coordenador.',
+                });
+              }
             } catch (emailError) {
               log.error({ emailError, projectId }, 'Erro ao enviar notificação para professor');
             }
 
             log.info({ projectId, signatureId: newSignature.id }, 'Assinatura do admin salva com sucesso');
-            return { success: true, projeto: updatedProjeto, signatureId: newSignature.id };
           } else {
             const err = new Error('Tipo de assinatura inválido.');
             (err as any).status = 400;
             throw err;
           }
+
+          // --- PDF Generation and Upload ---
+          const pdfData = await getProjectPdfData(projectId, tx);
+          
+          // Buscar assinaturas anteriores
+          const assinaturasAnteriores = await tx.query.assinaturaDocumentoTable.findMany({
+            where: eq(assinaturaDocumentoTable.projetoId, projectId),
+          });
+
+          // Incluir assinatura atual
+          if (tipoAssinatura === 'professor') {
+            pdfData.assinaturaProfessor = signatureImage;
+          } else {
+            pdfData.assinaturaAdmin = signatureImage;
+            
+            // Se admin está assinando, buscar assinatura anterior do professor
+            const assinaturaProfessor = assinaturasAnteriores.find(
+              (ass) => ass.tipoAssinatura === 'PROJETO_PROFESSOR_RESPONSAVEL'
+            );
+            if (assinaturaProfessor) {
+              pdfData.assinaturaProfessor = assinaturaProfessor.assinaturaData;
+            }
+          }
+          
+          const pdfBuffer = await renderToBuffer(MonitoriaFormTemplate({ data: pdfData as any }));
+          
+          const fileId = uuidv4();
+          const objectName = `projetos/${projectId}/propostas_assinadas/${fileId}.pdf`;
+
+          await minioClient.putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, {
+            'Content-Type': 'application/pdf',
+            'X-Amz-Meta-Entity-Type': 'projeto_documento',
+            'X-Amz-Meta-Project-Id': projectId.toString(),
+            'X-Amz-Meta-Uploader-Id': userNumericId.toString(),
+            'X-Amz-Meta-Signature-Type': tipoAssinatura,
+          });
+
+          const tipoDocumento = tipoAssinatura === 'professor' ? 'PROPOSTA_ASSINADA_PROFESSOR' : 'PROPOSTA_ASSINADA_ADMIN';
+
+          await tx.insert(projetoDocumentoTable).values({
+            projetoId: projectId,
+            fileId: objectName,
+            tipoDocumento: tipoDocumento,
+            assinadoPorUserId: userNumericId,
+          });
+
+          log.info({ projectId, fileId: objectName }, `PDF de ${tipoAssinatura} salvo no MinIO e DB.`);
+          
+          return { success: true, projeto: updatedProjeto };
         });
 
         return json(result, { status: 200 });

@@ -22,11 +22,11 @@ const log = logger.child({
   context: 'ProjetoInscricoesAPI',
 });
 
-export const APIRoute = createAPIFileRoute('/api/projeto/$projeto/inscricoes')({
+export const APIRoute = createAPIFileRoute('/api/projeto/$id/inscricoes')({
   GET: createAPIHandler(
     withAuthMiddleware(async (ctx) => {
       try {
-        const projetoId = parseInt(ctx.params.projeto, 10);
+        const projetoId = parseInt(ctx.params.id, 10);
         const userId = parseInt(ctx.state.user.userId, 10);
 
         if (isNaN(projetoId)) {

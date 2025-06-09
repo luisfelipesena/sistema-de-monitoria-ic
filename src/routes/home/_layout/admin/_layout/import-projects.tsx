@@ -22,6 +22,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 export const Route = createFileRoute('/home/_layout/admin/_layout/import-projects')({
   component: ImportProjectsComponent,
@@ -115,11 +116,10 @@ function ImportProjectsComponent() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="ano">Ano</Label>
-                <input
+                <Input
                   id="ano"
                   type="number"
                   {...form.register('ano')}
-                  className="w-full p-2 border rounded"
                   placeholder="Ex: 2024"
                 />
                 {form.formState.errors.ano && (

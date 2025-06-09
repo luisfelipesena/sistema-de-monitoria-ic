@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useInscricoesProjeto } from '@/hooks/use-inscricao';
 import { useNotifyResults, useProjetoById } from '@/hooks/use-projeto';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Calendar,
@@ -25,11 +26,15 @@ import {
   UserCheck,
   XCircle,
   Info,
+  Download,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { apiClient } from '@/utils/api-client';
+import type { DocumentResponse } from '@/routes/api/projeto/$id/documents';
+import { QueryKeys } from '@/hooks/query-keys';
 
 export const Route = createFileRoute(
   '/home/_layout/admin/_layout/project/$id/',
@@ -56,6 +61,7 @@ function InscricoesProjetoPage() {
   >({});
 
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const notifyResultsMutation = useNotifyResults();
 
@@ -69,6 +75,58 @@ function InscricoesProjetoPage() {
       </PagesLayout>
     );
   }
+
+  const handleViewPDF = async () => {
+    toast('Preparando visualização...');
+    try {
+      const documents = await queryClient.fetchQuery<DocumentResponse[]>({
+        queryKey: QueryKeys.projeto.documents(parseInt(projetoId)),
+        queryFn: async () => {
+          const response = await apiClient.get(
+            `/projeto/${projetoId}/documents`,
+          );
+          return response.data;
+        },
+      });
+      
+      const adminSignedDoc = documents.find(
+        (d: DocumentResponse) => d.tipoDocumento === 'PROPOSTA_ASSINADA_ADMIN',
+      );
+      const professorSignedDoc = documents.find(
+        (d: DocumentResponse) =>
+          d.tipoDocumento === 'PROPOSTA_ASSINADA_PROFESSOR',
+      );
+      const docToView = adminSignedDoc || professorSignedDoc;
+
+      if (!docToView || !docToView.fileId) {
+        toast.error('Documento não encontrado', {
+          description: 'Nenhum documento assinado foi encontrado para visualização.',
+        });
+        return;
+      }
+
+          const accessResponse = await apiClient.post('/files/access', {
+      fileId: docToView.fileId,
+      action: 'view',
+    });
+    const { url } = accessResponse.data;
+
+    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!newWindow) {
+      toast.error('Popup bloqueado', {
+        description: 'Permita popups para visualizar o PDF em nova aba.',
+      });
+      return;
+    }
+    
+    toast.success('PDF aberto em nova aba');
+    } catch (error) {
+      toast.error('Erro ao abrir PDF', {
+        description: 'Não foi possível abrir o documento para visualização.',
+      });
+      console.error("View PDF error:", error);
+    }
+  };
 
   if (loadingProjeto || loadingInscricoes) {
     return (
@@ -370,7 +428,15 @@ function InscricoesProjetoPage() {
       subtitle={projeto.titulo}
       actions={
         <div className="flex gap-2">
-          <Button onClick={() => router.history.back()} variant="outline">
+          <Button onClick={() => {
+            if (projeto.status === 'APPROVED') {
+              router.history.back()
+            } else {
+              router.navigate({
+                to: '/home/admin/pending-approvals',
+              });
+            }
+          }} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
           </Button>
@@ -378,6 +444,15 @@ function InscricoesProjetoPage() {
           <Button onClick={handleNotificarResultados}>
             <Mail className="h-4 w-4 mr-2" />
             Notificar Resultados
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={handleViewPDF}
+            className="text-green-600 border-green-300 hover:bg-green-50"
+          >
+            <FileSignature className="w-4 h-4 mr-2" />
+            Ver PDF
           </Button>
         </div>
       }

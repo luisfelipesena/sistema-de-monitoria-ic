@@ -5,9 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useProfessorSignature, useAdminSignature } from '@/hooks/use-projeto';
 import { PDFViewer } from '@react-pdf/renderer';
 import { CheckCircle, FileSignature, Loader2 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { toast } from 'sonner';
+import { apiClient } from '@/utils/api-client';
 
 interface InteractiveProjectPDFProps {
   formData: MonitoriaFormData;
@@ -23,10 +24,42 @@ export function InteractiveProjectPDF({
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
   const [signedData, setSignedData] = useState<MonitoriaFormData>(formData);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingSignatures, setIsLoadingSignatures] = useState(true);
   const signatureRef = useRef<SignatureCanvas>(null);
   
   const professorSignatureMutation = useProfessorSignature();
   const adminSignatureMutation = useAdminSignature();
+
+  // Buscar assinaturas existentes do projeto
+  useEffect(() => {
+    const loadExistingSignatures = async () => {
+      if (!formData.projetoId) {
+        setIsLoadingSignatures(false);
+        return;
+      }
+
+      try {
+        const response = await apiClient.get(`/projeto/${formData.projetoId}/pdf-data`);
+        const pdfData = response.data;
+        
+        // Atualizar formData com assinaturas existentes
+        setSignedData({
+          ...formData,
+          assinaturaProfessor: pdfData.assinaturaProfessor,
+          dataAssinaturaProfessor: pdfData.dataAssinaturaProfessor,
+          assinaturaAdmin: pdfData.assinaturaAdmin,
+          dataAssinaturaAdmin: pdfData.dataAssinaturaAdmin,
+        });
+      } catch (error) {
+        console.error('Erro ao carregar assinaturas:', error);
+        // Se der erro, continua com os dados originais
+      } finally {
+        setIsLoadingSignatures(false);
+      }
+    };
+
+    loadExistingSignatures();
+  }, [formData.projetoId]);
 
   const handleOpenSignature = () => {
     setShowSignatureDialog(true);
@@ -63,7 +96,7 @@ export function InteractiveProjectPDF({
           });
 
           const updatedFormData = {
-            ...formData,
+            ...signedData, // Usar signedData que já tem as assinaturas existentes
             assinaturaAdmin: signatureDataURL,
             dataAssinaturaAdmin: new Date().toLocaleDateString('pt-BR'),
             dataAprovacao: new Date().toLocaleDateString('pt-BR'),
@@ -95,6 +128,19 @@ export function InteractiveProjectPDF({
     : !!currentFormData.assinaturaAdmin;
 
   const roleLabel = userRole === 'professor' ? 'Professor' : 'Coordenador';
+
+  if (isLoadingSignatures) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mr-2" />
+            <span>Carregando dados do documento...</span>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

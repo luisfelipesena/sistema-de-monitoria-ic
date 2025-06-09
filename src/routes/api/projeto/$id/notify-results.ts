@@ -21,12 +21,12 @@ const log = logger.child({
 });
 
 export const APIRoute = createAPIFileRoute(
-  '/api/projeto/$projeto/notify-results',
+  '/api/projeto/$id/notify-results',
 )({
   POST: createAPIHandler(
     withAuthMiddleware(async (ctx) => {
       try {
-        const projetoId = parseInt(ctx.params.projeto, 10);
+        const projetoId = parseInt(ctx.params.id, 10);
         const remetenteUserId = parseInt(ctx.state.user.userId, 10);
 
         if (isNaN(projetoId)) {

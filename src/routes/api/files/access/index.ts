@@ -19,6 +19,7 @@ const log = logger.child({
 
 const fileAccessSchema = z.object({
   fileId: z.string().min(1, 'File ID é obrigatório'),
+  action: z.enum(['view', 'download']).optional().default('view'),
 });
 
 export const APIRoute = createAPIFileRoute('/api/files/access')({
@@ -26,7 +27,7 @@ export const APIRoute = createAPIFileRoute('/api/files/access')({
     withAuthMiddleware(async (ctx) => {
       try {
         const body = await ctx.request.json();
-        const { fileId } = fileAccessSchema.parse(body);
+        const { fileId, action } = fileAccessSchema.parse(body);
         const userId = parseInt(ctx.state.user.userId, 10);
 
         // We need to verify the user has permission to access this file.
@@ -86,13 +87,22 @@ export const APIRoute = createAPIFileRoute('/api/files/access')({
           return json({ error: 'Acesso não autorizado' }, { status: 403 });
         }
 
-        log.info(`Generating presigned URL for authorized access - fileId: ${fileId} by userId: ${userId}`);
+        log.info(`Generating presigned URL for authorized access - fileId: ${fileId} by userId: ${userId}, action: ${action}`);
         
         const bucketName = env.MINIO_BUCKET_NAME;
+        
+        // Para visualização, usar headers que permitem display inline
+        const responseHeaders: Record<string, string> = {};
+        if (action === 'view') {
+          responseHeaders['Content-Disposition'] = 'inline';
+          responseHeaders['Content-Type'] = 'application/pdf';
+        }
+        
         const presignedUrl = await minioClient.presignedGetObject(
           bucketName,
           fileId,
           60 * 5, // 5 minutes validity
+          responseHeaders,
         );
 
         return json({ url: presignedUrl }, { status: 200 });
