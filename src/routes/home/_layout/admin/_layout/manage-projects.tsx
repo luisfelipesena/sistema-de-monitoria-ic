@@ -583,7 +583,6 @@ function ManageProjectsPage() {
             
             {pendingSignatures.length > 0 && (
               <Alert className="border-blue-200 bg-blue-50">
-                <FileSignature className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800">
                   <div className="flex items-center justify-between">
                     <div>

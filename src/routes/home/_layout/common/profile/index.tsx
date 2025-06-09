@@ -481,9 +481,8 @@ function ProfessorProfile() {
               onValueChange={(value: '20H' | '40H' | 'DE') =>
                 setFormData({ ...formData, regime: value })
               }
-              disabled={!isEditing}
             >
-              <SelectTrigger>
+              <SelectTrigger disabled={!isEditing}>
                 <SelectValue placeholder="Selecione o regime" />
               </SelectTrigger>
               <SelectContent>

@@ -1,12 +1,11 @@
 import { db } from '@/server/database';
 import { editalTable, projetoTable, periodoInscricaoTable } from '@/server/database/schema';
-import { EditalTemplate } from '@/server/lib/pdfTemplates/edital';
+import { EditalPdfData, generateEditalInternoHTML } from '@/server/lib/email-templates/pdf/edital-pdf';
 import { createAPIHandler, withRoleMiddleware } from '@/server/middleware/common';
 import { logger } from '@/utils/logger';
 import { json } from '@tanstack/react-start';
 import { createAPIFileRoute } from '@tanstack/react-start/api';
-import { renderToBuffer } from '@react-pdf/renderer';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import minioClient, { bucketName } from '@/server/lib/minio';
 import { format } from 'date-fns';
@@ -29,7 +28,7 @@ export const APIRoute = createAPIFileRoute('/api/edital/generate')({
       try {
         const body = await ctx.request.json();
         const { periodoInscricaoId, numeroEdital, titulo, descricaoHtml } = generateEditalSchema.parse(body);
-        const { user } = ctx.state;
+        const user = ctx.state.user;
 
         const periodoInscricao = await db.query.periodoInscricaoTable.findFirst({
           where: eq(periodoInscricaoTable.id, periodoInscricaoId),
@@ -40,61 +39,38 @@ export const APIRoute = createAPIFileRoute('/api/edital/generate')({
         }
 
         const existingEdital = await db.query.editalTable.findFirst({
-          where: eq(editalTable.periodoInscricaoId, periodoInscricaoId),
+          where: and(
+            eq(editalTable.periodoInscricaoId, periodoInscricaoId),
+            eq(editalTable.numeroEdital, numeroEdital)
+          ),
         });
 
         if (existingEdital) {
-          return json({ error: 'Já existe um edital para este período de inscrição' }, { status: 400 });
+          return json({ 
+            error: `Já existe um edital com o número ${numeroEdital} para este período` 
+          }, { status: 409 });
         }
 
         const projetosAprovados = await db.query.projetoTable.findMany({
           where: and(
             eq(projetoTable.ano, periodoInscricao.ano),
             eq(projetoTable.semestre, periodoInscricao.semestre),
-            eq(projetoTable.status, 'APPROVED')
+            eq(projetoTable.status, 'APPROVED'),
+            isNull(projetoTable.deletedAt)
           ),
           with: {
-            departamento: true,
             professorResponsavel: true,
-            disciplinas: {
-              with: { disciplina: true }
-            }
-          }
+            departamento: true,
+            disciplinas: { with: { disciplina: true } },
+          },
         });
 
-        if (projetosAprovados.length === 0) {
-          return json({ error: 'Nenhum projeto aprovado encontrado para este período' }, { status: 400 });
-        }
-
-        const projetosData = projetosAprovados.map(projeto => ({
-          titulo: projeto.titulo,
-          departamento: projeto.departamento.nome,
-          professorResponsavel: projeto.professorResponsavel.nomeCompleto,
-          disciplinas: projeto.disciplinas.map(pd => `${pd.disciplina.codigo} - ${pd.disciplina.nome}`).join(', '),
-          bolsasDisponibilizadas: projeto.bolsasDisponibilizadas || 0,
-          voluntariosSolicitados: projeto.voluntariosSolicitados,
+        const projetosComVagasFormatado: EditalPdfData['projetosComVagas'] = projetosAprovados.map(p => ({
+          ...p,
+          disciplinasNomes: p.disciplinas.map(pd => `${pd.disciplina.codigo} - ${pd.disciplina.nome}`).join(', '),
+          vagasBolsistaDisponiveis: p.bolsasDisponibilizadas || 0,
+          vagasVoluntarioDisponiveis: p.voluntariosSolicitados || 0,
         }));
-
-        const editalData = {
-          numeroEdital,
-          ano: periodoInscricao.ano,
-          semestre: periodoInscricao.semestre,
-          dataInicioInscricao: format(periodoInscricao.dataInicio, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
-          dataFimInscricao: format(periodoInscricao.dataFim, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }),
-          titulo: titulo || 'Edital Interno de Seleção de Monitores',
-          descricaoHtml: descricaoHtml || 'Os casos omissos neste edital serão resolvidos pela Coordenação de Ensino de Graduação.',
-          projetos: projetosData,
-        };
-
-        const pdfBuffer = await renderToBuffer(EditalTemplate({ data: editalData }));
-        
-        const fileName = `edital-${numeroEdital}-${periodoInscricao.ano}-${periodoInscricao.semestre}.pdf`;
-        const fileId = `editais/${fileName}`;
-
-        await minioClient.putObject(bucketName, fileId, Buffer.from(pdfBuffer), pdfBuffer.length, {
-          'Content-Type': 'application/pdf',
-          'original-filename': fileName,
-        });
 
         const [newEdital] = await db
           .insert(editalTable)
@@ -103,14 +79,46 @@ export const APIRoute = createAPIFileRoute('/api/edital/generate')({
             numeroEdital,
             titulo: titulo || 'Edital Interno de Seleção de Monitores',
             descricaoHtml,
-            fileIdAssinado: fileId,
-            dataPublicacao: null, // Será definido quando publicar
-            publicado: false, // Começa como rascunho
+            dataPublicacao: null,
+            publicado: false,
             criadoPorUserId: parseInt(user.userId, 10),
           })
           .returning();
 
-        // Buscar o edital recém-criado com relações para resposta completa
+        const pdfData: EditalPdfData = {
+          edital: {
+            id: newEdital.id,
+            numeroEdital: newEdital.numeroEdital,
+            titulo: newEdital.titulo,
+            descricaoHtml: newEdital.descricaoHtml,
+            dataPublicacao: newEdital.dataPublicacao,
+          },
+          periodoInscricao,
+          projetosComVagas: projetosComVagasFormatado,
+          adminUser: {
+            nomeCompleto: 'Coordenação de Monitoria',
+            cargo: 'Comissão de Monitoria IC/UFBA',
+          },
+        };
+
+        const htmlContent = generateEditalInternoHTML(pdfData);
+
+        const fileName = `edital-${numeroEdital}-${periodoInscricao.ano}-${periodoInscricao.semestre}.html`;
+        const fileId = `editais/html/${fileName}`;
+
+        const htmlBuffer = Buffer.from(htmlContent, 'utf-8');
+        await minioClient.putObject(bucketName, fileId, htmlBuffer, htmlBuffer.length, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'original-filename': fileName,
+        });
+
+        await db
+          .update(editalTable)
+          .set({
+            fileIdAssinado: fileId,
+          })
+          .where(eq(editalTable.id, newEdital.id));
+
         const editalCompleto = await db.query.editalTable.findFirst({
           where: eq(editalTable.id, newEdital.id),
           with: {
@@ -125,15 +133,14 @@ export const APIRoute = createAPIFileRoute('/api/edital/generate')({
           },
         });
 
-        // Adicionar status do período para compatibilidade
         const editalComStatus = {
           ...editalCompleto!,
           periodoInscricao: editalCompleto!.periodoInscricao
             ? {
                 ...editalCompleto!.periodoInscricao,
-                status: 'FUTURO' as const, // Assumir futuro para novos editais
+                status: 'FUTURO' as const,
                 totalProjetos: projetosAprovados.length,
-                totalInscricoes: 0, // Novo edital não tem inscrições ainda
+                totalInscricoes: 0,
               }
             : null,
         };
@@ -142,16 +149,16 @@ export const APIRoute = createAPIFileRoute('/api/edital/generate')({
 
         return json({
           edital: editalComStatus,
-          downloadUrl: `/api/public/documents/${fileId}`,
+          downloadUrl: `/api/edital/${newEdital.id}/generate-pdf`,
           totalProjetos: projetosAprovados.length,
         }, { status: 201 });
 
       } catch (error) {
-        log.error(error, 'Erro ao gerar edital');
         if (error instanceof z.ZodError) {
-          return json({ error: 'Dados inválidos', details: error.format() }, { status: 400 });
+          return json({ error: 'Dados de entrada inválidos', details: error.errors }, { status: 400 });
         }
-        return json({ error: 'Erro interno ao gerar edital' }, { status: 500 });
+        log.error(error, 'Erro ao gerar edital');
+        return json({ error: 'Erro interno do servidor' }, { status: 500 });
       }
     }),
   ),
