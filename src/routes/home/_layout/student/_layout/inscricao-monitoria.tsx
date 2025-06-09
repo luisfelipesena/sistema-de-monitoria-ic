@@ -540,7 +540,7 @@ function InscricaoMonitoriaPage() {
               <div className="flex items-center space-x-2">
                 <BookOpen className="h-5 w-5 text-blue-500" />
                 <div>
-                  <div className="text-2xl font-bold text-blue-600">
+                  <div className="text-2xl font-bold text-blue-500">
                     {availableProjects.length}
                   </div>
                   <p className="text-sm text-muted-foreground">
@@ -555,7 +555,7 @@ function InscricaoMonitoriaPage() {
               <div className="flex items-center space-x-2">
                 <Users className="h-5 w-5 text-green-500" />
                 <div>
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-2xl font-bold text-green-500">
                     {availableProjects.reduce(
                       (sum, p) => sum + (p.bolsasDisponibilizadas || 0),
                       0,
@@ -571,9 +571,9 @@ function InscricaoMonitoriaPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center space-x-2">
-                <GraduationCap className="h-5 w-5 text-purple-500" />
+                <GraduationCap className="h-5 w-5 text-red-500" />
                 <div>
-                  <div className="text-2xl font-bold text-purple-600">
+                  <div className="text-2xl font-bold text-red-500">
                     {availableProjects.reduce(
                       (sum, p) => sum + p.voluntariosSolicitados,
                       0,

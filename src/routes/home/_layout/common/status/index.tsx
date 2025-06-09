@@ -71,9 +71,10 @@ function RouteComponent() {
   return (
     <PagesLayout title="Status da sua inscrição" 
     actions={
-    <Button variant="outline" onClick={() => navigate({ to: '/home/student/inscricao-monitoria' })}>
+    <Button variant="primary" onClick={() => navigate({ to: '/home/student/inscricao-monitoria' })}>
       Nova inscrição
     </Button>}
+    subtitle="Acompanhe o status das suas inscrições em monitoria"
     >
 
       <Card className="p-6 space-y-4">
