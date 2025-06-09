@@ -433,7 +433,7 @@ function InscricoesProjetoPage() {
               router.history.back()
             } else {
               router.navigate({
-                to: '/home/admin/pending-approvals',
+                to: '/home/admin/manage-projects',
               });
             }
           }} variant="outline">

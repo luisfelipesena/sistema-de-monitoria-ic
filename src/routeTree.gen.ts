@@ -43,7 +43,6 @@ import { Route as HomeLayoutAdminLayoutRelatoriosImport } from './routes/home/_l
 import { Route as HomeLayoutAdminLayoutProjetoTemplatesImport } from './routes/home/_layout/admin/_layout/projeto-templates'
 import { Route as HomeLayoutAdminLayoutProfessoresImport } from './routes/home/_layout/admin/_layout/professores'
 import { Route as HomeLayoutAdminLayoutPeriodosInscricaoImport } from './routes/home/_layout/admin/_layout/periodos-inscricao'
-import { Route as HomeLayoutAdminLayoutPendingApprovalsImport } from './routes/home/_layout/admin/_layout/pending-approvals'
 import { Route as HomeLayoutAdminLayoutNotificacoesImport } from './routes/home/_layout/admin/_layout/notificacoes'
 import { Route as HomeLayoutAdminLayoutManageProjectsImport } from './routes/home/_layout/admin/_layout/manage-projects'
 import { Route as HomeLayoutAdminLayoutInviteProfessorImport } from './routes/home/_layout/admin/_layout/invite-professor'
@@ -290,13 +289,6 @@ const HomeLayoutAdminLayoutPeriodosInscricaoRoute =
   HomeLayoutAdminLayoutPeriodosInscricaoImport.update({
     id: '/periodos-inscricao',
     path: '/periodos-inscricao',
-    getParentRoute: () => HomeLayoutAdminLayoutRoute,
-  } as any)
-
-const HomeLayoutAdminLayoutPendingApprovalsRoute =
-  HomeLayoutAdminLayoutPendingApprovalsImport.update({
-    id: '/pending-approvals',
-    path: '/pending-approvals',
     getParentRoute: () => HomeLayoutAdminLayoutRoute,
   } as any)
 
@@ -599,13 +591,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeLayoutAdminLayoutNotificacoesImport
       parentRoute: typeof HomeLayoutAdminLayoutImport
     }
-    '/home/_layout/admin/_layout/pending-approvals': {
-      id: '/home/_layout/admin/_layout/pending-approvals'
-      path: '/pending-approvals'
-      fullPath: '/home/admin/pending-approvals'
-      preLoaderRoute: typeof HomeLayoutAdminLayoutPendingApprovalsImport
-      parentRoute: typeof HomeLayoutAdminLayoutImport
-    }
     '/home/_layout/admin/_layout/periodos-inscricao': {
       id: '/home/_layout/admin/_layout/periodos-inscricao'
       path: '/periodos-inscricao'
@@ -794,7 +779,6 @@ interface HomeLayoutAdminLayoutRouteChildren {
   HomeLayoutAdminLayoutInviteProfessorRoute: typeof HomeLayoutAdminLayoutInviteProfessorRoute
   HomeLayoutAdminLayoutManageProjectsRoute: typeof HomeLayoutAdminLayoutManageProjectsRoute
   HomeLayoutAdminLayoutNotificacoesRoute: typeof HomeLayoutAdminLayoutNotificacoesRoute
-  HomeLayoutAdminLayoutPendingApprovalsRoute: typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   HomeLayoutAdminLayoutPeriodosInscricaoRoute: typeof HomeLayoutAdminLayoutPeriodosInscricaoRoute
   HomeLayoutAdminLayoutProfessoresRoute: typeof HomeLayoutAdminLayoutProfessoresRoute
   HomeLayoutAdminLayoutProjetoTemplatesRoute: typeof HomeLayoutAdminLayoutProjetoTemplatesRoute
@@ -827,8 +811,6 @@ const HomeLayoutAdminLayoutRouteChildren: HomeLayoutAdminLayoutRouteChildren = {
     HomeLayoutAdminLayoutManageProjectsRoute,
   HomeLayoutAdminLayoutNotificacoesRoute:
     HomeLayoutAdminLayoutNotificacoesRoute,
-  HomeLayoutAdminLayoutPendingApprovalsRoute:
-    HomeLayoutAdminLayoutPendingApprovalsRoute,
   HomeLayoutAdminLayoutPeriodosInscricaoRoute:
     HomeLayoutAdminLayoutPeriodosInscricaoRoute,
   HomeLayoutAdminLayoutProfessoresRoute: HomeLayoutAdminLayoutProfessoresRoute,
@@ -1004,7 +986,6 @@ export interface FileRoutesByFullPath {
   '/home/admin/invite-professor': typeof HomeLayoutAdminLayoutInviteProfessorRoute
   '/home/admin/manage-projects': typeof HomeLayoutAdminLayoutManageProjectsRoute
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
-  '/home/admin/pending-approvals': typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   '/home/admin/periodos-inscricao': typeof HomeLayoutAdminLayoutPeriodosInscricaoRoute
   '/home/admin/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
   '/home/admin/projeto-templates': typeof HomeLayoutAdminLayoutProjetoTemplatesRoute
@@ -1053,7 +1034,6 @@ export interface FileRoutesByTo {
   '/home/admin/invite-professor': typeof HomeLayoutAdminLayoutInviteProfessorRoute
   '/home/admin/manage-projects': typeof HomeLayoutAdminLayoutManageProjectsRoute
   '/home/admin/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
-  '/home/admin/pending-approvals': typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   '/home/admin/periodos-inscricao': typeof HomeLayoutAdminLayoutPeriodosInscricaoRoute
   '/home/admin/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
   '/home/admin/projeto-templates': typeof HomeLayoutAdminLayoutProjetoTemplatesRoute
@@ -1108,7 +1088,6 @@ export interface FileRoutesById {
   '/home/_layout/admin/_layout/invite-professor': typeof HomeLayoutAdminLayoutInviteProfessorRoute
   '/home/_layout/admin/_layout/manage-projects': typeof HomeLayoutAdminLayoutManageProjectsRoute
   '/home/_layout/admin/_layout/notificacoes': typeof HomeLayoutAdminLayoutNotificacoesRoute
-  '/home/_layout/admin/_layout/pending-approvals': typeof HomeLayoutAdminLayoutPendingApprovalsRoute
   '/home/_layout/admin/_layout/periodos-inscricao': typeof HomeLayoutAdminLayoutPeriodosInscricaoRoute
   '/home/_layout/admin/_layout/professores': typeof HomeLayoutAdminLayoutProfessoresRoute
   '/home/_layout/admin/_layout/projeto-templates': typeof HomeLayoutAdminLayoutProjetoTemplatesRoute
@@ -1160,7 +1139,6 @@ export interface FileRouteTypes {
     | '/home/admin/invite-professor'
     | '/home/admin/manage-projects'
     | '/home/admin/notificacoes'
-    | '/home/admin/pending-approvals'
     | '/home/admin/periodos-inscricao'
     | '/home/admin/professores'
     | '/home/admin/projeto-templates'
@@ -1208,7 +1186,6 @@ export interface FileRouteTypes {
     | '/home/admin/invite-professor'
     | '/home/admin/manage-projects'
     | '/home/admin/notificacoes'
-    | '/home/admin/pending-approvals'
     | '/home/admin/periodos-inscricao'
     | '/home/admin/professores'
     | '/home/admin/projeto-templates'
@@ -1261,7 +1238,6 @@ export interface FileRouteTypes {
     | '/home/_layout/admin/_layout/invite-professor'
     | '/home/_layout/admin/_layout/manage-projects'
     | '/home/_layout/admin/_layout/notificacoes'
-    | '/home/_layout/admin/_layout/pending-approvals'
     | '/home/_layout/admin/_layout/periodos-inscricao'
     | '/home/_layout/admin/_layout/professores'
     | '/home/_layout/admin/_layout/projeto-templates'
@@ -1377,7 +1353,6 @@ export const routeTree = rootRoute
         "/home/_layout/admin/_layout/invite-professor",
         "/home/_layout/admin/_layout/manage-projects",
         "/home/_layout/admin/_layout/notificacoes",
-        "/home/_layout/admin/_layout/pending-approvals",
         "/home/_layout/admin/_layout/periodos-inscricao",
         "/home/_layout/admin/_layout/professores",
         "/home/_layout/admin/_layout/projeto-templates",
@@ -1480,10 +1455,6 @@ export const routeTree = rootRoute
     },
     "/home/_layout/admin/_layout/notificacoes": {
       "filePath": "home/_layout/admin/_layout/notificacoes.tsx",
-      "parent": "/home/_layout/admin/_layout"
-    },
-    "/home/_layout/admin/_layout/pending-approvals": {
-      "filePath": "home/_layout/admin/_layout/pending-approvals.tsx",
       "parent": "/home/_layout/admin/_layout"
     },
     "/home/_layout/admin/_layout/periodos-inscricao": {

@@ -23,6 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/use-auth';
 import {
   useApproveProjeto,
@@ -43,6 +45,13 @@ import {
   Trash2,
   Users,
   X,
+  CheckCircle,
+  FileSignature,
+  Loader,
+  AlertCircle,
+  ArrowRight,
+  Info,
+  Bell,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -69,6 +78,10 @@ function ManageProjectsPage() {
   const [projectToDelete, setProjectToDelete] =
     useState<ProjetoListItem | null>(null);
   const [bulkAction, setBulkAction] = useState<string>('');
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [projectToReject, setProjectToReject] =
+    useState<ProjetoListItem | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const projetosFiltrados = useMemo(() => {
     if (!projetos) return [];
@@ -97,6 +110,14 @@ function ManageProjectsPage() {
       return true;
     });
   }, [projetos, filters, searchTerm]);
+
+  const pendingApprovals = useMemo(() => {
+    return projetos?.filter((projeto) => projeto.status === 'SUBMITTED') || [];
+  }, [projetos]);
+
+  const pendingSignatures = useMemo(() => {
+    return projetos?.filter((projeto) => projeto.status === 'PENDING_ADMIN_SIGNATURE') || [];
+  }, [projetos]);
 
   const handleViewProject = (id: number) => {
     navigate({
@@ -130,6 +151,65 @@ function ManageProjectsPage() {
     }
   };
 
+  const handleApprove = async (projeto: ProjetoListItem) => {
+    try {
+      await approveProjeto.mutateAsync({
+        projetoId: projeto.id,
+        bolsasDisponibilizadas: projeto.bolsasSolicitadas,
+      });
+      toast({
+        title: 'Projeto aprovado!',
+        description: 'Agora você pode assinar o documento.',
+      });
+      navigate({ 
+        to: '/home/admin/document-signing',
+        search: { projectId: projeto.id }
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao aprovar projeto',
+        description: error.message || 'Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRejectClick = (projeto: ProjetoListItem) => {
+    setProjectToReject(projeto);
+    setRejectModalOpen(true);
+  };
+
+  const handleRejectConfirm = async () => {
+    if (!projectToReject || !rejectReason.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'Por favor, forneça um motivo para a rejeição.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await rejectProjeto.mutateAsync({
+        projetoId: projectToReject.id,
+        motivo: rejectReason,
+      });
+      toast({
+        title: 'Projeto rejeitado',
+        description: 'O feedback foi enviado ao professor.',
+      });
+      setRejectModalOpen(false);
+      setProjectToReject(null);
+      setRejectReason('');
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao rejeitar projeto',
+        description: error.message || 'Tente novamente.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleSelectProject = (projectId: number, selected: boolean) => {
     if (selected) {
       setSelectedProjects((prev) => [...prev, projectId]);
@@ -154,7 +234,7 @@ function ManageProjectsPage() {
         for (const projectId of selectedProjects) {
           await approveProjeto.mutateAsync({
             projetoId: projectId,
-            bolsasDisponibilizadas: 1, // Default value, could be improved
+            bolsasDisponibilizadas: 1,
           });
         }
         toast({
@@ -227,6 +307,80 @@ function ManageProjectsPage() {
     }
   };
 
+  const getActionButtons = (projeto: ProjetoListItem) => {
+    const buttons = [
+      <Button
+        key="view"
+        variant="outline"
+        size="sm"
+        onClick={() => handleViewProject(projeto.id)}
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
+    ];
+
+    if (projeto.status === 'SUBMITTED') {
+      buttons.push(
+        <Button
+          key="approve"
+          variant="outline"
+          size="sm"
+          onClick={() => handleApprove(projeto)}
+          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+          disabled={approveProjeto.isPending}
+        >
+          {approveProjeto.isPending ? (
+            <Loader className="h-4 w-4 animate-spin" />
+          ) : (
+            <CheckCircle className="h-4 w-4" />
+          )}
+        </Button>,
+        <Button
+          key="reject"
+          variant="outline" 
+          size="sm"
+          onClick={() => handleRejectClick(projeto)}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    if (projeto.status === 'PENDING_ADMIN_SIGNATURE') {
+      buttons.push(
+        <Button
+          key="sign"
+          variant="outline"
+          size="sm"
+          onClick={() => navigate({ 
+            to: '/home/admin/document-signing',
+            search: { projectId: projeto.id }
+          })}
+          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+        >
+          <FileSignature className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    if (canDeleteProject(projeto)) {
+      buttons.push(
+        <Button
+          key="delete"
+          variant="outline"
+          size="sm"
+          onClick={() => handleDeleteClick(projeto)}
+          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      );
+    }
+
+    return buttons;
+  };
+
   const columns: ColumnDef<ProjetoListItem>[] = [
     {
       id: 'select',
@@ -257,7 +411,21 @@ function ManageProjectsPage() {
       accessorKey: 'titulo',
       cell: ({ row }) => (
         <div>
-          <span className="font-medium">{row.original.titulo}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{row.original.titulo}</span>
+            {row.original.status === 'SUBMITTED' && (
+              <Badge variant="warning" className="text-xs">
+                <Bell className="h-3 w-3 mr-1" />
+                Ação Requerida
+              </Badge>
+            )}
+            {row.original.status === 'PENDING_ADMIN_SIGNATURE' && (
+              <Badge variant="default" className="text-xs bg-blue-600">
+                <FileSignature className="h-3 w-3 mr-1" />
+                Assinar
+              </Badge>
+            )}
+          </div>
           <div className="text-sm text-gray-500">
             ID: #{row.original.id} • {row.original.departamentoNome}
           </div>
@@ -291,10 +459,10 @@ function ManageProjectsPage() {
         const status = row.original.status;
         const statusMap = {
           DRAFT: { label: 'Rascunho', variant: 'secondary' as const },
-          SUBMITTED: { label: 'Em Análise', variant: 'muted' as const },
+          SUBMITTED: { label: 'Aguardando Aprovação', variant: 'warning' as const },
           PENDING_ADMIN_SIGNATURE: {
-            label: 'Pend. Assinatura',
-            variant: 'warning' as const,
+            label: 'Aguardando Assinatura',
+            variant: 'default' as const,
           },
           APPROVED: { label: 'Aprovado', variant: 'success' as const },
           REJECTED: { label: 'Rejeitado', variant: 'destructive' as const },
@@ -331,23 +499,7 @@ function ManageProjectsPage() {
       header: 'Ações',
       cell: ({ row }) => (
         <div className="flex gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleViewProject(row.original.id)}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          {canDeleteProject(row.original) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleDeleteClick(row.original)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
+          {getActionButtons(row.original)}
         </div>
       ),
     },
@@ -402,6 +554,57 @@ function ManageProjectsPage() {
       actions={pageActions}
     >
       <div className="space-y-6">
+        {/* Alertas de ação prioritária */}
+        {(pendingApprovals.length > 0 || pendingSignatures.length > 0) && (
+          <div className="space-y-3">
+            {pendingApprovals.length > 0 && (
+              <Alert className="border-yellow-200 bg-yellow-50">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <AlertDescription className="text-yellow-800">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <strong>{pendingApprovals.length} projeto(s)</strong> aguardando sua aprovação.
+                      <span className="ml-2">
+                        Revise → Aprove/Rejeite → Assine documento
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFilters({ status: 'SUBMITTED' })}
+                      className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+                    >
+                      Ver Projetos Pendentes
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            {pendingSignatures.length > 0 && (
+              <Alert className="border-blue-200 bg-blue-50">
+                <FileSignature className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <strong>{pendingSignatures.length} projeto(s)</strong> aguardando sua assinatura.
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate({ to: '/home/admin/document-signing' })}
+                      className="text-blue-700 border-blue-300 hover:bg-blue-100"
+                    >
+                      <FileSignature className="h-4 w-4 mr-1" />
+                      Assinar Documentos
+                    </Button>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
+
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <Input
@@ -443,13 +646,21 @@ function ManageProjectsPage() {
           </Card>
         )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-blue-600">
                 {projetos?.length || 0}
               </div>
-              <p className="text-sm text-muted-foreground">Total de Projetos</p>
+              <p className="text-sm text-muted-foreground">Total</p>
+            </CardContent>
+          </Card>
+          <Card className={pendingApprovals.length > 0 ? "ring-2 ring-yellow-200" : ""}>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold text-yellow-600">
+                {pendingApprovals.length}
+              </div>
+              <p className="text-sm text-muted-foreground">Pendentes</p>
             </CardContent>
           </Card>
           <Card>
@@ -460,12 +671,12 @@ function ManageProjectsPage() {
               <p className="text-sm text-muted-foreground">Aprovados</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className={pendingSignatures.length > 0 ? "ring-2 ring-blue-200" : ""}>
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-yellow-600">
-                {projetos?.filter((p) => p.status === 'SUBMITTED').length || 0}
+              <div className="text-2xl font-bold text-blue-600">
+                {pendingSignatures.length}
               </div>
-              <p className="text-sm text-muted-foreground">Em Análise</p>
+              <p className="text-sm text-muted-foreground">P/ Assinar</p>
             </CardContent>
           </Card>
           <Card>
@@ -557,6 +768,63 @@ function ManageProjectsPage() {
             >
               <Trash2 className="h-4 w-4 mr-2" />
               {deleteProjeto.isPending ? 'Deletando...' : 'Confirmar Exclusão'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Confirmation Modal */}
+      <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <X className="h-5 w-5 text-red-500" />
+              Rejeitar Projeto
+            </DialogTitle>
+            <DialogDescription>
+              Por favor, forneça um motivo detalhado para a rejeição. Este feedback será
+              enviado ao professor responsável para que possa fazer os ajustes necessários.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Textarea
+              placeholder="Exemplo: O projeto precisa de mais detalhes sobre os objetivos de aprendizagem, as atividades propostas não estão claras, o número de vagas solicitadas não condiz com a carga horária..."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              rows={5}
+              className="resize-none"
+            />
+            <p className="text-sm text-muted-foreground">
+              Um feedback detalhado ajuda o professor a entender melhor o que precisa ser ajustado.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectModalOpen(false);
+                setRejectReason('');
+                setProjectToReject(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectConfirm}
+              disabled={!rejectReason.trim() || rejectProjeto.isPending}
+            >
+              {rejectProjeto.isPending ? (
+                <>
+                  <Loader className="h-4 w-4 mr-2 animate-spin" />
+                  Rejeitando...
+                </>
+              ) : (
+                <>
+                  <X className="h-4 w-4 mr-2" />
+                  Confirmar Rejeição
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

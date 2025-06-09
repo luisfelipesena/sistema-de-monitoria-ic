@@ -37,6 +37,7 @@ import {
   UserPlus,
   Users,
   Award,
+  ClipboardCheck,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -86,12 +87,6 @@ const menuConfig: MenuConfig[] = [
         label: 'Gerenciar Projetos',
         href: '/home/admin/manage-projects',
         icon: FileText,
-        roles: ['admin'],
-      },
-      {
-        label: 'Projetos Pendentes',
-        href: '/home/admin/pending-approvals',
-        icon: FileCheck,
         roles: ['admin'],
       },
       {
@@ -220,14 +215,14 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
-  // Professor - Projetos
+  // Professor - Meus Projetos
   {
-    label: 'Projetos',
+    label: 'Meus Projetos',
     icon: FileText,
     roles: ['professor'],
     items: [
       {
-        label: 'Meus Projetos',
+        label: 'Dashboard',
         href: '/home/professor/dashboard',
         icon: LayoutDashboard,
         roles: ['professor'],
@@ -238,6 +233,15 @@ const menuConfig: MenuConfig[] = [
         icon: FilePlus,
         roles: ['professor'],
       },
+    ],
+  },
+
+  // Professor - Processo Seletivo
+  {
+    label: 'Processo Seletivo',
+    icon: ClipboardCheck,
+    roles: ['professor'],
+    items: [
       {
         label: 'Gerenciar Candidatos',
         href: '/home/professor/project-applications',
@@ -257,21 +261,30 @@ const menuConfig: MenuConfig[] = [
         roles: ['professor'],
       },
       {
-        label: 'Gerar Ata de Seleção',
-        href: '/home/professor/gerar-ata',
-        icon: FileText,
-        roles: ['professor'],
-      },
-      {
         label: 'Publicar Resultados',
         href: '/home/professor/publish-results',
         icon: FileCheck,
         roles: ['professor'],
       },
+    ],
+  },
+
+  // Professor - Documentos
+  {
+    label: 'Documentos',
+    icon: FileSignature,
+    roles: ['professor'],
+    items: [
       {
         label: 'Assinatura de Documentos',
         href: '/home/professor/document-signing',
         icon: FileSignature,
+        roles: ['professor'],
+      },
+      {
+        label: 'Gerar Ata de Seleção',
+        href: '/home/professor/gerar-ata',
+        icon: FileText,
         roles: ['professor'],
       },
     ],
