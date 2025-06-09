@@ -212,7 +212,7 @@ function ResultadosPage() {
   return (
     <PagesLayout
       title="Resultados das Seleções"
-      subtitle="Acompanhe o status das suas inscrições em monitoria"
+      subtitle="Acompanhe o resultado das suas inscrições em monitoria"
     >
       <div className="space-y-8">
         {/* Cards de resumo */}
@@ -235,7 +235,7 @@ function ResultadosPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-2xl font-bold text-yellow-600">
+                  <div className="text-2xl font-bold text-yellow-500">
                     {aguardandoResposta.length}
                   </div>
                   <p className="text-sm text-muted-foreground">
