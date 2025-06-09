@@ -28,6 +28,7 @@ import { useUserFileAccess, useFileMetadata } from '@/hooks/use-files';
 import { createFileRoute } from '@tanstack/react-router';
 import { Eye, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { UserSignatureManager } from '@/components/features/profile/UserSignatureManager';
 
 export const Route = createFileRoute('/home/_layout/common/profile/')({
   component: ProfilePage,
@@ -278,6 +279,11 @@ function StudentProfile() {
         </Card>
 
         <DocumentsSection />
+
+        {/* Seção de Assinatura Digital apenas para professores e admins */}
+        {(user?.role === 'professor' || user?.role === 'admin') && (
+          <UserSignatureManager />
+        )}
       </div>
     </PagesLayout>
   );
@@ -496,6 +502,11 @@ function ProfessorProfile() {
       </Card>
 
       <DocumentsSection />
+
+      {/* Seção de Assinatura Digital apenas para professores e admins */}
+      {(user?.role === 'professor' || user?.role === 'admin') && (
+        <UserSignatureManager />
+      )}
     </PagesLayout>
   );
 }

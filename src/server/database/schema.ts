@@ -31,6 +31,12 @@ export const userTable = pgTable('user', {
   username: text('username').notNull().unique(), // UFBA Login
   email: text('email').notNull().unique(), // UFBA Email
   role: userRoleEnum('role').notNull().default('student'), // Default to student
+  // Assinatura padrão para admins
+  assinaturaDefault: text('assinatura_default'), // Base64 data URL da assinatura
+  dataAssinaturaDefault: timestamp('data_assinatura_default', {
+    withTimezone: true,
+    mode: 'date',
+  }),
 });
 
 export const sessionTable = pgTable('session', {
@@ -296,6 +302,12 @@ export const professorTable = pgTable('professor', {
   // Document file IDs for professor documents
   curriculumVitaeFileId: text('curriculum_vitae_file_id'),
   comprovanteVinculoFileId: text('comprovante_vinculo_file_id'),
+  // Assinatura padrão do professor
+  assinaturaDefault: text('assinatura_default'), // Base64 data URL da assinatura
+  dataAssinaturaDefault: timestamp('data_assinatura_default', {
+    withTimezone: true,
+    mode: 'date',
+  }),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',

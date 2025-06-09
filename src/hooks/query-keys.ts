@@ -14,6 +14,11 @@ export const QueryKeys = {
     validate: (token: string) => ['invitation', 'validate', token],
   },
 
+  // User signature related queries
+  userSignature: {
+    get: ['user', 'signature'],
+  },
+
   // User related queries
   user: {
     all: ['users'],

@@ -30,8 +30,9 @@ const log = logger.child({
 });
 
 const assinaturaInputSchema = z.object({
-  signatureImage: z.string(), // base64 data URL
+  signatureImage: z.string().optional(), // base64 data URL (opcional se usar assinatura do perfil)
   tipoAssinatura: z.enum(['professor', 'admin']),
+  useProfileSignature: z.boolean().default(false), // usar assinatura do perfil
 });
 
 export type AssinaturaInput = z.infer<typeof assinaturaInputSchema>;
@@ -53,7 +54,38 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
 
       try {
         const body = await ctx.request.json();
-        const { signatureImage, tipoAssinatura } = assinaturaInputSchema.parse(body);
+        const { signatureImage, tipoAssinatura, useProfileSignature } = assinaturaInputSchema.parse(body);
+
+        let finalSignatureData = signatureImage;
+
+        // Se deve usar assinatura do perfil, buscar no banco
+        if (useProfileSignature && !signatureImage) {
+          if (tipoAssinatura === 'professor') {
+            const professor = await db.query.professorTable.findFirst({
+              where: eq(professorTable.userId, userNumericId),
+              columns: { assinaturaDefault: true },
+            });
+            finalSignatureData = professor?.assinaturaDefault || undefined;
+          } else if (tipoAssinatura === 'admin') {
+            const user = await db.query.userTable.findFirst({
+              where: eq(userTable.id, userNumericId),
+              columns: { assinaturaDefault: true },
+            });
+            finalSignatureData = user?.assinaturaDefault || undefined;
+          }
+
+          if (!finalSignatureData) {
+            return json({ 
+              error: 'Assinatura não encontrada no perfil. Configure sua assinatura no perfil primeiro.' 
+            }, { status: 400 });
+          }
+        }
+
+        if (!finalSignatureData) {
+          return json({ 
+            error: 'Dados da assinatura são obrigatórios' 
+          }, { status: 400 });
+        }
 
         const result = await db.transaction(async (tx) => {
           const projeto = await tx.query.projetoTable.findFirst({
@@ -100,7 +132,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
             const [newSignature] = await tx
               .insert(assinaturaDocumentoTable)
               .values({
-                assinaturaData: signatureImage,
+                assinaturaData: finalSignatureData,
                 tipoAssinatura: 'PROJETO_PROFESSOR_RESPONSAVEL',
                 userId: userNumericId,
                 projetoId: projectId,
@@ -167,7 +199,7 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
             const [newSignature] = await tx
               .insert(assinaturaDocumentoTable)
               .values({
-                assinaturaData: signatureImage,
+                assinaturaData: finalSignatureData,
                 tipoAssinatura: 'PROJETO_COORDENADOR_DEPARTAMENTO',
                 userId: userNumericId,
                 projetoId: projectId,
@@ -223,9 +255,9 @@ export const APIRoute = createAPIFileRoute('/api/projeto/$id/assinatura')({
 
           // Incluir assinatura atual
           if (tipoAssinatura === 'professor') {
-            pdfData.assinaturaProfessor = signatureImage;
+            pdfData.assinaturaProfessor = finalSignatureData;
           } else {
-            pdfData.assinaturaAdmin = signatureImage;
+            pdfData.assinaturaAdmin = finalSignatureData;
             
             // Se admin está assinando, buscar assinatura anterior do professor
             const assinaturaProfessor = assinaturasAnteriores.find(
