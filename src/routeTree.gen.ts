@@ -18,6 +18,7 @@ import { Route as PublicEditaisImport } from './routes/public/editais'
 import { Route as HomeLayoutImport } from './routes/home/_layout'
 import { Route as AuthCasCallbackImport } from './routes/auth/cas-callback'
 import { Route as HomeLayoutIndexImport } from './routes/home/_layout/index'
+import { Route as AuthAcceptInvitationIndexImport } from './routes/auth/accept-invitation/index'
 import { Route as HomeLayoutStudentLayoutImport } from './routes/home/_layout/student/_layout'
 import { Route as HomeLayoutProfessorLayoutImport } from './routes/home/_layout/professor/_layout'
 import { Route as HomeLayoutAdminLayoutImport } from './routes/home/_layout/admin/_layout'
@@ -120,6 +121,12 @@ const HomeLayoutIndexRoute = HomeLayoutIndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => HomeLayoutRoute,
+} as any)
+
+const AuthAcceptInvitationIndexRoute = AuthAcceptInvitationIndexImport.update({
+  id: '/auth/accept-invitation/',
+  path: '/auth/accept-invitation/',
+  getParentRoute: () => rootRoute,
 } as any)
 
 const HomeLayoutStudentLayoutRoute = HomeLayoutStudentLayoutImport.update({
@@ -442,6 +449,13 @@ declare module '@tanstack/react-router' {
       path: '/public/editais'
       fullPath: '/public/editais'
       preLoaderRoute: typeof PublicEditaisImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/accept-invitation/': {
+      id: '/auth/accept-invitation/'
+      path: '/auth/accept-invitation'
+      fullPath: '/auth/accept-invitation'
+      preLoaderRoute: typeof AuthAcceptInvitationIndexImport
       parentRoute: typeof rootRoute
     }
     '/home/_layout/': {
@@ -968,6 +982,7 @@ export interface FileRoutesByFullPath {
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutRouteWithChildren
   '/public/editais': typeof PublicEditaisRoute
+  '/auth/accept-invitation': typeof AuthAcceptInvitationIndexRoute
   '/home/': typeof HomeLayoutIndexRoute
   '/home/admin': typeof HomeLayoutAdminLayoutRouteWithChildren
   '/home/professor': typeof HomeLayoutProfessorLayoutRouteWithChildren
@@ -1017,6 +1032,7 @@ export interface FileRoutesByTo {
   '/auth/cas-callback': typeof AuthCasCallbackRoute
   '/home': typeof HomeLayoutIndexRoute
   '/public/editais': typeof PublicEditaisRoute
+  '/auth/accept-invitation': typeof AuthAcceptInvitationIndexRoute
   '/home/admin': typeof HomeLayoutAdminLayoutRouteWithChildren
   '/home/professor': typeof HomeLayoutProfessorLayoutRouteWithChildren
   '/home/student': typeof HomeLayoutStudentLayoutRouteWithChildren
@@ -1067,6 +1083,7 @@ export interface FileRoutesById {
   '/home': typeof HomeRouteWithChildren
   '/home/_layout': typeof HomeLayoutRouteWithChildren
   '/public/editais': typeof PublicEditaisRoute
+  '/auth/accept-invitation/': typeof AuthAcceptInvitationIndexRoute
   '/home/_layout/': typeof HomeLayoutIndexRoute
   '/home/_layout/admin': typeof HomeLayoutAdminRouteWithChildren
   '/home/_layout/admin/_layout': typeof HomeLayoutAdminLayoutRouteWithChildren
@@ -1121,6 +1138,7 @@ export interface FileRouteTypes {
     | '/auth/cas-callback'
     | '/home'
     | '/public/editais'
+    | '/auth/accept-invitation'
     | '/home/'
     | '/home/admin'
     | '/home/professor'
@@ -1169,6 +1187,7 @@ export interface FileRouteTypes {
     | '/auth/cas-callback'
     | '/home'
     | '/public/editais'
+    | '/auth/accept-invitation'
     | '/home/admin'
     | '/home/professor'
     | '/home/student'
@@ -1217,6 +1236,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/home/_layout'
     | '/public/editais'
+    | '/auth/accept-invitation/'
     | '/home/_layout/'
     | '/home/_layout/admin'
     | '/home/_layout/admin/_layout'
@@ -1270,6 +1290,7 @@ export interface RootRouteChildren {
   AuthCasCallbackRoute: typeof AuthCasCallbackRoute
   HomeRoute: typeof HomeRouteWithChildren
   PublicEditaisRoute: typeof PublicEditaisRoute
+  AuthAcceptInvitationIndexRoute: typeof AuthAcceptInvitationIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -1277,6 +1298,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCasCallbackRoute: AuthCasCallbackRoute,
   HomeRoute: HomeRouteWithChildren,
   PublicEditaisRoute: PublicEditaisRoute,
+  AuthAcceptInvitationIndexRoute: AuthAcceptInvitationIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -1292,7 +1314,8 @@ export const routeTree = rootRoute
         "/",
         "/auth/cas-callback",
         "/home",
-        "/public/editais"
+        "/public/editais",
+        "/auth/accept-invitation/"
       ]
     },
     "/": {
@@ -1323,6 +1346,9 @@ export const routeTree = rootRoute
     },
     "/public/editais": {
       "filePath": "public/editais.tsx"
+    },
+    "/auth/accept-invitation/": {
+      "filePath": "auth/accept-invitation/index.tsx"
     },
     "/home/_layout/": {
       "filePath": "home/_layout/index.tsx",

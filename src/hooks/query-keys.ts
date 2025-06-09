@@ -9,6 +9,11 @@ export const QueryKeys = {
     me: ['user', 'me'],
   },
 
+  // Invitation related queries
+  invitation: {
+    validate: (token: string) => ['invitation', 'validate', token],
+  },
+
   // User related queries
   user: {
     all: ['users'],

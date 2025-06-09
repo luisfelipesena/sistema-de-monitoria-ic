@@ -70,7 +70,7 @@ function ProfessoresPage() {
     number | null
   >(null);
   const { data: disciplinas, isLoading: loadingDisciplinas } = useDisciplinas(
-    selectedDepartamentoId || undefined,
+    selectedDepartamentoId ? { departamentoId: selectedDepartamentoId } : undefined,
   );
   const [isVinculoModalOpen, setIsVinculoModalOpen] = useState(false);
   const [selectedDisciplina, setSelectedDisciplina] = useState<any | null>(
