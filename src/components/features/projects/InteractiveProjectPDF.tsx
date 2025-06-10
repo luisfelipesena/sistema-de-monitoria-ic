@@ -1,145 +1,122 @@
-import { MonitoriaFormTemplate, MonitoriaFormData } from '@/components/features/projects/MonitoriaFormTemplate';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useProfessorSignature, useAdminSignature } from '@/hooks/use-projeto';
-import { PDFViewer } from '@react-pdf/renderer';
-import { CheckCircle, FileSignature, Loader2 } from 'lucide-react';
-import { useRef, useState, useEffect } from 'react';
-import SignatureCanvas from 'react-signature-canvas';
-import { toast } from 'sonner';
-import { apiClient } from '@/utils/api-client';
+"use client"
+
+import { MonitoriaFormData, MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { api } from "@/utils/api"
+import { PDFViewer } from "@react-pdf/renderer"
+import { CheckCircle, FileSignature, Loader2 } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import SignatureCanvas from "react-signature-canvas"
+// import { toast } from "sonner"
 
 interface InteractiveProjectPDFProps {
-  formData: MonitoriaFormData;
-  userRole: 'professor' | 'admin';
-  onSignatureComplete?: () => void;
+  formData: MonitoriaFormData
+  userRole: "professor" | "admin"
+  onSignatureComplete?: () => void
 }
 
-export function InteractiveProjectPDF({
-  formData,
-  userRole,
-  onSignatureComplete,
-}: InteractiveProjectPDFProps) {
-  const [showSignatureDialog, setShowSignatureDialog] = useState(false);
-  const [signedData, setSignedData] = useState<MonitoriaFormData>(formData);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingSignatures, setIsLoadingSignatures] = useState(true);
-  const signatureRef = useRef<SignatureCanvas>(null);
-  
-  const professorSignatureMutation = useProfessorSignature();
-  const adminSignatureMutation = useAdminSignature();
+export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete }: InteractiveProjectPDFProps) {
+  const [showSignatureDialog, setShowSignatureDialog] = useState(false)
+  const [signedData, setSignedData] = useState<MonitoriaFormData>(formData)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const signatureRef = useRef<SignatureCanvas>(null)
 
-  // Buscar assinaturas existentes do projeto
+  const { data: pdfData, isLoading: isLoadingSignatures } = api.projeto.getProjectPdfData.useQuery(
+    { id: formData.projetoId! },
+    { enabled: !!formData.projetoId }
+  )
+
+  const professorSignatureMutation = api.projeto.assinarProjetoProfessor.useMutation()
+  const adminSignatureMutation = api.projeto.assinarProjetoAdmin.useMutation()
+
   useEffect(() => {
-    const loadExistingSignatures = async () => {
-      if (!formData.projetoId) {
-        setIsLoadingSignatures(false);
-        return;
-      }
-
-      try {
-        const response = await apiClient.get(`/projeto/${formData.projetoId}/pdf-data`);
-        const pdfData = response.data;
-        
-        // Atualizar formData com assinaturas existentes
-        setSignedData({
-          ...formData,
-          assinaturaProfessor: pdfData.assinaturaProfessor,
-          dataAssinaturaProfessor: pdfData.dataAssinaturaProfessor,
-          assinaturaAdmin: pdfData.assinaturaAdmin,
-          dataAssinaturaAdmin: pdfData.dataAssinaturaAdmin,
-        });
-      } catch (error) {
-        console.error('Erro ao carregar assinaturas:', error);
-        // Se der erro, continua com os dados originais
-      } finally {
-        setIsLoadingSignatures(false);
-      }
-    };
-
-    loadExistingSignatures();
-  }, [formData.projetoId]);
+    if (pdfData) {
+      setSignedData({
+        ...formData,
+        assinaturaProfessor: pdfData.assinaturaProfessor ?? undefined,
+        // dataAssinaturaProfessor: pdfData.dataAssinaturaProfessor,
+        // assinaturaAdmin: pdfData.assinaturaAdmin,
+        // dataAssinaturaAdmin: pdfData.dataAssinaturaAdmin,
+      })
+    }
+  }, [pdfData, formData])
 
   const handleOpenSignature = () => {
-    setShowSignatureDialog(true);
-  };
+    setShowSignatureDialog(true)
+  }
 
   const handleClearSignature = () => {
     if (signatureRef.current) {
-      signatureRef.current.clear();
+      signatureRef.current.clear()
     }
-  };
+  }
 
   const handleSaveSignature = async () => {
     if (signatureRef.current && !signatureRef.current.isEmpty() && formData.projetoId) {
-      setIsSubmitting(true);
+      setIsSubmitting(true)
       try {
-        const signatureDataURL = signatureRef.current.toDataURL();
-        
-        if (userRole === 'professor') {
+        const signatureDataURL = signatureRef.current.toDataURL()
+
+        if (userRole === "professor") {
           await professorSignatureMutation.mutateAsync({
             projetoId: formData.projetoId,
             signatureImage: signatureDataURL,
-          });
+          })
 
-          const updatedFormData = {
-            ...formData,
+          setSignedData({
+            ...signedData,
             assinaturaProfessor: signatureDataURL,
-            dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
-          };
-          setSignedData(updatedFormData);
-        } else if (userRole === 'admin') {
+            dataAssinaturaProfessor: new Date().toLocaleDateString("pt-BR"),
+          })
+        } else if (userRole === "admin") {
           await adminSignatureMutation.mutateAsync({
             projetoId: formData.projetoId,
             signatureImage: signatureDataURL,
-          });
+          })
 
-          const updatedFormData = {
-            ...signedData, // Usar signedData que já tem as assinaturas existentes
+          setSignedData({
+            ...signedData,
             assinaturaAdmin: signatureDataURL,
-            dataAssinaturaAdmin: new Date().toLocaleDateString('pt-BR'),
-            dataAprovacao: new Date().toLocaleDateString('pt-BR'),
-          };
-          setSignedData(updatedFormData);
+            dataAssinaturaAdmin: new Date().toLocaleDateString("pt-BR"),
+            dataAprovacao: new Date().toLocaleDateString("pt-BR"),
+          })
         }
-        
-        setShowSignatureDialog(false);
-        toast.success('Assinatura salva com sucesso!');
-        onSignatureComplete?.();
+
+        setShowSignatureDialog(false)
+        // toast.success("Assinatura salva com sucesso!")
+        onSignatureComplete?.()
       } catch (error) {
-        console.error('Erro ao salvar assinatura:', error);
-        toast.error('Erro ao salvar assinatura');
+        console.error("Erro ao salvar assinatura:", error)
+        // toast.error("Erro ao salvar assinatura")
       } finally {
-        setIsSubmitting(false);
+        setIsSubmitting(false)
       }
     } else {
-      toast.error('Por favor, faça a assinatura antes de salvar');
+      // toast.error("Por favor, faça a assinatura antes de salvar")
     }
-  };
+  }
 
   const currentFormData = {
     ...signedData,
     signingMode: userRole,
-  };
-  
-  const hasSignature = userRole === 'professor' 
-    ? !!currentFormData.assinaturaProfessor 
-    : !!currentFormData.assinaturaAdmin;
+  }
 
-  const roleLabel = userRole === 'professor' ? 'Professor' : 'Coordenador';
+  const hasSignature =
+    userRole === "professor" ? !!currentFormData.assinaturaProfessor : !!currentFormData.assinaturaAdmin
+
+  const roleLabel = userRole === "professor" ? "Professor" : "Coordenador"
 
   if (isLoadingSignatures) {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardContent className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin mr-2" />
-            <span>Carregando dados do documento...</span>
-          </CardContent>
-        </Card>
-      </div>
-    );
+      <Card>
+        <CardContent className="flex justify-center items-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin mr-2" />
+          <span>Carregando dados do documento...</span>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -166,8 +143,8 @@ export function InteractiveProjectPDF({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-lg bg-white">
-            <PDFViewer width="100%" height="800px" showToolbar>
+          <div className="border rounded-lg bg-white h-[800px]">
+            <PDFViewer width="100%" height="100%" showToolbar>
               <MonitoriaFormTemplate data={currentFormData} />
             </PDFViewer>
           </div>
@@ -180,16 +157,14 @@ export function InteractiveProjectPDF({
             <DialogTitle>Assinatura Digital - {roleLabel}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="text-sm text-muted-foreground">
-              Desenhe sua assinatura no espaço abaixo:
-            </div>
+            <div className="text-sm text-muted-foreground">Desenhe sua assinatura no espaço abaixo:</div>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
               <SignatureCanvas
                 ref={signatureRef}
                 canvasProps={{
                   width: 600,
                   height: 200,
-                  className: 'signature-canvas bg-white rounded border',
+                  className: "signature-canvas bg-white rounded border",
                 }}
                 backgroundColor="white"
               />
@@ -221,5 +196,5 @@ export function InteractiveProjectPDF({
         </DialogContent>
       </Dialog>
     </div>
-  );
-} 
+  )
+}

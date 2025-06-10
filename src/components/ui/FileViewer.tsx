@@ -21,31 +21,58 @@ export function FileViewer({
   showPreview = true,
 }: FileViewerProps) {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
   const { data: fileData, isLoading, error } = useFileAccess(fileId);
 
   // Função para visualizar o arquivo
-  const handleView = () => {
+  const handleView = async () => {
     if (!fileData) return;
 
-    // Para PDFs e imagens, podemos usar o visualizador embutido
-    if (
-      showPreview &&
-      (fileData.mimeType === 'application/pdf' ||
-        fileData.mimeType.startsWith('image/'))
-    ) {
-      setIsViewerOpen(true);
-    } else {
-      // Para outros tipos, abrir em nova aba
-      window.open(fileData.url, '_blank');
+    try {
+      // Get file access URL
+      const result = await fetch(`/api/files/access?fileId=${fileId}&action=view`);
+      const { url } = await result.json();
+
+      // Para PDFs e imagens, podemos usar o visualizador embutido
+      if (
+        showPreview &&
+        (fileData.mimeType === 'application/pdf' ||
+          fileData.mimeType.startsWith('image/'))
+      ) {
+        setFileUrl(url);
+        setIsViewerOpen(true);
+      } else {
+        // Para outros tipos, abrir em nova aba
+        window.open(url, '_blank');
+      }
+    } catch (error) {
+      log.error('Error getting file access:', { error, fileId });
+      toast({
+        title: 'Erro ao acessar arquivo',
+        description: 'Não foi possível obter acesso ao arquivo.',
+        variant: 'destructive',
+      });
     }
   };
 
   // Função para baixar o arquivo
-  const handleDownload = () => {
+  const handleDownload = async () => {
     if (!fileData) return;
-    window.open(fileData.url, '_blank');
+    
+    try {
+      const result = await fetch(`/api/files/access?fileId=${fileId}&action=download`);
+      const { url } = await result.json();
+      window.open(url, '_blank');
+    } catch (error) {
+      log.error('Error downloading file:', { error, fileId });
+      toast({
+        title: 'Erro ao baixar arquivo',
+        description: 'Não foi possível baixar o arquivo.',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (isLoading) {
@@ -104,9 +131,9 @@ export function FileViewer({
             <X className="w-4 h-4" />
           </Button>
           <iframe
-            src={fileData.url}
+            src={fileUrl || ''}
             className="w-full h-full"
-            title={fileData.fileName}
+            title={fileData?.fileName || fileName}
           />
         </div>
       )}

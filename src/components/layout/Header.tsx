@@ -1,6 +1,4 @@
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { useAuth } from '@/hooks/use-auth';
-import { Button } from '../ui/button';
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,13 +6,22 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu"
+import { SidebarTrigger } from "@/components/ui/sidebar"
 
-export function Header() {
-  const { user, signOut } = useAuth();
+interface User {
+  username?: string
+  email?: string
+}
 
-  const userInitials = user?.username?.slice(0, 2);
-  const userName = user?.username;
+interface HeaderProps {
+  user?: User
+  onSignOut?: () => void
+}
+
+export function Header({ user, onSignOut }: HeaderProps) {
+  const userInitials = user?.username?.slice(0, 2)
+  const userName = user?.username
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center border-b border-border bg-background px-4 shadow-sm">
@@ -26,10 +33,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="transparent"
-                className="flex items-center gap-2 px-2 py-1"
-              >
+              <Button variant="ghost" className="flex items-center gap-2 px-2 py-1">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   {userInitials}
                 </div>
@@ -41,13 +45,11 @@ export function Header() {
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut()} asChild>
-                <div>Sair</div>
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onSignOut}>Sair</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
     </header>
-  );
+  )
 }

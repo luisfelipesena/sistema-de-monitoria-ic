@@ -1,0 +1,103 @@
+/**
+ * Application Enums
+ * This file contains all the enum types used throughout the application to ensure consistency
+ */
+
+// User roles
+export enum UserRole {
+  ADMIN = 'admin',
+  PROFESSOR = 'professor',
+  STUDENT = 'student',
+}
+
+// Project status
+export enum ProjetoStatus {
+  DRAFT = 'DRAFT',
+  SUBMITTED = 'SUBMITTED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  PENDING_ADMIN_SIGNATURE = 'PENDING_ADMIN_SIGNATURE',
+  PENDING_PROFESSOR_SIGNATURE = 'PENDING_PROFESSOR_SIGNATURE',
+}
+
+// Application status
+export enum StatusInscricao {
+  SUBMITTED = 'SUBMITTED',
+  SELECTED_BOLSISTA = 'SELECTED_BOLSISTA',
+  SELECTED_VOLUNTARIO = 'SELECTED_VOLUNTARIO',
+  ACCEPTED_BOLSISTA = 'ACCEPTED_BOLSISTA',
+  ACCEPTED_VOLUNTARIO = 'ACCEPTED_VOLUNTARIO',
+  REJECTED_BY_PROFESSOR = 'REJECTED_BY_PROFESSOR',
+  REJECTED_BY_STUDENT = 'REJECTED_BY_STUDENT',
+}
+
+// Scholarship types
+export enum TipoVaga {
+  BOLSISTA = 'BOLSISTA',
+  VOLUNTARIO = 'VOLUNTARIO',
+}
+
+// Semester enum
+export enum Semestre {
+  SEMESTRE_1 = 'SEMESTRE_1',
+  SEMESTRE_2 = 'SEMESTRE_2',
+}
+
+// Project proposition type
+export enum TipoProposicao {
+  INDIVIDUAL = 'INDIVIDUAL',
+  COLETIVA = 'COLETIVA',
+}
+
+// Application types
+export enum TipoInscricao {
+  BOLSISTA = 'BOLSISTA',
+  VOLUNTARIO = 'VOLUNTARIO',
+  ANY = 'ANY', // Either type
+}
+
+// Gender types
+export enum Genero {
+  MASCULINO = 'MASCULINO',
+  FEMININO = 'FEMININO',
+  OUTRO = 'OUTRO',
+}
+
+// Professor work regime
+export enum Regime {
+  REGIME_20H = '20H',
+  REGIME_40H = '40H',
+  REGIME_DE = 'DE', // Dedicação Exclusiva
+}
+
+// Document types for projects
+export enum TipoDocumentoProjeto {
+  PROPOSTA_ORIGINAL = 'PROPOSTA_ORIGINAL',
+  PROPOSTA_ASSINADA_PROFESSOR = 'PROPOSTA_ASSINADA_PROFESSOR',
+  PROPOSTA_ASSINADA_ADMIN = 'PROPOSTA_ASSINADA_ADMIN',
+  ATA_SELECAO = 'ATA_SELECAO',
+}
+
+// Signature types
+export enum TipoAssinatura {
+  PROJETO_PROFESSOR_RESPONSAVEL = 'PROJETO_PROFESSOR_RESPONSAVEL',
+  TERMO_COMPROMISSO_ALUNO = 'TERMO_COMPROMISSO_ALUNO',
+  EDITAL_ADMIN = 'EDITAL_ADMIN',
+  ATA_SELECAO_PROFESSOR = 'ATA_SELECAO_PROFESSOR',
+  PROJETO_COORDENADOR_DEPARTAMENTO = 'PROJETO_COORDENADOR_DEPARTAMENTO',
+}
+
+// Email notification types
+export enum TipoNotificacao {
+  PROFESSOR_INVITATION = 'PROFESSOR_INVITATION',
+  PROJECT_SUBMITTED = 'PROJECT_SUBMITTED',
+  PROJECT_APPROVED = 'PROJECT_APPROVED',
+  PROJECT_REJECTED = 'PROJECT_REJECTED',
+  SELECTION_RESULTS = 'SELECTION_RESULTS',
+  BULK_REMINDER = 'BULK_REMINDER',
+  PROJETO_SUBMETIDO = 'PROJETO_SUBMETIDO',
+  PROJETO_APROVADO = 'PROJETO_APROVADO', 
+  PROJETO_REJEITADO = 'PROJETO_REJEITADO',
+  LEMBRETE_PROJETO = 'LEMBRETE_PROJETO',
+  LEMBRETE_SELECAO = 'LEMBRETE_SELECAO',
+} 

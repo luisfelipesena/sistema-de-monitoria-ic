@@ -1,19 +1,99 @@
-const clientEnv = {
-  VITE_ENABLE_STAGEWISE: import.meta.env.VITE_ENABLE_STAGEWISE,
-};
+import { createEnv } from '@t3-oss/env-nextjs'
+import { z } from 'zod'
 
-export const env = {
-  DATABASE_URL: process.env.DATABASE_URL,
-  CAS_SERVER_URL_PREFIX:
-    process.env.CAS_SERVER_URL_PREFIX || 'https://autenticacao.ufba.br/ca',
-  SERVER_URL: process.env.SERVER_URL || 'http://localhost:3000/api',
-  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
-  NODE_ENV: process.env.NODE_ENV,
-  MINIO_ENDPOINT: process.env.MINIO_ENDPOINT || 'localhost',
-  MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY || 'minioadmin',
-  MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY || 'minioadmin',
-  MINIO_BUCKET_NAME: process.env.MINIO_BUCKET_NAME || 'monitoria-arquivos',
-  EMAIL_USER: process.env.EMAIL_USER || '',
-  EMAIL_PASS: process.env.EMAIL_PASS || '',
-  ...clientEnv,
-};
+export const env = createEnv({
+  /**
+   * Client-side environment variables (accessible in browser)
+   * These are prefixed with NEXT_PUBLIC_
+   */
+  client: {
+    NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
+  },
+
+  /**
+   * Server-side environment variables (server-side only)
+   * These are NOT accessible in the browser
+   */
+  server: {
+    // Database
+    DATABASE_URL: z.string().url(),
+
+    // Authentication
+    CAS_SERVER_URL_PREFIX: z.string().url().default('https://autenticacao.ufba.br/ca'),
+    SERVER_URL: z.string().url().default('http://localhost:3000'),
+    CLIENT_URL: z.string().url().default('http://localhost:3000'),
+
+    // Environment
+    NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+    PORT: z.string().default('3000'),
+    VERCEL_URL: z.string().optional(),
+
+    // MinIO Storage
+    MINIO_ENDPOINT: z.string().default('localhost'),
+    MINIO_PORT: z.string().default('9000'),
+    MINIO_ACCESS_KEY: z.string().default('minioadmin'),
+    MINIO_SECRET_KEY: z.string().default('minioadmin'),
+    MINIO_BUCKET_NAME: z.string().default('sistema-de-monitoria-dev'),
+
+    // Email
+    EMAIL_USER: z.string().email().optional(),
+    EMAIL_PASS: z.string().optional(),
+
+    // API Auth
+    API_SECRET_KEY: z.string().min(32).optional(),
+    JWT_SECRET: z.union([
+      // In production, JWT_SECRET is required with min 32 chars
+      z.string().min(32),
+      // In development, we can use a default value
+      z.literal('development-jwt-secret-at-least-32-chars-long').default('development-jwt-secret-at-least-32-chars-long')
+    ]),
+
+    // Other
+    VITE_ENABLE_STAGEWISE: z.string().optional(),
+    PUBLIC_FILE_BASE_URL: z.string().default('/api/public/documents'),
+  },
+
+  /**
+   * Runtime environment variables
+   * Ensures type safety at build time
+   */
+  runtimeEnv: {
+    // Client
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+
+    // Server
+    DATABASE_URL: process.env.DATABASE_URL,
+    CAS_SERVER_URL_PREFIX: process.env.CAS_SERVER_URL_PREFIX,
+    SERVER_URL: process.env.SERVER_URL,
+    CLIENT_URL: process.env.CLIENT_URL,
+    NODE_ENV: process.env.NODE_ENV,
+    PORT: process.env.PORT,
+    VERCEL_URL: process.env.VERCEL_URL,
+    MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
+    MINIO_PORT: process.env.MINIO_PORT,
+    MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY,
+    MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY,
+    MINIO_BUCKET_NAME: process.env.MINIO_BUCKET_NAME,
+    EMAIL_USER: process.env.EMAIL_USER,
+    EMAIL_PASS: process.env.EMAIL_PASS,
+    API_SECRET_KEY: process.env.API_SECRET_KEY,
+    JWT_SECRET: process.env.JWT_SECRET,
+    VITE_ENABLE_STAGEWISE: process.env.VITE_ENABLE_STAGEWISE,
+    PUBLIC_FILE_BASE_URL: process.env.PUBLIC_FILE_BASE_URL,
+  },
+
+  /**
+   * Skip validation during build time
+   * Useful for Docker builds where env vars might not be available
+   */
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
+
+  /**
+   * Ensures environment variables are not bundled into client-side code
+   * when they shouldn't be
+   */
+  emptyStringAsUndefined: true,
+})
+
+// Type-safe environment variables
+export type Env = typeof env

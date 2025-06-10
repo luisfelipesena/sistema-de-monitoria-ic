@@ -1,0 +1,278 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Primary Brand Color */
+    --primary: 210 40% 20%;
+    /* #572C90 */
+    --primary-foreground: 210 40% 0%;
+
+    /* Secondary Brand Color */
+    --secondary: 195 71% 50%;
+    /* #31A8A0 */
+    --secondary-foreground: 195 71% 30%;
+
+    /* Secondary Light Blue */
+    --accent: 195 71% 50%;
+    /* #E8DEFC */
+    --accent-foreground: 195 71% 90%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    /* Destructive Red */
+    --destructive: 355 71% 50%;
+    --destructive-foreground: 355 71% 20%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    /* Sidebar Specific Colors */
+    --sidebar-background: 210 40% 20%;
+    /* #572C90 */
+    --sidebar-foreground: 210 40% 90%;
+    --sidebar-primary: 210 40% 20%;
+    /* #572C90 */
+    --sidebar-primary-foreground: 210 40% 90%;
+    --sidebar-accent: 195 71% 30%;
+    /* #6A36AE */
+    --sidebar-accent-foreground: 210 40% 90%;
+    --sidebar-border: 265 50% 45%;
+    --sidebar-ring: 210 40% 20%;
+
+    --radius: 0.5rem;
+
+    /* System Success/Error Colors */
+    --success: 142 71% 45%;
+    /* #2DCE89 */
+    --success-foreground: 210 40% 98%;
+    --warning: 37 95% 65%;
+    /* #FFDB5C */
+    --warning-foreground: 222.2 47.4% 11.2%;
+    --error: 0 84.2% 60.2%;
+    /* #F5365C */
+    --error-foreground: 210 40% 98%;
+    --info: 224 76% 48%;
+    /* #1171EF */
+    --info-foreground: 210 40% 98%;
+  }
+
+  html {
+    color-scheme: light dark;
+  }
+
+  * {
+    @apply border-gray-200 dark:border-gray-800;
+  }
+
+  html,
+  body {
+    @apply text-gray-900 bg-gray-50 dark:bg-gray-950 dark:text-gray-200;
+  }
+
+  .using-mouse * {
+    outline: none !important;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Calendar Enhanced Styles */
+@layer components {
+
+  /* Popover Content com melhor aparência */
+  .rdp {
+    border-radius: 12px;
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--background)/0.98) 100%);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    backdrop-filter: blur(8px);
+    border: 1px solid hsl(var(--border)/0.5);
+  }
+
+  /* Dias do calendário */
+  .rdp-day_button {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .rdp-day_button:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent)/0.8) 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    color: hsl(var(--accent-foreground));
+  }
+
+  /* Data selecionada com gradiente */
+  .rdp-day_selected .rdp-day_button {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary)/0.9) 100%) !important;
+    color: hsl(var(--primary-foreground)) !important;
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(87, 44, 144, 0.4);
+    border: 2px solid hsl(var(--primary)/0.3);
+    font-weight: 600;
+  }
+
+  .rdp-day_selected .rdp-day_button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(87, 44, 144, 0.5);
+  }
+
+  /* Data de hoje com indicador especial */
+  .rdp-day_today .rdp-day_button {
+    position: relative;
+    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent)/0.7) 100%);
+    color: hsl(var(--accent-foreground));
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .rdp-day_today .rdp-day_button::before {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: linear-gradient(45deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Quando hoje está selecionado */
+  .rdp-day_selected.rdp-day_today .rdp-day_button::before {
+    background: linear-gradient(45deg, hsl(var(--primary-foreground)) 0%, rgba(255, 255, 255, 0.9) 100%);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Datas desabilitadas */
+  .rdp-day_disabled .rdp-day_button {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: transparent;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .rdp-day_disabled .rdp-day_button:hover {
+    transform: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* Datas fora do mês atual */
+  .rdp-day_outside .rdp-day_button {
+    opacity: 0.4;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .rdp-day_outside .rdp-day_button:hover {
+    opacity: 0.6;
+    background: hsl(var(--accent)/0.3);
+  }
+
+  /* Botões de navegação melhorados */
+  .rdp-button_previous,
+  .rdp-button_next {
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)/0.3) 100%);
+    border: 1px solid hsl(var(--border)/0.5);
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+  }
+
+  .rdp-button_previous:hover,
+  .rdp-button_next:hover {
+    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent)/0.8) 100%);
+    border-color: hsl(var(--primary)/0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Cabeçalho do mês */
+  .rdp-caption_label {
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Dias da semana */
+  .rdp-weekday {
+    color: hsl(var(--muted-foreground));
+    font-weight: 500;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Animação de entrada */
+  .rdp {
+    animation: slideIn 0.2s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Tipografia baseada no Design System */
+h1 {
+  @apply text-4xl font-bold tracking-tight;
+}
+
+h2 {
+  @apply text-2xl font-semibold tracking-tight;
+}
+
+h3 {
+  @apply text-2xl font-semibold tracking-tight;
+}
+
+h4 {
+  @apply text-xl font-semibold tracking-tight;
+}
+
+p {
+  @apply text-base leading-7;
+}
+
+.small {
+  @apply text-sm leading-6;
+}
+
+.body-large {
+  @apply text-lg leading-7;
+}
+
+.body-small {
+  @apply text-xs leading-5;
+}
