@@ -40,12 +40,8 @@ export const env = createEnv({
     EMAIL_PASS: z.string().optional(),
 
     // API Auth
-    API_SECRET_KEY: z.string().min(32).optional(),
     JWT_SECRET: z.string().min(32).optional(),
 
-    // Other
-    VITE_ENABLE_STAGEWISE: z.string().optional(),
-    PUBLIC_FILE_BASE_URL: z.string().default('/api/public/documents'),
   },
 
   /**
@@ -71,10 +67,7 @@ export const env = createEnv({
     MINIO_BUCKET_NAME: process.env.MINIO_BUCKET_NAME,
     EMAIL_USER: process.env.EMAIL_USER,
     EMAIL_PASS: process.env.EMAIL_PASS,
-    API_SECRET_KEY: process.env.API_SECRET_KEY,
     JWT_SECRET: process.env.JWT_SECRET,
-    VITE_ENABLE_STAGEWISE: process.env.VITE_ENABLE_STAGEWISE,
-    PUBLIC_FILE_BASE_URL: process.env.PUBLIC_FILE_BASE_URL,
   },
 
   /**

@@ -1,143 +1,350 @@
-# Todo List App
+# Sistema de Monitoria IC - UFBA
 
-A modern, full-stack todo list application built with Next.js, tRPC, React Query, Tailwind CSS, and shadcn/ui components.
+<p align="center">
+  <img src="public/images/ic-logo-clean.png" alt="Logo IC UFBA" width="200" />
+</p>
 
-## Features
+<p align="center">
+  <strong>Sistema de Gerenciamento de Monitoria Acadêmica</strong><br>
+  Instituto de Computação - Universidade Federal da Bahia
+</p>
 
-- ✅ Create, read, update, and delete todos
-- ✅ Mark todos as complete/incomplete
-- ✅ Real-time updates with React Query
-- ✅ Clean, responsive UI with Tailwind CSS
-- ✅ Type-safe API with tRPC
-- ✅ PostgreSQL database with Drizzle ORM
-- ✅ Modern landing page design
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-15.1.4-black?style=flat-square&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/TypeScript-5.7.3-blue?style=flat-square&logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/tRPC-11.0.0-purple?style=flat-square&logo=trpc" alt="tRPC" />
+  <img src="https://img.shields.io/badge/PostgreSQL-16.3-336791?style=flat-square&logo=postgresql" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Node.js-24.1.0-green?style=flat-square&logo=node.js" alt="Node.js" />
+</p>
 
-## Tech Stack
+## 📋 Sumário
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **Backend**: tRPC, Drizzle ORM
-- **Database**: PostgreSQL
-- **Styling**: Tailwind CSS, shadcn/ui
-- **State Management**: React Query (TanStack Query)
-- **Code Quality**: Biome (linting & formatting)
+- [Sobre o Projeto](#-sobre-o-projeto)
+- [Funcionalidades](#-funcionalidades)
+- [Arquitetura](#-arquitetura)
+- [Tecnologias](#-tecnologias)
+- [Instalação e Execução](#-instalação-e-execução)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [API e Documentação](#-api-e-documentação)
+- [Fluxo de Trabalho](#-fluxo-de-trabalho)
 
-## Getting Started
+## 🎯 Sobre o Projeto
 
-### Prerequisites
+O **Sistema de Monitoria IC** é uma plataforma completa para gerenciamento de programas de monitoria acadêmica da UFBA. O sistema automatiza todo o ciclo de vida da monitoria, desde a criação de projetos pelos professores até a seleção e acompanhamento dos monitores.
 
-- Node.js 18+ 
-- PostgreSQL database
-- npm or yarn
+### Principais Objetivos
 
-### Installation
+- **Digitalização Completa**: Eliminar processos manuais e documentos físicos
+- **Transparência**: Processo seletivo claro e rastreável
+- **Eficiência**: Reduzir tempo de processamento e aprovação
+- **Integração**: Conectar com sistemas existentes da UFBA (CAS/SSO)
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+## ⚡ Funcionalidades
 
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-   Edit `.env` and add your database URL:
-   ```
-   DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
-   ```
+### 👨‍🏫 Para Professores
 
-4. Run database migrations:
-   ```bash
-   npm run db:push
-   ```
+- **Gestão de Projetos de Monitoria**
+  - Criação de projetos individuais ou coletivos
+  - Definição de vagas para bolsistas e voluntários
+  - Workflow de aprovação (Rascunho → Submetido → Aprovado/Rejeitado)
+  - Assinatura digital de documentos
 
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
+- **Seleção de Monitores**
+  - Visualização de candidatos inscritos
+  - Sistema de avaliação e classificação
+  - Geração de atas de seleção
+  - Feedback para candidatos
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser
+- **Gestão de Disciplinas**
+  - Associação de disciplinas aos projetos
+  - Definição de carga horária e atividades
+  - Acompanhamento de monitores ativos
 
-## Scripts
+### 👨‍🎓 Para Alunos
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run linting
-- `npm run lint:fix` - Fix linting issues
-- `npm run db:generate` - Generate database migrations
-- `npm run db:push` - Push schema changes to database
-- `npm run db:studio` - Open Drizzle Studio
+- **Inscrição em Projetos**
+  - Busca de vagas disponíveis por período
+  - Upload de documentos (histórico, comprovante de matrícula)
+  - Acompanhamento do status da inscrição
+  - Visualização de resultados e feedback
 
-## Project Structure
+- **Painel do Monitor**
+  - Acesso aos detalhes do projeto
+  - Download de documentos e certificados
+  - Histórico de monitorias
+
+### 👨‍💼 Para Administradores
+
+- **Gestão Acadêmica**
+  - Cadastro de departamentos, cursos e disciplinas
+  - Configuração de períodos de inscrição
+  - Importação em massa de projetos via planilha
+
+- **Aprovação e Editais**
+  - Fluxo de aprovação de projetos
+  - Geração automática de editais
+  - Alocação de bolsas por departamento
+
+- **Relatórios e Analytics**
+  - Dashboard com métricas em tempo real
+  - Relatórios de desempenho por departamento
+  - Exportação de dados para análise
+
+- **Gestão de Usuários**
+  - Sistema de convite para professores
+  - Gerenciamento de permissões
+  - Integração com CAS/UFBA
+
+## 🏗️ Arquitetura
+
+### Stack Tecnológica
+
+#### Frontend
+- **Framework**: Next.js 15.1.4 (App Router)
+- **UI Components**: shadcn/ui + Radix UI
+- **Estilização**: Tailwind CSS
+- **Formulários**: React Hook Form + Zod
+- **Estado**: TanStack Query (React Query)
+- **PDF**: React PDF Renderer + PDF-lib
+
+#### Backend
+- **API**: tRPC v11 (Type-safe API)
+- **ORM**: Drizzle ORM
+- **Autenticação**: Lucia Auth + CAS UFBA
+- **Storage**: MinIO (S3-compatible)
+- **Email**: Nodemailer
+- **Logs**: Pino
+
+#### Infraestrutura
+- **Database**: PostgreSQL 16.3
+- **Container**: Docker + Docker Compose
+- **Node**: v24.1.0
+- **Package Manager**: npm 10.8.2
+
+### Padrões e Boas Práticas
+
+- **Type Safety**: TypeScript em todo o projeto
+- **Code Quality**: Biome para linting e formatação
+- **API Design**: RESTful via tRPC + OpenAPI
+- **Security**: Autenticação JWT, API Keys, validação Zod
+- **Performance**: Server Components, lazy loading, caching
+
+## 🚀 Instalação e Execução
+
+### Pré-requisitos
+
+- Node.js 24.1.0
+- npm 10.8.2
+- Docker e Docker Compose
+- Conta no MinIO ou S3
+
+### Configuração do Ambiente
+
+1. **Clone o repositório**
+```bash
+git clone https://github.com/seu-usuario/sistema-de-monitoria-ic.git
+cd sistema-de-monitoria-ic
+```
+
+2. **Instale as dependências**
+```bash
+npm install
+```
+
+3. **Configure as variáveis de ambiente**
+```bash
+cp .env.example .env
+```
+
+Edite o arquivo `.env` com suas configurações:
+
+```env
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5433/sistema-de-monitoria-ic-2"
+
+# Authentication
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-here"
+
+# CAS UFBA
+CAS_BASE_URL="https://cas.ufba.br/cas"
+CAS_SERVICE_URL="http://localhost:3000/api/cas-callback"
+
+# MinIO/S3
+S3_ACCESS_KEY_ID="your-access-key"
+S3_SECRET_ACCESS_KEY="your-secret-key"
+S3_ENDPOINT="http://localhost:9000"
+S3_BUCKET_NAME="monitoria-files"
+
+# Email
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
+SMTP_FROM="Sistema Monitoria <noreply@ufba.br>"
+
+# OpenAPI
+OPENAPI_BASE_URL="http://localhost:3000"
+```
+
+4. **Inicie o banco de dados**
+```bash
+docker-compose up -d
+```
+
+5. **Execute as migrações**
+```bash
+npm run db:push
+```
+
+6. **Inicie o servidor de desenvolvimento**
+```bash
+npm run dev
+```
+
+7. **Acesse a aplicação**
+```
+http://localhost:3000
+```
+
+### Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+npm run dev          # Inicia servidor de desenvolvimento
+
+# Build e Produção
+npm run build        # Build para produção
+npm run start        # Inicia servidor de produção
+
+# Database
+npm run db:generate  # Gera migrações
+npm run db:migrate   # Executa migrações
+npm run db:push      # Sincroniza schema
+npm run db:studio    # Abre Drizzle Studio
+npm run db:drop      # Remove todas as tabelas
+
+# Code Quality
+npm run lint         # Executa linting
+npm run lint:fix     # Corrige problemas de linting
+npm run format       # Formata código
+```
+
+## 📁 Estrutura do Projeto
 
 ```
-├── app/                 # Next.js app directory
-│   ├── api/trpc/       # tRPC API routes
-│   ├── globals.css     # Global styles
-│   ├── layout.tsx      # Root layout
-│   └── page.tsx        # Landing page
-├── components/         # React components
-│   ├── providers.tsx   # React Query & tRPC providers
-│   ├── todo/          # Todo-specific components
-│   └── ui/            # shadcn/ui components
-├── server/            # Backend code
-│   ├── api/           # tRPC routers and procedures
-│   └── db/            # Database schema and connection
-└── utils/             # Utility functions
-    ├── api.ts         # tRPC client
-    ├── cn.ts          # Class name utility
-    └── env.ts         # Environment variables
+sistema-de-monitoria-ic/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── api/               # API Routes
+│   │   │   ├── cas-**/        # CAS authentication
+│   │   │   ├── openapi/       # OpenAPI endpoints
+│   │   │   └── trpc/          # tRPC endpoint
+│   │   ├── docs/              # API documentation
+│   │   └── home/              # Páginas da aplicação
+│   │       ├── admin/         # Páginas administrativas
+│   │       ├── professor/     # Páginas do professor
+│   │       └── student/       # Páginas do aluno
+│   │
+│   ├── components/            # Componentes React
+│   │   ├── features/          # Componentes específicos
+│   │   ├── layout/            # Layout components
+│   │   └── ui/                # shadcn/ui components
+│   │
+│   ├── server/                # Backend
+│   │   ├── api/               # tRPC routers
+│   │   │   └── routers/       # Rotas organizadas por domínio
+│   │   ├── db/                # Database (Drizzle)
+│   │   ├── email-templates/   # Templates de email
+│   │   └── lib/               # Utilitários do servidor
+│   │
+│   ├── hooks/                 # React hooks customizados
+│   ├── lib/                   # Utilitários compartilhados
+│   └── utils/                 # Funções auxiliares
+│
+├── public/                    # Arquivos estáticos
+├── docs/                      # Documentação adicional
+├── drizzle/                   # Migrações do banco
+├── docker-compose.yml         # Configuração Docker
+└── package.json              # Dependências e scripts
 ```
 
-## Architecture
+## 📡 API e Documentação
 
-This application follows modern full-stack patterns:
+### OpenAPI/Swagger
 
-- **Type Safety**: End-to-end type safety with TypeScript and tRPC
-- **Component Architecture**: Modular, reusable React components
-- **State Management**: Server state with React Query, minimal client state
-- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
-- **Styling**: Utility-first CSS with Tailwind and component system with shadcn/ui
-- **Code Quality**: Automated formatting and linting with Biome
+A documentação interativa da API está disponível em:
+```
+http://localhost:3000/docs
+```
 
-## API Endpoints
+### Endpoints tRPC
 
-The tRPC API provides the following procedures:
+O sistema expõe os seguintes routers via tRPC:
 
-- `todo.getAll` - Fetch all todos
-- `todo.create` - Create a new todo
-- `todo.update` - Update an existing todo  
-- `todo.delete` - Delete a todo
-- `todo.toggle` - Toggle todo completion status
+- **Auth**: `/api/trpc/me.*`
+- **Projetos**: `/api/trpc/projeto.*`
+- **Inscrições**: `/api/trpc/inscricao.*`
+- **Disciplinas**: `/api/trpc/discipline.*`
+- **Departamentos**: `/api/trpc/departamento.*`
+- **Usuários**: `/api/trpc/user.*`
+- **Arquivos**: `/api/trpc/file.*`
+- **Analytics**: `/api/trpc/analytics.*`
 
-## Development Guidelines
+### Autenticação API
 
-### Code Conventions
+Para acesso programático, use API Keys:
 
-- **TypeScript**: Strict mode enabled
-- **Components**: Use server components by default, client components when needed
-- **Styling**: Tailwind CSS utility classes
-- **API**: tRPC procedures with Zod validation
-- **Database**: Drizzle ORM with typed queries
+```bash
+# Header x-api-key
+curl -H "x-api-key: your-api-key" http://localhost:3000/api/openapi/projeto/list
 
-### Best Practices
+# Bearer Token
+curl -H "Authorization: Bearer your-api-key" http://localhost:3000/api/openapi/projeto/list
+```
 
-- Always use TypeScript types
-- Validate inputs with Zod schemas
-- Use React Query for server state management
-- Follow the component composition pattern
-- Keep components small and focused
-- Use meaningful names for variables and functions
+## 🔄 Fluxo de Trabalho
 
-## Contributing
+### 1. Criação de Projeto
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+```mermaid
+Rascunho → Submetido → Em Análise → Aprovado/Rejeitado
+```
 
-## License
+### 2. Processo de Inscrição
 
-This project is licensed under the MIT License.
+```mermaid
+Período Aberto → Inscrição → Análise → Seleção → Resultado
+```
+
+### 3. Gestão de Documentos
+
+```mermaid
+Upload → Validação → Assinatura Digital → Arquivamento
+```
+
+## 🤝 Contribuindo
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add: nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+### Convenções de Código
+
+- Use TypeScript com `strict: true`
+- Siga as regras do Biome
+- Mantenha componentes pequenos e focados
+- Escreva testes para novas funcionalidades
+- Documente APIs com JSDoc
+
+## 📝 Licença
+
+Este projeto é propriedade da Universidade Federal da Bahia (UFBA) e do Instituto de Computação (IC).
+
+---
+
+<p align="center">
+  Desenvolvido com ❤️ pelo time de desenvolvimento do IC-UFBA
+</p>
