@@ -3,10 +3,13 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "@validators/*": ["../../packages/validators/*"]
+      "@validators/*": ["../../packages/validators/*"],
+      "@/*": ["../../src/*"],
+      "@server/*": ["../../src/server/*"],
+      "@utils/*": ["../../src/utils/*"]
     },
     "jsx": "preserve",
-    "types": ["node"]
+    "types": ["node", "react", "react-dom"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
