@@ -31,7 +31,7 @@ export function UserSignatureManager() {
   const handleSaveSignature = async (signatureData: string) => {
     try {
       await saveSignatureMutation.mutateAsync({
-        signatureData,
+        signatureImage: signatureData,
       });
       toast({
         title: 'Assinatura salva',
@@ -85,8 +85,8 @@ export function UserSignatureManager() {
   };
 
   const handlePreviewSignature = () => {
-    if (signature?.signatureData) {
-      setPreviewSignature(signature.signatureData);
+    if (signature?.assinaturaDefault) {
+      setPreviewSignature(signature.assinaturaDefault);
     }
   };
 
@@ -108,7 +108,7 @@ export function UserSignatureManager() {
     );
   }
 
-  const hasSignature = signature?.signatureData;
+  const hasSignature = signature?.assinaturaDefault;
 
   return (
     <Card>
@@ -135,8 +135,8 @@ export function UserSignatureManager() {
                 <div>
                   <p className="font-medium text-green-900">Assinatura configurada</p>
                   <p className="text-sm text-green-700">
-                    Salva em: {signature?.dataAssinatura ? 
-                      new Date(signature.dataAssinatura).toLocaleString('pt-BR') : 
+                    Salva em: {signature?.dataAssinaturaDefault ? 
+                      new Date(signature.dataAssinaturaDefault).toLocaleString('pt-BR') : 
                       'Data não disponível'}
                   </p>
                 </div>

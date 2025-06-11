@@ -1,5 +1,5 @@
 const clientEnv = {
-  VITE_ENABLE_STAGEWISE: import.meta.env.VITE_ENABLE_STAGEWISE,
+  VITE_ENABLE_STAGEWISE: process.env.NEXT_PUBLIC_ENABLE_STAGEWISE,
 };
 
 export const env = {

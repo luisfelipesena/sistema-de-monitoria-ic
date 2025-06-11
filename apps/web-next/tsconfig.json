@@ -3,18 +3,51 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "@validators": ["../../packages/validators/index.ts"],
-      "@validators/*": ["../../packages/validators/*"],
-      "@/*": ["../../src/*"],
-      "@server/*": ["../../src/server/*"],
-      "@server/database/*": ["../../src/server/database/*"],
-      "@server/database": ["../../src/server/database/index.ts"],
-      "@utils/*": ["../../src/utils/*"],
-      "@hooks/*": ["../../src/hooks/*"]
+      "@validators": [
+        "../../packages/validators/index.ts"
+      ],
+      "@validators/*": [
+        "../../packages/validators/*"
+      ],
+      "@/*": [
+        "../../src/*"
+      ],
+      "@server/*": [
+        "../../src/server/*"
+      ],
+      "@server/database/*": [
+        "../../src/server/database/*"
+      ],
+      "@server/database": [
+        "../../src/server/database/index.ts"
+      ],
+      "@utils/*": [
+        "../../src/utils/*"
+      ],
+      "@hooks/*": [
+        "../../src/hooks/*"
+      ]
     },
     "jsx": "preserve",
-    "types": ["node", "react", "react-dom"]
+    "types": [
+      "node",
+      "react",
+      "react-dom"
+    ],
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
