@@ -12,12 +12,15 @@ import {
   alunoTable,
   userTable,
   periodoInscricaoTable,
+  ataSelecaoTable,
+  vagaTable,
 } from '@/server/db/schema'
 import { TRPCError } from '@trpc/server'
-import { eq, sql, and, isNull, lte, gte } from 'drizzle-orm'
+import { eq, sql, and, isNull, lte, gte, desc } from 'drizzle-orm'
 import { z } from 'zod'
 import { logger } from '@/utils/logger'
 import minioClient, { bucketName } from '@/server/lib/minio'
+import { emailService } from '@/server/lib/email-service'
 
 const log = logger.child({ context: 'ProjetoRouter' })
 
@@ -893,6 +896,31 @@ export const projetoRouter = createTRPCRouter({
         log.warn({ projetoId: input.projetoId, error }, 'Erro ao salvar PDF no MinIO, mas assinatura foi salva')
       }
 
+      // Enviar notificação para admins
+      try {
+        const admins = await db.query.userTable.findMany({
+          where: eq(userTable.role, 'admin'),
+        })
+
+        if (admins.length > 0) {
+          const adminEmails = admins.map((admin) => admin.email)
+          
+          await emailService.sendProfessorAssinouPropostaNotification(
+            {
+              professorNome: projeto.professorResponsavel.nomeCompleto,
+              projetoTitulo: projeto.titulo,
+              projetoId: projeto.id,
+              novoStatusProjeto: 'SUBMITTED',
+              remetenteUserId: ctx.user.id,
+            },
+            adminEmails
+          )
+          log.info({ projetoId: input.projetoId, adminCount: adminEmails.length }, 'Notificações enviadas para admins')
+        }
+      } catch (error) {
+        log.error({ error, projetoId: input.projetoId }, 'Erro ao enviar notificações, mas assinatura foi salva')
+      }
+
       log.info({ projetoId: input.projetoId }, 'Assinatura do professor adicionada')
       return { success: true }
     }),
@@ -964,6 +992,29 @@ export const projetoRouter = createTRPCRouter({
         )
       } catch (error) {
         log.warn({ projetoId: input.projetoId, error }, 'Erro ao salvar PDF no MinIO, mas assinatura foi salva')
+      }
+
+      // Enviar notificação para o professor
+      try {
+        const projetoCompleto = await db.query.projetoTable.findFirst({
+          where: eq(projetoTable.id, input.projetoId),
+          with: {
+            professorResponsavel: true,
+          },
+        })
+
+        if (projetoCompleto) {
+          await emailService.sendAdminAssinouPropostaNotification({
+            professorEmail: projetoCompleto.professorResponsavel.emailInstitucional,
+            professorNome: projetoCompleto.professorResponsavel.nomeCompleto,
+            projetoTitulo: projetoCompleto.titulo,
+            projetoId: projetoCompleto.id,
+            novoStatusProjeto: 'APPROVED',
+          })
+          log.info({ projetoId: input.projetoId }, 'Notificação enviada para professor')
+        }
+      } catch (error) {
+        log.error({ error, projetoId: input.projetoId }, 'Erro ao enviar notificação, mas assinatura foi salva')
       }
 
       log.info({ projetoId: input.projetoId }, 'Assinatura do admin adicionada e projeto aprovado')
@@ -1331,6 +1382,391 @@ export const projetoRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Erro ao atualizar status do voluntário',
+        })
+      }
+    }),
+
+  // Endpoint para gerar dados da ata de seleção
+  generateSelectionMinutesData: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/projetos/{projetoId}/ata-selecao-data',
+        tags: ['projetos'],
+        summary: 'Get selection minutes data',
+        description: 'Get data for generating selection minutes PDF',
+      },
+    })
+    .input(z.object({ projetoId: z.number() }))
+    .output(z.object({
+      projeto: z.object({
+        id: z.number(),
+        titulo: z.string(),
+        ano: z.number(),
+        semestre: z.string(),
+        departamento: z.object({
+          nome: z.string(),
+          sigla: z.string().nullable(),
+        }),
+        professorResponsavel: z.object({
+          nomeCompleto: z.string(),
+          matriculaSiape: z.string().nullable(),
+        }),
+        disciplinas: z.array(z.object({
+          codigo: z.string(),
+          nome: z.string(),
+        })),
+      }),
+      candidatos: z.array(z.object({
+        id: z.number(),
+        aluno: z.object({
+          nomeCompleto: z.string(),
+          matricula: z.string(),
+          cr: z.number().nullable(),
+        }),
+        tipoVagaPretendida: z.string().nullable(),
+        notaDisciplina: z.number().nullable(),
+        notaSelecao: z.number().nullable(),
+        coeficienteRendimento: z.number().nullable(),
+        notaFinal: z.number().nullable(),
+        status: z.string(),
+        observacoes: z.string().nullable(),
+      })),
+      ataInfo: z.object({
+        dataSelecao: z.string(),
+        localSelecao: z.string().nullable(),
+        observacoes: z.string().nullable(),
+      }),
+    }))
+    .query(async ({ input, ctx }) => {
+      try {
+        // Verificar se é professor e se tem acesso ao projeto
+        const projeto = await db.query.projetoTable.findFirst({
+          where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
+          with: {
+            departamento: true,
+            professorResponsavel: true,
+          },
+        })
+
+        if (!projeto) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Projeto não encontrado',
+          })
+        }
+
+        if (ctx.user.role === 'professor') {
+          const professor = await db.query.professorTable.findFirst({
+            where: eq(professorTable.userId, ctx.user.id),
+          })
+
+          if (!professor || projeto.professorResponsavelId !== professor.id) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Acesso negado a este projeto',
+            })
+          }
+        }
+
+        // Buscar disciplinas do projeto
+        const disciplinas = await db
+          .select({
+            codigo: disciplinaTable.codigo,
+            nome: disciplinaTable.nome,
+          })
+          .from(disciplinaTable)
+          .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
+          .where(eq(projetoDisciplinaTable.projetoId, projeto.id))
+
+        // Buscar candidatos/inscrições do projeto
+        const candidatos = await db
+          .select({
+            id: inscricaoTable.id,
+            aluno: {
+              nomeCompleto: alunoTable.nomeCompleto,
+              matricula: alunoTable.matricula,
+              cr: alunoTable.cr,
+            },
+            tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
+            notaDisciplina: inscricaoTable.notaDisciplina,
+            notaSelecao: inscricaoTable.notaSelecao,
+            coeficienteRendimento: inscricaoTable.coeficienteRendimento,
+            notaFinal: inscricaoTable.notaFinal,
+            status: inscricaoTable.status,
+            observacoes: inscricaoTable.feedbackProfessor,
+          })
+          .from(inscricaoTable)
+          .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
+          .where(eq(inscricaoTable.projetoId, projeto.id))
+          .orderBy(desc(inscricaoTable.notaFinal))
+
+        // Dados da ata
+        const ataInfo = {
+          dataSelecao: new Date().toLocaleDateString('pt-BR'),
+          localSelecao: null,
+          observacoes: null,
+        }
+
+        // Transformar dados dos candidatos para match da interface
+        const candidatosTransformados = candidatos.map(candidato => ({
+          id: candidato.id,
+          aluno: {
+            nomeCompleto: candidato.aluno.nomeCompleto,
+            matricula: candidato.aluno.matricula,
+            cr: candidato.aluno.cr,
+          },
+          tipoVagaPretendida: candidato.tipoVagaPretendida,
+          notaDisciplina: candidato.notaDisciplina ? Number(candidato.notaDisciplina) : null,
+          notaSelecao: candidato.notaSelecao ? Number(candidato.notaSelecao) : null,
+          coeficienteRendimento: candidato.coeficienteRendimento ? Number(candidato.coeficienteRendimento) : null,
+          notaFinal: candidato.notaFinal ? Number(candidato.notaFinal) : null,
+          status: candidato.status,
+          observacoes: candidato.observacoes,
+        }))
+
+        return {
+          projeto: {
+            id: projeto.id,
+            titulo: projeto.titulo,
+            ano: projeto.ano,
+            semestre: projeto.semestre,
+            departamento: {
+              nome: projeto.departamento.nome,
+              sigla: projeto.departamento.sigla,
+            },
+            professorResponsavel: {
+              nomeCompleto: projeto.professorResponsavel.nomeCompleto,
+              matriculaSiape: projeto.professorResponsavel.matriculaSiape,
+            },
+            disciplinas,
+          },
+          candidatos: candidatosTransformados,
+          ataInfo,
+        }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        log.error(error, 'Erro ao buscar dados da ata de seleção')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao buscar dados da ata de seleção',
+        })
+      }
+    }),
+
+  // Endpoint para salvar ata de seleção
+  saveSelectionMinutes: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/projetos/{projetoId}/ata-selecao',
+        tags: ['projetos'],
+        summary: 'Save selection minutes',
+        description: 'Save selection minutes to database and MinIO',
+      },
+    })
+    .input(z.object({
+      projetoId: z.number(),
+      dataSelecao: z.string().optional(),
+      localSelecao: z.string().optional(),
+      observacoes: z.string().optional(),
+    }))
+    .output(z.object({ success: z.boolean(), ataId: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        // Verificar se é professor e se tem acesso ao projeto
+        const projeto = await db.query.projetoTable.findFirst({
+          where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
+        })
+
+        if (!projeto) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Projeto não encontrado',
+          })
+        }
+
+        if (ctx.user.role === 'professor') {
+          const professor = await db.query.professorTable.findFirst({
+            where: eq(professorTable.userId, ctx.user.id),
+          })
+
+          if (!professor || projeto.professorResponsavelId !== professor.id) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Acesso negado a este projeto',
+            })
+          }
+        }
+
+        // Verificar se já existe uma ata para este projeto
+        const ataExistente = await db.query.ataSelecaoTable.findFirst({
+          where: eq(ataSelecaoTable.projetoId, input.projetoId),
+        })
+
+        let ataId: number
+
+        if (ataExistente) {
+          // Atualizar ata existente - apenas atualizamos dataGeracao
+          await db
+            .update(ataSelecaoTable)
+            .set({
+              dataGeracao: new Date(),
+            })
+            .where(eq(ataSelecaoTable.id, ataExistente.id))
+          
+          ataId = ataExistente.id
+        } else {
+          // Criar nova ata
+          const [novaAta] = await db
+            .insert(ataSelecaoTable)
+            .values({
+              projetoId: input.projetoId,
+              geradoPorUserId: ctx.user.id,
+            })
+            .returning({ id: ataSelecaoTable.id })
+          
+          ataId = novaAta.id
+        }
+
+        log.info({ projetoId: input.projetoId, ataId }, 'Ata de seleção salva')
+        return { success: true, ataId }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        log.error(error, 'Erro ao salvar ata de seleção')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao salvar ata de seleção',
+        })
+      }
+    }),
+
+  // Endpoint para notificar candidatos sobre resultado
+  notifySelectionResults: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/projetos/{projetoId}/notify-results',
+        tags: ['projetos'],
+        summary: 'Notify selection results',
+        description: 'Send email notifications to candidates about selection results',
+      },
+    })
+    .input(z.object({
+      projetoId: z.number(),
+      mensagemPersonalizada: z.string().optional(),
+    }))
+    .output(z.object({ 
+      success: z.boolean(), 
+      notificationsCount: z.number() 
+    }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        // Verificar se é professor e se tem acesso ao projeto
+        const projeto = await db.query.projetoTable.findFirst({
+          where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
+          with: {
+            professorResponsavel: true,
+          },
+        })
+
+        if (!projeto) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Projeto não encontrado',
+          })
+        }
+
+        if (ctx.user.role === 'professor') {
+          const professor = await db.query.professorTable.findFirst({
+            where: eq(professorTable.userId, ctx.user.id),
+          })
+
+          if (!professor || projeto.professorResponsavelId !== professor.id) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Acesso negado a este projeto',
+            })
+          }
+        }
+
+        // Buscar candidatos com seus dados de usuário
+        const candidatos = await db
+          .select({
+            inscricao: {
+              id: inscricaoTable.id,
+              status: inscricaoTable.status,
+              feedbackProfessor: inscricaoTable.feedbackProfessor,
+            },
+            aluno: {
+              id: alunoTable.id,
+              nomeCompleto: alunoTable.nomeCompleto,
+            },
+            user: {
+              email: userTable.email,
+            },
+          })
+          .from(inscricaoTable)
+          .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
+          .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
+          .where(eq(inscricaoTable.projetoId, input.projetoId))
+
+        let notificationsCount = 0
+
+        // Enviar notificações para todos os candidatos
+        for (const candidato of candidatos) {
+          try {
+            let status: 'SELECTED_BOLSISTA' | 'SELECTED_VOLUNTARIO' | 'REJECTED_BY_PROFESSOR'
+            
+            if (candidato.inscricao.status === 'SELECTED_BOLSISTA') {
+              status = 'SELECTED_BOLSISTA'
+            } else if (candidato.inscricao.status === 'SELECTED_VOLUNTARIO') {
+              status = 'SELECTED_VOLUNTARIO'
+            } else {
+              status = 'REJECTED_BY_PROFESSOR'
+            }
+
+            await emailService.sendStudentSelectionResultNotification({
+              studentName: candidato.aluno.nomeCompleto,
+              studentEmail: candidato.user.email,
+              projectTitle: projeto.titulo,
+              professorName: projeto.professorResponsavel.nomeCompleto,
+              status,
+              feedbackProfessor: candidato.inscricao.feedbackProfessor || input.mensagemPersonalizada,
+              alunoId: candidato.aluno.id,
+              projetoId: projeto.id,
+            }, ctx.user.id)
+
+            notificationsCount++
+          } catch (emailError) {
+            log.error(
+              { 
+                error: emailError, 
+                candidatoId: candidato.aluno.id, 
+                projetoId: input.projetoId 
+              }, 
+              'Erro ao enviar notificação para candidato'
+            )
+            // Continua enviando para os outros mesmo se um falhar
+          }
+        }
+
+        log.info({ 
+          projetoId: input.projetoId, 
+          notificationsCount, 
+          totalCandidatos: candidatos.length 
+        }, 'Notificações de resultado enviadas')
+
+        return { 
+          success: true, 
+          notificationsCount 
+        }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        log.error(error, 'Erro ao notificar resultados')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao notificar resultados',
         })
       }
     }),

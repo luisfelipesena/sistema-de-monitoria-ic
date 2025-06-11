@@ -389,4 +389,119 @@ export const relatoriosRouter = createTRPCRouter({
           : 0,
       }
     }),
+
+  getConsolidatedMonitoringData: adminProtectedProcedure
+    .input(
+      z.object({
+        ano: z.number().int().min(2000).max(2100),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+      })
+    )
+    .query(async ({ input }) => {
+      // Buscar todos os monitores aceitos no período
+      const monitores = await db
+        .select({
+          inscricao: {
+            id: inscricaoTable.id,
+            status: inscricaoTable.status,
+            createdAt: inscricaoTable.createdAt,
+            updatedAt: inscricaoTable.updatedAt,
+          },
+          aluno: {
+            id: alunoTable.id,
+            nomeCompleto: alunoTable.nomeCompleto,
+            matricula: alunoTable.matricula,
+            cr: alunoTable.cr,
+          },
+          alunoUser: {
+            email: userTable.email,
+          },
+          professor: {
+            id: professorTable.id,
+            nomeCompleto: professorTable.nomeCompleto,
+            matriculaSiape: professorTable.matriculaSiape,
+            emailInstitucional: professorTable.emailInstitucional,
+          },
+          departamento: {
+            nome: departamentoTable.nome,
+          },
+          projeto: {
+            id: projetoTable.id,
+            titulo: projetoTable.titulo,
+            ano: projetoTable.ano,
+            semestre: projetoTable.semestre,
+            cargaHorariaSemana: projetoTable.cargaHorariaSemana,
+            numeroSemanas: projetoTable.numeroSemanas,
+          },
+        })
+        .from(inscricaoTable)
+        .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
+        .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
+        .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
+        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+        .where(
+          and(
+            eq(projetoTable.ano, input.ano),
+            eq(projetoTable.semestre, input.semestre),
+            sql`${inscricaoTable.status} IN ('ACCEPTED_BOLSISTA', 'ACCEPTED_VOLUNTARIO')`
+          )
+        )
+        .orderBy(inscricaoTable.status, alunoTable.nomeCompleto)
+
+      // Para cada monitor, buscar as disciplinas do projeto
+      const monitoresComDisciplinas = await Promise.all(
+        monitores.map(async (monitor) => {
+          const disciplinas = await db
+            .select({
+              codigo: disciplinaTable.codigo,
+              nome: disciplinaTable.nome,
+            })
+            .from(disciplinaTable)
+            .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
+            .where(eq(projetoDisciplinaTable.projetoId, monitor.projeto.id))
+
+          const disciplinasTexto = disciplinas.map(d => `${d.codigo} - ${d.nome}`).join('; ')
+
+          // Calcular datas baseadas no período acadêmico
+          const inicioSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
+          const fimSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
+
+          const tipoMonitoria = monitor.inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
+
+          return {
+            id: monitor.inscricao.id,
+            monitor: {
+              nome: monitor.aluno.nomeCompleto,
+              matricula: monitor.aluno.matricula,
+              email: monitor.alunoUser.email,
+              cr: monitor.aluno.cr,
+            },
+            professor: {
+              nome: monitor.professor.nomeCompleto,
+              matriculaSiape: monitor.professor.matriculaSiape,
+              email: monitor.professor.emailInstitucional,
+              departamento: monitor.departamento.nome,
+            },
+            projeto: {
+              titulo: monitor.projeto.titulo,
+              disciplinas: disciplinasTexto,
+              ano: monitor.projeto.ano,
+              semestre: monitor.projeto.semestre,
+              cargaHorariaSemana: monitor.projeto.cargaHorariaSemana,
+              numeroSemanas: monitor.projeto.numeroSemanas,
+            },
+            monitoria: {
+              tipo: tipoMonitoria,
+              dataInicio: inicioSemestre.toLocaleDateString('pt-BR'),
+              dataFim: fimSemestre.toLocaleDateString('pt-BR'),
+              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 400.00 : undefined, // Valor fixo por enquanto
+              status: 'ATIVO', // Por enquanto, todos aceitos são considerados ativos
+            },
+          }
+        })
+      )
+
+      return monitoresComDisciplinas
+    }),
 })

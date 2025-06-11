@@ -203,6 +203,12 @@ const menuConfig: MenuConfig[] = [
         roles: ['admin'],
       },
       {
+        label: 'Consolidação PROGRAD',
+        href: '/home/admin/consolidacao-prograd',
+        icon: FileSpreadsheet,
+        roles: ['admin'],
+      },
+      {
         label: 'API Keys',
         href: '/home/admin/api-keys',
         icon: Key,
@@ -264,7 +270,7 @@ const menuConfig: MenuConfig[] = [
       },
       {
         label: 'Publicar Resultados',
-        href: '/home/professor/publish-results',
+        href: '/home/professor/publicar-resultados',
         icon: FileCheck,
         roles: ['professor'],
       },
@@ -284,8 +290,14 @@ const menuConfig: MenuConfig[] = [
         roles: ['professor'],
       },
       {
-        label: 'Gerar Ata de Seleção',
-        href: '/home/professor/gerar-ata',
+        label: 'Atas de Seleção',
+        href: '/home/professor/atas-selecao',
+        icon: FileText,
+        roles: ['professor'],
+      },
+      {
+        label: 'Termos de Compromisso',
+        href: '/home/professor/termos-compromisso',
         icon: FileText,
         roles: ['professor'],
       },
