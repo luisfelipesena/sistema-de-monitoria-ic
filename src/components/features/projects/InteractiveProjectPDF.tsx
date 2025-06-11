@@ -2,7 +2,7 @@ import { MonitoriaFormTemplate, MonitoriaFormData } from '@/components/features/
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useProfessorSignature, useAdminSignature } from '@/hooks/use-projeto';
+import { useSignProject } from '../../../../apps/web-next/src/hooks/use-signature';
 import { PDFViewer } from '@react-pdf/renderer';
 import { CheckCircle, FileSignature, Loader2 } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
@@ -27,8 +27,7 @@ export function InteractiveProjectPDF({
   const [isLoadingSignatures, setIsLoadingSignatures] = useState(true);
   const signatureRef = useRef<SignatureCanvas>(null);
   
-  const professorSignatureMutation = useProfessorSignature();
-  const adminSignatureMutation = useAdminSignature();
+  const signProjectMutation = useSignProject();
 
   // Buscar assinaturas existentes do projeto
   useEffect(() => {
@@ -78,9 +77,10 @@ export function InteractiveProjectPDF({
         const signatureDataURL = signatureRef.current.toDataURL();
         
         if (userRole === 'professor') {
-          await professorSignatureMutation.mutateAsync({
+          await signProjectMutation.mutateAsync({
             projetoId: formData.projetoId,
             signatureImage: signatureDataURL,
+            tipoAssinatura: 'PROJETO_PROFESSOR_RESPONSAVEL',
           });
 
           const updatedFormData = {
@@ -90,9 +90,10 @@ export function InteractiveProjectPDF({
           };
           setSignedData(updatedFormData);
         } else if (userRole === 'admin') {
-          await adminSignatureMutation.mutateAsync({
+          await signProjectMutation.mutateAsync({
             projetoId: formData.projetoId,
             signatureImage: signatureDataURL,
+            tipoAssinatura: 'PROJETO_COORDENADOR_DEPARTAMENTO',
           });
 
           const updatedFormData = {
