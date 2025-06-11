@@ -12,7 +12,7 @@ export async function createContext({ req, res }: { req: NextApiRequest; res: Ne
   const cookies = parse(req.headers.cookie || '');
   const sessionId = getSessionId(new Headers(req.headers as any));
 
-  let user: JwtUser | null = null;
+  let currentUser: JwtUser | null = null;
   if (sessionId) {
     const { session, user } = await lucia.validateSession(sessionId);
     if (session && user) {
@@ -23,11 +23,11 @@ export async function createContext({ req, res }: { req: NextApiRequest; res: Ne
         .where(eq(userTable.id, user.id))
         .limit(1);
       const role = res[0]?.role;
-      user = { id: user.id, username: user.username, email: user.email, role } as any;
+      currentUser = { id: user.id, username: user.username, email: user.email, role } as any;
     }
   }
 
   return {
-    user,
+    user: currentUser,
   };
 }
