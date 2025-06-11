@@ -9,7 +9,8 @@
       "@server/*": ["../../src/server/*"],
       "@server/database/*": ["../../src/server/database/*"],
       "@server/database": ["../../src/server/database/index.ts"],
-      "@utils/*": ["../../src/utils/*"]
+      "@utils/*": ["../../src/utils/*"],
+      "@hooks/*": ["../../src/hooks/*"]
     },
     "jsx": "preserve",
     "types": ["node", "react", "react-dom"]

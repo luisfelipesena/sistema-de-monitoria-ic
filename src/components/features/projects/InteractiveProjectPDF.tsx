@@ -2,7 +2,7 @@ import { MonitoriaFormTemplate, MonitoriaFormData } from '@/components/features/
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useSignProject } from '../../../../apps/web-next/src/hooks/use-signature';
+import { useSignProject } from '@hooks/use-signature';
 import { PDFViewer } from '@react-pdf/renderer';
 import { CheckCircle, FileSignature, Loader2 } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
