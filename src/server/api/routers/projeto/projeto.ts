@@ -21,6 +21,7 @@ import { z } from 'zod'
 import { logger } from '@/utils/logger'
 import minioClient, { bucketName } from '@/server/lib/minio'
 import { emailService } from '@/server/lib/email-service'
+import { PDFService } from '@/server/lib/pdf-service'
 
 const log = logger.child({ context: 'ProjetoRouter' })
 
@@ -99,8 +100,14 @@ export const projetoDetalhesSchema = z.object({
   professorResponsavel: z.object({
     id: z.number(),
     nomeCompleto: z.string(),
-    emailInstitucional: z.string(),
+    nomeSocial: z.string().nullable(),
+    genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
+    cpf: z.string(),
     matriculaSiape: z.string().nullable(),
+    regime: z.enum(['20H', '40H', 'DE']),
+    telefone: z.string().nullable(),
+    telefoneInstitucional: z.string().nullable(),
+    emailInstitucional: z.string(),
   }),
   disciplinas: z.array(
     z.object({
@@ -339,6 +346,18 @@ export const projetoRouter = createTRPCRouter({
 
       return {
         ...projeto,
+        professorResponsavel: {
+          id: projeto.professorResponsavel.id,
+          nomeCompleto: projeto.professorResponsavel.nomeCompleto,
+          nomeSocial: projeto.professorResponsavel.nomeSocial,
+          genero: projeto.professorResponsavel.genero,
+          cpf: projeto.professorResponsavel.cpf,
+          matriculaSiape: projeto.professorResponsavel.matriculaSiape,
+          regime: projeto.professorResponsavel.regime,
+          telefone: projeto.professorResponsavel.telefone,
+          telefoneInstitucional: projeto.professorResponsavel.telefoneInstitucional,
+          emailInstitucional: projeto.professorResponsavel.emailInstitucional,
+        },
         disciplinas,
         professoresParticipantes,
         atividades,
@@ -878,18 +897,68 @@ export const projetoRouter = createTRPCRouter({
         .where(eq(projetoTable.id, input.projetoId))
 
       try {
-        const baseDirectory = `projetos/${projeto.id}/propostas_assinadas`
-        const fileName = `proposta_assinada_professor_${Date.now()}.pdf`
-        const objectName = `${baseDirectory}/${fileName}`
+        // Prepare PDF data
+        const [disciplinas, professoresParticipantes, atividades] = await Promise.all([
+          db
+            .select({
+              id: disciplinaTable.id,
+              codigo: disciplinaTable.codigo,
+              nome: disciplinaTable.nome,
+            })
+            .from(disciplinaTable)
+            .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
+            .where(eq(projetoDisciplinaTable.projetoId, projeto.id)),
 
-        const pdfContent = JSON.stringify({
-          message: 'PDF placeholder - Professor signature applied',
+          db
+            .select({
+              id: professorTable.id,
+              nomeCompleto: professorTable.nomeCompleto,
+            })
+            .from(professorTable)
+            .innerJoin(
+              projetoProfessorParticipanteTable,
+              eq(professorTable.id, projetoProfessorParticipanteTable.professorId)
+            )
+            .where(eq(projetoProfessorParticipanteTable.projetoId, projeto.id)),
+
+          db.query.atividadeProjetoTable.findMany({
+            where: eq(atividadeProjetoTable.projetoId, projeto.id),
+          }),
+        ])
+
+        const pdfData = {
+          titulo: projeto.titulo,
+          descricao: projeto.descricao,
+          departamento: projeto.departamento,
+          professorResponsavel: {
+            ...projeto.professorResponsavel,
+            nomeSocial: projeto.professorResponsavel.nomeSocial || undefined,
+            matriculaSiape: projeto.professorResponsavel.matriculaSiape || undefined,
+            telefone: projeto.professorResponsavel.telefone || undefined,
+            telefoneInstitucional: projeto.professorResponsavel.telefoneInstitucional || undefined,
+          },
+          ano: projeto.ano,
+          semestre: projeto.semestre,
+          tipoProposicao: projeto.tipoProposicao,
+          bolsasSolicitadas: projeto.bolsasSolicitadas,
+          voluntariosSolicitados: projeto.voluntariosSolicitados,
+          cargaHorariaSemana: projeto.cargaHorariaSemana,
+          numeroSemanas: projeto.numeroSemanas,
+          publicoAlvo: projeto.publicoAlvo,
+          estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || undefined,
+          disciplinas,
+          professoresParticipantes,
+          atividades,
+          assinaturaProfessor: input.signatureImage,
+          dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
           projetoId: projeto.id,
-          assinaturaProfessor: `${input.signatureImage.substring(0, 50)}...`,
-          timestamp: new Date().toISOString(),
-        })
+        }
 
-        await minioClient.putObject(bucketName, objectName, Buffer.from(pdfContent))
+        // Generate and save the PDF with professor signature
+        const objectName = await PDFService.generateAndSaveSignedProjetoPDF(
+          pdfData,
+          input.signatureImage
+        )
 
         log.info({ projetoId: input.projetoId, objectName }, 'PDF com assinatura do professor salvo no MinIO')
       } catch (error) {
@@ -971,25 +1040,115 @@ export const projetoRouter = createTRPCRouter({
         .where(eq(projetoTable.id, input.projetoId))
 
       try {
-        const baseDirectory = `projetos/${projeto.id}/propostas_assinadas`
-        const fileName = `proposta_assinada_completa_${Date.now()}.pdf`
-        const objectName = `${baseDirectory}/${fileName}`
+        // Get the existing PDF with professor signature
+        const existingPdf = await PDFService.getLatestProjetoPDF(projeto.id)
+        
+        if (existingPdf) {
+          // Add admin signature to existing PDF
+          const pdfWithAdminSignature = await PDFService.addSignatureToPDF(
+            existingPdf.buffer,
+            input.signatureImage,
+            'admin'
+          )
+          
+          // Save the updated PDF
+          const objectName = await PDFService.saveProjetoPDF(
+            projeto.id,
+            pdfWithAdminSignature,
+            `projetos/${projeto.id}/propostas_assinadas/proposta_assinada_completa_${Date.now()}.pdf`
+          )
+          
+          log.info(
+            { projetoId: input.projetoId, objectName },
+            'PDF com assinatura completa (professor + admin) salvo no MinIO'
+          )
+        } else {
+          // Fallback: generate new PDF with both signatures
+          const projetoCompleto = await db.query.projetoTable.findFirst({
+            where: eq(projetoTable.id, input.projetoId),
+            with: {
+              departamento: true,
+              professorResponsavel: true,
+            },
+          })
 
-        const pdfContent = JSON.stringify({
-          message: 'PDF placeholder - Admin signature applied - Document complete',
-          projetoId: projeto.id,
-          assinaturaProfessor: projeto.assinaturaProfessor ? 'Present' : 'Not found',
-          assinaturaAdmin: `${input.signatureImage.substring(0, 50)}...`,
-          timestamp: new Date().toISOString(),
-          status: 'APPROVED',
-        })
+          if (!projetoCompleto) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Projeto não encontrado para fallback',
+            })
+          }
 
-        await minioClient.putObject(bucketName, objectName, Buffer.from(pdfContent))
+          const [disciplinas, professoresParticipantes, atividades] = await Promise.all([
+            db
+              .select({
+                id: disciplinaTable.id,
+                codigo: disciplinaTable.codigo,
+                nome: disciplinaTable.nome,
+              })
+              .from(disciplinaTable)
+              .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
+              .where(eq(projetoDisciplinaTable.projetoId, projeto.id)),
 
-        log.info(
-          { projetoId: input.projetoId, objectName },
-          'PDF com assinatura completa (professor + admin) salvo no MinIO'
-        )
+            db
+              .select({
+                id: professorTable.id,
+                nomeCompleto: professorTable.nomeCompleto,
+              })
+              .from(professorTable)
+              .innerJoin(
+                projetoProfessorParticipanteTable,
+                eq(professorTable.id, projetoProfessorParticipanteTable.professorId)
+              )
+              .where(eq(projetoProfessorParticipanteTable.projetoId, projeto.id)),
+
+            db.query.atividadeProjetoTable.findMany({
+              where: eq(atividadeProjetoTable.projetoId, projeto.id),
+            }),
+          ])
+
+          const pdfData = {
+            titulo: projetoCompleto.titulo,
+            descricao: projetoCompleto.descricao,
+            departamento: projetoCompleto.departamento,
+            professorResponsavel: {
+              ...projetoCompleto.professorResponsavel,
+              nomeSocial: projetoCompleto.professorResponsavel.nomeSocial || undefined,
+              matriculaSiape: projetoCompleto.professorResponsavel.matriculaSiape || undefined,
+              telefone: projetoCompleto.professorResponsavel.telefone || undefined,
+              telefoneInstitucional: projetoCompleto.professorResponsavel.telefoneInstitucional || undefined,
+            },
+            ano: projetoCompleto.ano,
+            semestre: projetoCompleto.semestre,
+            tipoProposicao: projetoCompleto.tipoProposicao,
+            bolsasSolicitadas: projetoCompleto.bolsasSolicitadas,
+            voluntariosSolicitados: projetoCompleto.voluntariosSolicitados,
+            cargaHorariaSemana: projetoCompleto.cargaHorariaSemana,
+            numeroSemanas: projetoCompleto.numeroSemanas,
+            publicoAlvo: projetoCompleto.publicoAlvo,
+            estimativaPessoasBenificiadas: projetoCompleto.estimativaPessoasBenificiadas || undefined,
+            disciplinas,
+            professoresParticipantes,
+            atividades,
+            assinaturaProfessor: projetoCompleto.assinaturaProfessor || undefined,
+            assinaturaAdmin: input.signatureImage,
+            dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
+            dataAssinaturaAdmin: new Date().toLocaleDateString('pt-BR'),
+            dataAprovacao: new Date().toLocaleDateString('pt-BR'),
+            projetoId: projetoCompleto.id,
+          }
+
+          const objectName = await PDFService.generateAndSaveSignedProjetoPDF(
+            pdfData,
+            projetoCompleto.assinaturaProfessor || undefined,
+            input.signatureImage
+          )
+          
+          log.info(
+            { projetoId: input.projetoId, objectName },
+            'PDF com assinatura completa gerado do zero'
+          )
+        }
       } catch (error) {
         log.warn({ projetoId: input.projetoId, error }, 'Erro ao salvar PDF no MinIO, mas assinatura foi salva')
       }

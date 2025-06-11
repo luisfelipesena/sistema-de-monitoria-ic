@@ -5,10 +5,11 @@ import { TableComponent } from '@/components/layout/TableComponent'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { InteractiveProjectPDF } from '@/components/features/projects/InteractiveProjectPDF'
 import { api } from '@/utils/api'
 import { useRouter } from 'next/navigation'
 import { ColumnDef } from '@tanstack/react-table'
-import { useState } from 'react'
 import { toast } from 'sonner'
 import {
   ArrowLeft,
@@ -17,6 +18,7 @@ import {
   Eye,
   Loader,
 } from 'lucide-react'
+import { useState } from 'react'
 
 type ProjetoListItem = {
   id: number
@@ -31,33 +33,29 @@ type ProjetoListItem = {
 export default function DocumentSigningPage() {
   const router = useRouter()
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
+  const [showSigningDialog, setShowSigningDialog] = useState(false)
   
   const { data: projetos, isLoading: loadingProjetos, refetch } = api.projeto.getProjetos.useQuery()
-  const signDocumentMutation = api.projeto.signDocument.useMutation({
-    onSuccess: () => {
-      toast.success('Documento assinado com sucesso!')
-      refetch()
-    },
-    onError: (error) => {
-      toast.error(`Erro ao assinar documento: ${error.message}`)
-    },
-  })
+  const { data: projectDetails } = api.projeto.getProjeto.useQuery(
+    { id: selectedProjectId! },
+    { enabled: !!selectedProjectId }
+  )
 
-  const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation()
 
   const pendingSignatureProjetos = projetos?.filter(
     (projeto) => projeto.status === 'PENDING_ADMIN_SIGNATURE'
   ) || []
 
+  const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
+
   const handleViewStoredPDF = async (projetoId: number) => {
     toast('Preparando visualização...')
     try {
-      const url = await getPresignedUrlMutation.mutateAsync({
-        fileId: `projeto-${projetoId}`,
-        action: 'view',
+      const result = await getProjetoPdfMutation.mutateAsync({
+        projetoId,
       })
 
-      const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
+      const newWindow = window.open(result.url, '_blank', 'noopener,noreferrer')
       if (!newWindow) {
         toast.error('Popup bloqueado', {
           description: 'Permita popups para visualizar o PDF em nova aba.',
@@ -74,15 +72,16 @@ export default function DocumentSigningPage() {
     }
   }
 
-  const handleSignDocument = async (projetoId: number) => {
-    try {
-      await signDocumentMutation.mutateAsync({
-        projetoId,
-        signatureData: 'admin-signature-placeholder',
-      })
-    } catch (error) {
-      console.error('Sign document error:', error)
-    }
+  const handleSignDocument = (projetoId: number) => {
+    setSelectedProjectId(projetoId)
+    setShowSigningDialog(true)
+  }
+
+  const handleSigningComplete = () => {
+    setShowSigningDialog(false)
+    setSelectedProjectId(null)
+    refetch()
+    toast.success('Documento assinado com sucesso!')
   }
 
   const handleBackToDashboard = () => {
@@ -152,7 +151,6 @@ export default function DocumentSigningPage() {
             size="sm"
             className="rounded-full flex items-center gap-1 bg-green-600 hover:bg-green-700"
             onClick={() => handleSignDocument(row.original.id)}
-            disabled={signDocumentMutation.isPending}
           >
             <FileSignature className="h-4 w-4" />
             Assinar
@@ -243,6 +241,46 @@ export default function DocumentSigningPage() {
           </Card>
         </>
       )}
+
+      {/* Signing Dialog */}
+      <Dialog open={showSigningDialog} onOpenChange={setShowSigningDialog}>
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Assinatura Digital - Documento do Projeto</DialogTitle>
+          </DialogHeader>
+          {projectDetails && (
+            <InteractiveProjectPDF
+              formData={{
+                titulo: projectDetails.titulo,
+                descricao: projectDetails.descricao,
+                departamento: projectDetails.departamento,
+                professorResponsavel: {
+                  ...projectDetails.professorResponsavel,
+                  nomeSocial: projectDetails.professorResponsavel.nomeSocial || undefined,
+                  matriculaSiape: projectDetails.professorResponsavel.matriculaSiape || undefined,
+                  telefone: projectDetails.professorResponsavel.telefone || undefined,
+                  telefoneInstitucional: projectDetails.professorResponsavel.telefoneInstitucional || undefined,
+                },
+                ano: projectDetails.ano,
+                semestre: projectDetails.semestre,
+                tipoProposicao: projectDetails.tipoProposicao,
+                bolsasSolicitadas: projectDetails.bolsasSolicitadas || 0,
+                voluntariosSolicitados: projectDetails.voluntariosSolicitados || 0,
+                cargaHorariaSemana: projectDetails.cargaHorariaSemana,
+                numeroSemanas: projectDetails.numeroSemanas,
+                publicoAlvo: projectDetails.publicoAlvo,
+                estimativaPessoasBenificiadas: projectDetails.estimativaPessoasBenificiadas || undefined,
+                disciplinas: projectDetails.disciplinas,
+                assinaturaProfessor: projectDetails.assinaturaProfessor || undefined,
+                dataAssinaturaProfessor: projectDetails.assinaturaProfessor ? new Date().toLocaleDateString('pt-BR') : undefined,
+                projetoId: projectDetails.id,
+              }}
+              userRole="admin"
+              onSignatureComplete={handleSigningComplete}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </PagesLayout>
   )
 }
