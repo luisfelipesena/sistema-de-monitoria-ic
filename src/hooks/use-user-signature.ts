@@ -1,4 +1,4 @@
-import { trpc } from '@/apps/web-next/src/utils/trpc';
+import { trpc } from '@/../apps/web-next/src/utils/trpc';
 
 export function useUserSignature() {
   return trpc.signature.getProfile.useQuery();
