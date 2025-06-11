@@ -7,3 +7,7 @@ export function useProfileSignature() {
 export function useSaveProfileSignature() {
   return trpc.signature.saveProfile.useMutation();
 }
+
+export function useSignProject() {
+  return trpc.signature.signProject.useMutation();
+}

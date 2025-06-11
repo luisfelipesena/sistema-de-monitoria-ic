@@ -1,45 +1,18 @@
-import { apiClient } from '@/utils/api-client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { QueryKeys } from './query-keys';
-import type { 
-  SignatureInput, 
-  SignatureResponse 
-} from '@/routes/api/user/signature';
+import { trpc } from '@/apps/web-next/src/utils/trpc';
 
 export function useUserSignature() {
-  return useQuery<SignatureResponse>({
-    queryKey: QueryKeys.userSignature.get,
-    queryFn: async () => {
-      const response = await apiClient.get<SignatureResponse>('/user/signature');
-      return response.data;
-    },
-  });
+  return trpc.signature.getProfile.useQuery();
 }
 
 export function useSaveUserSignature() {
-  const queryClient = useQueryClient();
-  
-  return useMutation<SignatureResponse, Error, SignatureInput>({
-    mutationFn: async (input) => {
-      const response = await apiClient.post<SignatureResponse>('/user/signature', input);
-      return response.data;
-    },
+  return trpc.signature.saveProfile.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.userSignature.get });
+      trpc.signature.getProfile.invalidate();
     },
   });
 }
 
 export function useDeleteUserSignature() {
-  const queryClient = useQueryClient();
-  
-  return useMutation<SignatureResponse, Error>({
-    mutationFn: async () => {
-      const response = await apiClient.delete<SignatureResponse>('/user/signature');
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QueryKeys.userSignature.get });
-    },
-  });
+  // not yet implemented in router, fallback to mutation disabled
+  return { mutateAsync: async () => Promise.reject('Not implemented'), isPending: false } as any;
 } 
