@@ -1,13 +1,14 @@
-import { trpc } from '@/../apps/web-next/src/utils/trpc';
+import { trpc } from '../../apps/web-next/src/utils/trpc';
 
 export function useUserSignature() {
   return trpc.signature.getProfile.useQuery();
 }
 
 export function useSaveUserSignature() {
+  const utils = trpc.useContext();
   return trpc.signature.saveProfile.useMutation({
     onSuccess: () => {
-      trpc.signature.getProfile.invalidate();
+      utils.signature.getProfile.invalidate();
     },
   });
 }
