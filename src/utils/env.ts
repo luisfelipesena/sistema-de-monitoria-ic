@@ -26,7 +26,6 @@ export const env = createEnv({
     // Environment
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     PORT: z.string().default('3000'),
-    VERCEL_URL: z.string().optional(),
 
     // MinIO Storage
     MINIO_ENDPOINT: z.string().default('localhost'),
@@ -41,7 +40,6 @@ export const env = createEnv({
 
     // API Auth
     JWT_SECRET: z.string().min(32).optional(),
-
   },
 
   /**
@@ -59,7 +57,6 @@ export const env = createEnv({
     CLIENT_URL: process.env.CLIENT_URL,
     NODE_ENV: process.env.NODE_ENV,
     PORT: process.env.PORT,
-    VERCEL_URL: process.env.VERCEL_URL,
     MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
     MINIO_PORT: process.env.MINIO_PORT,
     MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY,

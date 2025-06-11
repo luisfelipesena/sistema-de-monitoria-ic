@@ -882,16 +882,13 @@ export const projetoRouter = createTRPCRouter({
         const pdfContent = JSON.stringify({
           message: 'PDF placeholder - Professor signature applied',
           projetoId: projeto.id,
-          assinaturaProfessor: input.signatureImage.substring(0, 50) + '...',
+          assinaturaProfessor: `${input.signatureImage.substring(0, 50)}...`,
           timestamp: new Date().toISOString(),
         })
 
         await minioClient.putObject(bucketName, objectName, Buffer.from(pdfContent))
-        
-        log.info(
-          { projetoId: input.projetoId, objectName },
-          'PDF com assinatura do professor salvo no MinIO'
-        )
+
+        log.info({ projetoId: input.projetoId, objectName }, 'PDF com assinatura do professor salvo no MinIO')
       } catch (error) {
         log.warn({ projetoId: input.projetoId, error }, 'Erro ao salvar PDF no MinIO, mas assinatura foi salva')
       }
@@ -954,13 +951,13 @@ export const projetoRouter = createTRPCRouter({
           message: 'PDF placeholder - Admin signature applied - Document complete',
           projetoId: projeto.id,
           assinaturaProfessor: projeto.assinaturaProfessor ? 'Present' : 'Not found',
-          assinaturaAdmin: input.signatureImage.substring(0, 50) + '...',
+          assinaturaAdmin: `${input.signatureImage.substring(0, 50)}...`,
           timestamp: new Date().toISOString(),
           status: 'APPROVED',
         })
 
         await minioClient.putObject(bucketName, objectName, Buffer.from(pdfContent))
-        
+
         log.info(
           { projetoId: input.projetoId, objectName },
           'PDF com assinatura completa (professor + admin) salvo no MinIO'
@@ -1230,10 +1227,7 @@ export const projetoRouter = createTRPCRouter({
           .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
           .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
           .where(
-            and(
-              eq(projetoTable.professorResponsavelId, professor.id),
-              eq(inscricaoTable.status, 'ACCEPTED_VOLUNTARIO')
-            )
+            and(eq(projetoTable.professorResponsavelId, professor.id), eq(inscricaoTable.status, 'ACCEPTED_VOLUNTARIO'))
           )
 
         const voluntarios = await Promise.all(
@@ -1313,10 +1307,7 @@ export const projetoRouter = createTRPCRouter({
 
         // Find the inscription for this volunteer
         const inscricao = await db.query.inscricaoTable.findFirst({
-          where: and(
-            eq(inscricaoTable.alunoId, input.id),
-            eq(inscricaoTable.status, 'ACCEPTED_VOLUNTARIO')
-          ),
+          where: and(eq(inscricaoTable.alunoId, input.id), eq(inscricaoTable.status, 'ACCEPTED_VOLUNTARIO')),
           with: {
             projeto: true,
           },
@@ -1331,10 +1322,7 @@ export const projetoRouter = createTRPCRouter({
 
         // For now, we'll just log the status change
         // In a full implementation, this could update a separate volunteer status table
-        log.info(
-          { alunoId: input.id, newStatus: input.status },
-          'Status do voluntário atualizado'
-        )
+        log.info({ alunoId: input.id, newStatus: input.status }, 'Status do voluntário atualizado')
 
         return { success: true }
       } catch (error) {

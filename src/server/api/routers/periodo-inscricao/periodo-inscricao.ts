@@ -213,10 +213,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
         const agora = new Date()
 
         const periodoAtivo = await db.query.periodoInscricaoTable.findFirst({
-          where: and(
-            lte(periodoInscricaoTable.dataInicio, agora),
-            gte(periodoInscricaoTable.dataFim, agora)
-          ),
+          where: and(lte(periodoInscricaoTable.dataInicio, agora), gte(periodoInscricaoTable.dataFim, agora)),
         })
 
         if (!periodoAtivo) {
@@ -449,5 +446,4 @@ export const periodoInscricaoRouter = createTRPCRouter({
       log.info({ periodoId: input.id }, 'Período de inscrição excluído com sucesso')
       return { success: true }
     }),
-
 })

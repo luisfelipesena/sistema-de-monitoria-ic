@@ -210,8 +210,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         // Check for active monitoring position
         const monitoriaAtiva = inscricoes.find(
-          (inscricao) =>
-            inscricao.status === 'ACCEPTED_BOLSISTA' || inscricao.status === 'ACCEPTED_VOLUNTARIO'
+          (inscricao) => inscricao.status === 'ACCEPTED_BOLSISTA' || inscricao.status === 'ACCEPTED_VOLUNTARIO'
         )
 
         let monitoriaAtivaFormatted = null
@@ -227,12 +226,13 @@ export const inscricaoRouter = createTRPCRouter({
               professorResponsavelNome: monitoriaAtiva.projeto.professorResponsavel.nomeCompleto,
             },
             status: 'ATIVO',
-            tipo: (monitoriaAtiva.tipoVagaPretendida === 'BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO') as 'BOLSISTA' | 'VOLUNTARIO',
+            tipo: (monitoriaAtiva.tipoVagaPretendida === 'BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO') as
+              | 'BOLSISTA'
+              | 'VOLUNTARIO',
             dataInicio: null, // TODO: Implement start date tracking
             dataFim: null, // TODO: Implement end date tracking
             cargaHorariaCumprida: 0,
-            cargaHorariaPlanejada:
-              monitoriaAtiva.projeto.cargaHorariaSemana * monitoriaAtiva.projeto.numeroSemanas,
+            cargaHorariaPlanejada: monitoriaAtiva.projeto.cargaHorariaSemana * monitoriaAtiva.projeto.numeroSemanas,
           }
         }
 
@@ -240,9 +240,14 @@ export const inscricaoRouter = createTRPCRouter({
         const historicoAtividades = inscricoes
           .filter((inscricao) => inscricao.status !== 'SUBMITTED')
           .map((inscricao) => ({
-            tipo: inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED') ? 'APROVACAO' : 'INSCRICAO',
+            tipo:
+              inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
+                ? 'APROVACAO'
+                : 'INSCRICAO',
             descricao: `${
-              inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED') ? 'Aprovado em' : 'Inscrito em'
+              inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
+                ? 'Aprovado em'
+                : 'Inscrito em'
             } ${inscricao.projeto.titulo}`,
             data: inscricao.updatedAt || inscricao.createdAt,
           }))
@@ -1160,28 +1165,26 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-    evaluateApplications: protectedProcedure
-    .input(z.object({
-      inscricaoId: z.number(),
-      notaDisciplina: z.number().min(0).max(10),
-      notaSelecao: z.number().min(0).max(10), 
-      coeficienteRendimento: z.number().min(0).max(10),
-      feedbackProfessor: z.string().optional(),
-    }))
+  evaluateApplications: protectedProcedure
+    .input(
+      z.object({
+        inscricaoId: z.number(),
+        notaDisciplina: z.number().min(0).max(10),
+        notaSelecao: z.number().min(0).max(10),
+        coeficienteRendimento: z.number().min(0).max(10),
+        feedbackProfessor: z.string().optional(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== 'professor') {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Apenas professores podem avaliar candidatos',
-        });
+        })
       }
 
       // Calcular nota final: (disciplina×5 + seleção×3 + CR×2) / 10
-      const notaFinal = (
-        (input.notaDisciplina * 5) + 
-        (input.notaSelecao * 3) + 
-        (input.coeficienteRendimento * 2)
-      ) / 10;
+      const notaFinal = (input.notaDisciplina * 5 + input.notaSelecao * 3 + input.coeficienteRendimento * 2) / 10
 
       // Verificar se o professor é responsável pelo projeto
       const inscricao = await db.query.inscricaoTable.findFirst({
@@ -1193,20 +1196,20 @@ export const inscricaoRouter = createTRPCRouter({
             },
           },
         },
-      });
+      })
 
       if (!inscricao) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Inscrição não encontrada',
-        });
+        })
       }
 
       if (inscricao.projeto.professorResponsavel.userId !== ctx.user.id) {
         throw new TRPCError({
-          code: 'FORBIDDEN', 
+          code: 'FORBIDDEN',
           message: 'Você não é responsável por este projeto',
-        });
+        })
       }
 
       // Atualizar a inscrição com as notas
@@ -1214,15 +1217,15 @@ export const inscricaoRouter = createTRPCRouter({
         .update(inscricaoTable)
         .set({
           notaDisciplina: input.notaDisciplina.toString(),
-          notaSelecao: input.notaSelecao.toString(), 
+          notaSelecao: input.notaSelecao.toString(),
           coeficienteRendimento: input.coeficienteRendimento.toString(),
           notaFinal: notaFinal.toString(),
           feedbackProfessor: input.feedbackProfessor,
           updatedAt: new Date(),
         })
         .where(eq(inscricaoTable.id, input.inscricaoId))
-        .returning();
+        .returning()
 
-      return updatedInscricao;
+      return updatedInscricao
     }),
 })

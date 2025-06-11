@@ -12,7 +12,6 @@ import { v4 as uuidv4 } from 'uuid'
 import path from 'path'
 import { Readable } from 'stream'
 
-
 export const fileListItemSchema = z.object({
   objectName: z.string(),
   size: z.number(),
@@ -42,59 +41,58 @@ export interface FileListItem {
 const log = logger.child({ context: 'FileRouter' })
 export const fileRouter = createTRPCRouter({
   // Admin file management procedures
-  getAdminFileList: adminProtectedProcedure
-    .query(async ({ ctx }) => {
-      try {
-        const userId = ctx.user.id
-        log.info({ adminUserId: userId }, 'Listando arquivos para admin...')
+  getAdminFileList: adminProtectedProcedure.query(async ({ ctx }) => {
+    try {
+      const userId = ctx.user.id
+      log.info({ adminUserId: userId }, 'Listando arquivos para admin...')
 
-        const objectsStream = minioClient.listObjectsV2(bucketName, undefined, true)
-        const statPromises: Promise<FileListItem | null>[] = []
+      const objectsStream = minioClient.listObjectsV2(bucketName, undefined, true)
+      const statPromises: Promise<FileListItem | null>[] = []
 
-        return new Promise<FileListItem[]>((resolve) => {
-          objectsStream.on('data', (obj: Minio.BucketItem) => {
-            if (obj.name) {
-              statPromises.push(
-                (async () => {
-                  try {
-                    const stat = await minioClient.statObject(bucketName, obj.name!)
-                    return {
-                      objectName: obj.name!,
-                      size: stat.size,
-                      lastModified: stat.lastModified,
-                      metaData: stat.metaData,
-                      originalFilename: stat.metaData['original-filename'] || obj.name!,
-                      mimeType: stat.metaData['content-type'] || 'application/octet-stream',
-                    }
-                  } catch (statError) {
-                    log.error({ objectName: obj.name, error: statError }, 'Erro ao obter metadados do objeto MinIO')
-                    return null
+      return new Promise<FileListItem[]>((resolve) => {
+        objectsStream.on('data', (obj: Minio.BucketItem) => {
+          if (obj.name) {
+            statPromises.push(
+              (async () => {
+                try {
+                  const stat = await minioClient.statObject(bucketName, obj.name!)
+                  return {
+                    objectName: obj.name!,
+                    size: stat.size,
+                    lastModified: stat.lastModified,
+                    metaData: stat.metaData,
+                    originalFilename: stat.metaData['original-filename'] || obj.name!,
+                    mimeType: stat.metaData['content-type'] || 'application/octet-stream',
                   }
-                })()
-              )
+                } catch (statError) {
+                  log.error({ objectName: obj.name, error: statError }, 'Erro ao obter metadados do objeto MinIO')
+                  return null
+                }
+              })()
+            )
+          }
+        })
+
+        objectsStream.on('error', (err: Error) => {
+          log.error(err, 'Erro ao listar objetos no MinIO')
+        })
+
+        objectsStream.on('end', async () => {
+          const results = await Promise.allSettled(statPromises)
+          const files: FileListItem[] = []
+          results.forEach((result) => {
+            if (result.status === 'fulfilled' && result.value) {
+              files.push(result.value)
             }
           })
-
-          objectsStream.on('error', (err: Error) => {
-            log.error(err, 'Erro ao listar objetos no MinIO')
-          })
-
-          objectsStream.on('end', async () => {
-            const results = await Promise.allSettled(statPromises)
-            const files: FileListItem[] = []
-            results.forEach((result) => {
-              if (result.status === 'fulfilled' && result.value) {
-                files.push(result.value)
-              }
-            })
-            resolve(files)
-          })
+          resolve(files)
         })
-      } catch (error) {
-        log.error(error, 'Erro ao listar arquivos')
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao listar arquivos' })
-      }
-    }),
+      })
+    } catch (error) {
+      log.error(error, 'Erro ao listar arquivos')
+      throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao listar arquivos' })
+    }
+  }),
 
   deleteAdminFile: adminProtectedProcedure
     .input(
@@ -133,7 +131,7 @@ export const fileRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       try {
         const { objectName } = input
-        
+
         const presignedUrl = await minioClient.presignedGetObject(
           bucketName,
           objectName,
@@ -187,7 +185,7 @@ export const fileRouter = createTRPCRouter({
         const fileId = uuidv4()
         const extension = path.extname(fileName)
         const finalEntityId = entityId || userId.toString()
-        
+
         const metaData = {
           'Content-Type': mimeType || 'application/octet-stream',
           'X-Amz-Meta-Entity-Type': entityType,
@@ -516,15 +514,15 @@ export const fileRouter = createTRPCRouter({
         // Listar arquivos do projeto
         const prefix = `projetos/${projetoId}/`
         const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
-        
+
         return new Promise<{ url: string }>((resolve, reject) => {
           const projectFiles: Array<{ name: string; lastModified: Date }> = []
-          
+
           objectsStream.on('data', (obj: Minio.BucketItem) => {
-            if (obj.name && obj.name.includes('propostas_assinadas') && obj.name.endsWith('.pdf')) {
+            if (obj.name?.includes('propostas_assinadas') && obj.name.endsWith('.pdf')) {
               projectFiles.push({
                 name: obj.name,
-                lastModified: obj.lastModified || new Date()
+                lastModified: obj.lastModified || new Date(),
               })
             }
           })
@@ -542,41 +540,40 @@ export const fileRouter = createTRPCRouter({
             }
 
             // Pegar o arquivo mais recente baseado na data de modificação
-            const latestFile = projectFiles
-              .sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())[0]
-            
+            const latestFile = projectFiles.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())[0]
+
             if (!latestFile) {
               reject(new TRPCError({ code: 'NOT_FOUND', message: 'PDF do projeto não encontrado' }))
               return
             }
-            
+
             try {
-                           // Verificar autorização baseada no projeto
-               const db = ctx.db
-               const projeto = await db.query.projetoTable.findFirst({
-                 where: eq(projetoTable.id, projetoId),
-                 with: {
-                   professorResponsavel: true,
-                 },
-               })
+              // Verificar autorização baseada no projeto
+              const db = ctx.db
+              const projeto = await db.query.projetoTable.findFirst({
+                where: eq(projetoTable.id, projetoId),
+                with: {
+                  professorResponsavel: true,
+                },
+              })
 
-               if (!projeto) {
-                 reject(new TRPCError({ code: 'NOT_FOUND', message: 'Projeto não encontrado' }))
-                 return
-               }
+              if (!projeto) {
+                reject(new TRPCError({ code: 'NOT_FOUND', message: 'Projeto não encontrado' }))
+                return
+              }
 
-               // Verificar permissões
-               let isAuthorized = false
-               if (ctx.user.role === 'admin') {
-                 isAuthorized = true
-               } else if (ctx.user.role === 'professor') {
-                 const professor = await db.query.professorTable.findFirst({
-                   where: eq(professorTable.userId, userId),
-                 })
-                 if (professor && professor.id === projeto.professorResponsavelId) {
-                   isAuthorized = true
-                 }
-               }
+              // Verificar permissões
+              let isAuthorized = false
+              if (ctx.user.role === 'admin') {
+                isAuthorized = true
+              } else if (ctx.user.role === 'professor') {
+                const professor = await db.query.professorTable.findFirst({
+                  where: eq(professorTable.userId, userId),
+                })
+                if (professor && professor.id === projeto.professorResponsavelId) {
+                  isAuthorized = true
+                }
+              }
 
               if (!isAuthorized) {
                 reject(new TRPCError({ code: 'FORBIDDEN', message: 'Acesso negado ao PDF deste projeto' }))
@@ -590,15 +587,18 @@ export const fileRouter = createTRPCRouter({
                 60 * 5, // 5 minutos
                 {
                   'Content-Disposition': 'inline',
-                  'Content-Type': 'application/pdf'
+                  'Content-Type': 'application/pdf',
                 }
               )
 
-              log.info({ 
-                projetoId, 
-                fileName: latestFile.name,
-                lastModified: latestFile.lastModified 
-              }, 'PDF mais recente do projeto encontrado')
+              log.info(
+                {
+                  projetoId,
+                  fileName: latestFile.name,
+                  lastModified: latestFile.lastModified,
+                },
+                'PDF mais recente do projeto encontrado'
+              )
               resolve({ url: presignedUrl })
             } catch (error) {
               log.error(error, 'Erro ao gerar URL presigned para PDF do projeto')

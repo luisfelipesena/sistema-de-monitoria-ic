@@ -36,23 +36,13 @@ export const relatoriosRouter = createTRPCRouter({
           totalBolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
         })
         .from(projetoTable)
-        .where(
-          and(
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
-          )
-        )
+        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
       // Inscriptions statistics
       const inscricoesSubquery = db
         .select({ projetoId: projetoTable.id })
         .from(projetoTable)
-        .where(
-          and(
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
-          )
-        )
+        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
       const [inscricoesStats] = await db
         .select({
@@ -62,9 +52,7 @@ export const relatoriosRouter = createTRPCRouter({
           aceitas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'ACCEPTED_%' THEN 1 END)`,
         })
         .from(inscricaoTable)
-        .where(
-          sql`${inscricaoTable.projetoId} IN (${inscricoesSubquery})`
-        )
+        .where(sql`${inscricaoTable.projetoId} IN (${inscricoesSubquery})`)
 
       // Vagas statistics
       const [vagasStats] = await db
@@ -75,12 +63,7 @@ export const relatoriosRouter = createTRPCRouter({
         })
         .from(vagaTable)
         .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
-        .where(
-          and(
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
-          )
-        )
+        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
       return {
         projetos: {
@@ -126,15 +109,18 @@ export const relatoriosRouter = createTRPCRouter({
           bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
         })
         .from(departamentoTable)
-        .leftJoin(projetoTable, and(
-          eq(departamentoTable.id, projetoTable.departamentoId),
-          eq(projetoTable.ano, input.ano),
-          eq(projetoTable.semestre, input.semestre)
-        ))
+        .leftJoin(
+          projetoTable,
+          and(
+            eq(departamentoTable.id, projetoTable.departamentoId),
+            eq(projetoTable.ano, input.ano),
+            eq(projetoTable.semestre, input.semestre)
+          )
+        )
         .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)
         .orderBy(desc(count(projetoTable.id)))
 
-      return departamentos.map(dept => ({
+      return departamentos.map((dept) => ({
         departamento: dept.departamento,
         projetos: dept.projetos,
         projetosAprovados: Number(dept.projetosAprovados) || 0,
@@ -170,26 +156,25 @@ export const relatoriosRouter = createTRPCRouter({
         })
         .from(professorTable)
         .innerJoin(departamentoTable, eq(professorTable.departamentoId, departamentoTable.id))
-        .leftJoin(projetoTable, and(
-          eq(professorTable.id, projetoTable.professorResponsavelId),
-          eq(projetoTable.ano, input.ano),
-          eq(projetoTable.semestre, input.semestre)
-        ))
-        .where(
-          input.departamentoId 
-            ? eq(professorTable.departamentoId, input.departamentoId)
-            : undefined
+        .leftJoin(
+          projetoTable,
+          and(
+            eq(professorTable.id, projetoTable.professorResponsavelId),
+            eq(projetoTable.ano, input.ano),
+            eq(projetoTable.semestre, input.semestre)
+          )
         )
+        .where(input.departamentoId ? eq(professorTable.departamentoId, input.departamentoId) : undefined)
         .groupBy(
-          professorTable.id, 
-          professorTable.nomeCompleto, 
+          professorTable.id,
+          professorTable.nomeCompleto,
           professorTable.emailInstitucional,
           departamentoTable.nome,
           departamentoTable.sigla
         )
         .orderBy(desc(count(projetoTable.id)))
 
-      return professores.map(prof => ({
+      return professores.map((prof) => ({
         professor: prof.professor,
         departamento: prof.departamento,
         projetos: prof.projetos,
@@ -204,7 +189,9 @@ export const relatoriosRouter = createTRPCRouter({
       z.object({
         ano: z.number().int().min(2000).max(2100),
         semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-        status: z.enum(['SUBMITTED', 'SELECTED_BOLSISTA', 'SELECTED_VOLUNTARIO', 'ACCEPTED_BOLSISTA', 'ACCEPTED_VOLUNTARIO']).optional(),
+        status: z
+          .enum(['SUBMITTED', 'SELECTED_BOLSISTA', 'SELECTED_VOLUNTARIO', 'ACCEPTED_BOLSISTA', 'ACCEPTED_VOLUNTARIO'])
+          .optional(),
       })
     )
     .query(async ({ input }) => {
@@ -227,17 +214,16 @@ export const relatoriosRouter = createTRPCRouter({
         })
         .from(alunoTable)
         .innerJoin(inscricaoTable, eq(alunoTable.id, inscricaoTable.alunoId))
-        .innerJoin(projetoTable, and(
-          eq(inscricaoTable.projetoId, projetoTable.id),
-          eq(projetoTable.ano, input.ano),
-          eq(projetoTable.semestre, input.semestre)
-        ))
-        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-        .where(
-          input.status 
-            ? eq(inscricaoTable.status, input.status)
-            : undefined
+        .innerJoin(
+          projetoTable,
+          and(
+            eq(inscricaoTable.projetoId, projetoTable.id),
+            eq(projetoTable.ano, input.ano),
+            eq(projetoTable.semestre, input.semestre)
+          )
         )
+        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .where(input.status ? eq(inscricaoTable.status, input.status) : undefined)
         .groupBy(
           alunoTable.id,
           alunoTable.nomeCompleto,
@@ -279,11 +265,14 @@ export const relatoriosRouter = createTRPCRouter({
         .from(disciplinaTable)
         .innerJoin(departamentoTable, eq(disciplinaTable.departamentoId, departamentoTable.id))
         .leftJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
-        .leftJoin(projetoTable, and(
-          eq(projetoDisciplinaTable.projetoId, projetoTable.id),
-          eq(projetoTable.ano, input.ano),
-          eq(projetoTable.semestre, input.semestre)
-        ))
+        .leftJoin(
+          projetoTable,
+          and(
+            eq(projetoDisciplinaTable.projetoId, projetoTable.id),
+            eq(projetoTable.ano, input.ano),
+            eq(projetoTable.semestre, input.semestre)
+          )
+        )
         .groupBy(
           disciplinaTable.id,
           disciplinaTable.nome,
@@ -293,7 +282,7 @@ export const relatoriosRouter = createTRPCRouter({
         )
         .orderBy(desc(count(projetoTable.id)))
 
-      return disciplinas.map(disc => ({
+      return disciplinas.map((disc) => ({
         disciplina: disc.disciplina,
         departamento: disc.departamento,
         projetos: disc.projetos,
@@ -330,11 +319,7 @@ export const relatoriosRouter = createTRPCRouter({
         .from(editalTable)
         .innerJoin(periodoInscricaoTable, eq(editalTable.periodoInscricaoId, periodoInscricaoTable.id))
         .innerJoin(userTable, eq(editalTable.criadoPorUserId, userTable.id))
-        .where(
-          input.ano 
-            ? eq(periodoInscricaoTable.ano, input.ano)
-            : undefined
-        )
+        .where(input.ano ? eq(periodoInscricaoTable.ano, input.ano) : undefined)
         .orderBy(desc(periodoInscricaoTable.ano), desc(periodoInscricaoTable.semestre))
 
       return editais
@@ -353,7 +338,7 @@ export const relatoriosRouter = createTRPCRouter({
       // This would generate CSV data based on the report type
       // For now, we'll return a success response
       // In a real implementation, you'd generate the CSV and return a download link
-      
+
       return {
         success: true,
         message: `Relatório ${input.tipo} exportado com sucesso`,
@@ -378,34 +363,19 @@ export const relatoriosRouter = createTRPCRouter({
           totalBolsas: sum(projetoTable.bolsasDisponibilizadas),
         })
         .from(projetoTable)
-        .where(
-          and(
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
-          )
-        )
+        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
       const [totalInscricoes] = await db
         .select({ count: count() })
         .from(inscricaoTable)
         .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
-        .where(
-          and(
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
-          )
-        )
+        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
       const [totalVagas] = await db
         .select({ count: count() })
         .from(vagaTable)
         .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
-        .where(
-          and(
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
-          )
-        )
+        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
       return {
         totalProjetos: metrics?.totalProjetos || 0,
@@ -414,7 +384,7 @@ export const relatoriosRouter = createTRPCRouter({
         totalBolsas: Number(metrics?.totalBolsas) || 0,
         totalInscricoes: totalInscricoes?.count || 0,
         totalVagas: totalVagas?.count || 0,
-        taxaAprovacao: metrics?.totalProjetos 
+        taxaAprovacao: metrics?.totalProjetos
           ? Math.round((Number(metrics.projetosAprovados) / metrics.totalProjetos) * 100)
           : 0,
       }

@@ -170,22 +170,26 @@ export const onboardingRouter = createTRPCRouter({
         description: 'Create initial student profile during onboarding',
       },
     })
-    .input(z.object({
-      nomeCompleto: z.string().min(1),
-      matricula: z.string().min(1),
-      cpf: z.string().min(11),
-      cr: z.number().min(0).max(10),
-      cursoId: z.number(),
-      telefone: z.string().optional(),
-      genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
-      especificacaoGenero: z.string().optional(),
-      nomeSocial: z.string().optional(),
-      rg: z.string().optional(),
-    }))
-    .output(z.object({
-      success: z.boolean(),
-      profileId: z.number(),
-    }))
+    .input(
+      z.object({
+        nomeCompleto: z.string().min(1),
+        matricula: z.string().min(1),
+        cpf: z.string().min(11),
+        cr: z.number().min(0).max(10),
+        cursoId: z.number(),
+        telefone: z.string().optional(),
+        genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
+        especificacaoGenero: z.string().optional(),
+        nomeSocial: z.string().optional(),
+        rg: z.string().optional(),
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        profileId: z.number(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       try {
         if (ctx.user.role !== 'student') {
@@ -206,20 +210,23 @@ export const onboardingRouter = createTRPCRouter({
           })
         }
 
-        const [newProfile] = await db.insert(alunoTable).values({
-          userId: ctx.user.id,
-          nomeCompleto: input.nomeCompleto,
-          matricula: input.matricula,
-          cpf: input.cpf,
-          cr: input.cr,
-          cursoId: input.cursoId,
-          telefone: input.telefone,
-          genero: input.genero,
-          especificacaoGenero: input.especificacaoGenero,
-          nomeSocial: input.nomeSocial,
-          rg: input.rg,
-          emailInstitucional: ctx.user.email,
-        }).returning({ id: alunoTable.id })
+        const [newProfile] = await db
+          .insert(alunoTable)
+          .values({
+            userId: ctx.user.id,
+            nomeCompleto: input.nomeCompleto,
+            matricula: input.matricula,
+            cpf: input.cpf,
+            cr: input.cr,
+            cursoId: input.cursoId,
+            telefone: input.telefone,
+            genero: input.genero,
+            especificacaoGenero: input.especificacaoGenero,
+            nomeSocial: input.nomeSocial,
+            rg: input.rg,
+            emailInstitucional: ctx.user.email,
+          })
+          .returning({ id: alunoTable.id })
 
         log.info({ userId: ctx.user.id, profileId: newProfile.id }, 'Student profile created successfully')
         return { success: true, profileId: newProfile.id }
@@ -243,22 +250,26 @@ export const onboardingRouter = createTRPCRouter({
         description: 'Create initial professor profile during onboarding',
       },
     })
-    .input(z.object({
-      nomeCompleto: z.string().min(1),
-      matriculaSiape: z.string().optional(),
-      cpf: z.string().min(11),
-      telefone: z.string().optional(),
-      telefoneInstitucional: z.string().optional(),
-      regime: z.enum(['20H', '40H', 'DE']),
-      departamentoId: z.number(),
-      genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
-      especificacaoGenero: z.string().optional(),
-      nomeSocial: z.string().optional(),
-    }))
-    .output(z.object({
-      success: z.boolean(),
-      profileId: z.number(),
-    }))
+    .input(
+      z.object({
+        nomeCompleto: z.string().min(1),
+        matriculaSiape: z.string().optional(),
+        cpf: z.string().min(11),
+        telefone: z.string().optional(),
+        telefoneInstitucional: z.string().optional(),
+        regime: z.enum(['20H', '40H', 'DE']),
+        departamentoId: z.number(),
+        genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
+        especificacaoGenero: z.string().optional(),
+        nomeSocial: z.string().optional(),
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        profileId: z.number(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       try {
         if (ctx.user.role !== 'professor') {
@@ -279,20 +290,23 @@ export const onboardingRouter = createTRPCRouter({
           })
         }
 
-        const [newProfile] = await db.insert(professorTable).values({
-          userId: ctx.user.id,
-          nomeCompleto: input.nomeCompleto,
-          matriculaSiape: input.matriculaSiape,
-          cpf: input.cpf,
-          telefone: input.telefone,
-          telefoneInstitucional: input.telefoneInstitucional,
-          regime: input.regime,
-          departamentoId: input.departamentoId,
-          genero: input.genero,
-          especificacaoGenero: input.especificacaoGenero,
-          nomeSocial: input.nomeSocial,
-          emailInstitucional: ctx.user.email,
-        }).returning({ id: professorTable.id })
+        const [newProfile] = await db
+          .insert(professorTable)
+          .values({
+            userId: ctx.user.id,
+            nomeCompleto: input.nomeCompleto,
+            matriculaSiape: input.matriculaSiape,
+            cpf: input.cpf,
+            telefone: input.telefone,
+            telefoneInstitucional: input.telefoneInstitucional,
+            regime: input.regime,
+            departamentoId: input.departamentoId,
+            genero: input.genero,
+            especificacaoGenero: input.especificacaoGenero,
+            nomeSocial: input.nomeSocial,
+            emailInstitucional: ctx.user.email,
+          })
+          .returning({ id: professorTable.id })
 
         log.info({ userId: ctx.user.id, profileId: newProfile.id }, 'Professor profile created successfully')
         return { success: true, profileId: newProfile.id }
@@ -316,13 +330,17 @@ export const onboardingRouter = createTRPCRouter({
         description: 'Update document file ID in user profile',
       },
     })
-    .input(z.object({
-      documentType: z.enum(['comprovante_matricula', 'historico_escolar', 'curriculum_vitae', 'comprovante_vinculo']),
-      fileId: z.string(),
-    }))
-    .output(z.object({
-      success: z.boolean(),
-    }))
+    .input(
+      z.object({
+        documentType: z.enum(['comprovante_matricula', 'historico_escolar', 'curriculum_vitae', 'comprovante_vinculo']),
+        fileId: z.string(),
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       try {
         const { documentType, fileId } = input
@@ -351,10 +369,7 @@ export const onboardingRouter = createTRPCRouter({
             })
           }
 
-          await db.update(alunoTable)
-            .set(updateData)
-            .where(eq(alunoTable.userId, ctx.user.id))
-
+          await db.update(alunoTable).set(updateData).where(eq(alunoTable.userId, ctx.user.id))
         } else if (ctx.user.role === 'professor') {
           const profile = await db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
@@ -379,10 +394,7 @@ export const onboardingRouter = createTRPCRouter({
             })
           }
 
-          await db.update(professorTable)
-            .set(updateData)
-            .where(eq(professorTable.userId, ctx.user.id))
-
+          await db.update(professorTable).set(updateData).where(eq(professorTable.userId, ctx.user.id))
         } else {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -412,13 +424,17 @@ export const onboardingRouter = createTRPCRouter({
         description: 'Link selected disciplines to professor during onboarding',
       },
     })
-    .input(z.object({
-      disciplinaIds: z.array(z.number()),
-    }))
-    .output(z.object({
-      success: z.boolean(),
-      linkedCount: z.number(),
-    }))
+    .input(
+      z.object({
+        disciplinaIds: z.array(z.number()),
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        linkedCount: z.number(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       try {
         if (ctx.user.role !== 'professor') {
@@ -442,16 +458,19 @@ export const onboardingRouter = createTRPCRouter({
         const { year, semester } = getCurrentSemester()
 
         // Remove existing links for current semester
-        await db.delete(disciplinaProfessorResponsavelTable)
-          .where(and(
-            eq(disciplinaProfessorResponsavelTable.professorId, professorProfile.id),
-            eq(disciplinaProfessorResponsavelTable.ano, year),
-            eq(disciplinaProfessorResponsavelTable.semestre, semester)
-          ))
+        await db
+          .delete(disciplinaProfessorResponsavelTable)
+          .where(
+            and(
+              eq(disciplinaProfessorResponsavelTable.professorId, professorProfile.id),
+              eq(disciplinaProfessorResponsavelTable.ano, year),
+              eq(disciplinaProfessorResponsavelTable.semestre, semester)
+            )
+          )
 
         // Add new links
         if (input.disciplinaIds.length > 0) {
-          const links = input.disciplinaIds.map(disciplinaId => ({
+          const links = input.disciplinaIds.map((disciplinaId) => ({
             professorId: professorProfile.id,
             disciplinaId,
             ano: year,
@@ -461,11 +480,14 @@ export const onboardingRouter = createTRPCRouter({
           await db.insert(disciplinaProfessorResponsavelTable).values(links)
         }
 
-        log.info({ 
-          userId: ctx.user.id, 
-          professorId: professorProfile.id, 
-          disciplinaIds: input.disciplinaIds 
-        }, 'Disciplines linked successfully')
+        log.info(
+          {
+            userId: ctx.user.id,
+            professorId: professorProfile.id,
+            disciplinaIds: input.disciplinaIds,
+          },
+          'Disciplines linked successfully'
+        )
 
         return { success: true, linkedCount: input.disciplinaIds.length }
       } catch (error) {

@@ -9,7 +9,6 @@ import {
   disciplinaTable,
   atividadeProjetoTable,
   projetoDisciplinaTable,
-  departamentoTable,
   type NewProjeto,
 } from '@/server/db/schema'
 
@@ -60,7 +59,7 @@ export const importProjectsRouter = createTRPCRouter({
         ),
       })
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       let projetosCriados = 0
       let projetosComErro = 0
       const erros: string[] = []
@@ -129,7 +128,9 @@ export const importProjectsRouter = createTRPCRouter({
 
           projetosCriados++
         } catch (error) {
-          erros.push(`Erro ao criar projeto "${projetoData.titulo}": ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
+          erros.push(
+            `Erro ao criar projeto "${projetoData.titulo}": ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          )
           projetosComErro++
         }
       }
@@ -180,32 +181,28 @@ export const importProjectsRouter = createTRPCRouter({
     }))
   }),
 
-  getImportDetails: adminProtectedProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
-      const importacao = await db.query.importacaoPlanejamentoTable.findFirst({
-        where: eq(importacaoPlanejamentoTable.id, input.id),
-        with: {
-          importadoPor: true,
-        },
-      })
+  getImportDetails: adminProtectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+    const importacao = await db.query.importacaoPlanejamentoTable.findFirst({
+      where: eq(importacaoPlanejamentoTable.id, input.id),
+      with: {
+        importadoPor: true,
+      },
+    })
 
-      if (!importacao) {
-        throw new Error('Importação não encontrada')
-      }
+    if (!importacao) {
+      throw new Error('Importação não encontrada')
+    }
 
-      return {
-        ...importacao,
-        erros: importacao.erros ? JSON.parse(importacao.erros) : [],
-      }
-    }),
+    return {
+      ...importacao,
+      erros: importacao.erros ? JSON.parse(importacao.erros) : [],
+    }
+  }),
 
-  deleteImport: adminProtectedProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      await db.delete(importacaoPlanejamentoTable).where(eq(importacaoPlanejamentoTable.id, input.id))
-      return { success: true }
-    }),
+  deleteImport: adminProtectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+    await db.delete(importacaoPlanejamentoTable).where(eq(importacaoPlanejamentoTable.id, input.id))
+    return { success: true }
+  }),
 
   getProfessores: adminProtectedProcedure.query(async () => {
     const professores = await db.query.professorTable.findMany({

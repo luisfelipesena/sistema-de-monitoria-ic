@@ -1,12 +1,6 @@
 import { createTRPCRouter, protectedProcedure, adminProtectedProcedure } from '@/server/api/trpc'
 import { db } from '@/server/db'
-import { 
-  departamentoTable, 
-  disciplinaTable, 
-  professorTable, 
-  cursoTable, 
-  projetoTable 
-} from '@/server/db/schema'
+import { departamentoTable, disciplinaTable, professorTable, cursoTable, projetoTable } from '@/server/db/schema'
 import { TRPCError } from '@trpc/server'
 import { eq, and, isNull, sql } from 'drizzle-orm'
 import { z } from 'zod'
@@ -52,9 +46,11 @@ export const departamentoRouter = createTRPCRouter({
         description: 'Retrieve all departamentos with statistics',
       },
     })
-    .input(z.object({
-      includeStats: z.boolean().default(false),
-    }))
+    .input(
+      z.object({
+        includeStats: z.boolean().default(false),
+      })
+    )
     .output(z.array(departamentoSchema))
     .query(async ({ input }) => {
       try {
@@ -83,22 +79,12 @@ export const departamentoRouter = createTRPCRouter({
             const [disciplinasCount] = await db
               .select({ count: sql<number>`count(*)::int` })
               .from(disciplinaTable)
-              .where(
-                and(
-                  eq(disciplinaTable.departamentoId, departamento.id),
-                  isNull(disciplinaTable.deletedAt)
-                )
-              )
+              .where(and(eq(disciplinaTable.departamentoId, departamento.id), isNull(disciplinaTable.deletedAt)))
 
             const [projetosCount] = await db
               .select({ count: sql<number>`count(*)::int` })
               .from(projetoTable)
-              .where(
-                and(
-                  eq(projetoTable.departamentoId, departamento.id),
-                  isNull(projetoTable.deletedAt)
-                )
-              )
+              .where(and(eq(projetoTable.departamentoId, departamento.id), isNull(projetoTable.deletedAt)))
 
             return {
               ...departamento,

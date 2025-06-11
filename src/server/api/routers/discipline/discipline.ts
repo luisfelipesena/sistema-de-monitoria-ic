@@ -1,14 +1,14 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { db } from '@/server/db'
-import { 
-  disciplinaTable, 
-  disciplinaSchema, 
+import {
+  disciplinaTable,
+  disciplinaSchema,
   newDisciplinaSchema,
   disciplinaProfessorResponsavelTable,
   professorTable,
   projetoTable,
   projetoDisciplinaTable,
-  inscricaoTable
+  inscricaoTable,
 } from '@/server/db/schema'
 import { TRPCError } from '@trpc/server'
 import { eq, and, sql } from 'drizzle-orm'
@@ -35,24 +35,30 @@ export const disciplineRouter = createTRPCRouter({
         description: 'Get discipline details with responsible professor for current semester',
       },
     })
-    .input(z.object({
-      id: z.number(),
-    }))
-    .output(z.object({
-      disciplina: disciplinaSchema,
-      professor: z.object({
+    .input(
+      z.object({
         id: z.number(),
-        nomeCompleto: z.string(),
-        nomeSocial: z.string().nullable(),
-        genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
-        cpf: z.string(),
-        matriculaSiape: z.string().nullable(),
-        regime: z.enum(['20H', '40H', 'DE']),
-        telefone: z.string().nullable(),
-        telefoneInstitucional: z.string().nullable(),
-        emailInstitucional: z.string(),
-      }).nullable(),
-    }))
+      })
+    )
+    .output(
+      z.object({
+        disciplina: disciplinaSchema,
+        professor: z
+          .object({
+            id: z.number(),
+            nomeCompleto: z.string(),
+            nomeSocial: z.string().nullable(),
+            genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
+            cpf: z.string(),
+            matriculaSiape: z.string().nullable(),
+            regime: z.enum(['20H', '40H', 'DE']),
+            telefone: z.string().nullable(),
+            telefoneInstitucional: z.string().nullable(),
+            emailInstitucional: z.string(),
+          })
+          .nullable(),
+      })
+    )
     .query(async ({ input }) => {
       const disciplina = await db.query.disciplinaTable.findFirst({
         where: eq(disciplinaTable.id, input.id),
@@ -269,9 +275,7 @@ export const disciplineRouter = createTRPCRouter({
 
         // Get discipline details
         const disciplinas = await db.query.disciplinaTable.findMany({
-          where: and(
-            sql`${disciplinaTable.id} IN (${disciplinaIds.join(',')})`,
-          ),
+          where: and(sql`${disciplinaTable.id} IN (${disciplinaIds.join(',')})`),
         })
 
         // Get active projects count for each discipline
@@ -314,10 +318,7 @@ export const disciplineRouter = createTRPCRouter({
           .groupBy(projetoDisciplinaTable.disciplinaId)
 
         const monitoresMap = new Map(
-          monitores.map((m) => [
-            m.disciplinaId,
-            { bolsistas: Number(m.bolsistas), voluntarios: Number(m.voluntarios) },
-          ])
+          monitores.map((m) => [m.disciplinaId, { bolsistas: Number(m.bolsistas), voluntarios: Number(m.voluntarios) }])
         )
 
         const result = disciplinas.map((disciplina) => {
@@ -354,7 +355,7 @@ export const disciplineRouter = createTRPCRouter({
         path: '/disciplines/department',
         tags: ['disciplines'],
         summary: 'Get department disciplines',
-        description: 'Get all disciplines from professor\'s department',
+        description: "Get all disciplines from professor's department",
       },
     })
     .input(z.void())
@@ -414,9 +415,7 @@ export const disciplineRouter = createTRPCRouter({
             )
           )
 
-        const associacoesMap = new Map(
-          associacoes.map((a) => [a.disciplinaId, { ano: a.ano, semestre: a.semestre }])
-        )
+        const associacoesMap = new Map(associacoes.map((a) => [a.disciplinaId, { ano: a.ano, semestre: a.semestre }]))
 
         return disciplinas.map((disciplina) => {
           const associacao = associacoesMap.get(disciplina.id)

@@ -29,14 +29,14 @@ const dashboardMetricsSchema = z.object({
   totalVagas: z.number(),
   vagasOcupadas: z.number(),
   taxaAprovacao: z.number(),
-  
+
   // Estatísticas de usuários
   totalAlunos: z.number(),
   totalProfessores: z.number(),
   totalDepartamentos: z.number(),
   totalCursos: z.number(),
   totalDisciplinas: z.number(),
-  
+
   // Distribuições
   projetosPorDepartamento: z.array(
     z.object({
@@ -63,7 +63,7 @@ const dashboardMetricsSchema = z.object({
     ocupadas: z.number(),
     taxaOcupacao: z.number(),
   }),
-  
+
   // Indicadores de engajamento
   alunosPorCurso: z.array(
     z.object({
@@ -111,12 +111,7 @@ export const analyticsRouter = createTRPCRouter({
         const [periodosAtivosResult] = await db
           .select({ count: sql<number>`count(*)::int` })
           .from(periodoInscricaoTable)
-          .where(
-            and(
-              lte(periodoInscricaoTable.dataInicio, now),
-              gte(periodoInscricaoTable.dataFim, now)
-            )
-          )
+          .where(and(lte(periodoInscricaoTable.dataInicio, now), gte(periodoInscricaoTable.dataFim, now)))
 
         // 2. Estatísticas de projetos
         const [totalProjetosResult] = await db
@@ -127,54 +122,31 @@ export const analyticsRouter = createTRPCRouter({
         const [projetosAprovadosResult] = await db
           .select({ count: sql<number>`count(*)::int` })
           .from(projetoTable)
-          .where(
-            and(
-              eq(projetoTable.status, 'APPROVED'),
-              isNull(projetoTable.deletedAt)
-            )
-          )
+          .where(and(eq(projetoTable.status, 'APPROVED'), isNull(projetoTable.deletedAt)))
 
         const [projetosSubmitedResult] = await db
           .select({ count: sql<number>`count(*)::int` })
           .from(projetoTable)
-          .where(
-            and(
-              eq(projetoTable.status, 'SUBMITTED'),
-              isNull(projetoTable.deletedAt)
-            )
-          )
+          .where(and(eq(projetoTable.status, 'SUBMITTED'), isNull(projetoTable.deletedAt)))
 
         const [projetosRascunhoResult] = await db
           .select({ count: sql<number>`count(*)::int` })
           .from(projetoTable)
-          .where(
-            and(
-              eq(projetoTable.status, 'DRAFT'),
-              isNull(projetoTable.deletedAt)
-            )
-          )
+          .where(and(eq(projetoTable.status, 'DRAFT'), isNull(projetoTable.deletedAt)))
 
         // 3. Estatísticas de inscrições
-        const [totalInscricoesResult] = await db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(inscricaoTable)
+        const [totalInscricoesResult] = await db.select({ count: sql<number>`count(*)::int` }).from(inscricaoTable)
 
         // 4. Estatísticas de usuários
-        const [totalAlunosResult] = await db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(alunoTable)
+        const [totalAlunosResult] = await db.select({ count: sql<number>`count(*)::int` }).from(alunoTable)
 
-        const [totalProfessoresResult] = await db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(professorTable)
+        const [totalProfessoresResult] = await db.select({ count: sql<number>`count(*)::int` }).from(professorTable)
 
         const [totalDepartamentosResult] = await db
           .select({ count: sql<number>`count(*)::int` })
           .from(departamentoTable)
 
-        const [totalCursosResult] = await db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(cursoTable)
+        const [totalCursosResult] = await db.select({ count: sql<number>`count(*)::int` }).from(cursoTable)
 
         const [totalDisciplinasResult] = await db
           .select({ count: sql<number>`count(*)::int` })
@@ -188,16 +160,9 @@ export const analyticsRouter = createTRPCRouter({
             voluntarios: sql<number>`coalesce(sum(${projetoTable.voluntariosSolicitados}), 0)::int`,
           })
           .from(projetoTable)
-          .where(
-            and(
-              eq(projetoTable.status, 'APPROVED'),
-              isNull(projetoTable.deletedAt)
-            )
-          )
+          .where(and(eq(projetoTable.status, 'APPROVED'), isNull(projetoTable.deletedAt)))
 
-        const [vagasOcupadasResult] = await db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(vagaTable)
+        const [vagasOcupadasResult] = await db.select({ count: sql<number>`count(*)::int` }).from(vagaTable)
 
         // 6. Projetos por departamento
         const projetosPorDepartamento = await db
@@ -211,10 +176,7 @@ export const analyticsRouter = createTRPCRouter({
           .from(departamentoTable)
           .leftJoin(
             projetoTable,
-            and(
-              eq(projetoTable.departamentoId, departamentoTable.id),
-              isNull(projetoTable.deletedAt)
-            )
+            and(eq(projetoTable.departamentoId, departamentoTable.id), isNull(projetoTable.deletedAt))
           )
           .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)
           .orderBy(sql`count(${projetoTable.id}) desc`)
@@ -287,13 +249,13 @@ export const analyticsRouter = createTRPCRouter({
           totalVagas: totalVagasNum,
           vagasOcupadas: vagasOcupadasNum,
           taxaAprovacao: Math.round(taxaAprovacao * 100) / 100,
-          
+
           totalAlunos: Number(totalAlunosResult?.count || 0),
           totalProfessores: Number(totalProfessoresResult?.count || 0),
           totalDepartamentos: Number(totalDepartamentosResult?.count || 0),
           totalCursos: Number(totalCursosResult?.count || 0),
           totalDisciplinas: Number(totalDisciplinasResult?.count || 0),
-          
+
           projetosPorDepartamento: projetosPorDepartamento.map((item) => ({
             departamento: item.departamento || 'Sem departamento',
             sigla: item.sigla || 'N/A',
@@ -301,7 +263,7 @@ export const analyticsRouter = createTRPCRouter({
             aprovados: Number(item.aprovados),
             submetidos: Number(item.submetidos),
           })),
-          
+
           inscricoesPorPeriodo: inscricoesPorPeriodo.map((item) => ({
             periodo: item.periodo.replace('SEMESTRE_', ''),
             ano: Number(item.ano),
@@ -309,7 +271,7 @@ export const analyticsRouter = createTRPCRouter({
             inscricoes: Number(item.inscricoes),
             projetos: Number(item.projetos),
           })),
-          
+
           estatisticasVagas: {
             bolsistas: Number(totalVagasResult?.bolsas || 0),
             voluntarios: Number(totalVagasResult?.voluntarios || 0),
@@ -317,13 +279,13 @@ export const analyticsRouter = createTRPCRouter({
             ocupadas: vagasOcupadasNum,
             taxaOcupacao: Math.round(taxaOcupacao * 100) / 100,
           },
-          
+
           alunosPorCurso: alunosPorCurso.map((item) => ({
             curso: item.curso || 'Curso não especificado',
             alunos: Number(item.alunos),
             inscricoes: Number(item.inscricoes),
           })),
-          
+
           professoresPorDepartamento: professoresPorDepartamento.map((item) => ({
             departamento: item.departamento || 'Departamento não especificado',
             professores: Number(item.professores),

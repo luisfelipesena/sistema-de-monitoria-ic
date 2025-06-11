@@ -16,14 +16,18 @@ export const signatureRouter = createTRPCRouter({
         path: '/signature/default',
         tags: ['signature'],
         summary: 'Get user default signature',
-        description: 'Retrieve the user\'s default signature',
+        description: "Retrieve the user's default signature",
       },
     })
     .input(z.void())
-    .output(z.object({
-      signatureData: z.string(),
-      dataAssinatura: z.date(),
-    }).nullable())
+    .output(
+      z
+        .object({
+          signatureData: z.string(),
+          dataAssinatura: z.date(),
+        })
+        .nullable()
+    )
     .query(async ({ ctx }) => {
       try {
         const user = await db.query.userTable.findFirst({
@@ -58,15 +62,19 @@ export const signatureRouter = createTRPCRouter({
         path: '/signature/default',
         tags: ['signature'],
         summary: 'Save user default signature',
-        description: 'Save or update the user\'s default signature',
+        description: "Save or update the user's default signature",
       },
     })
-    .input(z.object({
-      signatureData: z.string().min(1, 'Signature data is required'),
-    }))
-    .output(z.object({
-      success: z.boolean(),
-    }))
+    .input(
+      z.object({
+        signatureData: z.string().min(1, 'Signature data is required'),
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       try {
         await db
@@ -95,13 +103,15 @@ export const signatureRouter = createTRPCRouter({
         path: '/signature/default',
         tags: ['signature'],
         summary: 'Delete user default signature',
-        description: 'Remove the user\'s default signature',
+        description: "Remove the user's default signature",
       },
     })
     .input(z.void())
-    .output(z.object({
-      success: z.boolean(),
-    }))
+    .output(
+      z.object({
+        success: z.boolean(),
+      })
+    )
     .mutation(async ({ ctx }) => {
       try {
         await db

@@ -254,18 +254,9 @@ export const editalRouter = createTRPCRouter({
             eq(periodoInscricaoTable.ano, ano),
             eq(periodoInscricaoTable.semestre, semestre),
             or(
-              and(
-                lte(periodoInscricaoTable.dataInicio, dataInicio),
-                gte(periodoInscricaoTable.dataFim, dataInicio)
-              ),
-              and(
-                lte(periodoInscricaoTable.dataInicio, dataFim),
-                gte(periodoInscricaoTable.dataFim, dataFim)
-              ),
-              and(
-                gte(periodoInscricaoTable.dataInicio, dataInicio),
-                lte(periodoInscricaoTable.dataFim, dataFim)
-              )
+              and(lte(periodoInscricaoTable.dataInicio, dataInicio), gte(periodoInscricaoTable.dataFim, dataInicio)),
+              and(lte(periodoInscricaoTable.dataInicio, dataFim), gte(periodoInscricaoTable.dataFim, dataFim)),
+              and(gte(periodoInscricaoTable.dataInicio, dataInicio), lte(periodoInscricaoTable.dataFim, dataFim))
             )
           ),
         })
@@ -330,7 +321,10 @@ export const editalRouter = createTRPCRouter({
           }
         }
 
-        log.info({ editalId: editalCriadoComPeriodo.id, periodoId: novoPeriodo.id, adminUserId }, 'Novo edital e período criados com sucesso')
+        log.info(
+          { editalId: editalCriadoComPeriodo.id, periodoId: novoPeriodo.id, adminUserId },
+          'Novo edital e período criados com sucesso'
+        )
 
         return {
           ...editalCriadoComPeriodo,
@@ -380,10 +374,10 @@ export const editalRouter = createTRPCRouter({
       }
 
       if (ano !== undefined || semestre !== undefined || dataInicio !== undefined || dataFim !== undefined) {
-        const novoAno = ano || edital.periodoInscricao!.ano
-        const novoSemestre = semestre || edital.periodoInscricao!.semestre
-        const novaDataInicio = dataInicio || edital.periodoInscricao!.dataInicio
-        const novaDataFim = dataFim || edital.periodoInscricao!.dataFim
+        const novoAno = ano || edital.periodoInscricao?.ano
+        const novoSemestre = semestre || edital.periodoInscricao?.semestre
+        const novaDataInicio = dataInicio || edital.periodoInscricao?.dataInicio
+        const novaDataFim = dataFim || edital.periodoInscricao?.dataFim
 
         const periodoSobreposicao = await db.query.periodoInscricaoTable.findFirst({
           where: and(
@@ -395,10 +389,7 @@ export const editalRouter = createTRPCRouter({
                 lte(periodoInscricaoTable.dataInicio, novaDataInicio),
                 gte(periodoInscricaoTable.dataFim, novaDataInicio)
               ),
-              and(
-                lte(periodoInscricaoTable.dataInicio, novaDataFim),
-                gte(periodoInscricaoTable.dataFim, novaDataFim)
-              ),
+              and(lte(periodoInscricaoTable.dataInicio, novaDataFim), gte(periodoInscricaoTable.dataFim, novaDataFim)),
               and(
                 gte(periodoInscricaoTable.dataInicio, novaDataInicio),
                 lte(periodoInscricaoTable.dataFim, novaDataFim)

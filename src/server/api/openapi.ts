@@ -7,8 +7,8 @@ const getBaseUrl = () => {
     return window.location.origin
   }
 
-  if (env.VERCEL_URL) {
-    return `https://${env.VERCEL_URL}`
+  if (env.CLIENT_URL) {
+    return `https://${env.CLIENT_URL}`
   }
 
   const port = env.PORT || '3000'
@@ -28,13 +28,13 @@ export const openApiDocument = generateOpenApiDocument(appRouter, {
       type: 'http',
       scheme: 'bearer',
       bearerFormat: 'JWT',
-      description: 'JWT token obtido via autenticação CAS da UFBA'
+      description: 'JWT token obtido via autenticação CAS da UFBA',
     },
     apiKeyAuth: {
       type: 'apiKey',
       in: 'header',
       name: 'x-api-key',
-      description: 'API Key para autenticação programática. Também aceita Authorization: Bearer <api-key>'
+      description: 'API Key para autenticação programática. Também aceita Authorization: Bearer <api-key>',
     },
   },
 })

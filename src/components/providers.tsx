@@ -12,7 +12,7 @@ import superjson from "superjson"
 
 const getBaseUrl = () => {
   if (typeof window !== "undefined") return ""
-  if (env.VERCEL_URL) return `https://${env.VERCEL_URL}`
+  if (env.CLIENT_URL) return `https://${env.CLIENT_URL}`
   return `http://localhost:${env.PORT ?? 3000}`
 }
 

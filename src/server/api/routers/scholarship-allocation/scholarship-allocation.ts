@@ -68,12 +68,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
           const bolsasAlocadas = await db
             .select({ count: count() })
             .from(vagaTable)
-            .where(
-              and(
-                eq(vagaTable.projetoId, projeto.id),
-                eq(vagaTable.tipo, 'BOLSISTA')
-              )
-            )
+            .where(and(eq(vagaTable.projetoId, projeto.id), eq(vagaTable.tipo, 'BOLSISTA')))
 
           return {
             ...projeto,
@@ -216,12 +211,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
         })
         .from(inscricaoTable)
         .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
-        .where(
-          and(
-            eq(inscricaoTable.projetoId, input.projetoId),
-            eq(inscricaoTable.status, 'SUBMITTED')
-          )
-        )
+        .where(and(eq(inscricaoTable.projetoId, input.projetoId), eq(inscricaoTable.status, 'SUBMITTED')))
         .orderBy(desc(inscricaoTable.notaFinal))
 
       return candidates

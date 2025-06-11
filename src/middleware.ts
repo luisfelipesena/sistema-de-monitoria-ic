@@ -87,7 +87,7 @@ async function verifyApiKey(apiKey: string): Promise<TokenPayload | null> {
   try {
     const hashedKey = createHash('sha256').update(apiKey).digest('hex')
     const database = getDb()
-    
+
     // Primeiro buscar a API key
     const apiKeyRecord = await database
       .select({
@@ -104,7 +104,7 @@ async function verifyApiKey(apiKey: string): Promise<TokenPayload | null> {
     }
 
     const record = apiKeyRecord[0]
-    
+
     // Verificar se a chave expirou
     if (record.expiresAt && new Date() > record.expiresAt) {
       return null
@@ -122,10 +122,7 @@ async function verifyApiKey(apiKey: string): Promise<TokenPayload | null> {
     }
 
     // Atualizar último uso da API key
-    await database
-      .update(apiKeyTable)
-      .set({ lastUsedAt: new Date() })
-      .where(eq(apiKeyTable.keyValue, hashedKey))
+    await database.update(apiKeyTable).set({ lastUsedAt: new Date() }).where(eq(apiKeyTable.keyValue, hashedKey))
 
     return {
       userId: record.userId,
@@ -148,7 +145,7 @@ export async function middleware(request: NextRequest) {
   // Para rotas de API, permitir autenticação via API key
   if (isApiRoute(pathname)) {
     const apiKey = request.headers.get('x-api-key') || request.headers.get('authorization')?.replace('Bearer ', '')
-    
+
     if (apiKey) {
       const payload = await verifyApiKey(apiKey)
       if (payload) {
@@ -156,7 +153,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next()
       }
     }
-    
+
     // Se não conseguiu autenticar via API key, continuar com autenticação normal
   }
 

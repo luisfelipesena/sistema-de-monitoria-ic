@@ -1,8 +1,8 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { db } from '@/server/db'
-import { cursoTable, alunoTable, disciplinaTable } from '@/server/db/schema'
+import { cursoTable, alunoTable } from '@/server/db/schema'
 import { TRPCError } from '@trpc/server'
-import { eq, sql, and, isNull } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 export const cursoSchema = z.object({
@@ -47,9 +47,11 @@ export const courseRouter = createTRPCRouter({
         description: 'Retrieve all courses with optional statistics',
       },
     })
-    .input(z.object({
-      includeStats: z.boolean().default(false),
-    }))
+    .input(
+      z.object({
+        includeStats: z.boolean().default(false),
+      })
+    )
     .output(z.array(cursoSchema))
     .query(async ({ input }) => {
       const cursos = await db.query.cursoTable.findMany({

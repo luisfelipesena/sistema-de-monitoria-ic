@@ -16,16 +16,13 @@ interface TRPCContext {
 
 const authenticateWithApiKey = async (apiKey: string): Promise<User | null> => {
   if (!apiKey) return null
-  
+
   // Hash da API key fornecida para comparar com o banco
   const hashedKey = createHash('sha256').update(apiKey).digest('hex')
-  
+
   // Buscar a API key no banco
   const apiKeyRecord = await db.query.apiKeyTable.findFirst({
-    where: and(
-      eq(apiKeyTable.keyValue, hashedKey),
-      eq(apiKeyTable.isActive, true)
-    ),
+    where: and(eq(apiKeyTable.keyValue, hashedKey), eq(apiKeyTable.isActive, true)),
     with: {
       user: true,
     },
@@ -39,10 +36,7 @@ const authenticateWithApiKey = async (apiKey: string): Promise<User | null> => {
   }
 
   // Atualizar último uso
-  await db
-    .update(apiKeyTable)
-    .set({ lastUsedAt: new Date() })
-    .where(eq(apiKeyTable.id, apiKeyRecord.id))
+  await db.update(apiKeyTable).set({ lastUsedAt: new Date() }).where(eq(apiKeyTable.id, apiKeyRecord.id))
 
   return apiKeyRecord.user
 }
@@ -51,7 +45,7 @@ export const createTRPCContext = async (): Promise<TRPCContext> => {
   // Primeiro tentar autenticação via API key
   const headersList = await headers()
   const apiKey = headersList.get('x-api-key') || headersList.get('authorization')?.replace('Bearer ', '')
-  
+
   if (apiKey) {
     const user = await authenticateWithApiKey(apiKey)
     if (user) {

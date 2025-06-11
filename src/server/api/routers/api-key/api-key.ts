@@ -1,7 +1,7 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { apiKeyTable } from '@/server/db/schema'
 import { TRPCError } from '@trpc/server'
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { createHash, randomBytes } from 'crypto'
 
@@ -29,15 +29,20 @@ const listApiKeysSchema = z.object({
 export const apiKeyRouter = createTRPCRouter({
   // Criar nova API key (usuários podem criar suas próprias, admins podem criar para qualquer usuário)
   create: protectedProcedure
-    .input(createApiKeySchema.extend({
-      userId: z.number().int().positive().optional(), // Apenas admins podem especificar userId
-    }))
+    .input(
+      createApiKeySchema.extend({
+        userId: z.number().int().positive().optional(), // Apenas admins podem especificar userId
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const targetUserId = input.userId || ctx.user.id
 
       // Apenas admins podem criar chaves para outros usuários
       if (input.userId && ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Apenas administradores podem criar chaves para outros usuários' })
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Apenas administradores podem criar chaves para outros usuários',
+        })
       }
 
       // Gerar API key única
@@ -78,108 +83,102 @@ export const apiKeyRouter = createTRPCRouter({
     }),
 
   // Listar API keys do usuário (admins podem ver de todos)
-  list: protectedProcedure
-    .input(listApiKeysSchema)
-    .query(async ({ ctx, input }) => {
-      let whereCondition
+  list: protectedProcedure.input(listApiKeysSchema).query(async ({ ctx, input }) => {
+    let whereCondition
 
-      if (input.userId) {
-        // Apenas admins podem listar chaves de outros usuários
-        if (ctx.user.role !== 'admin') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Permissão negada' })
-        }
-        whereCondition = eq(apiKeyTable.userId, input.userId)
-      } else {
-        whereCondition = eq(apiKeyTable.userId, ctx.user.id)
+    if (input.userId) {
+      // Apenas admins podem listar chaves de outros usuários
+      if (ctx.user.role !== 'admin') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Permissão negada' })
       }
+      whereCondition = eq(apiKeyTable.userId, input.userId)
+    } else {
+      whereCondition = eq(apiKeyTable.userId, ctx.user.id)
+    }
 
-      const apiKeys = await ctx.db.query.apiKeyTable.findMany({
-        where: whereCondition,
-        columns: {
-          id: true,
-          name: true,
-          description: true,
-          isActive: true,
-          expiresAt: true,
-          lastUsedAt: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-        with: {
-          user: {
-            columns: {
-              id: true,
-              username: true,
-              email: true,
-            },
+    const apiKeys = await ctx.db.query.apiKeyTable.findMany({
+      where: whereCondition,
+      columns: {
+        id: true,
+        name: true,
+        description: true,
+        isActive: true,
+        expiresAt: true,
+        lastUsedAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      with: {
+        user: {
+          columns: {
+            id: true,
+            username: true,
+            email: true,
           },
         },
-      })
+      },
+    })
 
-      return apiKeys
-    }),
+    return apiKeys
+  }),
 
   // Atualizar API key
-  update: protectedProcedure
-    .input(updateApiKeySchema)
-    .mutation(async ({ ctx, input }) => {
-      // Buscar a API key
-      const apiKey = await ctx.db.query.apiKeyTable.findFirst({
-        where: eq(apiKeyTable.id, input.id),
+  update: protectedProcedure.input(updateApiKeySchema).mutation(async ({ ctx, input }) => {
+    // Buscar a API key
+    const apiKey = await ctx.db.query.apiKeyTable.findFirst({
+      where: eq(apiKeyTable.id, input.id),
+    })
+
+    if (!apiKey) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'API key não encontrada' })
+    }
+
+    // Verificar permissões (apenas o dono ou admin pode atualizar)
+    if (apiKey.userId !== ctx.user.id && ctx.user.role !== 'admin') {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'Permissão negada' })
+    }
+
+    // Atualizar a API key
+    const [updatedApiKey] = await ctx.db
+      .update(apiKeyTable)
+      .set({
+        name: input.name,
+        description: input.description,
+        isActive: input.isActive,
+      })
+      .where(eq(apiKeyTable.id, input.id))
+      .returning({
+        id: apiKeyTable.id,
+        name: apiKeyTable.name,
+        description: apiKeyTable.description,
+        isActive: apiKeyTable.isActive,
+        updatedAt: apiKeyTable.updatedAt,
       })
 
-      if (!apiKey) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'API key não encontrada' })
-      }
-
-      // Verificar permissões (apenas o dono ou admin pode atualizar)
-      if (apiKey.userId !== ctx.user.id && ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Permissão negada' })
-      }
-
-      // Atualizar a API key
-      const [updatedApiKey] = await ctx.db
-        .update(apiKeyTable)
-        .set({
-          name: input.name,
-          description: input.description,
-          isActive: input.isActive,
-        })
-        .where(eq(apiKeyTable.id, input.id))
-        .returning({
-          id: apiKeyTable.id,
-          name: apiKeyTable.name,
-          description: apiKeyTable.description,
-          isActive: apiKeyTable.isActive,
-          updatedAt: apiKeyTable.updatedAt,
-        })
-
-      return updatedApiKey
-    }),
+    return updatedApiKey
+  }),
 
   // Deletar API key
-  delete: protectedProcedure
-    .input(deleteApiKeySchema)
-    .mutation(async ({ ctx, input }) => {
-      // Buscar a API key
-      const apiKey = await ctx.db.query.apiKeyTable.findFirst({
-        where: eq(apiKeyTable.id, input.id),
-      })
+  delete: protectedProcedure.input(deleteApiKeySchema).mutation(async ({ ctx, input }) => {
+    // Buscar a API key
+    const apiKey = await ctx.db.query.apiKeyTable.findFirst({
+      where: eq(apiKeyTable.id, input.id),
+    })
 
-      if (!apiKey) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'API key não encontrada' })
-      }
+    if (!apiKey) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'API key não encontrada' })
+    }
 
-      // Verificar permissões (apenas o dono ou admin pode deletar)
-      if (apiKey.userId !== ctx.user.id && ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Permissão negada' })
-      }
+    // Verificar permissões (apenas o dono ou admin pode deletar)
+    if (apiKey.userId !== ctx.user.id && ctx.user.role !== 'admin') {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'Permissão negada' })
+    }
 
-      // Deletar a API key
-      await ctx.db.delete(apiKeyTable).where(eq(apiKeyTable.id, input.id))
+    // Deletar a API key
+    await ctx.db.delete(apiKeyTable).where(eq(apiKeyTable.id, input.id))
 
-      return { success: true }
-    }),
+    return { success: true }
+  }),
 
   // Listar todas as API keys (apenas admins)
   listAll: adminProtectedProcedure.query(async ({ ctx }) => {

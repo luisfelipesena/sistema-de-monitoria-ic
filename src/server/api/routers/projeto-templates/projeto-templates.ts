@@ -1,13 +1,8 @@
 import { z } from 'zod'
-import { eq, desc, and } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import { createTRPCRouter, adminProtectedProcedure } from '@/server/api/trpc'
 import { db } from '@/server/db'
-import {
-  projetoTemplateTable,
-  disciplinaTable,
-  departamentoTable,
-  userTable,
-} from '@/server/db/schema'
+import { projetoTemplateTable } from '@/server/db/schema'
 
 export const projetoTemplatesRouter = createTRPCRouter({
   getTemplates: adminProtectedProcedure.query(async () => {
@@ -50,9 +45,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
       cargaHorariaSemanaDefault: template.cargaHorariaSemanaDefault,
       numeroSemanasDefault: template.numeroSemanasDefault,
       publicoAlvoDefault: template.publicoAlvoDefault,
-      atividadesDefault: template.atividadesDefault 
-        ? JSON.parse(template.atividadesDefault) as string[]
-        : [],
+      atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
       createdAt: template.createdAt,
       updatedAt: template.updatedAt,
       disciplina: {
@@ -66,33 +59,29 @@ export const projetoTemplatesRouter = createTRPCRouter({
     }))
   }),
 
-  getTemplate: adminProtectedProcedure
-    .input(z.object({ id: z.number() }))
-    .query(async ({ input }) => {
-      const template = await db.query.projetoTemplateTable.findFirst({
-        where: eq(projetoTemplateTable.id, input.id),
-        with: {
-          disciplina: {
-            with: {
-              departamento: true,
-            },
+  getTemplate: adminProtectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+    const template = await db.query.projetoTemplateTable.findFirst({
+      where: eq(projetoTemplateTable.id, input.id),
+      with: {
+        disciplina: {
+          with: {
+            departamento: true,
           },
-          criadoPor: true,
-          ultimaAtualizacaoPor: true,
         },
-      })
+        criadoPor: true,
+        ultimaAtualizacaoPor: true,
+      },
+    })
 
-      if (!template) {
-        throw new Error('Template não encontrado')
-      }
+    if (!template) {
+      throw new Error('Template não encontrado')
+    }
 
-      return {
-        ...template,
-        atividadesDefault: template.atividadesDefault 
-          ? JSON.parse(template.atividadesDefault) as string[]
-          : [],
-      }
-    }),
+    return {
+      ...template,
+      atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
+    }
+  }),
 
   createTemplate: adminProtectedProcedure
     .input(
@@ -117,7 +106,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
       }
 
       const { atividadesDefault, ...templateData } = input
-      
+
       const [template] = await db
         .insert(projetoTemplateTable)
         .values({
@@ -166,21 +155,19 @@ export const projetoTemplatesRouter = createTRPCRouter({
       return updated
     }),
 
-  deleteTemplate: adminProtectedProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ input }) => {
-      const template = await db.query.projetoTemplateTable.findFirst({
-        where: eq(projetoTemplateTable.id, input.id),
-      })
+  deleteTemplate: adminProtectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+    const template = await db.query.projetoTemplateTable.findFirst({
+      where: eq(projetoTemplateTable.id, input.id),
+    })
 
-      if (!template) {
-        throw new Error('Template não encontrado')
-      }
+    if (!template) {
+      throw new Error('Template não encontrado')
+    }
 
-      await db.delete(projetoTemplateTable).where(eq(projetoTemplateTable.id, input.id))
+    await db.delete(projetoTemplateTable).where(eq(projetoTemplateTable.id, input.id))
 
-      return { success: true }
-    }),
+    return { success: true }
+  }),
 
   getDisciplinasDisponiveis: adminProtectedProcedure.query(async () => {
     // Get disciplines that don't have templates yet
@@ -202,9 +189,9 @@ export const projetoTemplatesRouter = createTRPCRouter({
       },
     })
 
-    const disciplinasComTemplate = new Set(templatesExistentes.map(t => t.disciplinaId))
+    const disciplinasComTemplate = new Set(templatesExistentes.map((t) => t.disciplinaId))
 
-    return allDisciplinas.filter(d => !disciplinasComTemplate.has(d.id))
+    return allDisciplinas.filter((d) => !disciplinasComTemplate.has(d.id))
   }),
 
   getTemplateByDisciplina: adminProtectedProcedure
@@ -227,9 +214,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
 
       return {
         ...template,
-        atividadesDefault: template.atividadesDefault 
-          ? JSON.parse(template.atividadesDefault) as string[]
-          : [],
+        atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
       }
     }),
 
