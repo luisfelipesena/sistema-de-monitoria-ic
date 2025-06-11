@@ -1,7 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { db } from '@server/database';
-import { userTable } from '@server/database/schema';
+import { userTable, assinaturaDocumentoTable, projetoTable } from '@server/database/schema';
 import { eq } from 'drizzle-orm';
 
 export const signatureRouter = router({
@@ -33,20 +33,20 @@ export const signatureRouter = router({
     .mutation(async ({ ctx, input }) => {
       // insere assinatura
       const [row] = await db
-        .insert('@server/database/schema'.assinaturaDocumentoTable)
+        .insert(assinaturaDocumentoTable)
         .values({
           assinaturaData: input.signatureImage,
           tipoAssinatura: input.tipoAssinatura,
           userId: ctx.user!.id,
           projetoId: input.projetoId,
         })
-        .returning({ id: '@server/database/schema'.assinaturaDocumentoTable.id });
+        .returning({ id: assinaturaDocumentoTable.id });
 
       // atualiza status projeto
       await db
-        .update('@server/database/schema'.projetoTable)
+        .update(projetoTable)
         .set({ status: 'PENDING_ADMIN_SIGNATURE' })
-        .where(eq('@server/database/schema'.projetoTable.id, input.projetoId));
+        .where(eq(projetoTable.id, input.projetoId));
 
       return { success: true, signatureId: row.id };
     }),
