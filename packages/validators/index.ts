@@ -6,6 +6,8 @@ export * from './departamento';
 export * from './user';
 export * from './signature';
 export * from './projeto-documento';
+export * from './assinatura-enums';
+export * from './project';
 
 import { userRoleEnum } from '../../src/server/database/schema';
 export const userRoles = userRoleEnum.enumValues;
