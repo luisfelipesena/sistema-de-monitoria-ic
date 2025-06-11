@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { Link, useNavigate } from '@tanstack/react-router';
 import {
   BookOpen,
   Building,
@@ -38,8 +37,11 @@ import {
   Users,
   Award,
   ClipboardCheck,
+  Key,
   type LucideIcon,
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 type SidebarLayoutProps = {
   pathname: string;
@@ -174,12 +176,6 @@ const menuConfig: MenuConfig[] = [
         roles: ['admin'],
       },
       {
-        label: 'Períodos de Inscrição',
-        href: '/home/admin/periodos-inscricao',
-        icon: FilePlus,
-        roles: ['admin'],
-      },
-      {
         label: 'Templates de Projeto',
         href: '/home/admin/projeto-templates',
         icon: FileText,
@@ -207,6 +203,12 @@ const menuConfig: MenuConfig[] = [
         roles: ['admin'],
       },
       {
+        label: 'API Keys',
+        href: '/home/admin/api-keys',
+        icon: Key,
+        roles: ['admin'],
+      },
+      {
         label: 'Arquivos',
         href: '/home/admin/files',
         icon: FileText,
@@ -229,7 +231,7 @@ const menuConfig: MenuConfig[] = [
       },
       {
         label: 'Novo Projeto',
-        href: '/home/professor/projects',
+        href: '/home/professor/projetos/novo',
         icon: FilePlus,
         roles: ['professor'],
       },
@@ -244,7 +246,7 @@ const menuConfig: MenuConfig[] = [
     items: [
       {
         label: 'Gerenciar Candidatos',
-        href: '/home/professor/project-applications',
+        href: '/home/professor/candidatos',
         icon: Users,
         roles: ['professor'],
       },
@@ -303,6 +305,12 @@ const menuConfig: MenuConfig[] = [
             roles: ['professor'],
           },
           {
+            label: 'Gerenciar Disciplinas',
+            href: '/home/professor/manage-disciplinas',
+            icon: Settings,
+            roles: ['professor'],
+          },
+          {
             label: 'Gerenciar Voluntários',
             href: '/home/professor/volunteer-management',
             icon: Users,
@@ -338,12 +346,25 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
-  // Perfil - sempre último
+  // Perfil e Configurações - sempre último
   {
-    label: 'Perfil',
-    href: '/home/common/profile',
+    label: 'Perfil & Configurações',
     icon: User,
     roles: ['admin', 'professor', 'student'],
+    items: [
+      {
+        label: 'Meu Perfil',
+        href: '/home/common/profile',
+        icon: User,
+        roles: ['admin', 'professor', 'student'],
+      },
+      {
+        label: 'Minhas API Keys',
+        href: '/home/profile/api-keys',
+        icon: Key,
+        roles: ['admin', 'professor', 'student'],
+      },
+    ],
   },
 ];
 
@@ -352,14 +373,14 @@ const SIDEBAR_OPEN_GROUPS_KEY = 'sidebar_open_groups';
 export function SidebarLayout({ pathname }: SidebarLayoutProps) {
   const { user } = useAuth();
   const { isLessThanMediumDesktop, setOpenCompactSidebarView } = useSidebar();
-  const navigate = useNavigate();
+  const router = useRouter()
   const [openGroups, setOpenGroups] = useLocalStorage<string[]>(
     SIDEBAR_OPEN_GROUPS_KEY,
     [],
   );
 
   function handleNavigate(to: string) {
-    navigate({ to });
+    router.push(to)
     if (isLessThanMediumDesktop) setOpenCompactSidebarView(false);
   }
 
@@ -405,7 +426,7 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
           onClick={() => handleNavigate(actualHref)}
           className="text-base py-3"
         >
-          <Link to={actualHref}>
+          <Link href={actualHref}>
             <item.icon className="h-5 w-5" />
             <span className="text-base font-medium">{item.label}</span>
           </Link>
@@ -456,7 +477,7 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
                       onClick={() => handleNavigate(actualHref)}
                       className="text-sm py-2"
                     >
-                      <Link to={actualHref}>
+                      <Link href={actualHref}>
                         <item.icon className="h-4 w-4" />
                         <span className="text-sm font-medium">
                           {item.label}

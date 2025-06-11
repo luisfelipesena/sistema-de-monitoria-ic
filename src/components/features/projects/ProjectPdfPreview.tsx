@@ -1,12 +1,8 @@
-import { MonitoriaFormTemplate } from '@/components/features/projects/MonitoriaFormTemplate';
-import { ProjetoFormData } from '@/components/features/projects/types';
-import { Button } from '@/components/ui/button';
-import { DisciplinaWithProfessor } from '@/hooks/use-disciplina';
-import { usePDFPreview } from '@/hooks/use-pdf-preview';
-import type { DepartamentoResponse } from '@/routes/api/department/-types';
-import type { ProfessorResponse } from '@/routes/api/professor';
-import { PDFViewer } from '@react-pdf/renderer';
-import { User } from 'lucia';
+'use client'
+
+import { MonitoriaFormTemplate, MonitoriaFormData } from '@/components/features/projects/MonitoriaFormTemplate'
+import { Button } from '@/components/ui/button'
+import { PDFViewer } from '@react-pdf/renderer'
 import {
   AlertCircle,
   CheckCircle,
@@ -15,82 +11,55 @@ import {
   FileText,
   Loader2,
   RefreshCw,
-} from 'lucide-react';
-import { useMemo, useState } from 'react';
+} from 'lucide-react'
+import { useMemo, useState } from 'react'
 
 interface ProjectPDFPreviewProps {
-  formData: Partial<ProjetoFormData>;
-  departamentos: DepartamentoResponse[] | undefined;
-  disciplinasFiltradas: DisciplinaWithProfessor[] | undefined;
-  user: User | null;
-  professores?: ProfessorResponse[];
+  formData: Partial<MonitoriaFormData>
+  hasRequiredFields: boolean
 }
 
 export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
   formData,
-  departamentos,
-  disciplinasFiltradas,
-  user,
-  professores,
+  hasRequiredFields,
 }: ProjectPDFPreviewProps) {
-  const {
-    previewRef,
-    templateData,
-    statusInfo,
-    shouldShowPDF,
-    hasRequiredFields,
-  } = usePDFPreview({
-    formData,
-    departamentos,
-    disciplinasFiltradas,
-    user,
-    professores,
-  });
+  const [showPreview, setShowPreview] = useState(false)
+  const [pdfRenderKey, setPdfRenderKey] = useState(0)
+  const [pdfData, setPdfData] = useState<MonitoriaFormData | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
 
-  // Simple state management
-  const [showPreview, setShowPreview] = useState(false);
-  const [pdfRenderKey, setPdfRenderKey] = useState(0);
-  const [pdfData, setPdfData] = useState<typeof templateData | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  // Activate preview with current form data
   const handleActivatePreview = () => {
-    if (templateData && hasRequiredFields) {
-      setPdfData(templateData);
-      setPdfRenderKey((prev) => prev + 1);
-      setShowPreview(true);
+    if (formData && hasRequiredFields) {
+      setPdfData(formData as MonitoriaFormData)
+      setPdfRenderKey((prev) => prev + 1)
+      setShowPreview(true)
     }
-  };
+  }
 
-  // Hide preview and clear data
   const handleHidePreview = () => {
-    setShowPreview(false);
-    setPdfData(null);
-  };
+    setShowPreview(false)
+    setPdfData(null)
+  }
 
-  // Update PDF with current form data
   const handleUpdatePdf = () => {
-    if (templateData && hasRequiredFields) {
-      setIsUpdating(true);
-      setPdfData(templateData);
-      setPdfRenderKey((prev) => prev + 1);
+    if (formData && hasRequiredFields) {
+      setIsUpdating(true)
+      setPdfData(formData as MonitoriaFormData)
+      setPdfRenderKey((prev) => prev + 1)
 
-      // Small delay for UX feedback
       setTimeout(() => {
-        setIsUpdating(false);
-      }, 800);
+        setIsUpdating(false)
+      }, 800)
     }
-  };
+  }
 
-  // Check if form has changes compared to displayed PDF
   const hasChanges = useMemo(() => {
-    if (!pdfData || !templateData) return false;
-    return JSON.stringify(pdfData) !== JSON.stringify(templateData);
-  }, [pdfData, templateData]);
+    if (!pdfData || !formData) return false
+    return JSON.stringify(pdfData) !== JSON.stringify(formData)
+  }, [pdfData, formData])
 
-  // Memoized PDF component - only re-renders when key changes
   const memoizedPdfViewer = useMemo(() => {
-    if (!pdfData || !showPreview) return null;
+    if (!pdfData || !showPreview) return null
 
     return (
       <div
@@ -106,29 +75,29 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
           <MonitoriaFormTemplate data={pdfData} />
         </PDFViewer>
       </div>
-    );
-  }, [pdfRenderKey, pdfData, showPreview]);
+    )
+  }, [pdfRenderKey, pdfData, showPreview])
 
   const renderContent = () => {
-    // Fields missing
     if (!hasRequiredFields) {
       return (
         <div className="p-8 text-center">
           <AlertCircle className="mx-auto h-12 w-12 mb-4 text-orange-500" />
           <h4 className="text-lg font-medium text-gray-700 mb-2">
-            {statusInfo.title}
+            Campos obrigatórios pendentes
           </h4>
-          <p className="text-gray-500 text-sm mb-4">{statusInfo.message}</p>
+          <p className="text-gray-500 text-sm mb-4">
+            Preencha todos os campos obrigatórios para gerar o preview do PDF
+          </p>
           <div className="text-xs text-gray-400 bg-gray-50 p-3 rounded">
             <strong>Campos obrigatórios:</strong> Título, Descrição,
             Departamento, Disciplinas, Ano, Semestre, Tipo de Proposição, Carga
             Horária, Número de Semanas, Público Alvo
           </div>
         </div>
-      );
+      )
     }
 
-    // Preview not activated
     if (!showPreview) {
       return (
         <div className="p-8 text-center">
@@ -145,10 +114,9 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
             Gerar Preview
           </Button>
         </div>
-      );
+      )
     }
 
-    // Show PDF or updating state
     if (isUpdating) {
       return (
         <div className="h-[600px] w-full flex items-center justify-center bg-blue-50 border rounded-md">
@@ -162,15 +130,14 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
             </p>
           </div>
         </div>
-      );
+      )
     }
 
-    return memoizedPdfViewer;
-  };
+    return memoizedPdfViewer
+  }
 
   return (
-    <div ref={previewRef} className="border rounded-lg bg-white shadow-sm">
-      {/* Header */}
+    <div className="border rounded-lg bg-white shadow-sm">
       <div className="bg-blue-50 border-b px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -227,8 +194,7 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-2">{renderContent()}</div>
     </div>
-  );
-};
+  )
+}

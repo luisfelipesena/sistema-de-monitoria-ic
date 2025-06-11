@@ -1,22 +1,19 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
-// Enum dos tipos de documentos obrigatórios
 export const RequiredDocumentType = {
   HISTORICO_ESCOLAR: 'HISTORICO_ESCOLAR',
-  COMPROVANTE_MATRICULA: 'COMPROVANTE_MATRICULA', 
+  COMPROVANTE_MATRICULA: 'COMPROVANTE_MATRICULA',
   CURRICULO_LATTES: 'CURRICULO_LATTES',
   CARTA_MOTIVACAO: 'CARTA_MOTIVACAO',
   COMPROVANTE_CR: 'COMPROVANTE_CR',
   FOTO_3X4: 'FOTO_3X4',
   RG_CPF: 'RG_CPF',
-} as const;
+} as const
 
-export type RequiredDocumentType = typeof RequiredDocumentType[keyof typeof RequiredDocumentType];
+export type RequiredDocumentType = (typeof RequiredDocumentType)[keyof typeof RequiredDocumentType]
 
-// Schema de validação dos tipos de documento
-export const requiredDocumentTypeSchema = z.nativeEnum(RequiredDocumentType);
+export const requiredDocumentTypeSchema = z.nativeEnum(RequiredDocumentType)
 
-// Configuração de documentos obrigatórios por tipo de vaga
 export const REQUIRED_DOCUMENTS_BY_TYPE = {
   BOLSISTA: [
     RequiredDocumentType.HISTORICO_ESCOLAR,
@@ -35,9 +32,8 @@ export const REQUIRED_DOCUMENTS_BY_TYPE = {
     RequiredDocumentType.COMPROVANTE_MATRICULA,
     RequiredDocumentType.COMPROVANTE_CR,
   ],
-} as const;
+} as const
 
-// Metadados dos documentos (nomes e descrições amigáveis)
 export const DOCUMENT_METADATA = {
   [RequiredDocumentType.HISTORICO_ESCOLAR]: {
     name: 'Histórico Escolar',
@@ -81,52 +77,45 @@ export const DOCUMENT_METADATA = {
     acceptedFormats: ['application/pdf', 'image/jpeg', 'image/png'],
     maxSizeMB: 3,
   },
-} as const;
+} as const
 
-// Função para obter documentos obrigatórios por tipo de vaga
 export function getRequiredDocuments(tipoVaga: keyof typeof REQUIRED_DOCUMENTS_BY_TYPE): RequiredDocumentType[] {
-  return [...(REQUIRED_DOCUMENTS_BY_TYPE[tipoVaga] || [])];
+  return [...(REQUIRED_DOCUMENTS_BY_TYPE[tipoVaga] || [])]
 }
 
-// Função para validar se todos os documentos obrigatórios foram enviados
 export function validateRequiredDocuments(
   tipoVaga: keyof typeof REQUIRED_DOCUMENTS_BY_TYPE,
   uploadedDocuments: string[]
 ): {
-  isValid: boolean;
-  missingDocuments: RequiredDocumentType[];
-  requiredDocuments: RequiredDocumentType[];
+  isValid: boolean
+  missingDocuments: RequiredDocumentType[]
+  requiredDocuments: RequiredDocumentType[]
 } {
-  const requiredDocuments = getRequiredDocuments(tipoVaga);
-  const missingDocuments = requiredDocuments.filter(
-    doc => !uploadedDocuments.includes(doc)
-  );
+  const requiredDocuments = getRequiredDocuments(tipoVaga)
+  const missingDocuments = requiredDocuments.filter((doc) => !uploadedDocuments.includes(doc))
 
   return {
     isValid: missingDocuments.length === 0,
     missingDocuments,
     requiredDocuments,
-  };
+  }
 }
 
-// Função para obter metadados de um documento
 export function getDocumentMetadata(documentType: RequiredDocumentType) {
-  return DOCUMENT_METADATA[documentType];
+  return DOCUMENT_METADATA[documentType]
 }
 
-// Schema de validação para documentos de inscrição
 export const inscricaoDocumentSchema = z.object({
   tipoDocumento: requiredDocumentTypeSchema,
   fileId: z.string().min(1, 'ID do arquivo é obrigatório'),
-});
+})
 
-export const inscricaoDocumentListSchema = z.array(inscricaoDocumentSchema);
+export const inscricaoDocumentListSchema = z.array(inscricaoDocumentSchema)
 
-// Função para verificar completude de documentos
 export function checkDocumentCompleteness(
   tipoVaga: keyof typeof REQUIRED_DOCUMENTS_BY_TYPE,
   documents: Array<{ tipoDocumento: string }>
 ) {
-  const uploadedTypes = documents.map(doc => doc.tipoDocumento);
-  return validateRequiredDocuments(tipoVaga, uploadedTypes);
+  const uploadedTypes = documents.map((doc) => doc.tipoDocumento)
+  return validateRequiredDocuments(tipoVaga, uploadedTypes)
 }

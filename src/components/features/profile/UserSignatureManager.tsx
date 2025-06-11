@@ -1,94 +1,118 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useToast } from '@/hooks/use-toast';
-import { 
-  useUserSignature, 
-  useSaveUserSignature, 
-  useDeleteUserSignature 
-} from '@/hooks/use-user-signature';
-import { ProjectSignaturePad } from '@/components/features/projects/ProjectSignaturePad';
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useToast } from '@/hooks/use-toast'
 import { 
   PenTool, 
   CheckCircle, 
   Trash2, 
-  Upload,
   Eye 
-} from 'lucide-react';
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from 'lucide-react'
+import { useState, useRef } from 'react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import SignatureCanvas from 'react-signature-canvas'
+import { api } from '@/utils/api'
 
 export function UserSignatureManager() {
-  const { toast } = useToast();
-  const { data: signature, isLoading } = useUserSignature();
-  const saveSignatureMutation = useSaveUserSignature();
-  const deleteSignatureMutation = useDeleteUserSignature();
+  const { toast } = useToast()
+  const sigPadRef = useRef<SignatureCanvas>(null)
   
-  const [showSignaturePad, setShowSignaturePad] = useState(false);
-  const [previewSignature, setPreviewSignature] = useState<string | null>(null);
+  const [showSignaturePad, setShowSignaturePad] = useState(false)
+  const [previewSignature, setPreviewSignature] = useState<string | null>(null)
+  const [isSigned, setIsSigned] = useState(false)
+
+  const { data: signature, isLoading, refetch } = api.signature.getDefaultSignature.useQuery()
+  const saveSignatureMutation = api.signature.saveDefaultSignature.useMutation()
+  const deleteSignatureMutation = api.signature.deleteDefaultSignature.useMutation()
 
   const handleSaveSignature = async (signatureData: string) => {
     try {
-      await saveSignatureMutation.mutateAsync({
-        signatureData,
-      });
+      await saveSignatureMutation.mutateAsync({ signatureData })
+      
       toast({
         title: 'Assinatura salva',
         description: 'Sua assinatura foi salva com sucesso!',
-      });
-      setShowSignaturePad(false);
+      })
+      setShowSignaturePad(false)
+      refetch()
     } catch (error: any) {
       toast({
         title: 'Erro ao salvar',
         description: error.message || 'Não foi possível salvar a assinatura',
         variant: 'destructive',
-      });
+      })
     }
-  };
+  }
 
   const handleDeleteSignature = async () => {
     try {
-      await deleteSignatureMutation.mutateAsync();
+      await deleteSignatureMutation.mutateAsync()
+      
       toast({
         title: 'Assinatura removida',
         description: 'Sua assinatura foi removida com sucesso',
-      });
+      })
+      refetch()
     } catch (error: any) {
       toast({
         title: 'Erro ao remover',
         description: error.message || 'Não foi possível remover a assinatura',
         variant: 'destructive',
-      });
+      })
     }
-  };
+  }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const file = event.target.files?.[0]
+    if (!file) return
 
     if (!file.type.startsWith('image/')) {
       toast({
         title: 'Formato inválido',
         description: 'Por favor, selecione uma imagem',
         variant: 'destructive',
-      });
-      return;
+      })
+      return
     }
 
-    const reader = new FileReader();
+    const reader = new FileReader()
     reader.onload = (e) => {
-      const result = e.target?.result as string;
-      handleSaveSignature(result);
-    };
-    reader.readAsDataURL(file);
-  };
+      const result = e.target?.result as string
+      handleSaveSignature(result)
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handlePreviewSignature = () => {
     if (signature?.signatureData) {
-      setPreviewSignature(signature.signatureData);
+      setPreviewSignature(signature.signatureData)
     }
-  };
+  }
+
+  const handleClearSignature = () => {
+    sigPadRef.current?.clear()
+    setIsSigned(false)
+  }
+
+  const handleSaveFromPad = () => {
+    if (sigPadRef.current?.isEmpty()) {
+      toast({
+        title: 'Assinatura vazia',
+        description: 'Por favor, desenhe sua assinatura.',
+        variant: 'destructive',
+      })
+      return
+    }
+    const signatureImage = sigPadRef.current?.toDataURL('image/png')
+    if (signatureImage) {
+      handleSaveSignature(signatureImage)
+    }
+  }
+
+  const handleBeginStroke = () => {
+    setIsSigned(true)
+  }
 
   if (isLoading) {
     return (
@@ -101,14 +125,14 @@ export function UserSignatureManager() {
         </CardHeader>
         <CardContent>
           <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
           </div>
         </CardContent>
       </Card>
-    );
+    )
   }
 
-  const hasSignature = signature?.signatureData;
+  const hasSignature = signature?.signatureData
 
   return (
     <Card>
@@ -154,7 +178,6 @@ export function UserSignatureManager() {
                   variant="destructive"
                   size="sm"
                   onClick={handleDeleteSignature}
-                  disabled={deleteSignatureMutation.isPending}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Remover
@@ -182,7 +205,6 @@ export function UserSignatureManager() {
                   type="file"
                   accept="image/*"
                   onChange={handleFileUpload}
-                  disabled={saveSignatureMutation.isPending}
                 />
                 <p className="text-xs text-muted-foreground">
                   Formatos aceitos: PNG, JPG, JPEG
@@ -194,7 +216,6 @@ export function UserSignatureManager() {
                   <p className="text-sm text-muted-foreground">ou</p>
                   <Button
                     onClick={() => setShowSignaturePad(true)}
-                    disabled={saveSignatureMutation.isPending}
                   >
                     <PenTool className="h-4 w-4 mr-2" />
                     Desenhar Assinatura
@@ -207,19 +228,45 @@ export function UserSignatureManager() {
 
         {showSignaturePad && (
           <div className="space-y-4">
-            <ProjectSignaturePad
-              onSave={handleSaveSignature}
-              isSaving={saveSignatureMutation.isPending}
-            />
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                onClick={() => setShowSignaturePad(false)}
-                disabled={saveSignatureMutation.isPending}
-              >
-                Cancelar
-              </Button>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <PenTool className="h-5 w-5" />
+                  Desenhe Sua Assinatura
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert>
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Desenhe sua assinatura no campo abaixo. Você pode limpar e redesenhar quantas vezes quiser.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="border rounded-md bg-gray-50 p-2">
+                  <SignatureCanvas
+                    ref={sigPadRef}
+                    penColor="black"
+                    canvasProps={{
+                      className: 'w-full h-40 rounded-md',
+                    }}
+                    onBegin={handleBeginStroke}
+                  />
+                </div>
+                
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={handleClearSignature}>
+                    Limpar
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowSignaturePad(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleSaveFromPad} disabled={!isSigned}>
+                    Salvar Assinatura
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
@@ -244,5 +291,5 @@ export function UserSignatureManager() {
         )}
       </CardContent>
     </Card>
-  );
-} 
+  )
+}
