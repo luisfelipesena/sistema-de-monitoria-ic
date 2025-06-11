@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
+      "@validators": ["../../packages/validators/index.ts"],
       "@validators/*": ["../../packages/validators/*"],
       "@/*": ["../../src/*"],
       "@server/*": ["../../src/server/*"],
