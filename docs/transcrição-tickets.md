@@ -4,7 +4,7 @@
 
 O Sistema de Monitoria IC é uma aplicação web abrangente para gerenciar todo o fluxo de trabalho do programa de monitoria da UFBA, desde a proposta de projetos pelos professores até a seleção e cadastro final dos monitores.
 
-**Estado Atual:** O sistema possui aproximadamente 40% das funcionalidades implementadas, com uma arquitetura sólida baseada em TanStack Start, PostgreSQL/Drizzle ORM, e autenticação via CAS/UFBA. As funcionalidades básicas de criação de projetos, fluxo de aprovação, e sistema de inscrições já estão operacionais.
+**Estado Atual (Atualizado - Janeiro 2025):** O sistema possui aproximadamente 75% das funcionalidades implementadas, com uma arquitetura sólida baseada em TanStack Start, PostgreSQL/Drizzle ORM, e autenticação via CAS/UFBA. Os módulos 1 e 2 estão praticamente completos, módulo 3 está parcialmente implementado, e módulo 4 necessita desenvolvimento significativo.
 
 **Objetivo deste Documento:** Servir como guia detalhado para os próximos passos do desenvolvimento, identificando lacunas funcionais e propondo implementações estruturadas seguindo as melhores práticas do projeto.
 
@@ -492,47 +492,182 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - [ ] Cache de métricas para performance
 - [ ] Filtros por período
 
-## 4. Conclusão
+## 4. Status Atual e Lacunas Identificadas (Janeiro 2025)
 
-### Próximos Passos Prioritários (Sequencial)
+### Análise dos Endpoints Existentes (src/server/api/root.ts)
 
-Com base na urgência expressa pelos clientes, a implementação deve seguir esta ordem:
+**Endpoints Implementados:**
+- ✅ `me`: Autenticação e perfil do usuário
+- ✅ `course`: CRUD de cursos 
+- ✅ `discipline`: CRUD de disciplinas
+- ✅ `file`: Gerenciamento de arquivos/upload
+- ✅ `onboarding`: Processo de cadastro inicial
+- ✅ `edital`: Geração e gestão de editais internos
+- ✅ `departamento`: CRUD de departamentos
+- ✅ `projeto`: Gestão completa de projetos de monitoria
+- ✅ `inscricao`: Sistema de inscrições de alunos
+- ✅ `signature`: Sistema de assinatura digital
+- ✅ `user`: Gestão de usuários
+- ✅ `importProjects`: Importação de planejamento semestral
+- ✅ `scholarshipAllocation`: Alocação de bolsas
+- ✅ `inviteProfessor`: Convite de professores
+- ✅ `projetoTemplates`: Templates de projetos
+- ✅ `relatorios`: Relatórios para PROGRAD
+- ✅ `analytics`: Dashboard de métricas
+- ✅ `apiKey`: Gestão de chaves API
 
-**Fase 1 - Módulo 1 (Mais Urgente):**
-1. [ ] Implementar importação de planejamento semestral
-2. [ ] Criar geração automática de PDFs de projetos
-3. [ ] Adicionar fluxo de assinatura pelo professor
-4. [ ] Integrar sistema de notificações por email
-5. [ ] Corrigir formato de exportação PROGRAD
+**Endpoints FALTANDO (Críticos):**
+- ❌ `selecao`: Geração de atas, publicação de resultados, classificações
+- ❌ `termos`: Geração e assinatura de termos de compromisso
+- ❌ `vagas`: Aceite/recusa de vagas com validações
+- ❌ `notificacoes`: Sistema de notificações e lembretes
 
-**Fase 2 - Módulo 2:**
-6. [ ] Desenvolver interface de distribuição de bolsas
-7. [ ] Implementar geração de edital interno
-8. [ ] Adicionar validação de documentos obrigatórios
+### Páginas Frontend Órfãs (Sem Backend)
 
-**Fase 3 - Módulo 3:**
-9. [ ] Criar sistema de entrada de notas
-10. [ ] Implementar geração de atas
-11. [ ] Desenvolver publicação de resultados
+**Páginas implementadas mas sem router backend correspondente:**
+- `/professor/atas-selecao` → Precisa do `selecaoRouter`
+- `/professor/termos-compromisso` → Precisa do `termosRouter`
+- `/professor/publicar-resultados` → Precisa do `selecaoRouter`
+- `/admin/consolidacao-prograd` → Precisa expandir `relatoriosRouter`
 
-**Fase 4 - Módulo 4:**
-12. [ ] Adicionar validações no aceite de vagas
-13. [ ] Implementar geração de termos
-14. [ ] Criar exportação final consolidada
+### Status por Módulo (Atualizado)
 
-**Melhorias Contínuas:**
-15. [ ] Aprimorar onboarding e perfis
-16. [ ] Completar CRUDs administrativos
-17. [ ] Expandir analytics dashboard
-18. [ ] Implementar testes E2E com Cypress
+#### **Módulo 1: Gestão de Projetos** ✅ **95% COMPLETO**
+- ✅ Importação de planejamento (`importProjectsRouter`)
+- ✅ Geração e assinatura de PDFs (`projetoRouter`, `signatureRouter`)
+- ✅ Templates de projeto (`projetoTemplatesRouter`)
+- ✅ Relatórios PROGRAD (`relatoriosRouter`)
+- ✅ Sistema de notificações por email (integrado)
+
+#### **Módulo 2: Editais e Inscrições** ✅ **90% COMPLETO**
+- ✅ Gestão de editais (`editalRouter`)
+- ✅ Alocação de bolsas (`scholarshipAllocationRouter`)
+- ✅ Sistema de inscrições (`inscricaoRouter`)
+- ✅ Validação de documentos (implementado no frontend)
+
+#### **Módulo 3: Seleção e Atas** 🚧 **60% COMPLETO**
+- ✅ Avaliação de candidatos (páginas e endpoints existem)
+- ❌ **FALTA**: `selecaoRouter` para atas e resultados
+- ❌ **FALTA**: Publicação automática de resultados
+- ❌ **FALTA**: Notificação para alunos
+
+#### **Módulo 4: Cadastro Final** ❌ **30% COMPLETO**
+- ❌ **FALTA**: `termosRouter` para termos de compromisso
+- ❌ **FALTA**: `vagasRouter` para aceite com validações
+- ❌ **FALTA**: Consolidação final para PROGRAD
+- ❌ **FALTA**: Validação de limite de bolsas
+
+## 5. Próximos Passos Prioritários (ATUALIZADOS)
+
+### **FASE 1 - Completar Módulo 3 (URGENTE)**
+
+#### 1.1 Implementar `selecaoRouter`
+```typescript
+// Criar: src/server/api/routers/selecao/selecao.ts
+export const selecaoRouter = createTRPCRouter({
+  generateAta: protectedProcedure // Gerar atas de seleção
+  publishResults: protectedProcedure // Publicar resultados  
+  getApplicationsForGrading: protectedProcedure // Candidatos por projeto
+  notifyStudents: protectedProcedure // Notificar alunos sobre resultados
+});
+```
+
+#### 1.2 Conectar páginas órfãs
+- Conectar `/professor/atas-selecao` ao `selecaoRouter.generateAta`
+- Conectar `/professor/publicar-resultados` ao `selecaoRouter.publishResults`
+
+### **FASE 2 - Implementar Módulo 4 (CRÍTICO)**
+
+#### 2.1 Implementar `vagasRouter`
+```typescript
+// Criar: src/server/api/routers/vagas/vagas.ts
+export const vagasRouter = createTRPCRouter({
+  acceptVaga: protectedProcedure // Aceitar vaga com validação de bolsa única
+  rejectVaga: protectedProcedure // Recusar vaga
+  getMyVagas: protectedProcedure // Vagas do aluno
+  validateBolsaLimit: protectedProcedure // Validar limite de 1 bolsa
+});
+```
+
+#### 2.2 Implementar `termosRouter`
+```typescript
+// Criar: src/server/api/routers/termos/termos.ts
+export const termosRouter = createTRPCRouter({
+  generateTermo: protectedProcedure // Gerar termo de compromisso
+  signTermo: protectedProcedure // Assinar termo digitalmente
+  getTermosStatus: protectedProcedure // Status de assinaturas
+  downloadTermo: protectedProcedure // Download do termo
+});
+```
+
+#### 2.3 Expandir `relatoriosRouter`
+```typescript
+// Adicionar ao relatoriosRouter existente:
+monitoresFinal: protectedProcedure // Planilha final de monitores
+validateCompleteData: protectedProcedure // Validar dados completos
+exportConsolidated: protectedProcedure // Exportação consolidada
+```
+
+### **FASE 3 - Sistema de Notificações**
+
+#### 3.1 Implementar `notificacoesRouter`
+```typescript
+// Criar: src/server/api/routers/notificacoes/notificacoes.ts
+export const notificacoesRouter = createTRPCRouter({
+  sendReminders: protectedProcedure // Lembretes automáticos
+  getHistory: protectedProcedure // Histórico de notificações
+  markAsRead: protectedProcedure // Marcar como lida
+});
+```
+
+### **FASE 4 - Atualizar root.ts**
+
+```typescript
+// Adicionar ao appRouter em src/server/api/root.ts:
+export const appRouter = createTRPCRouter({
+  // ... routers existentes
+  selecao: selecaoRouter,        // NOVO
+  termos: termosRouter,          // NOVO  
+  vagas: vagasRouter,            // NOVO
+  notificacoes: notificacoesRouter, // NOVO
+});
+```
+
+## 6. Estimativa de Esforço
+
+**Módulo 3 (selecaoRouter):** 2-3 dias
+**Módulo 4 (vagas + termos):** 4-5 dias  
+**Sistema de notificações:** 2 dias
+**Consolidação PROGRAD:** 1-2 dias
+**Testes e ajustes:** 2-3 dias
+
+**TOTAL ESTIMADO:** 11-15 dias para completar 100% dos requisitos
+
+O sistema possui uma arquitetura robusta e já implementou 75% dos requisitos. Os 4 routers faltantes (`selecao`, `termos`, `vagas`, `notificacoes`) são críticos para completar o fluxo de monitoria conforme especificado nas transcrições das reuniões.
+
+### Implementação Imediata Recomendada
+
+1. **`selecaoRouter`** - Para conectar as páginas órfãs de atas e resultados
+2. **`vagasRouter`** - Para implementar as validações de aceite de bolsas  
+3. **`termosRouter`** - Para geração e assinatura digital de termos
+4. **Expansão do `relatoriosRouter`** - Para consolidação final PROGRAD
 
 ### Considerações Técnicas
 
 Todas as implementações devem seguir:
-- **API and Hooks Pattern** (Cursor Rules)
+- **API and Hooks Pattern** (Cursor Rules existentes)
 - **Code Development Guidelines** com foco em TypeScript strict
 - Padrão de commits convencionais
-- Testes unitários para lógica crítica
-- Documentação inline mínima mas precisa
+- Reutilização dos padrões existentes (assinatura digital, upload de arquivos)
+- Integração com sistema de notificações existente
 
-O sistema já possui uma base sólida, e com a implementação sistemática destes módulos, atenderá completamente as necessidades do programa de monitoria da UFBA.
+### Contexto Crítico para Implementação
+
+Com base nas transcrições, os pontos mais urgentes são:
+
+1. **Validação de bolsa única** - Aluno só pode ter 1 bolsa por semestre
+2. **Termos de compromisso** - Professor e aluno precisam assinar digitalmente
+3. **Consolidação PROGRAD** - Planilhas finais separadas (bolsistas vs voluntários)
+4. **Notificações automáticas** - Email para alunos sobre resultados
+
+O sistema já possui toda a infraestrutura necessária (assinatura digital, PDFs, email, validações). Os novos routers apenas conectarão as funcionalidades existentes ao fluxo completo de monitoria.
