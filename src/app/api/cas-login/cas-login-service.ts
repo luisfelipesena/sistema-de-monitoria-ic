@@ -11,14 +11,14 @@ export class CasLoginService {
     const serverUrl = env.SERVER_URL
     const serviceUrl = `${serverUrl}/cas-callback`
     const redirectUrl = `${casServerUrlPrefix}/login?service=${encodeURIComponent(serviceUrl)}`
-    
+
     log.info(`CAS login configuration:`, {
       serverUrl,
       serviceUrl,
       redirectUrl,
-      casServerUrlPrefix
+      casServerUrlPrefix,
     })
-    
+
     return redirectUrl
   }
 }

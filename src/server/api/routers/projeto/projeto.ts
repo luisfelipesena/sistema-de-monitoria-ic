@@ -13,13 +13,11 @@ import {
   userTable,
   periodoInscricaoTable,
   ataSelecaoTable,
-  vagaTable,
 } from '@/server/db/schema'
 import { TRPCError } from '@trpc/server'
 import { eq, sql, and, isNull, lte, gte, desc } from 'drizzle-orm'
 import { z } from 'zod'
 import { logger } from '@/utils/logger'
-import minioClient, { bucketName } from '@/server/lib/minio'
 import { emailService } from '@/server/lib/email-service'
 import { PDFService } from '@/server/lib/pdf-service'
 
@@ -960,10 +958,7 @@ export const projetoRouter = createTRPCRouter({
         }
 
         // Generate and save the PDF with professor signature
-        const objectName = await PDFService.generateAndSaveSignedProjetoPDF(
-          pdfData,
-          input.signatureImage
-        )
+        const objectName = await PDFService.generateAndSaveSignedProjetoPDF(pdfData, input.signatureImage)
 
         log.info({ projetoId: input.projetoId, objectName }, 'PDF com assinatura do professor salvo no MinIO')
       } catch (error) {
@@ -978,7 +973,7 @@ export const projetoRouter = createTRPCRouter({
 
         if (admins.length > 0) {
           const adminEmails = admins.map((admin) => admin.email)
-          
+
           await emailService.sendProfessorAssinouPropostaNotification(
             {
               professorNome: projeto.professorResponsavel.nomeCompleto,
@@ -1047,7 +1042,7 @@ export const projetoRouter = createTRPCRouter({
       try {
         // Get the existing PDF with professor signature
         const existingPdf = await PDFService.getLatestProjetoPDF(projeto.id)
-        
+
         if (existingPdf) {
           // Add admin signature to existing PDF
           const pdfWithAdminSignature = await PDFService.addSignatureToPDF(
@@ -1055,14 +1050,14 @@ export const projetoRouter = createTRPCRouter({
             input.signatureImage,
             'admin'
           )
-          
+
           // Save the updated PDF
           const objectName = await PDFService.saveProjetoPDF(
             projeto.id,
             pdfWithAdminSignature,
             `projetos/${projeto.id}/propostas_assinadas/proposta_assinada_completa_${Date.now()}.pdf`
           )
-          
+
           log.info(
             { projetoId: input.projetoId, objectName },
             'PDF com assinatura completa (professor + admin) salvo no MinIO'
@@ -1148,11 +1143,8 @@ export const projetoRouter = createTRPCRouter({
             projetoCompleto.assinaturaProfessor || undefined,
             input.signatureImage
           )
-          
-          log.info(
-            { projetoId: input.projetoId, objectName },
-            'PDF com assinatura completa gerado do zero'
-          )
+
+          log.info({ projetoId: input.projetoId, objectName }, 'PDF com assinatura completa gerado do zero')
         }
       } catch (error) {
         log.warn({ projetoId: input.projetoId, error }, 'Erro ao salvar PDF no MinIO, mas assinatura foi salva')
@@ -1562,46 +1554,52 @@ export const projetoRouter = createTRPCRouter({
       },
     })
     .input(z.object({ projetoId: z.number() }))
-    .output(z.object({
-      projeto: z.object({
-        id: z.number(),
-        titulo: z.string(),
-        ano: z.number(),
-        semestre: z.string(),
-        departamento: z.object({
-          nome: z.string(),
-          sigla: z.string().nullable(),
+    .output(
+      z.object({
+        projeto: z.object({
+          id: z.number(),
+          titulo: z.string(),
+          ano: z.number(),
+          semestre: z.string(),
+          departamento: z.object({
+            nome: z.string(),
+            sigla: z.string().nullable(),
+          }),
+          professorResponsavel: z.object({
+            nomeCompleto: z.string(),
+            matriculaSiape: z.string().nullable(),
+          }),
+          disciplinas: z.array(
+            z.object({
+              codigo: z.string(),
+              nome: z.string(),
+            })
+          ),
         }),
-        professorResponsavel: z.object({
-          nomeCompleto: z.string(),
-          matriculaSiape: z.string().nullable(),
+        candidatos: z.array(
+          z.object({
+            id: z.number(),
+            aluno: z.object({
+              nomeCompleto: z.string(),
+              matricula: z.string(),
+              cr: z.number().nullable(),
+            }),
+            tipoVagaPretendida: z.string().nullable(),
+            notaDisciplina: z.number().nullable(),
+            notaSelecao: z.number().nullable(),
+            coeficienteRendimento: z.number().nullable(),
+            notaFinal: z.number().nullable(),
+            status: z.string(),
+            observacoes: z.string().nullable(),
+          })
+        ),
+        ataInfo: z.object({
+          dataSelecao: z.string(),
+          localSelecao: z.string().nullable(),
+          observacoes: z.string().nullable(),
         }),
-        disciplinas: z.array(z.object({
-          codigo: z.string(),
-          nome: z.string(),
-        })),
-      }),
-      candidatos: z.array(z.object({
-        id: z.number(),
-        aluno: z.object({
-          nomeCompleto: z.string(),
-          matricula: z.string(),
-          cr: z.number().nullable(),
-        }),
-        tipoVagaPretendida: z.string().nullable(),
-        notaDisciplina: z.number().nullable(),
-        notaSelecao: z.number().nullable(),
-        coeficienteRendimento: z.number().nullable(),
-        notaFinal: z.number().nullable(),
-        status: z.string(),
-        observacoes: z.string().nullable(),
-      })),
-      ataInfo: z.object({
-        dataSelecao: z.string(),
-        localSelecao: z.string().nullable(),
-        observacoes: z.string().nullable(),
-      }),
-    }))
+      })
+    )
     .query(async ({ input, ctx }) => {
       try {
         // Verificar se é professor e se tem acesso ao projeto
@@ -1673,7 +1671,7 @@ export const projetoRouter = createTRPCRouter({
         }
 
         // Transformar dados dos candidatos para match da interface
-        const candidatosTransformados = candidatos.map(candidato => ({
+        const candidatosTransformados = candidatos.map((candidato) => ({
           id: candidato.id,
           aluno: {
             nomeCompleto: candidato.aluno.nomeCompleto,
@@ -1729,12 +1727,14 @@ export const projetoRouter = createTRPCRouter({
         description: 'Save selection minutes to database and MinIO',
       },
     })
-    .input(z.object({
-      projetoId: z.number(),
-      dataSelecao: z.string().optional(),
-      localSelecao: z.string().optional(),
-      observacoes: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        projetoId: z.number(),
+        dataSelecao: z.string().optional(),
+        localSelecao: z.string().optional(),
+        observacoes: z.string().optional(),
+      })
+    )
     .output(z.object({ success: z.boolean(), ataId: z.number() }))
     .mutation(async ({ input, ctx }) => {
       try {
@@ -1778,7 +1778,7 @@ export const projetoRouter = createTRPCRouter({
               dataGeracao: new Date(),
             })
             .where(eq(ataSelecaoTable.id, ataExistente.id))
-          
+
           ataId = ataExistente.id
         } else {
           // Criar nova ata
@@ -1789,7 +1789,7 @@ export const projetoRouter = createTRPCRouter({
               geradoPorUserId: ctx.user.id,
             })
             .returning({ id: ataSelecaoTable.id })
-          
+
           ataId = novaAta.id
         }
 
@@ -1816,14 +1816,18 @@ export const projetoRouter = createTRPCRouter({
         description: 'Send email notifications to candidates about selection results',
       },
     })
-    .input(z.object({
-      projetoId: z.number(),
-      mensagemPersonalizada: z.string().optional(),
-    }))
-    .output(z.object({ 
-      success: z.boolean(), 
-      notificationsCount: z.number() 
-    }))
+    .input(
+      z.object({
+        projetoId: z.number(),
+        mensagemPersonalizada: z.string().optional(),
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        notificationsCount: z.number(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       try {
         // Verificar se é professor e se tem acesso ao projeto
@@ -1881,7 +1885,7 @@ export const projetoRouter = createTRPCRouter({
         for (const candidato of candidatos) {
           try {
             let status: 'SELECTED_BOLSISTA' | 'SELECTED_VOLUNTARIO' | 'REJECTED_BY_PROFESSOR'
-            
+
             if (candidato.inscricao.status === 'SELECTED_BOLSISTA') {
               status = 'SELECTED_BOLSISTA'
             } else if (candidato.inscricao.status === 'SELECTED_VOLUNTARIO') {
@@ -1890,40 +1894,46 @@ export const projetoRouter = createTRPCRouter({
               status = 'REJECTED_BY_PROFESSOR'
             }
 
-            await emailService.sendStudentSelectionResultNotification({
-              studentName: candidato.aluno.nomeCompleto,
-              studentEmail: candidato.user.email,
-              projectTitle: projeto.titulo,
-              professorName: projeto.professorResponsavel.nomeCompleto,
-              status,
-              feedbackProfessor: candidato.inscricao.feedbackProfessor || input.mensagemPersonalizada,
-              alunoId: candidato.aluno.id,
-              projetoId: projeto.id,
-            }, ctx.user.id)
+            await emailService.sendStudentSelectionResultNotification(
+              {
+                studentName: candidato.aluno.nomeCompleto,
+                studentEmail: candidato.user.email,
+                projectTitle: projeto.titulo,
+                professorName: projeto.professorResponsavel.nomeCompleto,
+                status,
+                feedbackProfessor: candidato.inscricao.feedbackProfessor || input.mensagemPersonalizada,
+                alunoId: candidato.aluno.id,
+                projetoId: projeto.id,
+              },
+              ctx.user.id
+            )
 
             notificationsCount++
           } catch (emailError) {
             log.error(
-              { 
-                error: emailError, 
-                candidatoId: candidato.aluno.id, 
-                projetoId: input.projetoId 
-              }, 
+              {
+                error: emailError,
+                candidatoId: candidato.aluno.id,
+                projetoId: input.projetoId,
+              },
               'Erro ao enviar notificação para candidato'
             )
             // Continua enviando para os outros mesmo se um falhar
           }
         }
 
-        log.info({ 
-          projetoId: input.projetoId, 
-          notificationsCount, 
-          totalCandidatos: candidatos.length 
-        }, 'Notificações de resultado enviadas')
+        log.info(
+          {
+            projetoId: input.projetoId,
+            notificationsCount,
+            totalCandidatos: candidatos.length,
+          },
+          'Notificações de resultado enviadas'
+        )
 
-        return { 
-          success: true, 
-          notificationsCount 
+        return {
+          success: true,
+          notificationsCount,
         }
       } catch (error) {
         if (error instanceof TRPCError) throw error

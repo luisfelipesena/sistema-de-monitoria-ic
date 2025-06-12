@@ -549,7 +549,7 @@ export const fileRouter = createTRPCRouter({
 
             try {
               // Verificar autorização baseada no projeto
-              const db = ctx.db
+              const _db = ctx.db
               const projeto = await ctx.db.query.projetoTable.findFirst({
                 where: eq(projetoTable.id, projetoId),
                 with: {

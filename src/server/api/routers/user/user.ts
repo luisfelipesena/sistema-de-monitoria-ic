@@ -1,5 +1,4 @@
 import { createTRPCRouter, protectedProcedure, adminProtectedProcedure } from '@/server/api/trpc'
-import { db } from '@/server/db'
 import {
   userTable,
   professorTable,
@@ -206,10 +205,10 @@ export const userRouter = createTRPCRouter({
                 emailInstitucional: user.studentProfile.emailInstitucional,
                 historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
                 comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
-                banco: (user.studentProfile).banco,
-                agencia: (user.studentProfile).agencia,
-                conta: (user.studentProfile).conta,
-                digitoConta: (user.studentProfile).digitoConta,
+                banco: user.studentProfile.banco,
+                agencia: user.studentProfile.agencia,
+                conta: user.studentProfile.conta,
+                digitoConta: user.studentProfile.digitoConta,
                 inscricoes: inscricoesCount?.count || 0,
                 bolsasAtivas: bolsasAtivasCount?.count || 0,
                 voluntariadosAtivos: voluntariadosAtivosCount?.count || 0,
@@ -319,10 +318,10 @@ export const userRouter = createTRPCRouter({
                 emailInstitucional: user.studentProfile.emailInstitucional,
                 historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
                 comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
-                banco: (user.studentProfile).banco,
-                agencia: (user.studentProfile).agencia,
-                conta: (user.studentProfile).conta,
-                digitoConta: (user.studentProfile).digitoConta,
+                banco: user.studentProfile.banco,
+                agencia: user.studentProfile.agencia,
+                conta: user.studentProfile.conta,
+                digitoConta: user.studentProfile.digitoConta,
               }
             : null,
         }
@@ -438,7 +437,7 @@ export const userRouter = createTRPCRouter({
         id: z.number(),
       })
     )
-    .query(async ({ input, ctx   }) => {
+    .query(async ({ input, ctx }) => {
       try {
         const user = await ctx.db.query.userTable.findFirst({
           where: eq(userTable.id, input.id),

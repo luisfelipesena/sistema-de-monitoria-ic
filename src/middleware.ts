@@ -180,7 +180,9 @@ export async function middleware(request: NextRequest) {
   }
 
   const payload = await verifySession(sessionId)
-  console.log(`👤 Middleware: Session verification result: ${payload ? `User ${payload.userId} with role ${payload.role}` : 'invalid'}`)
+  console.log(
+    `👤 Middleware: Session verification result: ${payload ? `User ${payload.userId} with role ${payload.role}` : 'invalid'}`
+  )
 
   if (!payload) {
     console.log(`🔒 Middleware: Invalid session, redirecting to login for ${pathname}`)

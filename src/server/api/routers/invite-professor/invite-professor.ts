@@ -213,33 +213,35 @@ export const inviteProfessorRouter = createTRPCRouter({
     return stats
   }),
 
-  validateInvitationToken: adminProtectedProcedure.input(z.object({ token: z.string() })).query(async ({ input, ctx }) => {
-    const invitation = await ctx.db.query.professorInvitationTable.findFirst({
-      where: eq(professorInvitationTable.token, input.token),
-    })
+  validateInvitationToken: adminProtectedProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const invitation = await ctx.db.query.professorInvitationTable.findFirst({
+        where: eq(professorInvitationTable.token, input.token),
+      })
 
-    if (!invitation) {
-      throw new Error('Token de convite inválido')
-    }
+      if (!invitation) {
+        throw new Error('Token de convite inválido')
+      }
 
-    if (invitation.status !== 'PENDING') {
-      throw new Error('Este convite não está mais válido')
-    }
+      if (invitation.status !== 'PENDING') {
+        throw new Error('Este convite não está mais válido')
+      }
 
-    if (invitation.expiresAt < new Date()) {
-      await ctx.db
-        .update(professorInvitationTable)
-        .set({ status: 'EXPIRED' })
-        .where(eq(professorInvitationTable.id, invitation.id))
+      if (invitation.expiresAt < new Date()) {
+        await ctx.db
+          .update(professorInvitationTable)
+          .set({ status: 'EXPIRED' })
+          .where(eq(professorInvitationTable.id, invitation.id))
 
-      throw new Error('Este convite expirou')
-    }
+        throw new Error('Este convite expirou')
+      }
 
-    return {
-      email: invitation.email,
-      valid: true,
-    }
-  }),
+      return {
+        email: invitation.email,
+        valid: true,
+      }
+    }),
 
   getDepartments: adminProtectedProcedure.query(async ({ ctx }) => {
     const departments = await ctx.db.query.departamentoTable.findMany({

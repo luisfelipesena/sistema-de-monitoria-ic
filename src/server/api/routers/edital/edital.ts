@@ -1,5 +1,4 @@
 import { createTRPCRouter, protectedProcedure, adminProtectedProcedure } from '@/server/api/trpc'
-import { db } from '@/server/db'
 import { editalTable, periodoInscricaoTable, projetoTable } from '@/server/db/schema'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
@@ -7,7 +6,6 @@ import { eq, and, or, lte, gte, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { EditalInternoTemplate, type EditalInternoData } from '@/server/lib/pdfTemplates/edital-interno'
-import React from 'react'
 import minioClient, { bucketName } from '@/server/lib/minio'
 
 const log = logger.child({ context: 'EditalRouter' })
@@ -710,7 +708,7 @@ export const editalRouter = createTRPCRouter({
         const pdfBuffer = await renderToBuffer(EditalInternoTemplate({ data: editalData }))
 
         const fileName = `editais/edital-${edital.numeroEdital}-${edital.periodoInscricao.ano}-${edital.periodoInscricao.semestre}.pdf`
-        
+
         await minioClient.putObject(bucketName, fileName, pdfBuffer, pdfBuffer.length, {
           'Content-Type': 'application/pdf',
           'Cache-Control': 'max-age=3600',

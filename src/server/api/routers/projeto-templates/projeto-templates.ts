@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { eq, desc } from 'drizzle-orm'
 import { createTRPCRouter, adminProtectedProcedure } from '@/server/api/trpc'
-import { db } from '@/server/db'
 import { projetoTemplateTable } from '@/server/db/schema'
 
 export const projetoTemplatesRouter = createTRPCRouter({

@@ -1,5 +1,4 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { db } from '@/server/db'
 import { cursoTable, alunoTable } from '@/server/db/schema'
 import { TRPCError } from '@trpc/server'
 import { eq, sql } from 'drizzle-orm'

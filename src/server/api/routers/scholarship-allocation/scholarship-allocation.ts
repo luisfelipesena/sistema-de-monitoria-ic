@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { eq, and, desc, count, sum } from 'drizzle-orm'
 import { createTRPCRouter, adminProtectedProcedure } from '@/server/api/trpc'
-import { db } from '@/server/db'
 import {
   projetoTable,
   professorTable,

@@ -1,5 +1,4 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { db } from '@/server/db'
 import {
   disciplinaTable,
   disciplinaSchema,
@@ -171,7 +170,11 @@ export const disciplineRouter = createTRPCRouter({
     .output(disciplinaSchema)
     .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input
-      const disciplina = await ctx.db.update(disciplinaTable).set(updateData).where(eq(disciplinaTable.id, id)).returning()
+      const disciplina = await ctx.db
+        .update(disciplinaTable)
+        .set(updateData)
+        .where(eq(disciplinaTable.id, id))
+        .returning()
 
       if (!disciplina[0]) {
         throw new TRPCError({ code: 'NOT_FOUND' })

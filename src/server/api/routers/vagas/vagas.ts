@@ -1,16 +1,9 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { db } from '@/server/db'
-import { 
-  vagaTable, 
-  inscricaoTable, 
-  projetoTable, 
-  alunoTable,
-  userTable
-} from '@/server/db/schema'
-import { z } from 'zod'
-import { eq, and, desc, isNotNull, sql } from 'drizzle-orm'
-import { TRPCError } from '@trpc/server'
+import { alunoTable, assinaturaDocumentoTable, inscricaoTable, projetoTable, vagaTable } from '@/server/db/schema'
 import { emailService } from '@/server/lib/email-service'
+import { TRPCError } from '@trpc/server'
+import { and, desc, eq, sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 export const vagasRouter = createTRPCRouter({
   // Validar se aluno pode aceitar bolsa (limite de 1 por semestre)
@@ -38,14 +31,14 @@ export const vagasRouter = createTRPCRouter({
               AND ${projetoTable.ano} = ${input.ano} AND ${projetoTable.semestre} = ${input.semestre})`
         ),
         with: {
-          projeto: true
-        }
+          projeto: true,
+        },
       })
 
       if (bolsaExistente) {
-        return { 
+        return {
           canAccept: false,
-          reason: `Você já possui uma bolsa de monitoria em ${bolsaExistente.projeto.titulo} para este semestre. É permitida apenas uma bolsa por semestre.`
+          reason: `Você já possui uma bolsa de monitoria em ${bolsaExistente.projeto.titulo} para este semestre. É permitida apenas uma bolsa por semestre.`,
         }
       }
 
@@ -75,16 +68,16 @@ export const vagasRouter = createTRPCRouter({
         where: eq(inscricaoTable.id, parseInt(input.inscricaoId)),
         with: {
           aluno: {
-            with: { user: true }
+            with: { user: true },
           },
           projeto: {
             with: {
               professorResponsavel: {
-                with: { user: true }
-              }
-            }
-          }
-        }
+                with: { user: true },
+              },
+            },
+          },
+        },
       })
 
       if (!inscricaoData) {
@@ -104,7 +97,7 @@ export const vagasRouter = createTRPCRouter({
 
       // Verificar se já aceitou
       const vagaExistente = await ctx.db.query.vagaTable.findFirst({
-        where: eq(vagaTable.inscricaoId, parseInt(input.inscricaoId))
+        where: eq(vagaTable.inscricaoId, parseInt(input.inscricaoId)),
       })
 
       if (vagaExistente) {
@@ -125,8 +118,8 @@ export const vagasRouter = createTRPCRouter({
                 AND ${projetoTable.ano} = ${inscricaoData.projeto.ano} AND ${projetoTable.semestre} = ${inscricaoData.projeto.semestre})`
           ),
           with: {
-            projeto: true
-          }
+            projeto: true,
+          },
         })
 
         if (bolsaExistente) {
@@ -140,16 +133,20 @@ export const vagasRouter = createTRPCRouter({
       // Executar em transação
       const result = await ctx.db.transaction(async (tx) => {
         // Criar vaga
-        const [novaVaga] = await tx.insert(vagaTable).values({
-          alunoId: inscricaoData.alunoId,
-          projetoId: inscricaoData.projetoId,
-          inscricaoId: parseInt(input.inscricaoId),
-          tipo: input.tipoBolsa,
-          dataInicio: new Date(), // Definir data de início padrão
-        }).returning()
+        const [novaVaga] = await tx
+          .insert(vagaTable)
+          .values({
+            alunoId: inscricaoData.alunoId,
+            projetoId: inscricaoData.projetoId,
+            inscricaoId: parseInt(input.inscricaoId),
+            tipo: input.tipoBolsa,
+            dataInicio: new Date(), // Definir data de início padrão
+          })
+          .returning()
 
         // Atualizar status da inscrição
-        await tx.update(inscricaoTable)
+        await tx
+          .update(inscricaoTable)
           .set({
             status: input.tipoBolsa === 'BOLSISTA' ? 'ACCEPTED_BOLSISTA' : 'ACCEPTED_VOLUNTARIO',
             updatedAt: new Date(),
@@ -218,16 +215,16 @@ Sistema de Monitoria IC
         where: eq(inscricaoTable.id, parseInt(input.inscricaoId)),
         with: {
           aluno: {
-            with: { user: true }
+            with: { user: true },
           },
           projeto: {
             with: {
               professorResponsavel: {
-                with: { user: true }
-              }
-            }
-          }
-        }
+                with: { user: true },
+              },
+            },
+          },
+        },
       })
 
       if (!inscricaoData) {
@@ -246,7 +243,8 @@ Sistema de Monitoria IC
       }
 
       // Atualizar status da inscrição
-      await ctx.db.update(inscricaoTable)
+      await ctx.db
+        .update(inscricaoTable)
         .set({
           status: 'REJECTED_BY_STUDENT',
           feedbackProfessor: input.motivo || 'Vaga recusada pelo aluno',
@@ -287,54 +285,53 @@ Sistema de Monitoria IC
     }),
 
   // Buscar vagas do aluno logado
-  getMyVagas: protectedProcedure
-    .query(async ({ ctx }) => {
-      const { user } = ctx
+  getMyVagas: protectedProcedure.query(async ({ ctx }) => {
+    const { user } = ctx
 
-      if (user.role !== 'student') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Apenas alunos podem ver suas vagas',
-        })
-      }
+    if (user.role !== 'student') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Apenas alunos podem ver suas vagas',
+      })
+    }
 
-      // Buscar vagas do aluno
-      const vagas = await ctx.db.query.vagaTable.findMany({
-        where: sql`${vagaTable.alunoId} IN (
+    // Buscar vagas do aluno
+    const vagas = await ctx.db.query.vagaTable.findMany({
+      where: sql`${vagaTable.alunoId} IN (
           SELECT id FROM ${alunoTable} WHERE ${alunoTable.userId} = ${user.id}
         )`,
-        with: {
-          projeto: {
-            with: {
-              departamento: true,
-              professorResponsavel: {
-                with: { user: true }
-              }
-            }
-          },
-          aluno: {
-            with: { user: true }
-          }
-        },
-        orderBy: [desc(vagaTable.createdAt)]
-      })
-
-      return vagas.map(vaga => ({
-        id: vaga.id,
-        tipo: vaga.tipo,
-        dataInicio: vaga.dataInicio,
-        dataFim: vaga.dataFim,
+      with: {
         projeto: {
-          id: vaga.projeto.id,
-          titulo: vaga.projeto.titulo,
-          ano: vaga.projeto.ano,
-          semestre: vaga.projeto.semestre,
-          departamento: vaga.projeto.departamento.nome,
-          professor: vaga.projeto.professorResponsavel.nomeCompleto,
+          with: {
+            departamento: true,
+            professorResponsavel: {
+              with: { user: true },
+            },
+          },
         },
-        status: 'ATIVA', // Por enquanto todas são ativas
-      }))
-    }),
+        aluno: {
+          with: { user: true },
+        },
+      },
+      orderBy: [desc(vagaTable.createdAt)],
+    })
+
+    return vagas.map((vaga) => ({
+      id: vaga.id,
+      tipo: vaga.tipo,
+      dataInicio: vaga.dataInicio,
+      dataFim: vaga.dataFim,
+      projeto: {
+        id: vaga.projeto.id,
+        titulo: vaga.projeto.titulo,
+        ano: vaga.projeto.ano,
+        semestre: vaga.projeto.semestre,
+        departamento: vaga.projeto.departamento.nome,
+        professor: vaga.projeto.professorResponsavel.nomeCompleto,
+      },
+      status: 'ATIVA', // Por enquanto todas são ativas
+    }))
+  }),
 
   // Buscar vagas por projeto (para professores)
   getVagasByProject: protectedProcedure
@@ -378,16 +375,16 @@ Sistema de Monitoria IC
         where: eq(vagaTable.projetoId, parseInt(input.projetoId)),
         with: {
           aluno: {
-            with: { user: true }
+            with: { user: true },
           },
           projeto: true,
         },
-        orderBy: [desc(vagaTable.createdAt)]
+        orderBy: [desc(vagaTable.createdAt)],
       })
 
       return {
         projeto,
-        vagas: vagas.map(vaga => ({
+        vagas: vagas.map((vaga) => ({
           id: vaga.id,
           tipoBolsa: vaga.tipo,
           dataInicio: vaga.dataInicio,
@@ -400,10 +397,236 @@ Sistema de Monitoria IC
             user: {
               email: vaga.aluno.user.email,
               username: vaga.aluno.user.username,
-            }
+            },
           },
           status: 'ATIVA', // Por enquanto todas são ativas
-        }))
+        })),
+      }
+    }),
+
+  // Relatório de status das vagas finalizadas
+  statusVagasFinalizadas: protectedProcedure
+    .input(
+      z.object({
+        ano: z.number().optional(),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']).optional(),
+        projetoId: z.string().optional(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { user } = ctx
+
+      // Construir condições de busca
+      const whereConditions = []
+
+      if (input.ano && input.semestre) {
+        whereConditions.push(
+          sql`EXISTS (SELECT 1 FROM ${projetoTable} WHERE ${projetoTable.id} = ${vagaTable.projetoId} 
+              AND ${projetoTable.ano} = ${input.ano} AND ${projetoTable.semestre} = ${input.semestre})`
+        )
+      }
+
+      if (input.projetoId) {
+        whereConditions.push(eq(vagaTable.projetoId, parseInt(input.projetoId)))
+      }
+
+      // Filtrar por permissões do usuário
+      if (user.role === 'professor') {
+        whereConditions.push(
+          sql`EXISTS (SELECT 1 FROM ${projetoTable} WHERE ${projetoTable.id} = ${vagaTable.projetoId} 
+              AND ${projetoTable.professorResponsavelId} = ${user.id})`
+        )
+      }
+
+      const vagas = await ctx.db.query.vagaTable.findMany({
+        where: whereConditions.length > 0 ? and(...whereConditions) : undefined,
+        with: {
+          aluno: {
+            with: { user: true },
+          },
+          projeto: {
+            with: {
+              professorResponsavel: {
+                with: { user: true },
+              },
+            },
+          },
+        },
+      })
+
+      // Para cada vaga, verificar status completo
+      const vagasComStatus = await Promise.all(
+        vagas.map(async (vaga) => {
+          // Verificar assinaturas do termo
+          const assinaturas = await ctx.db.query.assinaturaDocumentoTable.findMany({
+            where: eq(assinaturaDocumentoTable.vagaId, vaga.id),
+          })
+
+          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
+          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+
+          let statusFinal = 'INCOMPLETO'
+          if (assinaturaAluno && assinaturaProfessor) {
+            statusFinal = 'ATIVO'
+          } else if (assinaturaAluno || assinaturaProfessor) {
+            statusFinal = 'PENDENTE_ASSINATURA'
+          }
+
+          return {
+            vagaId: vaga.id,
+            monitor: {
+              nome: vaga.aluno.nomeCompleto,
+              matricula: vaga.aluno.matricula,
+              email: vaga.aluno.user.email,
+            },
+            projeto: {
+              id: vaga.projetoId,
+              titulo: vaga.projeto.titulo,
+              professor: vaga.projeto.professorResponsavel.nomeCompleto,
+            },
+            tipo: vaga.tipo,
+            dataInicio: vaga.dataInicio,
+            status: statusFinal,
+            termo: {
+              assinaturaAluno: !!assinaturaAluno,
+              assinaturaProfessor: !!assinaturaProfessor,
+              dataCompletude:
+                assinaturaAluno && assinaturaProfessor
+                  ? new Date(
+                      Math.max(
+                        new Date(assinaturaAluno.createdAt).getTime(),
+                        new Date(assinaturaProfessor.createdAt).getTime()
+                      )
+                    )
+                  : null,
+            },
+          }
+        })
+      )
+
+      return {
+        vagas: vagasComStatus,
+        estatisticas: {
+          total: vagasComStatus.length,
+          ativas: vagasComStatus.filter((v) => v.status === 'ATIVO').length,
+          pendentes: vagasComStatus.filter((v) => v.status === 'PENDENTE_ASSINATURA').length,
+          incompletas: vagasComStatus.filter((v) => v.status === 'INCOMPLETO').length,
+        },
+      }
+    }),
+
+  // Finalizar processo de monitoria (para admins)
+  finalizarMonitoria: protectedProcedure
+    .input(
+      z.object({
+        vagaId: z.string(),
+        dataFim: z.date().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { user } = ctx
+
+      if (user.role !== 'admin') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Apenas administradores podem finalizar monitorias',
+        })
+      }
+
+      const vagaData = await ctx.db.query.vagaTable.findFirst({
+        where: eq(vagaTable.id, parseInt(input.vagaId)),
+        with: {
+          aluno: {
+            with: { user: true },
+          },
+          projeto: {
+            with: {
+              professorResponsavel: {
+                with: { user: true },
+              },
+            },
+          },
+        },
+      })
+
+      if (!vagaData) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Vaga não encontrada',
+        })
+      }
+
+      // Verificar se termo está assinado
+      const assinaturas = await ctx.db.query.assinaturaDocumentoTable.findMany({
+        where: eq(assinaturaDocumentoTable.vagaId, parseInt(input.vagaId)),
+      })
+
+      const termoCompleto =
+        assinaturas.some((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO') &&
+        assinaturas.some((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+
+      if (!termoCompleto) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Não é possível finalizar monitoria sem termo assinado por ambas as partes',
+        })
+      }
+
+      // Atualizar vaga com data de fim
+      const dataFimFinal = input.dataFim || new Date()
+
+      await ctx.db
+        .update(vagaTable)
+        .set({
+          dataFim: dataFimFinal,
+          updatedAt: new Date(),
+        })
+        .where(eq(vagaTable.id, parseInt(input.vagaId)))
+
+      // Enviar notificações de finalização
+      try {
+        await emailService.sendGenericEmail({
+          to: vagaData.aluno.user.email,
+          subject: 'Monitoria Finalizada',
+          html: `
+Olá ${vagaData.aluno.user.username},<br><br>
+
+Sua monitoria no projeto ${vagaData.projeto.titulo} foi oficialmente finalizada em ${dataFimFinal.toLocaleDateString('pt-BR')}.<br><br>
+
+Obrigado pela sua participação no programa de monitoria!<br><br>
+
+Atenciosamente,<br>
+Sistema de Monitoria IC
+          `,
+          tipoNotificacao: 'MONITORIA_FINALIZADA',
+          remetenteUserId: user.id,
+          projetoId: vagaData.projetoId,
+          alunoId: vagaData.alunoId,
+        })
+
+        await emailService.sendGenericEmail({
+          to: vagaData.projeto.professorResponsavel.user.email,
+          subject: 'Monitoria Finalizada',
+          html: `
+Olá ${vagaData.projeto.professorResponsavel.user.username},<br><br>
+
+A monitoria do aluno ${vagaData.aluno.user.username} no projeto ${vagaData.projeto.titulo} foi oficialmente finalizada em ${dataFimFinal.toLocaleDateString('pt-BR')}.<br><br>
+
+Atenciosamente,<br>
+Sistema de Monitoria IC
+          `,
+          tipoNotificacao: 'MONITORIA_FINALIZADA',
+          remetenteUserId: user.id,
+          projetoId: vagaData.projetoId,
+        })
+      } catch (error) {
+        console.error('Erro ao enviar notificações de finalização:', error)
+      }
+
+      return {
+        success: true,
+        message: 'Monitoria finalizada com sucesso',
+        dataFinalizacao: dataFimFinal,
       }
     }),
 })

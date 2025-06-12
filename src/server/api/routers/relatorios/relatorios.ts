@@ -1,75 +1,154 @@
-import { z } from 'zod'
-import { eq, and, desc, count, sum, sql } from 'drizzle-orm'
-import { createTRPCRouter, adminProtectedProcedure } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter } from '@/server/api/trpc'
 import { db } from '@/server/db'
 import {
-  projetoTable,
-  inscricaoTable,
-  vagaTable,
-  professorTable,
   alunoTable,
+  assinaturaDocumentoTable,
   departamentoTable,
   disciplinaTable,
-  projetoDisciplinaTable,
   editalTable,
+  inscricaoTable,
   periodoInscricaoTable,
+  professorTable,
+  projetoDisciplinaTable,
+  projetoTable,
   userTable,
-  assinaturaDocumentoTable,
+  vagaTable,
 } from '@/server/db/schema'
 import { TRPCError } from '@trpc/server'
+import { and, count, desc, eq, sql, sum } from 'drizzle-orm'
+import { z } from 'zod'
 
-// This function is not fully implemented due to schema mismatches
-// It serves as a placeholder for the validation logic
-async function validateCompleteDataInternal(input: {
-  ano: number
-  semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
-  tipo: 'bolsistas' | 'voluntarios' | 'ambos'
-}) {
+async function checkDadosFaltantesPrograd(
+  dbInstance: typeof db,
+  input: {
+    ano: number
+    semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
+    tipo: 'bolsistas' | 'voluntarios' | 'ambos'
+  }
+) {
   const problemas: Array<{
     tipo: 'bolsista' | 'voluntario'
     vagaId: number
     nomeAluno: string
     problemas: string[]
+    prioridade: 'alta' | 'media' | 'baixa'
   }> = []
 
-  // This logic is simplified and needs bank details added to the 'aluno' schema to be fully functional.
+  const checkCommonIssues = async (
+    vagaId: number,
+    isBolsista: boolean,
+    alunoData: {
+      rg?: string | null
+      cpf?: string | null
+      banco?: string | null
+      agencia?: string | null
+      conta?: string | null
+    }
+  ) => {
+    const problemasDetalhados: string[] = []
+
+    if (!alunoData.rg) problemasDetalhados.push('RG não informado')
+    if (!alunoData.cpf) problemasDetalhados.push('CPF não informado')
+
+    if (isBolsista) {
+      if (!alunoData.banco) problemasDetalhados.push('Banco não informado')
+      if (!alunoData.agencia) problemasDetalhados.push('Agência não informada')
+      if (!alunoData.conta) problemasDetalhados.push('Conta não informada')
+    }
+
+    const assinaturas = await dbInstance
+      .select({ tipoAssinatura: assinaturaDocumentoTable.tipoAssinatura })
+      .from(assinaturaDocumentoTable)
+      .where(eq(assinaturaDocumentoTable.vagaId, vagaId))
+
+    const assinaturaAluno = assinaturas.some((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
+    const assinaturaProfessor = assinaturas.some((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+
+    if (!assinaturaAluno) problemasDetalhados.push('Termo não assinado pelo aluno')
+    if (!assinaturaProfessor) problemasDetalhados.push('Termo não assinado pelo professor')
+
+    return problemasDetalhados
+  }
+
   if (input.tipo === 'bolsistas' || input.tipo === 'ambos') {
-    const bolsistasQuery = db
+    const bolsistas = await dbInstance
       .select({
         vaga: { id: vagaTable.id },
         aluno: {
           nomeCompleto: alunoTable.nomeCompleto,
-          matricula: alunoTable.matricula,
           rg: alunoTable.rg,
           cpf: alunoTable.cpf,
-          telefone: alunoTable.telefone,
           banco: alunoTable.banco,
           agencia: alunoTable.agencia,
           conta: alunoTable.conta,
-          digitoConta: alunoTable.digitoConta,
         },
-        alunoUser: { email: userTable.email },
       })
       .from(vagaTable)
       .innerJoin(alunoTable, eq(vagaTable.alunoId, alunoTable.id))
-      .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
+      .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
+      .where(
+        and(eq(vagaTable.tipo, 'BOLSISTA'), eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre))
+      )
+
+    for (const bolsista of bolsistas) {
+      const problemasBolsista = await checkCommonIssues(bolsista.vaga.id, true, bolsista.aluno)
+      if (problemasBolsista.length > 0) {
+        let prioridade: 'alta' | 'media' | 'baixa' = 'baixa'
+        if (problemasBolsista.some((p) => p.includes('Termo não assinado'))) prioridade = 'alta'
+        else if (problemasBolsista.some((p) => p.includes('Banco') || p.includes('Conta'))) prioridade = 'media'
+        problemas.push({
+          tipo: 'bolsista',
+          vagaId: bolsista.vaga.id,
+          nomeAluno: bolsista.aluno.nomeCompleto,
+          problemas: problemasBolsista,
+          prioridade,
+        })
+      }
+    }
+  }
+
+  if (input.tipo === 'voluntarios' || input.tipo === 'ambos') {
+    const voluntarios = await dbInstance
+      .select({
+        vaga: { id: vagaTable.id },
+        aluno: {
+          nomeCompleto: alunoTable.nomeCompleto,
+          rg: alunoTable.rg,
+          cpf: alunoTable.cpf,
+        },
+      })
+      .from(vagaTable)
+      .innerJoin(alunoTable, eq(vagaTable.alunoId, alunoTable.id))
       .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
       .where(
         and(
-          eq(vagaTable.tipo, 'BOLSISTA'),
+          eq(vagaTable.tipo, 'VOLUNTARIO'),
           eq(projetoTable.ano, input.ano),
           eq(projetoTable.semestre, input.semestre)
         )
       )
-    
-    const bolsistas = await bolsistasQuery;
-    // Further validation logic would go here, checking for signatures in assinaturaDocumentoTable
+
+    for (const voluntario of voluntarios) {
+      const problemasVoluntario = await checkCommonIssues(voluntario.vaga.id, false, voluntario.aluno)
+      if (problemasVoluntario.length > 0) {
+        problemas.push({
+          tipo: 'voluntario',
+          vagaId: voluntario.vaga.id,
+          nomeAluno: voluntario.aluno.nomeCompleto,
+          problemas: problemasVoluntario,
+          prioridade: 'alta',
+        })
+      }
+    }
   }
 
   return {
     valido: problemas.length === 0,
     totalProblemas: problemas.length,
-    problemas,
+    problemas: problemas.sort((a, b) => {
+      const ordem = { alta: 3, media: 2, baixa: 1 }
+      return ordem[b.prioridade] - ordem[a.prioridade]
+    }),
   }
 }
 
@@ -82,7 +161,6 @@ export const relatoriosRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Basic statistics
       const [projetosStats] = await ctx.db
         .select({
           total: count(),
@@ -95,8 +173,7 @@ export const relatoriosRouter = createTRPCRouter({
         .from(projetoTable)
         .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
-      // Inscriptions statistics
-      const inscricoesSubquery = db
+      const inscricoesSubquery = ctx.db
         .select({ projetoId: projetoTable.id })
         .from(projetoTable)
         .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
@@ -111,7 +188,6 @@ export const relatoriosRouter = createTRPCRouter({
         .from(inscricaoTable)
         .where(sql`${inscricaoTable.projetoId} IN (${inscricoesSubquery})`)
 
-      // Vagas statistics
       const [vagasStats] = await ctx.db
         .select({
           total: count(),
@@ -454,7 +530,7 @@ export const relatoriosRouter = createTRPCRouter({
         semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
       })
     )
-    .query(async ({ input, ctx   }) => {
+    .query(async ({ input, ctx }) => {
       // Buscar todos os monitores aceitos no período
       const monitores = await ctx.db
         .select({
@@ -522,7 +598,7 @@ export const relatoriosRouter = createTRPCRouter({
             .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
             .where(eq(projetoDisciplinaTable.projetoId, monitor.projeto.id))
 
-          const disciplinasTexto = disciplinas.map(d => `${d.codigo} - ${d.nome}`).join('; ')
+          const disciplinasTexto = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
 
           // Calcular datas baseadas no período acadêmico
           const inicioSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
@@ -560,7 +636,7 @@ export const relatoriosRouter = createTRPCRouter({
               tipo: tipoMonitoria,
               dataInicio: inicioSemestre.toLocaleDateString('pt-BR'),
               dataFim: fimSemestre.toLocaleDateString('pt-BR'),
-              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 400.00 : undefined, // Valor fixo por enquanto
+              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 400.0 : undefined, // Valor fixo por enquanto
               status: 'ATIVO', // Por enquanto, todos aceitos são considerados ativos
             },
           }
@@ -580,8 +656,17 @@ export const relatoriosRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Buscar vagas ativas de bolsistas com dados completos
-      const bolsistasQuery = ctx.db
+      let whereCondition = and(
+        eq(vagaTable.tipo, 'BOLSISTA'),
+        eq(projetoTable.ano, input.ano),
+        eq(projetoTable.semestre, input.semestre)
+      )
+
+      if (input.departamentoId) {
+        whereCondition = and(whereCondition, eq(projetoTable.departamentoId, parseInt(input.departamentoId)))
+      }
+
+      const bolsistas = await ctx.db
         .select({
           vaga: {
             id: vagaTable.id,
@@ -600,18 +685,17 @@ export const relatoriosRouter = createTRPCRouter({
             conta: alunoTable.conta,
             digitoConta: alunoTable.digitoConta,
           },
-          alunoUser: {
-            email: userTable.email,
+          alunoUser: { email: userTable.email },
+          professor: {
+            nomeCompleto: professorTable.nomeCompleto,
+            matriculaSiape: professorTable.matriculaSiape,
+            emailInstitucional: professorTable.emailInstitucional,
           },
           projeto: {
             id: projetoTable.id,
             titulo: projetoTable.titulo,
-            ano: projetoTable.ano,
-            semestre: projetoTable.semestre,
-          },
-          professor: {
-            nomeCompleto: professorTable.nomeCompleto,
-            matriculaSiape: professorTable.matriculaSiape,
+            cargaHorariaSemana: projetoTable.cargaHorariaSemana,
+            numeroSemanas: projetoTable.numeroSemanas,
           },
           departamento: {
             nome: departamentoTable.nome,
@@ -624,42 +708,87 @@ export const relatoriosRouter = createTRPCRouter({
         .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
         .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-        .where(
-          and(
-            eq(vagaTable.tipo, 'BOLSISTA'),
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre),
-            input.departamentoId ? eq(departamentoTable.id, parseInt(input.departamentoId)) : undefined
-          )
-        )
-        .orderBy(alunoTable.nomeCompleto)
+        .where(whereCondition)
+        .orderBy(departamentoTable.nome, alunoTable.nomeCompleto)
 
-      const bolsistas = await bolsistasQuery
+      const bolsistasCompletos = await Promise.all(
+        bolsistas.map(async (bolsista) => {
+          const disciplinas = await ctx.db
+            .select({
+              codigo: disciplinaTable.codigo,
+              nome: disciplinaTable.nome,
+            })
+            .from(disciplinaTable)
+            .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
+            .where(eq(projetoDisciplinaTable.projetoId, bolsista.projeto.id))
 
-      // This part requires a more complex subquery or aggregation for disciplines
-      // For now, we'll map and add a placeholder
-      const bolsistasComDisciplinas = await Promise.all(
-        bolsistas.map(async (b) => {
-          const assinaturas = await ctx.db.query.assinaturaDocumentoTable.findMany({
-            where: eq(assinaturaDocumentoTable.vagaId, b.vaga.id)
-          });
+          const assinaturas = await ctx.db
+            .select({
+              tipoAssinatura: assinaturaDocumentoTable.tipoAssinatura,
+              createdAt: assinaturaDocumentoTable.createdAt,
+            })
+            .from(assinaturaDocumentoTable)
+            .where(eq(assinaturaDocumentoTable.vagaId, bolsista.vaga.id))
 
-          const termoAssinado = assinaturas.some(a => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO') &&
-                                assinaturas.some(a => a.tipoAssinatura === 'PROJETO_PROFESSOR_RESPONSAVEL');
+          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
+          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+          const statusTermo = assinaturaAluno && assinaturaProfessor ? 'COMPLETO' : 'PENDENTE'
+          const disciplinasTexto = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
+
+          const anoSemestre = input.ano
+          const dataInicio =
+            bolsista.vaga.dataInicio || new Date(anoSemestre, input.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
+          const dataFim = new Date(anoSemestre, input.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
 
           return {
-            ...b,
-            disciplinas: 'Implementar busca de disciplinas',
-            validacao: {
-              dadosCompletos: true, // Placeholder
-              termoAssinado,
-              apto: termoAssinado, // Simplified logic
+            id: bolsista.vaga.id,
+            monitor: {
+              nome: bolsista.aluno.nomeCompleto,
+              matricula: bolsista.aluno.matricula,
+              email: bolsista.alunoUser.email,
+              rg: bolsista.aluno.rg,
+              cpf: bolsista.aluno.cpf,
+              cr: bolsista.aluno.cr || 0,
+              telefone: bolsista.aluno.telefone,
+              dadosBancarios: {
+                banco: bolsista.aluno.banco,
+                agencia: bolsista.aluno.agencia,
+                conta: bolsista.aluno.conta,
+                digitoConta: bolsista.aluno.digitoConta,
+              },
             },
+            professor: {
+              nome: bolsista.professor.nomeCompleto,
+              matriculaSiape: bolsista.professor.matriculaSiape,
+              email: bolsista.professor.emailInstitucional,
+            },
+            projeto: {
+              titulo: bolsista.projeto.titulo,
+              disciplinas: disciplinasTexto,
+              cargaHorariaSemana: bolsista.projeto.cargaHorariaSemana || 12,
+              numeroSemanas: bolsista.projeto.numeroSemanas || 18,
+            },
+            departamento: {
+              nome: bolsista.departamento.nome,
+              sigla: bolsista.departamento.sigla,
+            },
+            periodo: {
+              ano: anoSemestre,
+              semestre: input.semestre,
+              dataInicio: dataInicio.toLocaleDateString('pt-BR'),
+              dataFim: dataFim.toLocaleDateString('pt-BR'),
+            },
+            termo: {
+              status: statusTermo,
+              dataAssinaturaAluno: assinaturaAluno?.createdAt,
+              dataAssinaturaProfessor: assinaturaProfessor?.createdAt,
+            },
+            valorBolsa: 700.0,
           }
         })
-      );
-      
-      return bolsistasComDisciplinas
+      )
+
+      return bolsistasCompletos
     }),
 
   // Consolidação Final PROGRAD - Planilha de Voluntários
@@ -672,8 +801,17 @@ export const relatoriosRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      // Buscar vagas ativas de voluntários com dados completos
-      const voluntariosQuery = ctx.db
+      let whereCondition = and(
+        eq(vagaTable.tipo, 'VOLUNTARIO'),
+        eq(projetoTable.ano, input.ano),
+        eq(projetoTable.semestre, input.semestre)
+      )
+
+      if (input.departamentoId) {
+        whereCondition = and(whereCondition, eq(projetoTable.departamentoId, parseInt(input.departamentoId)))
+      }
+
+      const voluntarios = await ctx.db
         .select({
           vaga: {
             id: vagaTable.id,
@@ -694,8 +832,8 @@ export const relatoriosRouter = createTRPCRouter({
           projeto: {
             id: projetoTable.id,
             titulo: projetoTable.titulo,
-            ano: projetoTable.ano,
-            semestre: projetoTable.semestre,
+            cargaHorariaSemana: projetoTable.cargaHorariaSemana,
+            numeroSemanas: projetoTable.numeroSemanas,
           },
           professor: {
             nomeCompleto: professorTable.nomeCompleto,
@@ -712,39 +850,79 @@ export const relatoriosRouter = createTRPCRouter({
         .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
         .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-        .where(
-          and(
-            eq(vagaTable.tipo, 'VOLUNTARIO'),
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre),
-            input.departamentoId ? eq(departamentoTable.id, parseInt(input.departamentoId)) : undefined
-          )
-        )
+        .where(whereCondition)
         .orderBy(alunoTable.nomeCompleto)
 
-      const voluntarios = await voluntariosQuery
-
-      const voluntariosComValidacao = await Promise.all(
+      const voluntariosCompletos = await Promise.all(
         voluntarios.map(async (voluntario) => {
-          const assinaturas = await ctx.db.query.assinaturaDocumentoTable.findMany({
-            where: eq(assinaturaDocumentoTable.vagaId, voluntario.vaga.id)
-          });
+          const disciplinas = await ctx.db
+            .select({
+              codigo: disciplinaTable.codigo,
+              nome: disciplinaTable.nome,
+            })
+            .from(disciplinaTable)
+            .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
+            .where(eq(projetoDisciplinaTable.projetoId, voluntario.projeto.id))
 
-          const termoAssinado = assinaturas.some(a => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO') &&
-                                assinaturas.some(a => a.tipoAssinatura === 'PROJETO_PROFESSOR_RESPONSAVEL');
+          const assinaturas = await ctx.db
+            .select({
+              tipoAssinatura: assinaturaDocumentoTable.tipoAssinatura,
+              createdAt: assinaturaDocumentoTable.createdAt,
+            })
+            .from(assinaturaDocumentoTable)
+            .where(eq(assinaturaDocumentoTable.vagaId, voluntario.vaga.id))
+
+          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
+          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+          const statusTermo = assinaturaAluno && assinaturaProfessor ? 'COMPLETO' : 'PENDENTE'
+          const disciplinasTexto = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
+
+          const anoSemestre = input.ano
+          const dataInicio =
+            voluntario.vaga.dataInicio || new Date(anoSemestre, input.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
+          const dataFim = new Date(anoSemestre, input.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
+
           return {
-            ...voluntario,
-            disciplinas: 'Implementar busca de disciplinas',
-            validacao: {
-              dadosCompletos: true, // Placeholder
-              termoAssinado,
-              apto: termoAssinado, // Simplified
+            id: voluntario.vaga.id,
+            monitor: {
+              nome: voluntario.aluno.nomeCompleto,
+              matricula: voluntario.aluno.matricula,
+              email: voluntario.alunoUser.email,
+              rg: voluntario.aluno.rg,
+              cpf: voluntario.aluno.cpf,
+              cr: voluntario.aluno.cr || 0,
+              telefone: voluntario.aluno.telefone,
+            },
+            professor: {
+              nome: voluntario.professor.nomeCompleto,
+              matriculaSiape: voluntario.professor.matriculaSiape,
+            },
+            projeto: {
+              titulo: voluntario.projeto.titulo,
+              disciplinas: disciplinasTexto,
+              cargaHorariaSemana: voluntario.projeto.cargaHorariaSemana || 12,
+              numeroSemanas: voluntario.projeto.numeroSemanas || 18,
+            },
+            departamento: {
+              nome: voluntario.departamento.nome,
+              sigla: voluntario.departamento.sigla,
+            },
+            periodo: {
+              ano: anoSemestre,
+              semestre: input.semestre,
+              dataInicio: dataInicio.toLocaleDateString('pt-BR'),
+              dataFim: dataFim.toLocaleDateString('pt-BR'),
+            },
+            termo: {
+              status: statusTermo,
+              dataAssinaturaAluno: assinaturaAluno?.createdAt,
+              dataAssinaturaProfessor: assinaturaProfessor?.createdAt,
             },
           }
         })
-      );
+      )
 
-      return voluntariosComValidacao
+      return voluntariosCompletos
     }),
 
   // Validar dados completos antes da exportação
@@ -757,7 +935,7 @@ export const relatoriosRouter = createTRPCRouter({
       })
     )
     .query(async ({ input }) => {
-      return await validateCompleteDataInternal(input)
+      return await checkDadosFaltantesPrograd(db, input)
     }),
 
   // Exportar consolidação final para PROGRAD (formato Excel)
@@ -771,41 +949,31 @@ export const relatoriosRouter = createTRPCRouter({
         departamentoId: z.string().optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      // Verificar se dados estão válidos antes de exportar
-      const validacao = await validateCompleteDataInternal({
+    .mutation(async ({ input, ctx }) => {
+      const validacao = await checkDadosFaltantesPrograd(ctx.db, {
         ano: input.ano,
         semestre: input.semestre,
         tipo:
           input.incluirBolsistas && input.incluirVoluntarios
             ? 'ambos'
             : input.incluirBolsistas
-            ? 'bolsistas'
-            : 'voluntarios',
+              ? 'bolsistas'
+              : 'voluntarios',
       })
 
       if (!validacao.valido) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: `Dados incompletos encontrados. ${validacao.totalProblemas} problema(s) identificado(s). Corrija antes de exportar.`,
+          cause: validacao.problemas,
         })
       }
 
-      // Gerar nome do arquivo
-      const nomeArquivo = `consolidacao-prograd-${input.ano}-${input.semestre}-${Date.now()}.xlsx`
-
-      // Por enquanto, retornar sucesso com URL de download
-      // Em implementação real, geraria o Excel com exceljs
+      const nomeArquivo = `consolidacao-prograd-${input.ano}-${input.semestre.replace('_', '')}-${Date.now()}.xlsx`
       return {
         success: true,
         fileName: nomeArquivo,
-        downloadUrl: `/api/download/${nomeArquivo}`,
-        resumo: {
-          incluirBolsistas: input.incluirBolsistas,
-          incluirVoluntarios: input.incluirVoluntarios,
-          periodo: `${input.ano}.${input.semestre}`,
-          geradoEm: new Date().toISOString(),
-        },
+        message: 'A exportação será gerada em segundo plano.',
       }
     }),
 })

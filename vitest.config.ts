@@ -22,4 +22,4 @@ export default defineConfig({
       SKIP_ENV_VALIDATION: 'false',
     },
   },
-}) 
+})

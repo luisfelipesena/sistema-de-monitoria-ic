@@ -1,18 +1,9 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { db } from '@/server/db'
-import { 
-  inscricaoTable, 
-  projetoTable, 
-  disciplinaTable, 
-  professorTable, 
-  alunoTable, 
-  ataSelecaoTable,
-  userTable 
-} from '@/server/db/schema'
-import { z } from 'zod'
-import { eq, and, desc, isNotNull } from 'drizzle-orm'
+import { assinaturaDocumentoTable, ataSelecaoTable, inscricaoTable, projetoTable } from '@/server/db/schema'
+import { sendStudentSelectionResultNotification } from '@/server/lib/email-service'
 import { TRPCError } from '@trpc/server'
-import { emailService } from '@/server/lib/email-service'
+import { and, desc, eq, isNotNull } from 'drizzle-orm'
+import { z } from 'zod'
 
 export const selecaoRouter = createTRPCRouter({
   // Gerar dados para ata de seleção
@@ -24,8 +15,7 @@ export const selecaoRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const { user } = ctx
-      
-      // Verificar se é professor ou admin
+
       if (!['professor', 'admin'].includes(user.role)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -33,17 +23,14 @@ export const selecaoRouter = createTRPCRouter({
         })
       }
 
-      // Buscar projeto com dados relacionados
       const projetoData = await ctx.db.query.projetoTable.findFirst({
         where: eq(projetoTable.id, parseInt(input.projetoId)),
         with: {
           departamento: true,
           professorResponsavel: {
-            with: {
-              user: true,
-            }
+            with: { user: true },
           },
-        }
+        },
       })
 
       if (!projetoData) {
@@ -53,7 +40,6 @@ export const selecaoRouter = createTRPCRouter({
         })
       }
 
-      // Verificar se o professor é dono do projeto (se não for admin)
       if (user.role === 'professor' && projetoData.professorResponsavelId !== user.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -61,31 +47,23 @@ export const selecaoRouter = createTRPCRouter({
         })
       }
 
-      // Buscar inscrições com notas para o projeto
       const inscricoes = await ctx.db.query.inscricaoTable.findMany({
-        where: and(
-          eq(inscricaoTable.projetoId, parseInt(input.projetoId)),
-          isNotNull(inscricaoTable.notaFinal)
-        ),
+        where: and(eq(inscricaoTable.projetoId, parseInt(input.projetoId)), isNotNull(inscricaoTable.notaFinal)),
         with: {
           aluno: {
-            with: {
-              user: true,
-            }
-          }
+            with: { user: true },
+          },
         },
-        orderBy: [desc(inscricaoTable.notaFinal)]
+        orderBy: [desc(inscricaoTable.notaFinal)],
       })
 
-      // Separar por tipo de vaga e filtrar aprovados (nota >= 7.0)
       const inscricoesBolsista = inscricoes.filter(
-        i => i.tipoVagaPretendida === 'BOLSISTA' && Number(i.notaFinal) >= 7.0
+        (i) => i.tipoVagaPretendida === 'BOLSISTA' && Number(i.notaFinal) >= 7.0
       )
       const inscricoesVoluntario = inscricoes.filter(
-        i => i.tipoVagaPretendida === 'VOLUNTARIO' && Number(i.notaFinal) >= 7.0
+        (i) => i.tipoVagaPretendida === 'VOLUNTARIO' && Number(i.notaFinal) >= 7.0
       )
 
-      // Total de inscritos e compareceram
       const totalInscritos = await ctx.db.query.inscricaoTable.findMany({
         where: eq(inscricaoTable.projetoId, parseInt(input.projetoId)),
       })
@@ -100,7 +78,142 @@ export const selecaoRouter = createTRPCRouter({
       }
     }),
 
-  // Publicar resultados e notificar alunos
+  // Criar registro de ata (simplificado)
+  createAtaRecord: protectedProcedure
+    .input(
+      z.object({
+        projetoId: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { user } = ctx
+
+      if (!['professor', 'admin'].includes(user.role)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Apenas professores e admins podem criar atas',
+        })
+      }
+
+      const projetoData = await ctx.db.query.projetoTable.findFirst({
+        where: eq(projetoTable.id, parseInt(input.projetoId)),
+      })
+
+      if (!projetoData) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Projeto não encontrado',
+        })
+      }
+
+      const ataExistente = await ctx.db.query.ataSelecaoTable.findFirst({
+        where: eq(ataSelecaoTable.projetoId, parseInt(input.projetoId)),
+      })
+
+      if (ataExistente) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Ata já existe para este projeto',
+        })
+      }
+
+      const [ataRecord] = await ctx.db
+        .insert(ataSelecaoTable)
+        .values({
+          projetoId: parseInt(input.projetoId),
+          geradoPorUserId: user.id,
+        })
+        .returning()
+
+      return {
+        success: true,
+        ataId: ataRecord.id,
+        message: 'Registro de ata criado com sucesso',
+      }
+    }),
+
+  // Assinar ata de seleção
+  signAta: protectedProcedure
+    .input(
+      z.object({
+        ataId: z.number(),
+        assinaturaBase64: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { user } = ctx
+
+      if (user.role !== 'professor') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Apenas professores podem assinar atas',
+        })
+      }
+
+      const ata = await ctx.db.query.ataSelecaoTable.findFirst({
+        where: eq(ataSelecaoTable.id, input.ataId),
+        with: {
+          projeto: {
+            with: {
+              professorResponsavel: true,
+            },
+          },
+        },
+      })
+
+      if (!ata) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Ata não encontrada',
+        })
+      }
+
+      if (ata.projeto.professorResponsavelId !== user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Você só pode assinar atas de seus próprios projetos',
+        })
+      }
+
+      const assinaturaExistente = await ctx.db.query.assinaturaDocumentoTable.findFirst({
+        where: and(
+          eq(assinaturaDocumentoTable.projetoId, ata.projetoId),
+          eq(assinaturaDocumentoTable.userId, user.id),
+          eq(assinaturaDocumentoTable.tipoAssinatura, 'ATA_SELECAO_PROFESSOR')
+        ),
+      })
+
+      if (assinaturaExistente) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Ata já foi assinada',
+        })
+      }
+
+      await ctx.db.transaction(async (tx) => {
+        await tx.insert(assinaturaDocumentoTable).values({
+          assinaturaData: input.assinaturaBase64,
+          tipoAssinatura: 'ATA_SELECAO_PROFESSOR',
+          userId: user.id,
+          projetoId: ata.projetoId,
+        })
+
+        await tx
+          .update(ataSelecaoTable)
+          .set({
+            assinado: true,
+            dataAssinatura: new Date(),
+          })
+          .where(eq(ataSelecaoTable.id, input.ataId))
+      })
+
+      return {
+        success: true,
+        message: 'Ata assinada com sucesso',
+      }
+    }),
+
+  // Publicar resultados e notificar alunos automaticamente
   publishResults: protectedProcedure
     .input(
       z.object({
@@ -111,8 +224,7 @@ export const selecaoRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const { user } = ctx
-      
-      // Verificar permissões
+
       if (!['professor', 'admin'].includes(user.role)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -120,15 +232,14 @@ export const selecaoRouter = createTRPCRouter({
         })
       }
 
-      // Buscar projeto
       const projetoData = await ctx.db.query.projetoTable.findFirst({
         where: eq(projetoTable.id, parseInt(input.projetoId)),
         with: {
           departamento: true,
           professorResponsavel: {
-            with: { user: true }
-          }
-        }
+            with: { user: true },
+          },
+        },
       })
 
       if (!projetoData) {
@@ -138,7 +249,6 @@ export const selecaoRouter = createTRPCRouter({
         })
       }
 
-      // Verificar se o professor é dono do projeto (se não for admin)
       if (user.role === 'professor' && projetoData.professorResponsavelId !== user.id) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -146,48 +256,59 @@ export const selecaoRouter = createTRPCRouter({
         })
       }
 
-      // Buscar todas as inscrições do projeto
       const inscricoes = await ctx.db.query.inscricaoTable.findMany({
         where: eq(inscricaoTable.projetoId, parseInt(input.projetoId)),
         with: {
           aluno: {
-            with: { user: true }
-          }
-        }
+            with: { user: true },
+          },
+        },
       })
 
-      // Enviar notificações por email se solicitado
+      try {
+        await ctx.db.transaction(async (tx) => {
+          await Promise.all(
+            inscricoes.map((inscricao) => {
+              const aprovado = inscricao.notaFinal && Number(inscricao.notaFinal) >= 7.0
+              const status = aprovado
+                ? inscricao.tipoVagaPretendida === 'BOLSISTA'
+                  ? 'SELECTED_BOLSISTA'
+                  : 'SELECTED_VOLUNTARIO'
+                : 'REJECTED_BY_PROFESSOR'
+              return tx.update(inscricaoTable).set({ status }).where(eq(inscricaoTable.id, inscricao.id))
+            })
+          )
+        })
+      } catch (error) {
+        console.error('Erro ao atualizar status de inscrições:', error)
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Falha ao atualizar o status das inscrições no banco de dados.',
+        })
+      }
+
       if (input.notifyStudents && inscricoes.length > 0) {
         const emailPromises = inscricoes.map(async (inscricaoItem) => {
           const aprovado = inscricaoItem.notaFinal && Number(inscricaoItem.notaFinal) >= 7.0
-          const situacao = aprovado ? 'APROVADO' : 'REPROVADO'
-          
-          return emailService.sendGenericEmail({
-            to: inscricaoItem.aluno.user.email,
-            subject: `Resultado da Seleção - ${projetoData.titulo}`,
-            html: `
-Olá ${inscricaoItem.aluno.user.username},<br><br>
+          const status = aprovado
+            ? inscricaoItem.tipoVagaPretendida === 'BOLSISTA'
+              ? 'SELECTED_BOLSISTA'
+              : 'SELECTED_VOLUNTARIO'
+            : 'REJECTED_BY_PROFESSOR'
 
-O resultado da seleção para monitoria do projeto ${projetoData.titulo} foi divulgado.<br><br>
-
-Situação: ${situacao}<br>
-${aprovado ? `Nota Final: ${inscricaoItem.notaFinal}<br>` : ''}
-
-${aprovado ? 
-  'Parabéns! Você foi aprovado(a) na seleção. Aguarde as próximas instruções sobre o aceite da vaga.' :
-  'Infelizmente você não foi aprovado(a) desta vez. Continue se dedicando!'
-}<br><br>
-
-${input.mensagemPersonalizada ? `<strong>Mensagem do Professor:</strong><br>${input.mensagemPersonalizada}<br><br>` : ''}
-
-Atenciosamente,<br>
-Sistema de Monitoria IC
-            `,
-            tipoNotificacao: 'RESULTADO_SELECAO',
-            remetenteUserId: user.id,
-            projetoId: parseInt(input.projetoId),
-            alunoId: inscricaoItem.alunoId,
-          })
+          return sendStudentSelectionResultNotification(
+            {
+              studentName: inscricaoItem.aluno.user.username,
+              studentEmail: inscricaoItem.aluno.user.email,
+              projectTitle: projetoData.titulo,
+              professorName: projetoData.professorResponsavel.user.username,
+              status,
+              feedbackProfessor: input.mensagemPersonalizada,
+              projetoId: parseInt(input.projetoId),
+              alunoId: inscricaoItem.alunoId,
+            },
+            user.id
+          )
         })
 
         try {
@@ -197,151 +318,39 @@ Sistema de Monitoria IC
         }
       }
 
-      // Atualizar status do projeto para "resultados publicados" se necessário
-      await ctx.db.update(projetoTable)
-        .set({ 
-          updatedAt: new Date(),
-          // Podemos adicionar um campo específico para controle de publicação
-        })
-        .where(eq(projetoTable.id, parseInt(input.projetoId)))
-
       return {
         success: true,
-        emailsEnviados: input.notifyStudents ? inscricoes.length : 0,
+        notificationsCount: inscricoes.length,
+        message: 'Resultados publicados e notificações enviadas',
       }
     }),
 
-  // Buscar dados para publicação de resultados
-  getResultsData: protectedProcedure
-    .input(
-      z.object({
-        projetoId: z.string(),
+  // Listar atas disponíveis para assinatura
+  getAtasForSigning: protectedProcedure.query(async ({ ctx }) => {
+    const { user } = ctx
+
+    if (user.role !== 'professor') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Apenas professores podem visualizar atas para assinatura',
       })
-    )
-    .query(async ({ input, ctx }) => {
-      const { user } = ctx
-      
-      // Verificar permissões
-      if (!['professor', 'admin'].includes(user.role)) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Apenas professores e admins podem acessar resultados',
-        })
-      }
+    }
 
-      // Buscar projeto
-      const projetoData = await ctx.db.query.projetoTable.findFirst({
-        where: eq(projetoTable.id, parseInt(input.projetoId)),
-        with: {
-          departamento: true,
-          professorResponsavel: {
-            with: { user: true }
-          }
-        }
-      })
-
-      if (!projetoData) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Projeto não encontrado',
-        })
-      }
-
-      // Verificar se o professor é dono do projeto (se não for admin)
-      if (user.role === 'professor' && projetoData.professorResponsavelId !== user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Você só pode acessar resultados de seus próprios projetos',
-        })
-      }
-
-      // Buscar inscrições aprovadas (nota >= 7.0)
-      const aprovados = await ctx.db.query.inscricaoTable.findMany({
-        where: and(
-          eq(inscricaoTable.projetoId, parseInt(input.projetoId)),
-          isNotNull(inscricaoTable.notaFinal)
-        ),
-        with: {
-          aluno: {
-            with: { user: true }
-          }
+    const atas = await ctx.db.query.ataSelecaoTable.findMany({
+      with: {
+        projeto: {
+          with: {
+            professorResponsavel: {
+              with: { user: true },
+            },
+            departamento: true,
+          },
         },
-        orderBy: [desc(inscricaoTable.notaFinal)]
-      })
+      },
+    })
 
-      // Filtrar e separar por tipo
-      const aprovadasFiltradas = aprovados.filter(i => Number(i.notaFinal) >= 7.0)
-      const selecionadosBolsista = aprovadasFiltradas.filter(i => i.tipoVagaPretendida === 'BOLSISTA')
-      const selecionadosVoluntario = aprovadasFiltradas.filter(i => i.tipoVagaPretendida === 'VOLUNTARIO')
-      const rejeitados = aprovados.filter(i => Number(i.notaFinal) < 7.0)
+    const atasFiltradas = atas.filter((ata) => ata.projeto.professorResponsavelId === user.id)
 
-      return {
-        projeto: projetoData,
-        selecionadosBolsista,
-        selecionadosVoluntario,
-        rejeitados,
-        listaEspera: [], // Implementar lógica de lista de espera se necessário
-        totalCandidatos: aprovados.length,
-        totalAprovados: aprovadasFiltradas.length,
-        dataGeracao: new Date(),
-      }
-    }),
-
-  // Buscar candidatos para avaliação por projeto (usado na grade-applications)
-  getApplicationsForGrading: protectedProcedure
-    .input(
-      z.object({
-        projetoId: z.string(),
-      })
-    )
-    .query(async ({ input, ctx }) => {
-      const { user } = ctx
-      
-      // Verificar se é professor ou admin
-      if (!['professor', 'admin'].includes(user.role)) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Apenas professores e admins podem avaliar candidatos',
-        })
-      }
-
-      // Buscar projeto
-      const projetoData = await ctx.db.query.projetoTable.findFirst({
-        where: eq(projetoTable.id, parseInt(input.projetoId)),
-        with: {
-          departamento: true,
-        }
-      })
-
-      if (!projetoData) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Projeto não encontrado',
-        })
-      }
-
-      // Verificar se o professor é dono do projeto (se não for admin)
-      if (user.role === 'professor' && projetoData.professorResponsavelId !== user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Você só pode avaliar candidatos de seus próprios projetos',
-        })
-      }
-
-      // Buscar todas as inscrições do projeto
-      const inscricoes = await ctx.db.query.inscricaoTable.findMany({
-        where: eq(inscricaoTable.projetoId, parseInt(input.projetoId)),
-        with: {
-          aluno: {
-            with: { user: true }
-          }
-        },
-        orderBy: [desc(inscricaoTable.createdAt)]
-      })
-
-      return {
-        projeto: projetoData,
-        inscricoes,
-      }
-    }),
+    return atasFiltradas
+  }),
 })

@@ -3,22 +3,22 @@ import { userRouter } from '@/server/api/routers/user/user'
 import { type TRPCContext } from '@/server/api/trpc'
 import { type User } from '@/server/db/schema'
 
-const mockAdminUser: User = { 
-  id: 1, 
-  username: 'admin', 
-  email: 'admin@test.com', 
-  role: 'admin', 
-  assinaturaDefault: null, 
-  dataAssinaturaDefault: null 
+const mockAdminUser: User = {
+  id: 1,
+  username: 'admin',
+  email: 'admin@test.com',
+  role: 'admin',
+  assinaturaDefault: null,
+  dataAssinaturaDefault: null,
 }
 
-const mockStudentUser: User = { 
-  id: 2, 
-  username: 'student', 
-  email: 'student@test.com', 
-  role: 'student', 
-  assinaturaDefault: null, 
-  dataAssinaturaDefault: null 
+const mockStudentUser: User = {
+  id: 2,
+  username: 'student',
+  email: 'student@test.com',
+  role: 'student',
+  assinaturaDefault: null,
+  dataAssinaturaDefault: null,
 }
 
 describe('userRouter', () => {
@@ -31,9 +31,9 @@ describe('userRouter', () => {
       user: mockStudentUser,
       db: {} as any,
     }
-    
+
     const caller = userRouter.createCaller(mockContext)
-    
+
     await expect(caller.getUsers({ limit: 10, offset: 0 })).rejects.toThrowError('UNAUTHORIZED')
   })
 
@@ -42,9 +42,9 @@ describe('userRouter', () => {
       user: null,
       db: {} as any,
     }
-    
+
     const caller = userRouter.createCaller(mockContext)
-    
+
     await expect(caller.getProfile()).rejects.toThrowError('UNAUTHORIZED')
   })
 
@@ -60,9 +60,9 @@ describe('userRouter', () => {
         $count: vi.fn().mockResolvedValue(0),
       } as any,
     }
-    
+
     const caller = userRouter.createCaller(mockContext)
-    
+
     try {
       await caller.getUsers({ limit: 10, offset: 0 })
     } catch (error) {
@@ -78,8 +78,8 @@ describe('userRouter', () => {
           userTable: {
             findFirst: vi.fn().mockResolvedValue({
               ...mockStudentUser,
-              studentProfile: { 
-                id: 1, 
+              studentProfile: {
+                id: 1,
                 nomeCompleto: 'Student Name',
                 matricula: '123456789',
                 cpf: '11111111111',
@@ -90,16 +90,16 @@ describe('userRouter', () => {
                 banco: 'Banco do Brasil',
                 agencia: '1234',
                 conta: '567890',
-                digitoConta: '1'
-              }
+                digitoConta: '1',
+              },
             }),
           },
         },
       } as any,
     }
-    
+
     const caller = userRouter.createCaller(mockContext)
-    
+
     try {
       const result = await caller.getProfile()
       expect(result).toBeDefined()
@@ -107,4 +107,4 @@ describe('userRouter', () => {
       expect(error).toBeInstanceOf(Error)
     }
   })
-}) 
+})

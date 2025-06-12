@@ -3,22 +3,22 @@ import { projetoRouter } from '@/server/api/routers/projeto/projeto'
 import { type TRPCContext } from '@/server/api/trpc'
 import { type User } from '@/server/db/schema'
 
-const mockAdminUser: User = { 
-  id: 1, 
-  username: 'admin', 
-  email: 'admin@test.com', 
-  role: 'admin', 
-  assinaturaDefault: null, 
-  dataAssinaturaDefault: null 
+const mockAdminUser: User = {
+  id: 1,
+  username: 'admin',
+  email: 'admin@test.com',
+  role: 'admin',
+  assinaturaDefault: null,
+  dataAssinaturaDefault: null,
 }
 
-const mockProfessorUser: User = { 
-  id: 2, 
-  username: 'professor', 
-  email: 'prof@test.com', 
-  role: 'professor', 
-  assinaturaDefault: null, 
-  dataAssinaturaDefault: null 
+const mockProfessorUser: User = {
+  id: 2,
+  username: 'professor',
+  email: 'prof@test.com',
+  role: 'professor',
+  assinaturaDefault: null,
+  dataAssinaturaDefault: null,
 }
 
 describe('projetoRouter', () => {
@@ -37,9 +37,9 @@ describe('projetoRouter', () => {
         },
       } as any,
     }
-    
+
     const caller = projetoRouter.createCaller(mockContext)
-    
+
     try {
       await caller.getProjetos()
     } catch (error) {
@@ -61,16 +61,16 @@ describe('projetoRouter', () => {
         },
       } as any,
     }
-    
+
     const caller = projetoRouter.createCaller(mockContext)
-    
+
     try {
       await caller.getProjetos()
     } catch (error) {
       expect(error).toBeInstanceOf(Error)
     }
   })
-  
+
   it('getProjeto - should allow access for project owner', async () => {
     const mockProjeto = {
       id: 1,
@@ -79,7 +79,7 @@ describe('projetoRouter', () => {
       status: 'DRAFT',
       deletedAt: null,
     }
-    
+
     const mockContext: TRPCContext = {
       user: mockProfessorUser,
       db: {
@@ -99,9 +99,9 @@ describe('projetoRouter', () => {
         },
       } as any,
     }
-    
+
     const caller = projetoRouter.createCaller(mockContext)
-    
+
     try {
       await caller.getProjeto({ id: 1 })
     } catch (error) {
@@ -117,7 +117,7 @@ describe('projetoRouter', () => {
       status: 'DRAFT',
       deletedAt: null,
     }
-    
+
     const mockContext: TRPCContext = {
       user: mockProfessorUser,
       db: {
@@ -131,9 +131,9 @@ describe('projetoRouter', () => {
         },
       } as any,
     }
-    
+
     const caller = projetoRouter.createCaller(mockContext)
 
     await expect(caller.getProjeto({ id: 1 })).rejects.toThrowError('Acesso negado a este projeto')
   })
-}) 
+})

@@ -94,4 +94,4 @@ vi.mock('@/server/lib/minio', () => ({
 vi.mock('@/server/lib/pdf-service', () => ({
   generateAndStorePDF: vi.fn().mockResolvedValue('mock-file-path.pdf'),
   getStoredPDF: vi.fn().mockResolvedValue(Buffer.from('mock-pdf-data')),
-})) 
+}))

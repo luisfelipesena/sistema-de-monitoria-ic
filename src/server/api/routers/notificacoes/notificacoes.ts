@@ -1,17 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { db } from '@/server/db'
-import { 
-  notificacaoHistoricoTable, 
-  userTable, 
-  projetoTable, 
-  inscricaoTable, 
-  vagaTable,
-  professorTable,
-  alunoTable,
-  assinaturaDocumentoTable
-} from '@/server/db/schema'
+import { notificacaoHistoricoTable, userTable, projetoTable, inscricaoTable, vagaTable } from '@/server/db/schema'
 import { z } from 'zod'
-import { eq, and, desc, isNull, sql } from 'drizzle-orm'
+import { eq, and, desc, sql } from 'drizzle-orm'
 import { TRPCError } from '@trpc/server'
 import { emailService } from '@/server/lib/email-service'
 
@@ -22,14 +12,16 @@ export const notificacoesRouter = createTRPCRouter({
       z.object({
         tipo: z.enum([
           'assinatura_projeto_pendente',
-          'assinatura_termo_pendente', 
+          'assinatura_termo_pendente',
           'aceite_vaga_pendente',
-          'documentos_incompletos'
+          'documentos_incompletos',
         ]),
-        filtros: z.object({
-          dias: z.number().min(1).max(30).default(7), // Lembretes para itens pendentes há X dias
-          departamentoId: z.string().optional(),
-        }).optional(),
+        filtros: z
+          .object({
+            dias: z.number().min(1).max(30).default(7), // Lembretes para itens pendentes há X dias
+            departamentoId: z.string().optional(),
+          })
+          .optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -51,25 +43,22 @@ export const notificacoesRouter = createTRPCRouter({
 
       try {
         switch (input.tipo) {
-          case 'assinatura_projeto_pendente':
+          case 'assinatura_projeto_pendente': {
             // Buscar projetos submetidos há mais de X dias sem assinatura admin
             const projetosPendentes = await ctx.db.query.projetoTable.findMany({
-              where: and(
-                eq(projetoTable.status, 'SUBMITTED'),
-                sql`${projetoTable.updatedAt} <= ${dataLimite}`
-              ),
+              where: and(eq(projetoTable.status, 'SUBMITTED'), sql`${projetoTable.updatedAt} <= ${dataLimite}`),
               with: {
                 departamento: true,
                 professorResponsavel: {
-                  with: { user: true }
-                }
-              }
+                  with: { user: true },
+                },
+              },
             })
 
             for (const proj of projetosPendentes) {
               // Buscar todos os admins
               const admins = await ctx.db.query.userTable.findMany({
-                where: eq(userTable.role, 'admin')
+                where: eq(userTable.role, 'admin'),
               })
 
               for (const admin of admins) {
@@ -98,23 +87,24 @@ Sistema de Monitoria IC
               }
             }
             break
+          }
 
-          case 'assinatura_termo_pendente':
+          case 'assinatura_termo_pendente': {
             // Para assinatura de termo, simplificar sem buscar assinaturas por enquanto
             const vagasComTermoPendente = await ctx.db.query.vagaTable.findMany({
               where: sql`${vagaTable.updatedAt} <= ${dataLimite}`,
               with: {
                 aluno: {
-                  with: { user: true }
+                  with: { user: true },
                 },
                 projeto: {
                   with: {
                     professorResponsavel: {
-                      with: { user: true }
-                    }
-                  }
-                }
-              }
+                      with: { user: true },
+                    },
+                  },
+                },
+              },
             })
 
             for (const vagaItem of vagasComTermoPendente) {
@@ -161,8 +151,9 @@ Sistema de Monitoria IC
               notificacoesEnviadas++
             }
             break
+          }
 
-          case 'aceite_vaga_pendente':
+          case 'aceite_vaga_pendente': {
             // Buscar inscrições aprovadas não aceitas há mais de X dias
             const inscricoesPendentes = await ctx.db.query.inscricaoTable.findMany({
               where: and(
@@ -172,10 +163,10 @@ Sistema de Monitoria IC
               ),
               with: {
                 aluno: {
-                  with: { user: true }
+                  with: { user: true },
                 },
-                projeto: true
-              }
+                projeto: true,
+              },
             })
 
             for (const inscr of inscricoesPendentes) {
@@ -203,6 +194,7 @@ Sistema de Monitoria IC
               notificacoesEnviadas++
             }
             break
+          }
 
           default:
             throw new TRPCError({
@@ -225,7 +217,6 @@ Sistema de Monitoria IC
           notificacoesEnviadas,
           tipo: input.tipo,
         }
-
       } catch (error) {
         console.error('Erro ao enviar lembretes:', error)
         throw new TRPCError({
@@ -249,15 +240,16 @@ Sistema de Monitoria IC
 
       // Buscar histórico de notificações
       const notificacoes = await ctx.db.query.notificacaoHistoricoTable.findMany({
-        where: user.role !== 'admin' && input.userId 
-          ? eq(notificacaoHistoricoTable.remetenteUserId, parseInt(input.userId))
-          : undefined,
+        where:
+          user.role !== 'admin' && input.userId
+            ? eq(notificacaoHistoricoTable.remetenteUserId, parseInt(input.userId))
+            : undefined,
         with: {
           remetente: {
-            columns: { id: true, username: true, email: true }
+            columns: { id: true, username: true, email: true },
           },
           projeto: true,
-          aluno: true
+          aluno: true,
         },
         orderBy: [desc(notificacaoHistoricoTable.dataEnvio)],
         limit: input.limite,
@@ -277,7 +269,7 @@ Sistema de Monitoria IC
         metadata: {
           statusEnvio: notif.statusEnvio,
           projetoId: notif.projetoId,
-          alunoId: notif.alunoId
+          alunoId: notif.alunoId,
         },
       }))
     }),
@@ -289,25 +281,23 @@ Sistema de Monitoria IC
         notificacaoId: z.string(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async () => {
       // Como usamos histórico, sempre retorna sucesso
       return { success: true }
     }),
 
   // Marcar todas as notificações como lidas (mantendo compatibilidade)
-  markAllAsRead: protectedProcedure
-    .mutation(async ({ ctx }) => {
-      return { 
-        success: true,
-        message: 'Todas as notificações foram marcadas como lidas'
-      }
-    }),
+  markAllAsRead: protectedProcedure.mutation(async () => {
+    return {
+      success: true,
+      message: 'Todas as notificações foram marcadas como lidas',
+    }
+  }),
 
   // Buscar notificações não lidas (retorna vazio pois usamos histórico)
-  getUnread: protectedProcedure
-    .query(async ({ ctx }) => {
-      return []
-    }),
+  getUnread: protectedProcedure.query(async () => {
+    return []
+  }),
 
   // Criar notificação personalizada (para admins)
   create: protectedProcedure
@@ -333,7 +323,7 @@ Sistema de Monitoria IC
 
       // Verificar se destinatários existem
       const destinatarios = await ctx.db.query.userTable.findMany({
-        where: sql`${userTable.id} IN (${input.destinatarioIds.map(id => parseInt(id)).join(',')})`
+        where: sql`${userTable.id} IN (${input.destinatarioIds.map((id) => parseInt(id)).join(',')})`,
       })
 
       if (destinatarios.length !== input.destinatarioIds.length) {
@@ -385,7 +375,6 @@ ${user.username}
           notificacoesCriadas: destinatarios.length,
           emailsEnviados,
         }
-
       } catch (error) {
         console.error('Erro ao criar notificações:', error)
         throw new TRPCError({
@@ -434,9 +423,7 @@ ${user.username}
         falharam: Number(stats?.falharam) || 0,
         lembretes: Number(stats?.lembretes) || 0,
         urgentes: Number(stats?.urgentes) || 0,
-        taxaEntrega: stats?.total 
-          ? Math.round((Number(stats.enviadas) / Number(stats.total)) * 100)
-          : 0,
+        taxaEntrega: stats?.total ? Math.round((Number(stats.enviadas) / Number(stats.total)) * 100) : 0,
       }
     }),
 })

@@ -42,9 +42,9 @@ export const appRouter = createTRPCRouter({
   relatorios: relatoriosRouter,
   analytics: analyticsRouter,
   apiKey: apiKeyRouter,
-  selecao: selecaoRouter,      
-  vagas: vagasRouter,          
-  termos: termosRouter,         
+  selecao: selecaoRouter,
+  vagas: vagasRouter,
+  termos: termosRouter,
   notificacoes: notificacoesRouter,
   periodoInscricao: periodoInscricaoRouter,
 })

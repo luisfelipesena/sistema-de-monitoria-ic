@@ -1,5 +1,4 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { db } from '@/server/db'
 import {
   inscricaoTable,
   projetoTable,
@@ -1275,9 +1274,11 @@ export const inscricaoRouter = createTRPCRouter({
         description: 'Accept offered position (scholarship or volunteer)',
       },
     })
-    .input(z.object({
-      inscricaoId: z.number(),
-    }))
+    .input(
+      z.object({
+        inscricaoId: z.number(),
+      })
+    )
     .output(z.object({ success: z.boolean(), message: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
@@ -1301,10 +1302,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         // Buscar a inscrição
         const inscricao = await ctx.db.query.inscricaoTable.findFirst({
-          where: and(
-            eq(inscricaoTable.id, input.inscricaoId),
-            eq(inscricaoTable.alunoId, aluno.id)
-          ),
+          where: and(eq(inscricaoTable.id, input.inscricaoId), eq(inscricaoTable.alunoId, aluno.id)),
           with: {
             projeto: true,
           },
@@ -1328,10 +1326,7 @@ export const inscricaoRouter = createTRPCRouter({
         // Se for bolsista, verificar se já tem bolsa no semestre
         if (inscricao.status === 'SELECTED_BOLSISTA') {
           const bolsaExistente = await ctx.db.query.inscricaoTable.findFirst({
-            where: and(
-              eq(inscricaoTable.alunoId, aluno.id),
-              eq(inscricaoTable.status, 'ACCEPTED_BOLSISTA')
-            ),
+            where: and(eq(inscricaoTable.alunoId, aluno.id), eq(inscricaoTable.status, 'ACCEPTED_BOLSISTA')),
             with: {
               projeto: true,
             },
@@ -1351,7 +1346,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         // Atualizar status para aceito
         const newStatus = inscricao.status === 'SELECTED_BOLSISTA' ? 'ACCEPTED_BOLSISTA' : 'ACCEPTED_VOLUNTARIO'
-        
+
         await ctx.db
           .update(inscricaoTable)
           .set({
@@ -1388,10 +1383,12 @@ export const inscricaoRouter = createTRPCRouter({
         description: 'Reject offered position',
       },
     })
-    .input(z.object({
-      inscricaoId: z.number(),
-      motivo: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        inscricaoId: z.number(),
+        motivo: z.string().optional(),
+      })
+    )
     .output(z.object({ success: z.boolean(), message: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
@@ -1415,10 +1412,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         // Buscar a inscrição
         const inscricao = await ctx.db.query.inscricaoTable.findFirst({
-          where: and(
-            eq(inscricaoTable.id, input.inscricaoId),
-            eq(inscricaoTable.alunoId, aluno.id)
-          ),
+          where: and(eq(inscricaoTable.id, input.inscricaoId), eq(inscricaoTable.alunoId, aluno.id)),
         })
 
         if (!inscricao) {
@@ -1475,42 +1469,46 @@ export const inscricaoRouter = createTRPCRouter({
       },
     })
     .input(z.object({ inscricaoId: z.number() }))
-    .output(z.object({
-      monitor: z.object({
-        nome: z.string(),
-        matricula: z.string(),
-        email: z.string(),
-        telefone: z.string().optional(),
-        cr: z.number(),
-      }),
-      professor: z.object({
-        nome: z.string(),
-        matriculaSiape: z.string().optional(),
-        email: z.string(),
-        departamento: z.string(),
-      }),
-      projeto: z.object({
-        titulo: z.string(),
-        disciplinas: z.array(z.object({
-          codigo: z.string(),
+    .output(
+      z.object({
+        monitor: z.object({
           nome: z.string(),
-        })),
-        ano: z.number(),
-        semestre: z.string(),
-        cargaHorariaSemana: z.number(),
-        numeroSemanas: z.number(),
-      }),
-      monitoria: z.object({
-        tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
-        dataInicio: z.string(),
-        dataFim: z.string(),
-        valorBolsa: z.number().optional(),
-      }),
-      termo: z.object({
-        numero: z.string(),
-        dataGeracao: z.string(),
-      }),
-    }))
+          matricula: z.string(),
+          email: z.string(),
+          telefone: z.string().optional(),
+          cr: z.number(),
+        }),
+        professor: z.object({
+          nome: z.string(),
+          matriculaSiape: z.string().optional(),
+          email: z.string(),
+          departamento: z.string(),
+        }),
+        projeto: z.object({
+          titulo: z.string(),
+          disciplinas: z.array(
+            z.object({
+              codigo: z.string(),
+              nome: z.string(),
+            })
+          ),
+          ano: z.number(),
+          semestre: z.string(),
+          cargaHorariaSemana: z.number(),
+          numeroSemanas: z.number(),
+        }),
+        monitoria: z.object({
+          tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
+          dataInicio: z.string(),
+          dataFim: z.string(),
+          valorBolsa: z.number().optional(),
+        }),
+        termo: z.object({
+          numero: z.string(),
+          dataGeracao: z.string(),
+        }),
+      })
+    )
     .query(async ({ input, ctx }) => {
       try {
         // Buscar a inscrição com todos os dados necessários
@@ -1543,7 +1541,7 @@ export const inscricaoRouter = createTRPCRouter({
           const aluno = await ctx.db.query.alunoTable.findFirst({
             where: eq(alunoTable.userId, ctx.user.id),
           })
-          
+
           if (!aluno || inscricao.alunoId !== aluno.id) {
             throw new TRPCError({
               code: 'FORBIDDEN',
@@ -1554,7 +1552,7 @@ export const inscricaoRouter = createTRPCRouter({
           const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
           })
-          
+
           if (!professor || inscricao.projeto.professorResponsavelId !== professor.id) {
             throw new TRPCError({
               code: 'FORBIDDEN',
@@ -1587,7 +1585,7 @@ export const inscricaoRouter = createTRPCRouter({
         const fimSemestre = new Date(inscricao.projeto.ano, inscricao.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
 
         const tipoMonitoria = inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
-        
+
         // Gerar número do termo
         const numeroTermo = `${inscricao.projeto.ano}${inscricao.projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}-${inscricao.id.toString().padStart(4, '0')}`
 
@@ -1617,7 +1615,7 @@ export const inscricaoRouter = createTRPCRouter({
             tipo: tipoMonitoria,
             dataInicio: inicioSemestre.toLocaleDateString('pt-BR'),
             dataFim: fimSemestre.toLocaleDateString('pt-BR'),
-            valorBolsa: tipoMonitoria === 'BOLSISTA' ? 400.00 : undefined, // Valor fixo por enquanto
+            valorBolsa: tipoMonitoria === 'BOLSISTA' ? 400.0 : undefined, // Valor fixo por enquanto
           },
           termo: {
             numero: numeroTermo,
