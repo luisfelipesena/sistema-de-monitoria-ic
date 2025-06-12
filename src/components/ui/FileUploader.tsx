@@ -118,7 +118,7 @@ export const FileUploader = forwardRef<HTMLInputElement, FileUploaderProps>(
               <p className="text-xs text-center text-gray-400 mt-1">
                 {allowedTypes.length > 0
                   ? `Tipos permitidos: ${allowedTypes.map(type => {
-                      const extensions = {
+                      const extensions: Record<string, string> = {
                         'application/pdf': 'PDF',
                         'image/jpeg': 'JPEG',
                         'image/jpg': 'JPG',

@@ -1,0 +1,670 @@
+'use client'
+
+import { PagesLayout } from '@/components/layout/PagesLayout'
+import { TableComponent } from '@/components/layout/TableComponent'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { api } from '@/utils/api'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ColumnDef } from '@tanstack/react-table'
+import { FileText, Plus, Edit, Trash2, Copy, Target, BookOpen, Clock, Users } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
+import { z } from 'zod'
+
+const templateFormSchema = z.object({
+  disciplinaId: z.number().min(1, 'Disciplina é obrigatória'),
+  tituloDefault: z.string().optional(),
+  descricaoDefault: z.string().optional(),
+  cargaHorariaSemanaDefault: z.number().int().positive().optional(),
+  numeroSemanasDefault: z.number().int().positive().optional(),
+  publicoAlvoDefault: z.string().optional(),
+  atividadesDefault: z.array(z.string()),
+})
+
+const duplicateFormSchema = z.object({
+  sourceId: z.number(),
+  targetDisciplinaId: z.number().min(1, 'Disciplina de destino é obrigatória'),
+})
+
+type TemplateFormData = z.infer<typeof templateFormSchema>
+type DuplicateFormData = z.infer<typeof duplicateFormSchema>
+
+type TemplateItem = {
+  id: number
+  disciplinaId: number
+  tituloDefault: string | null
+  descricaoDefault: string | null
+  cargaHorariaSemanaDefault: number | null
+  numeroSemanasDefault: number | null
+  publicoAlvoDefault: string | null
+  atividadesDefault: string[]
+  createdAt: Date
+  updatedAt: Date | null
+  disciplina: {
+    id: number
+    nome: string
+    codigo: string
+    departamento: {
+      id: number
+      nome: string
+      sigla: string | null
+    }
+  }
+  criadoPor: {
+    id: number
+    username: string
+    email: string
+  } | null
+  ultimaAtualizacaoPor: {
+    id: number
+    username: string
+    email: string
+  } | null
+}
+
+export default function ProjetoTemplatesPage() {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false)
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(null)
+
+  const { data: templates, isLoading, refetch } = api.projetoTemplates.getTemplates.useQuery()
+  const { data: disciplinasDisponiveis } = api.projetoTemplates.getDisciplinasDisponiveis.useQuery()
+  const { data: stats } = api.projetoTemplates.getTemplateStats.useQuery()
+
+  const createTemplateMutation = api.projetoTemplates.createTemplate.useMutation({
+    onSuccess: () => {
+      toast.success('Template criado com sucesso!')
+      setIsCreateDialogOpen(false)
+      refetch()
+      createForm.reset()
+    },
+    onError: (error) => {
+      toast.error(`Erro: ${error.message}`)
+    },
+  })
+
+  const updateTemplateMutation = api.projetoTemplates.updateTemplate.useMutation({
+    onSuccess: () => {
+      toast.success('Template atualizado com sucesso!')
+      setIsEditDialogOpen(false)
+      setSelectedTemplate(null)
+      refetch()
+    },
+    onError: (error) => {
+      toast.error(`Erro: ${error.message}`)
+    },
+  })
+
+  const deleteTemplateMutation = api.projetoTemplates.deleteTemplate.useMutation({
+    onSuccess: () => {
+      toast.success('Template excluído com sucesso!')
+      refetch()
+    },
+    onError: (error) => {
+      toast.error(`Erro: ${error.message}`)
+    },
+  })
+
+  const duplicateTemplateMutation = api.projetoTemplates.duplicateTemplate.useMutation({
+    onSuccess: () => {
+      toast.success('Template duplicado com sucesso!')
+      setIsDuplicateDialogOpen(false)
+      refetch()
+      duplicateForm.reset()
+    },
+    onError: (error) => {
+      toast.error(`Erro: ${error.message}`)
+    },
+  })
+
+  const createForm = useForm<TemplateFormData>({
+    resolver: zodResolver(templateFormSchema),
+    defaultValues: {
+      atividadesDefault: [],
+    },
+  })
+
+  const editForm = useForm<TemplateFormData>({
+    resolver: zodResolver(templateFormSchema),
+    defaultValues: {
+      atividadesDefault: [],
+    },
+  })
+
+  const duplicateForm = useForm<DuplicateFormData>({
+    resolver: zodResolver(duplicateFormSchema),
+  })
+
+
+  const handleCreate = (data: TemplateFormData) => {
+    createTemplateMutation.mutate(data)
+  }
+
+  const handleEdit = (data: TemplateFormData) => {
+    if (!selectedTemplate) return
+    const { disciplinaId, ...updateData } = data
+    updateTemplateMutation.mutate({ id: selectedTemplate.id, ...updateData })
+  }
+
+  const handleDelete = (id: number) => {
+    if (confirm('Tem certeza que deseja excluir este template?')) {
+      deleteTemplateMutation.mutate({ id })
+    }
+  }
+
+  const handleDuplicate = (data: DuplicateFormData) => {
+    duplicateTemplateMutation.mutate(data)
+  }
+
+  const openEditDialog = (template: TemplateItem) => {
+    setSelectedTemplate(template)
+    editForm.reset({
+      disciplinaId: template.disciplinaId,
+      tituloDefault: template.tituloDefault || '',
+      descricaoDefault: template.descricaoDefault || '',
+      cargaHorariaSemanaDefault: template.cargaHorariaSemanaDefault || undefined,
+      numeroSemanasDefault: template.numeroSemanasDefault || undefined,
+      publicoAlvoDefault: template.publicoAlvoDefault || '',
+      atividadesDefault: template.atividadesDefault || [],
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const openDuplicateDialog = (template: TemplateItem) => {
+    setSelectedTemplate(template)
+    duplicateForm.reset({
+      sourceId: template.id,
+    })
+    setIsDuplicateDialogOpen(true)
+  }
+
+  const columns: ColumnDef<TemplateItem>[] = [
+    {
+      header: 'Disciplina',
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.original.disciplina.codigo}</div>
+          <div className="text-sm text-muted-foreground truncate max-w-xs">
+            {row.original.disciplina.nome}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {row.original.disciplina.departamento.sigla}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Template',
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium truncate max-w-xs">
+            {row.original.tituloDefault || 'Sem título'}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {row.original.cargaHorariaSemanaDefault && row.original.numeroSemanasDefault && (
+              <span>{row.original.cargaHorariaSemanaDefault}h/sem × {row.original.numeroSemanasDefault} sem</span>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Atividades',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Target className="h-4 w-4 text-blue-600" />
+          <span className="text-sm">{row.original.atividadesDefault.length} atividade(s)</span>
+        </div>
+      ),
+    },
+    {
+      header: 'Última Atualização',
+      cell: ({ row }) => (
+        <div>
+          <div className="text-sm">
+            {row.original.updatedAt 
+              ? new Date(row.original.updatedAt).toLocaleDateString('pt-BR')
+              : new Date(row.original.createdAt).toLocaleDateString('pt-BR')
+            }
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {(row.original.ultimaAtualizacaoPor || row.original.criadoPor)?.username}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Ações',
+      id: 'actions',
+      cell: ({ row }) => {
+        const template = row.original
+
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openEditDialog(template)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openDuplicateDialog(template)}
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDelete(template.id)}
+              disabled={deleteTemplateMutation.isPending}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )
+      },
+    },
+  ]
+
+  return (
+    <PagesLayout 
+      title="Templates de Projeto" 
+      subtitle="Gerencie templates para agilizar a criação de projetos de monitoria"
+    >
+      <div className="space-y-6">
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total de Templates</p>
+                    <p className="text-2xl font-semibold">{stats.totalTemplates}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-green-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total de Disciplinas</p>
+                    <p className="text-2xl font-semibold">{stats.totalDisciplinas}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-purple-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Cobertura</p>
+                    <p className="text-2xl font-semibold">{stats.cobertura}%</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-orange-600" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Sem Template</p>
+                    <p className="text-2xl font-semibold">{stats.disciplinasSemTemplate}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Templates Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Templates de Projeto
+                {templates && (
+                  <Badge variant="outline" className="ml-2">
+                    {templates.length} template(s)
+                  </Badge>
+                )}
+              </div>
+              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button disabled={!disciplinasDisponiveis || disciplinasDisponiveis.length === 0}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Novo Template
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Criar Novo Template</DialogTitle>
+                  </DialogHeader>
+                  <Form {...createForm}>
+                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
+                      <FormField
+                        control={createForm.control}
+                        name="disciplinaId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Disciplina</FormLabel>
+                            <Select 
+                              onValueChange={(value) => field.onChange(parseInt(value))} 
+                              value={field.value?.toString()}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Selecione a disciplina" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {disciplinasDisponiveis?.map((disciplina) => (
+                                  <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
+                                    {disciplina.codigo} - {disciplina.nome} ({disciplina.departamento.sigla})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={createForm.control}
+                        name="tituloDefault"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Título Padrão</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Ex: Monitoria de [Disciplina]"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={createForm.control}
+                        name="descricaoDefault"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Descrição Padrão</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                rows={4}
+                                placeholder="Objetivos e justificativa do projeto..."
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={createForm.control}
+                          name="cargaHorariaSemanaDefault"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Carga Horária Semanal</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  placeholder="12"
+                                  {...field} 
+                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="numeroSemanasDefault"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Número de Semanas</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  placeholder="16"
+                                  {...field} 
+                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      <FormField
+                        control={createForm.control}
+                        name="publicoAlvoDefault"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Público Alvo Padrão</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                rows={3}
+                                placeholder="Estudantes matriculados na disciplina..."
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={createTemplateMutation.isPending}
+                      >
+                        {createTemplateMutation.isPending ? 'Criando...' : 'Criar Template'}
+                      </Button>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  <p className="mt-2">Carregando templates...</p>
+                </div>
+              </div>
+            ) : templates && templates.length > 0 ? (
+              <TableComponent
+                columns={columns}
+                data={templates}
+                searchableColumn="disciplina.codigo"
+                searchPlaceholder="Buscar por código da disciplina..."
+              />
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <FileText className="mx-auto h-12 w-12 mb-4" />
+                <h3 className="text-lg font-medium mb-2">
+                  Nenhum template encontrado
+                </h3>
+                <p>
+                  Crie templates para agilizar a criação de projetos de monitoria.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Template</DialogTitle>
+            </DialogHeader>
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(handleEdit)} className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  Disciplina: {selectedTemplate?.disciplina.codigo} - {selectedTemplate?.disciplina.nome}
+                </div>
+                <FormField
+                  control={editForm.control}
+                  name="tituloDefault"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título Padrão</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="descricaoDefault"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição Padrão</FormLabel>
+                      <FormControl>
+                        <Textarea rows={4} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="cargaHorariaSemanaDefault"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Carga Horária Semanal</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            {...field} 
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="numeroSemanasDefault"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número de Semanas</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            {...field} 
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={editForm.control}
+                  name="publicoAlvoDefault"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Público Alvo Padrão</FormLabel>
+                      <FormControl>
+                        <Textarea rows={3} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={updateTemplateMutation.isPending}
+                >
+                  {updateTemplateMutation.isPending ? 'Atualizando...' : 'Atualizar Template'}
+                </Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Duplicate Dialog */}
+        <Dialog open={isDuplicateDialogOpen} onOpenChange={setIsDuplicateDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Duplicar Template</DialogTitle>
+            </DialogHeader>
+            <Form {...duplicateForm}>
+              <form onSubmit={duplicateForm.handleSubmit(handleDuplicate)} className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  Duplicando template de: {selectedTemplate?.disciplina.codigo} - {selectedTemplate?.disciplina.nome}
+                </div>
+                <FormField
+                  control={duplicateForm.control}
+                  name="targetDisciplinaId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Disciplina de Destino</FormLabel>
+                      <Select 
+                        onValueChange={(value) => field.onChange(parseInt(value))} 
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a disciplina" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {disciplinasDisponiveis?.map((disciplina) => (
+                            <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
+                              {disciplina.codigo} - {disciplina.nome} ({disciplina.departamento.sigla})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={duplicateTemplateMutation.isPending}
+                >
+                  {duplicateTemplateMutation.isPending ? 'Duplicando...' : 'Duplicar Template'}
+                </Button>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </PagesLayout>
+  )
+}

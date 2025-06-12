@@ -1,86 +1,62 @@
-'use client';
+"use client"
 
-import { apiClient } from '@/utils/api-client';
-import { logger } from '@/utils/logger';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from '@tanstack/react-router';
-import { User } from 'lucia';
-import React, { createContext, useCallback, useContext, useMemo } from 'react';
-import { QueryKeys } from './query-keys';
-import { AppUser } from '@/routes/api/auth/me';
+import { AppUser } from "@/server/api/routers/auth/me/me"
+import { api } from "@/utils/api"
+import { logger } from "@/utils/logger"
+import { useMutation } from "@tanstack/react-query"
+import axios from "axios"
+import { useRouter } from "next/navigation"
+import React, { createContext, useCallback, useContext, useMemo } from "react"
 
 const log = logger.child({
-  context: 'useAuth',
-});
+  context: "useAuth",
+})
 
 interface AuthState {
-  user: AppUser | null;
-  isLoading: boolean;
-  isAuthenticated: boolean;
+  user: AppUser | null
+  isLoading: boolean
+  isAuthenticated: boolean
 }
 
 interface AuthContextProps extends AuthState {
-  signOut: () => Promise<void>;
-  signIn: () => void;
+  signOut: () => Promise<void>
+  signIn: () => void
 }
 
-const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+const AuthContext = createContext<AuthContextProps | undefined>(undefined)
 
 const useMeQuery = () => {
-  return useQuery<AppUser | null, Error>({
-    queryKey: QueryKeys.auth.me,
-    queryFn: async () => {
-      try {
-        const response = await apiClient.get<AppUser>('/auth/me');
-        return response.data;
-      } catch (error) {
-        log.error({ error }, 'Erro ao buscar usuário');
-        return null;
-      }
-    },
-    retry: false,
-  });
-};
+  return api.me.getMe.useQuery()
+}
 
 const useLogoutMutation = () => {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
   return useMutation({
     mutationFn: async () => {
       try {
-        await apiClient.post('/auth/logout');
+        axios.post('/api/cas-logout');
+        window.location.href = "/";
       } catch (error) {
         log.error({ error }, 'Erro ao fazer logout');
       }
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: QueryKeys.auth.me,
-      });
-      router.navigate({ to: '/', replace: true });
-    },
   });
 };
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const { data: userQuery, isLoading: isLoadingUser } = useMeQuery();
-  const logoutMutation = useLogoutMutation();
 
-  const user = useMemo(() => (userQuery?.id ? userQuery : null), [userQuery]);
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const { data: userQuery, isLoading: isLoadingUser } = useMeQuery()
+  const logoutMutation = useLogoutMutation()
+
+  const user = useMemo(() => (userQuery?.id ? userQuery : null), [userQuery])
 
   const signIn = useCallback(() => {
-    if (user) {
-      window.location.href = '/home';
-      return;
-    }
-    window.location.href = '/api/auth/cas-login';
-  }, [user, router]);
+    window.location.href = "/api/cas-login"
+  }, [])
 
   const signOut = useCallback(async () => {
-    await logoutMutation.mutateAsync();
-  }, [logoutMutation]);
+    await logoutMutation.mutateAsync()
+  }, [logoutMutation])
 
   const value = useMemo(
     () => ({
@@ -90,16 +66,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       signOut,
     }),
-    [user, signIn, signOut, isLoadingUser, logoutMutation.isPending],
-  );
+    [user, signIn, signOut, isLoadingUser, logoutMutation.isPending]
+  )
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider")
   }
-  return context;
+  return context
 }

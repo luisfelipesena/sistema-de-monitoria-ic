@@ -1,4 +1,3 @@
-// MonitoriaFormTemplate.tsx
 import {
   Document,
   Image,
@@ -6,59 +5,58 @@ import {
   StyleSheet,
   Text,
   View,
-} from '@react-pdf/renderer';
+} from '@react-pdf/renderer'
 
 export interface MonitoriaFormData {
-  titulo: string;
-  descricao: string;
+  titulo: string
+  descricao: string
   departamento?: {
-    id: number;
-    nome: string;
-  };
-  coordenadorResponsavel?: string;
+    id: number
+    nome: string
+  }
+  coordenadorResponsavel?: string
   professorResponsavel?: {
-    id: number;
-    nomeCompleto: string;
-    nomeSocial?: string;
-    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO';
-    cpf: string;
-    matriculaSiape?: string;
-    regime: '20H' | '40H' | 'DE';
-    telefone?: string;
-    telefoneInstitucional?: string;
-    emailInstitucional: string;
-  };
-  ano: number;
-  semestre: 'SEMESTRE_1' | 'SEMESTRE_2';
-  tipoProposicao: 'INDIVIDUAL' | 'COLETIVA';
-  bolsasSolicitadas: number;
-  voluntariosSolicitados: number;
-  cargaHorariaSemana: number;
-  numeroSemanas: number;
-  publicoAlvo: string;
-  estimativaPessoasBenificiadas?: number;
+    id: number
+    nomeCompleto: string
+    nomeSocial?: string
+    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO'
+    cpf: string
+    matriculaSiape?: string
+    regime: '20H' | '40H' | 'DE'
+    telefone?: string
+    telefoneInstitucional?: string
+    emailInstitucional: string
+  }
+  ano: number
+  semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
+  tipoProposicao: 'INDIVIDUAL' | 'COLETIVA'
+  bolsasSolicitadas: number
+  voluntariosSolicitados: number
+  cargaHorariaSemana: number
+  numeroSemanas: number
+  publicoAlvo: string
+  estimativaPessoasBenificiadas?: number
   disciplinas: Array<{
-    id: number;
-    codigo: string;
-    nome: string;
-  }>;
+    id: number
+    codigo: string
+    nome: string
+  }>
   user?: {
-    username?: string;
-    email?: string;
-    nomeCompleto?: string;
-    role?: string;
-  };
-  assinaturaProfessor?: string;
-  assinaturaAdmin?: string;
-  dataAprovacao?: string;
-  dataAssinaturaProfessor?: string;
-  dataAssinaturaAdmin?: string;
-  allowSigning?: boolean;
-  signingMode?: 'professor' | 'admin' | 'view';
-  projetoId?: number;
+    username?: string
+    email?: string
+    nomeCompleto?: string
+    role?: string
+  }
+  assinaturaProfessor?: string
+  assinaturaAdmin?: string
+  dataAprovacao?: string
+  dataAssinaturaProfessor?: string
+  dataAssinaturaAdmin?: string
+  allowSigning?: boolean
+  signingMode?: 'professor' | 'admin' | 'view'
+  projetoId?: number
 }
 
-// Estilos
 const styles = StyleSheet.create({
   page: {
     padding: 20,
@@ -219,19 +217,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     wrap: false,
   },
-});
+})
 
 export const MonitoriaFormTemplate = ({
   data,
 }: {
-  data: MonitoriaFormData;
+  data: MonitoriaFormData
 }) => {
-  const semestreLabel = `${data.ano}.${data.semestre === 'SEMESTRE_1' ? '1' : '2'}`;
+  const semestreLabel = `${data.ano}.${data.semestre === 'SEMESTRE_1' ? '1' : '2'}`
   const disciplinasText =
     data.disciplinas?.map((d) => `${d.codigo} - ${d.nome}`).join(', ') ||
-    'Não informado';
-  const totalMonitores = data.bolsasSolicitadas + data.voluntariosSolicitados;
-  const cargaHorariaTotal = data.cargaHorariaSemana * data.numeroSemanas;
+    'Não informado'
+  const totalMonitores = data.bolsasSolicitadas + data.voluntariosSolicitados
+  const cargaHorariaTotal = data.cargaHorariaSemana * data.numeroSemanas
 
   return (
     <Document>
@@ -452,5 +450,5 @@ export const MonitoriaFormTemplate = ({
         </View>
       </Page>
     </Document>
-  );
-};
+  )
+}

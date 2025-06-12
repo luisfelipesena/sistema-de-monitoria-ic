@@ -1,4 +1,4 @@
-import pino from 'pino';
+import pino from 'pino'
 export const logger = pino({
   level: 'info',
   transport: {
@@ -10,4 +10,4 @@ export const logger = pino({
       messageFormat: '{msg} {args}',
     },
   },
-});
+})

@@ -1,186 +1,200 @@
 # Sistema de Monitoria IC - UFBA
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Node Version](https://img.shields.io/badge/node-%3E%3D22.14.0-brightgreen)](https://nodejs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
+<p align="center">
+  <img src="public/images/ic-logo-clean.png" alt="Logo IC UFBA" width="200" />
+</p>
 
-Sistema web completo para gerenciar o Programa de Monitoria do Instituto de Computação da UFBA, automatizando todo o fluxo desde a proposta de projetos pelos professores até a seleção final dos monitores.
+<p align="center">
+  <strong>Sistema de Gerenciamento de Monitoria Acadêmica</strong><br>
+  Instituto de Computação - Universidade Federal da Bahia
+</p>
 
-## 📋 Índice
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-15.1.4-black?style=flat-square&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/TypeScript-5.7.3-blue?style=flat-square&logo=typescript" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/tRPC-11.0.0-purple?style=flat-square&logo=trpc" alt="tRPC" />
+  <img src="https://img.shields.io/badge/PostgreSQL-16.3-336791?style=flat-square&logo=postgresql" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Node.js-24.1.0-green?style=flat-square&logo=node.js" alt="Node.js" />
+</p>
 
-- [Visão Geral](#-visão-geral)
+## 📋 Sumário
+
+- [Sobre o Projeto](#-sobre-o-projeto)
 - [Funcionalidades](#-funcionalidades)
 - [Arquitetura](#-arquitetura)
-- [Tech Stack](#-tech-stack)
-- [Instalação](#-instalação)
+- [Tecnologias](#-tecnologias)
+- [Instalação e Execução](#-instalação-e-execução)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
+- [API e Documentação](#-api-e-documentação)
 - [Fluxo de Trabalho](#-fluxo-de-trabalho)
-- [API Reference](#-api-reference)
-- [Desenvolvimento](#-desenvolvimento)
-- [Deploy](#-deploy)
-- [Contribuindo](#-contribuindo)
 
-## 🎯 Visão Geral
+## 🎯 Sobre o Projeto
 
-O Sistema de Monitoria IC digitaliza e automatiza todo o processo de gestão de monitorias acadêmicas, que anteriormente era feito manualmente com documentos físicos e planilhas. O sistema atende três tipos de usuários principais:
+O **Sistema de Monitoria IC** é uma plataforma completa para gerenciamento de programas de monitoria acadêmica da UFBA. O sistema automatiza todo o ciclo de vida da monitoria, desde a criação de projetos pelos professores até a seleção e acompanhamento dos monitores.
 
-- **Administradores**: Gerenciam todo o sistema, aprovam projetos, definem bolsas
-- **Professores**: Criam projetos de monitoria, selecionam candidatos
-- **Alunos**: Inscrevem-se em vagas, acompanham resultados
+### Principais Objetivos
 
-### Principais Benefícios
+- **Digitalização Completa**: Eliminar processos manuais e documentos físicos
+- **Transparência**: Processo seletivo claro e rastreável
+- **Eficiência**: Reduzir tempo de processamento e aprovação
+- **Integração**: Conectar com sistemas existentes da UFBA (CAS/SSO)
 
-- ✅ Eliminação de processos manuais e papelada física
-- ✅ Centralização de informações em tempo real
-- ✅ Transparência no processo seletivo
-- ✅ Geração automática de relatórios para PROGRAD
-- ✅ Controle de vagas e validações automáticas
+## ⚡ Funcionalidades
 
-## 🚀 Funcionalidades
+### 👨‍🏫 Para Professores
 
-### Para Administradores
+- **Gestão de Projetos de Monitoria**
+  - Criação de projetos individuais ou coletivos
+  - Definição de vagas para bolsistas e voluntários
+  - Workflow de aprovação (Rascunho → Submetido → Aprovado/Rejeitado)
+  - Assinatura digital de documentos
 
-- **Gestão de Projetos**
-  - Aprovar/rejeitar propostas de monitoria
-  - Definir número de bolsas disponíveis
-  - Acompanhar status de todos os projetos
-  
+- **Seleção de Monitores**
+  - Visualização de candidatos inscritos
+  - Sistema de avaliação e classificação
+  - Geração de atas de seleção
+  - Feedback para candidatos
+
+- **Gestão de Disciplinas**
+  - Associação de disciplinas aos projetos
+  - Definição de carga horária e atividades
+  - Acompanhamento de monitores ativos
+
+### 👨‍🎓 Para Alunos
+
+- **Inscrição em Projetos**
+  - Busca de vagas disponíveis por período
+  - Upload de documentos (histórico, comprovante de matrícula)
+  - Acompanhamento do status da inscrição
+  - Visualização de resultados e feedback
+
+- **Painel do Monitor**
+  - Acesso aos detalhes do projeto
+  - Download de documentos e certificados
+  - Histórico de monitorias
+
+### 👨‍💼 Para Administradores
+
 - **Gestão Acadêmica**
   - Cadastro de departamentos, cursos e disciplinas
-  - Vinculação de professores às disciplinas
-  - Definição de períodos de inscrição
-  
+  - Configuração de períodos de inscrição
+  - Importação em massa de projetos via planilha
+
+- **Aprovação e Editais**
+  - Fluxo de aprovação de projetos
+  - Geração automática de editais
+  - Alocação de bolsas por departamento
+
 - **Relatórios e Analytics**
-  - Geração de planilhas Excel para PROGRAD
   - Dashboard com métricas em tempo real
-  - Exportação de dados por período/departamento
+  - Relatórios de desempenho por departamento
+  - Exportação de dados para análise
 
-### Para Professores
-
-- **Criação de Projetos**
-  - Formulário completo com objetivos e atividades
-  - Definição de carga horária e número de vagas
-  - Upload de documentos assinados
-  
-- **Seleção de Monitores**
-  - Visualização de inscritos com filtros
-  - Avaliação e seleção de candidatos
-  - Gestão separada de bolsistas e voluntários
-
-### Para Alunos
-
-- **Inscrições**
-  - Busca de projetos disponíveis
-  - Inscrição em múltiplos projetos
-  - Upload de documentos necessários
-  
-- **Acompanhamento**
-  - Visualização clara de resultados
-  - Aceitar/recusar ofertas de vaga
-  - Histórico de inscrições
-
-### Funcionalidades do Sistema
-
-- 🔐 **Autenticação via CAS** da UFBA
-- 📄 **Upload seguro de documentos** via MinIO
-- 📧 **Notificações por email** automáticas
-- 📊 **Validações automáticas** (ex: máximo 1 bolsa por aluno)
-- 🔄 **Fluxo de aprovação** multi-etapas
-- 📱 **Interface responsiva** para todos dispositivos
+- **Gestão de Usuários**
+  - Sistema de convite para professores
+  - Gerenciamento de permissões
+  - Integração com CAS/UFBA
 
 ## 🏗️ Arquitetura
 
-O sistema utiliza uma arquitetura moderna full-stack com TypeScript:
+### Stack Tecnológica
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│                 │     │                 │     │                 │
-│   Frontend      │────▶│   API Routes    │────▶│   Database      │
-│   (React)       │     │   (TanStack)    │     │   (PostgreSQL)  │
-│                 │     │                 │     │                 │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-         │                       │                        │
-         │                       │                        │
-         ▼                       ▼                        ▼
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   UI Library    │     │  Middleware     │     │   File Storage  │
-│   (shadcn/ui)   │     │  (Auth/Roles)   │     │    (MinIO)      │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-```
+#### Frontend
+- **Framework**: Next.js 15.1.4 (App Router)
+- **UI Components**: shadcn/ui + Radix UI
+- **Estilização**: Tailwind CSS
+- **Formulários**: React Hook Form + Zod
+- **Estado**: TanStack Query (React Query)
+- **PDF**: React PDF Renderer + PDF-lib
 
-### Padrões Arquiteturais
+#### Backend
+- **API**: tRPC v11 (Type-safe API)
+- **ORM**: Drizzle ORM
+- **Autenticação**: Lucia Auth + CAS UFBA
+- **Storage**: MinIO (S3-compatible)
+- **Email**: Nodemailer
+- **Logs**: Pino
 
-- **File-based Routing**: Rotas automáticas baseadas na estrutura de arquivos
-- **Type-safe APIs**: Endpoints totalmente tipados com TypeScript
-- **Middleware Pattern**: Autenticação e autorização em camadas
-- **Repository Pattern**: Abstração de acesso a dados com Drizzle ORM
-- **Component Composition**: UI modular com shadcn/ui
+#### Infraestrutura
+- **Database**: PostgreSQL 16.3
+- **Container**: Docker + Docker Compose
+- **Node**: v24.1.0
+- **Package Manager**: npm 10.8.2
 
-## 🛠️ Tech Stack
+### Padrões e Boas Práticas
 
-### Core
-- **Framework**: [TanStack Start](https://tanstack.com/start) (formerly Vinxi)
-- **Frontend**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Routing**: [TanStack Router](https://tanstack.com/router) - Type-safe routing
-- **State Management**: [TanStack Query](https://tanstack.com/query) - Server state
-- **Database**: [PostgreSQL](https://www.postgresql.org/) + [Drizzle ORM](https://orm.drizzle.team/)
-- **Authentication**: [Lucia Auth](https://lucia-auth.com/) + CAS Integration
+- **Type Safety**: TypeScript em todo o projeto
+- **Code Quality**: Biome para linting e formatação
+- **API Design**: RESTful via tRPC + OpenAPI
+- **Security**: Autenticação JWT, API Keys, validação Zod
+- **Performance**: Server Components, lazy loading, caching
 
-### UI & Styling
-- **Components**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI + Tailwind)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Forms**: [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-
-### Backend Services
-- **File Storage**: [MinIO](https://min.io/) (S3-compatible)
-- **Email**: [Nodemailer](https://nodemailer.com/) (migrating to Resend)
-- **Excel Generation**: [SheetJS](https://sheetjs.com/)
-- **Logging**: [Pino](https://getpino.io/)
-
-### Development
-- **Package Manager**: npm (10.9.0+)
-- **Node Version**: 22.14.0+
-- **Testing**: [Vitest](https://vitest.dev/)
-- **Database Management**: Docker + Docker Compose
-
-## 📦 Instalação
+## 🚀 Instalação e Execução
 
 ### Pré-requisitos
 
-- Node.js 22.14.0+ (use `nvm` para gerenciar versões)
-- npm 10.9.0+
+- Node.js 24.1.0
+- npm 10.8.2
 - Docker e Docker Compose
-- Git
+- Conta no MinIO ou S3
 
-### Setup Rápido
+### Configuração do Ambiente
 
 1. **Clone o repositório**
 ```bash
-git clone https://github.com/seu-usuario/sistema-de-monitoria-ic
+git clone https://github.com/seu-usuario/sistema-de-monitoria-ic.git
 cd sistema-de-monitoria-ic
 ```
 
-2. **Configure as variáveis de ambiente**
+2. **Instale as dependências**
 ```bash
-cp .env.sample .env
-# Edite .env com suas configurações
+npm install
 ```
 
-3. **Instale as dependências**
+3. **Configure as variáveis de ambiente**
 ```bash
-nvm use  # Usa a versão correta do Node
-npm install
+cp .env.example .env
+```
+
+Edite o arquivo `.env` com suas configurações:
+
+```env
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5433/sistema-de-monitoria-ic-2"
+
+# Authentication
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-here"
+
+# CAS UFBA
+CAS_BASE_URL="https://cas.ufba.br/cas"
+CAS_SERVICE_URL="http://localhost:3000/api/cas-callback"
+
+# MinIO/S3
+S3_ACCESS_KEY_ID="your-access-key"
+S3_SECRET_ACCESS_KEY="your-secret-key"
+S3_ENDPOINT="http://localhost:9000"
+S3_BUCKET_NAME="monitoria-files"
+
+# Email
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="your-email@gmail.com"
+SMTP_PASS="your-app-password"
+SMTP_FROM="Sistema Monitoria <noreply@ufba.br>"
+
+# OpenAPI
+OPENAPI_BASE_URL="http://localhost:3000"
 ```
 
 4. **Inicie o banco de dados**
 ```bash
-docker compose up -d
+docker-compose up -d
 ```
 
 5. **Execute as migrações**
 ```bash
-npm run db:migrate
+npm run db:push
 ```
 
 6. **Inicie o servidor de desenvolvimento**
@@ -193,220 +207,144 @@ npm run dev
 http://localhost:3000
 ```
 
-Para mais detalhes, consulte o [Guia de Configuração Completo](./docs/setup-guide.md).
+### Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+npm run dev          # Inicia servidor de desenvolvimento
+
+# Build e Produção
+npm run build        # Build para produção
+npm run start        # Inicia servidor de produção
+
+# Database
+npm run db:generate  # Gera migrações
+npm run db:migrate   # Executa migrações
+npm run db:push      # Sincroniza schema
+npm run db:studio    # Abre Drizzle Studio
+npm run db:drop      # Remove todas as tabelas
+
+# Code Quality
+npm run lint         # Executa linting
+npm run lint:fix     # Corrige problemas de linting
+npm run format       # Formata código
+```
 
 ## 📁 Estrutura do Projeto
 
 ```
 sistema-de-monitoria-ic/
 ├── src/
-│   ├── routes/                 # Rotas (file-based routing)
-│   │   ├── api/               # API endpoints
-│   │   │   ├── auth/          # Autenticação
-│   │   │   ├── projeto/       # Gestão de projetos
-│   │   │   ├── inscricao/     # Inscrições
-│   │   │   └── relatorios/    # Relatórios
-│   │   └── home/              # Páginas do frontend
-│   │       └── _layout/       # Layouts por role
-│   │           ├── admin/     # Dashboard admin
-│   │           ├── professor/ # Dashboard professor
-│   │           └── student/   # Dashboard aluno
-│   ├── server/                # Lógica backend
-│   │   ├── database/          # Schema e migrações
-│   │   ├── lib/              # Utilitários (email, auth)
-│   │   └── middleware/       # Auth e role middleware
-│   ├── components/           # Componentes React
-│   │   ├── ui/              # shadcn/ui components
-│   │   ├── features/        # Feature components
-│   │   └── layout/          # Layout components
-│   ├── hooks/               # Custom React hooks
-│   └── utils/               # Utilitários gerais
-├── docs/                    # Documentação
-├── public/                  # Assets estáticos
-└── docker-compose.yml       # Config do banco
+│   ├── app/                    # Next.js App Router
+│   │   ├── api/               # API Routes
+│   │   │   ├── cas-**/        # CAS authentication
+│   │   │   ├── openapi/       # OpenAPI endpoints
+│   │   │   └── trpc/          # tRPC endpoint
+│   │   ├── docs/              # API documentation
+│   │   └── home/              # Páginas da aplicação
+│   │       ├── admin/         # Páginas administrativas
+│   │       ├── professor/     # Páginas do professor
+│   │       └── student/       # Páginas do aluno
+│   │
+│   ├── components/            # Componentes React
+│   │   ├── features/          # Componentes específicos
+│   │   ├── layout/            # Layout components
+│   │   └── ui/                # shadcn/ui components
+│   │
+│   ├── server/                # Backend
+│   │   ├── api/               # tRPC routers
+│   │   │   └── routers/       # Rotas organizadas por domínio
+│   │   ├── db/                # Database (Drizzle)
+│   │   ├── email-templates/   # Templates de email
+│   │   └── lib/               # Utilitários do servidor
+│   │
+│   ├── hooks/                 # React hooks customizados
+│   ├── lib/                   # Utilitários compartilhados
+│   └── utils/                 # Funções auxiliares
+│
+├── public/                    # Arquivos estáticos
+├── docs/                      # Documentação adicional
+├── drizzle/                   # Migrações do banco
+├── docker-compose.yml         # Configuração Docker
+└── package.json              # Dependências e scripts
 ```
 
-### Principais Arquivos
+## 📡 API e Documentação
 
-- `src/api.ts` - Configuração do handler de API
-- `src/client.tsx` - Entry point do cliente com providers
-- `src/server/database/schema.ts` - Schema do banco de dados
-- `src/routes/` - Todas as rotas da aplicação
-- `CLAUDE.md` - Documentação para IA assistente
+### OpenAPI/Swagger
+
+A documentação interativa da API está disponível em:
+```
+http://localhost:3000/docs
+```
+
+### Endpoints tRPC
+
+O sistema expõe os seguintes routers via tRPC:
+
+- **Auth**: `/api/trpc/me.*`
+- **Projetos**: `/api/trpc/projeto.*`
+- **Inscrições**: `/api/trpc/inscricao.*`
+- **Disciplinas**: `/api/trpc/discipline.*`
+- **Departamentos**: `/api/trpc/departamento.*`
+- **Usuários**: `/api/trpc/user.*`
+- **Arquivos**: `/api/trpc/file.*`
+- **Analytics**: `/api/trpc/analytics.*`
+
+### Autenticação API
+
+Para acesso programático, use API Keys:
+
+```bash
+# Header x-api-key
+curl -H "x-api-key: your-api-key" http://localhost:3000/api/openapi/projeto/list
+
+# Bearer Token
+curl -H "Authorization: Bearer your-api-key" http://localhost:3000/api/openapi/projeto/list
+```
 
 ## 🔄 Fluxo de Trabalho
 
-### 1. Ciclo de Vida do Projeto
+### 1. Criação de Projeto
 
 ```mermaid
-stateDiagram-v2
-    [*] --> DRAFT: Professor cria
-    DRAFT --> SUBMITTED: Professor submete
-    SUBMITTED --> APPROVED: Admin aprova
-    SUBMITTED --> REJECTED: Admin rejeita
-    REJECTED --> DRAFT: Professor edita
-    APPROVED --> PENDING_ADMIN_SIGNATURE: Aguarda assinatura
-    PENDING_ADMIN_SIGNATURE --> APPROVED: Admin assina
+Rascunho → Submetido → Em Análise → Aprovado/Rejeitado
 ```
 
 ### 2. Processo de Inscrição
 
-1. **Período de Inscrição**: Admin define datas de início/fim
-2. **Inscrição**: Aluno se candidata aos projetos
-3. **Seleção**: Professor avalia e seleciona candidatos
-4. **Resultado**: Aluno é notificado (SELECTED_BOLSISTA/VOLUNTARIO)
-5. **Aceitação**: Aluno aceita/recusa a vaga
-6. **Confirmação**: Vaga é confirmada no sistema
-
-### 3. Validações Importantes
-
-- ✅ Aluno pode ter apenas **1 bolsa por semestre**
-- ✅ Aluno pode ter **múltiplas vagas voluntárias**
-- ✅ Inscrições apenas durante **período ativo**
-- ✅ Projetos devem estar **APPROVED** para inscrições
-
-## 📡 API Reference
-
-### Autenticação
-- `GET /api/auth/cas-login` - Inicia login CAS
-- `GET /api/auth/cas-callback` - Callback do CAS
-- `POST /api/auth/logout` - Logout do usuário
-- `GET /api/auth/me` - Dados do usuário atual
-
-### Projetos
-- `GET /api/projeto` - Lista projetos
-- `POST /api/projeto` - Cria projeto
-- `GET /api/projeto/:id` - Detalhes do projeto
-- `POST /api/projeto/:id/submit` - Submete para aprovação
-- `POST /api/projeto/:id/approve` - Aprova projeto (admin)
-- `POST /api/projeto/:id/reject` - Rejeita projeto (admin)
-
-### Inscrições
-- `GET /api/inscricao` - Minhas inscrições (aluno)
-- `POST /api/monitoria/inscricao` - Nova inscrição
-- `POST /api/inscricao/:id/aceitar` - Aceita vaga
-- `POST /api/inscricao/:id/recusar` - Recusa vaga
-- `GET /api/projeto/:id/inscricoes` - Lista inscritos (professor)
-
-### Relatórios
-- `GET /api/relatorios/planilhas-prograd` - Gera Excel PROGRAD
-
-## 💻 Desenvolvimento
-
-### Comandos Úteis
-
-```bash
-# Desenvolvimento
-npm run dev              # Inicia servidor dev
-npm run build           # Build de produção
-npm run start           # Executa build
-
-# Banco de Dados
-npm run db:generate     # Gera migrações
-npm run db:migrate      # Aplica migrações
-npm run db:studio       # Drizzle Studio GUI
-npm run db:push        # Push direto (dev)
-
-# Testes
-npm run test           # Executa testes
-npm run test:coverage  # Coverage report
-
-# Docker
-docker compose up -d    # Inicia serviços
-docker compose down     # Para serviços
-docker compose logs -f  # Ver logs
+```mermaid
+Período Aberto → Inscrição → Análise → Seleção → Resultado
 ```
 
-### Convenções de Código
+### 3. Gestão de Documentos
 
-- **TypeScript**: Strict mode, tipos explícitos
-- **React**: Functional components, custom hooks
-- **Naming**: 
-  - Components: `PascalCase`
-  - Hooks: `camelCase` com prefixo `use`
-  - API routes: `kebab-case`
-  - Database: `snake_case`
-- **Git**: Conventional commits (`feat:`, `fix:`, `docs:`)
-
-### Estrutura de Hooks
-
-```typescript
-// hooks/use-projetos.ts
-export function useProjetos() {
-  return useQuery({
-    queryKey: ['projetos'],
-    queryFn: () => apiClient.get('/api/projeto')
-  });
-}
-```
-
-### Estrutura de API Routes
-
-```typescript
-// routes/api/exemplo.ts
-export const APIRoute = createAPIFileRoute('/api/exemplo')({
-  GET: createAPIHandler(
-    withAuthMiddleware(
-      withRoleMiddleware(['admin'])(async (ctx) => {
-        // Implementação
-        return json(data);
-      })
-    )
-  ),
-});
-```
-
-## 🚀 Deploy
-
-### Heroku (Atual)
-
-```bash
-# Deploy automático via GitHub
-git push origin main
-
-# Deploy manual
-./deploy.sh
-```
-
-### Variáveis de Ambiente (Produção)
-
-```env
-DATABASE_URL=postgres://...
-REDIS_URL=redis://...
-MINIO_ENDPOINT=...
-MINIO_ACCESS_KEY=...
-MINIO_SECRET_KEY=...
-RESEND_API_KEY=...
-CAS_LOGIN_URL=...
-CAS_VALIDATE_URL=...
-NODE_ENV=production
+```mermaid
+Upload → Validação → Assinatura Digital → Arquivamento
 ```
 
 ## 🤝 Contribuindo
 
-1. **Fork** o projeto
-2. **Clone** seu fork
-3. **Crie** uma branch (`git checkout -b feature/AmazingFeature`)
-4. **Commit** suas mudanças (`git commit -m 'feat: Add amazing feature'`)
-5. **Push** para a branch (`git push origin feature/AmazingFeature`)
-6. **Abra** um Pull Request
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add: nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
 
-### Guidelines
+### Convenções de Código
 
-- Siga as convenções de código existentes
-- Adicione testes para novas features
-- Atualize a documentação conforme necessário
-- Use conventional commits
-- Certifique-se que `npm run build` passa
+- Use TypeScript com `strict: true`
+- Siga as regras do Biome
+- Mantenha componentes pequenos e focados
+- Escreva testes para novas funcionalidades
+- Documente APIs com JSDoc
 
-## 📄 Licença
+## 📝 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## 🏛️ Sobre
-
-Desenvolvido para o **Instituto de Computação da UFBA** como parte do esforço de digitalização e modernização dos processos acadêmicos.
+Este projeto é propriedade da Universidade Federal da Bahia (UFBA) e do Instituto de Computação (IC).
 
 ---
 
-**Dúvidas?** Abra uma [issue](https://github.com/seu-usuario/sistema-de-monitoria-ic/issues) ou entre em contato com a equipe de desenvolvimento.
+<p align="center">
+  Desenvolvido com ❤️ pelo time de desenvolvimento do IC-UFBA
+</p>
