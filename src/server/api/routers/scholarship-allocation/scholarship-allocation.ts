@@ -21,7 +21,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
         semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const projetos = await ctx.db
         .select({
           id: projetoTable.id,
@@ -88,7 +88,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
         bolsasDisponibilizadas: z.number().int().min(0),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       await ctx.db
         .update(projetoTable)
         .set({
@@ -110,7 +110,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
         ),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       await Promise.all(
         input.allocations.map(async (allocation) => {
           await ctx.db
@@ -132,7 +132,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
         semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       // Get totals for approved projects
       const summary = await ctx.db
         .select({
@@ -191,7 +191,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
 
   getCandidatesForProject: adminProtectedProcedure
     .input(z.object({ projetoId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const candidates = await ctx.db
         .select({
           id: inscricaoTable.id,
@@ -224,7 +224,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
         tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       // Update inscription status
       const statusMap = {
         BOLSISTA: 'SELECTED_BOLSISTA' as const,

@@ -5,7 +5,7 @@ import { db } from '@/server/db'
 import { projetoTemplateTable } from '@/server/db/schema'
 
 export const projetoTemplatesRouter = createTRPCRouter({
-  getTemplates: adminProtectedProcedure.query(async () => {
+  getTemplates: adminProtectedProcedure.query(async ({ ctx }) => {
     const templates = await ctx.db.query.projetoTemplateTable.findMany({
       orderBy: [desc(projetoTemplateTable.updatedAt)],
       with: {
@@ -59,7 +59,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
     }))
   }),
 
-  getTemplate: adminProtectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+  getTemplate: adminProtectedProcedure.input(z.object({ id: z.number() })).query(async ({ input, ctx }) => {
     const template = await ctx.db.query.projetoTemplateTable.findFirst({
       where: eq(projetoTemplateTable.id, input.id),
       with: {
@@ -155,7 +155,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
       return updated
     }),
 
-  deleteTemplate: adminProtectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+  deleteTemplate: adminProtectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
     const template = await ctx.db.query.projetoTemplateTable.findFirst({
       where: eq(projetoTemplateTable.id, input.id),
     })
@@ -169,7 +169,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
     return { success: true }
   }),
 
-  getDisciplinasDisponiveis: adminProtectedProcedure.query(async () => {
+  getDisciplinasDisponiveis: adminProtectedProcedure.query(async ({ ctx }) => {
     // Get disciplines that don't have templates yet
     const allDisciplinas = await ctx.db.query.disciplinaTable.findMany({
       with: {
@@ -196,7 +196,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
 
   getTemplateByDisciplina: adminProtectedProcedure
     .input(z.object({ disciplinaId: z.number() }))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const template = await ctx.db.query.projetoTemplateTable.findFirst({
         where: eq(projetoTemplateTable.disciplinaId, input.disciplinaId),
         with: {
@@ -225,7 +225,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
         targetDisciplinaId: z.number(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input, ctx }) => {
       const sourceTemplate = await ctx.db.query.projetoTemplateTable.findFirst({
         where: eq(projetoTemplateTable.id, input.sourceId),
       })
@@ -260,7 +260,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
       return newTemplate
     }),
 
-  getTemplateStats: adminProtectedProcedure.query(async () => {
+  getTemplateStats: adminProtectedProcedure.query(async ({ ctx }) => {
     const totalTemplates = await ctx.db.query.projetoTemplateTable.findMany()
     const totalDisciplinas = await ctx.db.query.disciplinaTable.findMany()
 

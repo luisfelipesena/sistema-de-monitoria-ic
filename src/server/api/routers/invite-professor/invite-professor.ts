@@ -77,7 +77,7 @@ export const inviteProfessorRouter = createTRPCRouter({
         })
         .optional()
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const invitations = await ctx.db.query.professorInvitationTable.findMany({
         where: input?.status ? eq(professorInvitationTable.status, input.status) : undefined,
         orderBy: [desc(professorInvitationTable.createdAt)],
@@ -169,7 +169,7 @@ export const inviteProfessorRouter = createTRPCRouter({
 
   cancelInvitation: adminProtectedProcedure
     .input(z.object({ invitationId: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const invitation = await ctx.db.query.professorInvitationTable.findFirst({
         where: eq(professorInvitationTable.id, input.invitationId),
       })
@@ -192,13 +192,13 @@ export const inviteProfessorRouter = createTRPCRouter({
 
   deleteInvitation: adminProtectedProcedure
     .input(z.object({ invitationId: z.number() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       await ctx.db.delete(professorInvitationTable).where(eq(professorInvitationTable.id, input.invitationId))
 
       return { success: true }
     }),
 
-  getInvitationStats: adminProtectedProcedure.query(async () => {
+  getInvitationStats: adminProtectedProcedure.query(async ({ ctx }) => {
     const invitations = await ctx.db.query.professorInvitationTable.findMany()
 
     const stats = {
@@ -213,7 +213,7 @@ export const inviteProfessorRouter = createTRPCRouter({
     return stats
   }),
 
-  validateInvitationToken: adminProtectedProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
+  validateInvitationToken: adminProtectedProcedure.input(z.object({ token: z.string() })).query(async ({ input, ctx }) => {
     const invitation = await ctx.db.query.professorInvitationTable.findFirst({
       where: eq(professorInvitationTable.token, input.token),
     })
@@ -241,7 +241,7 @@ export const inviteProfessorRouter = createTRPCRouter({
     }
   }),
 
-  getDepartments: adminProtectedProcedure.query(async () => {
+  getDepartments: adminProtectedProcedure.query(async ({ ctx }) => {
     const departments = await ctx.db.query.departamentoTable.findMany({
       columns: {
         id: true,

@@ -72,7 +72,7 @@ export class CasCallbackService {
   }
 
   async getOrCreateUser(username: string, attributes: Record<string, string>) {
-    const existingUser = await ctx.db.query.userTable.findFirst({
+    const existingUser = await db.query.userTable.findFirst({
       where: eq(userTable.username, username),
     })
 
@@ -82,7 +82,7 @@ export class CasCallbackService {
       const ADMIN_EMAILS = ['luis.sena@ufba.br', 'joao.leahy@ufba.br', 'antoniels@ufba.br', 'caioviana@ufba.br']
 
       if (ADMIN_EMAILS.includes(existingUser.email)) {
-        const [updatedUser] = await ctx.db
+        const [updatedUser] = await db
           .update(userTable)
           .set({
             role: 'admin',
@@ -98,7 +98,7 @@ export class CasCallbackService {
 
     log.info(`Creating new user: ${username}`)
     const email = attributes['cas:mail'] || `${username}@ufba.br`
-    const [newUser] = await ctx.db
+    const [newUser] = await db
       .insert(userTable)
       .values({
         username: username,

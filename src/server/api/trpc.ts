@@ -21,7 +21,7 @@ const authenticateWithApiKey = async (apiKey: string): Promise<User | null> => {
   const hashedKey = createHash('sha256').update(apiKey).digest('hex')
 
   // Buscar a API key no banco
-  const apiKeyRecord = await ctx.db.query.apiKeyTable.findFirst({
+  const apiKeyRecord = await db.query.apiKeyTable.findFirst({
     where: and(eq(apiKeyTable.keyValue, hashedKey), eq(apiKeyTable.isActive, true)),
     with: {
       user: true,
@@ -36,7 +36,7 @@ const authenticateWithApiKey = async (apiKey: string): Promise<User | null> => {
   }
 
   // Atualizar último uso
-  await ctx.db.update(apiKeyTable).set({ lastUsedAt: new Date() }).where(eq(apiKeyTable.id, apiKeyRecord.id))
+  await db.update(apiKeyTable).set({ lastUsedAt: new Date() }).where(eq(apiKeyTable.id, apiKeyRecord.id))
 
   return apiKeyRecord.user
 }
@@ -63,7 +63,7 @@ export const createTRPCContext = async (): Promise<TRPCContext> => {
     }
   }
 
-  const session = await ctx.db.query.sessionTable.findFirst({
+  const session = await db.query.sessionTable.findFirst({
     where: and(eq(sessionTable.id, sessionId)),
   })
 
@@ -74,7 +74,7 @@ export const createTRPCContext = async (): Promise<TRPCContext> => {
     }
   }
 
-  const user = await ctx.db.query.userTable.findFirst({
+  const user = await db.query.userTable.findFirst({
     where: and(eq(userTable.id, session?.userId)),
   })
 

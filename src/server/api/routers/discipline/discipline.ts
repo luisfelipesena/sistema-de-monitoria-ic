@@ -59,7 +59,7 @@ export const disciplineRouter = createTRPCRouter({
           .nullable(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const disciplina = await ctx.db.query.disciplinaTable.findFirst({
         where: eq(disciplinaTable.id, input.id),
       })
@@ -107,7 +107,7 @@ export const disciplineRouter = createTRPCRouter({
     })
     .input(z.void())
     .output(z.array(disciplinaSchema))
-    .query(async () => {
+    .query(async ({ ctx }) => {
       const disciplinas = await ctx.db.query.disciplinaTable.findMany()
       return disciplinas
     }),
@@ -128,7 +128,7 @@ export const disciplineRouter = createTRPCRouter({
       })
     )
     .output(disciplinaSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const disciplina = await ctx.db.query.disciplinaTable.findFirst({
         where: eq(disciplinaTable.id, input.id),
       })
@@ -152,7 +152,7 @@ export const disciplineRouter = createTRPCRouter({
     })
     .input(newDisciplinaSchema)
     .output(disciplinaSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const disciplina = await ctx.db.insert(disciplinaTable).values(input).returning()
       return disciplina[0]
     }),
@@ -169,7 +169,7 @@ export const disciplineRouter = createTRPCRouter({
     })
     .input(updateDisciplinaSchema)
     .output(disciplinaSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input
       const disciplina = await ctx.db.update(disciplinaTable).set(updateData).where(eq(disciplinaTable.id, id)).returning()
 
@@ -196,7 +196,7 @@ export const disciplineRouter = createTRPCRouter({
       })
     )
     .output(z.void())
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const result = await ctx.db.delete(disciplinaTable).where(eq(disciplinaTable.id, input.id)).returning()
 
       if (!result.length) {

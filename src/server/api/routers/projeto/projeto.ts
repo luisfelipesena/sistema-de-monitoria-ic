@@ -764,7 +764,7 @@ export const projetoRouter = createTRPCRouter({
       })
     )
     .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.id), isNull(projetoTable.deletedAt)),
       })
@@ -814,7 +814,7 @@ export const projetoRouter = createTRPCRouter({
       })
     )
     .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.id), isNull(projetoTable.deletedAt)),
       })
@@ -1016,7 +1016,7 @@ export const projetoRouter = createTRPCRouter({
       })
     )
     .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
       })

@@ -53,7 +53,7 @@ export const courseRouter = createTRPCRouter({
       })
     )
     .output(z.array(cursoSchema))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const cursos = await ctx.db.query.cursoTable.findMany({
         orderBy: (cursos, { asc }) => [asc(cursos.nome)],
       })
@@ -102,7 +102,7 @@ export const courseRouter = createTRPCRouter({
       })
     )
     .output(cursoSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const curso = await ctx.db.query.cursoTable.findFirst({
         where: eq(cursoTable.id, input.id),
       })
@@ -126,7 +126,7 @@ export const courseRouter = createTRPCRouter({
     })
     .input(newCursoSchema)
     .output(cursoSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const curso = await ctx.db.insert(cursoTable).values(input).returning()
       return curso[0]
     }),
@@ -143,7 +143,7 @@ export const courseRouter = createTRPCRouter({
     })
     .input(updateCursoSchema)
     .output(cursoSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input
       const curso = await ctx.db.update(cursoTable).set(updateData).where(eq(cursoTable.id, id)).returning()
 
@@ -170,7 +170,7 @@ export const courseRouter = createTRPCRouter({
       })
     )
     .output(z.void())
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const result = await ctx.db.delete(cursoTable).where(eq(cursoTable.id, input.id)).returning()
 
       if (!result.length) {

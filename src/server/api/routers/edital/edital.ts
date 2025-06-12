@@ -103,7 +103,7 @@ export const editalRouter = createTRPCRouter({
     })
     .input(z.void())
     .output(z.array(editalListItemSchema))
-    .query(async () => {
+    .query(async ({ ctx }) => {
       try {
         log.info('Iniciando busca de editais')
 
@@ -181,7 +181,7 @@ export const editalRouter = createTRPCRouter({
       })
     )
     .output(editalListItemSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const edital = await ctx.db.query.editalTable.findFirst({
         where: eq(editalTable.id, input.id),
         with: {
@@ -365,7 +365,7 @@ export const editalRouter = createTRPCRouter({
     })
     .input(updateEditalSchema)
     .output(editalSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { id, ano, semestre, dataInicio, dataFim, ...editalUpdateData } = input
 
       const edital = await ctx.db.query.editalTable.findFirst({
@@ -453,7 +453,7 @@ export const editalRouter = createTRPCRouter({
       })
     )
     .output(z.void())
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const edital = await ctx.db.query.editalTable.findFirst({
         where: eq(editalTable.id, input.id),
       })
@@ -568,7 +568,7 @@ export const editalRouter = createTRPCRouter({
     })
     .input(z.void())
     .output(z.array(editalListItemSchema))
-    .query(async () => {
+    .query(async ({ ctx }) => {
       const editaisPublicados = await ctx.db.query.editalTable.findMany({
         where: eq(editalTable.publicado, true),
         with: {

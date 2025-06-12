@@ -52,7 +52,7 @@ export const departamentoRouter = createTRPCRouter({
       })
     )
     .output(z.array(departamentoSchema))
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       try {
         const departamentos = await ctx.db.query.departamentoTable.findMany({
           orderBy: (departamentos, { asc }) => [asc(departamentos.nome)],
@@ -123,7 +123,7 @@ export const departamentoRouter = createTRPCRouter({
       })
     )
     .output(departamentoSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const departamento = await ctx.db.query.departamentoTable.findFirst({
         where: eq(departamentoTable.id, input.id),
       })
@@ -150,7 +150,7 @@ export const departamentoRouter = createTRPCRouter({
     })
     .input(newDepartamentoSchema)
     .output(departamentoSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
         const result = await ctx.db
           .insert(departamentoTable)
@@ -184,7 +184,7 @@ export const departamentoRouter = createTRPCRouter({
     })
     .input(updateDepartamentoSchema)
     .output(departamentoSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input
 
       const departamento = await ctx.db.query.departamentoTable.findFirst({
@@ -226,7 +226,7 @@ export const departamentoRouter = createTRPCRouter({
       })
     )
     .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const departamento = await ctx.db.query.departamentoTable.findFirst({
         where: eq(departamentoTable.id, input.id),
       })

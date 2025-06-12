@@ -70,7 +70,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
     })
     .input(z.void())
     .output(z.array(periodoComEstatisticasSchema))
-    .query(async () => {
+    .query(async ({ ctx }) => {
       try {
         const periodos = await ctx.db.query.periodoInscricaoTable.findMany({
           orderBy: (periodos, { desc }) => [desc(periodos.ano), desc(periodos.semestre)],
@@ -145,7 +145,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
       })
     )
     .output(periodoComEstatisticasSchema)
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
         where: eq(periodoInscricaoTable.id, input.id),
       })
@@ -208,7 +208,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
     })
     .input(z.void())
     .output(periodoComEstatisticasSchema.nullable())
-    .query(async () => {
+    .query(async ({ ctx }) => {
       try {
         const agora = new Date()
 
@@ -266,7 +266,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
     })
     .input(criarPeriodoInscricaoSchema)
     .output(periodoInscricaoSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
         // Verificar se não há sobreposição de períodos
         const periodoSobreposicao = await ctx.db.query.periodoInscricaoTable.findFirst({
@@ -337,7 +337,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
     })
     .input(atualizarPeriodoInscricaoSchema)
     .output(periodoInscricaoSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input
 
       const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
@@ -415,7 +415,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
       })
     )
     .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
         where: eq(periodoInscricaoTable.id, input.id),
       })

@@ -59,7 +59,7 @@ export const importProjectsRouter = createTRPCRouter({
         ),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       let projetosCriados = 0
       let projetosComErro = 0
       const erros: string[] = []
@@ -153,7 +153,7 @@ export const importProjectsRouter = createTRPCRouter({
       }
     }),
 
-  getImportHistory: adminProtectedProcedure.query(async () => {
+  getImportHistory: adminProtectedProcedure.query(async ({ ctx }) => {
     const imports = await ctx.db.query.importacaoPlanejamentoTable.findMany({
       orderBy: [desc(importacaoPlanejamentoTable.createdAt)],
       with: {
@@ -181,7 +181,7 @@ export const importProjectsRouter = createTRPCRouter({
     }))
   }),
 
-  getImportDetails: adminProtectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+  getImportDetails: adminProtectedProcedure.input(z.object({ id: z.number() })).query(async ({ input, ctx }) => {
     const importacao = await ctx.db.query.importacaoPlanejamentoTable.findFirst({
       where: eq(importacaoPlanejamentoTable.id, input.id),
       with: {
@@ -199,12 +199,12 @@ export const importProjectsRouter = createTRPCRouter({
     }
   }),
 
-  deleteImport: adminProtectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
+  deleteImport: adminProtectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
     await ctx.db.delete(importacaoPlanejamentoTable).where(eq(importacaoPlanejamentoTable.id, input.id))
     return { success: true }
   }),
 
-  getProfessores: adminProtectedProcedure.query(async () => {
+  getProfessores: adminProtectedProcedure.query(async ({ ctx }) => {
     const professores = await ctx.db.query.professorTable.findMany({
       columns: {
         id: true,
@@ -225,7 +225,7 @@ export const importProjectsRouter = createTRPCRouter({
     return professores
   }),
 
-  getDisciplinas: adminProtectedProcedure.query(async () => {
+  getDisciplinas: adminProtectedProcedure.query(async ({ ctx }) => {
     const disciplinas = await ctx.db.query.disciplinaTable.findMany({
       columns: {
         id: true,
