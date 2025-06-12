@@ -1,5 +1,7 @@
 import { renderToBuffer } from '@react-pdf/renderer'
 import { MonitoriaFormTemplate, type MonitoriaFormData } from '@/components/features/projects/MonitoriaFormTemplate'
+import { EditalInternoTemplate, type EditalInternoData } from './pdfTemplates/edital-interno'
+import { AtaSelecaoTemplate, type AtaSelecaoData } from './pdfTemplates/ata-selecao'
 import { PDFDocument } from 'pdf-lib'
 import { logger } from '@/utils/logger'
 import minioClient, { bucketName } from '@/server/lib/minio'
@@ -206,6 +208,150 @@ export class PDFService {
     } catch (error) {
       log.error({ error, projetoId: data.projetoId }, 'Error generating signed project PDF')
       throw new Error(`Failed to generate signed PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Generates a PDF for internal edital
+   */
+  static async generateEditalInternoPDF(data: EditalInternoData): Promise<Buffer> {
+    try {
+      log.info({ numeroEdital: data.numeroEdital }, 'Generating internal edital PDF')
+      
+      // Create the PDF using @react-pdf/renderer
+      const pdfBuffer = await renderToBuffer(EditalInternoTemplate({ data }))
+      
+      log.info({ numeroEdital: data.numeroEdital, size: pdfBuffer.length }, 'Internal edital PDF generated successfully')
+      return pdfBuffer
+    } catch (error) {
+      log.error({ error, numeroEdital: data.numeroEdital }, 'Error generating internal edital PDF')
+      throw new Error(`Failed to generate internal edital PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Saves an internal edital PDF in MinIO
+   */
+  static async saveEditalInternoPDF(editalId: number, pdfBuffer: Buffer, filename?: string): Promise<string> {
+    try {
+      const baseDirectory = `editais-internos/${editalId}`
+      const objectName = filename || `${baseDirectory}/edital_interno_${editalId}_${Date.now()}.pdf`
+      
+      const metadata = {
+        'Content-Type': 'application/pdf',
+        'X-Amz-Meta-Edital-Id': editalId.toString(),
+        'X-Amz-Meta-Generated-At': new Date().toISOString(),
+      }
+
+      await minioClient.putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, metadata)
+      
+      log.info({ editalId, objectName, size: pdfBuffer.length }, 'Internal edital PDF saved to MinIO successfully')
+      return objectName
+    } catch (error) {
+      log.error({ error, editalId }, 'Error saving internal edital PDF to MinIO')
+      throw new Error(`Failed to save internal edital PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Generates a PDF for ata de seleção
+   */
+  static async generateAtaSelecaoPDF(data: AtaSelecaoData): Promise<Buffer> {
+    try {
+      log.info({ projetoId: data.projeto.id }, 'Generating ata de seleção PDF')
+      
+      // Create the PDF using @react-pdf/renderer
+      const pdfBuffer = await renderToBuffer(AtaSelecaoTemplate({ data }))
+      
+      log.info({ projetoId: data.projeto.id, size: pdfBuffer.length }, 'Ata de seleção PDF generated successfully')
+      return pdfBuffer
+    } catch (error) {
+      log.error({ error, projetoId: data.projeto.id }, 'Error generating ata de seleção PDF')
+      throw new Error(`Failed to generate ata de seleção PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Saves an ata de seleção PDF in MinIO
+   */
+  static async saveAtaSelecaoPDF(projetoId: number, pdfBuffer: Buffer, filename?: string): Promise<string> {
+    try {
+      const baseDirectory = `projetos/${projetoId}/atas-selecao`
+      const objectName = filename || `${baseDirectory}/ata_selecao_${projetoId}_${Date.now()}.pdf`
+      
+      const metadata = {
+        'Content-Type': 'application/pdf',
+        'X-Amz-Meta-Projeto-Id': projetoId.toString(),
+        'X-Amz-Meta-Generated-At': new Date().toISOString(),
+        'X-Amz-Meta-Document-Type': 'ata-selecao',
+      }
+
+      await minioClient.putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, metadata)
+      
+      log.info({ projetoId, objectName, size: pdfBuffer.length }, 'Ata de seleção PDF saved to MinIO successfully')
+      return objectName
+    } catch (error) {
+      log.error({ error, projetoId }, 'Error saving ata de seleção PDF to MinIO')
+      throw new Error(`Failed to save ata de seleção PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Generates and saves an internal edital PDF with signature
+   */
+  static async generateAndSaveSignedEditalInternoPDF(
+    data: EditalInternoData,
+    editalId: number,
+    chefeSignature?: string
+  ): Promise<string> {
+    try {
+      log.info({ editalId }, 'Generating signed internal edital PDF')
+      
+      // Generate the base PDF
+      let pdfBuffer = await this.generateEditalInternoPDF(data)
+      
+      // Add chefe signature if provided
+      if (chefeSignature) {
+        pdfBuffer = await this.addSignatureToPDF(pdfBuffer, chefeSignature, 'admin')
+      }
+      
+      // Save the final PDF
+      const objectName = await this.saveEditalInternoPDF(editalId, pdfBuffer)
+      
+      log.info({ editalId, objectName }, 'Signed internal edital PDF generated and saved')
+      return objectName
+    } catch (error) {
+      log.error({ error, editalId }, 'Error generating signed internal edital PDF')
+      throw new Error(`Failed to generate signed internal edital PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  /**
+   * Generates and saves an ata de seleção PDF with signature
+   */
+  static async generateAndSaveSignedAtaSelecaoPDF(
+    data: AtaSelecaoData,
+    professorSignature?: string
+  ): Promise<string> {
+    try {
+      log.info({ projetoId: data.projeto.id }, 'Generating signed ata de seleção PDF')
+      
+      // Generate the base PDF
+      let pdfBuffer = await this.generateAtaSelecaoPDF(data)
+      
+      // Add professor signature if provided
+      if (professorSignature) {
+        pdfBuffer = await this.addSignatureToPDF(pdfBuffer, professorSignature, 'professor')
+      }
+      
+      // Save the final PDF
+      const objectName = await this.saveAtaSelecaoPDF(data.projeto.id, pdfBuffer)
+      
+      log.info({ projetoId: data.projeto.id, objectName }, 'Signed ata de seleção PDF generated and saved')
+      return objectName
+    } catch (error) {
+      log.error({ error, projetoId: data.projeto.id }, 'Error generating signed ata de seleção PDF')
+      throw new Error(`Failed to generate signed ata de seleção PDF: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 }

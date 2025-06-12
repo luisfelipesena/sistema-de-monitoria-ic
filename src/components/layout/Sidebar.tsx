@@ -145,6 +145,27 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
+  // Admin - Editais
+  {
+    label: 'Editais',
+    icon: FileText,
+    roles: ['admin'],
+    items: [
+      {
+        label: 'Gerenciar Editais Internos',
+        href: '/home/admin/edital-management',
+        icon: FileText,
+        roles: ['admin'],
+      },
+      {
+        label: 'Templates de Projeto',
+        href: '/home/admin/projeto-templates',
+        icon: FileText,
+        roles: ['admin'],
+      },
+    ],
+  },
+
   // Admin - Configurações Acadêmicas
   {
     label: 'Configurações',
@@ -167,18 +188,6 @@ const menuConfig: MenuConfig[] = [
         label: 'Disciplinas',
         href: '/home/admin/disciplinas',
         icon: BookOpen,
-        roles: ['admin'],
-      },
-      {
-        label: 'Gerenciar Editais',
-        href: '/home/admin/edital-management',
-        icon: FileText,
-        roles: ['admin'],
-      },
-      {
-        label: 'Templates de Projeto',
-        href: '/home/admin/projeto-templates',
-        icon: FileText,
         roles: ['admin'],
       },
     ],

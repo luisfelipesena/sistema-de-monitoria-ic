@@ -27,7 +27,9 @@ import {
   Pencil,
   User,
   Users,
+  Calendar,
 } from 'lucide-react';
+import { getCurrentSemester } from '@/utils/utils';
 
 
 type ProjetoListItem = {
@@ -65,18 +67,101 @@ export default function DashboardAdmin() {
   const [filters, setFilters] = useState<FilterValues>({});
   const [groupedView, setGroupedView] = useState(false);
 
-  const handleDownloadPlanilhaPrograd = () => {
-    toast.promise(
-      Promise.resolve('Planilha download functionality would be implemented here'),
-      {
-        loading: 'Gerando planilha...',
-        success: 'Planilha baixada com sucesso!',
-        error: 'Erro ao gerar planilha',
-      }
-    );
+  const generateProgradSpreadsheetMutation = api.relatorios.getConsolidatedMonitoringData.useQuery(
+    {
+      ano: new Date().getFullYear(),
+      semestre: getCurrentSemester().semester,
+    },
+    { enabled: false }
+  );
+
+  const handleDownloadPlanilhaPrograd = async () => {
+    try {
+      toast.promise(
+        (async () => {
+          const consolidationData = await generateProgradSpreadsheetMutation.refetch();
+          
+          if (!consolidationData.data || consolidationData.data.length === 0) {
+            throw new Error('Não há dados para gerar a planilha');
+          }
+
+          const csvHeader = [
+            'Matrícula Monitor',
+            'Nome Monitor',
+            'Email Monitor',
+            'CR',
+            'Tipo Monitoria',
+            'Valor Bolsa',
+            'Projeto',
+            'Disciplinas',
+            'Professor Responsável',
+            'SIAPE Professor',
+            'Departamento',
+            'Carga Horária Semanal',
+            'Total Horas',
+            'Data Início',
+            'Data Fim',
+            'Status',
+            'Período'
+          ];
+
+          const csvData = consolidationData.data.map(item => [
+            item.monitor.matricula,
+            item.monitor.nome,
+            item.monitor.email,
+            item.monitor.cr.toFixed(2),
+            item.monitoria.tipo === 'BOLSISTA' ? 'Bolsista' : 'Voluntário',
+            item.monitoria.valorBolsa ? `R$ ${item.monitoria.valorBolsa.toFixed(2)}` : 'N/A',
+            item.projeto.titulo,
+            item.projeto.disciplinas,
+            item.professor.nome,
+            item.professor.matriculaSiape || 'N/A',
+            item.professor.departamento,
+            item.projeto.cargaHorariaSemana,
+            item.projeto.cargaHorariaSemana * item.projeto.numeroSemanas,
+            item.monitoria.dataInicio,
+            item.monitoria.dataFim,
+            item.monitoria.status,
+            `${item.projeto.ano}.${item.projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}`
+          ]);
+
+          const csvContent = [csvHeader, ...csvData]
+            .map(row => row.map(cell => `"${cell}"`).join(','))
+            .join('\n');
+
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement('a');
+          const url = URL.createObjectURL(blob);
+          link.setAttribute('href', url);
+          link.setAttribute('download', `planilha-prograd-${new Date().getFullYear()}-1.csv`);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        })(),
+        {
+          loading: 'Gerando planilha PROGRAD...',
+          success: 'Planilha PROGRAD baixada com sucesso!',
+          error: (err) => `Erro ao gerar planilha: ${err.message}`,
+        }
+      );
+    } catch (error) {
+      console.error('Erro ao gerar planilha PROGRAD:', error);
+    }
   };
 
+  const handleGenerateEditalInterno = () => {
+    router.push('/home/admin/edital-management');
+  };
 
+  const handleManageProjectsClick = () => {
+    router.push('/home/admin/manage-projects');
+  };
+
+  const handleManageApplicationPeriods = () => {
+    router.push('/home/admin/periodos-inscricao');
+  };
 
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation();
 
@@ -152,7 +237,7 @@ export default function DashboardAdmin() {
   };
 
   const handleAnalisarProjeto = (projetoId: number) => {
-    router.push(`/home/admin/manage-projects`);
+    router.push(`/home/admin/manage-projects?projeto=${projetoId}`);
   };
 
   const handleEditarUsuario = (userId: number, tipo: 'professor' | 'aluno') => {
@@ -360,37 +445,68 @@ export default function DashboardAdmin() {
   const dashboardActions = (
     <>
       {abaAtiva === 'projetos' && (
+        <>
+          <Button
+            variant="outline"
+            className="text-blue-600 border-blue-600 hover:bg-blue-50"
+            onClick={handleManageApplicationPeriods}
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Períodos de Inscrição
+          </Button>
+          <Button
+            variant="outline"
+            className="text-purple-600 border-purple-600 hover:bg-purple-50"
+            onClick={handleGenerateEditalInterno}
+          >
+            <FileSignature className="w-4 h-4 mr-2" />
+            Editais Internos
+          </Button>
+          <Button
+            variant="outline"
+            className="text-green-600 border-green-600 hover:bg-green-50"
+            onClick={handleDownloadPlanilhaPrograd}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Planilha PROGRAD
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleManageProjectsClick}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Gerenciar Projetos
+          </Button>
+        </>
+      )}
+      {abaAtiva === 'professores' && (
         <Button
-          variant="outline"
-          className="text-green-600 border-green-600 hover:bg-green-50"
-          onClick={handleDownloadPlanilhaPrograd}
+          variant="primary"
+          onClick={() => router.push('/home/admin/professores')}
         >
-          <Download className="w-4 h-4 mr-2" />
-          Planilhas PROGRAD
+          <User className="w-4 h-4 mr-2" />
+          Gerenciar Professores
+        </Button>
+      )}
+      {abaAtiva === 'alunos' && (
+        <Button
+          variant="primary"
+          onClick={() => router.push('/home/admin/alunos')}
+        >
+          <User className="w-4 h-4 mr-2" />
+          Gerenciar Alunos
         </Button>
       )}
       <Button
-        variant={groupedView ? 'secondary' : 'primary'}
+        variant={groupedView ? 'secondary' : 'outline'}
         onClick={() => {
           if (abaAtiva === 'projetos') {
             setGroupedView(!groupedView);
-          } else if (abaAtiva === 'professores') {
-            router.push('/home/admin/professores');
-          } else if (abaAtiva === 'alunos') {
-            router.push('/home/admin/alunos');
           }
         }}
       >
-        {abaAtiva === 'projetos' ? (
-          <>
-            <FolderKanban className="w-4 h-4 mr-2" />
-            {groupedView ? 'Visão Normal' : 'Agrupar por Departamento'}
-          </>
-        ) : abaAtiva === 'professores' ? (
-          'Adicionar Professor'
-        ) : (
-          'Adicionar Aluno'
-        )}
+        <FolderKanban className="w-4 h-4 mr-2" />
+        {groupedView ? 'Visão Normal' : 'Agrupar por Departamento'}
       </Button>
       <Button
         variant="outline"
@@ -448,7 +564,7 @@ export default function DashboardAdmin() {
                       {statusCounts.draft}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Aguardando assinatura admin
+                      Projetos em edição
                     </p>
                   </CardContent>
                 </Card>
@@ -465,7 +581,7 @@ export default function DashboardAdmin() {
                       {statusCounts.pendingAdminSignature}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Aguardando assinatura
+                      Aguardando assinatura admin
                     </p>
                   </CardContent>
                 </Card>
@@ -482,7 +598,7 @@ export default function DashboardAdmin() {
                       {statusCounts.submitted}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Para aprovação
+                      Para aprovação admin
                     </p>
                   </CardContent>
                 </Card>
@@ -499,7 +615,7 @@ export default function DashboardAdmin() {
                       {statusCounts.approved}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Projetos ativos
+                      Prontos para edital interno
                     </p>
                   </CardContent>
                 </Card>
@@ -516,7 +632,7 @@ export default function DashboardAdmin() {
                       {statusCounts.rejected}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Requer revisão
+                      Necessitam revisão
                     </p>
                   </CardContent>
                 </Card>
