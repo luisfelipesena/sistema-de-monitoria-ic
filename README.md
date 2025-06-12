@@ -296,19 +296,22 @@ curl -H "Authorization: Bearer your-api-key" http://localhost:3000/api/openapi/p
 ### 1. Criação de Projeto
 
 ```mermaid
-Rascunho → Submetido → Em Análise → Aprovado/Rejeitado
+flowchart LR
+    A[Rascunho] --> B[Submetido] --> C[Em Análise] --> D[Aprovado/Rejeitado]
 ```
 
 ### 2. Processo de Inscrição
 
 ```mermaid
-Período Aberto → Inscrição → Análise → Seleção → Resultado
+flowchart LR
+    A[Período Aberto] --> B[Inscrição] --> C[Análise] --> D[Seleção] --> E[Resultado]
 ```
 
 ### 3. Gestão de Documentos
 
 ```mermaid
-Upload → Validação → Assinatura Digital → Arquivamento
+flowchart LR
+    A[Upload] --> B[Validação] --> C[Assinatura Digital] --> D[Arquivamento]
 ```
 
 ## 🤝 Contribuindo
