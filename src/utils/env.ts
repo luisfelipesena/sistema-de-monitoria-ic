@@ -7,7 +7,7 @@ export const env = createEnv({
    * These are prefixed with NEXT_PUBLIC_
    */
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
+    NEXT_PUBLIC_APP_URL: z.string().url().default('https://sistema-de-monitoria.app.ic.ufba.br'),
   },
 
   /**
@@ -20,8 +20,8 @@ export const env = createEnv({
 
     // Authentication
     CAS_SERVER_URL_PREFIX: z.string().url().default('https://autenticacao.ufba.br/ca'),
-    SERVER_URL: z.string().url().default('http://localhost:3000'),
-    CLIENT_URL: z.string().url().default('http://localhost:3000'),
+    SERVER_URL: z.string().url().default('https://sistema-de-monitoria.app.ic.ufba.br/api'),
+    CLIENT_URL: z.string().url().default('https://sistema-de-monitoria.app.ic.ufba.br'),
 
     // Environment
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

@@ -670,6 +670,10 @@ export const projetoRouter = createTRPCRouter({
         }
       }
 
+      if (ctx.user.role === 'admin') {
+        log.info({ projetoId: input.id, adminUserId: ctx.user.id }, 'Admin deletando projeto')
+      }
+
       await db
         .update(projetoTable)
         .set({
@@ -678,6 +682,7 @@ export const projetoRouter = createTRPCRouter({
         })
         .where(eq(projetoTable.id, input.id))
 
+      log.info({ projetoId: input.id }, 'Projeto excluído com sucesso')
       return { success: true }
     }),
 

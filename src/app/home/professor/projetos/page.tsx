@@ -72,6 +72,7 @@ export default function ProfessorProjetosPage() {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
 
   const { data: projetosData } = api.projeto.getProjetos.useQuery()
+  const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
   
   const projetos: Projeto[] = projetosData?.filter(projeto => 
     projeto.professorResponsavelId === user?.id
@@ -107,6 +108,40 @@ export default function ProfessorProjetosPage() {
   const handleViewProjeto = (projeto: Projeto) => {
     setSelectedProjeto(projeto)
     setIsDetailDialogOpen(true)
+  }
+
+  const handleViewPdf = async (projetoId: number) => {
+    try {
+      toast({
+        title: 'Preparando visualização...',
+        description: 'Abrindo PDF do projeto',
+      })
+
+      const result = await getProjetoPdfMutation.mutateAsync({
+        projetoId: projetoId,
+      })
+
+      const newWindow = window.open(result.url, '_blank', 'noopener,noreferrer')
+      if (!newWindow) {
+        toast({
+          title: 'Popup bloqueado',
+          description: 'Permita popups para visualizar o PDF em nova aba.',
+          variant: 'destructive',
+        })
+        return
+      }
+    
+      toast({
+        title: 'PDF aberto em nova aba',
+      })
+    } catch (error) {
+      toast({
+        title: 'Erro ao abrir PDF',
+        description: 'Não foi possível abrir o documento para visualização.',
+        variant: 'destructive',
+      })
+      console.error('View PDF error:', error)
+    }
   }
 
   const renderStatusBadge = (status: string) => {
@@ -205,6 +240,21 @@ export default function ProfessorProjetosPage() {
           <Link href={`/home/professor/assinatura-documentos?projetoId=${projeto.id}`}>
             <FileSignature className="h-4 w-4" />
           </Link>
+        </Button>
+      )
+    }
+
+    // PDF view button - for submitted, approved or rejected projects
+    if (['SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_ADMIN_SIGNATURE'].includes(projeto.status)) {
+      buttons.push(
+        <Button
+          key="pdf"
+          variant="outline"
+          size="sm"
+          onClick={() => handleViewPdf(projeto.id)}
+          disabled={getProjetoPdfMutation.isPending}
+        >
+          <FileText className="h-4 w-4" />
         </Button>
       )
     }

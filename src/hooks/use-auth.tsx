@@ -51,12 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const user = useMemo(() => (userQuery?.id ? userQuery : null), [userQuery])
 
   const signIn = useCallback(() => {
-    if (user) {
-      window.location.href = "/home"
-      return
-    }
     window.location.href = "/api/cas-login"
-  }, [user, router])
+  }, [])
 
   const signOut = useCallback(async () => {
     await logoutMutation.mutateAsync()

@@ -4,6 +4,7 @@ import { createTRPCRouter, adminProtectedProcedure } from '@/server/api/trpc'
 import { db } from '@/server/db'
 import { professorInvitationTable, userTable } from '@/server/db/schema'
 import crypto from 'crypto'
+import { env } from '@/utils/env'
 
 export const inviteProfessorRouter = createTRPCRouter({
   sendInvitation: adminProtectedProcedure
@@ -153,7 +154,7 @@ export const inviteProfessorRouter = createTRPCRouter({
 
       // Send email notification
       const { sendProfessorInvitationEmail } = await import('@/server/lib/email-service')
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+      const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
       const invitationLink = `${clientUrl}/auth/accept-invitation?token=${token}`
 
       await sendProfessorInvitationEmail({

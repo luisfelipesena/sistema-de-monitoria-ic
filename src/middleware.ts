@@ -1,23 +1,22 @@
 import { apiKeyTable, sessionTable, userTable } from '@/server/db/schema'
 import { env } from '@/utils/env'
+import { LUCIA_SESSION_COOKIE_NAME } from '@/utils/utils'
 import { and, eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/postgres-js'
-import { verify } from 'jsonwebtoken'
 import { NextRequest, NextResponse } from 'next/server'
 import postgres from 'postgres'
 import { createHash } from 'crypto'
 
-interface TokenPayload {
+interface SessionPayload {
   userId: number
-  sessionId: string
   role: 'admin' | 'professor' | 'student'
 }
 
 const protectedRoutes = {
-  admin: ['/dashboard/admin', '/home/admin'],
-  professor: ['/dashboard/professor', '/home/professor'],
-  student: ['/dashboard/student', '/home/student'],
-  authenticated: ['/dashboard', '/home'],
+  admin: ['/home/admin'],
+  professor: ['/home/professor'],
+  student: ['/home/student'],
+  authenticated: ['/home'],
 }
 
 const publicRoutes = ['/', '/auth', '/editais', '/onboarding', '/profile']
@@ -57,38 +56,47 @@ function getDb() {
   return db
 }
 
-async function verifyTokenAndSession(token: string): Promise<TokenPayload | null> {
+async function verifySession(sessionId: string): Promise<SessionPayload | null> {
   try {
-    const jwtSecret = process.env.JWT_SECRET || 'fallback-jwt-secret-dev-only'
-    const payload = verify(token, jwtSecret) as TokenPayload
-
     const database = getDb()
-    const session = await database
-      .select()
+
+    const sessionResult = await database
+      .select({
+        userId: sessionTable.userId,
+        expiresAt: sessionTable.expiresAt,
+        role: userTable.role,
+      })
       .from(sessionTable)
-      .where(and(eq(sessionTable.id, payload.sessionId), eq(sessionTable.userId, payload.userId)))
+      .innerJoin(userTable, eq(sessionTable.userId, userTable.id))
+      .where(eq(sessionTable.id, sessionId))
       .limit(1)
 
-    if (!session.length) {
+    if (!sessionResult.length) {
       return null
     }
 
-    if (new Date() > session[0].expiresAt) {
+    const session = sessionResult[0]
+
+    if (new Date() > session.expiresAt) {
+      await database.delete(sessionTable).where(eq(sessionTable.id, sessionId))
       return null
     }
 
-    return payload
-  } catch {
+    return {
+      userId: session.userId,
+      role: session.role as 'admin' | 'professor' | 'student',
+    }
+  } catch (error) {
+    console.error('Erro ao verificar sessão:', error)
     return null
   }
 }
 
-async function verifyApiKey(apiKey: string): Promise<TokenPayload | null> {
+async function verifyApiKey(apiKey: string): Promise<SessionPayload | null> {
   try {
     const hashedKey = createHash('sha256').update(apiKey).digest('hex')
     const database = getDb()
 
-    // Primeiro buscar a API key
     const apiKeyRecord = await database
       .select({
         userId: apiKeyTable.userId,
@@ -105,12 +113,10 @@ async function verifyApiKey(apiKey: string): Promise<TokenPayload | null> {
 
     const record = apiKeyRecord[0]
 
-    // Verificar se a chave expirou
     if (record.expiresAt && new Date() > record.expiresAt) {
       return null
     }
 
-    // Buscar o role do usuário
     const user = await database
       .select({ role: userTable.role })
       .from(userTable)
@@ -121,12 +127,10 @@ async function verifyApiKey(apiKey: string): Promise<TokenPayload | null> {
       return null
     }
 
-    // Atualizar último uso da API key
     await database.update(apiKeyTable).set({ lastUsedAt: new Date() }).where(eq(apiKeyTable.keyValue, hashedKey))
 
     return {
       userId: record.userId,
-      sessionId: '', // API keys não têm session
       role: user[0].role as 'admin' | 'professor' | 'student',
     }
   } catch (error) {
@@ -138,12 +142,15 @@ async function verifyApiKey(apiKey: string): Promise<TokenPayload | null> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  console.log(`🔍 Middleware: Processing ${pathname}`)
+
   if (isPublicRoute(pathname)) {
+    console.log(`🌐 Middleware: Public route ${pathname}, allowing access`)
     return NextResponse.next()
   }
 
-  // Para rotas de API, permitir autenticação via API key
   if (isApiRoute(pathname)) {
+    console.log(`🔌 Middleware: API route ${pathname}`)
     const apiKey = request.headers.get('x-api-key') || request.headers.get('authorization')?.replace('Bearer ', '')
 
     if (apiKey) {
@@ -153,37 +160,38 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next()
       }
     }
-
-    // Se não conseguiu autenticar via API key, continuar com autenticação normal
   }
 
   const requiredRole = getRequiredRole(pathname)
+  console.log(`🔐 Middleware: Required role for ${pathname}: ${requiredRole}`)
 
   if (!requiredRole) {
+    console.log(`📂 Middleware: No role required for ${pathname}, allowing access`)
     return NextResponse.next()
   }
 
-  const token = request.cookies.get('auth-token')?.value
+  const sessionId = request.cookies.get(LUCIA_SESSION_COOKIE_NAME)?.value
+  console.log(`🍪 Middleware: Session cookie ${LUCIA_SESSION_COOKIE_NAME}: ${sessionId ? 'present' : 'missing'}`)
 
-  if (!token) {
-    console.log(`🔒 Middleware: No token found, redirecting to login for ${pathname}`)
-    const url = new URL('/auth/login', request.url)
-    url.searchParams.set('callbackUrl', pathname)
+  if (!sessionId) {
+    console.log(`🔒 Middleware: No session found, redirecting to login for ${pathname}`)
+    const url = new URL('/', request.url)
     return NextResponse.redirect(url)
   }
 
-  const payload = await verifyTokenAndSession(token)
+  const payload = await verifySession(sessionId)
+  console.log(`👤 Middleware: Session verification result: ${payload ? `User ${payload.userId} with role ${payload.role}` : 'invalid'}`)
 
   if (!payload) {
-    console.log(`🔒 Middleware: Invalid token, redirecting to login for ${pathname}`)
-    const url = new URL('/auth/login', request.url)
-    url.searchParams.set('callbackUrl', pathname)
+    console.log(`🔒 Middleware: Invalid session, redirecting to login for ${pathname}`)
+    const url = new URL('/', request.url)
     return NextResponse.redirect(url)
   }
 
   if (pathname === '/home') {
-    console.log(`🔄 Middleware: Redirecting /home to /home/${payload.role}/dashboard for user ${payload.userId}`)
-    return NextResponse.redirect(new URL(`/home/${payload.role}/dashboard`, request.url))
+    const dashboardPath = `/home/${payload.role}/dashboard`
+    console.log(`🔄 Middleware: Redirecting /home to ${dashboardPath} for user ${payload.userId}`)
+    return NextResponse.redirect(new URL(dashboardPath, request.url))
   }
 
   if (requiredRole === 'authenticated') {
@@ -195,7 +203,8 @@ export async function middleware(request: NextRequest) {
     console.log(
       `❌ Middleware: User ${payload.userId} with role ${payload.role} denied access to ${pathname} (requires ${requiredRole})`
     )
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    const dashboardPath = `/home/${payload.role}/dashboard`
+    return NextResponse.redirect(new URL(dashboardPath, request.url))
   }
 
   console.log(`✅ Middleware: User ${payload.userId} with role ${payload.role} granted access to ${pathname}`)
@@ -203,5 +212,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|images).*)'],
+  matcher: ['/((?!_next|favicon.ico|api|static|.*\\..*).*)'],
 }

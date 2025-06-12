@@ -37,6 +37,7 @@ import {
   X,
   Check,
   FileText,
+  Trash2,
 } from 'lucide-react';
 
 type ProjetoListItem = {
@@ -66,6 +67,7 @@ export default function ManageProjectsPage() {
   const [selectedProject, setSelectedProject] = useState<ProjetoListItem | null>(null);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [rejectFeedback, setRejectFeedback] = useState('');
 
   const approveProjectMutation = api.projeto.approveProjeto.useMutation({
@@ -93,7 +95,19 @@ export default function ManageProjectsPage() {
     },
   });
 
-  const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation();
+  const deleteProjectMutation = api.projeto.deleteProjeto.useMutation({
+    onSuccess: () => {
+      toast.success('Projeto removido com sucesso!');
+      queryClient.invalidateQueries();
+      setShowDeleteDialog(false);
+      setSelectedProject(null);
+    },
+    onError: (error) => {
+      toast.error(`Erro ao remover projeto: ${error.message}`);
+    },
+  });
+
+  const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation();
 
   const handleViewAdminFiles = () => {
     router.push('/home/admin/files');
@@ -105,14 +119,14 @@ export default function ManageProjectsPage() {
   };
 
   const handleViewProjectPDF = async (projetoId: number) => {
-    toast('Preparando visualização do PDF...');
     try {
-      const url = await getPresignedUrlMutation.mutateAsync({
-        fileId: `projeto-${projetoId}`,
-        action: 'view',
+      toast('Preparando visualização do PDF...');
+      
+      const result = await getProjetoPdfMutation.mutateAsync({
+        projetoId: projetoId,
       });
 
-      const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+      const newWindow = window.open(result.url, '_blank', 'noopener,noreferrer');
       if (!newWindow) {
         toast.error('Popup bloqueado', {
           description: 'Permita popups para visualizar o PDF em nova aba.',
@@ -155,9 +169,26 @@ export default function ManageProjectsPage() {
     }
   };
 
+  const handleDeleteProject = async () => {
+    if (!selectedProject) return;
+    
+    try {
+      await deleteProjectMutation.mutateAsync({
+        id: selectedProject.id,
+      });
+    } catch (error) {
+      console.error('Delete project error:', error);
+    }
+  };
+
   const handleOpenRejectDialog = (projeto: ProjetoListItem) => {
     setSelectedProject(projeto);
     setShowRejectDialog(true);
+  };
+
+  const handleOpenDeleteDialog = (projeto: ProjetoListItem) => {
+    setSelectedProject(projeto);
+    setShowDeleteDialog(true);
   };
 
   const handleGoToDocumentSigning = () => {
@@ -346,27 +377,16 @@ export default function ManageProjectsPage() {
               </Button>
             )}
             
-            {status === 'APPROVED' && (
+            {(status === 'APPROVED' || status === 'REJECTED' || status === 'DRAFT' || status === 'SUBMITTED' || status === 'PENDING_ADMIN_SIGNATURE') && (
               <Button
                 variant="outline"
                 size="sm"
                 className="rounded-full flex items-center gap-1"
                 onClick={() => handleViewProjectPDF(projeto.id)}
+                disabled={getProjetoPdfMutation.isPending}
               >
                 <FileText className="h-4 w-4" />
-                Ver PDF
-              </Button>
-            )}
-            
-            {(status === 'REJECTED' || status === 'DRAFT') && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-full flex items-center gap-1"
-                onClick={() => handleViewProjectPDF(projeto.id)}
-              >
-                <Eye className="h-4 w-4" />
-                Ver
+                {getProjetoPdfMutation.isPending ? 'Carregando...' : 'Ver PDF'}
               </Button>
             )}
             
@@ -379,6 +399,19 @@ export default function ManageProjectsPage() {
               <Download className="h-4 w-4" />
               Arquivos
             </Button>
+
+            {(status === 'DRAFT' || status === 'REJECTED') && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="rounded-full flex items-center gap-1"
+                onClick={() => handleOpenDeleteDialog(projeto)}
+                disabled={deleteProjectMutation.isPending}
+              >
+                <Trash2 className="h-4 w-4" />
+                Remover
+              </Button>
+            )}
           </div>
         );
       },
@@ -537,9 +570,9 @@ export default function ManageProjectsPage() {
               <Button
                 variant="outline"
                 onClick={() => selectedProject && handleViewProjectPDF(selectedProject.id)}
-                disabled={getPresignedUrlMutation.isPending}
+                disabled={getProjetoPdfMutation.isPending}
               >
-                {getPresignedUrlMutation.isPending ? 'Carregando...' : 'Abrir PDF'}
+                {getProjetoPdfMutation.isPending ? 'Carregando...' : 'Abrir PDF'}
               </Button>
             </div>
             
@@ -623,6 +656,49 @@ export default function ManageProjectsPage() {
               disabled={rejectProjectMutation.isPending}
             >
               {rejectProjectMutation.isPending ? 'Rejeitando...' : 'Confirmar Rejeição'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remover Projeto</DialogTitle>
+            <DialogDescription>
+              {selectedProject && (
+                `Projeto: ${selectedProject.titulo}`
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <AlertTriangle className="h-6 w-6 text-red-600 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-red-900">Atenção! Esta ação é irreversível</h4>
+                <p className="text-sm text-red-700 mt-1">
+                  O projeto será removido permanentemente do sistema. Todos os dados relacionados, 
+                  incluindo inscrições e documentos, serão perdidos.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteProject}
+              disabled={deleteProjectMutation.isPending}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {deleteProjectMutation.isPending ? 'Removendo...' : 'Confirmar Remoção'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -12,8 +12,7 @@ import superjson from "superjson"
 
 const getBaseUrl = () => {
   if (typeof window !== "undefined") return ""
-  if (env.CLIENT_URL) return `https://${env.CLIENT_URL}`
-  return `http://localhost:${env.PORT ?? 3000}`
+  return env.NEXT_PUBLIC_APP_URL
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {

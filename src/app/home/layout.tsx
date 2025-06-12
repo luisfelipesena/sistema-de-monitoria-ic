@@ -23,22 +23,22 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
       return
     }
 
-    if (!isLoading && !statusLoading && user) {
-      const needsOnboarding = onboardingStatus?.pending
-      const isStudentOrProfessor = user.role === 'student' || user.role === 'professor'
+    if (isLoading || statusLoading || !user) {
+      return
+    }
 
-      if (needsOnboarding && isStudentOrProfessor && !isOnboardingPage) {
-        router.push("/home/common/onboarding")
-        return
-      }
+    const needsOnboarding = onboardingStatus?.pending
+    const isStudentOrProfessor = user.role === 'student' || user.role === 'professor'
 
-      if (!needsOnboarding && isOnboardingPage) {
-        const dashboardRoute = user.role === 'admin' 
-          ? '/home/admin/dashboard' 
-          : `/home/${user.role}/dashboard`
-        router.push(dashboardRoute)
-        return
-      }
+    if (needsOnboarding && isStudentOrProfessor && !isOnboardingPage) {
+      router.push("/home/common/onboarding")
+      return
+    }
+
+    if (!needsOnboarding && isOnboardingPage) {
+      const dashboardRoute = getDashboardRoute(user.role)
+      router.push(dashboardRoute)
+      return
     }
   }, [user, isLoading, statusLoading, onboardingStatus, pathname, router, isOnboardingPage])
 
@@ -75,4 +75,8 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
       </SidebarInset>
     </SidebarProvider>
   )
+}
+
+function getDashboardRoute(role: string): string {
+  return `/home/${role}/dashboard`
 }
