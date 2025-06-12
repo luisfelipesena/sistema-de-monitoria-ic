@@ -87,7 +87,9 @@ export default function AlunosPage() {
           nome: curso?.nome || 'N/A',
           departamento: departamento?.nome || 'N/A'
         },
-        status: 'ATIVO' as const, // TODO: Add status logic based on user data
+        status: ((user.studentProfile!.bolsasAtivas && user.studentProfile!.bolsasAtivas > 0) || 
+                 (user.studentProfile!.voluntariadosAtivos && user.studentProfile!.voluntariadosAtivos > 0) ||
+                 (user.studentProfile!.inscricoes && user.studentProfile!.inscricoes > 0)) ? 'ATIVO' : 'INATIVO' as const,
         inscricoes: user.studentProfile!.inscricoes || 0,
         bolsasAtivas: user.studentProfile!.bolsasAtivas || 0,
         voluntariadosAtivos: user.studentProfile!.voluntariadosAtivos || 0,

@@ -93,7 +93,7 @@ export default function ProfessoresPage() {
         id: user.professorProfile!.departamentoId,
         nome: departamentos.find(d => d.id === user.professorProfile!.departamentoId)?.nome || 'N/A'
       },
-      status: 'ATIVO' as const, // TODO: Add status logic based on user data
+      status: (user.professorProfile!.projetos && user.professorProfile!.projetos > 0) ? 'ATIVO' : 'INATIVO' as const,
       projetos: user.professorProfile!.projetos || 0,
       criadoEm: user.createdAt?.toISOString() || new Date().toISOString(),
     })) || []

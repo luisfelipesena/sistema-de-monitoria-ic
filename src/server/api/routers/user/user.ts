@@ -194,6 +194,18 @@ export const userRouter = createTRPCRouter({
                 .innerJoin(inscricaoTable, eq(inscricaoDocumentoTable.inscricaoId, inscricaoTable.id))
                 .where(eq(inscricaoTable.alunoId, user.studentProfile.id))
 
+              // Count validated documents (documents for applications that were accepted)
+              const [documentosValidadosCount] = await ctx.db
+                .select({ count: sql<number>`count(*)::int` })
+                .from(inscricaoDocumentoTable)
+                .innerJoin(inscricaoTable, eq(inscricaoDocumentoTable.inscricaoId, inscricaoTable.id))
+                .where(
+                  and(
+                    eq(inscricaoTable.alunoId, user.studentProfile.id),
+                    sql`${inscricaoTable.status} IN ('ACCEPTED_BOLSISTA', 'ACCEPTED_VOLUNTARIO')`
+                  )
+                )
+
               studentStats = {
                 id: user.studentProfile.id,
                 nomeCompleto: user.studentProfile.nomeCompleto,
@@ -212,7 +224,7 @@ export const userRouter = createTRPCRouter({
                 inscricoes: inscricoesCount?.count || 0,
                 bolsasAtivas: bolsasAtivasCount?.count || 0,
                 voluntariadosAtivos: voluntariadosAtivosCount?.count || 0,
-                documentosValidados: 0, // TODO: Implement document validation tracking
+                documentosValidados: documentosValidadosCount?.count || 0,
                 totalDocumentos: totalDocumentosCount?.count || 0,
               }
             }

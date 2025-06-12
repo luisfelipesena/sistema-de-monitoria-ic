@@ -120,9 +120,9 @@ export default function CursosPage() {
     id: curso.id,
     nome: curso.nome,
     codigo: curso.codigo.toString(),
-    tipo: 'BACHARELADO' as const, // TODO: Add type field to database schema
-    modalidade: 'PRESENCIAL' as const, // TODO: Add modalidade field to database schema  
-    duracao: 8, // TODO: Add duration field to database schema
+    tipo: curso.tipo || 'BACHARELADO' as const,
+    modalidade: curso.modalidade || 'PRESENCIAL' as const,
+    duracao: curso.duracao || 8,
     cargaHoraria: curso.cargaHoraria,
     descricao: curso.descricao || undefined,
     departamento: {
@@ -130,12 +130,12 @@ export default function CursosPage() {
       nome: departamentos.find(d => d.id === curso.departamentoId)?.nome || 'N/A',
       sigla: departamentos.find(d => d.id === curso.departamentoId)?.sigla || 'N/A'
     },
-    coordenador: undefined, // TODO: Add coordinator field to database schema
-    emailCoordenacao: undefined, // TODO: Add coordination email field to database schema
+    coordenador: curso.coordenador || undefined,
+    emailCoordenacao: curso.emailCoordenacao || undefined,
     alunos: curso.alunos || 0,
     disciplinas: curso.disciplinas || 0,
-    projetos: 0, // TODO: Add project count when available
-    status: 'ATIVO' as const, // TODO: Add status logic
+    projetos: 0,
+    status: (curso.status || ((curso.alunos && curso.alunos > 0) ? 'ATIVO' : 'INATIVO')) as 'ATIVO' | 'INATIVO' | 'EM_REFORMULACAO',
     criadoEm: curso.createdAt.toISOString(),
     atualizadoEm: curso.updatedAt?.toISOString() || curso.createdAt.toISOString(),
   })) || []
@@ -169,9 +169,14 @@ export default function CursosPage() {
       await createCursoMutation.mutateAsync({
         nome: formData.nome,
         codigo: parseInt(formData.codigo),
+        tipo: formData.tipo,
+        modalidade: formData.modalidade,
+        duracao: formData.duracao,
         departamentoId: parseInt(formData.departamentoId),
         cargaHoraria: formData.cargaHoraria,
         descricao: formData.descricao || undefined,
+        coordenador: formData.coordenador || undefined,
+        emailCoordenacao: formData.emailCoordenacao || undefined,
       })
 
 
@@ -223,9 +228,14 @@ export default function CursosPage() {
         id: selectedCurso!.id,
         nome: formData.nome,
         codigo: parseInt(formData.codigo),
+        tipo: formData.tipo,
+        modalidade: formData.modalidade,
+        duracao: formData.duracao,
         departamentoId: parseInt(formData.departamentoId),
         cargaHoraria: formData.cargaHoraria,
         descricao: formData.descricao || undefined,
+        coordenador: formData.coordenador || undefined,
+        emailCoordenacao: formData.emailCoordenacao || undefined,
       })
 
       toast({

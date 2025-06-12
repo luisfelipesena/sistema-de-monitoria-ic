@@ -237,8 +237,12 @@ export const inscricaoRouter = createTRPCRouter({
             tipo: (monitoriaAtiva.tipoVagaPretendida === 'BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO') as
               | 'BOLSISTA'
               | 'VOLUNTARIO',
-            dataInicio: null, // TODO: Implement start date tracking
-            dataFim: null, // TODO: Implement end date tracking
+            dataInicio: monitoriaAtiva.projeto.ano && monitoriaAtiva.projeto.semestre 
+              ? new Date(monitoriaAtiva.projeto.ano, monitoriaAtiva.projeto.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
+              : null,
+            dataFim: monitoriaAtiva.projeto.ano && monitoriaAtiva.projeto.semestre
+              ? new Date(monitoriaAtiva.projeto.ano, monitoriaAtiva.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
+              : null,
             cargaHorariaCumprida: 0,
             cargaHorariaPlanejada: monitoriaAtiva.projeto.cargaHorariaSemana * monitoriaAtiva.projeto.numeroSemanas,
           }
@@ -263,10 +267,14 @@ export const inscricaoRouter = createTRPCRouter({
         // Generate next actions
         const proximasAcoes = []
         if (monitoriaAtiva) {
+          const prazoRelatorio = monitoriaAtiva.projeto.ano && monitoriaAtiva.projeto.semestre
+            ? new Date(monitoriaAtiva.projeto.ano, monitoriaAtiva.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 15)
+            : undefined
+            
           proximasAcoes.push({
             titulo: 'Relatório Final',
             descricao: 'Entregue o relatório final da monitoria',
-            prazo: undefined, // TODO: Implement deadline tracking
+            prazo: prazoRelatorio
           })
         }
 

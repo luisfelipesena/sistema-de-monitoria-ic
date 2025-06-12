@@ -141,6 +141,20 @@
       "when": 1749694728601,
       "tag": "0019_gigantic_meteorite",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1749699901681,
+      "tag": "0020_cold_puff_adder",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1749700725360,
+      "tag": "0021_early_revanche",
+      "breakpoints": true
     }
   ]
 }

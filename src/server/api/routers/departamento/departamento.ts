@@ -12,6 +12,10 @@ export const departamentoSchema = z.object({
   unidadeUniversitaria: z.string(),
   nome: z.string(),
   sigla: z.string().nullable(),
+  coordenador: z.string().nullable(),
+  email: z.string().nullable(),
+  telefone: z.string().nullable(),
+  descricao: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date().nullable(),
   // Contadores
@@ -25,6 +29,10 @@ export const newDepartamentoSchema = z.object({
   unidadeUniversitaria: z.string().min(1, 'Unidade universitária é obrigatória'),
   nome: z.string().min(1, 'Nome é obrigatório'),
   sigla: z.string().optional(),
+  coordenador: z.string().optional(),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  telefone: z.string().optional(),
+  descricao: z.string().optional(),
 })
 
 export const updateDepartamentoSchema = z.object({
@@ -32,6 +40,10 @@ export const updateDepartamentoSchema = z.object({
   unidadeUniversitaria: z.string().optional(),
   nome: z.string().optional(),
   sigla: z.string().optional(),
+  coordenador: z.string().optional(),
+  email: z.string().email('Email inválido').optional().or(z.literal('')),
+  telefone: z.string().optional(),
+  descricao: z.string().optional(),
 })
 
 export const departamentoRouter = createTRPCRouter({
@@ -157,6 +169,10 @@ export const departamentoRouter = createTRPCRouter({
             nome: input.nome,
             sigla: input.sigla,
             unidadeUniversitaria: input.unidadeUniversitaria,
+            coordenador: input.coordenador,
+            email: input.email || null,
+            telefone: input.telefone,
+            descricao: input.descricao,
           })
           .returning()
 
@@ -197,10 +213,15 @@ export const departamentoRouter = createTRPCRouter({
         })
       }
 
+      const cleanedUpdateData = {
+        ...updateData,
+        email: updateData.email || null,
+      }
+
       const result = await ctx.db
         .update(departamentoTable)
         .set({
-          ...updateData,
+          ...cleanedUpdateData,
           updatedAt: new Date(),
         })
         .where(eq(departamentoTable.id, id))

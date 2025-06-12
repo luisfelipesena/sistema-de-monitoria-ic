@@ -56,10 +56,25 @@ describe('departamentoRouter', () => {
         nome: 'Ciência da Computação',
         sigla: 'DCC',
         unidadeUniversitaria: 'UFBA',
+        coordenador: 'Prof. João Silva',
+        email: 'dcc@ufba.br',
+        telefone: '(71) 3283-6800',
+        descricao: 'Departamento de Ciência da Computação',
         createdAt: new Date(),
         updatedAt: null,
       },
-      { id: 2, nome: 'Matemática', sigla: 'MAT', unidadeUniversitaria: 'UFBA', createdAt: new Date(), updatedAt: null },
+      { 
+        id: 2, 
+        nome: 'Matemática', 
+        sigla: 'MAT', 
+        unidadeUniversitaria: 'UFBA',
+        coordenador: null,
+        email: null,
+        telefone: null,
+        descricao: null,
+        createdAt: new Date(), 
+        updatedAt: null 
+      },
     ]
 
     vi.spyOn(mockContext.db.query.departamentoTable, 'findMany').mockResolvedValue(mockDepartamentos as any)
@@ -82,6 +97,10 @@ describe('departamentoRouter', () => {
         nome: 'Novo Dept',
         sigla: 'ND',
         unidadeUniversitaria: 'UFBA',
+        coordenador: 'Prof. Teste',
+        email: 'teste@ufba.br',
+        telefone: '(71) 9999-9999',
+        descricao: 'Departamento de teste',
       })
     ).rejects.toThrowError('UNAUTHORIZED')
   })
@@ -94,6 +113,10 @@ describe('departamentoRouter', () => {
       nome: 'Física',
       sigla: 'FIS',
       unidadeUniversitaria: 'UFBA',
+      coordenador: 'Prof. Maria Santos',
+      email: 'fisica@ufba.br',
+      telefone: '(71) 3283-6900',
+      descricao: 'Departamento de Física',
       createdAt: new Date(),
       updatedAt: null,
     }
@@ -108,6 +131,10 @@ describe('departamentoRouter', () => {
       nome: 'Física',
       sigla: 'FIS',
       unidadeUniversitaria: 'UFBA',
+      coordenador: 'Prof. Maria Santos',
+      email: 'fisica@ufba.br',
+      telefone: '(71) 3283-6900',
+      descricao: 'Departamento de Física',
     })
 
     expect(result).toBeDefined()

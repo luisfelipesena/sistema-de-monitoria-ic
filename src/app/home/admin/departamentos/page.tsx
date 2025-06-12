@@ -101,16 +101,16 @@ export default function DepartamentosPage() {
     id: dept.id,
     nome: dept.nome,
     sigla: dept.sigla || '',
-    descricao: undefined, // TODO: Add description field to database schema
+    descricao: dept.descricao || undefined,
     instituto: dept.unidadeUniversitaria,
-    coordenador: undefined, // TODO: Add coordinator field to database schema
-    email: undefined, // TODO: Add email field to database schema
-    telefone: undefined, // TODO: Add phone field to database schema
+    coordenador: dept.coordenador || undefined,
+    email: dept.email || undefined,
+    telefone: dept.telefone || undefined,
     professores: dept.professores || 0,
     cursos: dept.cursos || 0,
     disciplinas: dept.disciplinas || 0,
     projetos: dept.projetos || 0,
-    status: 'ATIVO' as const, // TODO: Add status logic
+    status: (dept.professores && dept.professores > 0) ? 'ATIVO' : 'INATIVO' as const,
     criadoEm: dept.createdAt.toISOString(),
     atualizadoEm: dept.updatedAt?.toISOString() || dept.createdAt.toISOString(),
   })) || []
@@ -142,6 +142,10 @@ export default function DepartamentosPage() {
         nome: formData.nome,
         sigla: formData.sigla,
         unidadeUniversitaria: formData.instituto || 'UFBA',
+        coordenador: formData.coordenador || undefined,
+        email: formData.email || undefined,
+        telefone: formData.telefone || undefined,
+        descricao: formData.descricao || undefined,
       })
 
       toast({
@@ -190,6 +194,10 @@ export default function DepartamentosPage() {
         nome: formData.nome,
         sigla: formData.sigla,
         unidadeUniversitaria: formData.instituto || 'UFBA',
+        coordenador: formData.coordenador || undefined,
+        email: formData.email || undefined,
+        telefone: formData.telefone || undefined,
+        descricao: formData.descricao || undefined,
       })
 
       toast({

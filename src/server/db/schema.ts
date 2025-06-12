@@ -127,6 +127,10 @@ export const departamentoTable = pgTable('departamento', {
   unidadeUniversitaria: varchar('unidade_universitaria').notNull(),
   nome: varchar('nome').notNull(),
   sigla: varchar('sigla'),
+  coordenador: varchar('coordenador'),
+  email: varchar('email'),
+  telefone: varchar('telefone'),
+  descricao: text('descricao'),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',
@@ -381,15 +385,26 @@ export const enderecoTable = pgTable('endereco', {
   // }), // Usually not soft deleted
 })
 
+// Enums para curso
+export const tipoCursoEnum = pgEnum('tipo_curso_enum', ['BACHARELADO', 'LICENCIATURA', 'TECNICO', 'POS_GRADUACAO'])
+export const modalidadeCursoEnum = pgEnum('modalidade_curso_enum', ['PRESENCIAL', 'EAD', 'HIBRIDO'])
+export const statusCursoEnum = pgEnum('status_curso_enum', ['ATIVO', 'INATIVO', 'EM_REFORMULACAO'])
+
 export const cursoTable = pgTable('curso', {
   id: serial('id').primaryKey(),
   nome: varchar('nome').notNull(),
   codigo: integer('codigo').notNull(),
+  tipo: tipoCursoEnum('tipo').notNull(),
+  modalidade: modalidadeCursoEnum('modalidade').notNull(),
+  duracao: integer('duracao').notNull(), // em semestres
   departamentoId: integer('departamento_id')
     .references(() => departamentoTable.id)
     .notNull(),
   cargaHoraria: integer('carga_horaria').notNull(),
   descricao: text('descricao'),
+  coordenador: varchar('coordenador'),
+  emailCoordenacao: varchar('email_coordenacao'),
+  status: statusCursoEnum('status').notNull().default('ATIVO'),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',
