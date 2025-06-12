@@ -1,37 +1,39 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { TableComponent } from '@/components/layout/TableComponent'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { api } from '@/utils/api'
-import { useEditalPdf } from '@/hooks/use-files'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ColumnDef } from '@tanstack/react-table'
-import { FileText, Plus, Eye, Edit, Trash2, Upload, CheckCircle, Clock, AlertCircle, Calendar } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { useEditalPdf } from "@/hooks/use-files"
+import { api } from "@/utils/api"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ColumnDef } from "@tanstack/react-table"
+import { AlertCircle, CheckCircle, Clock, Edit, Eye, FileText, Plus, Trash2, Upload } from "lucide-react"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
-const editalFormSchema = z.object({
-  numeroEdital: z.string().min(1, 'Número do edital é obrigatório'),
-  titulo: z.string().min(1, 'Título é obrigatório'),
-  descricaoHtml: z.string().optional(),
-  ano: z.number().min(2000).max(2050),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-  dataInicio: z.date(),
-  dataFim: z.date(),
-}).refine((data) => data.dataFim > data.dataInicio, {
-  message: 'Data de fim deve ser posterior à data de início',
-  path: ['dataFim'],
-})
+const editalFormSchema = z
+  .object({
+    numeroEdital: z.string().min(1, "Número do edital é obrigatório"),
+    titulo: z.string().min(1, "Título é obrigatório"),
+    descricaoHtml: z.string().optional(),
+    ano: z.number().min(2000).max(2050),
+    semestre: z.enum(["SEMESTRE_1", "SEMESTRE_2"]),
+    dataInicio: z.date(),
+    dataFim: z.date(),
+  })
+  .refine((data) => data.dataFim > data.dataInicio, {
+    message: "Data de fim deve ser posterior à data de início",
+    path: ["dataFim"],
+  })
 
 type EditalFormData = z.infer<typeof editalFormSchema>
 
@@ -46,11 +48,11 @@ type EditalItem = {
   createdAt: Date
   periodoInscricao: {
     id: number
-    semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
+    semestre: "SEMESTRE_1" | "SEMESTRE_2"
     ano: number
     dataInicio: Date
     dataFim: Date
-    status: 'ATIVO' | 'FUTURO' | 'FINALIZADO'
+    status: "ATIVO" | "FUTURO" | "FINALIZADO"
     totalProjetos: number
     totalInscricoes: number
   } | null
@@ -71,7 +73,7 @@ export default function EditalManagementPage() {
 
   const createEditalMutation = api.edital.createEdital.useMutation({
     onSuccess: () => {
-      toast.success('Edital criado com sucesso!')
+      toast.success("Edital criado com sucesso!")
       setIsCreateDialogOpen(false)
       refetch()
       createForm.reset()
@@ -83,7 +85,7 @@ export default function EditalManagementPage() {
 
   const updateEditalMutation = api.edital.updateEdital.useMutation({
     onSuccess: () => {
-      toast.success('Edital atualizado com sucesso!')
+      toast.success("Edital atualizado com sucesso!")
       setIsEditDialogOpen(false)
       setSelectedEdital(null)
       refetch()
@@ -95,7 +97,7 @@ export default function EditalManagementPage() {
 
   const deleteEditalMutation = api.edital.deleteEdital.useMutation({
     onSuccess: () => {
-      toast.success('Edital excluído com sucesso!')
+      toast.success("Edital excluído com sucesso!")
       refetch()
     },
     onError: (error) => {
@@ -105,7 +107,7 @@ export default function EditalManagementPage() {
 
   const publishEditalMutation = api.edital.publishEdital.useMutation({
     onSuccess: () => {
-      toast.success('Edital publicado com sucesso!')
+      toast.success("Edital publicado com sucesso!")
       refetch()
     },
     onError: (error) => {
@@ -115,7 +117,7 @@ export default function EditalManagementPage() {
 
   const uploadSignedMutation = api.edital.uploadSignedEdital.useMutation({
     onSuccess: () => {
-      toast.success('Edital assinado carregado com sucesso!')
+      toast.success("Edital assinado carregado com sucesso!")
       setUploadFile(null)
       refetch()
     },
@@ -130,11 +132,11 @@ export default function EditalManagementPage() {
   const createForm = useForm<EditalFormData>({
     resolver: zodResolver(editalFormSchema),
     defaultValues: {
-      numeroEdital: '',
-      titulo: 'Edital Interno de Seleção de Monitores',
-      descricaoHtml: '',
+      numeroEdital: "",
+      titulo: "Edital Interno de Seleção de Monitores",
+      descricaoHtml: "",
       ano: new Date().getFullYear(),
-      semestre: 'SEMESTRE_1',
+      semestre: "SEMESTRE_1",
     },
   })
 
@@ -152,7 +154,9 @@ export default function EditalManagementPage() {
   }
 
   const handleDelete = (id: number) => {
-    if (confirm('Tem certeza que deseja excluir este edital? Esta ação excluirá também o período de inscrição associado.')) {
+    if (
+      confirm("Tem certeza que deseja excluir este edital? Esta ação excluirá também o período de inscrição associado.")
+    ) {
       deleteEditalMutation.mutate({ id })
     }
   }
@@ -163,7 +167,7 @@ export default function EditalManagementPage() {
 
   const handleUploadSigned = async (editalId: number) => {
     if (!uploadFile) {
-      toast.error('Selecione um arquivo PDF assinado')
+      toast.error("Selecione um arquivo PDF assinado")
       return
     }
 
@@ -172,7 +176,7 @@ export default function EditalManagementPage() {
         const reader = new FileReader()
         reader.onload = () => {
           const base64 = reader.result as string
-          resolve(base64.split(',')[1])
+          resolve(base64.split(",")[1])
         }
         reader.onerror = reject
         reader.readAsDataURL(uploadFile)
@@ -182,7 +186,7 @@ export default function EditalManagementPage() {
         fileName: uploadFile.name,
         fileData,
         mimeType: uploadFile.type,
-        entityType: 'edital',
+        entityType: "edital",
         entityId: editalId.toString(),
       })
 
@@ -191,18 +195,18 @@ export default function EditalManagementPage() {
         fileId: uploadResult.fileId,
       })
     } catch (error) {
-      console.error('Error uploading signed edital:', error)
+      console.error("Error uploading signed edital:", error)
     }
   }
 
   const handleViewPdf = async (editalId: number) => {
     try {
       const result = await generatePdfMutation.mutateAsync({ id: editalId })
-      window.open(result.url, '_blank', 'noopener,noreferrer')
-      toast.success('PDF do edital aberto em nova aba')
+      window.open(result.url, "_blank", "noopener,noreferrer")
+      toast.success("PDF do edital aberto em nova aba")
     } catch (error) {
-      toast.error('Erro ao gerar PDF do edital')
-      console.error('Error generating PDF:', error)
+      toast.error("Erro ao gerar PDF do edital")
+      console.error("Error generating PDF:", error)
     }
   }
 
@@ -211,9 +215,9 @@ export default function EditalManagementPage() {
     editForm.reset({
       numeroEdital: edital.numeroEdital,
       titulo: edital.titulo,
-      descricaoHtml: edital.descricaoHtml || '',
+      descricaoHtml: edital.descricaoHtml || "",
       ano: edital.periodoInscricao?.ano || new Date().getFullYear(),
-      semestre: edital.periodoInscricao?.semestre || 'SEMESTRE_1',
+      semestre: edital.periodoInscricao?.semestre || "SEMESTRE_1",
       dataInicio: edital.periodoInscricao?.dataInicio ? new Date(edital.periodoInscricao.dataInicio) : new Date(),
       dataFim: edital.periodoInscricao?.dataFim ? new Date(edital.periodoInscricao.dataFim) : new Date(),
     })
@@ -249,11 +253,19 @@ export default function EditalManagementPage() {
 
   const getPeriodStatusBadge = (status: string) => {
     switch (status) {
-      case 'ATIVO':
-        return <Badge variant="default" className="bg-green-500">Ativo</Badge>
-      case 'FUTURO':
-        return <Badge variant="outline" className="border-blue-500 text-blue-700">Futuro</Badge>
-      case 'FINALIZADO':
+      case "ATIVO":
+        return (
+          <Badge variant="default" className="bg-green-500">
+            Ativo
+          </Badge>
+        )
+      case "FUTURO":
+        return (
+          <Badge variant="outline" className="border-blue-500 text-blue-700">
+            Futuro
+          </Badge>
+        )
+      case "FINALIZADO":
         return <Badge variant="outline">Finalizado</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
@@ -261,7 +273,7 @@ export default function EditalManagementPage() {
   }
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('pt-BR')
+    return new Date(date).toLocaleDateString("pt-BR")
   }
 
   const getDurationDays = (start: Date, end: Date) => {
@@ -274,58 +286,60 @@ export default function EditalManagementPage() {
 
   const columns: ColumnDef<EditalItem>[] = [
     {
-      header: 'Edital',
-      accessorKey: 'numeroEdital',
+      header: "Edital",
+      accessorKey: "numeroEdital",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.numeroEdital}</div>
-          <div className="text-sm text-muted-foreground truncate max-w-xs">
-            {row.original.titulo}
-          </div>
+          <div className="text-sm text-muted-foreground truncate max-w-xs">{row.original.titulo}</div>
         </div>
       ),
     },
     {
-      header: 'Período',
+      header: "Período de Inscrição",
       cell: ({ row }) => {
         const periodo = row.original.periodoInscricao
-        if (!periodo) return '-'
-        
+        if (!periodo) return "-"
+
+        const durationDays = getDurationDays(periodo.dataInicio, periodo.dataFim)
+
         return (
           <div>
             <div className="font-medium">
-              {periodo.ano}/{periodo.semestre === 'SEMESTRE_1' ? '1' : '2'}
+              {periodo.ano}/{periodo.semestre === "SEMESTRE_1" ? "1" : "2"}
             </div>
             <div className="text-sm text-muted-foreground">
               {formatDate(periodo.dataInicio)} - {formatDate(periodo.dataFim)}
             </div>
-            <div className="text-sm">
-              {getPeriodStatusBadge(periodo.status)}
+            <div className="text-xs text-muted-foreground">{durationDays} dias de duração</div>
+            <div className="text-sm mt-1">{getPeriodStatusBadge(periodo.status)}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {periodo.totalProjetos} projetos • {periodo.totalInscricoes} inscrições
             </div>
           </div>
         )
       },
     },
     {
-      header: 'Status',
+      header: "Status",
       cell: ({ row }) => getStatusBadge(row.original),
     },
     {
-      header: 'Data de Criação',
-      accessorKey: 'createdAt',
+      header: "Data de Criação",
+      accessorKey: "createdAt",
       cell: ({ row }) => formatDate(row.original.createdAt),
     },
     {
-      header: 'Criado por',
-      cell: ({ row }) => row.original.criadoPor?.username || '-',
+      header: "Criado por",
+      cell: ({ row }) => row.original.criadoPor?.username || "-",
     },
     {
-      header: 'Ações',
-      id: 'actions',
+      header: "Ações",
+      id: "actions",
       cell: ({ row }) => {
         const edital = row.original
         const canPublish = edital.fileIdAssinado && !edital.publicado
-        
+
         return (
           <div className="flex items-center gap-2">
             <Button
@@ -337,15 +351,11 @@ export default function EditalManagementPage() {
             >
               <Eye className="h-4 w-4" />
             </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openEditDialog(edital)}
-            >
+
+            <Button variant="outline" size="sm" onClick={() => openEditDialog(edital)}>
               <Edit className="h-4 w-4" />
             </Button>
-            
+
             {!edital.fileIdAssinado && (
               <div className="flex items-center gap-1">
                 <Input
@@ -364,7 +374,7 @@ export default function EditalManagementPage() {
                 </Button>
               </div>
             )}
-            
+
             {canPublish && (
               <Button
                 variant="default"
@@ -375,7 +385,7 @@ export default function EditalManagementPage() {
                 Publicar
               </Button>
             )}
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -391,17 +401,72 @@ export default function EditalManagementPage() {
   ]
 
   return (
-    <PagesLayout 
-      title="Gerenciar Editais" 
-      subtitle="Crie, edite e publique editais de seleção de monitores com seus períodos de inscrição"
+    <PagesLayout
+      title="Gerenciar Editais"
+      subtitle="Crie, edite e publique editais de seleção de monitores. Cada edital inclui automaticamente seu período de inscrição."
     >
       <div className="space-y-6">
+        {/* Cards de estatísticas dos períodos */}
+        {editais && editais.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Períodos Ativos</CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {editais.filter((e) => e.periodoInscricao?.status === "ATIVO").length}
+                </div>
+                <p className="text-xs text-muted-foreground">Períodos abertos para inscrições</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Períodos Futuros</CardTitle>
+                <Clock className="h-4 w-4 text-blue-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-600">
+                  {editais.filter((e) => e.periodoInscricao?.status === "FUTURO").length}
+                </div>
+                <p className="text-xs text-muted-foreground">Períodos agendados</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Editais Publicados</CardTitle>
+                <FileText className="h-4 w-4 text-purple-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-600">{editais.filter((e) => e.publicado).length}</div>
+                <p className="text-xs text-muted-foreground">Editais disponíveis publicamente</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total de Projetos</CardTitle>
+                <AlertCircle className="h-4 w-4 text-gray-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-600">
+                  {editais.reduce((sum, e) => sum + (e.periodoInscricao?.totalProjetos || 0), 0)}
+                </div>
+                <p className="text-xs text-muted-foreground">Projetos em todos os editais</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Editais
+                Editais e Períodos de Inscrição
                 {editais && (
                   <Badge variant="outline" className="ml-2">
                     {editais.length} edital(is)
@@ -429,10 +494,7 @@ export default function EditalManagementPage() {
                             <FormItem>
                               <FormLabel>Número do Edital</FormLabel>
                               <FormControl>
-                                <Input 
-                                  placeholder="Ex: 001/2024"
-                                  {...field} 
-                                />
+                                <Input placeholder="Ex: 001/2024" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -461,9 +523,9 @@ export default function EditalManagementPage() {
                             <FormItem>
                               <FormLabel>Ano</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="number" 
-                                  {...field} 
+                                <Input
+                                  type="number"
+                                  {...field}
                                   onChange={(e) => field.onChange(parseInt(e.target.value))}
                                 />
                               </FormControl>
@@ -502,9 +564,9 @@ export default function EditalManagementPage() {
                             <FormItem>
                               <FormLabel>Data de Início</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="date" 
-                                  value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                                <Input
+                                  type="date"
+                                  value={field.value ? field.value.toISOString().split("T")[0] : ""}
                                   onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
                                 />
                               </FormControl>
@@ -519,9 +581,9 @@ export default function EditalManagementPage() {
                             <FormItem>
                               <FormLabel>Data de Fim</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="date" 
-                                  value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                                <Input
+                                  type="date"
+                                  value={field.value ? field.value.toISOString().split("T")[0] : ""}
                                   onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
                                 />
                               </FormControl>
@@ -538,22 +600,14 @@ export default function EditalManagementPage() {
                           <FormItem>
                             <FormLabel>Descrição (HTML)</FormLabel>
                             <FormControl>
-                              <Textarea 
-                                rows={6}
-                                placeholder="Descrição detalhada do edital..."
-                                {...field} 
-                              />
+                              <Textarea rows={6} placeholder="Descrição detalhada do edital..." {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={createEditalMutation.isPending}
-                      >
-                        {createEditalMutation.isPending ? 'Criando...' : 'Criar Edital'}
+                      <Button type="submit" className="w-full" disabled={createEditalMutation.isPending}>
+                        {createEditalMutation.isPending ? "Criando..." : "Criar Edital"}
                       </Button>
                     </form>
                   </Form>
@@ -579,12 +633,8 @@ export default function EditalManagementPage() {
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <FileText className="mx-auto h-12 w-12 mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  Nenhum edital encontrado
-                </h3>
-                <p>
-                  Crie o primeiro edital para começar o processo de seleção de monitores.
-                </p>
+                <h3 className="text-lg font-medium mb-2">Nenhum edital encontrado</h3>
+                <p>Crie o primeiro edital para começar o processo de seleção de monitores.</p>
               </div>
             )}
           </CardContent>
@@ -634,11 +684,7 @@ export default function EditalManagementPage() {
                       <FormItem>
                         <FormLabel>Ano</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                          />
+                          <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -675,9 +721,9 @@ export default function EditalManagementPage() {
                       <FormItem>
                         <FormLabel>Data de Início</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="date" 
-                            value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                          <Input
+                            type="date"
+                            value={field.value ? field.value.toISOString().split("T")[0] : ""}
                             onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
                           />
                         </FormControl>
@@ -692,9 +738,9 @@ export default function EditalManagementPage() {
                       <FormItem>
                         <FormLabel>Data de Fim</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="date" 
-                            value={field.value ? field.value.toISOString().split('T')[0] : ''}
+                          <Input
+                            type="date"
+                            value={field.value ? field.value.toISOString().split("T")[0] : ""}
                             onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
                           />
                         </FormControl>
@@ -711,21 +757,14 @@ export default function EditalManagementPage() {
                     <FormItem>
                       <FormLabel>Descrição (HTML)</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          rows={6}
-                          {...field} 
-                        />
+                        <Textarea rows={6} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={updateEditalMutation.isPending}
-                >
-                  {updateEditalMutation.isPending ? 'Atualizando...' : 'Atualizar Edital'}
+                <Button type="submit" className="w-full" disabled={updateEditalMutation.isPending}>
+                  {updateEditalMutation.isPending ? "Atualizando..." : "Atualizar Edital"}
                 </Button>
               </form>
             </Form>

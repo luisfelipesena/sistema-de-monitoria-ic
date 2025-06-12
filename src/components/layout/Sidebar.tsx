@@ -141,14 +141,14 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
-  // Admin - Editais
+  // Admin - Editais e Períodos
   {
     label: "Editais",
     icon: FileText,
     roles: ["admin"],
     items: [
       {
-        label: "Gerenciar Editais Internos",
+        label: "Gerenciar Editais",
         href: "/home/admin/edital-management",
         icon: FileText,
         roles: ["admin"],

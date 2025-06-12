@@ -117,8 +117,8 @@ export default function ConsolidacaoPROGRADPage() {
     setShowValidation(true)
   }
 
-  const generateExcelSpreadsheet = () => {
-    exportConsolidatedMutation.mutate({
+  const generateExcelSpreadsheet = async () => {
+    await exportConsolidatedMutation.mutateAsync({
       ano: selectedYear,
       semestre: selectedSemester,
       incluirBolsistas,
@@ -418,7 +418,7 @@ export default function ConsolidacaoPROGRADPage() {
               </p>
               <div className="flex gap-2">
                 <Button
-                  onClick={generateExcelSpreadsheet}
+                  onClick={() => generateExcelSpreadsheet()}
                   disabled={
                     exportConsolidatedMutation.isPending || !consolidationData || consolidationData.length === 0
                   }
