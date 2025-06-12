@@ -153,38 +153,25 @@ npm install
 
 3. **Configure as variáveis de ambiente**
 ```bash
-cp .env.example .env
+cp .env.sample .env
 ```
 
 Edite o arquivo `.env` com suas configurações:
 
 ```env
-# Database
-DATABASE_URL="postgresql://postgres:postgres@localhost:5433/sistema-de-monitoria-ic-2"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/sistema-de-monitoria-ic"
+CAS_SERVER_URL_PREFIX="https://autenticacao.ufba.br/ca"
+SERVER_URL="http://localhost:3000/api"
+CLIENT_URL="http://localhost:3000"
+MINIO_ENDPOINT=sistema-de-monitoria-minio.app.ic.ufba.br
+MINIO_ACCESS_KEY=yDuaIivNT94ngIToIlnS
+MINIO_SECRET_KEY=y4R8w2faAJIwz3i9tAJ1vd9PBpewa3LqAuKEPvZ3
+MINIO_BUCKET_NAME=sistema-de-monitoria-dev
+NODE_ENV=development
+EMAIL_USER="sistema.monitoria.ic@gmail.com"
+EMAIL_PASS=""
 
-# Authentication
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-here"
-
-# CAS UFBA
-CAS_BASE_URL="https://cas.ufba.br/cas"
-CAS_SERVICE_URL="http://localhost:3000/api/cas-callback"
-
-# MinIO/S3
-S3_ACCESS_KEY_ID="your-access-key"
-S3_SECRET_ACCESS_KEY="your-secret-key"
-S3_ENDPOINT="http://localhost:9000"
-S3_BUCKET_NAME="monitoria-files"
-
-# Email
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT="587"
-SMTP_USER="your-email@gmail.com"
-SMTP_PASS="your-app-password"
-SMTP_FROM="Sistema Monitoria <noreply@ufba.br>"
-
-# OpenAPI
-OPENAPI_BASE_URL="http://localhost:3000"
+VITE_ENABLE_STAGEWISE=true
 ```
 
 4. **Inicie o banco de dados**
@@ -275,6 +262,7 @@ sistema-de-monitoria-ic/
 
 A documentação interativa da API está disponível em:
 ```
+https://sistema-de-monitoria.app.ic.ufba.br/docs
 http://localhost:3000/docs
 ```
 
