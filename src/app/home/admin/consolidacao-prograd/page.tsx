@@ -20,6 +20,10 @@ type ConsolidationData = {
     matricula: string
     email: string
     cr: number
+    banco?: string
+    agencia?: string
+    conta?: string
+    digitoConta?: string
   }
   professor: {
     nome: string
@@ -149,7 +153,11 @@ export default function ConsolidacaoPROGRADPage() {
       'Data Início',
       'Data Fim',
       'Status',
-      'Período'
+      'Período',
+      'Banco',
+      'Agência',
+      'Conta',
+      'Dígito',
     ]
 
     const csvData = consolidationData.map(item => [
@@ -169,7 +177,11 @@ export default function ConsolidacaoPROGRADPage() {
       item.monitoria.dataInicio,
       item.monitoria.dataFim,
       item.monitoria.status,
-      `${item.projeto.ano}.${item.projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}`
+      `${item.projeto.ano}.${item.projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}`,
+      (item.monitor).banco || 'N/A',
+      (item.monitor).agencia || 'N/A',
+      (item.monitor).conta || 'N/A',
+      (item.monitor).digitoConta || 'N/A',
     ])
 
     // Criar CSV

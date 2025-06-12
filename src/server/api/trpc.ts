@@ -9,7 +9,7 @@ import { type OpenApiMeta } from 'trpc-to-openapi'
 import { ZodError } from 'zod'
 import { createHash } from 'crypto'
 
-interface TRPCContext {
+export interface TRPCContext {
   user: User | null
   db: typeof db
 }

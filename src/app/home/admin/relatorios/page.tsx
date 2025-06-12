@@ -70,9 +70,9 @@ export default function RelatoriosPage() {
     setFilters(data)
   }
 
-  const handleExport = (tipo: string) => {
+  const handleExport = (tipo: 'professores' | 'disciplinas' | 'alunos' | 'editais' | 'departamentos' | 'geral') => {
     exportCsvMutation.mutate({
-      tipo: tipo as any,
+      tipo: tipo,
       ano: filters.ano,
       semestre: filters.semestre,
     })

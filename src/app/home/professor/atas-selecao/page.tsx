@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/hooks/use-toast'
 import { api } from '@/utils/api'
 import { FileText, Download, Save, Eye } from 'lucide-react'
+import { AtaSelecaoTemplate } from '@/server/lib/pdfTemplates/AtaSelecaoTemplate'
 
 // Simplified AtaSelecaoData type
 type AtaSelecaoData = {
@@ -25,45 +26,24 @@ type AtaSelecaoData = {
     professorResponsavel: { nomeCompleto: string; matriculaSiape: string | null }
     disciplinas: Array<{ codigo: string; nome: string }>
   }
-  candidatos: Array<{
-    id: number
-    aluno: { nomeCompleto: string; matricula: string; cr: number | null }
-    tipoVagaPretendida: string | null
-    notaDisciplina: number | null
-    notaSelecao: number | null
-    coeficienteRendimento: number | null
-    notaFinal: number | null
-    status: string
-    observacoes?: string | null
-  }>
-  ataInfo: {
-    dataSelecao: string
-    localSelecao: string | null
-    observacoes: string | null
-  }
+  totalInscritos: number,
+  totalCompareceram: number,
+  inscricoesBolsista: any[],
+  inscricoesVoluntario: any[],
+  dataGeracao: Date,
 }
 
 // Simple AtaSelecaoTemplate component for PDF
-function AtaSelecaoTemplate({ data }: { data: AtaSelecaoData }) {
-  return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Ata de Seleção - Monitoria</h1>
-      <p><strong>Projeto:</strong> {data.projeto.titulo}</p>
-      <p><strong>Professor:</strong> {data.projeto.professorResponsavel.nomeCompleto}</p>
-      <p><strong>Data da Seleção:</strong> {data.ataInfo.dataSelecao}</p>
-      
-      <h2>Candidatos Aprovados</h2>
-      {data.candidatos.map(candidato => (
-        <div key={candidato.id} style={{ margin: '10px 0', padding: '10px', border: '1px solid #ccc' }}>
-          <p><strong>Nome:</strong> {candidato.aluno.nomeCompleto}</p>
-          <p><strong>Matrícula:</strong> {candidato.aluno.matricula}</p>
-          <p><strong>Nota Final:</strong> {candidato.notaFinal}</p>
-          <p><strong>Tipo:</strong> {candidato.tipoVagaPretendida}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
+// function AtaSelecaoTemplate({ data }: { data: AtaSelecaoData }) {
+//   return (
+//     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+//       <h1>Ata de Seleção - Monitoria</h1>
+// ... existing code ...
+//         </div>
+//       ))}
+//     </div>
+//   )
+// }
 
 export default function AtasSelecaoPage() {
   const { toast } = useToast()
@@ -125,26 +105,11 @@ export default function AtasSelecaoPage() {
         professorResponsavel: dadosAta.projeto.professorResponsavel,
         disciplinas: [{ codigo: 'MON', nome: 'Monitoria' }],
       },
-      candidatos: dadosAta.inscricoesBolsista.concat(dadosAta.inscricoesVoluntario).map(inscricao => ({
-        id: inscricao.id,
-        aluno: {
-          nomeCompleto: inscricao.aluno.user.username,
-          matricula: inscricao.aluno.matricula,
-          cr: inscricao.aluno.cr,
-        },
-        tipoVagaPretendida: inscricao.tipoVagaPretendida,
-        notaDisciplina: typeof inscricao.notaDisciplina === 'string' ? parseFloat(inscricao.notaDisciplina) : (inscricao.notaDisciplina ?? null),
-        notaSelecao: typeof inscricao.notaSelecao === 'string' ? parseFloat(inscricao.notaSelecao) : (inscricao.notaSelecao ?? null),
-        coeficienteRendimento: typeof inscricao.coeficienteRendimento === 'string' ? parseFloat(inscricao.coeficienteRendimento) : (inscricao.coeficienteRendimento ?? null),
-        notaFinal: typeof inscricao.notaFinal === 'string' ? parseFloat(inscricao.notaFinal) : (inscricao.notaFinal ?? null),
-        status: inscricao.status,
-        observacoes: 'observacoes' in inscricao ? (inscricao as any).observacoes : null,
-      })),
-      ataInfo: {
-        dataSelecao: ataInfo.dataSelecao,
-        localSelecao: ataInfo.localSelecao || null,
-        observacoes: ataInfo.observacoes || null,
-      },
+      totalInscritos: dadosAta.totalInscritos,
+      totalCompareceram: dadosAta.totalCompareceram,
+      inscricoesBolsista: dadosAta.inscricoesBolsista,
+      inscricoesVoluntario: dadosAta.inscricoesVoluntario,
+      dataGeracao: dadosAta.dataGeracao,
     }
 
     setAtaData(dataForPDF)
@@ -390,7 +355,9 @@ export default function AtasSelecaoPage() {
           </CardHeader>
           <CardContent>
             <div style={{ height: '800px', width: '100%' }}>
-              <AtaSelecaoTemplate data={ataData} />
+              <PDFViewer width="100%" height="100%">
+                <AtaSelecaoTemplate data={ataData} />
+              </PDFViewer>
             </div>
           </CardContent>
         </Card>

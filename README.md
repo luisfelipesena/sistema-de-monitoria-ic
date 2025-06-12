@@ -215,6 +215,11 @@ npm run db:drop      # Remove todas as tabelas
 npm run lint         # Executa linting
 npm run lint:fix     # Corrige problemas de linting
 npm run format       # Formata código
+
+# Testes
+npm run test         # Executa os testes unitários
+npm run test:ui      # Inicia a UI interativa do Vitest
+npm run test:coverage # Gera um relatório de cobertura de testes
 ```
 
 ## 📁 Estrutura do Projeto
@@ -252,6 +257,7 @@ sistema-de-monitoria-ic/
 ├── public/                    # Arquivos estáticos
 ├── docs/                      # Documentação adicional
 ├── drizzle/                   # Migrações do banco
+├── src/tests/                 # Testes unitários e de integração
 ├── docker-compose.yml         # Configuração Docker
 └── package.json              # Dependências e scripts
 ```

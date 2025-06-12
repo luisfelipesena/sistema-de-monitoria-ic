@@ -358,7 +358,7 @@ export default function UsersPage() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setSelectedRole(tab.id as any)}
+                onClick={() => setSelectedRole(tab.id as 'all' | 'admin' | 'professor' | 'student')}
                 className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
                   selectedRole === tab.id
                     ? 'border-black text-black'

@@ -43,6 +43,10 @@ async function validateCompleteDataInternal(input: {
           rg: alunoTable.rg,
           cpf: alunoTable.cpf,
           telefone: alunoTable.telefone,
+          banco: alunoTable.banco,
+          agencia: alunoTable.agencia,
+          conta: alunoTable.conta,
+          digitoConta: alunoTable.digitoConta,
         },
         alunoUser: { email: userTable.email },
       })
@@ -465,6 +469,10 @@ export const relatoriosRouter = createTRPCRouter({
             nomeCompleto: alunoTable.nomeCompleto,
             matricula: alunoTable.matricula,
             cr: alunoTable.cr,
+            banco: alunoTable.banco,
+            agencia: alunoTable.agencia,
+            conta: alunoTable.conta,
+            digitoConta: alunoTable.digitoConta,
           },
           alunoUser: {
             email: userTable.email,
@@ -529,6 +537,10 @@ export const relatoriosRouter = createTRPCRouter({
               matricula: monitor.aluno.matricula,
               email: monitor.alunoUser.email,
               cr: monitor.aluno.cr,
+              banco: monitor.aluno.banco,
+              agencia: monitor.aluno.agencia,
+              conta: monitor.aluno.conta,
+              digitoConta: monitor.aluno.digitoConta,
             },
             professor: {
               nome: monitor.professor.nomeCompleto,
@@ -583,7 +595,10 @@ export const relatoriosRouter = createTRPCRouter({
             cpf: alunoTable.cpf,
             cr: alunoTable.cr,
             telefone: alunoTable.telefone,
-            // Endereço e dados bancários foram removidos pois não existem no schema atual
+            banco: alunoTable.banco,
+            agencia: alunoTable.agencia,
+            conta: alunoTable.conta,
+            digitoConta: alunoTable.digitoConta,
           },
           alunoUser: {
             email: userTable.email,

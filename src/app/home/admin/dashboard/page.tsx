@@ -528,7 +528,7 @@ export default function DashboardAdmin() {
         ].map((aba) => (
           <button
             key={aba.id}
-            onClick={() => setAbaAtiva(aba.id as any)}
+            onClick={() => setAbaAtiva(aba.id as 'projetos' | 'professores' | 'alunos')}
             className={`py-2 px-1 text-base font-medium border-b-2 transition-colors ${
               abaAtiva === aba.id
                 ? 'border-black text-black'

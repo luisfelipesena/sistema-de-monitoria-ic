@@ -351,104 +351,50 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ✅ Sistema de inscrições (`inscricaoRouter`)
 - ✅ Validação de documentos por inscrição (`inscricaoRouter`)
 
-#### **Módulo 3: Seleção e Atas** 🚧 **60% COMPLETO**
+#### **Módulo 3: Seleção e Atas** 🚧 **70% COMPLETO**
 - ✅ Avaliação de candidatos (páginas e endpoints existem)
-- ❌ **FALTA**: `selecaoRouter` para atas e resultados
-- ❌ **FALTA**: Publicação automática de resultados
-- ❌ **FALTA**: Notificação para alunos
+- ✅ `selecaoRouter` para gerenciar o fluxo de seleção foi criado.
+- ✅ Template para `Ata de Seleção` em PDF foi criado e integrado.
+- ❌ **FALTA**: Finalizar a lógica de assinatura da ata pelo professor.
+- ❌ **FALTA**: Finalizar a notificação automática para os alunos sobre os resultados.
 
-#### **Módulo 4: Cadastro Final** 🚧 **50% COMPLETO**
-- ✅ Coleta de dados bancários
-- ❌ **FALTA**: `termosRouter` para termos de compromisso
-- ❌ **FALTA**: `vagasRouter` para aceite com validações
-- ❌ **FALTA**: Consolidação final para PROGRAD
-- ❌ **FALTA**: Validação de limite de bolsas
+#### **Módulo 4: Cadastro Final** 🚧 **65% COMPLETO**
+- ✅ Coleta de dados bancários do aluno.
+- ✅ `vagasRouter` para o aceite/recusa de vagas foi criado.
+- ✅ `termosRouter` para gerenciar Termos de Compromisso foi criado.
+- ❌ **FALTA**: Implementar a validação completa de limite de bolsas no `vagasRouter`.
+- ❌ **FALTA**: Finalizar a geração e assinatura do Termo de Compromisso.
+- ❌ **FALTA**: Expandir `relatoriosRouter` para a consolidação final da PROGRAD com os novos dados.
 
 ## 5. Próximos Passos Prioritários (ATUALIZADOS)
 
-### **FASE 1 - Completar Módulo 3 (URGENTE)**
+### **FASE 1 - Finalizar Módulos 3 e 4 (CRÍTICO)**
 
-#### 1.1 Implementar `selecaoRouter`
-```typescript
-// Criar: src/server/api/routers/selecao/selecao.ts
-export const selecaoRouter = createTRPCRouter({
-  generateAta: protectedProcedure // Gerar atas de seleção
-  publishResults: protectedProcedure // Publicar resultados  
-  getApplicationsForGrading: protectedProcedure // Candidatos por projeto
-  notifyStudents: protectedProcedure // Notificar alunos sobre resultados
-});
-```
+#### 1.1 Finalizar `selecaoRouter` e `vagasRouter`
+- Implementar a validação de limite de 1 bolsa por semestre no `vagasRouter`.
+- Conectar a página `/professor/publicar-resultados` ao `selecaoRouter` para notificar os alunos.
 
-#### 1.2 Conectar páginas órfãs
-- Conectar `/professor/atas-selecao` ao `selecaoRouter.generateAta`
-- Conectar `/professor/publicar-resultados` ao `selecaoRouter.publishResults`
+#### 1.2 Finalizar `termosRouter` e `atas-selecao`
+- Implementar o fluxo de assinatura digital para a `Ata de Seleção`.
+- Conectar a página `/professor/termos-compromisso` ao `termosRouter` para a geração e assinatura dos Termos de Compromisso.
 
-### **FASE 2 - Implementar Módulo 4 (CRÍTICO)**
+#### 1.3 Expandir `relatoriosRouter`
+- Implementar a geração da planilha final para a PROGRAD, separando bolsistas e voluntários e incluindo os dados bancários.
 
-#### 2.1 Implementar `vagasRouter`
-```typescript
-// Criar: src/server/api/routers/vagas/vagas.ts
-export const vagasRouter = createTRPCRouter({
-  acceptVaga: protectedProcedure // Aceitar vaga com validação de bolsa única
-  rejectVaga: protectedProcedure // Recusar vaga
-  getMyVagas: protectedProcedure // Vagas do aluno
-  validateBolsaLimit: protectedProcedure // Validar limite de 1 bolsa
-});
-```
+### **FASE 2 - Testes e Validação**
 
-#### 2.2 Implementar `termosRouter`
-```typescript
-// Criar: src/server/api/routers/termos/termos.ts
-export const termosRouter = createTRPCRouter({
-  generateTermo: protectedProcedure // Gerar termo de compromisso
-  signTermo: protectedProcedure // Assinar termo digitalmente
-  getTermosStatus: protectedProcedure // Status de assinaturas
-  downloadTermo: protectedProcedure // Download do termo
-});
-```
-
-#### 2.3 Expandir `relatoriosRouter`
-```typescript
-// Adicionar ao relatoriosRouter existente:
-monitoresFinal: protectedProcedure // Planilha final de monitores
-validateCompleteData: protectedProcedure // Validar dados completos
-exportConsolidated: protectedProcedure // Exportação consolidada
-```
-
-### **FASE 3 - Sistema de Notificações**
-
-#### 3.1 Implementar `notificacoesRouter`
-```typescript
-// Criar: src/server/api/routers/notificacoes/notificacoes.ts
-export const notificacoesRouter = createTRPCRouter({
-  sendReminders: protectedProcedure // Lembretes automáticos
-  getHistory: protectedProcedure // Histórico de notificações
-  markAsRead: protectedProcedure // Marcar como lida
-});
-```
-
-### **FASE 4 - Atualizar root.ts**
-
-```typescript
-// Adicionar ao appRouter em src/server/api/root.ts:
-export const appRouter = createTRPCRouter({
-  // ... routers existentes
-  selecao: selecaoRouter,        // NOVO
-  termos: termosRouter,          // NOVO  
-  vagas: vagasRouter,            // NOVO
-  notificacoes: notificacoesRouter, // NOVO
-});
-```
+#### 2.1 Cobertura de Testes com Vitest
+- ✅ Ambiente de testes com Vitest e Vitest UI foi configurado.
+- ✅ Testes iniciais para os routers `departamento`, `user`, e `projeto` foram criados.
+- 🚧 **A FAZER**: Expandir a cobertura de testes para todos os routers, focando nos fluxos críticos (inscrição, seleção, aceite de vaga).
 
 ## 6. Estimativa de Esforço
 
-**Módulo 3 (selecaoRouter):** 2-3 dias
-**Módulo 4 (vagas + termos):** 4-5 dias  
-**Sistema de notificações:** 2 dias
-**Consolidação PROGRAD:** 1-2 dias
-**Testes e ajustes:** 2-3 dias
+**Finalizar Módulos 3 & 4:** 4-6 dias  
+**Expandir Cobertura de Testes:** 3-4 dias
+**Testes e ajustes manuais:** 2-3 dias
 
-**TOTAL ESTIMADO:** 11-15 dias para completar 100% dos requisitos
+**TOTAL ESTIMADO:** 9-13 dias para completar 100% dos requisitos e garantir a qualidade com testes.
 
 O sistema possui uma arquitetura robusta e já implementou 75% dos requisitos. Os 4 routers faltantes (`selecao`, `termos`, `vagas`, `notificacoes`) são críticos para completar o fluxo de monitoria conforme especificado nas transcrições das reuniões.
 

@@ -156,10 +156,10 @@ function StudentProfile() {
         cpf: aluno.cpf || '',
         cursoId: aluno.cursoId || 0,
         cr: aluno.cr || 0,
-        banco: (aluno as any).banco || '',
-        agencia: (aluno as any).agencia || '',
-        conta: (aluno as any).conta || '',
-        digitoConta: (aluno as any).digitoConta || '',
+        banco: (aluno).banco || '',
+        agencia: (aluno).agencia || '',
+        conta: (aluno).conta || '',
+        digitoConta: (aluno).digitoConta || '',
       })
     }
     setIsEditing(false)

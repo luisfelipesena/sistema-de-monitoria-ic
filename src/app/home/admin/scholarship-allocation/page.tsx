@@ -25,30 +25,6 @@ const filterFormSchema = z.object({
 
 type FilterFormData = z.infer<typeof filterFormSchema>
 
-type ProjectAllocationItem = {
-  id: number
-  titulo: string
-  bolsasSolicitadas: number
-  bolsasDisponibilizadas: number | null
-  bolsasAlocadas: number
-  voluntariosSolicitados: number
-  professorResponsavel: {
-    id: number
-    nomeCompleto: string
-    emailInstitucional: string
-  }
-  departamento: {
-    id: number
-    nome: string
-    sigla: string
-  }
-  disciplinas: Array<{
-    id: number
-    codigo: string
-    nome: string
-  }>
-}
-
 export default function ScholarshipAllocationPage() {
   const [filters, setFilters] = useState<FilterFormData>({
     ano: new Date().getFullYear(),
@@ -135,7 +111,7 @@ export default function ScholarshipAllocationPage() {
     bulkUpdateMutation.mutate({ allocations })
   }
 
-  const getAllocationStatus = (project: ProjectAllocationItem) => {
+  const getAllocationStatus = (project: NonNullable<typeof projects>[number]) => {
     const disponibilizadas = project.bolsasDisponibilizadas || 0
     const solicitadas = project.bolsasSolicitadas
     
@@ -145,7 +121,7 @@ export default function ScholarshipAllocationPage() {
     return 'Sobre-alocado'
   }
 
-  const getStatusBadge = (project: ProjectAllocationItem) => {
+  const getStatusBadge = (project: NonNullable<typeof projects>[number]) => {
     const status = getAllocationStatus(project)
     
     switch (status) {
@@ -162,7 +138,7 @@ export default function ScholarshipAllocationPage() {
     }
   }
 
-  const columns: ColumnDef<ProjectAllocationItem>[] = [
+  const columns: ColumnDef<NonNullable<typeof projects>[number], unknown>[] = [
     {
       header: 'Projeto',
       accessorKey: 'titulo',
@@ -263,9 +239,10 @@ export default function ScholarshipAllocationPage() {
     },
   ]
 
-  const candidateColumns: ColumnDef<any>[] = [
+  const candidateColumns: ColumnDef<NonNullable<typeof candidates>[number], unknown>[] = [
     {
       header: 'Aluno',
+      id: 'aluno',
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.aluno.nomeCompleto}</div>
@@ -275,14 +252,17 @@ export default function ScholarshipAllocationPage() {
     },
     {
       header: 'CR',
+      id: 'cr',
       cell: ({ row }) => row.original.aluno.cr?.toFixed(2) || '-',
     },
     {
       header: 'Nota Final',
+      id: 'notaFinal',
       cell: ({ row }) => row.original.notaFinal || '-',
     },
     {
       header: 'Tipo Pretendido',
+      id: 'tipoVaga',
       cell: ({ row }) => (
         <Badge variant="outline">
           {row.original.tipoVagaPretendida === 'BOLSISTA' ? 'Bolsista' : 'Voluntário'}
@@ -291,6 +271,7 @@ export default function ScholarshipAllocationPage() {
     },
     {
       header: 'Ações',
+      id: 'actions',
       cell: ({ row }) => (
         <div className="flex gap-2">
           <Button
@@ -326,7 +307,6 @@ export default function ScholarshipAllocationPage() {
       subtitle="Gerencie a distribuição de bolsas para projetos aprovados"
     >
       <div className="space-y-6">
-        {/* Filters */}
         <Card>
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
@@ -379,7 +359,6 @@ export default function ScholarshipAllocationPage() {
           </CardContent>
         </Card>
 
-        {/* Summary Cards */}
         {summary && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
@@ -432,7 +411,6 @@ export default function ScholarshipAllocationPage() {
           </div>
         )}
 
-        {/* Projects Table */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -463,7 +441,7 @@ export default function ScholarshipAllocationPage() {
               </div>
             ) : projects && projects.length > 0 ? (
               <TableComponent
-                columns={columns as any}
+                columns={columns}
                 data={projects}
                 searchableColumn="titulo"
                 searchPlaceholder="Buscar por título do projeto..."
@@ -482,7 +460,6 @@ export default function ScholarshipAllocationPage() {
           </CardContent>
         </Card>
 
-        {/* Candidates Dialog */}
         {selectedProjectId && (
           <Dialog open={!!selectedProjectId} onOpenChange={() => setSelectedProjectId(null)}>
             <DialogContent className="max-w-4xl">
