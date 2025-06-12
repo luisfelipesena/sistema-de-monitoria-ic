@@ -63,17 +63,17 @@ describe('departamentoRouter', () => {
         createdAt: new Date(),
         updatedAt: null,
       },
-      { 
-        id: 2, 
-        nome: 'Matemática', 
-        sigla: 'MAT', 
+      {
+        id: 2,
+        nome: 'Matemática',
+        sigla: 'MAT',
         unidadeUniversitaria: 'UFBA',
         coordenador: null,
         email: null,
         telefone: null,
         descricao: null,
-        createdAt: new Date(), 
-        updatedAt: null 
+        createdAt: new Date(),
+        updatedAt: null,
       },
     ]
 
