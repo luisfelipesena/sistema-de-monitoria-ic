@@ -17,8 +17,7 @@ export const GET = async (req: NextRequest) => {
     return NextResponse.json({ error: 'No ticket provided' }, { status: 500, statusText: 'No ticket provided' })
   }
 
-  const serviceUrl = `${url.origin}${url.pathname}`
-  const serviceResponse = await casCallbackService.validateTicket(ticket, serviceUrl)
+  const serviceResponse = await casCallbackService.validateTicket(ticket)
   if (serviceResponse?.['cas:authenticationSuccess']) {
     const authSuccess = serviceResponse['cas:authenticationSuccess']
     const username = authSuccess['cas:user']

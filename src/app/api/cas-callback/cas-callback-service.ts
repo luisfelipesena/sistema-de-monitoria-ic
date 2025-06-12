@@ -28,8 +28,10 @@ export class CasCallbackService {
     })
   }
 
-  async validateTicket(ticket: string, serviceUrl: string) {
+  async validateTicket(ticket: string) {
     const casServerUrlPrefix = env.CAS_SERVER_URL_PREFIX
+    const serverUrl = env.SERVER_URL
+    const serviceUrl = `${serverUrl}/cas-callback`
     const validationUrl = `${casServerUrlPrefix}/serviceValidate?ticket=${ticket}&service=${encodeURIComponent(serviceUrl)}`
 
     log.info(`Validating CAS ticket: ${ticket} at ${validationUrl}`)
