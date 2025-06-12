@@ -89,6 +89,10 @@ function StudentProfile() {
     cpf: '',
     cursoId: 0,
     cr: 0,
+    banco: '',
+    agencia: '',
+    conta: '',
+    digitoConta: '',
   })
 
   const { data: userProfile, isLoading } = api.user.getProfile.useQuery()
@@ -105,6 +109,10 @@ function StudentProfile() {
         cpf: aluno.cpf || '',
         cursoId: aluno.cursoId || 0,
         cr: aluno.cr || 0,
+        banco: (aluno).banco || '',
+        agencia: (aluno).agencia || '',
+        conta: (aluno).conta || '',
+        digitoConta: (aluno).digitoConta || '',
       })
     }
   }, [aluno])
@@ -118,6 +126,10 @@ function StudentProfile() {
           cpf: formData.cpf,
           cursoId: formData.cursoId,
           cr: formData.cr,
+          banco: formData.banco,
+          agencia: formData.agencia,
+          conta: formData.conta,
+          digitoConta: formData.digitoConta,
         }
       })
 
@@ -144,6 +156,10 @@ function StudentProfile() {
         cpf: aluno.cpf || '',
         cursoId: aluno.cursoId || 0,
         cr: aluno.cr || 0,
+        banco: (aluno as any).banco || '',
+        agencia: (aluno as any).agencia || '',
+        conta: (aluno as any).conta || '',
+        digitoConta: (aluno as any).digitoConta || '',
       })
     }
     setIsEditing(false)
@@ -265,6 +281,65 @@ function StudentProfile() {
                     setFormData({ ...formData, cr: parseFloat(e.target.value) })
                   }
                   disabled={!isEditing}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Dados Bancários (para Bolsistas)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="banco">Banco</Label>
+                <Input
+                  id="banco"
+                  value={formData.banco}
+                  onChange={(e) =>
+                    setFormData({ ...formData, banco: e.target.value })
+                  }
+                  disabled={!isEditing}
+                  placeholder="Ex: Banco do Brasil"
+                />
+              </div>
+              <div>
+                <Label htmlFor="agencia">Agência</Label>
+                <Input
+                  id="agencia"
+                  value={formData.agencia}
+                  onChange={(e) =>
+                    setFormData({ ...formData, agencia: e.target.value })
+                  }
+                  disabled={!isEditing}
+                  placeholder="Ex: 1234-5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="conta">Conta Corrente</Label>
+                <Input
+                  id="conta"
+                  value={formData.conta}
+                  onChange={(e) =>
+                    setFormData({ ...formData, conta: e.target.value })
+                  }
+                  disabled={!isEditing}
+                  placeholder="Ex: 12345-6"
+                />
+              </div>
+              <div>
+                <Label htmlFor="digitoConta">Dígito</Label>
+                <Input
+                  id="digitoConta"
+                  value={formData.digitoConta}
+                  onChange={(e) =>
+                    setFormData({ ...formData, digitoConta: e.target.value })
+                  }
+                  disabled={!isEditing}
+                  maxLength={2}
+                  placeholder="Ex: 7"
                 />
               </div>
             </div>

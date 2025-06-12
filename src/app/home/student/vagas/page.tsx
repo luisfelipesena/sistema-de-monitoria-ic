@@ -21,6 +21,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { FileUploadField } from '@/components/ui/FileUploadField'
 
 import {
   Select,
@@ -38,6 +39,22 @@ interface ApplicationModalProps {
   isSubmitting?: boolean
 }
 
+const requiredDocuments = {
+  BOLSISTA: [
+    { id: 'historico_escolar', name: 'Histórico Escolar' },
+    { id: 'comprovante_matricula', name: 'Comprovante de Matrícula' },
+    { id: 'comprovante_cr', name: 'Comprovante de CR' },
+  ],
+  VOLUNTARIO: [
+    { id: 'historico_escolar', name: 'Histórico Escolar' },
+    { id: 'comprovante_matricula', name: 'Comprovante de Matrícula' },
+  ],
+  ANY: [
+    { id: 'historico_escolar', name: 'Histórico Escolar' },
+    { id: 'comprovante_matricula', name: 'Comprovante de Matrícula' },
+  ],
+} as const
+
 function ApplicationModal({
   isOpen,
   onClose,
@@ -51,6 +68,7 @@ function ApplicationModal({
     experience: '',
     availability: '',
     phone: '',
+    documentos: [] as { fileId: string; tipoDocumento: string }[],
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -62,7 +80,6 @@ function ApplicationModal({
 
     onSubmit({
       ...formData,
-      documentos: [], // Empty for now - documents would be handled here
     })
   }
 
@@ -73,11 +90,27 @@ function ApplicationModal({
       experience: '',
       availability: '',
       phone: '',
+      documentos: [],
     })
     onClose()
   }
 
+  const handleDocumentUpload = (docType: string, fileId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      documentos: [
+        ...prev.documentos.filter((d) => d.tipoDocumento !== docType),
+        { fileId, tipoDocumento: docType },
+      ],
+    }))
+  }
+
   if (!isOpen) return null
+
+  const docsToUpload = requiredDocuments[formData.tipoVagaPretendida]
+  const allDocsUploaded = docsToUpload.every((doc) =>
+    formData.documentos.some((d) => d.tipoDocumento === doc.id)
+  )
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -193,6 +226,22 @@ function ApplicationModal({
             />
           </div>
 
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="font-semibold">Documentos Obrigatórios</h3>
+            {docsToUpload.map((doc) => (
+              <FileUploadField
+                key={doc.id}
+                label={doc.name}
+                description={`Envie seu ${doc.name.toLowerCase()}`}
+                accept=".pdf,.jpg,.jpeg,.png"
+                entityType="inscricao_documento"
+                entityId={project.id.toString()}
+                onFileUploaded={(fileId) => handleDocumentUpload(doc.id, fileId)}
+                required
+              />
+            ))}
+          </div>
+
           <div className="flex gap-3 pt-4 border-t">
             <Button
               type="button"
@@ -205,7 +254,7 @@ function ApplicationModal({
             <Button
               type="submit"
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={isSubmitting || !formData.motivation.trim()}
+              disabled={isSubmitting || !formData.motivation.trim() || !allDocsUploaded}
             >
               {isSubmitting ? 'Enviando...' : 'Enviar Inscrição'}
             </Button>
@@ -294,6 +343,7 @@ export default function InscricaoMonitoriaPage() {
       await criarInscricao.mutateAsync({
         projetoId: applicationModal.project.id,
         tipoVagaPretendida: applicationData.tipoVagaPretendida,
+        documentos: applicationData.documentos,
       })
 
       toast({

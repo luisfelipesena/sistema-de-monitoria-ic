@@ -261,10 +261,7 @@ sistema-de-monitoria-ic/
 ### OpenAPI/Swagger
 
 A documentação interativa da API está disponível em:
-```
-https://sistema-de-monitoria.app.ic.ufba.br/docs
-http://localhost:3000/docs
-```
+[https://sistema-de-monitoria.app.ic.ufba.br/docs](https://sistema-de-monitoria.app.ic.ufba.br/docs)
 
 ### Endpoints tRPC
 

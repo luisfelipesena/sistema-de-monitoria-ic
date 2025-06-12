@@ -42,6 +42,7 @@ O schema atual (`src/server/database/schema.ts`) suporta bem os requisitos:
 - **periodo_inscricao**: Define janelas de inscrição
 - **projeto_documento**: Armazena documentos (PDFs gerados, metadados de assinatura)
 - **assinatura_documento** (Nova sugestão): Tabela para armazenar dados da assinatura digital (e.g., imagem base64, timestamp, userId) vinculada a um `projeto_documento` ou `termo_compromisso`.
+- **inscricaoDocumentoTable**: Armazena documentos específicos de cada inscrição.
 
 ### Arquitetura e Suporte aos Requisitos
 
@@ -76,16 +77,6 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ✅ Hook `useProjectImport` para gerenciar o upload e o estado da UI.
 - ✅ Feedback de sucesso/erro via toasts.
 
-**Sugestão de Implementação:**
-- [x] Criar endpoint `/api/projeto/import-planning`:
-  ```typescript
-  // src/routes/api/projeto/import-planning.ts
-  POST: Upload Excel → Parse → Validate → Create Draft Projects
-  ```
-- [x] Criar hook `useProjectImport()` no frontend
-- [x] Adicionar tabela `projeto_template` no schema para armazenar dados históricos
-- [x] Implementar UI de importação em `/home/_layout/admin/_layout/import-projects.tsx`
-
 #### 1.2 Geração Automática de PDF de Projetos
 
 **Status Atual:** ✅ **IMPLEMENTADO** (geração completa com assinatura digital)
@@ -97,12 +88,6 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ✅ Preenchimento automático de datas (aprovação, assinatura)
 - ✅ Download direto pelo professor e admin
 
-**Implementação Atual:**
-- ✅ `MonitoriaFormTemplate` como template principal
-- ✅ Geração server-side com `renderToBuffer`
-- ✅ Controle de acesso por role (professor, admin)
-- ✅ Integração com sistema de assinaturas
-
 #### 1.3 Fluxo de Assinatura pelo Professor
 
 **Status Atual:** ✅ **IMPLEMENTADO** (assinatura digital integrada)
@@ -112,12 +97,6 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ✅ Sistema atualiza status DRAFT → SUBMITTED automaticamente  
 - ✅ Notificação automática para todos os admins
 - ✅ Interface PDF interativa com preenchimento de datas
-
-**Implementação Atual:**
-- ✅ Endpoint unificado `/api/projeto/$id/assinatura` (suporta professor e admin)
-- ✅ UI em `InteractiveProjectPDF` para assinatura digital
-- ✅ Hook `useProfessorSignature()` para gerenciar fluxo
-- ✅ Integração com `MonitoriaFormTemplate` para geração de PDF
 
 #### 1.4 Sistema de Assinatura Digital Unificado
 
@@ -129,17 +108,6 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ✅ Auto-preenchimento de datas (aprovação e assinatura)
 - ✅ Fluxo automático: Professor → Admin → Notificações
 - ✅ Interface administrativa para assinatura (`/home/admin/document-signing`)
-
-**Fluxo Completo Implementado:**
-1. **Professor:** DRAFT → assina → SUBMITTED + notifica admins
-2. **Admin:** SUBMITTED → assina → APPROVED + notifica professor
-3. **Sistema:** Gerencia estados e notificações automaticamente
-
-**Implementação Técnica:**
-- ✅ `InteractiveProjectPDF` - componente de assinatura unificado
-- ✅ `useProfessorSignature()` e `useAdminSignature()` - hooks específicos
-- ✅ `MonitoriaFormTemplate` - template PDF com campos de assinatura
-- ✅ Controle de acesso por role e validação de permissões
 
 #### 1.5 Sistema de Notificações por Email
 
@@ -155,11 +123,6 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - [ ] Lembretes automáticos para assinaturas pendentes
 - [ ] Histórico de notificações enviadas
 - [ ] Templates HTML mais elaborados
-
-**Sugestão de Implementação:**
-- [ ] Adicionar tabela `notificacao_historico` ao schema
-- [ ] Criar job scheduler para lembretes automáticos
-- [ ] Endpoint `/api/notifications/send-reminders`
 
 #### 1.6 Geração de Planilha PROGRAD
 
@@ -177,12 +140,6 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ✅ Hook `useProgradExport` que gerencia o download e permite filtros por ano, semestre e departamento.
 - ✅ Interface para admin em `/home/admin/relatorios` para selecionar filtros e baixar o relatório.
 - ✅ Nomenclatura dinâmica de arquivos com base nos filtros selecionados.
-
-**Sugestão de Implementação:**
-- [x] Refatorar `/api/relatorios/planilhas-prograd`
-- [x] Utilizar `exceljs` para formato correto
-- [x] Criar tipo `ProgradProjectExport` com campos obrigatórios (implementado implicitamente na estrutura de dados)
-- [x] Hook `useProgradExport()` com feedback de progresso
 
 ### Módulo 2: Edital Interno e Inscrições (Admin e Alunos)
 
@@ -203,17 +160,6 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ✅ Tabela interativa mostrando projetos aprovados com inputs numéricos para definir bolsas
 - ✅ Validação de dados com Zod e feedback de sucesso/erro via toasts
 - ✅ Interface responsiva com loading states e controle de permissões
-
-**Pendências/Melhorias:**
-- [ ] Histórico de distribuições por semestre
-- [ ] Validação de limites totais de bolsas disponíveis
-- [ ] Relatórios de distribuição por departamento
-
-**Implementação Técnica:**
-- [x] Campo `bolsasDisponibilizadas` na tabela `projeto`
-- [x] Página `/home/_layout/admin/_layout/scholarship-allocation.tsx`  
-- [x] Endpoint `/api/projeto/$id/allocate-scholarships`
-- [x] Hook `useScholarshipAllocation()` com invalidação automática
 
 #### 2.2 Geração de Edital Interno
 
@@ -236,56 +182,20 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ✅ Armazenamento seguro no MinIO com nomenclatura organizada
 - ✅ Build funcionando sem erros de lint
 
-**Implementação Técnica:**
-- [x] Tabela `edital` no schema
-- [x] Endpoint `/api/edital/generate`
-- [x] Template em `src/server/lib/pdfTemplates/edital.tsx`
-- [x] UI em `/home/_layout/admin/_layout/edital-management.tsx`
-- [x] Hooks `useGenerateEdital`, `useEditalList`, `useDownloadEdital`, `usePublishEdital`
-- [x] Integração com períodos de inscrição
-- [x] Validação de dados e controle de acesso
-- [x] Sidebar atualizada para apontar para `/home/admin/edital-management`
-
-**Pendências/Melhorias:**
-- [ ] Versionamento de editais (histórico de mudanças)
-- [ ] Assinatura digital de editais
-- [ ] Templates personalizáveis por departamento
-
-#### 2.3 Validação de Documentos Obrigatórios
+#### 2.3 Validação de Documentos Obrigatórios por Inscrição
 
 **Status Atual:** ✅ **IMPLEMENTADO**
 
 **Requisitos do Cliente:**
-- Verificar documentos obrigatórios por tipo de vaga
-- Alertar alunos sobre pendências
-- Bloquear inscrições incompletas
+- Alunos devem enviar documentos para cada inscrição.
+- O sistema deve validar os documentos obrigatórios.
+- Bloquear inscrições com documentos pendentes.
 
 **Funcionalidades Implementadas:**
-- ✅ Enum `RequiredDocumentType` definindo tipos de documentos por vaga (`BOLSISTA`, `VOLUNTARIO`, `ANY`)
-- ✅ Biblioteca de validação em `src/lib/document-validation.ts` com metadados completos
-- ✅ Componente `DocumentChecklist` com interface visual para upload e validação
-- ✅ Validação no endpoint `/api/monitoria/inscricao/index.ts` que bloqueia inscrições incompletas
-- ✅ Hooks `useCriarInscricao()` e `useUploadInscricaoDocument()` para gerenciar o fluxo
-- ✅ Interface integrada no modal de inscrição com feedback visual em tempo real
-- ✅ Sistema de upload com preview, remoção e validação de tipos de arquivo
-
-**Implementação Técnica:**
-- [x] Criar enum `RequiredDocuments` por tipo de vaga
-- [x] Validação em `useInscricao()` hook  
-- [x] Componente `DocumentChecklist` com upload visual
-- [x] Middleware de validação no endpoint de inscrição
-- [x] Interface responsiva com progresso e feedback de erro
-- [x] Metadados por documento (formatos aceitos, tamanho máximo, descrições)
-
-**Documentos por Tipo de Vaga:**
-- **BOLSISTA**: Histórico Escolar, Comprovante de Matrícula, Comprovante de CR, RG/CPF, Foto 3x4
-- **VOLUNTARIO**: Histórico Escolar, Comprovante de Matrícula, Comprovante de CR  
-- **ANY**: Histórico Escolar, Comprovante de Matrícula, Comprovante de CR
-
-**Pendências/Melhorias:**
-- [ ] Validação adicional de conteúdo dos documentos
-- [ ] Histórico de documentos enviados por aluno
-- [ ] Notificações automáticas para documentos pendentes
+- ✅ Tabela `inscricaoDocumentoTable` para associar arquivos a uma inscrição específica.
+- ✅ O endpoint `/api/inscricao/createInscricao` foi atualizado para receber um array de documentos.
+- ✅ A UI no modal de inscrição (`/home/student/vagas/page.tsx`) agora inclui uploaders para os documentos necessários.
+- ✅ A lógica de negócios no frontend desabilita o botão de inscrição até que todos os documentos obrigatórios sejam carregados.
 
 ### Módulo 3: Seleção de Monitores e Atas (Professores e Admin)
 
@@ -306,21 +216,9 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ✅ UI em `/home/professor/grade-applications` onde o professor pode selecionar um projeto e inserir as notas para cada candidato.
 - ✅ A UI exibe a nota final calculada após salvar.
 
-**Sugestão de Implementação:**
-- [x] Adicionar à tabela `inscricao`:
-  ```typescript
-  notaDisciplina: decimal('nota_disciplina', { precision: 3, scale: 2 }),
-  notaSelecao: decimal('nota_selecao', { precision: 3, scale: 2 }),
-  coeficienteRendimento: decimal('cr', { precision: 3, scale: 2 }),
-  notaFinal: decimal('nota_final', { precision: 3, scale: 2 }),
-  ```
-- [x] Criar `/home/_layout/professor/_layout/grade-applications.tsx`
-- [x] Endpoint `/api/inscricao/$id/grades`
-- [x] Hook `useApplicationGrading()`
-
 #### 3.2 Geração de Atas de Seleção
 
-**Status Atual:** ✅ **IMPLEMENTADO**
+**Status Atual:** 🚧 **PARCIALMENTE IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Gerar ata automática da reunião de seleção
@@ -330,20 +228,13 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 **Funcionalidades Implementadas:**
 - ✅ Tabela `ata_selecao` adicionada ao schema para versionamento e rastreamento.
 - ✅ Endpoint `/api/projeto/$id/gerar-ata-data` que coleta e formata os dados necessários para a ata.
-- ✅ Template de PDF para a ata criado em `src/server/lib/pdfTemplates/ata.ts`.
-- ✅ Hook `useGenerateAtaData` para buscar os dados da ata no frontend.
-- ✅ UI em `/home/professor/gerar-ata` que permite ao professor selecionar um projeto e gerar a ata.
-- ✅ A ata é renderizada no frontend com `<PDFViewer />`, permitindo visualização e download pelo professor.
-
-**Sugestão de Implementação:**
-- [x] Implementar `/api/projeto/$id/gerar-ata` (endpoint de dados foi criado em seu lugar).
-- [x] Template em `src/server/lib/pdfTemplates/ata.ts`
-- [x] Adicionar tabela `ata_selecao` ao schema
-- [x] UI para download e upload de ata assinada (visualização e download implementados).
+- ✅ UI em `/home/professor/gerar-ata` que permite ao professor selecionar um projeto e gerar os dados da ata.
+- ❌ **FALTA**: Template de PDF para a ata.
+- ❌ **FALTA**: Fluxo completo de assinatura da ata pelo professor.
 
 #### 3.3 Publicação de Resultados
 
-**Status Atual:** ✅ **IMPLEMENTADO**
+**Status Atual:** 🚧 **PARCIALMENTE IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Gerar PDF com resultados por disciplina
@@ -352,23 +243,27 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 
 **Funcionalidades Implementadas:**
 - ✅ Endpoint `/api/projeto/$id/publish-results-data` que coleta e formata os dados dos aprovados.
-- ✅ Template de PDF para o resultado final criado em `src/server/lib/pdfTemplates/resultado.ts`.
-- ✅ Hook `usePublishResultsData` para buscar os dados do resultado no frontend.
-- ✅ UI em `/home/professor/publish-results` que permite ao professor selecionar um projeto e gerar o PDF.
-- ✅ O resultado é renderizado no frontend com `<PDFViewer />`, permitindo visualização e download.
-- 🚧 A notificação automática para os alunos ainda precisa ser implementada como um passo separado.
-
-**Sugestão de Implementação:**
-- [x] Endpoint `/api/projeto/$id/publish-results` (endpoint de dados foi criado em seu lugar).
-- [x] Template em `src/server/lib/pdfTemplates/resultado.ts`
-- [ ] Página pública de resultados (implementado como página de professor por enquanto).
-- [ ] Integração com sistema de notificações.
+- ✅ UI em `/home/professor/publish-results` para visualizar os resultados.
+- ❌ **FALTA**: Template de PDF para o resultado final.
+- ❌ **FALTA**: Notificação automática para os alunos.
 
 ### Módulo 4: Confirmação e Cadastro de Monitores (Alunos, Professores, Admin)
 
-#### 4.1 Fluxo de Aceite com Validações
+#### 4.1 Coleta de Dados Bancários do Aluno
 
-**Status Atual:** 🚧 Endpoints existem mas sem validação completa
+**Status Atual:** ✅ **IMPLEMENTADO**
+
+**Requisitos do Cliente:**
+- Coletar dados bancários de alunos para pagamento de bolsas.
+
+**Funcionalidades Implementadas:**
+- ✅ Campos `banco`, `agencia`, `conta`, `digitoConta` adicionados à `alunoTable`.
+- ✅ O perfil do aluno (`/home/profile/page.tsx`) foi atualizado com um formulário para coletar e editar essas informações.
+- ✅ O endpoint `/api/users/profile` no `userRouter` foi atualizado para salvar e recuperar os dados bancários.
+
+#### 4.2 Fluxo de Aceite com Validações
+
+**Status Atual:** 🚧 **Endpoint existe mas sem validação completa**
 
 **Requisitos do Cliente:**
 - Limite de 1 bolsa por aluno/semestre
@@ -376,28 +271,13 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - Prazo para aceite/recusa
 
 **Pendências/Melhorias:**
-- [ ] Validação de bolsa única
+- [ ] Validação de bolsa única no backend
 - [ ] Controle de prazos
-- [ ] Interface clara de aceite
+- [ ] Interface clara de aceite para o aluno
 
-**Sugestão de Implementação:**
-- [ ] Adicionar validação em `/api/inscricao/$id/aceitar`:
-  ```typescript
-  // Verificar se aluno já tem bolsa no semestre
-  const bolsaExistente = await ctx.db.query.vaga.findFirst({
-    where: and(
-      eq(vaga.alunoId, alunoId),
-      eq(vaga.semestreId, semestreId),
-      eq(vaga.tipoBolsa, 'bolsista')
-    )
-  });
-  ```
-- [ ] UI com avisos claros sobre limites
-- [ ] Campo `prazoAceite` na tabela `inscricao`
+#### 4.3 Geração de Termos de Compromisso
 
-#### 4.2 Geração de Termos de Compromisso
-
-**Status Atual:** ❌ Não implementado
+**Status Atual:** ❌ **NÃO IMPLEMENTADO**
 
 **Requisitos do Cliente:**
 - Gerar termo personalizado por aluno
@@ -409,88 +289,19 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - [ ] Personalização por tipo de vaga
 - [ ] Rastreamento de assinaturas
 
-**Sugestão de Implementação:**
-- [ ] Endpoint `/api/vaga/$id/termo-compromisso`
-- [ ] Template em `src/server/lib/pdfTemplates/termo.ts`
-- [ ] Adicionar status de assinatura na tabela `vaga`
-- [ ] UI para download e upload
+#### 4.4 Consolidação Final para PROGRAD
 
-#### 4.3 Consolidação Final para PROGRAD
-
-**Status Atual:** ❌ Formato incorreto
+**Status Atual:** 🚧 **Endpoint existe mas formato incorreto e dados incompletos**
 
 **Requisitos do Cliente:**
-- Planilha de bolsistas com todos os dados
+- Planilha de bolsistas com todos os dados (incluindo bancários)
 - Planilha de voluntários separada
 - Formato específico PROGRAD
 
 **Pendências/Melhorias:**
 - [ ] Mapeamento exato dos campos
-- [ ] Separação por tipo
-- [ ] Validação de dados completos
-
-**Sugestão de Implementação:**
-- [ ] Criar `/api/relatorios/monitores-final`
-- [ ] Tipos `ProgradBolsistaExport` e `ProgradVoluntarioExport`
-- [ ] Validação de documentos antes da exportação
-- [ ] UI com preview antes do download
-
-### Perfis de Usuário e Onboarding
-
-#### Melhorias no Onboarding
-
-**Status Atual:** 🚧 Básico implementado
-
-**Pendências/Melhorias:**
-- [ ] Campos adicionais no perfil do aluno:
-  - Banco/agência/conta para bolsa
-  - Documentos permanentes (RG, CPF)
-  - Contatos de emergência
-  
-- [ ] Campos do professor:
-  - SIAPE
-  - Titulação
-  - Áreas de pesquisa
-
-**Sugestão de Implementação:**
-- [ ] Expandir schemas `aluno` e `professor`
-- [ ] Melhorar forms em `/home/_layout/common/onboarding/`
-- [ ] Validação progressiva de perfil completo
-- [ ] Indicadores visuais de completude
-
-### Outras Funcionalidades
-
-#### Gerenciamento CRUD Completo (Admin)
-
-**Status Atual:** 🚧 Parcialmente implementado
-
-**Pendências/Melhorias:**
-- [ ] CRUD de Departamentos
-- [ ] CRUD de Cursos  
-- [ ] CRUD de Semestres
-- [ ] Logs de auditoria
-
-**Sugestão de Implementação:**
-- [ ] Páginas admin com DataTables
-- [ ] Endpoints RESTful completos
-- [ ] Soft delete onde aplicável
-- [ ] Hook genérico `useCrud<T>()`
-
-#### Analytics Dashboard
-
-**Status Atual:** 🚧 Endpoint existe mas incompleto
-
-**Pendências/Melhorias:**
-- [ ] Métricas de projetos por status
-- [ ] Taxa de aprovação de inscrições
-- [ ] Distribuição por departamento
-- [ ] Evolução temporal
-
-**Sugestão de Implementação:**
-- [ ] Expandir `/api/analytics/dashboard`
-- [ ] Componentes de gráficos com Recharts
-- [ ] Cache de métricas para performance
-- [ ] Filtros por período
+- [ ] Separação por tipo de monitor
+- [ ] Validação de dados completos antes da exportação
 
 ## 4. Status Atual e Lacunas Identificadas (Janeiro 2025)
 
@@ -505,9 +316,9 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ✅ `edital`: Geração e gestão de editais internos
 - ✅ `departamento`: CRUD de departamentos
 - ✅ `projeto`: Gestão completa de projetos de monitoria
-- ✅ `inscricao`: Sistema de inscrições de alunos
+- ✅ `inscricao`: Sistema de inscrições de alunos (agora com suporte a documentos)
 - ✅ `signature`: Sistema de assinatura digital
-- ✅ `user`: Gestão de usuários
+- ✅ `user`: Gestão de usuários (agora com suporte a dados bancários)
 - ✅ `importProjects`: Importação de planejamento semestral
 - ✅ `scholarshipAllocation`: Alocação de bolsas
 - ✅ `inviteProfessor`: Convite de professores
@@ -532,18 +343,13 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 
 ### Status por Módulo (Atualizado)
 
-#### **Módulo 1: Gestão de Projetos** ✅ **95% COMPLETO**
-- ✅ Importação de planejamento (`importProjectsRouter`)
-- ✅ Geração e assinatura de PDFs (`projetoRouter`, `signatureRouter`)
-- ✅ Templates de projeto (`projetoTemplatesRouter`)
-- ✅ Relatórios PROGRAD (`relatoriosRouter`)
-- ✅ Sistema de notificações por email (integrado)
+#### **Módulo 1: Gestão de Projetos** ✅ **100% COMPLETO**
 
-#### **Módulo 2: Editais e Inscrições** ✅ **90% COMPLETO**
+#### **Módulo 2: Editais e Inscrições** ✅ **95% COMPLETO**
 - ✅ Gestão de editais (`editalRouter`)
 - ✅ Alocação de bolsas (`scholarshipAllocationRouter`)
 - ✅ Sistema de inscrições (`inscricaoRouter`)
-- ✅ Validação de documentos (implementado no frontend)
+- ✅ Validação de documentos por inscrição (`inscricaoRouter`)
 
 #### **Módulo 3: Seleção e Atas** 🚧 **60% COMPLETO**
 - ✅ Avaliação de candidatos (páginas e endpoints existem)
@@ -551,7 +357,8 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - ❌ **FALTA**: Publicação automática de resultados
 - ❌ **FALTA**: Notificação para alunos
 
-#### **Módulo 4: Cadastro Final** ❌ **30% COMPLETO**
+#### **Módulo 4: Cadastro Final** 🚧 **50% COMPLETO**
+- ✅ Coleta de dados bancários
 - ❌ **FALTA**: `termosRouter` para termos de compromisso
 - ❌ **FALTA**: `vagasRouter` para aceite com validações
 - ❌ **FALTA**: Consolidação final para PROGRAD

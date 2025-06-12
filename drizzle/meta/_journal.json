@@ -134,6 +134,13 @@
       "when": 1749671598462,
       "tag": "0018_glossy_inhumans",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1749694728601,
+      "tag": "0019_gigantic_meteorite",
+      "breakpoints": true
     }
   ]
 }

@@ -331,6 +331,11 @@ export const alunoTable = pgTable('aluno', {
   cpf: varchar('cpf').notNull().unique(), // Make unique
   cr: real('CR').notNull(),
   telefone: varchar('telefone'),
+  // Dados Bancários para Bolsistas
+  banco: varchar('banco', { length: 100 }),
+  agencia: varchar('agencia', { length: 20 }),
+  conta: varchar('conta', { length: 30 }),
+  digitoConta: varchar('digito_conta', { length: 2 }),
   enderecoId: integer('endereco_id').references(() => enderecoTable.id), // Nullable
   cursoId: integer('curso_id')
     .references(() => cursoTable.id)

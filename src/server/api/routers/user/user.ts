@@ -54,6 +54,10 @@ const userDetailSchema = z.object({
       emailInstitucional: z.string(),
       historicoEscolarFileId: z.string().nullable().optional(),
       comprovanteMatriculaFileId: z.string().nullable().optional(),
+      banco: z.string().nullable().optional(),
+      agencia: z.string().nullable().optional(),
+      conta: z.string().nullable().optional(),
+      digitoConta: z.string().nullable().optional(),
       inscricoes: z.number().optional(),
       bolsasAtivas: z.number().optional(),
       voluntariadosAtivos: z.number().optional(),
@@ -200,6 +204,12 @@ export const userRouter = createTRPCRouter({
                 cursoId: user.studentProfile.cursoId,
                 telefone: user.studentProfile.telefone,
                 emailInstitucional: user.studentProfile.emailInstitucional,
+                historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
+                comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
+                banco: (user.studentProfile as any).banco,
+                agencia: (user.studentProfile as any).agencia,
+                conta: (user.studentProfile as any).conta,
+                digitoConta: (user.studentProfile as any).digitoConta,
                 inscricoes: inscricoesCount?.count || 0,
                 bolsasAtivas: bolsasAtivasCount?.count || 0,
                 voluntariadosAtivos: voluntariadosAtivosCount?.count || 0,
@@ -309,6 +319,10 @@ export const userRouter = createTRPCRouter({
                 emailInstitucional: user.studentProfile.emailInstitucional,
                 historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
                 comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
+                banco: (user.studentProfile as any).banco,
+                agencia: (user.studentProfile as any).agencia,
+                conta: (user.studentProfile as any).conta,
+                digitoConta: (user.studentProfile as any).digitoConta,
               }
             : null,
         }
@@ -352,6 +366,10 @@ export const userRouter = createTRPCRouter({
             cr: z.number().min(0).max(10),
             cursoId: z.number(),
             telefone: z.string().optional(),
+            banco: z.string().optional(),
+            agencia: z.string().optional(),
+            conta: z.string().optional(),
+            digitoConta: z.string().optional(),
           })
           .optional(),
       })
@@ -394,6 +412,10 @@ export const userRouter = createTRPCRouter({
               cr: input.studentData.cr,
               cursoId: input.studentData.cursoId,
               telefone: input.studentData.telefone,
+              banco: input.studentData.banco,
+              agencia: input.studentData.agencia,
+              conta: input.studentData.conta,
+              digitoConta: input.studentData.digitoConta,
               updatedAt: new Date(),
             })
             .where(eq(alunoTable.userId, ctx.user.id))

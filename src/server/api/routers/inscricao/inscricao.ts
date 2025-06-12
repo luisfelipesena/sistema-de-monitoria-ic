@@ -10,6 +10,7 @@ import {
   projetoDisciplinaTable,
   userTable,
   periodoInscricaoTable,
+  inscricaoDocumentoTable,
 } from '@/server/db/schema'
 import { TRPCError } from '@trpc/server'
 import { eq, and, isNull, gte, lte, desc } from 'drizzle-orm'
@@ -21,6 +22,14 @@ const log = logger.child({ context: 'InscricaoRouter' })
 export const criarInscricaoSchema = z.object({
   projetoId: z.number(),
   tipoVagaPretendida: z.enum(['BOLSISTA', 'VOLUNTARIO', 'ANY']),
+  documentos: z
+    .array(
+      z.object({
+        fileId: z.string(),
+        tipoDocumento: z.string(),
+      })
+    )
+    .optional(),
 })
 
 export const inscricaoComDetalhesSchema = z.object({
@@ -294,6 +303,14 @@ export const inscricaoRouter = createTRPCRouter({
         projetoId: z.number(),
         tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
         motivacao: z.string().min(10, 'Motivação deve ter pelo menos 10 caracteres'),
+        documentos: z
+          .array(
+            z.object({
+              fileId: z.string(),
+              tipoDocumento: z.string(),
+            })
+          )
+          .optional(),
       })
     )
     .output(z.object({ success: z.boolean(), inscricaoId: z.number() }))
@@ -375,6 +392,15 @@ export const inscricaoRouter = createTRPCRouter({
             coeficienteRendimento: aluno.cr.toString(),
           })
           .returning()
+
+        if (input.documentos && input.documentos.length > 0) {
+          const documentosToInsert = input.documentos.map((doc) => ({
+            inscricaoId: novaInscricao.id,
+            fileId: doc.fileId,
+            tipoDocumento: doc.tipoDocumento,
+          }))
+          await ctx.db.insert(inscricaoDocumentoTable).values(documentosToInsert)
+        }
 
         log.info({ inscricaoId: novaInscricao.id }, 'Nova inscrição criada')
 
@@ -725,6 +751,15 @@ export const inscricaoRouter = createTRPCRouter({
             status: 'SUBMITTED',
           })
           .returning()
+
+        if (input.documentos && input.documentos.length > 0) {
+          const documentosToInsert = input.documentos.map((doc) => ({
+            inscricaoId: novaInscricao.id,
+            fileId: doc.fileId,
+            tipoDocumento: doc.tipoDocumento,
+          }))
+          await ctx.db.insert(inscricaoDocumentoTable).values(documentosToInsert)
+        }
 
         log.info(
           { inscricaoId: novaInscricao.id, projetoId: input.projetoId, alunoId: aluno.id },
@@ -1302,10 +1337,11 @@ export const inscricaoRouter = createTRPCRouter({
             },
           })
 
-          if (bolsaExistente && (
+          if (
+            bolsaExistente &&
             bolsaExistente.projeto.ano === inscricao.projeto.ano &&
             bolsaExistente.projeto.semestre === inscricao.projeto.semestre
-          )) {
+          ) {
             throw new TRPCError({
               code: 'BAD_REQUEST',
               message: 'Você já possui uma bolsa neste semestre. Só é permitida uma bolsa por semestre.',
