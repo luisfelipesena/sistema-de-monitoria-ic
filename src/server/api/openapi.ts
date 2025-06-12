@@ -8,7 +8,7 @@ const getBaseUrl = () => {
   }
 
   if (env.CLIENT_URL) {
-    return `https://${env.CLIENT_URL}`
+    return env.CLIENT_URL
   }
 
   const port = env.PORT || '3000'
