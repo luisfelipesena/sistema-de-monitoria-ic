@@ -7,7 +7,7 @@ ALTER TABLE "projeto" ADD COLUMN "assinatura_admin" text;--> statement-breakpoin
 -- Atualizar registros existentes para ter um departamento padrão
 UPDATE "curso" 
 SET "departamento_id" = (
-  SELECT MIN(id) FROM "departamento" LIMIT 1
+  SELECT COALESCE(MIN(id), 1) FROM "departamento"
 ), 
 "carga_horaria" = COALESCE("carga_horaria", 120)
 WHERE "departamento_id" IS NULL OR "carga_horaria" IS NULL;--> statement-breakpoint
