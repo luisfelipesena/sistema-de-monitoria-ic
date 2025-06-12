@@ -66,19 +66,19 @@ export const onboardingRouter = createTRPCRouter({
         let hasDisciplinas = false
 
         if (userRole === 'student') {
-          profileData = await db.query.alunoTable.findFirst({
+          profileData = await ctx.db.query.alunoTable.findFirst({
             where: eq(alunoTable.userId, userId),
           })
           hasProfile = !!profileData
         } else if (userRole === 'professor') {
-          profileData = await db.query.professorTable.findFirst({
+          profileData = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, userId),
           })
           hasProfile = !!profileData
 
           if (hasProfile) {
             const { year, semester } = getCurrentSemester()
-            const result = await db.query.disciplinaProfessorResponsavelTable.findFirst({
+            const result = await ctx.db.query.disciplinaProfessorResponsavelTable.findFirst({
               where: and(
                 eq(disciplinaProfessorResponsavelTable.professorId, profileData.id),
                 eq(disciplinaProfessorResponsavelTable.ano, year),
@@ -199,7 +199,7 @@ export const onboardingRouter = createTRPCRouter({
           })
         }
 
-        const existingProfile = await db.query.alunoTable.findFirst({
+        const existingProfile = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -210,7 +210,7 @@ export const onboardingRouter = createTRPCRouter({
           })
         }
 
-        const [newProfile] = await db
+        const [newProfile] = await ctx.db
           .insert(alunoTable)
           .values({
             userId: ctx.user.id,
@@ -279,7 +279,7 @@ export const onboardingRouter = createTRPCRouter({
           })
         }
 
-        const existingProfile = await db.query.professorTable.findFirst({
+        const existingProfile = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -290,7 +290,7 @@ export const onboardingRouter = createTRPCRouter({
           })
         }
 
-        const [newProfile] = await db
+        const [newProfile] = await ctx.db
           .insert(professorTable)
           .values({
             userId: ctx.user.id,
@@ -346,7 +346,7 @@ export const onboardingRouter = createTRPCRouter({
         const { documentType, fileId } = input
 
         if (ctx.user.role === 'student') {
-          const profile = await db.query.alunoTable.findFirst({
+          const profile = await ctx.db.query.alunoTable.findFirst({
             where: eq(alunoTable.userId, ctx.user.id),
           })
 
@@ -369,9 +369,9 @@ export const onboardingRouter = createTRPCRouter({
             })
           }
 
-          await db.update(alunoTable).set(updateData).where(eq(alunoTable.userId, ctx.user.id))
+          await ctx.db.update(alunoTable).set(updateData).where(eq(alunoTable.userId, ctx.user.id))
         } else if (ctx.user.role === 'professor') {
-          const profile = await db.query.professorTable.findFirst({
+          const profile = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
           })
 
@@ -394,7 +394,7 @@ export const onboardingRouter = createTRPCRouter({
             })
           }
 
-          await db.update(professorTable).set(updateData).where(eq(professorTable.userId, ctx.user.id))
+          await ctx.db.update(professorTable).set(updateData).where(eq(professorTable.userId, ctx.user.id))
         } else {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -444,7 +444,7 @@ export const onboardingRouter = createTRPCRouter({
           })
         }
 
-        const professorProfile = await db.query.professorTable.findFirst({
+        const professorProfile = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -458,7 +458,7 @@ export const onboardingRouter = createTRPCRouter({
         const { year, semester } = getCurrentSemester()
 
         // Remove existing links for current semester
-        await db
+        await ctx.db
           .delete(disciplinaProfessorResponsavelTable)
           .where(
             and(
@@ -477,7 +477,7 @@ export const onboardingRouter = createTRPCRouter({
             semestre: semester,
           }))
 
-          await db.insert(disciplinaProfessorResponsavelTable).values(links)
+          await ctx.db.insert(disciplinaProfessorResponsavelTable).values(links)
         }
 
         log.info(

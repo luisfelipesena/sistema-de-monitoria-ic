@@ -11,3 +11,7 @@ export function useFileUpload() {
 export function useFileDelete() {
   return api.file.deleteFileMutation.useMutation()
 }
+
+export function useEditalPdf() {
+  return api.edital.generateEditalPdf.useMutation()
+}

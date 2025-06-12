@@ -54,7 +54,7 @@ export const courseRouter = createTRPCRouter({
     )
     .output(z.array(cursoSchema))
     .query(async ({ input }) => {
-      const cursos = await db.query.cursoTable.findMany({
+      const cursos = await ctx.db.query.cursoTable.findMany({
         orderBy: (cursos, { asc }) => [asc(cursos.nome)],
       })
 
@@ -65,7 +65,7 @@ export const courseRouter = createTRPCRouter({
       // Add statistics for each course
       const cursosWithStats = await Promise.all(
         cursos.map(async (curso) => {
-          const [alunosCount] = await db
+          const [alunosCount] = await ctx.db
             .select({ count: sql<number>`count(*)::int` })
             .from(alunoTable)
             .where(eq(alunoTable.cursoId, curso.id))
@@ -103,7 +103,7 @@ export const courseRouter = createTRPCRouter({
     )
     .output(cursoSchema)
     .query(async ({ input }) => {
-      const curso = await db.query.cursoTable.findFirst({
+      const curso = await ctx.db.query.cursoTable.findFirst({
         where: eq(cursoTable.id, input.id),
       })
 
@@ -127,7 +127,7 @@ export const courseRouter = createTRPCRouter({
     .input(newCursoSchema)
     .output(cursoSchema)
     .mutation(async ({ input }) => {
-      const curso = await db.insert(cursoTable).values(input).returning()
+      const curso = await ctx.db.insert(cursoTable).values(input).returning()
       return curso[0]
     }),
 
@@ -145,7 +145,7 @@ export const courseRouter = createTRPCRouter({
     .output(cursoSchema)
     .mutation(async ({ input }) => {
       const { id, ...updateData } = input
-      const curso = await db.update(cursoTable).set(updateData).where(eq(cursoTable.id, id)).returning()
+      const curso = await ctx.db.update(cursoTable).set(updateData).where(eq(cursoTable.id, id)).returning()
 
       if (!curso[0]) {
         throw new TRPCError({ code: 'NOT_FOUND' })
@@ -171,7 +171,7 @@ export const courseRouter = createTRPCRouter({
     )
     .output(z.void())
     .mutation(async ({ input }) => {
-      const result = await db.delete(cursoTable).where(eq(cursoTable.id, input.id)).returning()
+      const result = await ctx.db.delete(cursoTable).where(eq(cursoTable.id, input.id)).returning()
 
       if (!result.length) {
         throw new TRPCError({ code: 'NOT_FOUND' })

@@ -1,10 +1,14 @@
 import { createTRPCRouter, protectedProcedure, adminProtectedProcedure } from '@/server/api/trpc'
 import { db } from '@/server/db'
-import { editalTable, periodoInscricaoTable } from '@/server/db/schema'
+import { editalTable, periodoInscricaoTable, projetoTable } from '@/server/db/schema'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { eq, and, or, lte, gte, sql } from 'drizzle-orm'
 import { z } from 'zod'
+import { renderToBuffer } from '@react-pdf/renderer'
+import { EditalInternoTemplate, type EditalInternoData } from '@/server/lib/pdfTemplates/edital-interno'
+import React from 'react'
+import minioClient, { bucketName } from '@/server/lib/minio'
 
 const log = logger.child({ context: 'EditalRouter' })
 
@@ -103,7 +107,7 @@ export const editalRouter = createTRPCRouter({
       try {
         log.info('Iniciando busca de editais')
 
-        const editaisComPeriodo = await db.query.editalTable.findMany({
+        const editaisComPeriodo = await ctx.db.query.editalTable.findMany({
           with: {
             periodoInscricao: true,
             criadoPor: {
@@ -178,7 +182,7 @@ export const editalRouter = createTRPCRouter({
     )
     .output(editalListItemSchema)
     .query(async ({ input }) => {
-      const edital = await db.query.editalTable.findFirst({
+      const edital = await ctx.db.query.editalTable.findFirst({
         where: eq(editalTable.id, input.id),
         with: {
           periodoInscricao: true,
@@ -239,7 +243,7 @@ export const editalRouter = createTRPCRouter({
         const adminUserId = ctx.user.id
         const { ano, semestre, dataInicio, dataFim, numeroEdital, titulo, descricaoHtml } = input
 
-        const numeroEditalExistente = await db.query.editalTable.findFirst({
+        const numeroEditalExistente = await ctx.db.query.editalTable.findFirst({
           where: eq(editalTable.numeroEdital, numeroEdital),
         })
         if (numeroEditalExistente) {
@@ -249,7 +253,7 @@ export const editalRouter = createTRPCRouter({
           })
         }
 
-        const periodoSobreposicao = await db.query.periodoInscricaoTable.findFirst({
+        const periodoSobreposicao = await ctx.db.query.periodoInscricaoTable.findFirst({
           where: and(
             eq(periodoInscricaoTable.ano, ano),
             eq(periodoInscricaoTable.semestre, semestre),
@@ -268,7 +272,7 @@ export const editalRouter = createTRPCRouter({
           })
         }
 
-        const [novoPeriodo] = await db
+        const [novoPeriodo] = await ctx.db
           .insert(periodoInscricaoTable)
           .values({
             ano,
@@ -278,7 +282,7 @@ export const editalRouter = createTRPCRouter({
           })
           .returning()
 
-        const [novoEdital] = await db
+        const [novoEdital] = await ctx.db
           .insert(editalTable)
           .values({
             periodoInscricaoId: novoPeriodo.id,
@@ -290,7 +294,7 @@ export const editalRouter = createTRPCRouter({
           })
           .returning()
 
-        const editalCriadoComPeriodo = await db.query.editalTable.findFirst({
+        const editalCriadoComPeriodo = await ctx.db.query.editalTable.findFirst({
           where: eq(editalTable.id, novoEdital.id),
           with: {
             periodoInscricao: true,
@@ -364,7 +368,7 @@ export const editalRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const { id, ano, semestre, dataInicio, dataFim, ...editalUpdateData } = input
 
-      const edital = await db.query.editalTable.findFirst({
+      const edital = await ctx.db.query.editalTable.findFirst({
         where: eq(editalTable.id, id),
         with: { periodoInscricao: true },
       })
@@ -379,7 +383,7 @@ export const editalRouter = createTRPCRouter({
         const novaDataInicio = dataInicio || edital.periodoInscricao?.dataInicio
         const novaDataFim = dataFim || edital.periodoInscricao?.dataFim
 
-        const periodoSobreposicao = await db.query.periodoInscricaoTable.findFirst({
+        const periodoSobreposicao = await ctx.db.query.periodoInscricaoTable.findFirst({
           where: and(
             eq(periodoInscricaoTable.ano, novoAno),
             eq(periodoInscricaoTable.semestre, novoSemestre),
@@ -405,7 +409,7 @@ export const editalRouter = createTRPCRouter({
           })
         }
 
-        await db
+        await ctx.db
           .update(periodoInscricaoTable)
           .set({
             ano: novoAno,
@@ -417,7 +421,7 @@ export const editalRouter = createTRPCRouter({
           .where(eq(periodoInscricaoTable.id, edital.periodoInscricaoId))
       }
 
-      const [updated] = await db
+      const [updated] = await ctx.db
         .update(editalTable)
         .set({
           ...editalUpdateData,
@@ -450,7 +454,7 @@ export const editalRouter = createTRPCRouter({
     )
     .output(z.void())
     .mutation(async ({ input }) => {
-      const edital = await db.query.editalTable.findFirst({
+      const edital = await ctx.db.query.editalTable.findFirst({
         where: eq(editalTable.id, input.id),
       })
 
@@ -458,8 +462,8 @@ export const editalRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND' })
       }
 
-      await db.delete(editalTable).where(eq(editalTable.id, input.id))
-      await db.delete(periodoInscricaoTable).where(eq(periodoInscricaoTable.id, edital.periodoInscricaoId))
+      await ctx.db.delete(editalTable).where(eq(editalTable.id, input.id))
+      await ctx.db.delete(periodoInscricaoTable).where(eq(periodoInscricaoTable.id, edital.periodoInscricaoId))
 
       log.info({ editalId: input.id, periodoId: edital.periodoInscricaoId }, 'Edital e período excluídos com sucesso')
     }),
@@ -481,7 +485,7 @@ export const editalRouter = createTRPCRouter({
     )
     .output(editalSchema)
     .mutation(async ({ input, ctx }) => {
-      const edital = await db.query.editalTable.findFirst({
+      const edital = await ctx.db.query.editalTable.findFirst({
         where: eq(editalTable.id, input.id),
       })
 
@@ -496,7 +500,7 @@ export const editalRouter = createTRPCRouter({
         })
       }
 
-      const [updated] = await db
+      const [updated] = await ctx.db
         .update(editalTable)
         .set({
           publicado: true,
@@ -528,7 +532,7 @@ export const editalRouter = createTRPCRouter({
     )
     .output(editalSchema)
     .mutation(async ({ input, ctx }) => {
-      const [updated] = await db
+      const [updated] = await ctx.db
         .update(editalTable)
         .set({
           fileIdAssinado: input.fileId,
@@ -565,7 +569,7 @@ export const editalRouter = createTRPCRouter({
     .input(z.void())
     .output(z.array(editalListItemSchema))
     .query(async () => {
-      const editaisPublicados = await db.query.editalTable.findMany({
+      const editaisPublicados = await ctx.db.query.editalTable.findMany({
         where: eq(editalTable.publicado, true),
         with: {
           periodoInscricao: true,
@@ -606,5 +610,123 @@ export const editalRouter = createTRPCRouter({
             : null,
         }
       })
+    }),
+
+  generateEditalPdf: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/editais/{id}/pdf',
+        tags: ['editais'],
+        summary: 'Generate edital PDF',
+        description: 'Generate PDF for edital interno using template',
+      },
+    })
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .output(z.object({ url: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const { id } = input
+        const userId = ctx.user.id
+
+        log.info({ editalId: id, userId }, 'Gerando PDF do edital interno')
+
+        const edital = await ctx.db.query.editalTable.findFirst({
+          where: eq(editalTable.id, id),
+          with: {
+            periodoInscricao: true,
+            criadoPor: {
+              columns: {
+                id: true,
+                username: true,
+                email: true,
+              },
+            },
+          },
+        })
+
+        if (!edital || !edital.periodoInscricao) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Edital ou período de inscrição não encontrado',
+          })
+        }
+
+        const projetos = await ctx.db.query.projetoTable.findMany({
+          where: and(
+            eq(projetoTable.ano, edital.periodoInscricao.ano),
+            eq(projetoTable.semestre, edital.periodoInscricao.semestre),
+            eq(projetoTable.status, 'APPROVED')
+          ),
+          with: {
+            departamento: true,
+            professorResponsavel: {
+              with: {
+                user: true,
+              },
+            },
+            disciplinas: {
+              with: {
+                disciplina: true,
+              },
+            },
+          },
+        })
+
+        const editalData: EditalInternoData = {
+          numeroEdital: edital.numeroEdital,
+          ano: edital.periodoInscricao.ano,
+          semestre: edital.periodoInscricao.semestre,
+          titulo: edital.titulo,
+          descricao: edital.descricaoHtml || undefined,
+          periodoInscricao: {
+            dataInicio: edital.periodoInscricao.dataInicio.toISOString(),
+            dataFim: edital.periodoInscricao.dataFim.toISOString(),
+          },
+          formularioInscricaoUrl: `${process.env.NEXT_PUBLIC_APP_URL}/student/inscricao-monitoria`,
+          chefeResponsavel: {
+            nome: 'Prof. Dr. [Nome do Chefe]',
+            cargo: 'Chefe do Departamento de Ciência da Computação',
+          },
+          disciplinas: projetos.map((projeto) => ({
+            codigo: projeto.disciplinas[0]?.disciplina.codigo || 'MON',
+            nome: projeto.titulo,
+            professor: {
+              nome: projeto.professorResponsavel.user.username,
+              email: projeto.professorResponsavel.user.email,
+            },
+            tipoMonitoria: 'INDIVIDUAL' as const,
+            numBolsistas: projeto.bolsasDisponibilizadas || 0,
+            numVoluntarios: projeto.voluntariosSolicitados || 0,
+            pontosSelecao: ['Conteúdo da disciplina', 'Exercícios práticos', 'Conceitos fundamentais'],
+            bibliografia: ['Bibliografia básica da disciplina'],
+          })),
+        }
+
+        const pdfBuffer = await renderToBuffer(EditalInternoTemplate({ data: editalData }))
+
+        const fileName = `editais/edital-${edital.numeroEdital}-${edital.periodoInscricao.ano}-${edital.periodoInscricao.semestre}.pdf`
+        
+        await minioClient.putObject(bucketName, fileName, pdfBuffer, pdfBuffer.length, {
+          'Content-Type': 'application/pdf',
+          'Cache-Control': 'max-age=3600',
+        })
+
+        const presignedUrl = await minioClient.presignedGetObject(bucketName, fileName, 24 * 60 * 60)
+
+        log.info({ editalId: id, fileName }, 'PDF do edital gerado e salvo com sucesso')
+
+        return { url: presignedUrl }
+      } catch (error) {
+        log.error(error, 'Erro ao gerar PDF do edital')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao gerar PDF do edital',
+        })
+      }
     }),
 })

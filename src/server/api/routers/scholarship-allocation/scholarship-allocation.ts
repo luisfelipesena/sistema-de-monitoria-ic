@@ -22,7 +22,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
       })
     )
     .query(async ({ input }) => {
-      const projetos = await db
+      const projetos = await ctx.db
         .select({
           id: projetoTable.id,
           titulo: projetoTable.titulo,
@@ -54,7 +54,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
       // Get disciplines for each project
       const projetosWithDisciplinas = await Promise.all(
         projetos.map(async (projeto) => {
-          const disciplinas = await db
+          const disciplinas = await ctx.db
             .select({
               id: disciplinaTable.id,
               codigo: disciplinaTable.codigo,
@@ -65,7 +65,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
             .where(eq(projetoDisciplinaTable.projetoId, projeto.id))
 
           // Get current allocations
-          const bolsasAlocadas = await db
+          const bolsasAlocadas = await ctx.db
             .select({ count: count() })
             .from(vagaTable)
             .where(and(eq(vagaTable.projetoId, projeto.id), eq(vagaTable.tipo, 'BOLSISTA')))
@@ -89,7 +89,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input }) => {
-      await db
+      await ctx.db
         .update(projetoTable)
         .set({
           bolsasDisponibilizadas: input.bolsasDisponibilizadas,
@@ -113,7 +113,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       await Promise.all(
         input.allocations.map(async (allocation) => {
-          await db
+          await ctx.db
             .update(projetoTable)
             .set({
               bolsasDisponibilizadas: allocation.bolsasDisponibilizadas,
@@ -134,7 +134,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       // Get totals for approved projects
-      const summary = await db
+      const summary = await ctx.db
         .select({
           totalProjetos: count(),
           totalBolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
@@ -151,7 +151,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
         )
 
       // Get allocation by department
-      const departmentSummary = await db
+      const departmentSummary = await ctx.db
         .select({
           departamento: {
             id: departamentoTable.id,
@@ -192,7 +192,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
   getCandidatesForProject: adminProtectedProcedure
     .input(z.object({ projetoId: z.number() }))
     .query(async ({ input }) => {
-      const candidates = await db
+      const candidates = await ctx.db
         .select({
           id: inscricaoTable.id,
           aluno: {
@@ -231,7 +231,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
         VOLUNTARIO: 'SELECTED_VOLUNTARIO' as const,
       }
 
-      await db
+      await ctx.db
         .update(inscricaoTable)
         .set({
           status: statusMap[input.tipo],
@@ -239,7 +239,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
         .where(eq(inscricaoTable.id, input.inscricaoId))
 
       // Get inscription details to create vaga
-      const inscricao = await db.query.inscricaoTable.findFirst({
+      const inscricao = await ctx.db.query.inscricaoTable.findFirst({
         where: eq(inscricaoTable.id, input.inscricaoId),
       })
 
@@ -248,7 +248,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
       }
 
       // Create vaga record
-      await db.insert(vagaTable).values({
+      await ctx.db.insert(vagaTable).values({
         alunoId: inscricao.alunoId,
         projetoId: inscricao.projetoId,
         inscricaoId: inscricao.id,

@@ -60,7 +60,7 @@ export const disciplineRouter = createTRPCRouter({
       })
     )
     .query(async ({ input }) => {
-      const disciplina = await db.query.disciplinaTable.findFirst({
+      const disciplina = await ctx.db.query.disciplinaTable.findFirst({
         where: eq(disciplinaTable.id, input.id),
       })
 
@@ -74,7 +74,7 @@ export const disciplineRouter = createTRPCRouter({
       const currentSemestre = now.getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2'
 
       // Find responsible professor for this discipline in current semester
-      const professorResponsavel = await db
+      const professorResponsavel = await ctx.db
         .select({
           professor: professorTable,
         })
@@ -108,7 +108,7 @@ export const disciplineRouter = createTRPCRouter({
     .input(z.void())
     .output(z.array(disciplinaSchema))
     .query(async () => {
-      const disciplinas = await db.query.disciplinaTable.findMany()
+      const disciplinas = await ctx.db.query.disciplinaTable.findMany()
       return disciplinas
     }),
 
@@ -129,7 +129,7 @@ export const disciplineRouter = createTRPCRouter({
     )
     .output(disciplinaSchema)
     .query(async ({ input }) => {
-      const disciplina = await db.query.disciplinaTable.findFirst({
+      const disciplina = await ctx.db.query.disciplinaTable.findFirst({
         where: eq(disciplinaTable.id, input.id),
       })
 
@@ -153,7 +153,7 @@ export const disciplineRouter = createTRPCRouter({
     .input(newDisciplinaSchema)
     .output(disciplinaSchema)
     .mutation(async ({ input }) => {
-      const disciplina = await db.insert(disciplinaTable).values(input).returning()
+      const disciplina = await ctx.db.insert(disciplinaTable).values(input).returning()
       return disciplina[0]
     }),
 
@@ -171,7 +171,7 @@ export const disciplineRouter = createTRPCRouter({
     .output(disciplinaSchema)
     .mutation(async ({ input }) => {
       const { id, ...updateData } = input
-      const disciplina = await db.update(disciplinaTable).set(updateData).where(eq(disciplinaTable.id, id)).returning()
+      const disciplina = await ctx.db.update(disciplinaTable).set(updateData).where(eq(disciplinaTable.id, id)).returning()
 
       if (!disciplina[0]) {
         throw new TRPCError({ code: 'NOT_FOUND' })
@@ -197,7 +197,7 @@ export const disciplineRouter = createTRPCRouter({
     )
     .output(z.void())
     .mutation(async ({ input }) => {
-      const result = await db.delete(disciplinaTable).where(eq(disciplinaTable.id, input.id)).returning()
+      const result = await ctx.db.delete(disciplinaTable).where(eq(disciplinaTable.id, input.id)).returning()
 
       if (!result.length) {
         throw new TRPCError({ code: 'NOT_FOUND' })
@@ -237,7 +237,7 @@ export const disciplineRouter = createTRPCRouter({
           })
         }
 
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -254,7 +254,7 @@ export const disciplineRouter = createTRPCRouter({
         const currentSemester = now.getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2'
 
         // Get disciplines taught by this professor
-        const disciplinasResponsavel = await db
+        const disciplinasResponsavel = await ctx.db
           .select({
             disciplinaId: disciplinaProfessorResponsavelTable.disciplinaId,
           })
@@ -274,12 +274,12 @@ export const disciplineRouter = createTRPCRouter({
         }
 
         // Get discipline details
-        const disciplinas = await db.query.disciplinaTable.findMany({
+        const disciplinas = await ctx.db.query.disciplinaTable.findMany({
           where: and(sql`${disciplinaTable.id} IN (${disciplinaIds.join(',')})`),
         })
 
         // Get active projects count for each discipline
-        const projetosAtivos = await db
+        const projetosAtivos = await ctx.db
           .select({
             disciplinaId: projetoDisciplinaTable.disciplinaId,
             count: sql<number>`count(distinct ${projetoTable.id})`,
@@ -300,7 +300,7 @@ export const disciplineRouter = createTRPCRouter({
         const projetosMap = new Map(projetosAtivos.map((p) => [p.disciplinaId, Number(p.count)]))
 
         // Get monitors count for each discipline
-        const monitores = await db
+        const monitores = await ctx.db
           .select({
             disciplinaId: projetoDisciplinaTable.disciplinaId,
             bolsistas: sql<number>`count(case when ${inscricaoTable.status} = 'ACCEPTED_BOLSISTA' then 1 end)`,
@@ -381,7 +381,7 @@ export const disciplineRouter = createTRPCRouter({
           })
         }
 
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -396,11 +396,11 @@ export const disciplineRouter = createTRPCRouter({
         const currentYear = now.getFullYear()
         const currentSemester = now.getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2'
 
-        const disciplinas = await db.query.disciplinaTable.findMany({
+        const disciplinas = await ctx.db.query.disciplinaTable.findMany({
           where: eq(disciplinaTable.departamentoId, professor.departamentoId),
         })
 
-        const associacoes = await db
+        const associacoes = await ctx.db
           .select({
             disciplinaId: disciplinaProfessorResponsavelTable.disciplinaId,
             ano: disciplinaProfessorResponsavelTable.ano,
@@ -466,7 +466,7 @@ export const disciplineRouter = createTRPCRouter({
           })
         }
 
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -477,7 +477,7 @@ export const disciplineRouter = createTRPCRouter({
           })
         }
 
-        const disciplina = await db.query.disciplinaTable.findFirst({
+        const disciplina = await ctx.db.query.disciplinaTable.findFirst({
           where: eq(disciplinaTable.id, input.id),
         })
 
@@ -495,7 +495,7 @@ export const disciplineRouter = createTRPCRouter({
           })
         }
 
-        const existingAssociation = await db.query.disciplinaProfessorResponsavelTable.findFirst({
+        const existingAssociation = await ctx.db.query.disciplinaProfessorResponsavelTable.findFirst({
           where: and(
             eq(disciplinaProfessorResponsavelTable.disciplinaId, input.id),
             eq(disciplinaProfessorResponsavelTable.professorId, professor.id),
@@ -511,7 +511,7 @@ export const disciplineRouter = createTRPCRouter({
           })
         }
 
-        await db.insert(disciplinaProfessorResponsavelTable).values({
+        await ctx.db.insert(disciplinaProfessorResponsavelTable).values({
           disciplinaId: input.id,
           professorId: professor.id,
           ano: input.ano,
@@ -557,7 +557,7 @@ export const disciplineRouter = createTRPCRouter({
           })
         }
 
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -568,7 +568,7 @@ export const disciplineRouter = createTRPCRouter({
           })
         }
 
-        const result = await db
+        const result = await ctx.db
           .delete(disciplinaProfessorResponsavelTable)
           .where(
             and(

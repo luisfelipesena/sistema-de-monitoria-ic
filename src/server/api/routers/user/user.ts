@@ -90,7 +90,7 @@ export const userRouter = createTRPCRouter({
         total: z.number(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
       try {
         const whereConditions = []
 
@@ -104,7 +104,7 @@ export const userRouter = createTRPCRouter({
           )
         }
 
-        const users = await db.query.userTable.findMany({
+        const users = await ctx.db.query.userTable.findMany({
           where: whereConditions.length > 0 ? and(...whereConditions) : undefined,
           with: {
             professorProfile: {
@@ -123,7 +123,7 @@ export const userRouter = createTRPCRouter({
           orderBy: (table, { asc }) => [asc(table.username)],
         })
 
-        const total = await db.$count(userTable, whereConditions.length > 0 ? and(...whereConditions) : undefined)
+        const total = await ctx.db.$count(userTable, whereConditions.length > 0 ? and(...whereConditions) : undefined)
 
         // Fetch statistics for professors and students
         const formattedUsers = await Promise.all(
@@ -133,14 +133,14 @@ export const userRouter = createTRPCRouter({
 
             if (user.professorProfile) {
               // Get professor statistics
-              const [projetosCount] = await db
+              const [projetosCount] = await ctx.db
                 .select({ count: sql<number>`count(*)::int` })
                 .from(projetoTable)
                 .where(
                   and(eq(projetoTable.professorResponsavelId, user.professorProfile.id), isNull(projetoTable.deletedAt))
                 )
 
-              const [projetosAtivosCount] = await db
+              const [projetosAtivosCount] = await ctx.db
                 .select({ count: sql<number>`count(*)::int` })
                 .from(projetoTable)
                 .where(
@@ -170,22 +170,22 @@ export const userRouter = createTRPCRouter({
 
             if (user.studentProfile) {
               // Get student statistics
-              const [inscricoesCount] = await db
+              const [inscricoesCount] = await ctx.db
                 .select({ count: sql<number>`count(*)::int` })
                 .from(inscricaoTable)
                 .where(eq(inscricaoTable.alunoId, user.studentProfile.id))
 
-              const [bolsasAtivasCount] = await db
+              const [bolsasAtivasCount] = await ctx.db
                 .select({ count: sql<number>`count(*)::int` })
                 .from(vagaTable)
                 .where(and(eq(vagaTable.alunoId, user.studentProfile.id), eq(vagaTable.tipo, 'BOLSISTA')))
 
-              const [voluntariadosAtivosCount] = await db
+              const [voluntariadosAtivosCount] = await ctx.db
                 .select({ count: sql<number>`count(*)::int` })
                 .from(vagaTable)
                 .where(and(eq(vagaTable.alunoId, user.studentProfile.id), eq(vagaTable.tipo, 'VOLUNTARIO')))
 
-              const [totalDocumentosCount] = await db
+              const [totalDocumentosCount] = await ctx.db
                 .select({ count: sql<number>`count(*)::int` })
                 .from(inscricaoDocumentoTable)
                 .innerJoin(inscricaoTable, eq(inscricaoDocumentoTable.inscricaoId, inscricaoTable.id))
@@ -250,7 +250,7 @@ export const userRouter = createTRPCRouter({
     .output(userDetailSchema)
     .query(async ({ ctx }) => {
       try {
-        const user = await db.query.userTable.findFirst({
+        const user = await ctx.db.query.userTable.findFirst({
           where: eq(userTable.id, ctx.user.id),
           with: {
             professorProfile: {
@@ -365,12 +365,12 @@ export const userRouter = createTRPCRouter({
       try {
         // Update user table if username provided
         if (input.username) {
-          await db.update(userTable).set({ username: input.username }).where(eq(userTable.id, ctx.user.id))
+          await ctx.db.update(userTable).set({ username: input.username }).where(eq(userTable.id, ctx.user.id))
         }
 
         // Update professor profile if provided
         if (input.professorData && ctx.user.role === 'professor') {
-          await db
+          await ctx.db
             .update(professorTable)
             .set({
               nomeCompleto: input.professorData.nomeCompleto,
@@ -385,7 +385,7 @@ export const userRouter = createTRPCRouter({
 
         // Update student profile if provided
         if (input.studentData && ctx.user.role === 'student') {
-          await db
+          await ctx.db
             .update(alunoTable)
             .set({
               nomeCompleto: input.studentData.nomeCompleto,
@@ -416,9 +416,9 @@ export const userRouter = createTRPCRouter({
         id: z.number(),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx   }) => {
       try {
-        const user = await db.query.userTable.findFirst({
+        const user = await ctx.db.query.userTable.findFirst({
           where: eq(userTable.id, input.id),
           with: {
             professorProfile: true,
@@ -454,11 +454,11 @@ export const userRouter = createTRPCRouter({
         role: z.enum(['admin', 'professor', 'student']).optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       try {
         const { id, ...updateData } = input
 
-        await db.update(userTable).set(updateData).where(eq(userTable.id, id))
+        await ctx.db.update(userTable).set(updateData).where(eq(userTable.id, id))
 
         log.info({ userId: id }, 'User updated successfully')
         return { success: true }

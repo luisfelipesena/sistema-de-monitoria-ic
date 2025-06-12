@@ -72,13 +72,7 @@ export default function UsersPage() {
   };
 
   const handleEditUser = (userId: number, role: string) => {
-    if (role === 'professor') {
-      router.push(`/home/admin/professores/${userId}/edit`);
-    } else if (role === 'student') {
-      router.push(`/home/admin/alunos/${userId}/edit`);
-    } else {
-      router.push(`/home/admin/users/${userId}/edit`);
-    }
+    router.push(`/home/admin/users/${userId}/edit`);
   };
 
   const handleInviteProfessor = () => {

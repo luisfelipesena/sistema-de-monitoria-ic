@@ -108,53 +108,53 @@ export const analyticsRouter = createTRPCRouter({
         const now = new Date()
 
         // 1. Períodos ativos
-        const [periodosAtivosResult] = await db
+        const [periodosAtivosResult] = await ctx.db
           .select({ count: sql<number>`count(*)::int` })
           .from(periodoInscricaoTable)
           .where(and(lte(periodoInscricaoTable.dataInicio, now), gte(periodoInscricaoTable.dataFim, now)))
 
         // 2. Estatísticas de projetos
-        const [totalProjetosResult] = await db
+        const [totalProjetosResult] = await ctx.db
           .select({ count: sql<number>`count(*)::int` })
           .from(projetoTable)
           .where(isNull(projetoTable.deletedAt))
 
-        const [projetosAprovadosResult] = await db
+        const [projetosAprovadosResult] = await ctx.db
           .select({ count: sql<number>`count(*)::int` })
           .from(projetoTable)
           .where(and(eq(projetoTable.status, 'APPROVED'), isNull(projetoTable.deletedAt)))
 
-        const [projetosSubmitedResult] = await db
+        const [projetosSubmitedResult] = await ctx.db
           .select({ count: sql<number>`count(*)::int` })
           .from(projetoTable)
           .where(and(eq(projetoTable.status, 'SUBMITTED'), isNull(projetoTable.deletedAt)))
 
-        const [projetosRascunhoResult] = await db
+        const [projetosRascunhoResult] = await ctx.db
           .select({ count: sql<number>`count(*)::int` })
           .from(projetoTable)
           .where(and(eq(projetoTable.status, 'DRAFT'), isNull(projetoTable.deletedAt)))
 
         // 3. Estatísticas de inscrições
-        const [totalInscricoesResult] = await db.select({ count: sql<number>`count(*)::int` }).from(inscricaoTable)
+        const [totalInscricoesResult] = await ctx.db.select({ count: sql<number>`count(*)::int` }).from(inscricaoTable)
 
         // 4. Estatísticas de usuários
-        const [totalAlunosResult] = await db.select({ count: sql<number>`count(*)::int` }).from(alunoTable)
+        const [totalAlunosResult] = await ctx.db.select({ count: sql<number>`count(*)::int` }).from(alunoTable)
 
-        const [totalProfessoresResult] = await db.select({ count: sql<number>`count(*)::int` }).from(professorTable)
+        const [totalProfessoresResult] = await ctx.db.select({ count: sql<number>`count(*)::int` }).from(professorTable)
 
-        const [totalDepartamentosResult] = await db
+        const [totalDepartamentosResult] = await ctx.db
           .select({ count: sql<number>`count(*)::int` })
           .from(departamentoTable)
 
-        const [totalCursosResult] = await db.select({ count: sql<number>`count(*)::int` }).from(cursoTable)
+        const [totalCursosResult] = await ctx.db.select({ count: sql<number>`count(*)::int` }).from(cursoTable)
 
-        const [totalDisciplinasResult] = await db
+        const [totalDisciplinasResult] = await ctx.db
           .select({ count: sql<number>`count(*)::int` })
           .from(disciplinaTable)
           .where(isNull(disciplinaTable.deletedAt))
 
         // 5. Estatísticas de vagas
-        const [totalVagasResult] = await db
+        const [totalVagasResult] = await ctx.db
           .select({
             bolsas: sql<number>`coalesce(sum(${projetoTable.bolsasDisponibilizadas}), 0)::int`,
             voluntarios: sql<number>`coalesce(sum(${projetoTable.voluntariosSolicitados}), 0)::int`,
@@ -162,10 +162,10 @@ export const analyticsRouter = createTRPCRouter({
           .from(projetoTable)
           .where(and(eq(projetoTable.status, 'APPROVED'), isNull(projetoTable.deletedAt)))
 
-        const [vagasOcupadasResult] = await db.select({ count: sql<number>`count(*)::int` }).from(vagaTable)
+        const [vagasOcupadasResult] = await ctx.db.select({ count: sql<number>`count(*)::int` }).from(vagaTable)
 
         // 6. Projetos por departamento
-        const projetosPorDepartamento = await db
+        const projetosPorDepartamento = await ctx.db
           .select({
             departamento: departamentoTable.nome,
             sigla: departamentoTable.sigla,
@@ -182,7 +182,7 @@ export const analyticsRouter = createTRPCRouter({
           .orderBy(sql`count(${projetoTable.id}) desc`)
 
         // 7. Inscrições por período
-        const inscricoesPorPeriodo = await db
+        const inscricoesPorPeriodo = await ctx.db
           .select({
             periodo: sql<string>`${periodoInscricaoTable.ano} || '.' || ${periodoInscricaoTable.semestre}`,
             ano: periodoInscricaoTable.ano,
@@ -197,7 +197,7 @@ export const analyticsRouter = createTRPCRouter({
           .limit(6)
 
         // 8. Alunos por curso
-        const alunosPorCurso = await db
+        const alunosPorCurso = await ctx.db
           .select({
             curso: cursoTable.nome,
             alunos: sql<number>`count(${alunoTable.id})::int`,
@@ -211,7 +211,7 @@ export const analyticsRouter = createTRPCRouter({
           .limit(10)
 
         // 9. Professores por departamento
-        const professoresPorDepartamento = await db
+        const professoresPorDepartamento = await ctx.db
           .select({
             departamento: departamentoTable.nome,
             professores: sql<number>`count(${professorTable.id})::int`,

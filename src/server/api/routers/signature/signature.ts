@@ -30,7 +30,7 @@ export const signatureRouter = createTRPCRouter({
     )
     .query(async ({ ctx }) => {
       try {
-        const user = await db.query.userTable.findFirst({
+        const user = await ctx.db.query.userTable.findFirst({
           where: eq(userTable.id, ctx.user.id),
           columns: {
             assinaturaDefault: true,
@@ -77,7 +77,7 @@ export const signatureRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       try {
-        await db
+        await ctx.db
           .update(userTable)
           .set({
             assinaturaDefault: input.signatureData,
@@ -114,7 +114,7 @@ export const signatureRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx }) => {
       try {
-        await db
+        await ctx.db
           .update(userTable)
           .set({
             assinaturaDefault: null,

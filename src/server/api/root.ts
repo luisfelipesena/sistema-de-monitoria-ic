@@ -15,6 +15,11 @@ import { projetoTemplatesRouter } from '@/server/api/routers/projeto-templates/p
 import { relatoriosRouter } from '@/server/api/routers/relatorios/relatorios'
 import { analyticsRouter } from '@/server/api/routers/analytics/analytics'
 import { apiKeyRouter } from '@/server/api/routers/api-key/api-key'
+import { selecaoRouter } from '@/server/api/routers/selecao/selecao'
+import { vagasRouter } from '@/server/api/routers/vagas/vagas'
+import { termosRouter } from '@/server/api/routers/termos/termos'
+import { notificacoesRouter } from '@/server/api/routers/notificacoes/notificacoes'
+import { periodoInscricaoRouter } from '@/server/api/routers/periodo-inscricao/periodo-inscricao'
 import { meRouter } from './routers/auth/me/me'
 import { createTRPCRouter } from './trpc'
 
@@ -37,6 +42,11 @@ export const appRouter = createTRPCRouter({
   relatorios: relatoriosRouter,
   analytics: analyticsRouter,
   apiKey: apiKeyRouter,
+  selecao: selecaoRouter,      
+  vagas: vagasRouter,          
+  termos: termosRouter,         
+  notificacoes: notificacoesRouter,
+  periodoInscricao: periodoInscricaoRouter,
 })
 
 export type AppRouter = typeof appRouter

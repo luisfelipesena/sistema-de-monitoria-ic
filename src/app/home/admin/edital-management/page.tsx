@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { api } from '@/utils/api'
+import { useEditalPdf } from '@/hooks/use-files'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
 import { FileText, Plus, Eye, Edit, Trash2, Upload, CheckCircle, Clock, AlertCircle, Calendar } from 'lucide-react'
@@ -124,6 +125,7 @@ export default function EditalManagementPage() {
   })
 
   const uploadFileMutation = api.file.uploadFile.useMutation()
+  const generatePdfMutation = useEditalPdf()
 
   const createForm = useForm<EditalFormData>({
     resolver: zodResolver(editalFormSchema),
@@ -190,6 +192,17 @@ export default function EditalManagementPage() {
       })
     } catch (error) {
       console.error('Error uploading signed edital:', error)
+    }
+  }
+
+  const handleViewPdf = async (editalId: number) => {
+    try {
+      const result = await generatePdfMutation.mutateAsync({ id: editalId })
+      window.open(result.url, '_blank', 'noopener,noreferrer')
+      toast.success('PDF do edital aberto em nova aba')
+    } catch (error) {
+      toast.error('Erro ao gerar PDF do edital')
+      console.error('Error generating PDF:', error)
     }
   }
 
@@ -315,6 +328,16 @@ export default function EditalManagementPage() {
         
         return (
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleViewPdf(edital.id)}
+              disabled={generatePdfMutation.isPending}
+              title="Visualizar PDF"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            
             <Button
               variant="outline"
               size="sm"

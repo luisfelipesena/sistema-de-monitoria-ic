@@ -23,7 +23,7 @@ export const importProjectsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const importacao = await db
+      const importacao = await ctx.db
         .insert(importacaoPlanejamentoTable)
         .values({
           fileId: input.fileId,
@@ -66,7 +66,7 @@ export const importProjectsRouter = createTRPCRouter({
 
       for (const projetoData of input.projetos) {
         try {
-          const professor = await db.query.professorTable.findFirst({
+          const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.matriculaSiape, projetoData.professorSiape),
             with: { departamento: true },
           })
@@ -77,7 +77,7 @@ export const importProjectsRouter = createTRPCRouter({
             continue
           }
 
-          const disciplina = await db.query.disciplinaTable.findFirst({
+          const disciplina = await ctx.db.query.disciplinaTable.findFirst({
             where: eq(disciplinaTable.codigo, projetoData.disciplinaCodigo),
           })
 
@@ -87,7 +87,7 @@ export const importProjectsRouter = createTRPCRouter({
             continue
           }
 
-          const importacao = await db.query.importacaoPlanejamentoTable.findFirst({
+          const importacao = await ctx.db.query.importacaoPlanejamentoTable.findFirst({
             where: eq(importacaoPlanejamentoTable.id, input.importacaoId),
           })
 
@@ -111,9 +111,9 @@ export const importProjectsRouter = createTRPCRouter({
             status: 'PENDING_PROFESSOR_SIGNATURE',
           }
 
-          const [projeto] = await db.insert(projetoTable).values(novoProjeto).returning()
+          const [projeto] = await ctx.db.insert(projetoTable).values(novoProjeto).returning()
 
-          await db.insert(projetoDisciplinaTable).values({
+          await ctx.db.insert(projetoDisciplinaTable).values({
             projetoId: projeto.id,
             disciplinaId: disciplina.id,
           })
@@ -123,7 +123,7 @@ export const importProjectsRouter = createTRPCRouter({
               projetoId: projeto.id,
               descricao,
             }))
-            await db.insert(atividadeProjetoTable).values(atividades)
+            await ctx.db.insert(atividadeProjetoTable).values(atividades)
           }
 
           projetosCriados++
@@ -135,7 +135,7 @@ export const importProjectsRouter = createTRPCRouter({
         }
       }
 
-      await db
+      await ctx.db
         .update(importacaoPlanejamentoTable)
         .set({
           totalProjetos: input.projetos.length,
@@ -154,7 +154,7 @@ export const importProjectsRouter = createTRPCRouter({
     }),
 
   getImportHistory: adminProtectedProcedure.query(async () => {
-    const imports = await db.query.importacaoPlanejamentoTable.findMany({
+    const imports = await ctx.db.query.importacaoPlanejamentoTable.findMany({
       orderBy: [desc(importacaoPlanejamentoTable.createdAt)],
       with: {
         importadoPor: {
@@ -182,7 +182,7 @@ export const importProjectsRouter = createTRPCRouter({
   }),
 
   getImportDetails: adminProtectedProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-    const importacao = await db.query.importacaoPlanejamentoTable.findFirst({
+    const importacao = await ctx.db.query.importacaoPlanejamentoTable.findFirst({
       where: eq(importacaoPlanejamentoTable.id, input.id),
       with: {
         importadoPor: true,
@@ -200,12 +200,12 @@ export const importProjectsRouter = createTRPCRouter({
   }),
 
   deleteImport: adminProtectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ input }) => {
-    await db.delete(importacaoPlanejamentoTable).where(eq(importacaoPlanejamentoTable.id, input.id))
+    await ctx.db.delete(importacaoPlanejamentoTable).where(eq(importacaoPlanejamentoTable.id, input.id))
     return { success: true }
   }),
 
   getProfessores: adminProtectedProcedure.query(async () => {
-    const professores = await db.query.professorTable.findMany({
+    const professores = await ctx.db.query.professorTable.findMany({
       columns: {
         id: true,
         nomeCompleto: true,
@@ -226,7 +226,7 @@ export const importProjectsRouter = createTRPCRouter({
   }),
 
   getDisciplinas: adminProtectedProcedure.query(async () => {
-    const disciplinas = await db.query.disciplinaTable.findMany({
+    const disciplinas = await ctx.db.query.disciplinaTable.findMany({
       columns: {
         id: true,
         nome: true,

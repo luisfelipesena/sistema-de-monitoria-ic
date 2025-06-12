@@ -7,27 +7,27 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/hooks/use-toast'
 import { api } from '@/utils/api'
-import { FileText, Send, Eye, CheckCircle } from 'lucide-react'
+import { Send, Eye, FileText, Users, Award, Clock } from 'lucide-react'
 
 // Template simples para resultado - você pode expandir
 function ResultadoTemplate({ data }: { data: any }) {
   return (
-    <div style={{ fontFamily: 'Arial', padding: '20px' }}>
-      <h1>Resultado da Seleção de Monitoria</h1>
-      <h2>{data.projeto.titulo}</h2>
+    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+      <h1>Resultados da Seleção - Monitoria</h1>
+      <p><strong>Projeto:</strong> {data.projeto.titulo}</p>
       <p><strong>Professor:</strong> {data.projeto.professorResponsavel.nomeCompleto}</p>
-      <p><strong>Período:</strong> {data.projeto.ano}.{data.projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}</p>
       
-      <h3>Candidatos Selecionados</h3>
-      {data.candidatos.filter((c: any) => c.status.includes('SELECTED_')).map((candidato: any) => (
-        <div key={candidato.id}>
-          <p><strong>{candidato.aluno.nomeCompleto}</strong> - {candidato.aluno.matricula}</p>
-          <p>Tipo: {candidato.status === 'SELECTED_BOLSISTA' ? 'Bolsista' : 'Voluntário'}</p>
-          <p>Nota Final: {candidato.notaFinal}</p>
+      <h2>Candidatos Selecionados</h2>
+      {data.selecionados.map((candidato: any) => (
+        <div key={candidato.id} style={{ margin: '10px 0', padding: '10px', border: '1px solid #4ade80' }}>
+          <p><strong>Nome:</strong> {candidato.aluno.user.username}</p>
+          <p><strong>Tipo:</strong> {candidato.tipoVagaPretendida}</p>
+          <p><strong>Nota Final:</strong> {candidato.notaFinal}</p>
         </div>
       ))}
     </div>
@@ -37,57 +37,61 @@ function ResultadoTemplate({ data }: { data: any }) {
 export default function PublicarResultadosPage() {
   const { toast } = useToast()
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
-  const [showPDF, setShowPDF] = useState(false)
+  const [notifyStudents, setNotifyStudents] = useState(true)
   const [mensagemPersonalizada, setMensagemPersonalizada] = useState('')
+  const [showPreview, setShowPreview] = useState(false)
+  const [previewData, setPreviewData] = useState<any>(null)
 
   // Buscar projetos do professor
   const { data: projetos, isLoading: loadingProjetos } = api.projeto.getProjetos.useQuery()
 
-  // Buscar dados do resultado quando projeto for selecionado
-  const { data: dadosResultado, isLoading: loadingResultado } = api.projeto.generateSelectionMinutesData.useQuery(
-    { projetoId: selectedProjectId! },
+  // Buscar dados dos resultados quando projeto for selecionado
+  const { data: dadosResultados, isLoading: loadingResultados } = api.selecao.getResultsData.useQuery(
+    { projetoId: selectedProjectId!.toString() },
     { enabled: !!selectedProjectId }
   )
 
-  // Mutation para notificar candidatos
-  const notificarCandidatosMutation = api.projeto.notifySelectionResults.useMutation({
+  // Mutation para publicar resultados
+  const publishResultsMutation = api.selecao.publishResults.useMutation({
     onSuccess: (data) => {
       toast({
-        title: 'Sucesso',
-        description: `Resultado publicado! ${data.notificationsCount} candidatos foram notificados por email.`,
+        title: 'Resultados publicados!',
+        description: `${data.emailsEnviados} notificações foram enviadas aos candidatos.`,
       })
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: 'Erro ao publicar resultados',
         description: error.message,
         variant: 'destructive',
       })
     },
   })
 
-  // Projetos que podem ter resultado publicado (com avaliação feita)
+  // Projetos que podem ter resultados publicados
   const projetosElegiveis = projetos?.filter(p => 
     p.status === 'APPROVED' && p.totalInscritos > 0
   ) || []
 
   const handleSelectProject = (projectId: string) => {
-    const id = parseInt(projectId)
-    setSelectedProjectId(id)
-    setShowPDF(false)
+    setSelectedProjectId(parseInt(projectId))
+    setShowPreview(false)
   }
 
   const handlePublishResults = () => {
     if (!selectedProjectId) return
 
-    notificarCandidatosMutation.mutate({
-      projetoId: selectedProjectId,
+    publishResultsMutation.mutate({
+      projetoId: selectedProjectId.toString(),
+      notifyStudents,
       mensagemPersonalizada: mensagemPersonalizada || undefined,
     })
   }
 
   const handlePreviewPDF = () => {
-    setShowPDF(true)
+    if (!dadosResultados) return
+    setPreviewData(dadosResultados)
+    setShowPreview(true)
   }
 
   const formatStatus = (status: string) => {
@@ -120,20 +124,12 @@ export default function PublicarResultadosPage() {
     }
   }
 
-  const candidatosSelecionados = dadosResultado?.candidatos.filter(c => 
-    c.status === 'SELECTED_BOLSISTA' || c.status === 'SELECTED_VOLUNTARIO'
-  ) || []
-
-  const candidatosNaoSelecionados = dadosResultado?.candidatos.filter(c => 
-    c.status === 'REJECTED_BY_PROFESSOR' || c.status === 'WAITING_LIST'
-  ) || []
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Publicar Resultados</h1>
         <p className="text-muted-foreground">
-          Publique os resultados da seleção de monitoria e notifique os candidatos
+          Publique os resultados da seleção e notifique os candidatos
         </p>
       </div>
 
@@ -169,41 +165,84 @@ export default function PublicarResultadosPage() {
               </SelectContent>
             </Select>
           </div>
+
+          {projetosElegiveis.length === 0 && !loadingProjetos && (
+            <p className="text-sm text-muted-foreground">
+              Nenhum projeto elegível encontrado. Para publicar resultados, o projeto deve estar aprovado e ter candidatos inscritos.
+            </p>
+          )}
         </CardContent>
       </Card>
 
-      {/* Resumo dos Resultados */}
-      {dadosResultado && (
+      {/* Configurações de Publicação */}
+      {selectedProjectId && dadosResultados && (
         <Card>
           <CardHeader>
-            <CardTitle>Resumo dos Resultados</CardTitle>
+            <CardTitle>Configurações da Publicação</CardTitle>
             <CardDescription>
-              Candidatos selecionados e não selecionados
+              Configure como os resultados serão divulgados aos candidatos
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="notifyStudents"
+                checked={notifyStudents}
+                onCheckedChange={(checked) => setNotifyStudents(checked as boolean)}
+              />
+              <Label htmlFor="notifyStudents" className="text-sm font-medium">
+                Enviar notificações por e-mail aos candidatos
+              </Label>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="mensagem">Mensagem Personalizada (opcional)</Label>
+              <Textarea
+                id="mensagem"
+                value={mensagemPersonalizada}
+                onChange={(e) => setMensagemPersonalizada(e.target.value)}
+                placeholder="Adicione uma mensagem personalizada que será incluída nas notificações..."
+                rows={3}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Resumo dos Resultados */}
+      {dadosResultados && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Resumo dos Resultados
+            </CardTitle>
+            <CardDescription>
+              Candidatos selecionados para o projeto
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {/* Estatísticas */}
+            <div className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div className="p-3 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold">{dadosResultado.candidatos.length}</div>
+                  <div className="text-2xl font-bold">{dadosResultados.totalCandidatos}</div>
                   <div className="text-sm text-muted-foreground">Total de Candidatos</div>
                 </div>
                 <div className="p-3 bg-green-50 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">
-                    {candidatosSelecionados.length}
+                    {dadosResultados.totalAprovados}
                   </div>
-                  <div className="text-sm text-muted-foreground">Selecionados</div>
+                  <div className="text-sm text-muted-foreground">Aprovados</div>
                 </div>
                 <div className="p-3 bg-blue-50 rounded-lg">
                   <div className="text-2xl font-bold text-blue-600">
-                    {dadosResultado.candidatos.filter(c => c.status === 'SELECTED_BOLSISTA').length}
+                    {dadosResultados.selecionadosBolsista.length}
                   </div>
                   <div className="text-sm text-muted-foreground">Bolsistas</div>
                 </div>
                 <div className="p-3 bg-purple-50 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600">
-                    {dadosResultado.candidatos.filter(c => c.status === 'SELECTED_VOLUNTARIO').length}
+                    {dadosResultados.selecionadosVoluntario.length}
                   </div>
                   <div className="text-sm text-muted-foreground">Voluntários</div>
                 </div>
@@ -211,139 +250,116 @@ export default function PublicarResultadosPage() {
 
               <Separator />
 
-              {/* Candidatos Selecionados */}
-              {candidatosSelecionados.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="font-medium text-green-700 flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4" />
-                    Candidatos Selecionados ({candidatosSelecionados.length})
-                  </h4>
+              <div className="space-y-4">
+                {/* Selecionados */}
+                {dadosResultados.totalAprovados > 0 && (
                   <div className="space-y-2">
-                    {candidatosSelecionados.map((candidato) => (
-                      <div key={candidato.id} className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
-                        <div>
-                          <div className="font-medium">{candidato.aluno.nomeCompleto}</div>
-                          <div className="text-sm text-muted-foreground">
-                            Matrícula: {candidato.aluno.matricula} | CR: {candidato.aluno.cr?.toFixed(2) || 'N/A'}
-                            {candidato.notaFinal && ` | Nota Final: ${candidato.notaFinal.toFixed(1)}`}
+                    <h4 className="font-medium flex items-center gap-2">
+                      <Award className="h-4 w-4 text-green-600" />
+                      Candidatos Selecionados ({dadosResultados.totalAprovados})
+                    </h4>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {dadosResultados.selecionadosBolsista.map((candidato: any) => (
+                        <div key={candidato.id} className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
+                          <div>
+                            <div className="font-medium">{candidato.aluno.user.username}</div>
+                            <div className="text-sm text-muted-foreground">
+                              Matrícula: {candidato.aluno.matricula} | CR: {candidato.aluno.cr?.toFixed(2) || 'N/A'}
+                              {candidato.notaFinal && ` | Nota Final: ${Number(candidato.notaFinal).toFixed(1)}`}
+                            </div>
                           </div>
+                          <Badge variant="default">Bolsista</Badge>
                         </div>
-                        <Badge variant={getStatusVariant(candidato.status)}>
-                          {formatStatus(candidato.status)}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Candidatos Não Selecionados */}
-              {candidatosNaoSelecionados.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="font-medium text-red-700">
-                    Candidatos Não Selecionados ({candidatosNaoSelecionados.length})
-                  </h4>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {candidatosNaoSelecionados.map((candidato) => (
-                      <div key={candidato.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <div className="font-medium">{candidato.aluno.nomeCompleto}</div>
-                          <div className="text-sm text-muted-foreground">
-                            Matrícula: {candidato.aluno.matricula}
-                            {candidato.notaFinal && ` | Nota Final: ${candidato.notaFinal.toFixed(1)}`}
+                      ))}
+                      {dadosResultados.selecionadosVoluntario.map((candidato: any) => (
+                        <div key={candidato.id} className="flex items-center justify-between p-3 border rounded-lg bg-blue-50">
+                          <div>
+                            <div className="font-medium">{candidato.aluno.user.username}</div>
+                            <div className="text-sm text-muted-foreground">
+                              Matrícula: {candidato.aluno.matricula} | CR: {candidato.aluno.cr?.toFixed(2) || 'N/A'}
+                              {candidato.notaFinal && ` | Nota Final: ${Number(candidato.notaFinal).toFixed(1)}`}
+                            </div>
                           </div>
+                          <Badge variant="secondary">Voluntário</Badge>
                         </div>
-                        <Badge variant={getStatusVariant(candidato.status)}>
-                          {formatStatus(candidato.status)}
-                        </Badge>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                )}
 
-      {/* Mensagem Personalizada */}
-      {selectedProjectId && dadosResultado && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Mensagem para os Candidatos</CardTitle>
-            <CardDescription>
-              Adicione uma mensagem personalizada que será enviada junto com o resultado (opcional)
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="mensagem">Mensagem Personalizada</Label>
-              <Textarea
-                id="mensagem"
-                value={mensagemPersonalizada}
-                onChange={(e) => setMensagemPersonalizada(e.target.value)}
-                placeholder="Ex: Agradecemos a participação de todos os candidatos. Para dúvidas, entrem em contato..."
-                rows={4}
-              />
+                {/* Rejeitados */}
+                {dadosResultados.rejeitados.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Candidatos Não Selecionados ({dadosResultados.rejeitados.length})</h4>
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {dadosResultados.rejeitados.map((candidato: any) => (
+                        <div key={candidato.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <div className="font-medium">{candidato.aluno.user.username}</div>
+                            <div className="text-sm text-muted-foreground">
+                              Matrícula: {candidato.aluno.matricula}
+                              {candidato.notaFinal && ` | Nota Final: ${Number(candidato.notaFinal).toFixed(1)}`}
+                            </div>
+                          </div>
+                          <Badge variant="destructive">Não Selecionado</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Ações */}
-      {selectedProjectId && dadosResultado && (
+      {selectedProjectId && dadosResultados && (
         <Card>
           <CardHeader>
-            <CardTitle>Publicar Resultado</CardTitle>
+            <CardTitle>Ações</CardTitle>
             <CardDescription>
-              Publique o resultado e notifique automaticamente todos os candidatos por email
+              Publique os resultados ou visualize uma prévia
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex gap-3">
-              <Button onClick={handlePreviewPDF} variant="outline" disabled={loadingResultado}>
-                <Eye className="w-4 h-4 mr-2" />
-                Visualizar PDF
-              </Button>
               <Button 
                 onClick={handlePublishResults} 
-                disabled={notificarCandidatosMutation.isPending}
-                className="bg-green-600 hover:bg-green-700"
+                disabled={publishResultsMutation.isPending || loadingResultados}
+                className="flex items-center gap-2"
               >
-                <Send className="w-4 h-4 mr-2" />
-                Publicar e Notificar Candidatos
+                <Send className="w-4 h-4" />
+                {publishResultsMutation.isPending ? 'Publicando...' : 'Publicar Resultados'}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handlePreviewPDF}
+                disabled={loadingResultados}
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Visualizar Prévia
               </Button>
             </div>
-            
-            {candidatosSelecionados.length === 0 && (
-              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  <strong>Atenção:</strong> Nenhum candidato foi selecionado para este projeto. 
-                  Certifique-se de que a avaliação foi concluída antes de publicar os resultados.
-                </p>
-              </div>
-            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Visualizador de PDF */}
-      {showPDF && dadosResultado && (
+      {/* Visualizador de Prévia */}
+      {showPreview && previewData && (
         <Card>
           <CardHeader>
-            <CardTitle>Visualização do Resultado</CardTitle>
+            <CardTitle>Prévia dos Resultados</CardTitle>
             <CardDescription>
-              Prévia do documento que será disponibilizado aos candidatos
+              Como os resultados aparecerão para os candidatos
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="p-4 border rounded-lg bg-muted">
-              <p className="text-sm text-muted-foreground mb-4">
-                Visualização simplificada - O sistema enviará emails personalizados para cada candidato
-              </p>
-              <div className="bg-white p-6 rounded border">
-                <ResultadoTemplate data={dadosResultado} />
-              </div>
+            <div style={{ height: '600px', width: '100%', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'auto' }}>
+              <ResultadoTemplate data={{
+                projeto: previewData.projeto,
+                selecionados: [...previewData.selecionadosBolsista, ...previewData.selecionadosVoluntario]
+              }} />
             </div>
           </CardContent>
         </Card>

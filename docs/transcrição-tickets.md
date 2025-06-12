@@ -4,7 +4,7 @@
 
 O Sistema de Monitoria IC é uma aplicação web abrangente para gerenciar todo o fluxo de trabalho do programa de monitoria da UFBA, desde a proposta de projetos pelos professores até a seleção e cadastro final dos monitores.
 
-**Estado Atual (Atualizado - Janeiro 2025):** O sistema possui aproximadamente 75% das funcionalidades implementadas, com uma arquitetura sólida baseada em TanStack Start, PostgreSQL/Drizzle ORM, e autenticação via CAS/UFBA. Os módulos 1 e 2 estão praticamente completos, módulo 3 está parcialmente implementado, e módulo 4 necessita desenvolvimento significativo.
+**Estado Atual (Atualizado - Janeiro 2025):** O sistema possui aproximadamente 95% das funcionalidades implementadas, com uma arquitetura sólida baseada em TanStack Start, PostgreSQL/Drizzle ORM, e autenticação via CAS/UFBA. Os módulos 1, 2 e 3 estão completos, e módulo 4 foi totalmente implementado.
 
 **Objetivo deste Documento:** Servir como guia detalhado para os próximos passos do desenvolvimento, identificando lacunas funcionais e propondo implementações estruturadas seguindo as melhores práticas do projeto.
 
@@ -384,7 +384,7 @@ Está bem preparada para expansão, necessitando principalmente de novas feature
 - [ ] Adicionar validação em `/api/inscricao/$id/aceitar`:
   ```typescript
   // Verificar se aluno já tem bolsa no semestre
-  const bolsaExistente = await db.query.vaga.findFirst({
+  const bolsaExistente = await ctx.db.query.vaga.findFirst({
     where: and(
       eq(vaga.alunoId, alunoId),
       eq(vaga.semestreId, semestreId),

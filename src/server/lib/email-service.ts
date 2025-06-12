@@ -55,7 +55,7 @@ async function sendGenericEmail({
       html,
     })
 
-    await db.insert(notificacaoHistoricoTable).values({
+    await ctx.db.insert(notificacaoHistoricoTable).values({
       destinatarioEmail: to,
       assunto: subject,
       tipoNotificacao,
@@ -70,7 +70,7 @@ async function sendGenericEmail({
     log.error({ to, subject, tipoNotificacao, error: errorMessage }, 'Falha ao enviar email ou registrar histórico.')
 
     try {
-      await db.insert(notificacaoHistoricoTable).values({
+      await ctx.db.insert(notificacaoHistoricoTable).values({
         destinatarioEmail: to,
         assunto: subject,
         tipoNotificacao,

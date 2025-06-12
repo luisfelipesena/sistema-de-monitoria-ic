@@ -72,21 +72,21 @@ export const periodoInscricaoRouter = createTRPCRouter({
     .output(z.array(periodoComEstatisticasSchema))
     .query(async () => {
       try {
-        const periodos = await db.query.periodoInscricaoTable.findMany({
+        const periodos = await ctx.db.query.periodoInscricaoTable.findMany({
           orderBy: (periodos, { desc }) => [desc(periodos.ano), desc(periodos.semestre)],
         })
 
         const periodosComEstatisticas = await Promise.all(
           periodos.map(async (periodo) => {
             // Contar inscrições do período
-            const [totalInscricoes] = await db
+            const [totalInscricoes] = await ctx.db
               .select({ count: sql<number>`count(*)` })
               .from(inscricaoTable)
               .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
               .where(and(eq(projetoTable.ano, periodo.ano), eq(projetoTable.semestre, periodo.semestre)))
 
             // Contar projetos do período
-            const [totalProjetos] = await db
+            const [totalProjetos] = await ctx.db
               .select({ count: sql<number>`count(*)` })
               .from(projetoTable)
               .where(
@@ -146,7 +146,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
     )
     .output(periodoComEstatisticasSchema)
     .query(async ({ input }) => {
-      const periodo = await db.query.periodoInscricaoTable.findFirst({
+      const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
         where: eq(periodoInscricaoTable.id, input.id),
       })
 
@@ -158,14 +158,14 @@ export const periodoInscricaoRouter = createTRPCRouter({
       }
 
       // Contar inscrições do período
-      const [totalInscricoes] = await db
+      const [totalInscricoes] = await ctx.db
         .select({ count: sql<number>`count(*)` })
         .from(inscricaoTable)
         .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
         .where(and(eq(projetoTable.ano, periodo.ano), eq(projetoTable.semestre, periodo.semestre)))
 
       // Contar projetos do período
-      const [totalProjetos] = await db
+      const [totalProjetos] = await ctx.db
         .select({ count: sql<number>`count(*)` })
         .from(projetoTable)
         .where(
@@ -212,7 +212,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
       try {
         const agora = new Date()
 
-        const periodoAtivo = await db.query.periodoInscricaoTable.findFirst({
+        const periodoAtivo = await ctx.db.query.periodoInscricaoTable.findFirst({
           where: and(lte(periodoInscricaoTable.dataInicio, agora), gte(periodoInscricaoTable.dataFim, agora)),
         })
 
@@ -221,14 +221,14 @@ export const periodoInscricaoRouter = createTRPCRouter({
         }
 
         // Contar inscrições do período
-        const [totalInscricoes] = await db
+        const [totalInscricoes] = await ctx.db
           .select({ count: sql<number>`count(*)` })
           .from(inscricaoTable)
           .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
           .where(and(eq(projetoTable.ano, periodoAtivo.ano), eq(projetoTable.semestre, periodoAtivo.semestre)))
 
         // Contar projetos do período
-        const [totalProjetos] = await db
+        const [totalProjetos] = await ctx.db
           .select({ count: sql<number>`count(*)` })
           .from(projetoTable)
           .where(
@@ -269,7 +269,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       try {
         // Verificar se não há sobreposição de períodos
-        const periodoSobreposicao = await db.query.periodoInscricaoTable.findFirst({
+        const periodoSobreposicao = await ctx.db.query.periodoInscricaoTable.findFirst({
           where: and(
             eq(periodoInscricaoTable.ano, input.ano),
             eq(periodoInscricaoTable.semestre, input.semestre),
@@ -297,7 +297,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
           })
         }
 
-        const [novoPeriodo] = await db
+        const [novoPeriodo] = await ctx.db
           .insert(periodoInscricaoTable)
           .values({
             ano: input.ano,
@@ -340,7 +340,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const { id, ...updateData } = input
 
-      const periodo = await db.query.periodoInscricaoTable.findFirst({
+      const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
         where: eq(periodoInscricaoTable.id, id),
       })
 
@@ -358,7 +358,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
         const novaDataInicio = updateData.dataInicio || periodo.dataInicio
         const novaDataFim = updateData.dataFim || periodo.dataFim
 
-        const periodoSobreposicao = await db.query.periodoInscricaoTable.findFirst({
+        const periodoSobreposicao = await ctx.db.query.periodoInscricaoTable.findFirst({
           where: and(
             eq(periodoInscricaoTable.ano, novoAno),
             eq(periodoInscricaoTable.semestre, novoSemestre),
@@ -386,7 +386,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
         }
       }
 
-      const [periodoAtualizado] = await db
+      const [periodoAtualizado] = await ctx.db
         .update(periodoInscricaoTable)
         .set({
           ...updateData,
@@ -416,7 +416,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
     )
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input }) => {
-      const periodo = await db.query.periodoInscricaoTable.findFirst({
+      const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
         where: eq(periodoInscricaoTable.id, input.id),
       })
 
@@ -428,7 +428,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
       }
 
       // Verificar se há inscrições associadas
-      const [inscricoesAssociadas] = await db
+      const [inscricoesAssociadas] = await ctx.db
         .select({ count: sql<number>`count(*)` })
         .from(inscricaoTable)
         .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
@@ -441,7 +441,7 @@ export const periodoInscricaoRouter = createTRPCRouter({
         })
       }
 
-      await db.delete(periodoInscricaoTable).where(eq(periodoInscricaoTable.id, input.id))
+      await ctx.db.delete(periodoInscricaoTable).where(eq(periodoInscricaoTable.id, input.id))
 
       log.info({ periodoId: input.id }, 'Período de inscrição excluído com sucesso')
       return { success: true }

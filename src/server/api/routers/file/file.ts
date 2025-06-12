@@ -550,7 +550,7 @@ export const fileRouter = createTRPCRouter({
             try {
               // Verificar autorização baseada no projeto
               const db = ctx.db
-              const projeto = await db.query.projetoTable.findFirst({
+              const projeto = await ctx.db.query.projetoTable.findFirst({
                 where: eq(projetoTable.id, projetoId),
                 with: {
                   professorResponsavel: true,
@@ -567,7 +567,7 @@ export const fileRouter = createTRPCRouter({
               if (ctx.user.role === 'admin') {
                 isAuthorized = true
               } else if (ctx.user.role === 'professor') {
-                const professor = await db.query.professorTable.findFirst({
+                const professor = await ctx.db.query.professorTable.findFirst({
                   where: eq(professorTable.userId, userId),
                 })
                 if (professor && professor.id === projeto.professorResponsavelId) {

@@ -16,7 +16,7 @@ export const inviteProfessorRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       // Check if email already exists as user
-      const existingUser = await db.query.userTable.findFirst({
+      const existingUser = await ctx.db.query.userTable.findFirst({
         where: eq(userTable.email, input.email),
       })
 
@@ -25,7 +25,7 @@ export const inviteProfessorRouter = createTRPCRouter({
       }
 
       // Check if there's already a pending invitation
-      const existingInvitation = await db.query.professorInvitationTable.findFirst({
+      const existingInvitation = await ctx.db.query.professorInvitationTable.findFirst({
         where: and(eq(professorInvitationTable.email, input.email), eq(professorInvitationTable.status, 'PENDING')),
       })
 
@@ -39,7 +39,7 @@ export const inviteProfessorRouter = createTRPCRouter({
       expiresAt.setDate(expiresAt.getDate() + input.expiresInDays)
 
       // Create invitation
-      const [invitation] = await db
+      const [invitation] = await ctx.db
         .insert(professorInvitationTable)
         .values({
           email: input.email,
@@ -78,7 +78,7 @@ export const inviteProfessorRouter = createTRPCRouter({
         .optional()
     )
     .query(async ({ input }) => {
-      const invitations = await db.query.professorInvitationTable.findMany({
+      const invitations = await ctx.db.query.professorInvitationTable.findMany({
         where: input?.status ? eq(professorInvitationTable.status, input.status) : undefined,
         orderBy: [desc(professorInvitationTable.createdAt)],
         with: {
@@ -126,7 +126,7 @@ export const inviteProfessorRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const invitation = await db.query.professorInvitationTable.findFirst({
+      const invitation = await ctx.db.query.professorInvitationTable.findFirst({
         where: eq(professorInvitationTable.id, input.invitationId),
       })
 
@@ -143,7 +143,7 @@ export const inviteProfessorRouter = createTRPCRouter({
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + input.expiresInDays)
 
-      await db
+      await ctx.db
         .update(professorInvitationTable)
         .set({
           token,
@@ -170,7 +170,7 @@ export const inviteProfessorRouter = createTRPCRouter({
   cancelInvitation: adminProtectedProcedure
     .input(z.object({ invitationId: z.number() }))
     .mutation(async ({ input }) => {
-      const invitation = await db.query.professorInvitationTable.findFirst({
+      const invitation = await ctx.db.query.professorInvitationTable.findFirst({
         where: eq(professorInvitationTable.id, input.invitationId),
       })
 
@@ -182,7 +182,7 @@ export const inviteProfessorRouter = createTRPCRouter({
         throw new Error('Não é possível cancelar um convite já aceito')
       }
 
-      await db
+      await ctx.db
         .update(professorInvitationTable)
         .set({ status: 'EXPIRED' })
         .where(eq(professorInvitationTable.id, input.invitationId))
@@ -193,13 +193,13 @@ export const inviteProfessorRouter = createTRPCRouter({
   deleteInvitation: adminProtectedProcedure
     .input(z.object({ invitationId: z.number() }))
     .mutation(async ({ input }) => {
-      await db.delete(professorInvitationTable).where(eq(professorInvitationTable.id, input.invitationId))
+      await ctx.db.delete(professorInvitationTable).where(eq(professorInvitationTable.id, input.invitationId))
 
       return { success: true }
     }),
 
   getInvitationStats: adminProtectedProcedure.query(async () => {
-    const invitations = await db.query.professorInvitationTable.findMany()
+    const invitations = await ctx.db.query.professorInvitationTable.findMany()
 
     const stats = {
       total: invitations.length,
@@ -214,7 +214,7 @@ export const inviteProfessorRouter = createTRPCRouter({
   }),
 
   validateInvitationToken: adminProtectedProcedure.input(z.object({ token: z.string() })).query(async ({ input }) => {
-    const invitation = await db.query.professorInvitationTable.findFirst({
+    const invitation = await ctx.db.query.professorInvitationTable.findFirst({
       where: eq(professorInvitationTable.token, input.token),
     })
 
@@ -227,7 +227,7 @@ export const inviteProfessorRouter = createTRPCRouter({
     }
 
     if (invitation.expiresAt < new Date()) {
-      await db
+      await ctx.db
         .update(professorInvitationTable)
         .set({ status: 'EXPIRED' })
         .where(eq(professorInvitationTable.id, invitation.id))
@@ -242,7 +242,7 @@ export const inviteProfessorRouter = createTRPCRouter({
   }),
 
   getDepartments: adminProtectedProcedure.query(async () => {
-    const departments = await db.query.departamentoTable.findMany({
+    const departments = await ctx.db.query.departamentoTable.findMany({
       columns: {
         id: true,
         nome: true,

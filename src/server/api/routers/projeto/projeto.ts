@@ -175,7 +175,7 @@ export const projetoRouter = createTRPCRouter({
 
         let whereCondition
         if (userRole === 'professor') {
-          const professor = await db.query.professorTable.findFirst({
+          const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
           })
 
@@ -186,7 +186,7 @@ export const projetoRouter = createTRPCRouter({
           whereCondition = eq(projetoTable.professorResponsavelId, professor.id)
         }
 
-        const projetos = await db
+        const projetos = await ctx.db
           .select({
             id: projetoTable.id,
             titulo: projetoTable.titulo,
@@ -218,7 +218,7 @@ export const projetoRouter = createTRPCRouter({
           .where(and(whereCondition, isNull(projetoTable.deletedAt)))
           .orderBy(projetoTable.createdAt)
 
-        const inscricoesCount = await db
+        const inscricoesCount = await ctx.db
           .select({
             projetoId: inscricaoTable.projetoId,
             tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
@@ -235,7 +235,7 @@ export const projetoRouter = createTRPCRouter({
 
         const projetosComDisciplinas = await Promise.all(
           projetos.map(async (projeto) => {
-            const disciplinas = await db
+            const disciplinas = await ctx.db
               .select({
                 id: disciplinaTable.id,
                 nome: disciplinaTable.nome,
@@ -288,7 +288,7 @@ export const projetoRouter = createTRPCRouter({
     )
     .output(projetoDetalhesSchema)
     .query(async ({ input, ctx }) => {
-      const projeto = await db.query.projetoTable.findFirst({
+      const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.id), isNull(projetoTable.deletedAt)),
         with: {
           departamento: true,
@@ -304,7 +304,7 @@ export const projetoRouter = createTRPCRouter({
       }
 
       if (ctx.user.role === 'professor') {
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -381,7 +381,7 @@ export const projetoRouter = createTRPCRouter({
         let professorResponsavelId: number
 
         if (ctx.user.role === 'professor') {
-          const professor = await db.query.professorTable.findFirst({
+          const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
           })
 
@@ -401,7 +401,7 @@ export const projetoRouter = createTRPCRouter({
             })
           }
 
-          const professor = await db.query.professorTable.findFirst({
+          const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.id, input.professorResponsavelId),
           })
 
@@ -422,7 +422,7 @@ export const projetoRouter = createTRPCRouter({
 
         const { disciplinaIds, professoresParticipantes, atividades, professorResponsavelId: _, ...rest } = input
 
-        const [novoProjeto] = await db
+        const [novoProjeto] = await ctx.db
           .insert(projetoTable)
           .values({
             ...rest,
@@ -438,7 +438,7 @@ export const projetoRouter = createTRPCRouter({
             disciplinaId,
           }))
 
-          await db.insert(projetoDisciplinaTable).values(disciplinaValues)
+          await ctx.db.insert(projetoDisciplinaTable).values(disciplinaValues)
         }
 
         if (professoresParticipantes?.length) {
@@ -447,7 +447,7 @@ export const projetoRouter = createTRPCRouter({
             professorId,
           }))
 
-          await db.insert(projetoProfessorParticipanteTable).values(participanteValues)
+          await ctx.db.insert(projetoProfessorParticipanteTable).values(participanteValues)
         }
 
         if (atividades?.length) {
@@ -456,12 +456,12 @@ export const projetoRouter = createTRPCRouter({
             descricao,
           }))
 
-          await db.insert(atividadeProjetoTable).values(atividadeValues)
+          await ctx.db.insert(atividadeProjetoTable).values(atividadeValues)
         }
 
         log.info({ projetoId: novoProjeto.id }, 'Projeto criado com sucesso')
 
-        const projetoCompleto = await db.query.projetoTable.findFirst({
+        const projetoCompleto = await ctx.db.query.projetoTable.findFirst({
           where: eq(projetoTable.id, novoProjeto.id),
           with: {
             departamento: true,
@@ -536,7 +536,7 @@ export const projetoRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input
 
-      const projeto = await db.query.projetoTable.findFirst({
+      const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, id), isNull(projetoTable.deletedAt)),
       })
 
@@ -548,7 +548,7 @@ export const projetoRouter = createTRPCRouter({
       }
 
       if (ctx.user.role === 'professor') {
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -569,7 +569,7 @@ export const projetoRouter = createTRPCRouter({
 
       const { disciplinaIds, professoresParticipantes, atividades, professorResponsavelId: _, ...rest } = updateData
 
-      const [_projetoAtualizado] = await db
+      const [_projetoAtualizado] = await ctx.db
         .update(projetoTable)
         .set({
           ...rest,
@@ -578,7 +578,7 @@ export const projetoRouter = createTRPCRouter({
         .where(eq(projetoTable.id, id))
         .returning()
 
-      const projetoCompleto = await db.query.projetoTable.findFirst({
+      const projetoCompleto = await ctx.db.query.projetoTable.findFirst({
         where: eq(projetoTable.id, id),
         with: {
           departamento: true,
@@ -639,7 +639,7 @@ export const projetoRouter = createTRPCRouter({
     )
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
-      const projeto = await db.query.projetoTable.findFirst({
+      const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.id), isNull(projetoTable.deletedAt)),
       })
 
@@ -651,7 +651,7 @@ export const projetoRouter = createTRPCRouter({
       }
 
       if (ctx.user.role === 'professor') {
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -674,7 +674,7 @@ export const projetoRouter = createTRPCRouter({
         log.info({ projetoId: input.id, adminUserId: ctx.user.id }, 'Admin deletando projeto')
       }
 
-      await db
+      await ctx.db
         .update(projetoTable)
         .set({
           deletedAt: new Date(),
@@ -703,7 +703,7 @@ export const projetoRouter = createTRPCRouter({
     )
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
-      const projeto = await db.query.projetoTable.findFirst({
+      const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.id), isNull(projetoTable.deletedAt)),
       })
 
@@ -715,7 +715,7 @@ export const projetoRouter = createTRPCRouter({
       }
 
       if (ctx.user.role === 'professor') {
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -734,7 +734,7 @@ export const projetoRouter = createTRPCRouter({
         })
       }
 
-      await db
+      await ctx.db
         .update(projetoTable)
         .set({
           status: 'SUBMITTED',
@@ -765,7 +765,7 @@ export const projetoRouter = createTRPCRouter({
     )
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input }) => {
-      const projeto = await db.query.projetoTable.findFirst({
+      const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.id), isNull(projetoTable.deletedAt)),
       })
 
@@ -783,7 +783,7 @@ export const projetoRouter = createTRPCRouter({
         })
       }
 
-      await db
+      await ctx.db
         .update(projetoTable)
         .set({
           status: 'APPROVED',
@@ -815,7 +815,7 @@ export const projetoRouter = createTRPCRouter({
     )
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input }) => {
-      const projeto = await db.query.projetoTable.findFirst({
+      const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.id), isNull(projetoTable.deletedAt)),
       })
 
@@ -833,7 +833,7 @@ export const projetoRouter = createTRPCRouter({
         })
       }
 
-      await db
+      await ctx.db
         .update(projetoTable)
         .set({
           status: 'REJECTED',
@@ -864,7 +864,7 @@ export const projetoRouter = createTRPCRouter({
     )
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
-      const projeto = await db.query.projetoTable.findFirst({
+      const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
         with: {
           departamento: true,
@@ -880,7 +880,7 @@ export const projetoRouter = createTRPCRouter({
       }
 
       if (ctx.user.role === 'professor') {
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -892,7 +892,7 @@ export const projetoRouter = createTRPCRouter({
         }
       }
 
-      await db
+      await ctx.db
         .update(projetoTable)
         .set({
           assinaturaProfessor: input.signatureImage,
@@ -972,7 +972,7 @@ export const projetoRouter = createTRPCRouter({
 
       // Enviar notificação para admins
       try {
-        const admins = await db.query.userTable.findMany({
+        const admins = await ctx.db.query.userTable.findMany({
           where: eq(userTable.role, 'admin'),
         })
 
@@ -1017,7 +1017,7 @@ export const projetoRouter = createTRPCRouter({
     )
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input }) => {
-      const projeto = await db.query.projetoTable.findFirst({
+      const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
       })
 
@@ -1035,7 +1035,7 @@ export const projetoRouter = createTRPCRouter({
         })
       }
 
-      await db
+      await ctx.db
         .update(projetoTable)
         .set({
           assinaturaAdmin: input.signatureImage,
@@ -1069,7 +1069,7 @@ export const projetoRouter = createTRPCRouter({
           )
         } else {
           // Fallback: generate new PDF with both signatures
-          const projetoCompleto = await db.query.projetoTable.findFirst({
+          const projetoCompleto = await ctx.db.query.projetoTable.findFirst({
             where: eq(projetoTable.id, input.projetoId),
             with: {
               departamento: true,
@@ -1160,7 +1160,7 @@ export const projetoRouter = createTRPCRouter({
 
       // Enviar notificação para o professor
       try {
-        const projetoCompleto = await db.query.projetoTable.findFirst({
+        const projetoCompleto = await ctx.db.query.projetoTable.findFirst({
           where: eq(projetoTable.id, input.projetoId),
           with: {
             professorResponsavel: true,
@@ -1196,7 +1196,7 @@ export const projetoRouter = createTRPCRouter({
       const userRole = ctx.user.role
 
       if (userRole === 'professor') {
-        await db
+        await ctx.db
           .update(projetoTable)
           .set({
             assinaturaProfessor: input.signatureData,
@@ -1205,7 +1205,7 @@ export const projetoRouter = createTRPCRouter({
           })
           .where(eq(projetoTable.id, input.projetoId))
       } else if (userRole === 'admin') {
-        await db
+        await ctx.db
           .update(projetoTable)
           .set({
             assinaturaAdmin: input.signatureData,
@@ -1259,7 +1259,7 @@ export const projetoRouter = createTRPCRouter({
           })
         }
 
-        const aluno = await db.query.alunoTable.findFirst({
+        const aluno = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -1275,7 +1275,7 @@ export const projetoRouter = createTRPCRouter({
         const currentYear = now.getFullYear()
         const currentSemester = now.getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2'
 
-        const periodoAtivo = await db.query.periodoInscricaoTable.findFirst({
+        const periodoAtivo = await ctx.db.query.periodoInscricaoTable.findFirst({
           where: and(
             eq(periodoInscricaoTable.ano, currentYear),
             eq(periodoInscricaoTable.semestre, currentSemester),
@@ -1285,7 +1285,7 @@ export const projetoRouter = createTRPCRouter({
         })
 
         // Get approved projects for current semester
-        const projetos = await db
+        const projetos = await ctx.db
           .select({
             id: projetoTable.id,
             titulo: projetoTable.titulo,
@@ -1308,14 +1308,14 @@ export const projetoRouter = createTRPCRouter({
           .orderBy(projetoTable.titulo)
 
         // Get student's inscriptions for these projects
-        const inscricoes = await db.query.inscricaoTable.findMany({
+        const inscricoes = await ctx.db.query.inscricaoTable.findMany({
           where: eq(inscricaoTable.alunoId, aluno.id),
         })
 
         const inscricoesMap = new Map(inscricoes.map((i) => [i.projetoId, i]))
 
         // Get inscription counts for all projects
-        const inscricoesCount = await db
+        const inscricoesCount = await ctx.db
           .select({
             projetoId: inscricaoTable.projetoId,
             count: sql<number>`count(*)`,
@@ -1327,7 +1327,7 @@ export const projetoRouter = createTRPCRouter({
 
         const projetosComDisciplinas = await Promise.all(
           projetos.map(async (projeto) => {
-            const disciplinas = await db
+            const disciplinas = await ctx.db
               .select({
                 codigo: disciplinaTable.codigo,
                 nome: disciplinaTable.nome,
@@ -1407,7 +1407,7 @@ export const projetoRouter = createTRPCRouter({
           })
         }
 
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -1419,7 +1419,7 @@ export const projetoRouter = createTRPCRouter({
         }
 
         // Get inscriptions for professor's projects with accepted volunteers
-        const inscricoes = await db
+        const inscricoes = await ctx.db
           .select({
             id: inscricaoTable.id,
             aluno: {
@@ -1448,7 +1448,7 @@ export const projetoRouter = createTRPCRouter({
         const voluntarios = await Promise.all(
           inscricoes.map(async (inscricao) => {
             // Get first discipline for this project
-            const disciplina = await db
+            const disciplina = await ctx.db
               .select({
                 codigo: disciplinaTable.codigo,
                 nome: disciplinaTable.nome,
@@ -1509,7 +1509,7 @@ export const projetoRouter = createTRPCRouter({
           })
         }
 
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -1521,7 +1521,7 @@ export const projetoRouter = createTRPCRouter({
         }
 
         // Find the inscription for this volunteer
-        const inscricao = await db.query.inscricaoTable.findFirst({
+        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
           where: and(eq(inscricaoTable.alunoId, input.id), eq(inscricaoTable.status, 'ACCEPTED_VOLUNTARIO')),
           with: {
             projeto: true,
@@ -1605,7 +1605,7 @@ export const projetoRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       try {
         // Verificar se é professor e se tem acesso ao projeto
-        const projeto = await db.query.projetoTable.findFirst({
+        const projeto = await ctx.db.query.projetoTable.findFirst({
           where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
           with: {
             departamento: true,
@@ -1621,7 +1621,7 @@ export const projetoRouter = createTRPCRouter({
         }
 
         if (ctx.user.role === 'professor') {
-          const professor = await db.query.professorTable.findFirst({
+          const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
           })
 
@@ -1634,7 +1634,7 @@ export const projetoRouter = createTRPCRouter({
         }
 
         // Buscar disciplinas do projeto
-        const disciplinas = await db
+        const disciplinas = await ctx.db
           .select({
             codigo: disciplinaTable.codigo,
             nome: disciplinaTable.nome,
@@ -1644,7 +1644,7 @@ export const projetoRouter = createTRPCRouter({
           .where(eq(projetoDisciplinaTable.projetoId, projeto.id))
 
         // Buscar candidatos/inscrições do projeto
-        const candidatos = await db
+        const candidatos = await ctx.db
           .select({
             id: inscricaoTable.id,
             aluno: {
@@ -1739,7 +1739,7 @@ export const projetoRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       try {
         // Verificar se é professor e se tem acesso ao projeto
-        const projeto = await db.query.projetoTable.findFirst({
+        const projeto = await ctx.db.query.projetoTable.findFirst({
           where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
         })
 
@@ -1751,7 +1751,7 @@ export const projetoRouter = createTRPCRouter({
         }
 
         if (ctx.user.role === 'professor') {
-          const professor = await db.query.professorTable.findFirst({
+          const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
           })
 
@@ -1764,7 +1764,7 @@ export const projetoRouter = createTRPCRouter({
         }
 
         // Verificar se já existe uma ata para este projeto
-        const ataExistente = await db.query.ataSelecaoTable.findFirst({
+        const ataExistente = await ctx.db.query.ataSelecaoTable.findFirst({
           where: eq(ataSelecaoTable.projetoId, input.projetoId),
         })
 
@@ -1772,7 +1772,7 @@ export const projetoRouter = createTRPCRouter({
 
         if (ataExistente) {
           // Atualizar ata existente - apenas atualizamos dataGeracao
-          await db
+          await ctx.db
             .update(ataSelecaoTable)
             .set({
               dataGeracao: new Date(),
@@ -1782,7 +1782,7 @@ export const projetoRouter = createTRPCRouter({
           ataId = ataExistente.id
         } else {
           // Criar nova ata
-          const [novaAta] = await db
+          const [novaAta] = await ctx.db
             .insert(ataSelecaoTable)
             .values({
               projetoId: input.projetoId,
@@ -1827,7 +1827,7 @@ export const projetoRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       try {
         // Verificar se é professor e se tem acesso ao projeto
-        const projeto = await db.query.projetoTable.findFirst({
+        const projeto = await ctx.db.query.projetoTable.findFirst({
           where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
           with: {
             professorResponsavel: true,
@@ -1842,7 +1842,7 @@ export const projetoRouter = createTRPCRouter({
         }
 
         if (ctx.user.role === 'professor') {
-          const professor = await db.query.professorTable.findFirst({
+          const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
           })
 
@@ -1855,7 +1855,7 @@ export const projetoRouter = createTRPCRouter({
         }
 
         // Buscar candidatos com seus dados de usuário
-        const candidatos = await db
+        const candidatos = await ctx.db
           .select({
             inscricao: {
               id: inscricaoTable.id,

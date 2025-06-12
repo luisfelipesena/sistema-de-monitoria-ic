@@ -171,7 +171,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const aluno = await db.query.alunoTable.findFirst({
+        const aluno = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -183,7 +183,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Get all inscriptions for this student
-        const inscricoes = await db.query.inscricaoTable.findMany({
+        const inscricoes = await ctx.db.query.inscricaoTable.findMany({
           where: eq(inscricaoTable.alunoId, aluno.id),
           with: {
             projeto: {
@@ -306,7 +306,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const aluno = await db.query.alunoTable.findFirst({
+        const aluno = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -318,7 +318,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Check if project exists and is approved
-        const projeto = await db.query.projetoTable.findFirst({
+        const projeto = await ctx.db.query.projetoTable.findFirst({
           where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
         })
 
@@ -331,7 +331,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         // Get current active inscription period
         const now = new Date()
-        const periodoAtivo = await db.query.periodoInscricaoTable.findFirst({
+        const periodoAtivo = await ctx.db.query.periodoInscricaoTable.findFirst({
           where: and(
             eq(periodoInscricaoTable.ano, projeto.ano),
             eq(periodoInscricaoTable.semestre, projeto.semestre),
@@ -348,7 +348,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Check if student already applied to this project
-        const existingInscricao = await db.query.inscricaoTable.findFirst({
+        const existingInscricao = await ctx.db.query.inscricaoTable.findFirst({
           where: and(
             eq(inscricaoTable.alunoId, aluno.id),
             eq(inscricaoTable.projetoId, input.projetoId),
@@ -364,7 +364,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Create the inscription
-        const [novaInscricao] = await db
+        const [novaInscricao] = await ctx.db
           .insert(inscricaoTable)
           .values({
             periodoInscricaoId: periodoAtivo.id,
@@ -435,7 +435,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const aluno = await db.query.alunoTable.findFirst({
+        const aluno = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -446,7 +446,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const inscricoes = await db.query.inscricaoTable.findMany({
+        const inscricoes = await ctx.db.query.inscricaoTable.findMany({
           where: eq(inscricaoTable.alunoId, aluno.id),
           with: {
             projeto: {
@@ -524,7 +524,7 @@ export const inscricaoRouter = createTRPCRouter({
     .output(z.array(inscricaoComDetalhesSchema))
     .query(async ({ ctx }) => {
       try {
-        const aluno = await db.query.alunoTable.findFirst({
+        const aluno = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -535,7 +535,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const inscricoes = await db
+        const inscricoes = await ctx.db
           .select({
             id: inscricaoTable.id,
             projetoId: inscricaoTable.projetoId,
@@ -590,7 +590,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         const inscricoesComDisciplinas = await Promise.all(
           inscricoes.map(async (inscricao) => {
-            const disciplinas = await db
+            const disciplinas = await ctx.db
               .select({
                 id: disciplinaTable.id,
                 nome: disciplinaTable.nome,
@@ -655,7 +655,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const aluno = await db.query.alunoTable.findFirst({
+        const aluno = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -667,7 +667,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Verificar se o projeto existe e está aprovado
-        const projeto = await db.query.projetoTable.findFirst({
+        const projeto = await ctx.db.query.projetoTable.findFirst({
           where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
         })
 
@@ -686,7 +686,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Verificar se período de inscrição está ativo
-        const periodoAtivo = await db.query.periodoInscricaoTable.findFirst({
+        const periodoAtivo = await ctx.db.query.periodoInscricaoTable.findFirst({
           where: and(
             eq(periodoInscricaoTable.ano, projeto.ano),
             eq(periodoInscricaoTable.semestre, projeto.semestre),
@@ -703,7 +703,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Verificar se já possui inscrição para este projeto
-        const inscricaoExistente = await db.query.inscricaoTable.findFirst({
+        const inscricaoExistente = await ctx.db.query.inscricaoTable.findFirst({
           where: and(eq(inscricaoTable.alunoId, aluno.id), eq(inscricaoTable.projetoId, input.projetoId)),
         })
 
@@ -714,7 +714,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const [novaInscricao] = await db
+        const [novaInscricao] = await ctx.db
           .insert(inscricaoTable)
           .values({
             alunoId: aluno.id,
@@ -768,7 +768,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const aluno = await db.query.alunoTable.findFirst({
+        const aluno = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -779,7 +779,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const inscricao = await db.query.inscricaoTable.findFirst({
+        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
           where: and(eq(inscricaoTable.id, input.inscricaoId), eq(inscricaoTable.alunoId, aluno.id)),
           with: {
             projeto: true,
@@ -802,7 +802,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         // Verificar se já aceita bolsa no mesmo semestre (limite de 1 bolsa)
         if (inscricao.status === 'SELECTED_BOLSISTA') {
-          const bolsaExistente = await db.query.inscricaoTable.findFirst({
+          const bolsaExistente = await ctx.db.query.inscricaoTable.findFirst({
             where: and(eq(inscricaoTable.alunoId, aluno.id), eq(inscricaoTable.status, 'ACCEPTED_BOLSISTA')),
             with: {
               projeto: true,
@@ -823,7 +823,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         const novoStatus = inscricao.status === 'SELECTED_BOLSISTA' ? 'ACCEPTED_BOLSISTA' : 'ACCEPTED_VOLUNTARIO'
 
-        await db
+        await ctx.db
           .update(inscricaoTable)
           .set({
             status: novoStatus,
@@ -870,7 +870,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const aluno = await db.query.alunoTable.findFirst({
+        const aluno = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -881,7 +881,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const inscricao = await db.query.inscricaoTable.findFirst({
+        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
           where: and(eq(inscricaoTable.id, input.inscricaoId), eq(inscricaoTable.alunoId, aluno.id)),
         })
 
@@ -899,7 +899,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        await db
+        await ctx.db
           .update(inscricaoTable)
           .set({
             status: 'REJECTED_BY_STUDENT',
@@ -947,7 +947,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const professor = await db.query.professorTable.findFirst({
+        const professor = await ctx.db.query.professorTable.findFirst({
           where: eq(professorTable.userId, ctx.user.id),
         })
 
@@ -958,7 +958,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const inscricao = await db.query.inscricaoTable.findFirst({
+        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
           where: eq(inscricaoTable.id, input.inscricaoId),
           with: {
             projeto: true,
@@ -990,7 +990,7 @@ export const inscricaoRouter = createTRPCRouter({
         const coeficiente = Number(inscricao.coeficienteRendimento) || 0
         const notaFinal = (input.notaDisciplina * 5 + input.notaSelecao * 3 + coeficiente * 2) / 10
 
-        await db
+        await ctx.db
           .update(inscricaoTable)
           .set({
             notaDisciplina: input.notaDisciplina.toString(),
@@ -1036,7 +1036,7 @@ export const inscricaoRouter = createTRPCRouter({
     .output(z.array(inscricaoComDetalhesSchema))
     .query(async ({ input, ctx }) => {
       try {
-        const projeto = await db.query.projetoTable.findFirst({
+        const projeto = await ctx.db.query.projetoTable.findFirst({
           where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
         })
 
@@ -1049,7 +1049,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         // Verificar permissão de acesso
         if (ctx.user.role === 'professor') {
-          const professor = await db.query.professorTable.findFirst({
+          const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
           })
 
@@ -1066,7 +1066,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const inscricoes = await db
+        const inscricoes = await ctx.db
           .select({
             id: inscricaoTable.id,
             projetoId: inscricaoTable.projetoId,
@@ -1121,7 +1121,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         const inscricoesComDisciplinas = await Promise.all(
           inscricoes.map(async (inscricao) => {
-            const disciplinas = await db
+            const disciplinas = await ctx.db
               .select({
                 id: disciplinaTable.id,
                 nome: disciplinaTable.nome,
@@ -1187,7 +1187,7 @@ export const inscricaoRouter = createTRPCRouter({
       const notaFinal = (input.notaDisciplina * 5 + input.notaSelecao * 3 + input.coeficienteRendimento * 2) / 10
 
       // Verificar se o professor é responsável pelo projeto
-      const inscricao = await db.query.inscricaoTable.findFirst({
+      const inscricao = await ctx.db.query.inscricaoTable.findFirst({
         where: eq(inscricaoTable.id, input.inscricaoId),
         with: {
           projeto: {
@@ -1213,7 +1213,7 @@ export const inscricaoRouter = createTRPCRouter({
       }
 
       // Atualizar a inscrição com as notas
-      const [updatedInscricao] = await db
+      const [updatedInscricao] = await ctx.db
         .update(inscricaoTable)
         .set({
           notaDisciplina: input.notaDisciplina.toString(),
@@ -1253,7 +1253,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const aluno = await db.query.alunoTable.findFirst({
+        const aluno = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -1265,7 +1265,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Buscar a inscrição
-        const inscricao = await db.query.inscricaoTable.findFirst({
+        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
           where: and(
             eq(inscricaoTable.id, input.inscricaoId),
             eq(inscricaoTable.alunoId, aluno.id)
@@ -1292,7 +1292,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         // Se for bolsista, verificar se já tem bolsa no semestre
         if (inscricao.status === 'SELECTED_BOLSISTA') {
-          const bolsaExistente = await db.query.inscricaoTable.findFirst({
+          const bolsaExistente = await ctx.db.query.inscricaoTable.findFirst({
             where: and(
               eq(inscricaoTable.alunoId, aluno.id),
               eq(inscricaoTable.status, 'ACCEPTED_BOLSISTA')
@@ -1316,7 +1316,7 @@ export const inscricaoRouter = createTRPCRouter({
         // Atualizar status para aceito
         const newStatus = inscricao.status === 'SELECTED_BOLSISTA' ? 'ACCEPTED_BOLSISTA' : 'ACCEPTED_VOLUNTARIO'
         
-        await db
+        await ctx.db
           .update(inscricaoTable)
           .set({
             status: newStatus,
@@ -1366,7 +1366,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        const aluno = await db.query.alunoTable.findFirst({
+        const aluno = await ctx.db.query.alunoTable.findFirst({
           where: eq(alunoTable.userId, ctx.user.id),
         })
 
@@ -1378,7 +1378,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Buscar a inscrição
-        const inscricao = await db.query.inscricaoTable.findFirst({
+        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
           where: and(
             eq(inscricaoTable.id, input.inscricaoId),
             eq(inscricaoTable.alunoId, aluno.id)
@@ -1401,7 +1401,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Atualizar status para recusado
-        await db
+        await ctx.db
           .update(inscricaoTable)
           .set({
             status: 'REJECTED_BY_STUDENT',
@@ -1478,7 +1478,7 @@ export const inscricaoRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       try {
         // Buscar a inscrição com todos os dados necessários
-        const inscricao = await db.query.inscricaoTable.findFirst({
+        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
           where: eq(inscricaoTable.id, input.inscricaoId),
           with: {
             aluno: {
@@ -1504,7 +1504,7 @@ export const inscricaoRouter = createTRPCRouter({
 
         // Verificar se o usuário tem acesso a esta inscrição
         if (ctx.user.role === 'student') {
-          const aluno = await db.query.alunoTable.findFirst({
+          const aluno = await ctx.db.query.alunoTable.findFirst({
             where: eq(alunoTable.userId, ctx.user.id),
           })
           
@@ -1515,7 +1515,7 @@ export const inscricaoRouter = createTRPCRouter({
             })
           }
         } else if (ctx.user.role === 'professor') {
-          const professor = await db.query.professorTable.findFirst({
+          const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
           })
           
@@ -1536,7 +1536,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Buscar disciplinas do projeto
-        const disciplinas = await db
+        const disciplinas = await ctx.db
           .select({
             codigo: disciplinaTable.codigo,
             nome: disciplinaTable.nome,

@@ -6,9 +6,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
 import { api } from '@/utils/api'
-import { FileSpreadsheet, Download, Filter, Users, Award, Calendar } from 'lucide-react'
+import { FileSpreadsheet, Download, Filter, Users, Award, Calendar, AlertTriangle, CheckCircle } from 'lucide-react'
+import { PagesLayout } from '@/components/layout/PagesLayout'
 
 type ConsolidationData = {
   id: number
@@ -45,12 +48,57 @@ export default function ConsolidacaoPROGRADPage() {
   const { toast } = useToast()
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
   const [selectedSemester, setSelectedSemester] = useState<'SEMESTRE_1' | 'SEMESTRE_2'>('SEMESTRE_1')
+  const [incluirBolsistas, setIncluirBolsistas] = useState(true)
+  const [incluirVoluntarios, setIncluirVoluntarios] = useState(true)
+  const [showValidation, setShowValidation] = useState(false)
 
   // Buscar dados consolidados de monitoria
   const { data: consolidationData, isLoading, refetch } = api.relatorios.getConsolidatedMonitoringData.useQuery(
     { ano: selectedYear, semestre: selectedSemester },
     { enabled: true }
   )
+
+  // Buscar dados de bolsistas para validação
+  const { data: bolsistasData, isLoading: loadingBolsistas } = api.relatorios.monitoresFinalBolsistas.useQuery(
+    { ano: selectedYear, semestre: selectedSemester },
+    { enabled: incluirBolsistas }
+  )
+
+  // Buscar dados de voluntários para validação
+  const { data: voluntariosData, isLoading: loadingVoluntarios } = api.relatorios.monitoresFinalVoluntarios.useQuery(
+    { ano: selectedYear, semestre: selectedSemester },
+    { enabled: incluirVoluntarios }
+  )
+
+  // Validar dados antes da exportação
+  const { data: validationData, isLoading: loadingValidation } = api.relatorios.validateCompleteData.useQuery(
+    { 
+      ano: selectedYear, 
+      semestre: selectedSemester,
+      tipo: incluirBolsistas && incluirVoluntarios ? 'ambos' :
+            incluirBolsistas ? 'bolsistas' : 'voluntarios'
+    },
+    { enabled: showValidation }
+  )
+
+  // Mutation para exportar consolidação final
+  const exportConsolidatedMutation = api.relatorios.exportConsolidated.useMutation({
+    onSuccess: (data) => {
+      toast({
+        title: 'Sucesso',
+        description: `Planilha ${data.fileName} gerada com sucesso!`,
+      })
+      // Em implementação real, faria download do arquivo
+      console.log('Download URL:', data.downloadUrl)
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro na exportação',
+        description: error.message,
+        variant: 'destructive',
+      })
+    }
+  })
 
   const handleYearChange = (year: string) => {
     setSelectedYear(parseInt(year))
@@ -60,7 +108,20 @@ export default function ConsolidacaoPROGRADPage() {
     setSelectedSemester(semester)
   }
 
-  const generateSpreadsheet = () => {
+  const handleValidateData = () => {
+    setShowValidation(true)
+  }
+
+  const generateExcelSpreadsheet = () => {
+    exportConsolidatedMutation.mutate({
+      ano: selectedYear,
+      semestre: selectedSemester,
+      incluirBolsistas,
+      incluirVoluntarios
+    })
+  }
+
+  const generateCSVSpreadsheet = () => {
     if (!consolidationData || consolidationData.length === 0) {
       toast({
         title: 'Aviso',
@@ -129,7 +190,7 @@ export default function ConsolidacaoPROGRADPage() {
 
     toast({
       title: 'Sucesso',
-      description: 'Planilha gerada e baixada com sucesso!',
+      description: 'Planilha CSV gerada e baixada com sucesso!',
     })
   }
 
@@ -159,13 +220,7 @@ export default function ConsolidacaoPROGRADPage() {
   const totalBolsas = monitoresBolsistas.reduce((sum, item) => sum + (item.monitoria.valorBolsa || 0), 0)
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Consolidação PROGRAD</h1>
-        <p className="text-muted-foreground">
-          Relatório consolidado de monitoria para envio à PROGRAD
-        </p>
-      </div>
+    <PagesLayout title="Consolidação PROGRAD" subtitle="Relatório consolidado de monitoria para envio à PROGRAD">
 
       {/* Filtros */}
       <Card>
@@ -204,15 +259,85 @@ export default function ConsolidacaoPROGRADPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-end">
-              <Button onClick={() => refetch()} disabled={isLoading}>
-                <Calendar className="h-4 w-4 mr-2" />
-                Atualizar Dados
-              </Button>
+            <div className="space-y-2">
+              <Label>Incluir na Exportação</Label>
+              <div className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="bolsistas"
+                    checked={incluirBolsistas}
+                    onCheckedChange={(checked) => setIncluirBolsistas(Boolean(checked))}
+                  />
+                  <Label htmlFor="bolsistas">Bolsistas</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="voluntarios"
+                    checked={incluirVoluntarios}
+                    onCheckedChange={(checked) => setIncluirVoluntarios(Boolean(checked))}
+                  />
+                  <Label htmlFor="voluntarios">Voluntários</Label>
+                </div>
+              </div>
             </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <Button onClick={() => refetch()} disabled={isLoading} variant="outline">
+              <Calendar className="h-4 w-4 mr-2" />
+              Atualizar Dados
+            </Button>
+            <Button onClick={handleValidateData} disabled={loadingValidation} variant="outline">
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Validar Dados
+            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Validação dos Dados */}
+      {showValidation && validationData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {validationData.valido ? (
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              ) : (
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              )}
+              Validação dos Dados
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {validationData.valido ? (
+              <Alert>
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Todos os dados estão completos e prontos para exportação!
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <>
+                <Alert variant="destructive" className="mb-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    {validationData.totalProblemas} problema(s) encontrado(s). Corrija antes de exportar.
+                  </AlertDescription>
+                </Alert>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {validationData.problemas.map((problema, index) => (
+                    <div key={index} className="p-3 border rounded-lg bg-red-50">
+                      <div className="font-medium">{problema.nomeAluno} ({problema.tipo})</div>
+                      <div className="text-sm text-muted-foreground">
+                        Problemas: {problema.problemas.join(', ')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Estatísticas */}
       {consolidationData && (
@@ -264,7 +389,7 @@ export default function ConsolidacaoPROGRADPage() {
         </div>
       )}
 
-      {/* Botão de Geração */}
+      {/* Botões de Geração */}
       <Card>
         <CardHeader>
           <CardTitle>Gerar Relatório PROGRAD</CardTitle>
@@ -273,18 +398,50 @@ export default function ConsolidacaoPROGRADPage() {
           </p>
         </CardHeader>
         <CardContent>
-          <Button 
-            onClick={generateSpreadsheet} 
-            disabled={isLoading || !consolidationData || consolidationData.length === 0}
-            className="w-full md:w-auto"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Baixar Planilha Consolidada (.CSV)
-          </Button>
+          <div className="space-y-4">
+            {/* Exportação Excel (Oficial PROGRAD) */}
+            <div className="space-y-2">
+              <h4 className="font-medium">Exportação Oficial (Excel)</h4>
+              <p className="text-sm text-muted-foreground">
+                Formato oficial para envio à PROGRAD com validação completa de dados
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={generateExcelSpreadsheet}
+                  disabled={exportConsolidatedMutation.isPending || !consolidationData || consolidationData.length === 0}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  {exportConsolidatedMutation.isPending ? 'Gerando...' : 'Baixar Excel Oficial'}
+                </Button>
+              </div>
+            </div>
+            
+            <div className="border-t my-4" />
+            
+            {/* Exportação CSV (Rápida) */}
+            <div className="space-y-2">
+              <h4 className="font-medium">Exportação Rápida (CSV)</h4>
+              <p className="text-sm text-muted-foreground">
+                Formato CSV para análise rápida ou backup dos dados
+              </p>
+              <Button 
+                onClick={generateCSVSpreadsheet} 
+                disabled={isLoading || !consolidationData || consolidationData.length === 0}
+                variant="outline"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Baixar CSV
+              </Button>
+            </div>
+          </div>
+          
           {consolidationData && consolidationData.length === 0 && (
-            <p className="text-sm text-muted-foreground mt-2">
-              Nenhum monitor encontrado para o período selecionado.
-            </p>
+            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                Nenhum monitor encontrado para o período selecionado.
+              </p>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -343,6 +500,6 @@ export default function ConsolidacaoPROGRADPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </PagesLayout>
   )
 }

@@ -54,7 +54,7 @@ export const departamentoRouter = createTRPCRouter({
     .output(z.array(departamentoSchema))
     .query(async ({ input }) => {
       try {
-        const departamentos = await db.query.departamentoTable.findMany({
+        const departamentos = await ctx.db.query.departamentoTable.findMany({
           orderBy: (departamentos, { asc }) => [asc(departamentos.nome)],
         })
 
@@ -66,22 +66,22 @@ export const departamentoRouter = createTRPCRouter({
         // Add statistics for each department
         const departamentosWithStats = await Promise.all(
           departamentos.map(async (departamento) => {
-            const [professoresCount] = await db
+            const [professoresCount] = await ctx.db
               .select({ count: sql<number>`count(*)::int` })
               .from(professorTable)
               .where(eq(professorTable.departamentoId, departamento.id))
 
-            const [cursosCount] = await db
+            const [cursosCount] = await ctx.db
               .select({ count: sql<number>`count(*)::int` })
               .from(cursoTable)
               .where(eq(cursoTable.departamentoId, departamento.id))
 
-            const [disciplinasCount] = await db
+            const [disciplinasCount] = await ctx.db
               .select({ count: sql<number>`count(*)::int` })
               .from(disciplinaTable)
               .where(and(eq(disciplinaTable.departamentoId, departamento.id), isNull(disciplinaTable.deletedAt)))
 
-            const [projetosCount] = await db
+            const [projetosCount] = await ctx.db
               .select({ count: sql<number>`count(*)::int` })
               .from(projetoTable)
               .where(and(eq(projetoTable.departamentoId, departamento.id), isNull(projetoTable.deletedAt)))
@@ -124,7 +124,7 @@ export const departamentoRouter = createTRPCRouter({
     )
     .output(departamentoSchema)
     .query(async ({ input }) => {
-      const departamento = await db.query.departamentoTable.findFirst({
+      const departamento = await ctx.db.query.departamentoTable.findFirst({
         where: eq(departamentoTable.id, input.id),
       })
 
@@ -152,7 +152,7 @@ export const departamentoRouter = createTRPCRouter({
     .output(departamentoSchema)
     .mutation(async ({ input }) => {
       try {
-        const result = await db
+        const result = await ctx.db
           .insert(departamentoTable)
           .values({
             nome: input.nome,
@@ -187,7 +187,7 @@ export const departamentoRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const { id, ...updateData } = input
 
-      const departamento = await db.query.departamentoTable.findFirst({
+      const departamento = await ctx.db.query.departamentoTable.findFirst({
         where: eq(departamentoTable.id, id),
       })
 
@@ -198,7 +198,7 @@ export const departamentoRouter = createTRPCRouter({
         })
       }
 
-      const result = await db
+      const result = await ctx.db
         .update(departamentoTable)
         .set({
           ...updateData,
@@ -227,7 +227,7 @@ export const departamentoRouter = createTRPCRouter({
     )
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input }) => {
-      const departamento = await db.query.departamentoTable.findFirst({
+      const departamento = await ctx.db.query.departamentoTable.findFirst({
         where: eq(departamentoTable.id, input.id),
       })
 
@@ -239,7 +239,7 @@ export const departamentoRouter = createTRPCRouter({
       }
 
       // Check if there are associated disciplines
-      const disciplinasAssociadas = await db.query.disciplinaTable.findFirst({
+      const disciplinasAssociadas = await ctx.db.query.disciplinaTable.findFirst({
         where: eq(disciplinaTable.departamentoId, input.id),
       })
 
@@ -250,7 +250,7 @@ export const departamentoRouter = createTRPCRouter({
         })
       }
 
-      await db.delete(departamentoTable).where(eq(departamentoTable.id, input.id))
+      await ctx.db.delete(departamentoTable).where(eq(departamentoTable.id, input.id))
 
       return { success: true }
     }),
