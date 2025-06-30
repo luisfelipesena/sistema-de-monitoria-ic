@@ -88,12 +88,6 @@ const menuConfig: MenuConfig[] = [
         roles: ["admin"],
       },
       {
-        label: "Assinatura de Documentos",
-        href: "/home/admin/document-signing",
-        icon: FileSignature,
-        roles: ["admin"],
-      },
-      {
         label: "Importar Planejamento",
         href: "/home/admin/import-projects",
         icon: Upload,
@@ -103,6 +97,48 @@ const menuConfig: MenuConfig[] = [
         label: "Alocação de Bolsas",
         href: "/home/admin/scholarship-allocation",
         icon: Award,
+        roles: ["admin"],
+      },
+    ],
+  },
+
+  // Admin - Editais e Períodos
+  {
+    label: "Editais",
+    icon: FileText,
+    roles: ["admin"],
+    items: [
+      {
+        label: "Gerenciar Editais",
+        href: "/home/admin/edital-management",
+        icon: FileText,
+        roles: ["admin"],
+      },
+      {
+        label: "Templates de Projeto",
+        href: "/home/admin/projeto-templates",
+        icon: FileText,
+        roles: ["admin"],
+      },
+    ],
+  },
+
+  // Admin - Documentos e Assinaturas
+  {
+    label: "Documentos",
+    icon: FileSignature,
+    roles: ["admin"],
+    items: [
+      {
+        label: "Assinatura de Documentos",
+        href: "/home/admin/assinatura-documentos",
+        icon: FileSignature,
+        roles: ["admin"],
+      },
+      {
+        label: "Gerenciar Arquivos",
+        href: "/home/admin/files",
+        icon: FileText,
         roles: ["admin"],
       },
     ],
@@ -136,27 +172,6 @@ const menuConfig: MenuConfig[] = [
         label: "Convidar Professor",
         href: "/home/admin/invite-professor",
         icon: UserPlus,
-        roles: ["admin"],
-      },
-    ],
-  },
-
-  // Admin - Editais e Períodos
-  {
-    label: "Editais",
-    icon: FileText,
-    roles: ["admin"],
-    items: [
-      {
-        label: "Gerenciar Editais",
-        href: "/home/admin/edital-management",
-        icon: FileText,
-        roles: ["admin"],
-      },
-      {
-        label: "Templates de Projeto",
-        href: "/home/admin/projeto-templates",
-        icon: FileText,
         roles: ["admin"],
       },
     ],
@@ -213,12 +228,6 @@ const menuConfig: MenuConfig[] = [
         icon: FileSpreadsheet,
         roles: ["admin"],
       },
-      {
-        label: "Arquivos",
-        href: "/home/admin/files",
-        icon: FileText,
-        roles: ["admin"],
-      },
     ],
   },
 
@@ -232,6 +241,12 @@ const menuConfig: MenuConfig[] = [
         label: "Dashboard",
         href: "/home/professor/dashboard",
         icon: LayoutDashboard,
+        roles: ["professor"],
+      },
+      {
+        label: "Ver Projetos",
+        href: "/home/professor/projetos",
+        icon: FileText,
         roles: ["professor"],
       },
       {
@@ -278,7 +293,7 @@ const menuConfig: MenuConfig[] = [
     items: [
       {
         label: "Assinatura de Documentos",
-        href: "/home/professor/document-signing",
+        href: "/home/professor/assinatura-documentos",
         icon: FileSignature,
         roles: ["professor"],
       },
@@ -334,6 +349,12 @@ const menuConfig: MenuConfig[] = [
         label: "Inscrição em Monitoria",
         href: "/home/student/inscricao-monitoria",
         icon: FilePlus,
+        roles: ["student"],
+      },
+      {
+        label: "Vagas Disponíveis",
+        href: "/home/student/vagas",
+        icon: Award,
         roles: ["student"],
       },
       {
