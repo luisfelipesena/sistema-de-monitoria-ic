@@ -424,64 +424,94 @@ export default function DashboardAdmin() {
 
   // Action buttons
   const dashboardActions = (
-    <>
+    <div className="flex flex-wrap gap-2 sm:gap-3">
       {abaAtiva === "projetos" && (
         <>
           <Button
             variant="outline"
-            className="text-purple-600 border-purple-600 hover:bg-purple-50"
+            size="sm"
+            className="text-purple-600 border-purple-600 hover:bg-purple-50 text-xs sm:text-sm px-2 sm:px-4"
             onClick={handleGenerateEditalInterno}
           >
-            <FileSignature className="w-4 h-4 mr-2" />
-            Editais Internos
+            <FileSignature className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Editais Internos</span>
+            <span className="sm:hidden">Editais</span>
           </Button>
           <Button
             variant="outline"
-            className="text-green-600 border-green-600 hover:bg-green-50"
+            size="sm"
+            className="text-green-600 border-green-600 hover:bg-green-50 text-xs sm:text-sm px-2 sm:px-4"
             onClick={() => handleDownloadPlanilhaPrograd()}
           >
-            <Download className="w-4 h-4 mr-2" />
-            Planilha PROGRAD
+            <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Planilha PROGRAD</span>
+            <span className="sm:hidden">PROGRAD</span>
           </Button>
-          <Button variant="primary" onClick={handleManageProjectsClick}>
-            <Eye className="w-4 h-4 mr-2" />
-            Gerenciar Projetos
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleManageProjectsClick}
+            className="text-xs sm:text-sm px-2 sm:px-4"
+          >
+            <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Gerenciar Projetos</span>
+            <span className="sm:hidden">Gerenciar</span>
           </Button>
         </>
       )}
       {abaAtiva === "professores" && (
-        <Button variant="primary" onClick={() => router.push("/home/admin/professores")}>
-          <User className="w-4 h-4 mr-2" />
-          Gerenciar Professores
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => router.push("/home/admin/professores")}
+          className="text-xs sm:text-sm px-2 sm:px-4"
+        >
+          <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">Gerenciar Professores</span>
+          <span className="sm:hidden">Gerenciar</span>
         </Button>
       )}
       {abaAtiva === "alunos" && (
-        <Button variant="primary" onClick={() => router.push("/home/admin/alunos")}>
-          <User className="w-4 h-4 mr-2" />
-          Gerenciar Alunos
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => router.push("/home/admin/alunos")}
+          className="text-xs sm:text-sm px-2 sm:px-4"
+        >
+          <User className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">Gerenciar Alunos</span>
+          <span className="sm:hidden">Gerenciar</span>
         </Button>
       )}
       <Button
         variant={groupedView ? "secondary" : "outline"}
+        size="sm"
+        className="text-xs sm:text-sm px-2 sm:px-4"
         onClick={() => {
           if (abaAtiva === "projetos") {
             setGroupedView(!groupedView)
           }
         }}
       >
-        <FolderKanban className="w-4 h-4 mr-2" />
-        {groupedView ? "Visão Normal" : "Agrupar por Departamento"}
+        <FolderKanban className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+        <span className="hidden sm:inline">{groupedView ? "Visão Normal" : "Agrupar por Departamento"}</span>
+        <span className="sm:hidden">{groupedView ? "Normal" : "Agrupar"}</span>
       </Button>
-      <Button variant="outline" onClick={() => setFilterModalOpen(true)}>
-        <Filter className="w-4 h-4 mr-1" />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setFilterModalOpen(true)}
+        className="text-xs sm:text-sm px-2 sm:px-4"
+      >
+        <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
         Filtros
       </Button>
-    </>
+    </div>
   )
 
   return (
     <PagesLayout title="Dashboard" actions={dashboardActions}>
-      <div className="mb-6 flex gap-6 border-b border-gray-200">
+      <div className="mb-4 sm:mb-6 flex gap-3 sm:gap-6 border-b border-gray-200 overflow-x-auto">
         {[
           { id: "projetos", label: "Projetos" },
           { id: "professores", label: "Professores" },
@@ -490,7 +520,7 @@ export default function DashboardAdmin() {
           <button
             key={aba.id}
             onClick={() => setAbaAtiva(aba.id as "projetos" | "professores" | "alunos")}
-            className={`py-2 px-1 text-base font-medium border-b-2 transition-colors ${
+            className={`py-2 px-1 text-sm sm:text-base font-medium border-b-2 transition-colors whitespace-nowrap ${
               abaAtiva === aba.id
                 ? "border-black text-black"
                 : "border-transparent text-gray-500 hover:text-black hover:border-gray-300"
@@ -512,58 +542,60 @@ export default function DashboardAdmin() {
           ) : (
             <>
               {/* Cards de Resumo */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Rascunhos</CardTitle>
-                    <AlertTriangle className="h-4 w-4 text-gray-500" />
+                    <CardTitle className="text-xs sm:text-sm font-medium">Rascunhos</CardTitle>
+                    <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-gray-600">{statusCounts.draft}</div>
+                    <div className="text-lg sm:text-2xl font-bold text-gray-600">{statusCounts.draft}</div>
                     <p className="text-xs text-muted-foreground">Projetos em edição</p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pend. Assinatura</CardTitle>
-                    <FileSignature className="h-4 w-4 text-purple-500" />
+                    <CardTitle className="text-xs sm:text-sm font-medium">Pend. Assinatura</CardTitle>
+                    <FileSignature className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-purple-600">{statusCounts.pendingAdminSignature}</div>
+                    <div className="text-lg sm:text-2xl font-bold text-purple-600">
+                      {statusCounts.pendingAdminSignature}
+                    </div>
                     <p className="text-xs text-muted-foreground">Aguardando assinatura admin</p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Em Análise</CardTitle>
-                    <Clock className="h-4 w-4 text-yellow-500" />
+                    <CardTitle className="text-xs sm:text-sm font-medium">Em Análise</CardTitle>
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-yellow-600">{statusCounts.submitted}</div>
+                    <div className="text-lg sm:text-2xl font-bold text-yellow-600">{statusCounts.submitted}</div>
                     <p className="text-xs text-muted-foreground">Para aprovação admin</p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Aprovados</CardTitle>
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CardTitle className="text-xs sm:text-sm font-medium">Aprovados</CardTitle>
+                    <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-green-600">{statusCounts.approved}</div>
+                    <div className="text-lg sm:text-2xl font-bold text-green-600">{statusCounts.approved}</div>
                     <p className="text-xs text-muted-foreground">Prontos para edital interno</p>
                   </CardContent>
                 </Card>
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Rejeitados</CardTitle>
-                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                    <CardTitle className="text-xs sm:text-sm font-medium">Rejeitados</CardTitle>
+                    <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold text-red-600">{statusCounts.rejected}</div>
+                    <div className="text-lg sm:text-2xl font-bold text-red-600">{statusCounts.rejected}</div>
                     <p className="text-xs text-muted-foreground">Necessitam revisão</p>
                   </CardContent>
                 </Card>

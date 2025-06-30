@@ -1,321 +1,262 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { TableComponent } from '@/components/layout/TableComponent'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { FilterModal, FilterValues } from '@/components/ui/FilterModal'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
-import { ColumnDef } from '@tanstack/react-table'
-import { useMemo, useState } from 'react'
-import Link from 'next/link'
-
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAuth } from "@/hooks/use-auth"
+import { api } from "@/utils/api"
+import { ColumnDef } from "@tanstack/react-table"
 import {
-  Calendar,
-  Check,
+  AlertTriangle,
+  Award,
+  CheckCircle,
+  Clock,
+  Eye,
   FileText,
-  Filter,
-  List,
+  GraduationCap,
   Loader,
-  Plus,
+  School,
   User,
-  Users,
-  X,
-} from 'lucide-react'
+  UserPlus,
+} from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function DashboardStudent() {
-  const { toast } = useToast()
+  const router = useRouter()
+  const { isAuthenticated, user } = useAuth()
+
   const { data: inscricoes, isLoading: loadingInscricoes } = api.inscricao.getMinhasInscricoes.useQuery()
-  const aceitarInscricao = api.inscricao.aceitarInscricao.useMutation()
-  const recusarInscricao = api.inscricao.recusarInscricao.useMutation()
-  const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [filters, setFilters] = useState<FilterValues>({})
 
-  // Aplicar filtros às inscrições
-  const inscricoesFiltradas = useMemo(() => {
-    if (!inscricoes) return []
-
-    return inscricoes.filter((inscricao) => {
-      if (filters.status && inscricao.status !== filters.status) return false
-      if (filters.tipoVaga && inscricao.tipoVagaPretendida !== filters.tipoVaga)
-        return false
-      return true
-    })
-  }, [inscricoes, filters])
-
-  const handleApplyFilters = (newFilters: FilterValues) => {
-    setFilters(newFilters)
+  if (!isAuthenticated || user?.role !== "student") {
+    return null
   }
 
-  const handleAceitarInscricao = async (inscricaoId: number) => {
-    try {
-      const result = await aceitarInscricao.mutateAsync({ inscricaoId })
-      toast({
-        title: 'Sucesso',
-        description: result.message || 'Monitoria aceita com sucesso!',
-      })
-    } catch (error: any) {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao aceitar inscrição',
-        variant: 'destructive',
-      })
-    }
+  const statusCounts = {
+    inscrito: inscricoes?.filter((i: any) => i.status === "SUBMITTED").length || 0,
+    selecionado:
+      inscricoes?.filter((i: any) => i.status === "SELECTED_BOLSISTA" || i.status === "SELECTED_VOLUNTARIO").length ||
+      0,
+    aprovado:
+      inscricoes?.filter((i: any) => i.status === "ACCEPTED_BOLSISTA" || i.status === "ACCEPTED_VOLUNTARIO").length ||
+      0,
+    rejeitado: inscricoes?.filter((i: any) => i.status === "REJECTED_BY_PROFESSOR").length || 0,
   }
 
-  const handleRecusarInscricao = async (inscricaoId: number) => {
-    try {
-      const result = await recusarInscricao.mutateAsync({
-        inscricaoId,
-        feedbackProfessor: 'Recusado pelo estudante',
-      })
-      toast({
-        title: 'Sucesso',
-        description: result.message || 'Monitoria recusada',
-      })
-    } catch (error: any) {
-      toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao recusar inscrição',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  // Column definitions for the student dashboard
-  const columns: ColumnDef<any>[] = [
+  const colunas: ColumnDef<any>[] = [
     {
       header: () => (
         <div className="flex items-center gap-2">
-          <List className="h-5 w-5 text-gray-400" />
-          Componente curricular
+          <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+          <span className="text-xs sm:text-sm">Disciplina</span>
         </div>
       ),
-      accessorKey: 'projeto',
+      accessorKey: "projeto",
       cell: ({ row }) => {
-        const disciplinas = row.original.projeto.disciplinas
-        const codigoDisciplina =
-          disciplinas.length > 0 ? disciplinas[0].codigo : 'N/A'
+        const disciplinas = row.original.projeto?.disciplinas
+        const disciplina = disciplinas && disciplinas.length > 0 ? disciplinas[0] : null
         return (
-          <span className="font-semibold text-base text-gray-900">
-            {codigoDisciplina}
-          </span>
-        )
-      },
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <User className="h-5 w-5 text-gray-400" />
-          Docente
-        </div>
-      ),
-      accessorKey: 'projeto',
-      cell: ({ row }) => {
-        return (
-          <span className="text-base">
-            {row.original.projeto.professorResponsavel.nomeCompleto}
-          </span>
-        )
-      },
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <List className="h-5 w-5 text-gray-400" />
-          Tipo
-        </div>
-      ),
-      accessorKey: 'tipoVagaPretendida',
-      cell: ({ row }) => {
-        const tipo = row.original.tipoVagaPretendida
-        if (tipo === 'VOLUNTARIO') {
-          return <Badge variant="secondary" className="bg-green-100 text-green-800">Voluntário</Badge>
-        } else if (tipo === 'BOLSISTA') {
-          return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Bolsista</Badge>
-        } else {
-          return <Badge variant="outline">Qualquer</Badge>
-        }
-      },
-    },
-    {
-      header: () => (
-        <div className="flex items-center justify-center gap-2">
-          <Calendar className="h-5 w-5 text-gray-400" />
-          Status
-        </div>
-      ),
-      accessorKey: 'status',
-      cell: ({ row }) => {
-        const status = row.original.status
-        if (
-          status === 'SELECTED_BOLSISTA' ||
-          status === 'SELECTED_VOLUNTARIO'
-        ) {
-          return (
-            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Selecionado - Aguardando resposta</Badge>
-          )
-        } else if (
-          status === 'ACCEPTED_BOLSISTA' ||
-          status === 'ACCEPTED_VOLUNTARIO'
-        ) {
-          return <Badge variant="secondary" className="bg-green-100 text-green-800">Aprovado</Badge>
-        } else if (status === 'REJECTED_BY_PROFESSOR') {
-          return <Badge variant="destructive">Rejeitado pelo Professor</Badge>
-        } else if (status === 'REJECTED_BY_STUDENT') {
-          return <Badge variant="destructive">Recusado por você</Badge>
-        } else if (status === 'SUBMITTED') {
-          return <Badge variant="outline">Inscrito</Badge>
-        }
-        return <Badge variant="outline">{status}</Badge>
-      },
-    },
-    {
-      header: () => (
-        <div className="flex items-center justify-center gap-2">
-          <Users className="h-5 w-5 text-gray-400" />
-          Projeto
-        </div>
-      ),
-      accessorKey: 'projeto',
-      cell: ({ row }) => (
-        <div className="text-center text-base">
-          {row.original.projeto.titulo}
-        </div>
-      ),
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-gray-400" />
-          Data de Inscrição
-        </div>
-      ),
-      accessorKey: 'createdAt',
-      cell: ({ row }) => (
-        <span className="text-sm">
-          {new Date(row.original.createdAt).toLocaleDateString('pt-BR')}
-        </span>
-      ),
-    },
-    {
-      header: 'Ações',
-      accessorKey: 'acoes',
-      cell: ({ row }) => {
-        const status = row.original.status
-        const canAcceptOrReject =
-          status === 'SELECTED_BOLSISTA' || status === 'SELECTED_VOLUNTARIO'
-
-        if (!canAcceptOrReject) {
-          return <span className="text-sm text-gray-500">-</span>
-        }
-
-        return (
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              className="bg-green-600 hover:bg-green-700 text-white rounded-full"
-              onClick={() => handleAceitarInscricao(row.original.id)}
-              disabled={aceitarInscricao.isPending}
-            >
-              <Check className="h-4 w-4 mr-1" />
-              Aceitar
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              className="rounded-full"
-              onClick={() => handleRecusarInscricao(row.original.id)}
-              disabled={recusarInscricao.isPending}
-            >
-              <X className="h-4 w-4 mr-1" />
-              Recusar
-            </Button>
+          <div>
+            <span className="font-semibold text-sm sm:text-base text-gray-900">{disciplina?.codigo || "N/A"}</span>
+            <div className="text-xs sm:text-sm text-muted-foreground">{disciplina?.nome || ""}</div>
           </div>
         )
       },
     },
+    {
+      header: () => (
+        <div className="flex items-center gap-2">
+          <User className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+          <span className="text-xs sm:text-sm">Professor</span>
+        </div>
+      ),
+      accessorKey: "projeto",
+      cell: ({ row }) => (
+        <div className="text-xs sm:text-sm">{row.original.projeto?.professorResponsavel?.nomeCompleto || "N/A"}</div>
+      ),
+    },
+    {
+      header: () => (
+        <div className="flex items-center gap-2">
+          <School className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+          <span className="text-xs sm:text-sm">Departamento</span>
+        </div>
+      ),
+      accessorKey: "projeto",
+      cell: ({ row }) => <div className="text-xs sm:text-sm">{row.original.projeto?.departamento?.nome || "N/A"}</div>,
+    },
+    {
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Award className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+          <span className="text-xs sm:text-sm">Tipo</span>
+        </div>
+      ),
+      accessorKey: "tipoVagaPretendida",
+      cell: ({ row }) => (
+        <Badge variant={row.original.tipoVagaPretendida === "BOLSISTA" ? "default" : "secondary"} className="text-xs">
+          {row.original.tipoVagaPretendida === "BOLSISTA" ? "Bolsista" : "Voluntário"}
+        </Badge>
+      ),
+    },
+    {
+      header: () => (
+        <div className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+          <span className="text-xs sm:text-sm">Status</span>
+        </div>
+      ),
+      accessorKey: "status",
+      cell: ({ row }) => {
+        const status = row.original.status
+        const getStatusBadge = () => {
+          switch (status) {
+            case "inscrito":
+              return (
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
+                  Inscrito
+                </Badge>
+              )
+            case "selecionado":
+              return (
+                <Badge variant="default" className="bg-green-500 text-xs">
+                  Selecionado
+                </Badge>
+              )
+            case "aprovado":
+              return (
+                <Badge variant="default" className="bg-green-600 text-xs">
+                  Aprovado
+                </Badge>
+              )
+            case "rejeitado":
+              return (
+                <Badge variant="destructive" className="text-xs">
+                  Rejeitado
+                </Badge>
+              )
+            default:
+              return (
+                <Badge variant="outline" className="text-xs">
+                  {status}
+                </Badge>
+              )
+          }
+        }
+        return getStatusBadge()
+      },
+    },
+    {
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+          <span className="text-xs sm:text-sm">Período</span>
+        </div>
+      ),
+      accessorKey: "projeto",
+      cell: ({ row }) => (
+        <div className="text-xs sm:text-sm">
+          {row.original.projeto?.ano || ""}.{row.original.projeto?.semestre === "SEMESTRE_1" ? "1" : "2"}
+        </div>
+      ),
+    },
   ]
 
-  // Actions buttons
-  const actions = (
-    <>
-      <Link href="/home/student/vagas">
-        <Button
-          variant="primary"
-          className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Ver Vagas Disponíveis
-        </Button>
-      </Link>
+  const dashboardActions = (
+    <div className="flex flex-wrap gap-2 sm:gap-3">
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={() => router.push("/home/student/inscricao-monitoria")}
+        className="text-xs sm:text-sm px-2 sm:px-4"
+      >
+        <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+        <span className="hidden sm:inline">Inscrever-se</span>
+        <span className="sm:hidden">Inscrever</span>
+      </Button>
       <Button
         variant="outline"
-        className="text-gray-600"
-        onClick={() => setFilterModalOpen(true)}
+        size="sm"
+        onClick={() => router.push("/home/student/resultados")}
+        className="text-xs sm:text-sm px-2 sm:px-4"
       >
-        <Filter className="w-4 h-4 mr-1" />
-        Filtros
+        <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+        <span className="hidden sm:inline">Ver Resultados</span>
+        <span className="sm:hidden">Resultados</span>
       </Button>
-    </>
+    </div>
   )
 
   return (
-    <PagesLayout title="Dashboard" actions={actions}>
+    <PagesLayout
+      title="Dashboard - Aluno"
+      subtitle="Acompanhe suas inscrições e status nas monitorias"
+      actions={dashboardActions}
+    >
       {loadingInscricoes ? (
         <div className="flex justify-center items-center py-8">
           <Loader className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Carregando suas inscrições...</span>
+          <span className="ml-2 text-sm sm:text-base">Carregando inscrições...</span>
         </div>
-      ) : inscricoesFiltradas && inscricoesFiltradas.length > 0 ? (
-        <>
-          {filters.status || filters.tipoVaga ? (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-blue-700">
-                  Filtros ativos:{' '}
-                  {Object.values(filters).filter(Boolean).length}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFilters({})}
-                >
-                  Limpar filtros
-                </Button>
-              </div>
-            </div>
-          ) : null}
-          <TableComponent columns={columns} data={inscricoesFiltradas} />
-        </>
       ) : (
-        <div className="text-center py-12 border rounded-md bg-muted/20">
-          <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium">Nenhuma inscrição encontrada</h3>
-          <p className="text-muted-foreground mb-4">
-            {inscricoes && inscricoes.length === 0
-              ? 'Você ainda não se inscreveu em nenhum projeto de monitoria.'
-              : 'Nenhuma inscrição corresponde aos filtros selecionados.'}
-          </p>
-          <Link href="/home/student/vagas">
-            <Button>
-              {inscricoes && inscricoes.length === 0
-                ? 'Ver Vagas Disponíveis'
-                : 'Buscar Mais Vagas'}
-            </Button>
-          </Link>
-        </div>
-      )}
+        <>
+          {/* Cards de Resumo */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xs sm:text-sm font-medium">Inscrições</CardTitle>
+                <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-lg sm:text-2xl font-bold text-blue-600">{statusCounts.inscrito}</div>
+                <p className="text-xs text-muted-foreground">Aguardando seleção</p>
+              </CardContent>
+            </Card>
 
-      {/* Modal de Filtros */}
-      <FilterModal
-        open={filterModalOpen}
-        onOpenChange={setFilterModalOpen}
-        type="student"
-        onApplyFilters={handleApplyFilters}
-        initialFilters={filters}
-      />
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xs sm:text-sm font-medium">Selecionado</CardTitle>
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-lg sm:text-2xl font-bold text-green-600">{statusCounts.selecionado}</div>
+                <p className="text-xs text-muted-foreground">Aguardando aprovação</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xs sm:text-sm font-medium">Aprovado</CardTitle>
+                <Award className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-lg sm:text-2xl font-bold text-green-700">{statusCounts.aprovado}</div>
+                <p className="text-xs text-muted-foreground">Monitor ativo</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xs sm:text-sm font-medium">Rejeitado</CardTitle>
+                <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-lg sm:text-2xl font-bold text-red-600">{statusCounts.rejeitado}</div>
+                <p className="text-xs text-muted-foreground">Não selecionado</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <TableComponent
+            columns={colunas}
+            data={inscricoes || []}
+            searchPlaceholder="Buscar por disciplina..."
+            isLoading={loadingInscricoes}
+            emptyMessage="Nenhuma inscrição encontrada."
+          />
+        </>
+      )}
     </PagesLayout>
   )
 }
