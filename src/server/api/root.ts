@@ -46,7 +46,6 @@ export const appRouter = createTRPCRouter({
   vagas: vagasRouter,
   termos: termosRouter,
   notificacoes: notificacoesRouter,
-
 })
 
 export type AppRouter = typeof appRouter

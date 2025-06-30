@@ -477,12 +477,14 @@ export const relatoriosRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const generateCsvRow = (data: any[]) => {
-        return data.map(value => {
-          const stringValue = String(value || '')
-          return stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')
-            ? `"${stringValue.replace(/"/g, '""')}"`
-            : stringValue
-        }).join(',')
+        return data
+          .map((value) => {
+            const stringValue = String(value || '')
+            return stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')
+              ? `"${stringValue.replace(/"/g, '""')}"`
+              : stringValue
+          })
+          .join(',')
       }
 
       let csvData = ''
@@ -512,17 +514,24 @@ export const relatoriosRouter = createTRPCRouter({
             )
             .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)
 
-          const headers = ['Departamento', 'Sigla', 'Total Projetos', 'Projetos Aprovados', 'Bolsas Solicitadas', 'Bolsas Disponibilizadas']
-          csvData = headers.join(',') + '\n'
-          dados.forEach(item => {
-            csvData += generateCsvRow([
+          const headers = [
+            'Departamento',
+            'Sigla',
+            'Total Projetos',
+            'Projetos Aprovados',
+            'Bolsas Solicitadas',
+            'Bolsas Disponibilizadas',
+          ]
+          csvData = `${headers.join(',')}\n`
+          dados.forEach((item) => {
+            csvData += `${generateCsvRow([
               item.departamento.nome,
               item.departamento.sigla,
               item.projetos,
               Number(item.projetosAprovados) || 0,
               Number(item.bolsasSolicitadas) || 0,
-              Number(item.bolsasDisponibilizadas) || 0
-            ]) + '\n'
+              Number(item.bolsasDisponibilizadas) || 0,
+            ])}\n`
           })
           fileName = `relatorio-departamentos-${input.ano}-${input.semestre}.csv`
           break
@@ -562,10 +571,19 @@ export const relatoriosRouter = createTRPCRouter({
               departamentoTable.sigla
             )
 
-          const headers = ['Nome Completo', 'Email', 'Departamento', 'Sigla Depto', 'Total Projetos', 'Projetos Aprovados', 'Bolsas Solicitadas', 'Bolsas Disponibilizadas']
-          csvData = headers.join(',') + '\n'
-          dados.forEach(item => {
-            csvData += generateCsvRow([
+          const headers = [
+            'Nome Completo',
+            'Email',
+            'Departamento',
+            'Sigla Depto',
+            'Total Projetos',
+            'Projetos Aprovados',
+            'Bolsas Solicitadas',
+            'Bolsas Disponibilizadas',
+          ]
+          csvData = `${headers.join(',')}\n`
+          dados.forEach((item) => {
+            csvData += `${generateCsvRow([
               item.professor.nomeCompleto,
               item.professor.emailInstitucional,
               item.departamento.nome,
@@ -573,8 +591,8 @@ export const relatoriosRouter = createTRPCRouter({
               item.projetos,
               Number(item.projetosAprovados) || 0,
               Number(item.bolsasSolicitadas) || 0,
-              Number(item.bolsasDisponibilizadas) || 0
-            ]) + '\n'
+              Number(item.bolsasDisponibilizadas) || 0,
+            ])}\n`
           })
           fileName = `relatorio-professores-${input.ano}-${input.semestre}.csv`
           break
@@ -608,10 +626,19 @@ export const relatoriosRouter = createTRPCRouter({
             )
             .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
 
-          const headers = ['Nome Completo', 'Email', 'Matrícula', 'CR', 'Status Inscrição', 'Tipo Vaga Pretendida', 'Projeto', 'Professor Responsável']
-          csvData = headers.join(',') + '\n'
-          dados.forEach(item => {
-            csvData += generateCsvRow([
+          const headers = [
+            'Nome Completo',
+            'Email',
+            'Matrícula',
+            'CR',
+            'Status Inscrição',
+            'Tipo Vaga Pretendida',
+            'Projeto',
+            'Professor Responsável',
+          ]
+          csvData = `${headers.join(',')}\n`
+          dados.forEach((item) => {
+            csvData += `${generateCsvRow([
               item.aluno.nomeCompleto,
               item.aluno.emailInstitucional,
               item.aluno.matricula,
@@ -619,8 +646,8 @@ export const relatoriosRouter = createTRPCRouter({
               item.statusInscricao,
               item.tipoVagaPretendida,
               item.projeto.titulo,
-              item.professorResponsavel
-            ]) + '\n'
+              item.professorResponsavel,
+            ])}\n`
           })
           fileName = `relatorio-alunos-${input.ano}-${input.semestre}.csv`
           break
@@ -659,17 +686,24 @@ export const relatoriosRouter = createTRPCRouter({
               departamentoTable.sigla
             )
 
-          const headers = ['Código', 'Nome Disciplina', 'Departamento', 'Sigla Depto', 'Total Projetos', 'Projetos Aprovados']
-          csvData = headers.join(',') + '\n'
-          dados.forEach(item => {
-            csvData += generateCsvRow([
+          const headers = [
+            'Código',
+            'Nome Disciplina',
+            'Departamento',
+            'Sigla Depto',
+            'Total Projetos',
+            'Projetos Aprovados',
+          ]
+          csvData = `${headers.join(',')}\n`
+          dados.forEach((item) => {
+            csvData += `${generateCsvRow([
               item.disciplina.codigo,
               item.disciplina.nome,
               item.departamento.nome,
               item.departamento.sigla,
               item.projetos,
-              Number(item.projetosAprovados) || 0
-            ]) + '\n'
+              Number(item.projetosAprovados) || 0,
+            ])}\n`
           })
           fileName = `relatorio-disciplinas-${input.ano}-${input.semestre}.csv`
           break
@@ -699,10 +733,20 @@ export const relatoriosRouter = createTRPCRouter({
             .innerJoin(userTable, eq(editalTable.criadoPorUserId, userTable.id))
             .where(eq(periodoInscricaoTable.ano, input.ano))
 
-          const headers = ['Número Edital', 'Título', 'Ano', 'Semestre', 'Data Início', 'Data Fim', 'Publicado', 'Data Publicação', 'Criado Por']
-          csvData = headers.join(',') + '\n'
-          dados.forEach(item => {
-            csvData += generateCsvRow([
+          const headers = [
+            'Número Edital',
+            'Título',
+            'Ano',
+            'Semestre',
+            'Data Início',
+            'Data Fim',
+            'Publicado',
+            'Data Publicação',
+            'Criado Por',
+          ]
+          csvData = `${headers.join(',')}\n`
+          dados.forEach((item) => {
+            csvData += `${generateCsvRow([
               item.edital.numeroEdital,
               item.edital.titulo,
               item.periodo.ano,
@@ -711,8 +755,8 @@ export const relatoriosRouter = createTRPCRouter({
               new Date(item.periodo.dataFim).toLocaleDateString('pt-BR'),
               item.edital.publicado ? 'Sim' : 'Não',
               item.edital.dataPublicacao ? new Date(item.edital.dataPublicacao).toLocaleDateString('pt-BR') : '',
-              item.criadoPor.username
-            ]) + '\n'
+              item.criadoPor.username,
+            ])}\n`
           })
           fileName = `relatorio-editais-${input.ano}.csv`
           break
@@ -732,13 +776,13 @@ export const relatoriosRouter = createTRPCRouter({
             .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
           const headers = ['Métrica', 'Valor']
-          csvData = headers.join(',') + '\n'
-          csvData += generateCsvRow(['Total de Projetos', projetosStats?.total || 0]) + '\n'
-          csvData += generateCsvRow(['Projetos Aprovados', Number(projetosStats?.aprovados) || 0]) + '\n'
-          csvData += generateCsvRow(['Projetos Submetidos', Number(projetosStats?.submetidos) || 0]) + '\n'
-          csvData += generateCsvRow(['Projetos em Rascunho', Number(projetosStats?.rascunhos) || 0]) + '\n'
-          csvData += generateCsvRow(['Total Bolsas Solicitadas', Number(projetosStats?.totalBolsasSolicitadas) || 0]) + '\n'
-          csvData += generateCsvRow(['Total Bolsas Disponibilizadas', Number(projetosStats?.totalBolsasDisponibilizadas) || 0]) + '\n'
+          csvData = `${headers.join(',')}\n`
+          csvData += `${generateCsvRow(['Total de Projetos', projetosStats?.total || 0])}\n`
+          csvData += `${generateCsvRow(['Projetos Aprovados', Number(projetosStats?.aprovados) || 0])}\n`
+          csvData += `${generateCsvRow(['Projetos Submetidos', Number(projetosStats?.submetidos) || 0])}\n`
+          csvData += `${generateCsvRow(['Projetos em Rascunho', Number(projetosStats?.rascunhos) || 0])}\n`
+          csvData += `${generateCsvRow(['Total Bolsas Solicitadas', Number(projetosStats?.totalBolsasSolicitadas) || 0])}\n`
+          csvData += `${generateCsvRow(['Total Bolsas Disponibilizadas', Number(projetosStats?.totalBolsasDisponibilizadas) || 0])}\n`
 
           fileName = `relatorio-geral-${input.ano}-${input.semestre}.csv`
           break

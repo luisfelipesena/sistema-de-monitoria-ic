@@ -303,38 +303,38 @@ export const userRouter = createTRPCRouter({
           dataAssinaturaDefault: user.dataAssinaturaDefault,
           professorProfile: user.professorProfile
             ? {
-              id: user.professorProfile.id,
-              nomeCompleto: user.professorProfile.nomeCompleto,
-              cpf: user.professorProfile.cpf,
-              telefone: user.professorProfile.telefone,
-              telefoneInstitucional: user.professorProfile.telefoneInstitucional,
-              emailInstitucional: user.professorProfile.emailInstitucional,
-              matriculaSiape: user.professorProfile.matriculaSiape,
-              regime: user.professorProfile.regime as '20H' | '40H' | 'DE',
-              departamentoId: user.professorProfile.departamentoId,
-              curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
-              comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
-              assinaturaDefault: user.professorProfile.assinaturaDefault,
-              dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
-            }
+                id: user.professorProfile.id,
+                nomeCompleto: user.professorProfile.nomeCompleto,
+                cpf: user.professorProfile.cpf,
+                telefone: user.professorProfile.telefone,
+                telefoneInstitucional: user.professorProfile.telefoneInstitucional,
+                emailInstitucional: user.professorProfile.emailInstitucional,
+                matriculaSiape: user.professorProfile.matriculaSiape,
+                regime: user.professorProfile.regime as '20H' | '40H' | 'DE',
+                departamentoId: user.professorProfile.departamentoId,
+                curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
+                comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
+                assinaturaDefault: user.professorProfile.assinaturaDefault,
+                dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
+              }
             : null,
           studentProfile: user.studentProfile
             ? {
-              id: user.studentProfile.id,
-              nomeCompleto: user.studentProfile.nomeCompleto,
-              matricula: user.studentProfile.matricula,
-              cpf: user.studentProfile.cpf,
-              cr: user.studentProfile.cr,
-              cursoId: user.studentProfile.cursoId,
-              telefone: user.studentProfile.telefone,
-              emailInstitucional: user.studentProfile.emailInstitucional,
-              historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
-              comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
-              banco: user.studentProfile.banco,
-              agencia: user.studentProfile.agencia,
-              conta: user.studentProfile.conta,
-              digitoConta: user.studentProfile.digitoConta,
-            }
+                id: user.studentProfile.id,
+                nomeCompleto: user.studentProfile.nomeCompleto,
+                matricula: user.studentProfile.matricula,
+                cpf: user.studentProfile.cpf,
+                cr: user.studentProfile.cr,
+                cursoId: user.studentProfile.cursoId,
+                telefone: user.studentProfile.telefone,
+                emailInstitucional: user.studentProfile.emailInstitucional,
+                historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
+                comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
+                banco: user.studentProfile.banco,
+                agencia: user.studentProfile.agencia,
+                conta: user.studentProfile.conta,
+                digitoConta: user.studentProfile.digitoConta,
+              }
             : null,
         }
       } catch (error) {
@@ -556,7 +556,7 @@ export const userRouter = createTRPCRouter({
         await ctx.db
           .update(userTable)
           .set({
-            role: newRole
+            role: newRole,
           })
           .where(eq(userTable.id, input.id))
 
@@ -564,7 +564,7 @@ export const userRouter = createTRPCRouter({
         await ctx.db
           .update(professorTable)
           .set({
-            updatedAt: new Date()
+            updatedAt: new Date(),
           })
           .where(eq(professorTable.userId, input.id))
 
@@ -574,7 +574,7 @@ export const userRouter = createTRPCRouter({
 
         return {
           success: true,
-          message: `Professor ${statusText} com sucesso`
+          message: `Professor ${statusText} com sucesso`,
         }
       } catch (error) {
         if (error instanceof TRPCError) throw error
