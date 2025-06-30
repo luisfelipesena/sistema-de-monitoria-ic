@@ -467,15 +467,297 @@ export const relatoriosRouter = createTRPCRouter({
         filters: z.record(z.any()).optional(),
       })
     )
-    .mutation(async ({ input }) => {
-      // This would generate CSV data based on the report type
-      // For now, we'll return a success response
-      // In a real implementation, you'd generate the CSV and return a download link
+    .output(
+      z.object({
+        success: z.boolean(),
+        message: z.string(),
+        csvData: z.string(),
+        fileName: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const generateCsvRow = (data: any[]) => {
+        return data.map(value => {
+          const stringValue = String(value || '')
+          return stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')
+            ? `"${stringValue.replace(/"/g, '""')}"`
+            : stringValue
+        }).join(',')
+      }
+
+      let csvData = ''
+      let fileName = ''
+
+      switch (input.tipo) {
+        case 'departamentos': {
+          const dados = await ctx.db
+            .select({
+              departamento: {
+                nome: departamentoTable.nome,
+                sigla: departamentoTable.sigla,
+              },
+              projetos: count(projetoTable.id),
+              projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+              bolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
+              bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
+            })
+            .from(departamentoTable)
+            .leftJoin(
+              projetoTable,
+              and(
+                eq(departamentoTable.id, projetoTable.departamentoId),
+                eq(projetoTable.ano, input.ano),
+                eq(projetoTable.semestre, input.semestre)
+              )
+            )
+            .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)
+
+          const headers = ['Departamento', 'Sigla', 'Total Projetos', 'Projetos Aprovados', 'Bolsas Solicitadas', 'Bolsas Disponibilizadas']
+          csvData = headers.join(',') + '\n'
+          dados.forEach(item => {
+            csvData += generateCsvRow([
+              item.departamento.nome,
+              item.departamento.sigla,
+              item.projetos,
+              Number(item.projetosAprovados) || 0,
+              Number(item.bolsasSolicitadas) || 0,
+              Number(item.bolsasDisponibilizadas) || 0
+            ]) + '\n'
+          })
+          fileName = `relatorio-departamentos-${input.ano}-${input.semestre}.csv`
+          break
+        }
+
+        case 'professores': {
+          const dados = await ctx.db
+            .select({
+              professor: {
+                nomeCompleto: professorTable.nomeCompleto,
+                emailInstitucional: professorTable.emailInstitucional,
+              },
+              departamento: {
+                nome: departamentoTable.nome,
+                sigla: departamentoTable.sigla,
+              },
+              projetos: count(projetoTable.id),
+              projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+              bolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
+              bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
+            })
+            .from(professorTable)
+            .innerJoin(departamentoTable, eq(professorTable.departamentoId, departamentoTable.id))
+            .leftJoin(
+              projetoTable,
+              and(
+                eq(professorTable.id, projetoTable.professorResponsavelId),
+                eq(projetoTable.ano, input.ano),
+                eq(projetoTable.semestre, input.semestre)
+              )
+            )
+            .groupBy(
+              professorTable.id,
+              professorTable.nomeCompleto,
+              professorTable.emailInstitucional,
+              departamentoTable.nome,
+              departamentoTable.sigla
+            )
+
+          const headers = ['Nome Completo', 'Email', 'Departamento', 'Sigla Depto', 'Total Projetos', 'Projetos Aprovados', 'Bolsas Solicitadas', 'Bolsas Disponibilizadas']
+          csvData = headers.join(',') + '\n'
+          dados.forEach(item => {
+            csvData += generateCsvRow([
+              item.professor.nomeCompleto,
+              item.professor.emailInstitucional,
+              item.departamento.nome,
+              item.departamento.sigla,
+              item.projetos,
+              Number(item.projetosAprovados) || 0,
+              Number(item.bolsasSolicitadas) || 0,
+              Number(item.bolsasDisponibilizadas) || 0
+            ]) + '\n'
+          })
+          fileName = `relatorio-professores-${input.ano}-${input.semestre}.csv`
+          break
+        }
+
+        case 'alunos': {
+          const dados = await ctx.db
+            .select({
+              aluno: {
+                nomeCompleto: alunoTable.nomeCompleto,
+                emailInstitucional: alunoTable.emailInstitucional,
+                matricula: alunoTable.matricula,
+                cr: alunoTable.cr,
+              },
+              statusInscricao: inscricaoTable.status,
+              tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
+              projeto: {
+                titulo: projetoTable.titulo,
+              },
+              professorResponsavel: professorTable.nomeCompleto,
+            })
+            .from(alunoTable)
+            .innerJoin(inscricaoTable, eq(alunoTable.id, inscricaoTable.alunoId))
+            .innerJoin(
+              projetoTable,
+              and(
+                eq(inscricaoTable.projetoId, projetoTable.id),
+                eq(projetoTable.ano, input.ano),
+                eq(projetoTable.semestre, input.semestre)
+              )
+            )
+            .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+
+          const headers = ['Nome Completo', 'Email', 'Matrícula', 'CR', 'Status Inscrição', 'Tipo Vaga Pretendida', 'Projeto', 'Professor Responsável']
+          csvData = headers.join(',') + '\n'
+          dados.forEach(item => {
+            csvData += generateCsvRow([
+              item.aluno.nomeCompleto,
+              item.aluno.emailInstitucional,
+              item.aluno.matricula,
+              item.aluno.cr || 0,
+              item.statusInscricao,
+              item.tipoVagaPretendida,
+              item.projeto.titulo,
+              item.professorResponsavel
+            ]) + '\n'
+          })
+          fileName = `relatorio-alunos-${input.ano}-${input.semestre}.csv`
+          break
+        }
+
+        case 'disciplinas': {
+          const dados = await ctx.db
+            .select({
+              disciplina: {
+                nome: disciplinaTable.nome,
+                codigo: disciplinaTable.codigo,
+              },
+              departamento: {
+                nome: departamentoTable.nome,
+                sigla: departamentoTable.sigla,
+              },
+              projetos: count(projetoTable.id),
+              projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+            })
+            .from(disciplinaTable)
+            .innerJoin(departamentoTable, eq(disciplinaTable.departamentoId, departamentoTable.id))
+            .leftJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
+            .leftJoin(
+              projetoTable,
+              and(
+                eq(projetoDisciplinaTable.projetoId, projetoTable.id),
+                eq(projetoTable.ano, input.ano),
+                eq(projetoTable.semestre, input.semestre)
+              )
+            )
+            .groupBy(
+              disciplinaTable.id,
+              disciplinaTable.nome,
+              disciplinaTable.codigo,
+              departamentoTable.nome,
+              departamentoTable.sigla
+            )
+
+          const headers = ['Código', 'Nome Disciplina', 'Departamento', 'Sigla Depto', 'Total Projetos', 'Projetos Aprovados']
+          csvData = headers.join(',') + '\n'
+          dados.forEach(item => {
+            csvData += generateCsvRow([
+              item.disciplina.codigo,
+              item.disciplina.nome,
+              item.departamento.nome,
+              item.departamento.sigla,
+              item.projetos,
+              Number(item.projetosAprovados) || 0
+            ]) + '\n'
+          })
+          fileName = `relatorio-disciplinas-${input.ano}-${input.semestre}.csv`
+          break
+        }
+
+        case 'editais': {
+          const dados = await ctx.db
+            .select({
+              edital: {
+                numeroEdital: editalTable.numeroEdital,
+                titulo: editalTable.titulo,
+                publicado: editalTable.publicado,
+                dataPublicacao: editalTable.dataPublicacao,
+              },
+              periodo: {
+                ano: periodoInscricaoTable.ano,
+                semestre: periodoInscricaoTable.semestre,
+                dataInicio: periodoInscricaoTable.dataInicio,
+                dataFim: periodoInscricaoTable.dataFim,
+              },
+              criadoPor: {
+                username: userTable.username,
+              },
+            })
+            .from(editalTable)
+            .innerJoin(periodoInscricaoTable, eq(editalTable.periodoInscricaoId, periodoInscricaoTable.id))
+            .innerJoin(userTable, eq(editalTable.criadoPorUserId, userTable.id))
+            .where(eq(periodoInscricaoTable.ano, input.ano))
+
+          const headers = ['Número Edital', 'Título', 'Ano', 'Semestre', 'Data Início', 'Data Fim', 'Publicado', 'Data Publicação', 'Criado Por']
+          csvData = headers.join(',') + '\n'
+          dados.forEach(item => {
+            csvData += generateCsvRow([
+              item.edital.numeroEdital,
+              item.edital.titulo,
+              item.periodo.ano,
+              item.periodo.semestre === 'SEMESTRE_1' ? '1º Semestre' : '2º Semestre',
+              new Date(item.periodo.dataInicio).toLocaleDateString('pt-BR'),
+              new Date(item.periodo.dataFim).toLocaleDateString('pt-BR'),
+              item.edital.publicado ? 'Sim' : 'Não',
+              item.edital.dataPublicacao ? new Date(item.edital.dataPublicacao).toLocaleDateString('pt-BR') : '',
+              item.criadoPor.username
+            ]) + '\n'
+          })
+          fileName = `relatorio-editais-${input.ano}.csv`
+          break
+        }
+
+        case 'geral': {
+          const [projetosStats] = await ctx.db
+            .select({
+              total: count(),
+              aprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+              submetidos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'SUBMITTED' THEN 1 END)`,
+              rascunhos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'DRAFT' THEN 1 END)`,
+              totalBolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
+              totalBolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
+            })
+            .from(projetoTable)
+            .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
+
+          const headers = ['Métrica', 'Valor']
+          csvData = headers.join(',') + '\n'
+          csvData += generateCsvRow(['Total de Projetos', projetosStats?.total || 0]) + '\n'
+          csvData += generateCsvRow(['Projetos Aprovados', Number(projetosStats?.aprovados) || 0]) + '\n'
+          csvData += generateCsvRow(['Projetos Submetidos', Number(projetosStats?.submetidos) || 0]) + '\n'
+          csvData += generateCsvRow(['Projetos em Rascunho', Number(projetosStats?.rascunhos) || 0]) + '\n'
+          csvData += generateCsvRow(['Total Bolsas Solicitadas', Number(projetosStats?.totalBolsasSolicitadas) || 0]) + '\n'
+          csvData += generateCsvRow(['Total Bolsas Disponibilizadas', Number(projetosStats?.totalBolsasDisponibilizadas) || 0]) + '\n'
+
+          fileName = `relatorio-geral-${input.ano}-${input.semestre}.csv`
+          break
+        }
+
+        default:
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Tipo de relatório inválido',
+          })
+      }
+
+      const csvBase64 = Buffer.from(csvData, 'utf-8').toString('base64')
 
       return {
         success: true,
         message: `Relatório ${input.tipo} exportado com sucesso`,
-        downloadUrl: `/api/download/relatorio-${input.tipo}-${input.ano}-${input.semestre}.csv`,
+        csvData: csvBase64,
+        fileName,
       }
     }),
 

@@ -1,39 +1,38 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { TableComponent } from '@/components/layout/TableComponent'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { api } from '@/utils/api'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ColumnDef } from '@tanstack/react-table'
-import { 
-  FileSpreadsheet, 
-  Download, 
-  TrendingUp, 
-  Users, 
-  BookOpen, 
-  FileText, 
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { api } from "@/utils/api"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ColumnDef } from "@tanstack/react-table"
+import {
   Award,
+  BookOpen,
   Building,
-  GraduationCap,
-  Mail,
   CheckCircle,
-  Clock
-} from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
+  Clock,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  GraduationCap,
+  TrendingUp,
+  Users,
+} from "lucide-react"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
 const filtersSchema = z.object({
   ano: z.number().int().min(2000).max(2100),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+  semestre: z.enum(["SEMESTRE_1", "SEMESTRE_2"]),
 })
 
 type FiltersData = z.infer<typeof filtersSchema>
@@ -41,7 +40,7 @@ type FiltersData = z.infer<typeof filtersSchema>
 export default function RelatoriosPage() {
   const [filters, setFilters] = useState<FiltersData>({
     ano: new Date().getFullYear(),
-    semestre: 'SEMESTRE_1',
+    semestre: "SEMESTRE_1",
   })
 
   const form = useForm<FiltersData>({
@@ -50,7 +49,8 @@ export default function RelatoriosPage() {
   })
 
   const { data: relatorioGeral, isLoading: loadingGeral } = api.relatorios.getRelatorioGeral.useQuery(filters)
-  const { data: departamentos, isLoading: loadingDepartamentos } = api.relatorios.getRelatorioPorDepartamento.useQuery(filters)
+  const { data: departamentos, isLoading: loadingDepartamentos } =
+    api.relatorios.getRelatorioPorDepartamento.useQuery(filters)
   const { data: professores, isLoading: loadingProfessores } = api.relatorios.getRelatorioProfessores.useQuery(filters)
   const { data: alunos, isLoading: loadingAlunos } = api.relatorios.getRelatorioAlunos.useQuery(filters)
   const { data: disciplinas, isLoading: loadingDisciplinas } = api.relatorios.getRelatorioDisciplinas.useQuery(filters)
@@ -59,7 +59,29 @@ export default function RelatoriosPage() {
   const exportCsvMutation = api.relatorios.exportRelatorioCsv.useMutation({
     onSuccess: (data) => {
       toast.success(data.message)
-      // In a real implementation, trigger file download
+
+      // Convert base64 to blob and trigger download
+      if (data.csvData && data.fileName) {
+        try {
+          const csvContent = atob(data.csvData)
+          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+          const link = document.createElement("a")
+
+          if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob)
+            link.setAttribute("href", url)
+            link.setAttribute("download", data.fileName)
+            link.style.visibility = "hidden"
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            URL.revokeObjectURL(url)
+          }
+        } catch (error) {
+          toast.error("Erro ao processar arquivo CSV")
+          console.error("Erro no download:", error)
+        }
+      }
     },
     onError: (error) => {
       toast.error(`Erro: ${error.message}`)
@@ -70,7 +92,7 @@ export default function RelatoriosPage() {
     setFilters(data)
   }
 
-  const handleExport = (tipo: 'professores' | 'disciplinas' | 'alunos' | 'editais' | 'departamentos' | 'geral') => {
+  const handleExport = (tipo: "professores" | "disciplinas" | "alunos" | "editais" | "departamentos" | "geral") => {
     exportCsvMutation.mutate({
       tipo: tipo,
       ano: filters.ano,
@@ -81,7 +103,7 @@ export default function RelatoriosPage() {
   // Column definitions for different reports
   const departamentosColumns: ColumnDef<any>[] = [
     {
-      header: 'Departamento',
+      header: "Departamento",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.departamento.sigla}</div>
@@ -90,8 +112,8 @@ export default function RelatoriosPage() {
       ),
     },
     {
-      header: 'Projetos',
-      accessorKey: 'projetos',
+      header: "Projetos",
+      accessorKey: "projetos",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-blue-600" />
@@ -101,7 +123,7 @@ export default function RelatoriosPage() {
       ),
     },
     {
-      header: 'Bolsas',
+      header: "Bolsas",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.bolsasDisponibilizadas} disponibilizadas</div>
@@ -113,7 +135,7 @@ export default function RelatoriosPage() {
 
   const professoresColumns: ColumnDef<any>[] = [
     {
-      header: 'Professor',
+      header: "Professor",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.professor.nomeCompleto}</div>
@@ -123,8 +145,8 @@ export default function RelatoriosPage() {
       ),
     },
     {
-      header: 'Projetos',
-      accessorKey: 'projetos',
+      header: "Projetos",
+      accessorKey: "projetos",
       cell: ({ row }) => (
         <div className="text-center">
           <div className="font-medium">{row.original.projetos}</div>
@@ -133,7 +155,7 @@ export default function RelatoriosPage() {
       ),
     },
     {
-      header: 'Bolsas',
+      header: "Bolsas",
       cell: ({ row }) => (
         <div className="text-center">
           <div className="font-medium">{row.original.bolsasDisponibilizadas}</div>
@@ -145,7 +167,7 @@ export default function RelatoriosPage() {
 
   const alunosColumns: ColumnDef<any>[] = [
     {
-      header: 'Aluno',
+      header: "Aluno",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.aluno.nomeCompleto}</div>
@@ -155,7 +177,7 @@ export default function RelatoriosPage() {
       ),
     },
     {
-      header: 'Projeto',
+      header: "Projeto",
       cell: ({ row }) => (
         <div>
           <div className="font-medium truncate max-w-xs">{row.original.projeto.titulo}</div>
@@ -164,21 +186,41 @@ export default function RelatoriosPage() {
       ),
     },
     {
-      header: 'Status',
+      header: "Status",
       cell: ({ row }) => {
         const status = row.original.statusInscricao
         const getStatusBadge = () => {
           switch (status) {
-            case 'SUBMITTED':
-              return <Badge variant="outline" className="border-blue-500 text-blue-700">Submetida</Badge>
-            case 'SELECTED_BOLSISTA':
-              return <Badge variant="default" className="bg-green-500">Selecionado (Bolsista)</Badge>
-            case 'SELECTED_VOLUNTARIO':
-              return <Badge variant="outline" className="border-green-500 text-green-700">Selecionado (Voluntário)</Badge>
-            case 'ACCEPTED_BOLSISTA':
-              return <Badge variant="default" className="bg-green-600">Aceito (Bolsista)</Badge>
-            case 'ACCEPTED_VOLUNTARIO':
-              return <Badge variant="outline" className="border-green-600 text-green-700">Aceito (Voluntário)</Badge>
+            case "SUBMITTED":
+              return (
+                <Badge variant="outline" className="border-blue-500 text-blue-700">
+                  Submetida
+                </Badge>
+              )
+            case "SELECTED_BOLSISTA":
+              return (
+                <Badge variant="default" className="bg-green-500">
+                  Selecionado (Bolsista)
+                </Badge>
+              )
+            case "SELECTED_VOLUNTARIO":
+              return (
+                <Badge variant="outline" className="border-green-500 text-green-700">
+                  Selecionado (Voluntário)
+                </Badge>
+              )
+            case "ACCEPTED_BOLSISTA":
+              return (
+                <Badge variant="default" className="bg-green-600">
+                  Aceito (Bolsista)
+                </Badge>
+              )
+            case "ACCEPTED_VOLUNTARIO":
+              return (
+                <Badge variant="outline" className="border-green-600 text-green-700">
+                  Aceito (Voluntário)
+                </Badge>
+              )
             default:
               return <Badge variant="outline">{status}</Badge>
           }
@@ -187,18 +229,16 @@ export default function RelatoriosPage() {
       },
     },
     {
-      header: 'Tipo Pretendido',
+      header: "Tipo Pretendido",
       cell: ({ row }) => (
-        <Badge variant="outline">
-          {row.original.tipoVagaPretendida === 'BOLSISTA' ? 'Bolsista' : 'Voluntário'}
-        </Badge>
+        <Badge variant="outline">{row.original.tipoVagaPretendida === "BOLSISTA" ? "Bolsista" : "Voluntário"}</Badge>
       ),
     },
   ]
 
   const disciplinasColumns: ColumnDef<any>[] = [
     {
-      header: 'Disciplina',
+      header: "Disciplina",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.disciplina.codigo}</div>
@@ -208,8 +248,8 @@ export default function RelatoriosPage() {
       ),
     },
     {
-      header: 'Projetos',
-      accessorKey: 'projetos',
+      header: "Projetos",
+      accessorKey: "projetos",
       cell: ({ row }) => (
         <div className="text-center">
           <div className="font-medium">{row.original.projetos}</div>
@@ -221,7 +261,7 @@ export default function RelatoriosPage() {
 
   const editaisColumns: ColumnDef<any>[] = [
     {
-      header: 'Edital',
+      header: "Edital",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.edital.numeroEdital}</div>
@@ -230,22 +270,22 @@ export default function RelatoriosPage() {
       ),
     },
     {
-      header: 'Período',
+      header: "Período",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">
-            {row.original.periodo.ano}/{row.original.periodo.semestre === 'SEMESTRE_1' ? '1' : '2'}
+            {row.original.periodo.ano}/{row.original.periodo.semestre === "SEMESTRE_1" ? "1" : "2"}
           </div>
           <div className="text-sm text-muted-foreground">
-            {new Date(row.original.periodo.dataInicio).toLocaleDateString('pt-BR')} - 
-            {new Date(row.original.periodo.dataFim).toLocaleDateString('pt-BR')}
+            {new Date(row.original.periodo.dataInicio).toLocaleDateString("pt-BR")} -
+            {new Date(row.original.periodo.dataFim).toLocaleDateString("pt-BR")}
           </div>
         </div>
       ),
     },
     {
-      header: 'Status',
-      cell: ({ row }) => (
+      header: "Status",
+      cell: ({ row }) =>
         row.original.edital.publicado ? (
           <Badge variant="default" className="bg-green-500">
             <CheckCircle className="h-3 w-3 mr-1" />
@@ -256,25 +296,24 @@ export default function RelatoriosPage() {
             <Clock className="h-3 w-3 mr-1" />
             Rascunho
           </Badge>
-        )
-      ),
+        ),
     },
     {
-      header: 'Data de Publicação',
-      cell: ({ row }) => 
-        row.original.edital.dataPublicacao 
-          ? new Date(row.original.edital.dataPublicacao).toLocaleDateString('pt-BR')
-          : '-'
+      header: "Data de Publicação",
+      cell: ({ row }) =>
+        row.original.edital.dataPublicacao
+          ? new Date(row.original.edital.dataPublicacao).toLocaleDateString("pt-BR")
+          : "-",
     },
     {
-      header: 'Criado por',
-      accessorKey: 'criadoPor.username',
+      header: "Criado por",
+      accessorKey: "criadoPor.username",
     },
   ]
 
   return (
-    <PagesLayout 
-      title="Relatórios PROGRAD" 
+    <PagesLayout
+      title="Relatórios PROGRAD"
       subtitle="Relatórios administrativos e estatísticas do sistema de monitoria"
     >
       <div className="space-y-6">
@@ -293,10 +332,10 @@ export default function RelatoriosPage() {
                     <FormItem>
                       <FormLabel>Ano</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
+                        <Input
+                          type="number"
                           className="w-32"
-                          {...field} 
+                          {...field}
                           onChange={(e) => field.onChange(parseInt(e.target.value))}
                         />
                       </FormControl>
@@ -340,7 +379,9 @@ export default function RelatoriosPage() {
                   <FileText className="h-5 w-5 text-blue-600" />
                   <div>
                     <p className="text-sm text-muted-foreground">Projetos</p>
-                    <p className="text-2xl font-semibold">{relatorioGeral.projetos.aprovados}/{relatorioGeral.projetos.total}</p>
+                    <p className="text-2xl font-semibold">
+                      {relatorioGeral.projetos.aprovados}/{relatorioGeral.projetos.total}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -352,7 +393,8 @@ export default function RelatoriosPage() {
                   <div>
                     <p className="text-sm text-muted-foreground">Bolsas</p>
                     <p className="text-2xl font-semibold">
-                      {relatorioGeral.projetos.totalBolsasDisponibilizadas}/{relatorioGeral.projetos.totalBolsasSolicitadas}
+                      {relatorioGeral.projetos.totalBolsasDisponibilizadas}/
+                      {relatorioGeral.projetos.totalBolsasSolicitadas}
                     </p>
                   </div>
                 </div>
@@ -403,7 +445,7 @@ export default function RelatoriosPage() {
                   </div>
                   <Button
                     variant="outline"
-                    onClick={() => handleExport('departamentos')}
+                    onClick={() => handleExport("departamentos")}
                     disabled={exportCsvMutation.isPending}
                   >
                     <Download className="h-4 w-4 mr-2" />
@@ -442,7 +484,7 @@ export default function RelatoriosPage() {
                   </div>
                   <Button
                     variant="outline"
-                    onClick={() => handleExport('professores')}
+                    onClick={() => handleExport("professores")}
                     disabled={exportCsvMutation.isPending}
                   >
                     <Download className="h-4 w-4 mr-2" />
@@ -481,7 +523,7 @@ export default function RelatoriosPage() {
                   </div>
                   <Button
                     variant="outline"
-                    onClick={() => handleExport('alunos')}
+                    onClick={() => handleExport("alunos")}
                     disabled={exportCsvMutation.isPending}
                   >
                     <Download className="h-4 w-4 mr-2" />
@@ -520,7 +562,7 @@ export default function RelatoriosPage() {
                   </div>
                   <Button
                     variant="outline"
-                    onClick={() => handleExport('disciplinas')}
+                    onClick={() => handleExport("disciplinas")}
                     disabled={exportCsvMutation.isPending}
                   >
                     <Download className="h-4 w-4 mr-2" />
@@ -559,7 +601,7 @@ export default function RelatoriosPage() {
                   </div>
                   <Button
                     variant="outline"
-                    onClick={() => handleExport('editais')}
+                    onClick={() => handleExport("editais")}
                     disabled={exportCsvMutation.isPending}
                   >
                     <Download className="h-4 w-4 mr-2" />
@@ -580,9 +622,7 @@ export default function RelatoriosPage() {
                     searchPlaceholder="Buscar edital..."
                   />
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Nenhum edital encontrado.
-                  </div>
+                  <div className="text-center py-8 text-muted-foreground">Nenhum edital encontrado.</div>
                 )}
               </CardContent>
             </Card>

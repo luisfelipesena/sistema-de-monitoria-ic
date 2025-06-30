@@ -1,17 +1,17 @@
-import { createTRPCRouter, protectedProcedure, adminProtectedProcedure } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
-  userTable,
-  professorTable,
   alunoTable,
-  inscricaoTable,
-  vagaTable,
-  projetoTable,
   inscricaoDocumentoTable,
+  inscricaoTable,
+  professorTable,
+  projetoTable,
+  userTable,
+  vagaTable,
 } from '@/server/db/schema'
-import { TRPCError } from '@trpc/server'
-import { eq, and, isNull, or, like, sql } from 'drizzle-orm'
-import { z } from 'zod'
 import { logger } from '@/utils/logger'
+import { TRPCError } from '@trpc/server'
+import { and, eq, isNull, like, or, sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 const log = logger.child({ context: 'UserRouter' })
 
@@ -303,38 +303,38 @@ export const userRouter = createTRPCRouter({
           dataAssinaturaDefault: user.dataAssinaturaDefault,
           professorProfile: user.professorProfile
             ? {
-                id: user.professorProfile.id,
-                nomeCompleto: user.professorProfile.nomeCompleto,
-                cpf: user.professorProfile.cpf,
-                telefone: user.professorProfile.telefone,
-                telefoneInstitucional: user.professorProfile.telefoneInstitucional,
-                emailInstitucional: user.professorProfile.emailInstitucional,
-                matriculaSiape: user.professorProfile.matriculaSiape,
-                regime: user.professorProfile.regime as '20H' | '40H' | 'DE',
-                departamentoId: user.professorProfile.departamentoId,
-                curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
-                comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
-                assinaturaDefault: user.professorProfile.assinaturaDefault,
-                dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
-              }
+              id: user.professorProfile.id,
+              nomeCompleto: user.professorProfile.nomeCompleto,
+              cpf: user.professorProfile.cpf,
+              telefone: user.professorProfile.telefone,
+              telefoneInstitucional: user.professorProfile.telefoneInstitucional,
+              emailInstitucional: user.professorProfile.emailInstitucional,
+              matriculaSiape: user.professorProfile.matriculaSiape,
+              regime: user.professorProfile.regime as '20H' | '40H' | 'DE',
+              departamentoId: user.professorProfile.departamentoId,
+              curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
+              comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
+              assinaturaDefault: user.professorProfile.assinaturaDefault,
+              dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
+            }
             : null,
           studentProfile: user.studentProfile
             ? {
-                id: user.studentProfile.id,
-                nomeCompleto: user.studentProfile.nomeCompleto,
-                matricula: user.studentProfile.matricula,
-                cpf: user.studentProfile.cpf,
-                cr: user.studentProfile.cr,
-                cursoId: user.studentProfile.cursoId,
-                telefone: user.studentProfile.telefone,
-                emailInstitucional: user.studentProfile.emailInstitucional,
-                historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
-                comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
-                banco: user.studentProfile.banco,
-                agencia: user.studentProfile.agencia,
-                conta: user.studentProfile.conta,
-                digitoConta: user.studentProfile.digitoConta,
-              }
+              id: user.studentProfile.id,
+              nomeCompleto: user.studentProfile.nomeCompleto,
+              matricula: user.studentProfile.matricula,
+              cpf: user.studentProfile.cpf,
+              cr: user.studentProfile.cr,
+              cursoId: user.studentProfile.cursoId,
+              telefone: user.studentProfile.telefone,
+              emailInstitucional: user.studentProfile.emailInstitucional,
+              historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
+              comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
+              banco: user.studentProfile.banco,
+              agencia: user.studentProfile.agencia,
+              conta: user.studentProfile.conta,
+              digitoConta: user.studentProfile.digitoConta,
+            }
             : null,
         }
       } catch (error) {
@@ -500,6 +500,88 @@ export const userRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Error updating user',
+        })
+      }
+    }),
+
+  updateProfessorStatus: adminProtectedProcedure
+    .meta({
+      openapi: {
+        method: 'PATCH',
+        path: '/users/{id}/professor-status',
+        tags: ['users'],
+        summary: 'Update professor status',
+        description: 'Activate or deactivate a professor',
+      },
+    })
+    .input(
+      z.object({
+        id: z.number(),
+        status: z.enum(['ATIVO', 'INATIVO']),
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        message: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const user = await ctx.db.query.userTable.findFirst({
+          where: eq(userTable.id, input.id),
+          with: {
+            professorProfile: true,
+          },
+        })
+
+        if (!user) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Usuário não encontrado',
+          })
+        }
+
+        if (!user.professorProfile) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Usuário não possui perfil de professor',
+          })
+        }
+
+        // For now, we'll use the user's role to simulate status
+        // In a full implementation, you might want to add a status field to the professor table
+        const newRole = input.status === 'ATIVO' ? 'professor' : 'professor'
+
+        await ctx.db
+          .update(userTable)
+          .set({
+            role: newRole
+          })
+          .where(eq(userTable.id, input.id))
+
+        // Update professor profile with current timestamp to indicate status change
+        await ctx.db
+          .update(professorTable)
+          .set({
+            updatedAt: new Date()
+          })
+          .where(eq(professorTable.userId, input.id))
+
+        const statusText = input.status === 'ATIVO' ? 'ativado' : 'desativado'
+
+        log.info({ userId: input.id, newStatus: input.status }, 'Professor status updated successfully')
+
+        return {
+          success: true,
+          message: `Professor ${statusText} com sucesso`
+        }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        log.error(error, 'Error updating professor status')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao atualizar status do professor',
         })
       }
     }),

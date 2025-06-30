@@ -1,24 +1,18 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { TableComponent } from '@/components/layout/TableComponent'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { InteractiveProjectPDF } from '@/components/features/projects/InteractiveProjectPDF'
-import { api } from '@/utils/api'
-import { useRouter } from 'next/navigation'
-import { ColumnDef } from '@tanstack/react-table'
-import { toast } from 'sonner'
-import {
-  ArrowLeft,
-  CheckCircle,
-  FileSignature,
-  Eye,
-  Loader,
-} from 'lucide-react'
-import { useState } from 'react'
+import { InteractiveProjectPDF } from "@/components/features/projects/InteractiveProjectPDF"
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { api } from "@/utils/api"
+import { ColumnDef } from "@tanstack/react-table"
+import { ArrowLeft, CheckCircle, Eye, FileSignature, Loader } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
 
 type ProjetoListItem = {
   id: number
@@ -34,41 +28,38 @@ export default function DocumentSigningPage() {
   const router = useRouter()
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [showSigningDialog, setShowSigningDialog] = useState(false)
-  
+
   const { data: projetos, isLoading: loadingProjetos, refetch } = api.projeto.getProjetos.useQuery()
   const { data: projectDetails } = api.projeto.getProjeto.useQuery(
     { id: selectedProjectId! },
     { enabled: !!selectedProjectId }
   )
 
-
-  const pendingSignatureProjetos = projetos?.filter(
-    (projeto) => projeto.status === 'PENDING_ADMIN_SIGNATURE'
-  ) || []
+  const pendingSignatureProjetos = projetos?.filter((projeto) => projeto.status === "SUBMITTED") || []
 
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
 
   const handleViewStoredPDF = async (projetoId: number) => {
-    toast('Preparando visualização...')
+    toast("Preparando visualização...")
     try {
       const result = await getProjetoPdfMutation.mutateAsync({
         projetoId,
       })
 
-      const newWindow = window.open(result.url, '_blank', 'noopener,noreferrer')
+      const newWindow = window.open(result.url, "_blank", "noopener,noreferrer")
       if (!newWindow) {
-        toast.error('Popup bloqueado', {
-          description: 'Permita popups para visualizar o PDF em nova aba.',
+        toast.error("Popup bloqueado", {
+          description: "Permita popups para visualizar o PDF em nova aba.",
         })
         return
       }
-    
-      toast.success('PDF aberto em nova aba')
+
+      toast.success("PDF aberto em nova aba")
     } catch (error) {
-      toast.error('Erro ao abrir PDF', {
-        description: 'Não foi possível abrir o documento para visualização.',
+      toast.error("Erro ao abrir PDF", {
+        description: "Não foi possível abrir o documento para visualização.",
       })
-      console.error('View PDF error:', error)
+      console.error("View PDF error:", error)
     }
   }
 
@@ -81,23 +72,35 @@ export default function DocumentSigningPage() {
     setShowSigningDialog(false)
     setSelectedProjectId(null)
     refetch()
-    toast.success('Documento assinado com sucesso!')
+    toast.success("Documento assinado com sucesso!")
   }
 
   const handleBackToDashboard = () => {
-    router.push('/home/admin/dashboard')
+    router.push("/home/admin/dashboard")
   }
 
   const renderStatusBadge = (status: string) => {
     switch (status) {
-      case 'PENDING_ADMIN_SIGNATURE':
-        return <Badge variant="secondary" className="bg-purple-500 text-white">Aguardando Assinatura</Badge>
-      case 'APPROVED':
-        return <Badge variant="default" className="bg-green-500">Aprovado</Badge>
-      case 'REJECTED':
+      case "PENDING_ADMIN_SIGNATURE":
+        return (
+          <Badge variant="secondary" className="bg-purple-500 text-white">
+            Aguardando Assinatura
+          </Badge>
+        )
+      case "APPROVED":
+        return (
+          <Badge variant="default" className="bg-green-500">
+            Aprovado
+          </Badge>
+        )
+      case "REJECTED":
         return <Badge variant="destructive">Rejeitado</Badge>
-      case 'SUBMITTED':
-        return <Badge variant="secondary" className="bg-yellow-500 text-white">Em análise</Badge>
+      case "SUBMITTED":
+        return (
+          <Badge variant="secondary" className="bg-yellow-500 text-white">
+            Em análise
+          </Badge>
+        )
       default:
         return <Badge variant="outline">{status}</Badge>
     }
@@ -105,36 +108,32 @@ export default function DocumentSigningPage() {
 
   const colunasProjetos: ColumnDef<ProjetoListItem>[] = [
     {
-      header: 'Título',
-      accessorKey: 'titulo',
+      header: "Título",
+      accessorKey: "titulo",
       cell: ({ row }) => (
         <div>
-          <span className="font-semibold text-base text-gray-900">
-            {row.original.titulo}
-          </span>
-          <div className="text-xs text-muted-foreground">
-            {row.original.professorResponsavelNome}
-          </div>
+          <span className="font-semibold text-base text-gray-900">{row.original.titulo}</span>
+          <div className="text-xs text-muted-foreground">{row.original.professorResponsavelNome}</div>
         </div>
       ),
     },
     {
-      header: 'Departamento',
-      accessorKey: 'departamentoNome',
+      header: "Departamento",
+      accessorKey: "departamentoNome",
     },
     {
-      header: 'Semestre',
-      accessorKey: 'semestre',
-      cell: ({ row }) => `${row.original.ano}.${row.original.semestre === 'SEMESTRE_1' ? '1' : '2'}`,
+      header: "Semestre",
+      accessorKey: "semestre",
+      cell: ({ row }) => `${row.original.ano}.${row.original.semestre === "SEMESTRE_1" ? "1" : "2"}`,
     },
     {
-      header: 'Status',
-      accessorKey: 'status',
+      header: "Status",
+      accessorKey: "status",
       cell: ({ row }) => renderStatusBadge(row.original.status),
     },
     {
-      header: 'Ações',
-      accessorKey: 'acoes',
+      header: "Ações",
+      accessorKey: "acoes",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Button
@@ -195,19 +194,11 @@ export default function DocumentSigningPage() {
               {pendingSignatureProjetos.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   <CheckCircle className="mx-auto h-12 w-12 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">
-                    Nenhum projeto aguardando assinatura
-                  </h3>
-                  <p>
-                    Todos os projetos foram processados ou não há projetos
-                    aprovados aguardando assinatura.
-                  </p>
+                  <h3 className="text-lg font-medium mb-2">Nenhum projeto aguardando assinatura</h3>
+                  <p>Todos os projetos foram processados ou não há projetos aprovados aguardando assinatura.</p>
                 </div>
               ) : (
-                <TableComponent
-                  columns={colunasProjetos}
-                  data={pendingSignatureProjetos}
-                />
+                <TableComponent columns={colunasProjetos} data={pendingSignatureProjetos} />
               )}
             </CardContent>
           </Card>
@@ -233,9 +224,7 @@ export default function DocumentSigningPage() {
                 <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs font-medium">
                   3
                 </span>
-                <p>
-                  O documento será automaticamente assinado e o projeto aprovado
-                </p>
+                <p>O documento será automaticamente assinado e o projeto aprovado</p>
               </div>
             </CardContent>
           </Card>
@@ -272,7 +261,9 @@ export default function DocumentSigningPage() {
                 estimativaPessoasBenificiadas: projectDetails.estimativaPessoasBenificiadas || undefined,
                 disciplinas: projectDetails.disciplinas,
                 assinaturaProfessor: projectDetails.assinaturaProfessor || undefined,
-                dataAssinaturaProfessor: projectDetails.assinaturaProfessor ? new Date().toLocaleDateString('pt-BR') : undefined,
+                dataAssinaturaProfessor: projectDetails.assinaturaProfessor
+                  ? new Date().toLocaleDateString("pt-BR")
+                  : undefined,
                 projetoId: projectDetails.id,
               }}
               userRole="admin"

@@ -214,12 +214,6 @@ const menuConfig: MenuConfig[] = [
         roles: ["admin"],
       },
       {
-        label: "API Keys",
-        href: "/home/admin/api-keys",
-        icon: Key,
-        roles: ["admin"],
-      },
-      {
         label: "Arquivos",
         href: "/home/admin/files",
         icon: FileText,

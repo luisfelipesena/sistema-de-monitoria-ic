@@ -1,25 +1,25 @@
-import { createTRPCRouter, protectedProcedure, adminProtectedProcedure } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { db } from '@/server/db'
 import {
-  projetoTable,
+  alunoTable,
+  ataSelecaoTable,
+  atividadeProjetoTable,
   departamentoTable,
-  professorTable,
   disciplinaTable,
+  inscricaoTable,
+  periodoInscricaoTable,
+  professorTable,
   projetoDisciplinaTable,
   projetoProfessorParticipanteTable,
-  atividadeProjetoTable,
-  inscricaoTable,
-  alunoTable,
+  projetoTable,
   userTable,
-  periodoInscricaoTable,
-  ataSelecaoTable,
 } from '@/server/db/schema'
-import { TRPCError } from '@trpc/server'
-import { eq, sql, and, isNull, lte, gte, desc } from 'drizzle-orm'
-import { z } from 'zod'
-import { logger } from '@/utils/logger'
 import { emailService } from '@/server/lib/email-service'
 import { PDFService } from '@/server/lib/pdf-service'
+import { logger } from '@/utils/logger'
+import { TRPCError } from '@trpc/server'
+import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 const log = logger.child({ context: 'ProjetoRouter' })
 
@@ -149,6 +149,7 @@ export const projetoDetalhesSchema = z.object({
   publicoAlvo: z.string(),
   estimativaPessoasBenificiadas: z.number().nullable(),
   assinaturaProfessor: z.string().nullable(),
+  assinaturaAdmin: z.string().nullable(),
   feedbackAdmin: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date().nullable(),
@@ -205,6 +206,7 @@ export const projetoRouter = createTRPCRouter({
             estimativaPessoasBenificiadas: projetoTable.estimativaPessoasBenificiadas,
             descricao: projetoTable.descricao,
             assinaturaProfessor: projetoTable.assinaturaProfessor,
+            assinaturaAdmin: projetoTable.assinaturaAdmin,
             feedbackAdmin: projetoTable.feedbackAdmin,
             createdAt: projetoTable.createdAt,
             updatedAt: projetoTable.updatedAt,
