@@ -16,6 +16,18 @@ import {
 } from '@/server/db/schema'
 import { emailService } from '@/server/lib/email-service'
 import { PDFService } from '@/server/lib/pdf-service'
+import {
+  semestreSchema,
+  tipoProposicaoSchema,
+  projetoStatusSchema,
+  generoSchema,
+  regimeSchema,
+  nameSchema,
+  descriptionSchema,
+  idSchema,
+  anoSchema,
+  baseFilterSchema,
+} from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm'
@@ -24,13 +36,13 @@ import { z } from 'zod'
 const log = logger.child({ context: 'ProjetoRouter' })
 
 export const projetoInputSchema = z.object({
-  titulo: z.string().min(5, 'Título deve ter pelo menos 5 caracteres'),
-  descricao: z.string().min(5, 'Descrição deve ter pelo menos 5 caracteres'),
-  departamentoId: z.number(),
-  disciplinaIds: z.array(z.number()).min(1, 'Deve selecionar pelo menos uma disciplina'),
-  ano: z.number(),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
+  titulo: nameSchema.min(5, 'Título deve ter pelo menos 5 caracteres'),
+  descricao: descriptionSchema.min(5, 'Descrição deve ter pelo menos 5 caracteres'),
+  departamentoId: idSchema,
+  disciplinaIds: z.array(idSchema).min(1, 'Deve selecionar pelo menos uma disciplina'),
+  ano: anoSchema,
+  semestre: semestreSchema,
+  tipoProposicao: tipoProposicaoSchema,
   bolsasSolicitadas: z.number().min(0).optional(),
   voluntariosSolicitados: z.number().min(0).optional(),
   cargaHorariaSemana: z.number().min(1),
@@ -38,28 +50,21 @@ export const projetoInputSchema = z.object({
   publicoAlvo: z.string().min(1),
   estimativaPessoasBenificiadas: z.number().min(0).optional(),
   atividades: z.array(z.string()).optional(),
-  professoresParticipantes: z.array(z.number()).optional(),
-  professorResponsavelId: z.number().optional(),
+  professoresParticipantes: z.array(idSchema).optional(),
+  professorResponsavelId: idSchema.optional(),
 })
 
 export const projetoListItemSchema = z.object({
-  id: z.number(),
-  titulo: z.string(),
-  departamentoId: z.number(),
-  departamentoNome: z.string(),
-  professorResponsavelId: z.number(),
-  professorResponsavelNome: z.string(),
-  status: z.enum([
-    'DRAFT',
-    'SUBMITTED',
-    'APPROVED',
-    'REJECTED',
-    'PENDING_ADMIN_SIGNATURE',
-    'PENDING_PROFESSOR_SIGNATURE',
-  ]),
-  ano: z.number(),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
+  id: idSchema,
+  titulo: nameSchema,
+  departamentoId: idSchema,
+  departamentoNome: nameSchema,
+  professorResponsavelId: idSchema,
+  professorResponsavelNome: nameSchema,
+  status: projetoStatusSchema,
+  ano: anoSchema,
+  semestre: semestreSchema,
+  tipoProposicao: tipoProposicaoSchema,
   bolsasSolicitadas: z.number().nullable(),
   voluntariosSolicitados: z.number().nullable(),
   bolsasDisponibilizadas: z.number().nullable(),
@@ -67,7 +72,7 @@ export const projetoListItemSchema = z.object({
   numeroSemanas: z.number(),
   publicoAlvo: z.string(),
   estimativaPessoasBenificiadas: z.number().nullable(),
-  descricao: z.string(),
+  descricao: descriptionSchema,
   assinaturaProfessor: z.string().nullable(),
   feedbackAdmin: z.string().nullable(),
   createdAt: z.date(),
@@ -75,8 +80,8 @@ export const projetoListItemSchema = z.object({
   deletedAt: z.date().nullable(),
   disciplinas: z.array(
     z.object({
-      id: z.number(),
-      nome: z.string(),
+      id: idSchema,
+      nome: nameSchema,
       codigo: z.string(),
     })
   ),
@@ -86,61 +91,54 @@ export const projetoListItemSchema = z.object({
 })
 
 export const projetoDetalhesSchema = z.object({
-  id: z.number(),
-  titulo: z.string(),
-  descricao: z.string(),
+  id: idSchema,
+  titulo: nameSchema,
+  descricao: descriptionSchema,
   departamento: z.object({
-    id: z.number(),
-    nome: z.string(),
+    id: idSchema,
+    nome: nameSchema,
     sigla: z.string().nullable(),
-    unidadeUniversitaria: z.string(),
+    unidadeUniversitaria: nameSchema,
   }),
   professorResponsavel: z.object({
-    id: z.number(),
-    nomeCompleto: z.string(),
+    id: idSchema,
+    nomeCompleto: nameSchema,
     nomeSocial: z.string().nullable(),
-    genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
+    genero: generoSchema,
     cpf: z.string(),
     matriculaSiape: z.string().nullable(),
-    regime: z.enum(['20H', '40H', 'DE']),
+    regime: regimeSchema,
     telefone: z.string().nullable(),
     telefoneInstitucional: z.string().nullable(),
     emailInstitucional: z.string(),
   }),
   disciplinas: z.array(
     z.object({
-      id: z.number(),
-      nome: z.string(),
+      id: idSchema,
+      nome: nameSchema,
       codigo: z.string(),
     })
   ),
   professoresParticipantes: z
     .array(
       z.object({
-        id: z.number(),
-        nomeCompleto: z.string(),
+        id: idSchema,
+        nomeCompleto: nameSchema,
       })
     )
     .optional(),
   atividades: z
     .array(
       z.object({
-        id: z.number(),
-        descricao: z.string(),
+        id: idSchema,
+        descricao: descriptionSchema,
       })
     )
     .optional(),
-  status: z.enum([
-    'DRAFT',
-    'SUBMITTED',
-    'APPROVED',
-    'REJECTED',
-    'PENDING_ADMIN_SIGNATURE',
-    'PENDING_PROFESSOR_SIGNATURE',
-  ]),
-  ano: z.number(),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
+  status: projetoStatusSchema,
+  ano: anoSchema,
+  semestre: semestreSchema,
+  tipoProposicao: tipoProposicaoSchema,
   bolsasSolicitadas: z.number().nullable(),
   voluntariosSolicitados: z.number().nullable(),
   bolsasDisponibilizadas: z.number().nullable(),
@@ -283,7 +281,7 @@ export const projetoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        id: z.number(),
+        id: idSchema,
       })
     )
     .output(projetoDetalhesSchema)
@@ -528,7 +526,7 @@ export const projetoRouter = createTRPCRouter({
     .input(
       z
         .object({
-          id: z.number(),
+          id: idSchema,
         })
         .merge(projetoInputSchema.partial())
     )
@@ -634,7 +632,7 @@ export const projetoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        id: z.number(),
+        id: idSchema,
       })
     )
     .output(z.object({ success: z.boolean() }))
@@ -698,7 +696,7 @@ export const projetoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        id: z.number(),
+        id: idSchema,
       })
     )
     .output(z.object({ success: z.boolean() }))
@@ -758,7 +756,7 @@ export const projetoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        id: z.number(),
+        id: idSchema,
         bolsasDisponibilizadas: z.number().min(0).optional(),
         feedbackAdmin: z.string().optional(),
       })
@@ -809,7 +807,7 @@ export const projetoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        id: z.number(),
+        id: idSchema,
         feedbackAdmin: z.string().min(1, 'Feedback é obrigatório para rejeição'),
       })
     )
@@ -858,7 +856,7 @@ export const projetoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        projetoId: z.number(),
+        projetoId: idSchema,
         signatureImage: z.string().min(1, 'Assinatura é obrigatória'),
       })
     )
@@ -1008,7 +1006,7 @@ export const projetoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        projetoId: z.number(),
+        projetoId: idSchema,
         signatureImage: z.string().min(1, 'Assinatura é obrigatória'),
       })
     )
@@ -1182,7 +1180,7 @@ export const projetoRouter = createTRPCRouter({
   signDocument: protectedProcedure
     .input(
       z.object({
-        projetoId: z.number(),
+        projetoId: idSchema,
         signatureData: z.string(),
       })
     )
@@ -1226,14 +1224,14 @@ export const projetoRouter = createTRPCRouter({
     .output(
       z.array(
         z.object({
-          id: z.number(),
-          titulo: z.string(),
-          departamentoNome: z.string(),
-          professorResponsavelNome: z.string(),
+          id: idSchema,
+          titulo: nameSchema,
+          departamentoNome: nameSchema,
+          professorResponsavelNome: nameSchema,
           disciplinas: z.array(
             z.object({
               codigo: z.string(),
-              nome: z.string(),
+              nome: nameSchema,
             })
           ),
           bolsasDisponibilizadas: z.number(),
@@ -1375,17 +1373,17 @@ export const projetoRouter = createTRPCRouter({
     .output(
       z.array(
         z.object({
-          id: z.number(),
-          nomeCompleto: z.string(),
+          id: idSchema,
+          nomeCompleto: nameSchema,
           email: z.string(),
           telefone: z.string().optional(),
           disciplina: z.object({
             codigo: z.string(),
-            nome: z.string(),
+            nome: nameSchema,
           }),
           projeto: z.object({
-            id: z.number(),
-            titulo: z.string(),
+            id: idSchema,
+            titulo: nameSchema,
           }),
           status: z.enum(['ATIVO', 'INATIVO', 'PENDENTE']),
           dataInicio: z.date().optional(),
@@ -1489,7 +1487,7 @@ export const projetoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        id: z.number(),
+        id: idSchema,
         status: z.enum(['ATIVO', 'INATIVO']),
       })
     )
@@ -1555,34 +1553,34 @@ export const projetoRouter = createTRPCRouter({
         description: 'Get data for generating selection minutes PDF',
       },
     })
-    .input(z.object({ projetoId: z.number() }))
+    .input(z.object({ projetoId: idSchema }))
     .output(
       z.object({
         projeto: z.object({
-          id: z.number(),
-          titulo: z.string(),
-          ano: z.number(),
+          id: idSchema,
+          titulo: nameSchema,
+          ano: anoSchema,
           semestre: z.string(),
           departamento: z.object({
-            nome: z.string(),
+            nome: nameSchema,
             sigla: z.string().nullable(),
           }),
           professorResponsavel: z.object({
-            nomeCompleto: z.string(),
+            nomeCompleto: nameSchema,
             matriculaSiape: z.string().nullable(),
           }),
           disciplinas: z.array(
             z.object({
               codigo: z.string(),
-              nome: z.string(),
+              nome: nameSchema,
             })
           ),
         }),
         candidatos: z.array(
           z.object({
-            id: z.number(),
+            id: idSchema,
             aluno: z.object({
-              nomeCompleto: z.string(),
+              nomeCompleto: nameSchema,
               matricula: z.string(),
               cr: z.number().nullable(),
             }),
@@ -1731,13 +1729,13 @@ export const projetoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        projetoId: z.number(),
+        projetoId: idSchema,
         dataSelecao: z.string().optional(),
         localSelecao: z.string().optional(),
         observacoes: z.string().optional(),
       })
     )
-    .output(z.object({ success: z.boolean(), ataId: z.number() }))
+    .output(z.object({ success: z.boolean(), ataId: idSchema }))
     .mutation(async ({ input, ctx }) => {
       try {
         // Verificar se é professor e se tem acesso ao projeto
@@ -1820,7 +1818,7 @@ export const projetoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        projetoId: z.number(),
+        projetoId: idSchema,
         mensagemPersonalizada: z.string().optional(),
       })
     )
