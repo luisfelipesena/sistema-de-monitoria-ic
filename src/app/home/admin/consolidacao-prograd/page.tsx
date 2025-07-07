@@ -9,44 +9,10 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import type { MonitorConsolidado } from "@/types/relatorios"
 import { api } from "@/utils/api"
 import { AlertTriangle, Award, Calendar, CheckCircle, Download, FileSpreadsheet, Filter, Users } from "lucide-react"
 import { useEffect, useState } from "react"
-
-type ConsolidationData = {
-  id: number
-  monitor: {
-    nome: string
-    matricula: string
-    email: string
-    cr: number
-    banco?: string
-    agencia?: string
-    conta?: string
-    digitoConta?: string
-  }
-  professor: {
-    nome: string
-    matriculaSiape?: string
-    email: string
-    departamento: string
-  }
-  projeto: {
-    titulo: string
-    disciplinas: string
-    ano: number
-    semestre: string
-    cargaHorariaSemana: number
-    numeroSemanas: number
-  }
-  monitoria: {
-    tipo: "BOLSISTA" | "VOLUNTARIO"
-    dataInicio: string
-    dataFim: string
-    valorBolsa?: number
-    status: string
-  }
-}
 
 export default function ConsolidacaoPROGRADPage() {
   const { toast } = useToast()
@@ -57,7 +23,7 @@ export default function ConsolidacaoPROGRADPage() {
   const [showValidation, setShowValidation] = useState(false)
 
   // Buscar dados consolidados de monitoria
-  const [consolidationData, setConsolidationData] = useState<any[]>([])
+  const [consolidationData, setConsolidationData] = useState<MonitorConsolidado[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   const getConsolidatedMutation = api.relatorios.getConsolidatedMonitoringData.useMutation({

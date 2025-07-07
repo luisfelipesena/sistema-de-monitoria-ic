@@ -14,6 +14,12 @@ import {
   userTable,
   vagaTable,
 } from '@/server/db/schema'
+import {
+  ValidationResult,
+  relatorioFiltersSchema,
+  relatorioFiltersWithDeptSchema,
+  relatorioFiltersWithStatusSchema,
+} from '@/types/relatorios'
 import { TRPCError } from '@trpc/server'
 import { and, count, desc, eq, sql, sum } from 'drizzle-orm'
 import { z } from 'zod'
@@ -25,14 +31,8 @@ async function checkDadosFaltantesPrograd(
     semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
     tipo: 'bolsistas' | 'voluntarios' | 'ambos'
   }
-) {
-  const problemas: Array<{
-    tipo: 'bolsista' | 'voluntario'
-    vagaId: number
-    nomeAluno: string
-    problemas: string[]
-    prioridade: 'alta' | 'media' | 'baixa'
-  }> = []
+): Promise<ValidationResult> {
+  const problemas: ValidationResult['problemas'] = []
 
   const checkCommonIssues = async (
     vagaId: number,
@@ -153,81 +153,69 @@ async function checkDadosFaltantesPrograd(
 }
 
 export const relatoriosRouter = createTRPCRouter({
-  getRelatorioGeral: adminProtectedProcedure
-    .input(
-      z.object({
-        ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+  getRelatorioGeral: adminProtectedProcedure.input(relatorioFiltersSchema).query(async ({ input, ctx }) => {
+    const [projetosStats] = await ctx.db
+      .select({
+        total: count(),
+        aprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+        submetidos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'SUBMITTED' THEN 1 END)`,
+        rascunhos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'DRAFT' THEN 1 END)`,
+        totalBolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
+        totalBolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
       })
-    )
-    .query(async ({ input, ctx }) => {
-      const [projetosStats] = await ctx.db
-        .select({
-          total: count(),
-          aprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
-          submetidos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'SUBMITTED' THEN 1 END)`,
-          rascunhos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'DRAFT' THEN 1 END)`,
-          totalBolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
-          totalBolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
-        })
-        .from(projetoTable)
-        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
+      .from(projetoTable)
+      .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
-      const inscricoesSubquery = ctx.db
-        .select({ projetoId: projetoTable.id })
-        .from(projetoTable)
-        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
+    const inscricoesSubquery = ctx.db
+      .select({ projetoId: projetoTable.id })
+      .from(projetoTable)
+      .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
-      const [inscricoesStats] = await ctx.db
-        .select({
-          total: count(),
-          submetidas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} = 'SUBMITTED' THEN 1 END)`,
-          selecionadas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'SELECTED_%' THEN 1 END)`,
-          aceitas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'ACCEPTED_%' THEN 1 END)`,
-        })
-        .from(inscricaoTable)
-        .where(sql`${inscricaoTable.projetoId} IN (${inscricoesSubquery})`)
+    const [inscricoesStats] = await ctx.db
+      .select({
+        total: count(),
+        submetidas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} = 'SUBMITTED' THEN 1 END)`,
+        selecionadas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'SELECTED_%' THEN 1 END)`,
+        aceitas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'ACCEPTED_%' THEN 1 END)`,
+      })
+      .from(inscricaoTable)
+      .where(sql`${inscricaoTable.projetoId} IN (${inscricoesSubquery})`)
 
-      const [vagasStats] = await ctx.db
-        .select({
-          total: count(),
-          bolsistas: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = 'BOLSISTA' THEN 1 END)`,
-          voluntarios: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = 'VOLUNTARIO' THEN 1 END)`,
-        })
-        .from(vagaTable)
-        .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
-        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
+    const [vagasStats] = await ctx.db
+      .select({
+        total: count(),
+        bolsistas: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = 'BOLSISTA' THEN 1 END)`,
+        voluntarios: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = 'VOLUNTARIO' THEN 1 END)`,
+      })
+      .from(vagaTable)
+      .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
+      .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
-      return {
-        projetos: {
-          total: projetosStats?.total || 0,
-          aprovados: Number(projetosStats?.aprovados) || 0,
-          submetidos: Number(projetosStats?.submetidos) || 0,
-          rascunhos: Number(projetosStats?.rascunhos) || 0,
-          totalBolsasSolicitadas: Number(projetosStats?.totalBolsasSolicitadas) || 0,
-          totalBolsasDisponibilizadas: Number(projetosStats?.totalBolsasDisponibilizadas) || 0,
-        },
-        inscricoes: {
-          total: inscricoesStats?.total || 0,
-          submetidas: Number(inscricoesStats?.submetidas) || 0,
-          selecionadas: Number(inscricoesStats?.selecionadas) || 0,
-          aceitas: Number(inscricoesStats?.aceitas) || 0,
-        },
-        vagas: {
-          total: vagasStats?.total || 0,
-          bolsistas: Number(vagasStats?.bolsistas) || 0,
-          voluntarios: Number(vagasStats?.voluntarios) || 0,
-        },
-      }
-    }),
+    return {
+      projetos: {
+        total: projetosStats?.total || 0,
+        aprovados: Number(projetosStats?.aprovados) || 0,
+        submetidos: Number(projetosStats?.submetidos) || 0,
+        rascunhos: Number(projetosStats?.rascunhos) || 0,
+        totalBolsasSolicitadas: Number(projetosStats?.totalBolsasSolicitadas) || 0,
+        totalBolsasDisponibilizadas: Number(projetosStats?.totalBolsasDisponibilizadas) || 0,
+      },
+      inscricoes: {
+        total: inscricoesStats?.total || 0,
+        submetidas: Number(inscricoesStats?.submetidas) || 0,
+        selecionadas: Number(inscricoesStats?.selecionadas) || 0,
+        aceitas: Number(inscricoesStats?.aceitas) || 0,
+      },
+      vagas: {
+        total: vagasStats?.total || 0,
+        bolsistas: Number(vagasStats?.bolsistas) || 0,
+        voluntarios: Number(vagasStats?.voluntarios) || 0,
+      },
+    }
+  }),
 
   getRelatorioPorDepartamento: adminProtectedProcedure
-    .input(
-      z.object({
-        ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-      })
-    )
+    .input(relatorioFiltersSchema)
     .query(async ({ input, ctx }) => {
       const departamentos = await ctx.db
         .select({
@@ -263,13 +251,7 @@ export const relatoriosRouter = createTRPCRouter({
     }),
 
   getRelatorioProfessores: adminProtectedProcedure
-    .input(
-      z.object({
-        ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-        departamentoId: z.number().optional(),
-      })
-    )
+    .input(relatorioFiltersWithDeptSchema)
     .query(async ({ input, ctx }) => {
       const professores = await ctx.db
         .select({
@@ -318,15 +300,7 @@ export const relatoriosRouter = createTRPCRouter({
     }),
 
   getRelatorioAlunos: adminProtectedProcedure
-    .input(
-      z.object({
-        ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-        status: z
-          .enum(['SUBMITTED', 'SELECTED_BOLSISTA', 'SELECTED_VOLUNTARIO', 'ACCEPTED_BOLSISTA', 'ACCEPTED_VOLUNTARIO'])
-          .optional(),
-      })
-    )
+    .input(relatorioFiltersWithStatusSchema)
     .query(async ({ input, ctx }) => {
       const alunos = await ctx.db
         .select({
@@ -476,7 +450,7 @@ export const relatoriosRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const generateCsvRow = (data: any[]) => {
+      const generateCsvRow = (data: (string | number | null | undefined)[]) => {
         return data
           .map((value) => {
             const stringValue = String(value || '')
@@ -856,6 +830,40 @@ export const relatoriosRouter = createTRPCRouter({
         semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
       })
     )
+    .output(z.array(z.object({
+      id: z.number(),
+      monitor: z.object({
+        nome: z.string(),
+        matricula: z.string(),
+        email: z.string(),
+        cr: z.number(),
+        banco: z.string().nullable(),
+        agencia: z.string().nullable(),
+        conta: z.string().nullable(),
+        digitoConta: z.string().nullable(),
+      }),
+      professor: z.object({
+        nome: z.string(),
+        matriculaSiape: z.string().nullable(),
+        email: z.string(),
+        departamento: z.string(),
+      }),
+      projeto: z.object({
+        titulo: z.string(),
+        disciplinas: z.string(),
+        ano: z.number(),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        cargaHorariaSemana: z.number(),
+        numeroSemanas: z.number(),
+      }),
+      monitoria: z.object({
+        tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
+        dataInicio: z.string(),
+        dataFim: z.string(),
+        valorBolsa: z.number().optional(),
+        status: z.string(),
+      }),
+    })))
     .mutation(async ({ input, ctx }) => {
       // Buscar todos os monitores aceitos no período
       const monitores = await ctx.db
@@ -930,7 +938,7 @@ export const relatoriosRouter = createTRPCRouter({
           const inicioSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
           const fimSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
 
-          const tipoMonitoria = monitor.inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
+          const tipoMonitoria: 'BOLSISTA' | 'VOLUNTARIO' = monitor.inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
 
           return {
             id: monitor.inscricao.id,

@@ -9,6 +9,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type {
+  AlunoRelatorio,
+  DepartamentoRelatorio,
+  DisciplinaRelatorio,
+  EditalRelatorio,
+  ProfessorRelatorio,
+} from "@/types/relatorios"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ColumnDef } from "@tanstack/react-table"
@@ -101,7 +108,7 @@ export default function RelatoriosPage() {
   }
 
   // Column definitions for different reports
-  const departamentosColumns: ColumnDef<any>[] = [
+  const departamentosColumns: ColumnDef<DepartamentoRelatorio>[] = [
     {
       header: "Departamento",
       cell: ({ row }) => (
@@ -133,7 +140,7 @@ export default function RelatoriosPage() {
     },
   ]
 
-  const professoresColumns: ColumnDef<any>[] = [
+  const professoresColumns: ColumnDef<ProfessorRelatorio>[] = [
     {
       header: "Professor",
       cell: ({ row }) => (
@@ -165,7 +172,7 @@ export default function RelatoriosPage() {
     },
   ]
 
-  const alunosColumns: ColumnDef<any>[] = [
+  const alunosColumns: ColumnDef<AlunoRelatorio>[] = [
     {
       header: "Aluno",
       cell: ({ row }) => (
@@ -231,12 +238,20 @@ export default function RelatoriosPage() {
     {
       header: "Tipo Pretendido",
       cell: ({ row }) => (
-        <Badge variant="outline">{row.original.tipoVagaPretendida === "BOLSISTA" ? "Bolsista" : "Voluntário"}</Badge>
+        <Badge variant="outline">
+          {row.original.tipoVagaPretendida === "BOLSISTA"
+            ? "Bolsista"
+            : row.original.tipoVagaPretendida === "VOLUNTARIO"
+            ? "Voluntário"
+            : row.original.tipoVagaPretendida === "ANY"
+            ? "Qualquer"
+            : "N/A"}
+        </Badge>
       ),
     },
   ]
 
-  const disciplinasColumns: ColumnDef<any>[] = [
+  const disciplinasColumns: ColumnDef<DisciplinaRelatorio>[] = [
     {
       header: "Disciplina",
       cell: ({ row }) => (
@@ -259,7 +274,7 @@ export default function RelatoriosPage() {
     },
   ]
 
-  const editaisColumns: ColumnDef<any>[] = [
+  const editaisColumns: ColumnDef<EditalRelatorio>[] = [
     {
       header: "Edital",
       cell: ({ row }) => (
