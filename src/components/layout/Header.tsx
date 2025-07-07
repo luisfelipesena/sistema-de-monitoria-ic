@@ -9,12 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
+import { formatUsernameToProperName, getUserInitials } from '@/utils/username-formatter';
 
 export function Header() {
   const { user, signOut } = useAuth();
 
-  const userInitials = user?.username?.slice(0, 2);
-  const userName = user?.username;
+  const userInitials = getUserInitials(user?.username || '');
+  const userName = formatUsernameToProperName(user?.username || '');
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center border-b border-border bg-background px-4 shadow-sm">

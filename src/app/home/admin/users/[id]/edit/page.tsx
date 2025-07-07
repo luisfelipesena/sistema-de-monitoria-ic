@@ -12,6 +12,7 @@ import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { ArrowLeft, Save, User, Loader } from 'lucide-react'
+import { formatUsernameToProperName } from '@/utils/username-formatter'
 
 export default function EditUserPage() {
   const router = useRouter()
@@ -91,7 +92,7 @@ export default function EditUserPage() {
   return (
     <PagesLayout 
       title="Editar Usuário" 
-      subtitle={`Editando dados de ${user.username}`}
+      subtitle={`Editando dados de ${formatUsernameToProperName(user.username)}`}
     >
       <div className="mb-4">
         <Button variant="outline" onClick={handleBack}>

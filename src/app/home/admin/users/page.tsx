@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FilterModal, type FilterValues } from '@/components/ui/FilterModal';
 import { api } from '@/utils/api';
 import { useRouter } from 'next/navigation';
+import { formatUsernameToProperName } from '@/utils/username-formatter';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -130,7 +131,7 @@ export default function UsersPage() {
         const user = row.original;
         const displayName = user.professorProfile?.nomeCompleto || 
                           user.studentProfile?.nomeCompleto || 
-                          user.username;
+                          formatUsernameToProperName(user.username);
         
         return (
           <div>

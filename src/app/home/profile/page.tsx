@@ -21,6 +21,7 @@ import { useState, useEffect } from 'react'
 import { api } from '@/utils/api'
 import { FileText, Upload, AlertTriangle, Eye } from 'lucide-react'
 import { FileUploadField } from '@/components/ui/FileUploadField'
+import { formatUsernameToProperName } from '@/utils/username-formatter'
 
 export default function ProfilePage() {
   const { user } = useAuth()
@@ -59,7 +60,7 @@ function AdminProfile() {
             <div className="space-y-4">
               <div>
                 <Label>Nome</Label>
-                <Input value={user?.username || ''} disabled className="bg-gray-50" />
+                <Input value={formatUsernameToProperName(user?.username || '')} disabled className="bg-gray-50" />
               </div>
               <div>
                 <Label>Email</Label>
