@@ -43,7 +43,22 @@ export default function InscricaoMonitoriaPage() {
       refetch()
     },
     onError: (error) => {
-      toast.error(`Erro na inscrição: ${error.message}`)
+      let errorMessage = error.message
+      
+      // Handle specific error cases for better user experience
+      if (error.message.includes('Período de inscrições não está ativo')) {
+        errorMessage = 'As inscrições para este projeto não estão abertas no momento.'
+      } else if (error.message.includes('já se inscreveu neste projeto')) {
+        errorMessage = 'Você já possui uma inscrição ativa para este projeto.'
+      } else if (error.message.includes('Perfil de estudante não encontrado')) {
+        errorMessage = 'Complete seu perfil de estudante antes de se inscrever em projetos.'
+      } else if (error.message.includes('Motivação deve ter pelo menos')) {
+        errorMessage = 'A motivação deve ter pelo menos 10 caracteres.'
+      } else if (error.message.includes('não encontrado ou não aprovado')) {
+        errorMessage = 'Este projeto não está mais disponível para inscrições.'
+      }
+      
+      toast.error(errorMessage)
     },
   })
 
@@ -53,8 +68,30 @@ export default function InscricaoMonitoriaPage() {
   }
 
   const handleSubmitInscricao = () => {
-    if (!projetoSelecionado || !motivacao.trim()) {
-      toast.error('Preencha todos os campos obrigatórios')
+    if (!projetoSelecionado) {
+      toast.error('Nenhum projeto selecionado')
+      return
+    }
+
+    if (!motivacao.trim()) {
+      toast.error('Preencha sua motivação para participar do projeto')
+      return
+    }
+
+    if (motivacao.trim().length < 10) {
+      toast.error('A motivação deve ter pelo menos 10 caracteres')
+      return
+    }
+
+    // Check if inscriptions are still open
+    if (!projetoSelecionado.inscricaoAberta) {
+      toast.error('As inscrições para este projeto não estão mais abertas')
+      return
+    }
+
+    // Check if already enrolled
+    if (projetoSelecionado.jaInscrito) {
+      toast.error('Você já possui uma inscrição ativa para este projeto')
       return
     }
 
@@ -243,20 +280,37 @@ export default function InscricaoMonitoriaPage() {
             </div>
 
             <div>
-              <Label htmlFor="motivacao">Motivação *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="motivacao">Motivação *</Label>
+                <span className={`text-xs ${motivacao.length >= 10 ? 'text-green-600' : 'text-red-600'}`}>
+                  {motivacao.length}/10 min
+                </span>
+              </div>
               <Textarea
                 id="motivacao"
                 value={motivacao}
                 onChange={(e) => setMotivacao(e.target.value)}
                 placeholder="Descreva sua motivação para participar deste projeto de monitoria..."
                 rows={4}
+                className={motivacao.length > 0 && motivacao.length < 10 ? 'border-red-300' : ''}
               />
+              {motivacao.length > 0 && motivacao.length < 10 && (
+                <p className="text-xs text-red-600 mt-1">
+                  A motivação deve ter pelo menos 10 caracteres
+                </p>
+              )}
             </div>
 
             <div className="flex gap-2 pt-4">
               <Button 
                 onClick={handleSubmitInscricao} 
-                disabled={inscricaoMutation.isPending || !motivacao.trim()}
+                disabled={
+                  inscricaoMutation.isPending || 
+                  !motivacao.trim() || 
+                  motivacao.trim().length < 10 ||
+                  !projetoSelecionado?.inscricaoAberta ||
+                  projetoSelecionado?.jaInscrito
+                }
                 className="flex-1"
               >
                 {inscricaoMutation.isPending ? 'Inscrevendo...' : 'Confirmar Inscrição'}

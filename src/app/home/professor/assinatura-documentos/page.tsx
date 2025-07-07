@@ -39,13 +39,13 @@ function DocumentSigningContent() {
     { enabled: !!selectedProjectId }
   )
 
-  // Filter projects that are DRAFT (need professor signing)
+  // Filter projects that are DRAFT or PENDING_PROFESSOR_SIGNATURE (need professor signing)
   const pendingSignatureProjetos = useMemo(() => {
     if (!projetos || !user) return []
     
     return projetos.filter((projeto) => {
       // For professors, show only projects that need professor signature
-      return projeto.status === 'DRAFT'
+      return projeto.status === 'DRAFT' || projeto.status === 'PENDING_PROFESSOR_SIGNATURE'
     })
   }, [projetos, user])
 
@@ -105,8 +105,12 @@ function DocumentSigningContent() {
     switch (status) {
       case 'DRAFT':
         return <Badge variant="outline">Aguardando Assinatura Professor</Badge>
+      case 'PENDING_PROFESSOR_SIGNATURE':
+        return <Badge variant="outline">Aguardando Assinatura Professor</Badge>
       case 'SUBMITTED':
         return <Badge variant="secondary">Submetido para Análise</Badge>
+      case 'PENDING_ADMIN_SIGNATURE':
+        return <Badge variant="secondary">Aguardando Assinatura Admin</Badge>
       case 'APPROVED':
         return <Badge className="bg-green-100 text-green-800">Aprovado</Badge>
       case 'REJECTED':

@@ -1,26 +1,26 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { TableComponent } from '@/components/layout/TableComponent'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { api } from '@/utils/api'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ColumnDef } from '@tanstack/react-table'
-import { FileText, Plus, Edit, Trash2, Copy, Target, BookOpen, Clock, Users } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { api } from "@/utils/api"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ColumnDef } from "@tanstack/react-table"
+import { BookOpen, Clock, Copy, Edit, FileText, Plus, Target, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { useFieldArray, useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
 const templateFormSchema = z.object({
-  disciplinaId: z.number().min(1, 'Disciplina é obrigatória'),
+  disciplinaId: z.number().min(1, "Disciplina é obrigatória"),
   tituloDefault: z.string().optional(),
   descricaoDefault: z.string().optional(),
   cargaHorariaSemanaDefault: z.number().int().positive().optional(),
@@ -31,7 +31,7 @@ const templateFormSchema = z.object({
 
 const duplicateFormSchema = z.object({
   sourceId: z.number(),
-  targetDisciplinaId: z.number().min(1, 'Disciplina de destino é obrigatória'),
+  targetDisciplinaId: z.number().min(1, "Disciplina de destino é obrigatória"),
 })
 
 type TemplateFormData = z.infer<typeof templateFormSchema>
@@ -82,7 +82,7 @@ export default function ProjetoTemplatesPage() {
 
   const createTemplateMutation = api.projetoTemplates.createTemplate.useMutation({
     onSuccess: () => {
-      toast.success('Template criado com sucesso!')
+      toast.success("Template criado com sucesso!")
       setIsCreateDialogOpen(false)
       refetch()
       createForm.reset()
@@ -94,7 +94,7 @@ export default function ProjetoTemplatesPage() {
 
   const updateTemplateMutation = api.projetoTemplates.updateTemplate.useMutation({
     onSuccess: () => {
-      toast.success('Template atualizado com sucesso!')
+      toast.success("Template atualizado com sucesso!")
       setIsEditDialogOpen(false)
       setSelectedTemplate(null)
       refetch()
@@ -106,7 +106,7 @@ export default function ProjetoTemplatesPage() {
 
   const deleteTemplateMutation = api.projetoTemplates.deleteTemplate.useMutation({
     onSuccess: () => {
-      toast.success('Template excluído com sucesso!')
+      toast.success("Template excluído com sucesso!")
       refetch()
     },
     onError: (error) => {
@@ -116,7 +116,7 @@ export default function ProjetoTemplatesPage() {
 
   const duplicateTemplateMutation = api.projetoTemplates.duplicateTemplate.useMutation({
     onSuccess: () => {
-      toast.success('Template duplicado com sucesso!')
+      toast.success("Template duplicado com sucesso!")
       setIsDuplicateDialogOpen(false)
       refetch()
       duplicateForm.reset()
@@ -129,6 +129,12 @@ export default function ProjetoTemplatesPage() {
   const createForm = useForm<TemplateFormData>({
     resolver: zodResolver(templateFormSchema),
     defaultValues: {
+      disciplinaId: 0,
+      tituloDefault: "",
+      descricaoDefault: "",
+      cargaHorariaSemanaDefault: undefined,
+      numeroSemanasDefault: undefined,
+      publicoAlvoDefault: "",
       atividadesDefault: [],
     },
   })
@@ -136,27 +142,44 @@ export default function ProjetoTemplatesPage() {
   const editForm = useForm<TemplateFormData>({
     resolver: zodResolver(templateFormSchema),
     defaultValues: {
+      disciplinaId: 0,
+      tituloDefault: "",
+      descricaoDefault: "",
+      cargaHorariaSemanaDefault: undefined,
+      numeroSemanasDefault: undefined,
+      publicoAlvoDefault: "",
       atividadesDefault: [],
     },
   })
+
+  // Manual state management for activities since useFieldArray has type issues
+  const [createAtividades, setCreateAtividades] = useState<string[]>([])
+  const [editAtividades, setEditAtividades] = useState<string[]>([])
 
   const duplicateForm = useForm<DuplicateFormData>({
     resolver: zodResolver(duplicateFormSchema),
   })
 
-
   const handleCreate = (data: TemplateFormData) => {
-    createTemplateMutation.mutate(data)
+    const templateData = {
+      ...data,
+      atividadesDefault: createAtividades.filter(a => a.trim() !== '')
+    }
+    createTemplateMutation.mutate(templateData)
   }
 
   const handleEdit = (data: TemplateFormData) => {
     if (!selectedTemplate) return
     const { disciplinaId, ...updateData } = data
-    updateTemplateMutation.mutate({ id: selectedTemplate.id, ...updateData })
+    const templateData = {
+      ...updateData,
+      atividadesDefault: editAtividades.filter(a => a.trim() !== '')
+    }
+    updateTemplateMutation.mutate({ id: selectedTemplate.id, ...templateData })
   }
 
   const handleDelete = (id: number) => {
-    if (confirm('Tem certeza que deseja excluir este template?')) {
+    if (confirm("Tem certeza que deseja excluir este template?")) {
       deleteTemplateMutation.mutate({ id })
     }
   }
@@ -167,14 +190,15 @@ export default function ProjetoTemplatesPage() {
 
   const openEditDialog = (template: TemplateItem) => {
     setSelectedTemplate(template)
+    setEditAtividades(template.atividadesDefault || [])
     editForm.reset({
       disciplinaId: template.disciplinaId,
-      tituloDefault: template.tituloDefault || '',
-      descricaoDefault: template.descricaoDefault || '',
+      tituloDefault: template.tituloDefault || "",
+      descricaoDefault: template.descricaoDefault || "",
       cargaHorariaSemanaDefault: template.cargaHorariaSemanaDefault || undefined,
       numeroSemanasDefault: template.numeroSemanasDefault || undefined,
-      publicoAlvoDefault: template.publicoAlvoDefault || '',
-      atividadesDefault: template.atividadesDefault || [],
+      publicoAlvoDefault: template.publicoAlvoDefault || "",
+      atividadesDefault: [],
     })
     setIsEditDialogOpen(true)
   }
@@ -189,36 +213,32 @@ export default function ProjetoTemplatesPage() {
 
   const columns: ColumnDef<TemplateItem>[] = [
     {
-      header: 'Disciplina',
+      header: "Disciplina",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.disciplina.codigo}</div>
-          <div className="text-sm text-muted-foreground truncate max-w-xs">
-            {row.original.disciplina.nome}
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {row.original.disciplina.departamento.sigla}
-          </div>
+          <div className="text-sm text-muted-foreground truncate max-w-xs">{row.original.disciplina.nome}</div>
+          <div className="text-xs text-muted-foreground">{row.original.disciplina.departamento.sigla}</div>
         </div>
       ),
     },
     {
-      header: 'Template',
+      header: "Template",
       cell: ({ row }) => (
         <div>
-          <div className="font-medium truncate max-w-xs">
-            {row.original.tituloDefault || 'Sem título'}
-          </div>
+          <div className="font-medium truncate max-w-xs">{row.original.tituloDefault || "Sem título"}</div>
           <div className="text-sm text-muted-foreground">
             {row.original.cargaHorariaSemanaDefault && row.original.numeroSemanasDefault && (
-              <span>{row.original.cargaHorariaSemanaDefault}h/sem × {row.original.numeroSemanasDefault} sem</span>
+              <span>
+                {row.original.cargaHorariaSemanaDefault}h/sem × {row.original.numeroSemanasDefault} sem
+              </span>
             )}
           </div>
         </div>
       ),
     },
     {
-      header: 'Atividades',
+      header: "Atividades",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Target className="h-4 w-4 text-blue-600" />
@@ -227,14 +247,13 @@ export default function ProjetoTemplatesPage() {
       ),
     },
     {
-      header: 'Última Atualização',
+      header: "Última Atualização",
       cell: ({ row }) => (
         <div>
           <div className="text-sm">
-            {row.original.updatedAt 
-              ? new Date(row.original.updatedAt).toLocaleDateString('pt-BR')
-              : new Date(row.original.createdAt).toLocaleDateString('pt-BR')
-            }
+            {row.original.updatedAt
+              ? new Date(row.original.updatedAt).toLocaleDateString("pt-BR")
+              : new Date(row.original.createdAt).toLocaleDateString("pt-BR")}
           </div>
           <div className="text-xs text-muted-foreground">
             {(row.original.ultimaAtualizacaoPor || row.original.criadoPor)?.username}
@@ -243,25 +262,17 @@ export default function ProjetoTemplatesPage() {
       ),
     },
     {
-      header: 'Ações',
-      id: 'actions',
+      header: "Ações",
+      id: "actions",
       cell: ({ row }) => {
         const template = row.original
 
         return (
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openEditDialog(template)}
-            >
+            <Button variant="outline" size="sm" onClick={() => openEditDialog(template)}>
               <Edit className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openDuplicateDialog(template)}
-            >
+            <Button variant="outline" size="sm" onClick={() => openDuplicateDialog(template)}>
               <Copy className="h-4 w-4" />
             </Button>
             <Button
@@ -279,8 +290,8 @@ export default function ProjetoTemplatesPage() {
   ]
 
   return (
-    <PagesLayout 
-      title="Templates de Projeto" 
+    <PagesLayout
+      title="Templates de Projeto"
       subtitle="Gerencie templates para agilizar a criação de projetos de monitoria"
     >
       <div className="space-y-6">
@@ -366,8 +377,8 @@ export default function ProjetoTemplatesPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Disciplina</FormLabel>
-                            <Select 
-                              onValueChange={(value) => field.onChange(parseInt(value))} 
+                            <Select
+                              onValueChange={(value) => field.onChange(parseInt(value))}
                               value={field.value?.toString()}
                             >
                               <FormControl>
@@ -394,10 +405,7 @@ export default function ProjetoTemplatesPage() {
                           <FormItem>
                             <FormLabel>Título Padrão</FormLabel>
                             <FormControl>
-                              <Input 
-                                placeholder="Ex: Monitoria de [Disciplina]"
-                                {...field} 
-                              />
+                              <Input placeholder="Ex: Monitoria de [Disciplina]" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -410,11 +418,7 @@ export default function ProjetoTemplatesPage() {
                           <FormItem>
                             <FormLabel>Descrição Padrão</FormLabel>
                             <FormControl>
-                              <Textarea 
-                                rows={4}
-                                placeholder="Objetivos e justificativa do projeto..."
-                                {...field} 
-                              />
+                              <Textarea rows={4} placeholder="Objetivos e justificativa do projeto..." {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -428,11 +432,13 @@ export default function ProjetoTemplatesPage() {
                             <FormItem>
                               <FormLabel>Carga Horária Semanal</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="number" 
+                                <Input
+                                  type="number"
                                   placeholder="12"
-                                  {...field} 
-                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(e.target.value ? parseInt(e.target.value) : undefined)
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />
@@ -446,11 +452,13 @@ export default function ProjetoTemplatesPage() {
                             <FormItem>
                               <FormLabel>Número de Semanas</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="number" 
+                                <Input
+                                  type="number"
                                   placeholder="16"
-                                  {...field} 
-                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                  {...field}
+                                  onChange={(e) =>
+                                    field.onChange(e.target.value ? parseInt(e.target.value) : undefined)
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />
@@ -465,22 +473,51 @@ export default function ProjetoTemplatesPage() {
                           <FormItem>
                             <FormLabel>Público Alvo Padrão</FormLabel>
                             <FormControl>
-                              <Textarea 
-                                rows={3}
-                                placeholder="Estudantes matriculados na disciplina..."
-                                {...field} 
-                              />
+                              <Textarea rows={3} placeholder="Estudantes matriculados na disciplina..." {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <Button
-                        type="submit"
-                        className="w-full"
-                        disabled={createTemplateMutation.isPending}
-                      >
-                        {createTemplateMutation.isPending ? 'Criando...' : 'Criar Template'}
+                      <div className="space-y-4">
+                        <FormLabel>Atividades Padrão</FormLabel>
+                        {createAtividades.map((atividade, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Input
+                              className="flex-1"
+                              placeholder="Ex: Elaborar material de apoio"
+                              value={atividade}
+                              onChange={(e) => {
+                                const newAtividades = [...createAtividades]
+                                newAtividades[index] = e.target.value
+                                setCreateAtividades(newAtividades)
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const newAtividades = createAtividades.filter((_, i) => i !== index)
+                                setCreateAtividades(newAtividades)
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setCreateAtividades([...createAtividades, ''])}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Adicionar Atividade
+                        </Button>
+                      </div>
+                      <Button type="submit" className="w-full" disabled={createTemplateMutation.isPending}>
+                        {createTemplateMutation.isPending ? "Criando..." : "Criar Template"}
                       </Button>
                     </form>
                   </Form>
@@ -506,12 +543,8 @@ export default function ProjetoTemplatesPage() {
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <FileText className="mx-auto h-12 w-12 mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  Nenhum template encontrado
-                </h3>
-                <p>
-                  Crie templates para agilizar a criação de projetos de monitoria.
-                </p>
+                <h3 className="text-lg font-medium mb-2">Nenhum template encontrado</h3>
+                <p>Crie templates para agilizar a criação de projetos de monitoria.</p>
               </div>
             )}
           </CardContent>
@@ -562,9 +595,9 @@ export default function ProjetoTemplatesPage() {
                       <FormItem>
                         <FormLabel>Carga Horária Semanal</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            {...field} 
+                          <Input
+                            type="number"
+                            {...field}
                             onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                           />
                         </FormControl>
@@ -579,9 +612,9 @@ export default function ProjetoTemplatesPage() {
                       <FormItem>
                         <FormLabel>Número de Semanas</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="number" 
-                            {...field} 
+                          <Input
+                            type="number"
+                            {...field}
                             onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                           />
                         </FormControl>
@@ -603,12 +636,45 @@ export default function ProjetoTemplatesPage() {
                     </FormItem>
                   )}
                 />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={updateTemplateMutation.isPending}
-                >
-                  {updateTemplateMutation.isPending ? 'Atualizando...' : 'Atualizar Template'}
+                <div className="space-y-4">
+                  <FormLabel>Atividades Padrão</FormLabel>
+                  {editAtividades.map((atividade, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        className="flex-1"
+                        placeholder="Ex: Elaborar material de apoio"
+                        value={atividade}
+                        onChange={(e) => {
+                          const newAtividades = [...editAtividades]
+                          newAtividades[index] = e.target.value
+                          setEditAtividades(newAtividades)
+                        }}
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          const newAtividades = editAtividades.filter((_, i) => i !== index)
+                          setEditAtividades(newAtividades)
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setEditAtividades([...editAtividades, ''])}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Atividade
+                  </Button>
+                </div>
+                <Button type="submit" className="w-full" disabled={updateTemplateMutation.isPending}>
+                  {updateTemplateMutation.isPending ? "Atualizando..." : "Atualizar Template"}
                 </Button>
               </form>
             </Form>
@@ -632,8 +698,8 @@ export default function ProjetoTemplatesPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Disciplina de Destino</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
+                      <Select
+                        onValueChange={(value) => field.onChange(parseInt(value))}
                         value={field.value?.toString()}
                       >
                         <FormControl>
@@ -653,12 +719,8 @@ export default function ProjetoTemplatesPage() {
                     </FormItem>
                   )}
                 />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={duplicateTemplateMutation.isPending}
-                >
-                  {duplicateTemplateMutation.isPending ? 'Duplicando...' : 'Duplicar Template'}
+                <Button type="submit" className="w-full" disabled={duplicateTemplateMutation.isPending}>
+                  {duplicateTemplateMutation.isPending ? "Duplicando..." : "Duplicar Template"}
                 </Button>
               </form>
             </Form>

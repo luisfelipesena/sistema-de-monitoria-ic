@@ -488,6 +488,111 @@ export const fileRouter = createTRPCRouter({
       }
     }),
 
+  getProjetoFiles: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/files/projeto/{projetoId}',
+        tags: ['files'],
+        summary: 'Get project files',
+        description: 'Get all files associated with a project',
+      },
+    })
+    .input(
+      z.object({
+        projetoId: z.number(),
+      })
+    )
+    .output(z.array(fileListItemSchema))
+    .query(async ({ input, ctx }) => {
+      try {
+        const { projetoId } = input
+        const userId = ctx.user.id
+
+        log.info({ projetoId, userId }, 'Buscando arquivos do projeto...')
+
+        // Verificar autorização baseada no projeto
+        const projeto = await ctx.db.query.projetoTable.findFirst({
+          where: eq(projetoTable.id, projetoId),
+          with: {
+            professorResponsavel: true,
+          },
+        })
+
+        if (!projeto) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Projeto não encontrado' })
+        }
+
+        // Verificar permissões
+        let isAuthorized = false
+        if (ctx.user.role === 'admin') {
+          isAuthorized = true
+        } else if (ctx.user.role === 'professor') {
+          const professor = await ctx.db.query.professorTable.findFirst({
+            where: eq(professorTable.userId, userId),
+          })
+          if (professor && professor.id === projeto.professorResponsavelId) {
+            isAuthorized = true
+          }
+        }
+
+        if (!isAuthorized) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso negado aos arquivos deste projeto' })
+        }
+
+        // Listar arquivos do projeto
+        const prefix = `projetos/${projetoId}/`
+        const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
+        const statPromises: Promise<FileListItem | null>[] = []
+
+        return new Promise<FileListItem[]>((resolve, reject) => {
+          objectsStream.on('data', (obj: Minio.BucketItem) => {
+            if (obj.name) {
+              statPromises.push(
+                (async () => {
+                  try {
+                    const stat = await minioClient.statObject(bucketName, obj.name!)
+                    return {
+                      objectName: obj.name!,
+                      size: stat.size,
+                      lastModified: stat.lastModified,
+                      metaData: stat.metaData,
+                      originalFilename: stat.metaData['original-filename'] || obj.name!,
+                      mimeType: stat.metaData['content-type'] || 'application/octet-stream',
+                    }
+                  } catch (statError) {
+                    log.error({ objectName: obj.name, error: statError }, 'Erro ao obter metadados do objeto MinIO')
+                    return null
+                  }
+                })()
+              )
+            }
+          })
+
+          objectsStream.on('error', (err: Error) => {
+            log.error(err, 'Erro ao listar arquivos do projeto')
+            reject(new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao buscar arquivos do projeto' }))
+          })
+
+          objectsStream.on('end', async () => {
+            const results = await Promise.allSettled(statPromises)
+            const files: FileListItem[] = []
+            results.forEach((result) => {
+              if (result.status === 'fulfilled' && result.value) {
+                files.push(result.value)
+              }
+            })
+            log.info({ projetoId, fileCount: files.length }, 'Arquivos do projeto recuperados')
+            resolve(files)
+          })
+        })
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        log.error(error, 'Erro ao buscar arquivos do projeto')
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao buscar arquivos do projeto' })
+      }
+    }),
+
   getProjetoPdfUrl: protectedProcedure
     .meta({
       openapi: {

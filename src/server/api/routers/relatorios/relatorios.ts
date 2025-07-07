@@ -856,7 +856,7 @@ export const relatoriosRouter = createTRPCRouter({
         semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
       })
     )
-    .query(async ({ input, ctx }) => {
+    .mutation(async ({ input, ctx }) => {
       // Buscar todos os monitores aceitos no período
       const monitores = await ctx.db
         .select({

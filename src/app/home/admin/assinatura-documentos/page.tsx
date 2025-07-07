@@ -39,9 +39,9 @@ function DocumentSigningContent() {
     { enabled: !!selectedProjectId }
   )
 
-  // Filter projects that are SUBMITTED (approved but need admin signing)
+  // Filter projects that are PENDING_ADMIN_SIGNATURE (approved but need admin signing)
   const pendingSignatureProjetos = useMemo(() => {
-    return projetos?.filter((projeto) => projeto.status === 'SUBMITTED') || []
+    return projetos?.filter((projeto) => projeto.status === 'PENDING_ADMIN_SIGNATURE') || []
   }, [projetos])
 
   const templateData = useMemo((): MonitoriaFormData | null => {
@@ -99,8 +99,10 @@ function DocumentSigningContent() {
 
   const renderStatusBadge = (status: string) => {
     switch (status) {
-      case 'SUBMITTED':
+      case 'PENDING_ADMIN_SIGNATURE':
         return <Badge variant="secondary">Aguardando Assinatura Admin</Badge>
+      case 'SUBMITTED':
+        return <Badge variant="secondary">Em Análise</Badge>
       case 'DRAFT':
         return <Badge variant="outline">Rascunho</Badge>
       case 'APPROVED':

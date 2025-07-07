@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast'
 import { api } from '@/utils/api'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import React from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -23,7 +23,7 @@ const projetoSchema = z.object({
   titulo: z.string().min(5, 'Título deve ter pelo menos 5 caracteres'),
   descricao: z.string().min(5, 'Descrição deve ter pelo menos 5 caracteres'),
   departamentoId: z.number().min(1, 'Departamento é obrigatório'),
-  disciplinaIds: z.array(z.number()).min(1, 'Deve selecionar pelo menos uma disciplina'),
+  disciplinaId: z.number().min(1, 'Disciplina é obrigatória'),
   ano: z.number().min(2024).max(2030),
   semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
   tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
@@ -49,6 +49,7 @@ export default function NovoProjetoPage() {
     'Colaborar na revisão de códigos e debugging',
     'Ajudar na preparação de material didático complementar'
   ])
+  const [debouncedFormValues, setDebouncedFormValues] = useState<ProjetoFormData | null>(null)
   
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
   const { data: disciplinas } = api.discipline.getDisciplines.useQuery()
@@ -70,7 +71,7 @@ export default function NovoProjetoPage() {
       numeroSemanas: 16,
       publicoAlvo: 'Estudantes matriculados na disciplina Programação I que apresentem dificuldades no aprendizado de conceitos básicos de programação',
       estimativaPessoasBenificiadas: 50,
-      disciplinaIds: [],
+      disciplinaId: 0,
       atividades: [],
     },
   })
@@ -83,37 +84,48 @@ export default function NovoProjetoPage() {
 
   const formValues = form.watch()
   
-  const validateRequiredFields = () => {
-    const errors = []
-    if (!formValues.titulo) errors.push('Título')
-    if (!formValues.descricao) errors.push('Descrição')
-    if (!formValues.departamentoId) errors.push('Departamento')
-    if (!formValues.disciplinaIds?.length) errors.push('Disciplinas')
-    if (!formValues.publicoAlvo) errors.push('Público Alvo')
-    return { isValid: errors.length === 0, missingFields: errors }
-  }
+  // Debounce form values to avoid excessive re-renders
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFormValues(formValues)
+    }, 300) // 300ms debounce
 
-  const { isValid: canGeneratePreview, missingFields } = validateRequiredFields()
+    return () => clearTimeout(timer)
+  }, [formValues])
   
-  const firstDisciplinaId = formValues.disciplinaIds?.[0]
+  const validateRequiredFields = useCallback((values: ProjetoFormData) => {
+    const errors = []
+    if (!values.titulo) errors.push('Título')
+    if (!values.descricao) errors.push('Descrição')
+    if (!values.departamentoId) errors.push('Departamento')
+    if (!values.disciplinaId) errors.push('Disciplina')
+    if (!values.publicoAlvo) errors.push('Público Alvo')
+    return { isValid: errors.length === 0, missingFields: errors }
+  }, [])
+
+  const { isValid: canGeneratePreview, missingFields } = debouncedFormValues 
+    ? validateRequiredFields(debouncedFormValues)
+    : { isValid: false, missingFields: ['Carregando...'] }
+  
+  const firstDisciplinaId = debouncedFormValues?.disciplinaId
   const { data: disciplinaWithProfessor } = api.discipline.getDisciplineWithProfessor.useQuery(
     { id: firstDisciplinaId! },
     { enabled: !!firstDisciplinaId && showPreview }
   )
   
   const pdfData: MonitoriaFormData | null = React.useMemo(() => {
-    if (!showPreview || !canGeneratePreview) return null
+    if (!showPreview || !canGeneratePreview || !debouncedFormValues) return null
     
-    const departamento = departamentos?.find(d => d.id === formValues.departamentoId)
-    const selectedDisciplinas = disciplinas?.filter(d => formValues.disciplinaIds?.includes(d.id)) || []
+    const departamento = departamentos?.find(d => d.id === debouncedFormValues.departamentoId)
+    const selectedDisciplina = disciplinas?.find(d => d.id === debouncedFormValues.disciplinaId)
     
-    if (!departamento || selectedDisciplinas.length === 0) return null
+    if (!departamento || !selectedDisciplina) return null
 
     const professor = disciplinaWithProfessor?.professor
 
     return {
-      titulo: formValues.titulo,
-      descricao: formValues.descricao,
+      titulo: debouncedFormValues.titulo,
+      descricao: debouncedFormValues.descricao,
       departamento: {
         id: departamento.id,
         nome: departamento.nome,
@@ -131,27 +143,27 @@ export default function NovoProjetoPage() {
         telefoneInstitucional: professor.telefoneInstitucional || undefined,
         emailInstitucional: professor.emailInstitucional,
       } : undefined,
-      ano: formValues.ano,
-      semestre: formValues.semestre,
-      tipoProposicao: formValues.tipoProposicao,
-      bolsasSolicitadas: formValues.bolsasSolicitadas || 0,
-      voluntariosSolicitados: formValues.voluntariosSolicitados || 0,
-      cargaHorariaSemana: formValues.cargaHorariaSemana,
-      numeroSemanas: formValues.numeroSemanas,
-      publicoAlvo: formValues.publicoAlvo,
-      estimativaPessoasBenificiadas: formValues.estimativaPessoasBenificiadas || 0,
-      disciplinas: selectedDisciplinas.map(d => ({
-        id: d.id,
-        codigo: d.codigo,
-        nome: d.nome,
-      })),
+      ano: debouncedFormValues.ano,
+      semestre: debouncedFormValues.semestre,
+      tipoProposicao: debouncedFormValues.tipoProposicao,
+      bolsasSolicitadas: debouncedFormValues.bolsasSolicitadas || 0,
+      voluntariosSolicitados: debouncedFormValues.voluntariosSolicitados || 0,
+      cargaHorariaSemana: debouncedFormValues.cargaHorariaSemana,
+      numeroSemanas: debouncedFormValues.numeroSemanas,
+      publicoAlvo: debouncedFormValues.publicoAlvo,
+      estimativaPessoasBenificiadas: debouncedFormValues.estimativaPessoasBenificiadas || 0,
+      disciplinas: [{
+        id: selectedDisciplina.id,
+        codigo: selectedDisciplina.codigo,
+        nome: selectedDisciplina.nome,
+      }],
       user: {
         email: professor?.emailInstitucional || 'professor@ufba.br',
         nomeCompleto: professor?.nomeCompleto || 'Professor',
         role: 'professor',
       },
     }
-  }, [showPreview, canGeneratePreview, formValues, departamentos, disciplinas, disciplinaWithProfessor])
+  }, [showPreview, canGeneratePreview, debouncedFormValues, departamentos, disciplinas, disciplinaWithProfessor])
 
   const handleAddAtividade = () => {
     setAtividades([...atividades, ''])
@@ -174,6 +186,7 @@ export default function NovoProjetoPage() {
       
       const projetoData = {
         ...data,
+        disciplinaIds: [data.disciplinaId], // Convert single disciplina to array for backend compatibility
         atividades: atividadesFiltradas,
       }
 
@@ -296,7 +309,7 @@ export default function NovoProjetoPage() {
                         <Select
                           onValueChange={(value) => {
                             field.onChange(parseInt(value))
-                            form.setValue('disciplinaIds', [])
+                            form.setValue('disciplinaId', 0)
                           }}
                           value={field.value?.toString()}
                         >
@@ -320,23 +333,18 @@ export default function NovoProjetoPage() {
 
                   <FormField
                     control={form.control}
-                    name="disciplinaIds"
+                    name="disciplinaId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Disciplinas</FormLabel>
+                        <FormLabel>Disciplina</FormLabel>
                         <Select
-                          onValueChange={(value) => {
-                            const currentIds = field.value || []
-                            const newId = parseInt(value)
-                            if (!currentIds.includes(newId)) {
-                              field.onChange([...currentIds, newId])
-                            }
-                          }}
+                          onValueChange={(value) => field.onChange(parseInt(value))}
+                          value={field.value?.toString()}
                           disabled={!departamentoSelecionado}
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione as disciplinas" />
+                              <SelectValue placeholder="Selecione a disciplina" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -348,28 +356,6 @@ export default function NovoProjetoPage() {
                           </SelectContent>
                         </Select>
                         <FormMessage />
-                        {field.value && field.value.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {field.value.map((disciplinaId) => {
-                              const disciplina = disciplinas?.find(d => d.id === disciplinaId)
-                              return disciplina ? (
-                                <div key={disciplinaId} className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-                                  {disciplina.codigo}
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const newIds = field.value?.filter(id => id !== disciplinaId) || []
-                                      field.onChange(newIds)
-                                    }}
-                                    className="ml-1 text-blue-600 hover:text-blue-800"
-                                  >
-                                    ×
-                                  </button>
-                                </div>
-                              ) : null
-                            })}
-                          </div>
-                        )}
                       </FormItem>
                     )}
                   />

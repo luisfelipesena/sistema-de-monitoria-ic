@@ -786,14 +786,14 @@ export const projetoRouter = createTRPCRouter({
       await ctx.db
         .update(projetoTable)
         .set({
-          status: 'APPROVED',
+          status: 'PENDING_ADMIN_SIGNATURE',
           bolsasDisponibilizadas: input.bolsasDisponibilizadas,
           feedbackAdmin: input.feedbackAdmin,
           updatedAt: new Date(),
         })
         .where(eq(projetoTable.id, input.id))
 
-      log.info({ projetoId: input.id }, 'Projeto aprovado')
+      log.info({ projetoId: input.id }, 'Projeto aprovado e pendente de assinatura do admin')
       return { success: true }
     }),
 

@@ -63,21 +63,18 @@ export default function DashboardAdmin() {
   const [filters, setFilters] = useState<FilterValues>({})
   const [groupedView, setGroupedView] = useState(false)
 
-  const generateProgradSpreadsheetMutation = api.relatorios.getConsolidatedMonitoringData.useQuery(
-    {
-      ano: new Date().getFullYear(),
-      semestre: getCurrentSemester().semester,
-    },
-    { enabled: false }
-  )
+  const generateProgradSpreadsheetMutation = api.relatorios.getConsolidatedMonitoringData.useMutation()
 
   const handleDownloadPlanilhaPrograd = async () => {
     try {
       toast.promise(
         (async () => {
-          const consolidationData = await generateProgradSpreadsheetMutation.refetch()
+          const result = await generateProgradSpreadsheetMutation.mutateAsync({
+            ano: new Date().getFullYear(),
+            semestre: getCurrentSemester().semester,
+          })
 
-          if (!consolidationData.data || consolidationData.data.length === 0) {
+          if (!result || result.length === 0) {
             throw new Error("Não há dados para gerar a planilha")
           }
 
@@ -101,7 +98,7 @@ export default function DashboardAdmin() {
             "Período",
           ]
 
-          const csvData = consolidationData.data.map((item) => [
+          const csvData = result.map((item) => [
             item.monitor.matricula,
             item.monitor.nome,
             item.monitor.email,

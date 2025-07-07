@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { FileUploadField } from '@/components/ui/FileUploadField'
 import { Checkbox } from '@/components/ui/checkbox'
 import { api } from '@/utils/api'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { CheckCircle, AlertTriangle, Info, ArrowRight, BookOpen, Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -45,7 +45,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
 
 
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
-  const { data: disciplinas } = api.discipline.getDisciplines.useQuery()
+  const { data: disciplinas, refetch: refetchDisciplinas } = api.discipline.getDisciplines.useQuery()
   const createProfileMutation = api.onboarding.createProfessorProfile.useMutation()
   const updateDocumentMutation = api.onboarding.updateDocument.useMutation()
   const createDisciplinaMutation = api.discipline.create.useMutation()
@@ -120,6 +120,8 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
 
       setSelectedDisciplinas([...selectedDisciplinas, disciplina.id])
       setNewDisciplina({ nome: '', codigo: '', cargaHoraria: 0, periodo: 1 })
+      // Refetch disciplines to include the newly created one
+      await refetchDisciplinas()
       toast.success('Disciplina criada e selecionada com sucesso!')
     } catch (error: any) {
       toast.error(error.message || 'Erro ao criar disciplina')
@@ -178,6 +180,13 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const departamentoDisciplinas = disciplinas?.filter(d => 
     d.departamentoId === professorDepartamentoId && professorDepartamentoId > 0
   ) || []
+
+  // Refetch disciplines when department changes
+  useEffect(() => {
+    if (professorDepartamentoId > 0) {
+      refetchDisciplinas()
+    }
+  }, [professorDepartamentoId, refetchDisciplinas])
 
   return (
     <section className="w-full">

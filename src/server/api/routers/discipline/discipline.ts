@@ -8,9 +8,10 @@ import {
   projetoTable,
   projetoDisciplinaTable,
   inscricaoTable,
+  projetoTemplateTable,
 } from '@/server/db/schema'
 import { TRPCError } from '@trpc/server'
-import { eq, and, sql } from 'drizzle-orm'
+import { eq, and, sql, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { logger } from '@/utils/logger'
 
@@ -200,6 +201,45 @@ export const disciplineRouter = createTRPCRouter({
     )
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
+      // Check if discipline exists
+      const disciplina = await ctx.db.query.disciplinaTable.findFirst({
+        where: eq(disciplinaTable.id, input.id),
+      })
+
+      if (!disciplina) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Disciplina não encontrada' })
+      }
+
+      // Check for foreign key constraints
+      const dependencies = await Promise.all([
+        // Check projeto-disciplina relationships
+        ctx.db.query.projetoDisciplinaTable.findFirst({
+          where: eq(projetoDisciplinaTable.disciplinaId, input.id),
+        }),
+        // Check professor responsibilities
+        ctx.db.query.disciplinaProfessorResponsavelTable.findFirst({
+          where: eq(disciplinaProfessorResponsavelTable.disciplinaId, input.id),
+        }),
+        // Check project templates
+        ctx.db.query.projetoTemplateTable.findFirst({
+          where: eq(projetoTemplateTable.disciplinaId, input.id),
+        }),
+      ])
+
+      const [projetoDisciplina, professorResponsavel, projetoTemplate] = dependencies
+
+      const issues = []
+      if (projetoDisciplina) issues.push('projetos associados')
+      if (professorResponsavel) issues.push('professores responsáveis')
+      if (projetoTemplate) issues.push('templates de projeto')
+
+      if (issues.length > 0) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: `Não é possível excluir a disciplina porque ela possui ${issues.join(', ')}. Remova essas dependências primeiro.`,
+        })
+      }
+
       const result = await ctx.db.delete(disciplinaTable).where(eq(disciplinaTable.id, input.id)).returning()
 
       if (!result.length) {
@@ -278,7 +318,7 @@ export const disciplineRouter = createTRPCRouter({
 
         // Get discipline details
         const disciplinas = await ctx.db.query.disciplinaTable.findMany({
-          where: and(sql`${disciplinaTable.id} IN (${disciplinaIds.join(',')})`),
+          where: inArray(disciplinaTable.id, disciplinaIds),
         })
 
         // Get active projects count for each discipline
@@ -291,7 +331,7 @@ export const disciplineRouter = createTRPCRouter({
           .innerJoin(projetoTable, eq(projetoDisciplinaTable.projetoId, projetoTable.id))
           .where(
             and(
-              sql`${projetoDisciplinaTable.disciplinaId} IN (${disciplinaIds.join(',')})`,
+              inArray(projetoDisciplinaTable.disciplinaId, disciplinaIds),
               eq(projetoTable.professorResponsavelId, professor.id),
               eq(projetoTable.status, 'APPROVED'),
               eq(projetoTable.ano, currentYear),
@@ -314,7 +354,7 @@ export const disciplineRouter = createTRPCRouter({
           .leftJoin(inscricaoTable, eq(inscricaoTable.projetoId, projetoTable.id))
           .where(
             and(
-              sql`${projetoDisciplinaTable.disciplinaId} IN (${disciplinaIds.join(',')})`,
+              inArray(projetoDisciplinaTable.disciplinaId, disciplinaIds),
               eq(projetoTable.professorResponsavelId, professor.id)
             )
           )

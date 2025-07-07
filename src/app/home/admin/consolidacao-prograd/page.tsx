@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/utils/api"
 import { AlertTriangle, Award, Calendar, CheckCircle, Download, FileSpreadsheet, Filter, Users } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 type ConsolidationData = {
   id: number
@@ -57,14 +57,29 @@ export default function ConsolidacaoPROGRADPage() {
   const [showValidation, setShowValidation] = useState(false)
 
   // Buscar dados consolidados de monitoria
-  const {
-    data: consolidationData,
-    isLoading,
-    refetch,
-  } = api.relatorios.getConsolidatedMonitoringData.useQuery(
-    { ano: selectedYear, semestre: selectedSemester },
-    { enabled: true }
-  )
+  const [consolidationData, setConsolidationData] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const getConsolidatedMutation = api.relatorios.getConsolidatedMonitoringData.useMutation({
+    onSuccess: (data) => {
+      setConsolidationData(data)
+      setIsLoading(false)
+    },
+    onError: () => {
+      setIsLoading(false)
+    }
+  })
+
+  const refetch = () => {
+    setIsLoading(true)
+    getConsolidatedMutation.mutate({ ano: selectedYear, semestre: selectedSemester })
+  }
+
+  // Fetch data when component mounts or parameters change
+  useEffect(() => {
+    setIsLoading(true)
+    getConsolidatedMutation.mutate({ ano: selectedYear, semestre: selectedSemester })
+  }, [selectedYear, selectedSemester, getConsolidatedMutation])
 
   // Buscar dados de bolsistas para validação
   const { data: bolsistasData, isLoading: loadingBolsistas } = api.relatorios.monitoresFinalBolsistas.useQuery(

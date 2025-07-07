@@ -67,11 +67,12 @@ export default function ManageProjectsPage() {
   const [showPreviewDialog, setShowPreviewDialog] = useState(false)
   const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showProjectFilesDialog, setShowProjectFilesDialog] = useState(false)
   const [rejectFeedback, setRejectFeedback] = useState("")
 
   const approveProjectMutation = api.projeto.approveProjeto.useMutation({
     onSuccess: () => {
-      toast.success("Projeto aprovado! Agora disponível para assinatura.")
+      toast.success("Projeto aprovado! Agora pendente de assinatura administrativa.")
       queryClient.invalidateQueries()
       setShowPreviewDialog(false)
       setSelectedProject(null)
@@ -107,9 +108,34 @@ export default function ManageProjectsPage() {
   })
 
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
+  const getAdminFilePresignedUrlMutation = api.file.getAdminFilePresignedUrl.useMutation()
+  const { data: projectFiles, isLoading: loadingProjectFiles } = api.file.getProjetoFiles.useQuery(
+    { projetoId: selectedProject?.id || 0 },
+    { enabled: showProjectFilesDialog && !!selectedProject?.id }
+  )
 
-  const handleViewAdminFiles = () => {
-    router.push("/home/admin/files")
+  const handleViewProjectFiles = (projeto: ProjetoListItem) => {
+    setSelectedProject(projeto)
+    setShowProjectFilesDialog(true)
+  }
+
+  const handleDownloadFile = async (objectName: string) => {
+    try {
+      const presignedUrl = await getAdminFilePresignedUrlMutation.mutateAsync({ objectName })
+      
+      // Create a temporary link to download the file
+      const link = document.createElement('a')
+      link.href = presignedUrl.url
+      link.download = objectName.split('/').pop() || 'file'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      toast.success("Download iniciado")
+    } catch (error) {
+      toast.error("Erro ao baixar arquivo")
+      console.error("Download error:", error)
+    }
   }
 
   const handlePreviewProject = async (projeto: ProjetoListItem) => {
@@ -396,7 +422,7 @@ export default function ManageProjectsPage() {
               variant="outline"
               size="sm"
               className="rounded-full flex items-center gap-1"
-              onClick={handleViewAdminFiles}
+              onClick={() => handleViewProjectFiles(projeto)}
             >
               <Download className="h-4 w-4" />
               Arquivos
@@ -507,6 +533,59 @@ export default function ManageProjectsPage() {
           <TableComponent columns={colunasProjetos} data={filteredProjetos || []} />
         </>
       )}
+
+      <Dialog open={showProjectFilesDialog} onOpenChange={setShowProjectFilesDialog}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Arquivos do Projeto</DialogTitle>
+            <DialogDescription>
+              {selectedProject && `Projeto: ${selectedProject.titulo}`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {loadingProjectFiles ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Carregando arquivos...</span>
+              </div>
+            ) : projectFiles && projectFiles.length > 0 ? (
+              <div className="space-y-2">
+                {projectFiles.map((file) => (
+                  <div key={file.objectName} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium">{file.originalFilename}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {(file.size / 1024).toFixed(1)} KB • {file.lastModified.toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadFile(file.objectName)}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Baixar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhum arquivo encontrado para este projeto</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowProjectFilesDialog(false)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
         <DialogContent className="max-w-4xl">
