@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/utils/api"
 import { AlertTriangle, Award, Calendar, CheckCircle, Download, FileSpreadsheet, Filter, Users } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 
 type ConsolidationData = {
   id: number
@@ -59,7 +59,7 @@ export default function ConsolidacaoPROGRADPage() {
   // Buscar dados consolidados de monitoria
   const [consolidationData, setConsolidationData] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const getConsolidatedMutation = api.relatorios.getConsolidatedMonitoringData.useMutation({
     onSuccess: (data) => {
       setConsolidationData(data)
@@ -67,7 +67,7 @@ export default function ConsolidacaoPROGRADPage() {
     },
     onError: () => {
       setIsLoading(false)
-    }
+    },
   })
 
   const refetch = () => {
@@ -425,7 +425,7 @@ export default function ConsolidacaoPROGRADPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Exportação Excel (Oficial PROGRAD) */}
+            {/* Exportação Excel (PROGRAD) */}
             <div className="space-y-2">
               <h4 className="font-medium">Exportação Oficial (Excel)</h4>
               <p className="text-sm text-muted-foreground">
