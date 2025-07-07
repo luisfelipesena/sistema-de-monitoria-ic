@@ -310,7 +310,7 @@ export default function InscricaoMonitoriaPage() {
         return true
       })
       .filter((projeto) => {
-        if (selectedDepartment) {
+        if (selectedDepartment && selectedDepartment !== 'undefined') {
           return projeto.departamentoId.toString() === selectedDepartment
         }
         return true
@@ -326,7 +326,7 @@ export default function InscricaoMonitoriaPage() {
           id: p.departamentoId,
           name: p.departamentoNome
         }))
-        .filter((d) => d.id)
+        .filter((d) => d.id && d.name)
     )
     return Array.from(depts).sort((a, b) => a.name.localeCompare(b.name))
   }, [projetos])
@@ -474,7 +474,7 @@ export default function InscricaoMonitoriaPage() {
                 <SelectContent>
                   <SelectItem value="">Todos os Departamentos</SelectItem>
                   {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id?.toString() || ''}>
+                    <SelectItem key={dept.id} value={dept.id?.toString() || 'undefined'}>
                       {dept.name}
                     </SelectItem>
                   ))}

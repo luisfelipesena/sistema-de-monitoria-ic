@@ -53,10 +53,18 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const { refetch: refetchOnboardingStatus } = api.onboarding.getStatus.useQuery()
 
   const hasProfile = onboardingStatus.profile.exists
+  const { data: userProfile } = api.user.getProfile.useQuery(undefined, { 
+    enabled: hasProfile // Only fetch when profile exists
+  })
   const requiredDocs = onboardingStatus.documents.required
   const uploadedDocs = onboardingStatus.documents.uploaded
   const missingDocs = onboardingStatus.documents.missing
   const hasDisciplinas = onboardingStatus.disciplinas?.configured || false
+
+  // Get professor's department ID from user profile or form data
+  const professorDepartamentoId = hasProfile 
+    ? userProfile?.professorProfile?.departamentoId || formData.departamentoId
+    : formData.departamentoId
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,15 +105,17 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   }
 
   const handleCreateDisciplina = async () => {
-    if (!newDisciplina.nome || !newDisciplina.codigo || !formData.departamentoId) {
-      toast.error('Preencha todos os campos da disciplina')
+    const departamentoId = professorDepartamentoId || formData.departamentoId
+    
+    if (!newDisciplina.nome || !newDisciplina.codigo || !departamentoId) {
+      toast.error('Preencha todos os campos da disciplina e certifique-se de ter um departamento selecionado')
       return
     }
 
     try {
       const disciplina = await createDisciplinaMutation.mutateAsync({
         ...newDisciplina,
-        departamentoId: formData.departamentoId,
+        departamentoId,
       })
 
       setSelectedDisciplinas([...selectedDisciplinas, disciplina.id])
@@ -164,7 +174,10 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   ]
 
   const isOnboardingComplete = hasProfile && missingDocs.length === 0 && hasDisciplinas
-  const departamentoDisciplinas = disciplinas?.filter(d => d.departamentoId === formData.departamentoId) || []
+    
+  const departamentoDisciplinas = disciplinas?.filter(d => 
+    d.departamentoId === professorDepartamentoId && professorDepartamentoId > 0
+  ) || []
 
   return (
     <section className="w-full">
@@ -397,7 +410,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
               </p>
             </CardHeader>
             <CardContent className="p-8">
-              {formData.departamentoId === 0 ? (
+              {professorDepartamentoId === 0 ? (
                 <div className="text-center py-8">
                   <BookOpen className="h-12 w-12 text-amber-600 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-amber-800 mb-2">
@@ -486,8 +499,11 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                         ) : (
                           <div className="text-center py-6">
                             <BookOpen className="h-10 w-10 text-blue-400 mx-auto mb-3" />
-                            <p className="text-sm text-blue-700">
+                            <p className="text-sm font-medium text-blue-700 mb-2">
                               Nenhuma disciplina encontrada neste departamento
+                            </p>
+                            <p className="text-xs text-blue-600">
+                              Você pode criar uma nova disciplina usando o formulário ao lado
                             </p>
                           </div>
                         )}
