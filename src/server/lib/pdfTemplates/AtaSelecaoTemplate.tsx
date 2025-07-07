@@ -1,29 +1,35 @@
-import React from 'react'
-import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer'
+import { AtaSelecaoData } from "@/types"
+import { Document, Font, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 
 // Register fonts
 Font.register({
-  family: 'Roboto',
+  family: "Roboto",
   fonts: [
-    { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.1/fonts/Roboto/roboto-regular-webfont.ttf', fontWeight: 'normal' },
-    { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.1/fonts/Roboto/roboto-bold-webfont.ttf', fontWeight: 'bold' },
+    {
+      src: "https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.1/fonts/Roboto/roboto-regular-webfont.ttf",
+      fontWeight: "normal",
+    },
+    {
+      src: "https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.1/fonts/Roboto/roboto-bold-webfont.ttf",
+      fontWeight: "bold",
+    },
   ],
 })
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Roboto',
+    fontFamily: "Roboto",
     fontSize: 11,
     padding: 40,
-    color: '#333',
+    color: "#333",
   },
   header: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
   },
   title: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   subtitle: {
@@ -35,36 +41,36 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    borderBottom: '1px solid #ccc',
+    borderBottom: "1px solid #ccc",
     paddingBottom: 3,
   },
   table: {
-    display: 'flex',
-    width: 'auto',
-    borderStyle: 'solid',
+    display: "flex",
+    width: "auto",
+    borderStyle: "solid",
     borderWidth: 1,
-    borderColor: '#bfbfbf',
+    borderColor: "#bfbfbf",
     marginBottom: 10,
   },
   tableRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   tableColHeader: {
-    width: '25%',
-    borderStyle: 'solid',
+    width: "25%",
+    borderStyle: "solid",
     borderWidth: 1,
-    borderColor: '#bfbfbf',
-    backgroundColor: '#f2f2f2',
+    borderColor: "#bfbfbf",
+    backgroundColor: "#f2f2f2",
     padding: 5,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   tableCol: {
-    width: '25%',
-    borderStyle: 'solid',
+    width: "25%",
+    borderStyle: "solid",
     borderWidth: 1,
-    borderColor: '#bfbfbf',
+    borderColor: "#bfbfbf",
     padding: 5,
   },
   text: {
@@ -73,31 +79,18 @@ const styles = StyleSheet.create({
   },
   signatureSection: {
     marginTop: 50,
-    textAlign: 'center',
+    textAlign: "center",
   },
   signatureLine: {
-    borderBottom: '1px solid #333',
-    width: '250px',
-    margin: '0 auto',
+    borderBottom: "1px solid #333",
+    width: "250px",
+    margin: "0 auto",
     marginTop: 40,
   },
   signatureText: {
     marginTop: 5,
   },
 })
-
-export interface AtaSelecaoData {
-  projeto: {
-    titulo: string
-    departamento: { nome: string }
-    professorResponsavel: { nomeCompleto: string }
-  }
-  totalInscritos: number
-  totalCompareceram: number
-  inscricoesBolsista: any[]
-  inscricoesVoluntario: any[]
-  dataGeracao: Date
-}
 
 export const AtaSelecaoTemplate = ({ data }: { data: AtaSelecaoData }) => (
   <Document>
@@ -108,7 +101,7 @@ export const AtaSelecaoTemplate = ({ data }: { data: AtaSelecaoData }) => (
 
       <View style={styles.section}>
         <Text style={styles.text}>
-          Aos {data.dataGeracao.toLocaleDateString('pt-BR')}, reuniram-se os membros da comissão de seleção para o
+          Aos {data.dataGeracao.toLocaleDateString("pt-BR")}, reuniram-se os membros da comissão de seleção para o
           projeto de monitoria, sob a responsabilidade do(a) Prof(a). {data.projeto.professorResponsavel.nomeCompleto},
           do Departamento de {data.projeto.departamento.nome}.
         </Text>
@@ -119,12 +112,8 @@ export const AtaSelecaoTemplate = ({ data }: { data: AtaSelecaoData }) => (
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>1. DO PROCESSO SELETIVO</Text>
-        <Text style={styles.text}>
-          Total de candidatos inscritos: {data.totalInscritos}
-        </Text>
-        <Text style={styles.text}>
-          Total de candidatos que compareceram à seleção: {data.totalCompareceram}
-        </Text>
+        <Text style={styles.text}>Total de candidatos inscritos: {data.totalInscritos}</Text>
+        <Text style={styles.text}>Total de candidatos que compareceram à seleção: {data.totalCompareceram}</Text>
       </View>
 
       {data.inscricoesBolsista.length > 0 && (
@@ -173,8 +162,8 @@ export const AtaSelecaoTemplate = ({ data }: { data: AtaSelecaoData }) => (
 
       <View style={styles.section}>
         <Text style={styles.text}>
-          Nada mais havendo a tratar, foi lavrada a presente ata, que vai assinada por mim,
-          presidente da comissão de seleção, e pelos demais membros.
+          Nada mais havendo a tratar, foi lavrada a presente ata, que vai assinada por mim, presidente da comissão de
+          seleção, e pelos demais membros.
         </Text>
       </View>
 
@@ -185,4 +174,4 @@ export const AtaSelecaoTemplate = ({ data }: { data: AtaSelecaoData }) => (
       </View>
     </Page>
   </Document>
-) 
+)

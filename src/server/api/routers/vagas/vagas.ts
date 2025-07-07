@@ -1,6 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { alunoTable, assinaturaDocumentoTable, inscricaoTable, projetoTable, vagaTable } from '@/server/db/schema'
 import { emailService } from '@/server/lib/email-service'
+import { semestreSchema, tipoVagaSchema, STATUS_INSCRICAO_ENUM } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
@@ -12,8 +13,8 @@ export const vagasRouter = createTRPCRouter({
       z.object({
         alunoId: z.string(),
         ano: z.number(),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-        tipoBolsa: z.enum(['BOLSISTA', 'VOLUNTARIO']),
+        semestre: semestreSchema,
+        tipoBolsa: tipoVagaSchema,
       })
     )
     .query(async ({ input, ctx }) => {
@@ -50,7 +51,7 @@ export const vagasRouter = createTRPCRouter({
     .input(
       z.object({
         inscricaoId: z.string(),
-        tipoBolsa: z.enum(['BOLSISTA', 'VOLUNTARIO']),
+        tipoBolsa: tipoVagaSchema,
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -148,7 +149,7 @@ export const vagasRouter = createTRPCRouter({
         await tx
           .update(inscricaoTable)
           .set({
-            status: input.tipoBolsa === 'BOLSISTA' ? 'ACCEPTED_BOLSISTA' : 'ACCEPTED_VOLUNTARIO',
+            status: input.tipoBolsa === 'BOLSISTA' ? STATUS_INSCRICAO_ENUM[3] : STATUS_INSCRICAO_ENUM[4], // 'ACCEPTED_BOLSISTA' : 'ACCEPTED_VOLUNTARIO'
             updatedAt: new Date(),
           })
           .where(eq(inscricaoTable.id, parseInt(input.inscricaoId)))
@@ -246,7 +247,7 @@ Sistema de Monitoria IC
       await ctx.db
         .update(inscricaoTable)
         .set({
-          status: 'REJECTED_BY_STUDENT',
+          status: STATUS_INSCRICAO_ENUM[6], // 'REJECTED_BY_STUDENT'
           feedbackProfessor: input.motivo || 'Vaga recusada pelo aluno',
           updatedAt: new Date(),
         })
@@ -409,7 +410,7 @@ Sistema de Monitoria IC
     .input(
       z.object({
         ano: z.number().optional(),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']).optional(),
+        semestre: semestreSchema.optional(),
         projetoId: z.string().optional(),
       })
     )

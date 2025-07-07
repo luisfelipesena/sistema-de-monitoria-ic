@@ -7,22 +7,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { SigningProjectItem } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowLeft, CheckCircle, Eye, FileSignature, Loader } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-
-type ProjetoListItem = {
-  id: number
-  titulo: string
-  status: string
-  departamentoNome: string
-  semestre: string
-  ano: number
-  professorResponsavelNome: string
-}
 
 export default function DocumentSigningPage() {
   const router = useRouter()
@@ -106,7 +97,7 @@ export default function DocumentSigningPage() {
     }
   }
 
-  const colunasProjetos: ColumnDef<ProjetoListItem>[] = [
+  const colunasProjetos: ColumnDef<SigningProjectItem>[] = [
     {
       header: "Título",
       accessorKey: "titulo",

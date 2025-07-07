@@ -1,59 +1,40 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { TableComponent } from '@/components/layout/TableComponent'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { api } from '@/utils/api'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ColumnDef } from '@tanstack/react-table'
-import { UserPlus, Mail, RefreshCw, Trash2, X, CheckCircle, Clock, AlertCircle } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
-
-const inviteFormSchema = z.object({
-  email: z.string().email('Email inválido'),
-  expiresInDays: z.number().int().min(1).max(30),
-})
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { InvitationItem, inviteFormSchema } from "@/types"
+import { api } from "@/utils/api"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ColumnDef } from "@tanstack/react-table"
+import { AlertCircle, CheckCircle, Clock, Mail, RefreshCw, Trash2, UserPlus, X } from "lucide-react"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
 type InviteFormData = z.infer<typeof inviteFormSchema>
 
-type InvitationItem = {
-  id: number
-  email: string
-  token: string
-  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED'
-  expiresAt: Date
-  createdAt: Date
-  invitedByUser: {
-    username: string
-    email: string
-  }
-  acceptedByUser?: {
-    username: string
-    email: string
-  } | null
-}
-
 export default function InviteProfessorPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [filterStatus, setFilterStatus] = useState<'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'ALL'>('ALL')
+  const [filterStatus, setFilterStatus] = useState<"PENDING" | "ACCEPTED" | "EXPIRED" | "ALL">("ALL")
 
-  const { data: invitations, isLoading, refetch } = api.inviteProfessor.getInvitations.useQuery(
-    filterStatus === 'ALL' ? undefined : { status: filterStatus }
-  )
+  const {
+    data: invitations,
+    isLoading,
+    refetch,
+  } = api.inviteProfessor.getInvitations.useQuery(filterStatus === "ALL" ? undefined : { status: filterStatus })
   const { data: stats } = api.inviteProfessor.getInvitationStats.useQuery()
 
   const sendInvitationMutation = api.inviteProfessor.sendInvitation.useMutation({
     onSuccess: () => {
-      toast.success('Convite enviado com sucesso!')
+      toast.success("Convite enviado com sucesso!")
       setIsDialogOpen(false)
       refetch()
       form.reset()
@@ -65,7 +46,7 @@ export default function InviteProfessorPage() {
 
   const resendInvitationMutation = api.inviteProfessor.resendInvitation.useMutation({
     onSuccess: () => {
-      toast.success('Convite reenviado com sucesso!')
+      toast.success("Convite reenviado com sucesso!")
       refetch()
     },
     onError: (error) => {
@@ -75,7 +56,7 @@ export default function InviteProfessorPage() {
 
   const cancelInvitationMutation = api.inviteProfessor.cancelInvitation.useMutation({
     onSuccess: () => {
-      toast.success('Convite cancelado!')
+      toast.success("Convite cancelado!")
       refetch()
     },
     onError: (error) => {
@@ -85,7 +66,7 @@ export default function InviteProfessorPage() {
 
   const deleteInvitationMutation = api.inviteProfessor.deleteInvitation.useMutation({
     onSuccess: () => {
-      toast.success('Convite excluído!')
+      toast.success("Convite excluído!")
       refetch()
     },
     onError: (error) => {
@@ -96,7 +77,7 @@ export default function InviteProfessorPage() {
   const form = useForm<InviteFormData>({
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
-      email: '',
+      email: "",
       expiresInDays: 7,
     },
   })
@@ -119,9 +100,9 @@ export default function InviteProfessorPage() {
 
   const getStatusBadge = (status: string, expiresAt: Date) => {
     const now = new Date()
-    const isExpired = status === 'PENDING' && expiresAt < now
+    const isExpired = status === "PENDING" && expiresAt < now
 
-    if (isExpired || status === 'EXPIRED') {
+    if (isExpired || status === "EXPIRED") {
       return (
         <Badge variant="outline" className="border-red-500 text-red-700">
           <AlertCircle className="h-3 w-3 mr-1" />
@@ -131,14 +112,14 @@ export default function InviteProfessorPage() {
     }
 
     switch (status) {
-      case 'PENDING':
+      case "PENDING":
         return (
           <Badge variant="outline" className="border-yellow-500 text-yellow-700">
             <Clock className="h-3 w-3 mr-1" />
             Pendente
           </Badge>
         )
-      case 'ACCEPTED':
+      case "ACCEPTED":
         return (
           <Badge variant="default" className="bg-green-500">
             <CheckCircle className="h-3 w-3 mr-1" />
@@ -157,52 +138,48 @@ export default function InviteProfessorPage() {
   const copyInviteLink = (token: string) => {
     const link = getInviteLink(token)
     navigator.clipboard.writeText(link)
-    toast.success('Link copiado para a área de transferência!')
+    toast.success("Link copiado para a área de transferência!")
   }
 
   const columns: ColumnDef<InvitationItem>[] = [
     {
-      header: 'Email',
-      accessorKey: 'email',
+      header: "Email",
+      accessorKey: "email",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.email}</div>
           <div className="text-sm text-muted-foreground">
-            Convite enviado em {new Date(row.original.createdAt).toLocaleDateString('pt-BR')}
+            Convite enviado em {new Date(row.original.createdAt).toLocaleDateString("pt-BR")}
           </div>
         </div>
       ),
     },
     {
-      header: 'Status',
-      accessorKey: 'status',
+      header: "Status",
+      accessorKey: "status",
       cell: ({ row }) => getStatusBadge(row.original.status, row.original.expiresAt),
     },
     {
-      header: 'Expira em',
-      accessorKey: 'expiresAt',
+      header: "Expira em",
+      accessorKey: "expiresAt",
       cell: ({ row }) => {
         const now = new Date()
         const expiresAt = new Date(row.original.expiresAt)
         const isExpired = expiresAt < now
-        
+
         if (isExpired) {
           return <span className="text-red-600">Expirado</span>
         }
-        
+
         const diffTime = expiresAt.getTime() - now.getTime()
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        
-        return (
-          <span className={diffDays <= 1 ? 'text-orange-600' : 'text-muted-foreground'}>
-            {diffDays} dia(s)
-          </span>
-        )
+
+        return <span className={diffDays <= 1 ? "text-orange-600" : "text-muted-foreground"}>{diffDays} dia(s)</span>
       },
     },
     {
-      header: 'Convidado por',
-      accessorKey: 'invitedByUser.username',
+      header: "Convidado por",
+      accessorKey: "invitedByUser.username",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.invitedByUser.username}</div>
@@ -211,7 +188,7 @@ export default function InviteProfessorPage() {
       ),
     },
     {
-      header: 'Aceito por',
+      header: "Aceito por",
       cell: ({ row }) => {
         if (row.original.acceptedByUser) {
           return (
@@ -225,23 +202,19 @@ export default function InviteProfessorPage() {
       },
     },
     {
-      header: 'Ações',
-      id: 'actions',
+      header: "Ações",
+      id: "actions",
       cell: ({ row }) => {
         const invitation = row.original
         const now = new Date()
-        const isExpired = invitation.expiresAt < now || invitation.status === 'EXPIRED'
-        const isPending = invitation.status === 'PENDING' && !isExpired
+        const isExpired = invitation.expiresAt < now || invitation.status === "EXPIRED"
+        const isPending = invitation.status === "PENDING" && !isExpired
 
         return (
           <div className="flex items-center gap-2">
             {isPending && (
               <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyInviteLink(invitation.token)}
-                >
+                <Button variant="outline" size="sm" onClick={() => copyInviteLink(invitation.token)}>
                   Copiar Link
                 </Button>
                 <Button
@@ -262,7 +235,7 @@ export default function InviteProfessorPage() {
                 </Button>
               </>
             )}
-            {(isExpired || invitation.status === 'EXPIRED') && (
+            {(isExpired || invitation.status === "EXPIRED") && (
               <Button
                 variant="outline"
                 size="sm"
@@ -288,10 +261,7 @@ export default function InviteProfessorPage() {
   ]
 
   return (
-    <PagesLayout 
-      title="Convidar Professor" 
-      subtitle="Gerencie convites para professores ingressarem no sistema"
-    >
+    <PagesLayout title="Convidar Professor" subtitle="Gerencie convites para professores ingressarem no sistema">
       <div className="space-y-6">
         {/* Stats Cards */}
         {stats && (
@@ -388,11 +358,7 @@ export default function InviteProfessorPage() {
                             <FormItem>
                               <FormLabel>Email do Professor</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="email" 
-                                  placeholder="professor@ufba.br"
-                                  {...field} 
-                                />
+                                <Input type="email" placeholder="professor@ufba.br" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -405,11 +371,11 @@ export default function InviteProfessorPage() {
                             <FormItem>
                               <FormLabel>Expira em (dias)</FormLabel>
                               <FormControl>
-                                <Input 
-                                  type="number" 
+                                <Input
+                                  type="number"
                                   min="1"
                                   max="30"
-                                  {...field} 
+                                  {...field}
                                   onChange={(e) => field.onChange(parseInt(e.target.value))}
                                 />
                               </FormControl>
@@ -417,12 +383,8 @@ export default function InviteProfessorPage() {
                             </FormItem>
                           )}
                         />
-                        <Button
-                          type="submit"
-                          className="w-full"
-                          disabled={sendInvitationMutation.isPending}
-                        >
-                          {sendInvitationMutation.isPending ? 'Enviando...' : 'Enviar Convite'}
+                        <Button type="submit" className="w-full" disabled={sendInvitationMutation.isPending}>
+                          {sendInvitationMutation.isPending ? "Enviando..." : "Enviar Convite"}
                         </Button>
                       </form>
                     </Form>
@@ -449,14 +411,11 @@ export default function InviteProfessorPage() {
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <UserPlus className="mx-auto h-12 w-12 mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  Nenhum convite encontrado
-                </h3>
+                <h3 className="text-lg font-medium mb-2">Nenhum convite encontrado</h3>
                 <p>
-                  {filterStatus === 'ALL' 
-                    ? 'Ainda não foram enviados convites para professores.'
-                    : `Não há convites com status "${filterStatus.toLowerCase()}".`
-                  }
+                  {filterStatus === "ALL"
+                    ? "Ainda não foram enviados convites para professores."
+                    : `Não há convites com status "${filterStatus.toLowerCase()}".`}
                 </p>
               </div>
             )}

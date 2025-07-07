@@ -1,26 +1,26 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { api } from '@/utils/api'
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { api } from "@/utils/api"
 import {
-  TrendingUp,
-  Users,
-  FileText,
-  GraduationCap,
-  Building,
-  BookOpen,
-  Award,
-  UserCheck,
-  ClipboardList,
-  BarChart3,
-  PieChart,
   Activity,
   AlertCircle,
-} from 'lucide-react'
+  Award,
+  BarChart3,
+  BookOpen,
+  Building,
+  ClipboardList,
+  FileText,
+  GraduationCap,
+  PieChart,
+  TrendingUp,
+  UserCheck,
+  Users,
+} from "lucide-react"
 
 export default function AnalyticsPage() {
   const { data: metrics, isLoading, error } = api.analytics.getDashboard.useQuery()
@@ -30,9 +30,7 @@ export default function AnalyticsPage() {
       <PagesLayout title="Analytics" subtitle="Painel de métricas e indicadores">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Erro ao carregar métricas: {error.message}
-          </AlertDescription>
+          <AlertDescription>Erro ao carregar métricas: {error.message}</AlertDescription>
         </Alert>
       </PagesLayout>
     )
@@ -73,9 +71,7 @@ export default function AnalyticsPage() {
       <PagesLayout title="Analytics" subtitle="Painel de métricas e indicadores">
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Nenhuma métrica disponível no momento.
-          </AlertDescription>
+          <AlertDescription>Nenhuma métrica disponível no momento.</AlertDescription>
         </Alert>
       </PagesLayout>
     )
@@ -93,12 +89,8 @@ export default function AnalyticsPage() {
                 <div className="flex items-center">
                   <Activity className="h-4 w-4 text-green-600" />
                   <div className="ml-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Períodos Ativos
-                    </p>
-                    <div className="text-2xl font-bold text-green-600">
-                      {metrics.periodosAtivos}
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">Períodos Ativos</p>
+                    <div className="text-2xl font-bold text-green-600">{metrics.periodosAtivos}</div>
                   </div>
                 </div>
               </CardContent>
@@ -109,12 +101,8 @@ export default function AnalyticsPage() {
                 <div className="flex items-center">
                   <FileText className="h-4 w-4 text-blue-600" />
                   <div className="ml-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Total de Projetos
-                    </p>
-                    <div className="text-2xl font-bold">
-                      {metrics.totalProjetos}
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">Total de Projetos</p>
+                    <div className="text-2xl font-bold">{metrics.totalProjetos}</div>
                   </div>
                 </div>
               </CardContent>
@@ -125,12 +113,8 @@ export default function AnalyticsPage() {
                 <div className="flex items-center">
                   <UserCheck className="h-4 w-4 text-green-600" />
                   <div className="ml-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Projetos Aprovados
-                    </p>
-                    <div className="text-2xl font-bold text-green-600">
-                      {metrics.projetosAprovados}
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">Projetos Aprovados</p>
+                    <div className="text-2xl font-bold text-green-600">{metrics.projetosAprovados}</div>
                   </div>
                 </div>
               </CardContent>
@@ -141,12 +125,8 @@ export default function AnalyticsPage() {
                 <div className="flex items-center">
                   <TrendingUp className="h-4 w-4 text-purple-600" />
                   <div className="ml-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Taxa de Aprovação
-                    </p>
-                    <div className="text-2xl font-bold text-purple-600">
-                      {metrics.taxaAprovacao.toFixed(1)}%
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">Taxa de Aprovação</p>
+                    <div className="text-2xl font-bold text-purple-600">{metrics.taxaAprovacao.toFixed(1)}%</div>
                   </div>
                 </div>
               </CardContent>
@@ -163,12 +143,8 @@ export default function AnalyticsPage() {
                 <div className="flex items-center">
                   <Users className="h-4 w-4 text-blue-600" />
                   <div className="ml-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Alunos
-                    </p>
-                    <div className="text-2xl font-bold text-blue-600">
-                      {metrics.totalAlunos}
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">Alunos</p>
+                    <div className="text-2xl font-bold text-blue-600">{metrics.totalAlunos}</div>
                   </div>
                 </div>
               </CardContent>
@@ -179,12 +155,8 @@ export default function AnalyticsPage() {
                 <div className="flex items-center">
                   <UserCheck className="h-4 w-4 text-green-600" />
                   <div className="ml-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Professores
-                    </p>
-                    <div className="text-2xl font-bold text-green-600">
-                      {metrics.totalProfessores}
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">Professores</p>
+                    <div className="text-2xl font-bold text-green-600">{metrics.totalProfessores}</div>
                   </div>
                 </div>
               </CardContent>
@@ -195,12 +167,8 @@ export default function AnalyticsPage() {
                 <div className="flex items-center">
                   <Building className="h-4 w-4 text-orange-600" />
                   <div className="ml-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Departamentos
-                    </p>
-                    <div className="text-2xl font-bold text-orange-600">
-                      {metrics.totalDepartamentos}
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">Departamentos</p>
+                    <div className="text-2xl font-bold text-orange-600">{metrics.totalDepartamentos}</div>
                   </div>
                 </div>
               </CardContent>
@@ -211,12 +179,8 @@ export default function AnalyticsPage() {
                 <div className="flex items-center">
                   <GraduationCap className="h-4 w-4 text-purple-600" />
                   <div className="ml-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Cursos
-                    </p>
-                    <div className="text-2xl font-bold text-purple-600">
-                      {metrics.totalCursos}
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">Cursos</p>
+                    <div className="text-2xl font-bold text-purple-600">{metrics.totalCursos}</div>
                   </div>
                 </div>
               </CardContent>
@@ -227,12 +191,8 @@ export default function AnalyticsPage() {
                 <div className="flex items-center">
                   <BookOpen className="h-4 w-4 text-indigo-600" />
                   <div className="ml-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Disciplinas
-                    </p>
-                    <div className="text-2xl font-bold text-indigo-600">
-                      {metrics.totalDisciplinas}
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">Disciplinas</p>
+                    <div className="text-2xl font-bold text-indigo-600">{metrics.totalDisciplinas}</div>
                   </div>
                 </div>
               </CardContent>
@@ -268,9 +228,7 @@ export default function AnalyticsPage() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Taxa de Ocupação</span>
-                <Badge 
-                  variant={metrics.estatisticasVagas.taxaOcupacao > 80 ? "default" : "secondary"}
-                >
+                <Badge variant={metrics.estatisticasVagas.taxaOcupacao > 80 ? "default" : "secondary"}>
                   {metrics.estatisticasVagas.taxaOcupacao.toFixed(1)}%
                 </Badge>
               </div>
@@ -320,15 +278,15 @@ export default function AnalyticsPage() {
                   <div key={index} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{dept.departamento}</span>
-                      <Badge variant="outline" className="text-xs">{dept.sigla}</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {dept.sigla}
+                      </Badge>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">
                         {dept.aprovados}/{dept.total}
                       </span>
-                      <Badge variant={dept.aprovados > 0 ? "default" : "secondary"}>
-                        {dept.total}
-                      </Badge>
+                      <Badge variant={dept.aprovados > 0 ? "default" : "secondary"}>{dept.total}</Badge>
                     </div>
                   </div>
                 ))}
@@ -353,12 +311,8 @@ export default function AnalyticsPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">
-                        {periodo.projetos} projetos
-                      </span>
-                      <Badge variant="default">
-                        {periodo.inscricoes} inscrições
-                      </Badge>
+                      <span className="text-sm text-muted-foreground">{periodo.projetos} projetos</span>
+                      <Badge variant="default">{periodo.inscricoes} inscrições</Badge>
                     </div>
                   </div>
                 ))}
@@ -382,9 +336,7 @@ export default function AnalyticsPage() {
                   <div key={index} className="flex items-center justify-between">
                     <span className="text-sm font-medium">{curso.curso}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">
-                        {curso.inscricoes} inscrições
-                      </span>
+                      <span className="text-sm text-muted-foreground">{curso.inscricoes} inscrições</span>
                       <Badge variant="default">{curso.alunos} alunos</Badge>
                     </div>
                   </div>
@@ -406,9 +358,7 @@ export default function AnalyticsPage() {
                   <div key={index} className="flex items-center justify-between">
                     <span className="text-sm font-medium">{dept.departamento}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">
-                        {dept.projetosAtivos} projetos ativos
-                      </span>
+                      <span className="text-sm text-muted-foreground">{dept.projetosAtivos} projetos ativos</span>
                       <Badge variant="default">{dept.professores} professores</Badge>
                     </div>
                   </div>

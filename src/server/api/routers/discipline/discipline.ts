@@ -1,28 +1,22 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
-  disciplinaTable,
-  disciplinaSchema,
-  newDisciplinaSchema,
   disciplinaProfessorResponsavelTable,
-  professorTable,
-  projetoTable,
-  projetoDisciplinaTable,
+  disciplinaSchema,
+  disciplinaTable,
   inscricaoTable,
+  newDisciplinaSchema,
+  professorTable,
+  projetoDisciplinaTable,
+  projetoTable,
   projetoTemplateTable,
 } from '@/server/db/schema'
-import { TRPCError } from '@trpc/server'
-import { eq, and, sql, inArray } from 'drizzle-orm'
-import { z } from 'zod'
+import { updateDisciplineSchema } from '@/types'
 import { logger } from '@/utils/logger'
+import { TRPCError } from '@trpc/server'
+import { and, eq, inArray, sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 const log = logger.child({ context: 'DisciplineRouter' })
-
-export const updateDisciplinaSchema = z.object({
-  id: z.number(),
-  nome: z.string().optional(),
-  codigo: z.string().optional(),
-  departamentoId: z.number().optional(),
-})
 
 export const disciplineRouter = createTRPCRouter({
   getDisciplineWithProfessor: protectedProcedure
@@ -167,7 +161,7 @@ export const disciplineRouter = createTRPCRouter({
         description: 'Update the discipline',
       },
     })
-    .input(updateDisciplinaSchema)
+    .input(updateDisciplineSchema)
     .output(disciplinaSchema)
     .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input

@@ -1,13 +1,15 @@
-import { renderToBuffer } from '@react-pdf/renderer'
-import { MonitoriaFormTemplate, type MonitoriaFormData } from '@/components/features/projects/MonitoriaFormTemplate'
-import { EditalInternoTemplate, type EditalInternoData } from './pdfTemplates/edital-interno'
-import { AtaSelecaoTemplate, type AtaSelecaoData } from './pdfTemplates/ata-selecao'
-import { PDFDocument } from 'pdf-lib'
-import { logger } from '@/utils/logger'
+import { MonitoriaFormTemplate } from '@/components/features/projects/MonitoriaFormTemplate'
 import minioClient, { bucketName } from '@/server/lib/minio'
+import { AtaSelecaoData, MonitoriaFormData } from '@/types'
+import { logger } from '@/utils/logger'
+import { renderToBuffer } from '@react-pdf/renderer'
+import { PDFDocument } from 'pdf-lib'
+import { AtaSelecaoTemplate } from './pdfTemplates/ata-selecao'
+import { EditalInternoData, EditalInternoTemplate } from './pdfTemplates/edital-interno'
 
 const log = logger.child({ context: 'PDFService' })
 
+// biome-ignore lint/complexity/noStaticOnlyClass: <explanation>
 export class PDFService {
   /**
    * Generates a PDF from the MonitoriaFormTemplate with the provided data

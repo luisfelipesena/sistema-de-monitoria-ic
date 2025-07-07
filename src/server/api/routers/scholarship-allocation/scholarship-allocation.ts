@@ -1,16 +1,16 @@
-import { z } from 'zod'
-import { eq, and, desc, count, sum } from 'drizzle-orm'
-import { createTRPCRouter, adminProtectedProcedure } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter } from '@/server/api/trpc'
 import {
-  projetoTable,
-  professorTable,
+  alunoTable,
   departamentoTable,
   disciplinaTable,
-  projetoDisciplinaTable,
   inscricaoTable,
+  professorTable,
+  projetoDisciplinaTable,
+  projetoTable,
   vagaTable,
-  alunoTable,
 } from '@/server/db/schema'
+import { and, count, desc, eq, sum } from 'drizzle-orm'
+import { z } from 'zod'
 
 export const scholarshipAllocationRouter = createTRPCRouter({
   getApprovedProjects: adminProtectedProcedure
@@ -49,6 +49,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
             eq(projetoTable.semestre, input.semestre)
           )
         )
+        .orderBy(desc(projetoTable.titulo))
 
       // Get disciplines for each project
       const projetosWithDisciplinas = await Promise.all(

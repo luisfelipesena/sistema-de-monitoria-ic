@@ -9,7 +9,18 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import type { MonitorConsolidado } from "@/types/relatorios"
+import type { MonitorConsolidado } from "@/types"
+import { 
+  SEMESTRE_ENUM,
+  type Semestre,
+  TIPO_VAGA_ENUM,
+  type TipoVaga,
+  STATUS_MONITOR_ENUM,
+  type StatusMonitor,
+  getSemestreLabel,
+  getTipoVagaLabel,
+  getStatusMonitorLabel
+} from "@/types"
 import { api } from "@/utils/api"
 import { AlertTriangle, Award, Calendar, CheckCircle, Download, FileSpreadsheet, Filter, Users } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -17,7 +28,7 @@ import { useEffect, useState } from "react"
 export default function ConsolidacaoPROGRADPage() {
   const { toast } = useToast()
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
-  const [selectedSemester, setSelectedSemester] = useState<"SEMESTRE_1" | "SEMESTRE_2">("SEMESTRE_1")
+  const [selectedSemester, setSelectedSemester] = useState<Semestre>("SEMESTRE_1")
   const [incluirBolsistas, setIncluirBolsistas] = useState(true)
   const [incluirVoluntarios, setIncluirVoluntarios] = useState(true)
   const [showValidation, setShowValidation] = useState(false)
@@ -90,7 +101,7 @@ export default function ConsolidacaoPROGRADPage() {
     setSelectedYear(parseInt(year))
   }
 
-  const handleSemesterChange = (semester: "SEMESTRE_1" | "SEMESTRE_2") => {
+  const handleSemesterChange = (semester: Semestre) => {
     setSelectedSemester(semester)
   }
 
@@ -147,7 +158,7 @@ export default function ConsolidacaoPROGRADPage() {
       item.monitor.nome,
       item.monitor.email,
       item.monitor.cr.toFixed(2),
-      item.monitoria.tipo === "BOLSISTA" ? "Bolsista" : "Voluntário",
+      getTipoVagaLabel(item.monitoria.tipo as TipoVaga),
       item.monitoria.valorBolsa ? `R$ ${item.monitoria.valorBolsa.toFixed(2)}` : "N/A",
       item.projeto.titulo,
       item.projeto.disciplinas,
@@ -190,19 +201,23 @@ export default function ConsolidacaoPROGRADPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "ATIVO":
-        return <Badge className="bg-green-500">Ativo</Badge>
-      case "CONCLUÍDO":
-        return <Badge className="bg-blue-500">Concluído</Badge>
-      case "CANCELADO":
-        return <Badge variant="destructive">Cancelado</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+    // Try to match with known status enum values
+    const statusAsEnum = STATUS_MONITOR_ENUM.find(s => s === status) as StatusMonitor | undefined
+    if (statusAsEnum) {
+      switch (statusAsEnum) {
+        case "ATIVO":
+          return <Badge className="bg-green-500">{getStatusMonitorLabel(statusAsEnum)}</Badge>
+        case "CONCLUÍDO":
+          return <Badge className="bg-blue-500">{getStatusMonitorLabel(statusAsEnum)}</Badge>
+        case "CANCELADO":
+          return <Badge variant="destructive">{getStatusMonitorLabel(statusAsEnum)}</Badge>
+      }
     }
+    // Fallback for unknown status values
+    return <Badge variant="outline">{status}</Badge>
   }
 
-  const getTipoIcon = (tipo: string) => {
+  const getTipoIcon = (tipo: TipoVaga) => {
     return tipo === "BOLSISTA" ? (
       <Award className="h-4 w-4 text-yellow-600" />
     ) : (
@@ -248,8 +263,11 @@ export default function ConsolidacaoPROGRADPage() {
                   <SelectValue placeholder="Selecione o semestre" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
-                  <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
+                  {SEMESTRE_ENUM.map((semestre) => (
+                    <SelectItem key={semestre} value={semestre}>
+                      {getSemestreLabel(semestre)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -457,7 +475,7 @@ export default function ConsolidacaoPROGRADPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          {getTipoIcon(item.monitoria.tipo)}
+                          {getTipoIcon(item.monitoria.tipo as TipoVaga)}
                           <h3 className="font-semibold text-lg">{item.monitor.nome}</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground mb-3">
@@ -472,7 +490,7 @@ export default function ConsolidacaoPROGRADPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge className={item.monitoria.tipo === "BOLSISTA" ? "bg-yellow-500" : "bg-blue-500"}>
-                            {item.monitoria.tipo === "BOLSISTA" ? "Bolsista" : "Voluntário"}
+                            {getTipoVagaLabel(item.monitoria.tipo as TipoVaga)}
                           </Badge>
                           {getStatusBadge(item.monitoria.status)}
                         </div>

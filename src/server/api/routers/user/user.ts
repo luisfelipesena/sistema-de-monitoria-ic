@@ -8,65 +8,24 @@ import {
   userTable,
   vagaTable,
 } from '@/server/db/schema'
+import {
+  cpfSchema,
+  crSchema,
+  emailSchema,
+  idSchema,
+  nameSchema,
+  phoneSchema,
+  regimeSchema,
+  userListItemSchema,
+  usernameSchema,
+  userRoleSchema,
+} from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { and, eq, isNull, like, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 const log = logger.child({ context: 'UserRouter' })
-
-const userDetailSchema = z.object({
-  id: z.number(),
-  username: z.string(),
-  email: z.string(),
-  role: z.enum(['admin', 'professor', 'student']),
-  assinaturaDefault: z.string().nullable(),
-  dataAssinaturaDefault: z.date().nullable(),
-  professorProfile: z
-    .object({
-      id: z.number(),
-      nomeCompleto: z.string(),
-      cpf: z.string(),
-      telefone: z.string().nullable(),
-      telefoneInstitucional: z.string().nullable(),
-      emailInstitucional: z.string(),
-      matriculaSiape: z.string().nullable(),
-      regime: z.enum(['20H', '40H', 'DE']),
-      departamentoId: z.number(),
-      curriculumVitaeFileId: z.string().nullable().optional(),
-      comprovanteVinculoFileId: z.string().nullable().optional(),
-      assinaturaDefault: z.string().nullable(),
-      dataAssinaturaDefault: z.date().nullable(),
-      projetos: z.number().optional(),
-      projetosAtivos: z.number().optional(),
-    })
-    .nullable(),
-  studentProfile: z
-    .object({
-      id: z.number(),
-      nomeCompleto: z.string(),
-      matricula: z.string(),
-      cpf: z.string(),
-      cr: z.number(),
-      cursoId: z.number(),
-      telefone: z.string().nullable(),
-      emailInstitucional: z.string(),
-      historicoEscolarFileId: z.string().nullable().optional(),
-      comprovanteMatriculaFileId: z.string().nullable().optional(),
-      banco: z.string().nullable().optional(),
-      agencia: z.string().nullable().optional(),
-      conta: z.string().nullable().optional(),
-      digitoConta: z.string().nullable().optional(),
-      inscricoes: z.number().optional(),
-      bolsasAtivas: z.number().optional(),
-      voluntariadosAtivos: z.number().optional(),
-      documentosValidados: z.number().optional(),
-      totalDocumentos: z.number().optional(),
-    })
-    .nullable(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-})
 
 export const userRouter = createTRPCRouter({
   getUsers: adminProtectedProcedure
@@ -82,14 +41,14 @@ export const userRouter = createTRPCRouter({
     .input(
       z.object({
         search: z.string().optional(),
-        role: z.enum(['admin', 'professor', 'student']).optional(),
+        role: userRoleSchema.optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
       })
     )
     .output(
       z.object({
-        users: z.array(userDetailSchema),
+        users: z.array(userListItemSchema),
         total: z.number(),
       })
     )
@@ -162,7 +121,7 @@ export const userRouter = createTRPCRouter({
                 telefoneInstitucional: user.professorProfile.telefoneInstitucional,
                 emailInstitucional: user.professorProfile.emailInstitucional,
                 matriculaSiape: user.professorProfile.matriculaSiape,
-                regime: user.professorProfile.regime as '20H' | '40H' | 'DE',
+                regime: user.professorProfile.regime as z.infer<typeof regimeSchema>,
                 departamentoId: user.professorProfile.departamentoId,
                 assinaturaDefault: user.professorProfile.assinaturaDefault,
                 dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
@@ -233,7 +192,7 @@ export const userRouter = createTRPCRouter({
               id: user.id,
               username: user.username,
               email: user.email,
-              role: user.role as 'admin' | 'professor' | 'student',
+              role: user.role as z.infer<typeof userRoleSchema>,
               assinaturaDefault: user.assinaturaDefault,
               dataAssinaturaDefault: user.dataAssinaturaDefault,
               professorProfile: professorStats,
@@ -268,7 +227,7 @@ export const userRouter = createTRPCRouter({
       },
     })
     .input(z.void())
-    .output(userDetailSchema)
+    .output(userListItemSchema)
     .query(async ({ ctx }) => {
       try {
         const user = await ctx.db.query.userTable.findFirst({
@@ -298,43 +257,43 @@ export const userRouter = createTRPCRouter({
           id: user.id,
           username: user.username,
           email: user.email,
-          role: user.role as 'admin' | 'professor' | 'student',
+          role: user.role as z.infer<typeof userRoleSchema>,
           assinaturaDefault: user.assinaturaDefault,
           dataAssinaturaDefault: user.dataAssinaturaDefault,
           professorProfile: user.professorProfile
             ? {
-                id: user.professorProfile.id,
-                nomeCompleto: user.professorProfile.nomeCompleto,
-                cpf: user.professorProfile.cpf,
-                telefone: user.professorProfile.telefone,
-                telefoneInstitucional: user.professorProfile.telefoneInstitucional,
-                emailInstitucional: user.professorProfile.emailInstitucional,
-                matriculaSiape: user.professorProfile.matriculaSiape,
-                regime: user.professorProfile.regime as '20H' | '40H' | 'DE',
-                departamentoId: user.professorProfile.departamentoId,
-                curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
-                comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
-                assinaturaDefault: user.professorProfile.assinaturaDefault,
-                dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
-              }
+              id: user.professorProfile.id,
+              nomeCompleto: user.professorProfile.nomeCompleto,
+              cpf: user.professorProfile.cpf,
+              telefone: user.professorProfile.telefone,
+              telefoneInstitucional: user.professorProfile.telefoneInstitucional,
+              emailInstitucional: user.professorProfile.emailInstitucional,
+              matriculaSiape: user.professorProfile.matriculaSiape,
+              regime: user.professorProfile.regime as z.infer<typeof regimeSchema>,
+              departamentoId: user.professorProfile.departamentoId,
+              curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
+              comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
+              assinaturaDefault: user.professorProfile.assinaturaDefault,
+              dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
+            }
             : null,
           studentProfile: user.studentProfile
             ? {
-                id: user.studentProfile.id,
-                nomeCompleto: user.studentProfile.nomeCompleto,
-                matricula: user.studentProfile.matricula,
-                cpf: user.studentProfile.cpf,
-                cr: user.studentProfile.cr,
-                cursoId: user.studentProfile.cursoId,
-                telefone: user.studentProfile.telefone,
-                emailInstitucional: user.studentProfile.emailInstitucional,
-                historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
-                comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
-                banco: user.studentProfile.banco,
-                agencia: user.studentProfile.agencia,
-                conta: user.studentProfile.conta,
-                digitoConta: user.studentProfile.digitoConta,
-              }
+              id: user.studentProfile.id,
+              nomeCompleto: user.studentProfile.nomeCompleto,
+              matricula: user.studentProfile.matricula,
+              cpf: user.studentProfile.cpf,
+              cr: user.studentProfile.cr,
+              cursoId: user.studentProfile.cursoId,
+              telefone: user.studentProfile.telefone,
+              emailInstitucional: user.studentProfile.emailInstitucional,
+              historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
+              comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
+              banco: user.studentProfile.banco,
+              agencia: user.studentProfile.agencia,
+              conta: user.studentProfile.conta,
+              digitoConta: user.studentProfile.digitoConta,
+            }
             : null,
         }
       } catch (error) {
@@ -359,24 +318,24 @@ export const userRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        username: z.string().min(1).optional(),
+        username: usernameSchema.optional(),
         professorData: z
           .object({
-            nomeCompleto: z.string().min(1),
-            cpf: z.string().min(11),
-            telefone: z.string().optional(),
-            telefoneInstitucional: z.string().optional(),
-            regime: z.enum(['20H', '40H', 'DE']),
+            nomeCompleto: nameSchema,
+            cpf: cpfSchema,
+            telefone: phoneSchema,
+            telefoneInstitucional: phoneSchema,
+            regime: regimeSchema,
           })
           .optional(),
         studentData: z
           .object({
-            nomeCompleto: z.string().min(1),
+            nomeCompleto: nameSchema,
             matricula: z.string().min(1),
-            cpf: z.string().min(11),
-            cr: z.number().min(0).max(10),
-            cursoId: z.number(),
-            telefone: z.string().optional(),
+            cpf: cpfSchema,
+            cr: crSchema,
+            cursoId: idSchema,
+            telefone: phoneSchema,
             banco: z.string().optional(),
             agencia: z.string().optional(),
             conta: z.string().optional(),
@@ -446,7 +405,7 @@ export const userRouter = createTRPCRouter({
   getUserById: adminProtectedProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: idSchema,
       })
     )
     .query(async ({ input, ctx }) => {
@@ -481,10 +440,10 @@ export const userRouter = createTRPCRouter({
   updateUser: adminProtectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        username: z.string().optional(),
-        email: z.string().email().optional(),
-        role: z.enum(['admin', 'professor', 'student']).optional(),
+        id: idSchema,
+        username: usernameSchema.optional(),
+        email: emailSchema.optional(),
+        role: userRoleSchema.optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -516,7 +475,7 @@ export const userRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        id: z.number(),
+        id: idSchema,
         status: z.enum(['ATIVO', 'INATIVO']),
       })
     )

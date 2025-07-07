@@ -1,0 +1,30 @@
+---
+alwaysApply: true
+---
+# Diretrizes de Tipagem - Sistema de Monitoria IC
+
+Esta regra estabelece as diretrizes obrigatórias para tipagem em todo o projeto, garantindo consistência, escalabilidade e manutenibilidade.
+
+## Regras Obrigatórias
+
+1.  **PROIBIÇÃO ABSOLUTA de tipos inline ou locais**: Todos os tipos (interfaces, enums, schemas Zod, etc.) devem ser definidos em arquivos dedicados na pasta `src/types/`. Exceções muito raras devem ser explicitamente justificadas e aprovadas.
+2.  **CENTRALIZAÇÃO OBRIGATÓRIA em `src/types/`**: Todos os arquivos de definição de tipos devem residir exclusivamente dentro de `src/types/`. A estrutura interna desta pasta pode ser organizada por propósito (ex: `enums.ts`, `interfaces.ts`, `schemas.ts`), mas nunca por funcionalidade isolada de um módulo.
+3.  **IMPORTAÇÃO UNIFICADA apenas via `@/types`**: A importação de qualquer tipo, interface ou schema Zod deve ser feita exclusivamente a partir do path alias `@/types`. Nunca importe diretamente de `src/types/enums`, `src/types/interfaces`, etc.
+4.  **COMPATIBILIDADE DB com nullability adequada**: Ao definir interfaces para entidades de banco de dados, garanta que a `nullability` dos campos seja estritamente compatível com o schema do Drizzle. Campos opcionais no Drizzle devem ser `?` ou `| null` nas interfaces.
+5.  **VALIDAÇÃO RIGOROSA com build obrigatório**: O projeto deve compilar sem erros de tipagem. Erros de ESLint ou Biome relacionados a tipagem são considerados blockers para o merge.
+
+## Estrutura da Diretriz
+
+Este documento serve como referência definitiva e inclui:
+
+*   Regras de Implementação com exemplos de uso correto (`✅`) e incorreto (`❌`).
+*   Fluxo de Desenvolvimento detalhado para backend e frontend.
+*   Checklist de Code Review obrigatório para tipagem.
+*   Penalidades por não compliance (ex: rejeição de Pull Requests).
+*   Exemplos práticos de uso correto.
+
+## Enforcement
+
+*   Pull Requests serão rejeitados se não seguirem as diretrizes de tipagem.
+*   O build deve passar antes de qualquer tentativa de merge.
+*   Refactoring para garantir compliance com estas regras é obrigatório quando identificado um desvio.

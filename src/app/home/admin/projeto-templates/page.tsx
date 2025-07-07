@@ -10,71 +10,24 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { duplicateTemplateSchema, projectTemplateSchema, type ProjectTemplateItem } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ColumnDef } from "@tanstack/react-table"
 import { BookOpen, Clock, Copy, Edit, FileText, Plus, Target, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { useFieldArray, useForm } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
-const templateFormSchema = z.object({
-  disciplinaId: z.number().min(1, "Disciplina é obrigatória"),
-  tituloDefault: z.string().optional(),
-  descricaoDefault: z.string().optional(),
-  cargaHorariaSemanaDefault: z.number().int().positive().optional(),
-  numeroSemanasDefault: z.number().int().positive().optional(),
-  publicoAlvoDefault: z.string().optional(),
-  atividadesDefault: z.array(z.string()),
-})
-
-const duplicateFormSchema = z.object({
-  sourceId: z.number(),
-  targetDisciplinaId: z.number().min(1, "Disciplina de destino é obrigatória"),
-})
-
-type TemplateFormData = z.infer<typeof templateFormSchema>
-type DuplicateFormData = z.infer<typeof duplicateFormSchema>
-
-type TemplateItem = {
-  id: number
-  disciplinaId: number
-  tituloDefault: string | null
-  descricaoDefault: string | null
-  cargaHorariaSemanaDefault: number | null
-  numeroSemanasDefault: number | null
-  publicoAlvoDefault: string | null
-  atividadesDefault: string[]
-  createdAt: Date
-  updatedAt: Date | null
-  disciplina: {
-    id: number
-    nome: string
-    codigo: string
-    departamento: {
-      id: number
-      nome: string
-      sigla: string | null
-    }
-  }
-  criadoPor: {
-    id: number
-    username: string
-    email: string
-  } | null
-  ultimaAtualizacaoPor: {
-    id: number
-    username: string
-    email: string
-  } | null
-}
+type TemplateFormData = z.infer<typeof projectTemplateSchema>
+type DuplicateFormData = z.infer<typeof duplicateTemplateSchema>
 
 export default function ProjetoTemplatesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false)
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplateItem | null>(null)
 
   const { data: templates, isLoading, refetch } = api.projetoTemplates.getTemplates.useQuery()
   const { data: disciplinasDisponiveis } = api.projetoTemplates.getDisciplinasDisponiveis.useQuery()
@@ -127,7 +80,7 @@ export default function ProjetoTemplatesPage() {
   })
 
   const createForm = useForm<TemplateFormData>({
-    resolver: zodResolver(templateFormSchema),
+    resolver: zodResolver(projectTemplateSchema),
     defaultValues: {
       disciplinaId: 0,
       tituloDefault: "",
@@ -140,7 +93,7 @@ export default function ProjetoTemplatesPage() {
   })
 
   const editForm = useForm<TemplateFormData>({
-    resolver: zodResolver(templateFormSchema),
+    resolver: zodResolver(projectTemplateSchema),
     defaultValues: {
       disciplinaId: 0,
       tituloDefault: "",
@@ -157,13 +110,13 @@ export default function ProjetoTemplatesPage() {
   const [editAtividades, setEditAtividades] = useState<string[]>([])
 
   const duplicateForm = useForm<DuplicateFormData>({
-    resolver: zodResolver(duplicateFormSchema),
+    resolver: zodResolver(duplicateTemplateSchema),
   })
 
   const handleCreate = (data: TemplateFormData) => {
     const templateData = {
       ...data,
-      atividadesDefault: createAtividades.filter(a => a.trim() !== '')
+      atividadesDefault: createAtividades.filter((a) => a.trim() !== ""),
     }
     createTemplateMutation.mutate(templateData)
   }
@@ -173,7 +126,7 @@ export default function ProjetoTemplatesPage() {
     const { disciplinaId, ...updateData } = data
     const templateData = {
       ...updateData,
-      atividadesDefault: editAtividades.filter(a => a.trim() !== '')
+      atividadesDefault: editAtividades.filter((a) => a.trim() !== ""),
     }
     updateTemplateMutation.mutate({ id: selectedTemplate.id, ...templateData })
   }
@@ -188,7 +141,7 @@ export default function ProjetoTemplatesPage() {
     duplicateTemplateMutation.mutate(data)
   }
 
-  const openEditDialog = (template: TemplateItem) => {
+  const openEditDialog = (template: ProjectTemplateItem) => {
     setSelectedTemplate(template)
     setEditAtividades(template.atividadesDefault || [])
     editForm.reset({
@@ -203,7 +156,7 @@ export default function ProjetoTemplatesPage() {
     setIsEditDialogOpen(true)
   }
 
-  const openDuplicateDialog = (template: TemplateItem) => {
+  const openDuplicateDialog = (template: ProjectTemplateItem) => {
     setSelectedTemplate(template)
     duplicateForm.reset({
       sourceId: template.id,
@@ -211,7 +164,7 @@ export default function ProjetoTemplatesPage() {
     setIsDuplicateDialogOpen(true)
   }
 
-  const columns: ColumnDef<TemplateItem>[] = [
+  const columns: ColumnDef<ProjectTemplateItem>[] = [
     {
       header: "Disciplina",
       cell: ({ row }) => (
@@ -506,11 +459,11 @@ export default function ProjetoTemplatesPage() {
                             </Button>
                           </div>
                         ))}
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setCreateAtividades([...createAtividades, ''])}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCreateAtividades([...createAtividades, ""])}
                         >
                           <Plus className="h-4 w-4 mr-2" />
                           Adicionar Atividade
@@ -650,10 +603,10 @@ export default function ProjetoTemplatesPage() {
                           setEditAtividades(newAtividades)
                         }}
                       />
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={() => {
                           const newAtividades = editAtividades.filter((_, i) => i !== index)
                           setEditAtividades(newAtividades)
@@ -663,11 +616,11 @@ export default function ProjetoTemplatesPage() {
                       </Button>
                     </div>
                   ))}
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setEditAtividades([...editAtividades, ''])}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditAtividades([...editAtividades, ""])}
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Adicionar Atividade

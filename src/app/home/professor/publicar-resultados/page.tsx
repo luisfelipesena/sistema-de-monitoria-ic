@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import { SelecaoCandidato } from "@/types"
 import { api } from "@/utils/api"
 import { Award, Eye, FileText, Send, Users } from "lucide-react"
 import { useState } from "react"
@@ -257,7 +258,7 @@ export default function PublicarResultadosPage() {
                       {dadosResultados.inscricoesBolsista.length + dadosResultados.inscricoesVoluntario.length})
                     </h4>
                     <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {dadosResultados.inscricoesBolsista.map((candidato: any) => (
+                      {dadosResultados.inscricoesBolsista.map((candidato: SelecaoCandidato) => (
                         <div
                           key={candidato.id}
                           className="flex items-center justify-between p-3 border rounded-lg bg-green-50"
@@ -272,7 +273,7 @@ export default function PublicarResultadosPage() {
                           <Badge variant="default">Bolsista</Badge>
                         </div>
                       ))}
-                      {dadosResultados.inscricoesVoluntario.map((candidato: any) => (
+                      {dadosResultados.inscricoesVoluntario.map((candidato: SelecaoCandidato) => (
                         <div
                           key={candidato.id}
                           className="flex items-center justify-between p-3 border rounded-lg bg-blue-50"

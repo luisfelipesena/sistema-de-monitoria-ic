@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog"
 import { FilterModal, type FilterValues } from "@/components/ui/FilterModal"
 import { Textarea } from "@/components/ui/textarea"
+import { ManageProjectItem } from "@/types"
 import { api } from "@/utils/api"
 import { useQueryClient } from "@tanstack/react-query"
 import { ColumnDef } from "@tanstack/react-table"
@@ -39,21 +40,6 @@ import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
-type ProjetoListItem = {
-  id: number
-  titulo: string
-  status: string
-  departamentoId: number
-  departamentoNome: string
-  semestre: string
-  ano: number
-  bolsasDisponibilizadas: number | null
-  voluntariosSolicitados: number | null
-  totalInscritos: number
-  disciplinas: Array<{ codigo: string; nome: string }>
-  professorResponsavelNome: string
-}
-
 export default function ManageProjectsPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -63,7 +49,7 @@ export default function ManageProjectsPage() {
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({})
   const [groupedView, setGroupedView] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<ProjetoListItem | null>(null)
+  const [selectedProject, setSelectedProject] = useState<ManageProjectItem | null>(null)
   const [showPreviewDialog, setShowPreviewDialog] = useState(false)
   const [showRejectDialog, setShowRejectDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -114,7 +100,7 @@ export default function ManageProjectsPage() {
     { enabled: showProjectFilesDialog && !!selectedProject?.id }
   )
 
-  const handleViewProjectFiles = (projeto: ProjetoListItem) => {
+  const handleViewProjectFiles = (projeto: ManageProjectItem) => {
     setSelectedProject(projeto)
     setShowProjectFilesDialog(true)
   }
@@ -122,15 +108,15 @@ export default function ManageProjectsPage() {
   const handleDownloadFile = async (objectName: string) => {
     try {
       const presignedUrl = await getAdminFilePresignedUrlMutation.mutateAsync({ objectName })
-      
+
       // Create a temporary link to download the file
-      const link = document.createElement('a')
+      const link = document.createElement("a")
       link.href = presignedUrl.url
-      link.download = objectName.split('/').pop() || 'file'
+      link.download = objectName.split("/").pop() || "file"
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
       toast.success("Download iniciado")
     } catch (error) {
       toast.error("Erro ao baixar arquivo")
@@ -138,7 +124,7 @@ export default function ManageProjectsPage() {
     }
   }
 
-  const handlePreviewProject = async (projeto: ProjetoListItem) => {
+  const handlePreviewProject = async (projeto: ManageProjectItem) => {
     setSelectedProject(projeto)
     setShowPreviewDialog(true)
   }
@@ -206,12 +192,12 @@ export default function ManageProjectsPage() {
     }
   }
 
-  const handleOpenRejectDialog = (projeto: ProjetoListItem) => {
+  const handleOpenRejectDialog = (projeto: ManageProjectItem) => {
     setSelectedProject(projeto)
     setShowRejectDialog(true)
   }
 
-  const handleOpenDeleteDialog = (projeto: ProjetoListItem) => {
+  const handleOpenDeleteDialog = (projeto: ManageProjectItem) => {
     setSelectedProject(projeto)
     setShowDeleteDialog(true)
   }
@@ -271,7 +257,7 @@ export default function ManageProjectsPage() {
     )
   }, [filteredProjetos])
 
-  const colunasProjetos: ColumnDef<ProjetoListItem>[] = [
+  const colunasProjetos: ColumnDef<ManageProjectItem>[] = [
     {
       header: () => (
         <div className="flex items-center gap-2">
@@ -322,7 +308,7 @@ export default function ManageProjectsPage() {
           return <Badge variant="outline">Rascunho</Badge>
         } else if (status === "PENDING_ADMIN_SIGNATURE") {
           return (
-            <Badge variant="secondary" className="bg-purple-500 text-white">
+            <Badge className="bg-[hsl(var(--pending))] text-[hsl(var(--pending-foreground))]">
               Pendente de assinatura
             </Badge>
           )
@@ -332,7 +318,7 @@ export default function ManageProjectsPage() {
     },
     {
       header: () => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2">
           <Users className="h-5 w-5 text-gray-400" />
           Bolsistas
         </div>
@@ -538,9 +524,7 @@ export default function ManageProjectsPage() {
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Arquivos do Projeto</DialogTitle>
-            <DialogDescription>
-              {selectedProject && `Projeto: ${selectedProject.titulo}`}
-            </DialogDescription>
+            <DialogDescription>{selectedProject && `Projeto: ${selectedProject.titulo}`}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -556,7 +540,7 @@ export default function ManageProjectsPage() {
                     <div className="flex-1">
                       <div className="font-medium">{file.originalFilename}</div>
                       <div className="text-sm text-muted-foreground">
-                        {(file.size / 1024).toFixed(1)} KB • {file.lastModified.toLocaleDateString('pt-BR')}
+                        {(file.size / 1024).toFixed(1)} KB • {file.lastModified.toLocaleDateString("pt-BR")}
                       </div>
                     </div>
                     <Button

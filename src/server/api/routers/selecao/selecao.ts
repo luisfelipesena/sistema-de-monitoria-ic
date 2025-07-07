@@ -1,6 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { assinaturaDocumentoTable, ataSelecaoTable, inscricaoTable, projetoTable } from '@/server/db/schema'
+import { assinaturaDocumentoTable, ataSelecaoTable, disciplinaTable, inscricaoTable, projetoDisciplinaTable, projetoTable } from '@/server/db/schema'
 import { sendStudentSelectionResultNotification } from '@/server/lib/email-service'
+import { STATUS_INSCRICAO_ENUM } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { and, desc, eq, isNotNull } from 'drizzle-orm'
 import { z } from 'zod'
@@ -68,8 +69,17 @@ export const selecaoRouter = createTRPCRouter({
         where: eq(inscricaoTable.projetoId, parseInt(input.projetoId)),
       })
 
+      const disciplinas = await ctx.db
+        .select()
+        .from(disciplinaTable)
+        .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
+        .where(eq(projetoDisciplinaTable.projetoId, parseInt(input.projetoId)))
+
       return {
-        projeto: projetoData,
+        projeto: {
+          ...projetoData,
+          disciplinas: disciplinas.map(d => d.disciplina)
+        },
         totalInscritos: totalInscritos.length,
         totalCompareceram: inscricoes.length,
         inscricoesBolsista,
@@ -272,9 +282,9 @@ export const selecaoRouter = createTRPCRouter({
               const aprovado = inscricao.notaFinal && Number(inscricao.notaFinal) >= 7.0
               const status = aprovado
                 ? inscricao.tipoVagaPretendida === 'BOLSISTA'
-                  ? 'SELECTED_BOLSISTA'
-                  : 'SELECTED_VOLUNTARIO'
-                : 'REJECTED_BY_PROFESSOR'
+                  ? STATUS_INSCRICAO_ENUM[1] // 'SELECTED_BOLSISTA'
+                  : STATUS_INSCRICAO_ENUM[2] // 'SELECTED_VOLUNTARIO'
+                : STATUS_INSCRICAO_ENUM[5] // 'REJECTED_BY_PROFESSOR'
               return tx.update(inscricaoTable).set({ status }).where(eq(inscricaoTable.id, inscricao.id))
             })
           )
@@ -292,9 +302,9 @@ export const selecaoRouter = createTRPCRouter({
           const aprovado = inscricaoItem.notaFinal && Number(inscricaoItem.notaFinal) >= 7.0
           const status = aprovado
             ? inscricaoItem.tipoVagaPretendida === 'BOLSISTA'
-              ? 'SELECTED_BOLSISTA'
-              : 'SELECTED_VOLUNTARIO'
-            : 'REJECTED_BY_PROFESSOR'
+              ? STATUS_INSCRICAO_ENUM[1] // 'SELECTED_BOLSISTA'
+              : STATUS_INSCRICAO_ENUM[2] // 'SELECTED_VOLUNTARIO'
+            : STATUS_INSCRICAO_ENUM[5] // 'REJECTED_BY_PROFESSOR'
 
           return sendStudentSelectionResultNotification(
             {

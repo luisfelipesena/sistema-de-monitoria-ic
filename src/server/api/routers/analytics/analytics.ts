@@ -1,86 +1,22 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
+  alunoTable,
+  cursoTable,
+  departamentoTable,
+  disciplinaTable,
   inscricaoTable,
   periodoInscricaoTable,
+  professorTable,
   projetoTable,
   vagaTable,
-  departamentoTable,
-  alunoTable,
-  professorTable,
-  cursoTable,
-  disciplinaTable,
 } from '@/server/db/schema'
-import { TRPCError } from '@trpc/server'
-import { eq, sql, and, isNull, gte, lte, desc } from 'drizzle-orm'
-import { z } from 'zod'
+import { DashboardMetrics, dashboardMetricsSchema } from '@/types'
 import { logger } from '@/utils/logger'
+import { TRPCError } from '@trpc/server'
+import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 const log = logger.child({ context: 'AnalyticsRouter' })
-
-const dashboardMetricsSchema = z.object({
-  // Estatísticas gerais
-  periodosAtivos: z.number(),
-  totalProjetos: z.number(),
-  projetosAprovados: z.number(),
-  projetosSubmetidos: z.number(),
-  projetosRascunho: z.number(),
-  totalInscricoes: z.number(),
-  totalVagas: z.number(),
-  vagasOcupadas: z.number(),
-  taxaAprovacao: z.number(),
-
-  // Estatísticas de usuários
-  totalAlunos: z.number(),
-  totalProfessores: z.number(),
-  totalDepartamentos: z.number(),
-  totalCursos: z.number(),
-  totalDisciplinas: z.number(),
-
-  // Distribuições
-  projetosPorDepartamento: z.array(
-    z.object({
-      departamento: z.string(),
-      sigla: z.string(),
-      total: z.number(),
-      aprovados: z.number(),
-      submetidos: z.number(),
-    })
-  ),
-  inscricoesPorPeriodo: z.array(
-    z.object({
-      periodo: z.string(),
-      ano: z.number(),
-      semestre: z.string(),
-      inscricoes: z.number(),
-      projetos: z.number(),
-    })
-  ),
-  estatisticasVagas: z.object({
-    bolsistas: z.number(),
-    voluntarios: z.number(),
-    totalDisponibilizadas: z.number(),
-    ocupadas: z.number(),
-    taxaOcupacao: z.number(),
-  }),
-
-  // Indicadores de engajamento
-  alunosPorCurso: z.array(
-    z.object({
-      curso: z.string(),
-      alunos: z.number(),
-      inscricoes: z.number(),
-    })
-  ),
-  professoresPorDepartamento: z.array(
-    z.object({
-      departamento: z.string(),
-      professores: z.number(),
-      projetosAtivos: z.number(),
-    })
-  ),
-})
-
-export type DashboardMetrics = z.infer<typeof dashboardMetricsSchema>
 
 export const analyticsRouter = createTRPCRouter({
   getDashboard: protectedProcedure

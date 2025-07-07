@@ -1,6 +1,6 @@
 "use client"
 
-import { AppUser } from "@/server/api/routers/auth/me/me"
+import { AppUser } from "@/types"
 import { api } from "@/utils/api"
 import { logger } from "@/utils/logger"
 import { useMutation } from "@tanstack/react-query"
@@ -33,15 +33,14 @@ const useLogoutMutation = () => {
   return useMutation({
     mutationFn: async () => {
       try {
-        axios.post('/api/cas-logout');
-        window.location.href = "/";
+        axios.post("/api/cas-logout")
+        window.location.href = "/"
       } catch (error) {
-        log.error({ error }, 'Erro ao fazer logout');
+        log.error({ error }, "Erro ao fazer logout")
       }
     },
-  });
-};
-
+  })
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()

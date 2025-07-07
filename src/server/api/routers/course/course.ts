@@ -1,27 +1,23 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { cursoTable, alunoTable } from '@/server/db/schema'
+import { tipoCursoSchema, modalidadeCursoSchema, statusCursoSchema } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
-
-// Zod enums matching database enums
-export const tipoCursoEnum = z.enum(['BACHARELADO', 'LICENCIATURA', 'TECNICO', 'POS_GRADUACAO'])
-export const modalidadeCursoEnum = z.enum(['PRESENCIAL', 'EAD', 'HIBRIDO'])
-export const statusCursoEnum = z.enum(['ATIVO', 'INATIVO', 'EM_REFORMULACAO'])
 
 export const cursoSchema = z.object({
   id: z.number(),
   nome: z.string(),
   codigo: z.number(),
-  tipo: tipoCursoEnum,
-  modalidade: modalidadeCursoEnum,
+  tipo: tipoCursoSchema,
+  modalidade: modalidadeCursoSchema,
   duracao: z.number(),
   departamentoId: z.number(),
   cargaHoraria: z.number(),
   descricao: z.string().nullable(),
   coordenador: z.string().nullable(),
   emailCoordenacao: z.string().nullable(),
-  status: statusCursoEnum,
+  status: statusCursoSchema,
   createdAt: z.date(),
   updatedAt: z.date().nullable(),
   // Contadores
@@ -32,30 +28,30 @@ export const cursoSchema = z.object({
 export const newCursoSchema = z.object({
   nome: z.string(),
   codigo: z.number(),
-  tipo: tipoCursoEnum,
-  modalidade: modalidadeCursoEnum,
+  tipo: tipoCursoSchema,
+  modalidade: modalidadeCursoSchema,
   duracao: z.number(),
   departamentoId: z.number(),
   cargaHoraria: z.number(),
   descricao: z.string().optional(),
   coordenador: z.string().optional(),
   emailCoordenacao: z.string().optional(),
-  status: statusCursoEnum.default('ATIVO'),
+  status: statusCursoSchema.default('ATIVO'),
 })
 
 export const updateCursoSchema = z.object({
   id: z.number(),
   nome: z.string().optional(),
   codigo: z.number().optional(),
-  tipo: tipoCursoEnum.optional(),
-  modalidade: modalidadeCursoEnum.optional(),
+  tipo: tipoCursoSchema.optional(),
+  modalidade: modalidadeCursoSchema.optional(),
   duracao: z.number().optional(),
   departamentoId: z.number().optional(),
   cargaHoraria: z.number().optional(),
   descricao: z.string().optional(),
   coordenador: z.string().optional(),
   emailCoordenacao: z.string().optional(),
-  status: statusCursoEnum.optional(),
+  status: statusCursoSchema.optional(),
 })
 
 export const courseRouter = createTRPCRouter({

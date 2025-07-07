@@ -1,27 +1,31 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
-import { toast } from 'sonner'
-import { api } from '@/utils/api'
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { ClipboardCheck, Users, Calculator, Save } from 'lucide-react'
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
+import { inscriptionDetailSchema } from "@/types"
+import { api } from "@/utils/api"
+import { Calculator, ClipboardCheck, Save, Users } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
+import { z } from "zod"
+
+type InscricaoComDetalhes = z.infer<typeof inscriptionDetailSchema>
 
 export default function GradeApplicationsPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [selectedInscricao, setSelectedInscricao] = useState<number | null>(null)
   const [notas, setNotas] = useState({
-    notaDisciplina: '',
-    notaSelecao: '',
-    coeficienteRendimento: '',
-    feedbackProfessor: '',
+    notaDisciplina: "",
+    notaSelecao: "",
+    coeficienteRendimento: "",
+    feedbackProfessor: "",
   })
 
   // Buscar projetos do professor
@@ -36,17 +40,17 @@ export default function GradeApplicationsPage() {
   // Mutation para avaliar candidato
   const evaluateApplicationMutation = api.inscricao.evaluateApplications.useMutation({
     onSuccess: () => {
-      toast.success('Notas salvas com sucesso!')
+      toast.success("Notas salvas com sucesso!")
       setSelectedInscricao(null)
       setNotas({
-        notaDisciplina: '',
-        notaSelecao: '',
-        coeficienteRendimento: '',
-        feedbackProfessor: '',
+        notaDisciplina: "",
+        notaSelecao: "",
+        coeficienteRendimento: "",
+        feedbackProfessor: "",
       })
     },
     onError: (error) => {
-      toast.error(error.message || 'Erro ao salvar notas')
+      toast.error(error.message || "Erro ao salvar notas")
     },
   })
 
@@ -54,11 +58,11 @@ export default function GradeApplicationsPage() {
     if (!selectedInscricao) return
 
     const notaDisciplina = parseFloat(notas.notaDisciplina)
-    const notaSelecao = parseFloat(notas.notaSelecao)  
+    const notaSelecao = parseFloat(notas.notaSelecao)
     const coeficienteRendimento = parseFloat(notas.coeficienteRendimento)
 
     if (isNaN(notaDisciplina) || isNaN(notaSelecao) || isNaN(coeficienteRendimento)) {
-      toast.error('Todas as notas devem ser números válidos')
+      toast.error("Todas as notas devem ser números válidos")
       return
     }
 
@@ -75,11 +79,11 @@ export default function GradeApplicationsPage() {
     const disciplina = parseFloat(notas.notaDisciplina) || 0
     const selecao = parseFloat(notas.notaSelecao) || 0
     const cr = parseFloat(notas.coeficienteRendimento) || 0
-    
-    return ((disciplina * 5) + (selecao * 3) + (cr * 2)) / 10
+
+    return (disciplina * 5 + selecao * 3 + cr * 2) / 10
   }
 
-  const projetosAprovados = projetos?.filter((p) => p.status === 'APPROVED') || []
+  const projetosAprovados = projetos?.filter((p) => p.status === "APPROVED") || []
 
   return (
     <PagesLayout title="Avaliar Candidatos">
@@ -88,9 +92,7 @@ export default function GradeApplicationsPage() {
           <ClipboardCheck className="h-8 w-8 text-blue-600" />
           <div>
             <h1 className="text-2xl font-bold">Avaliar Candidatos</h1>
-            <p className="text-gray-600">
-              Insira as notas dos candidatos que participaram do processo seletivo
-            </p>
+            <p className="text-gray-600">Insira as notas dos candidatos que participaram do processo seletivo</p>
           </div>
         </div>
 
@@ -104,7 +106,7 @@ export default function GradeApplicationsPage() {
           </CardHeader>
           <CardContent>
             <Select
-              value={selectedProjectId?.toString() || ''}
+              value={selectedProjectId?.toString() || ""}
               onValueChange={(value) => setSelectedProjectId(parseInt(value))}
             >
               <SelectTrigger>
@@ -126,9 +128,7 @@ export default function GradeApplicationsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Candidatos Inscritos</CardTitle>
-              <p className="text-sm text-gray-600">
-                Clique em um candidato para inserir suas notas
-              </p>
+              <p className="text-sm text-gray-600">Clique em um candidato para inserir suas notas</p>
             </CardHeader>
             <CardContent>
               {loadingInscricoes ? (
@@ -145,40 +145,35 @@ export default function GradeApplicationsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {inscricoes.map((inscricao) => (
-                      <TableRow 
-                        key={inscricao.id}
-                        className={selectedInscricao === inscricao.id ? 'bg-blue-50' : ''}
-                      >
+                    {inscricoes.map((inscricao: InscricaoComDetalhes) => (
+                      <TableRow key={inscricao.id} className={selectedInscricao === inscricao.id ? "bg-blue-50" : ""}>
                         <TableCell>{inscricao.aluno.nomeCompleto}</TableCell>
                         <TableCell>{inscricao.aluno.matricula}</TableCell>
                         <TableCell>
-                          <Badge variant={inscricao.tipoVagaPretendida === 'BOLSISTA' ? 'default' : 'secondary'}>
+                          <Badge variant={inscricao.tipoVagaPretendida === "BOLSISTA" ? "default" : "secondary"}>
                             {inscricao.tipoVagaPretendida}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">
-                            {inscricao.notaFinal ? 'Avaliado' : 'Pendente'}
-                          </Badge>
+                          <Badge variant="outline">{inscricao.notaFinal ? "Avaliado" : "Pendente"}</Badge>
                         </TableCell>
                         <TableCell>
                           <Button
-                            variant={selectedInscricao === inscricao.id ? 'default' : 'outline'}
+                            variant={selectedInscricao === inscricao.id ? "default" : "outline"}
                             size="sm"
                             onClick={() => {
                               setSelectedInscricao(inscricao.id)
                               if (inscricao.notaDisciplina) {
                                 setNotas({
                                   notaDisciplina: inscricao.notaDisciplina.toString(),
-                                  notaSelecao: inscricao.notaSelecao?.toString() || '',
-                                  coeficienteRendimento: inscricao.coeficienteRendimento?.toString() || '',
-                                  feedbackProfessor: inscricao.feedbackProfessor || '',
+                                  notaSelecao: inscricao.notaSelecao?.toString() || "",
+                                  coeficienteRendimento: inscricao.coeficienteRendimento?.toString() || "",
+                                  feedbackProfessor: inscricao.feedbackProfessor || "",
                                 })
                               }
                             }}
                           >
-                            {inscricao.notaFinal ? 'Editar' : 'Avaliar'}
+                            {inscricao.notaFinal ? "Editar" : "Avaliar"}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -186,9 +181,7 @@ export default function GradeApplicationsPage() {
                   </TableBody>
                 </Table>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  Nenhum candidato inscrito neste projeto
-                </div>
+                <div className="text-center py-8 text-gray-500">Nenhum candidato inscrito neste projeto</div>
               )}
             </CardContent>
           </Card>
@@ -202,9 +195,7 @@ export default function GradeApplicationsPage() {
                 <Calculator className="h-5 w-5" />
                 Avaliação do Candidato
               </CardTitle>
-              <p className="text-sm text-gray-600">
-                Fórmula: (Nota Disciplina × 5 + Nota Seleção × 3 + CR × 2) ÷ 10
-              </p>
+              <p className="text-sm text-gray-600">Fórmula: (Nota Disciplina × 5 + Nota Seleção × 3 + CR × 2) ÷ 10</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -221,7 +212,7 @@ export default function GradeApplicationsPage() {
                     placeholder="Ex: 8.5"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="notaSelecao">Nota da Prova de Seleção (0-10)</Label>
                   <Input
@@ -235,7 +226,7 @@ export default function GradeApplicationsPage() {
                     placeholder="Ex: 7.2"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="coeficienteRendimento">Coeficiente de Rendimento (0-10)</Label>
                   <Input
@@ -274,26 +265,26 @@ export default function GradeApplicationsPage() {
                 <Button
                   onClick={handleSaveGrades}
                   disabled={
-                    !notas.notaDisciplina || 
-                    !notas.notaSelecao || 
-                    !notas.coeficienteRendimento || 
+                    !notas.notaDisciplina ||
+                    !notas.notaSelecao ||
+                    !notas.coeficienteRendimento ||
                     evaluateApplicationMutation.isPending
                   }
                   className="flex items-center gap-2"
                 >
                   <Save className="h-4 w-4" />
-                  {evaluateApplicationMutation.isPending ? 'Salvando...' : 'Salvar Notas'}
+                  {evaluateApplicationMutation.isPending ? "Salvando..." : "Salvar Notas"}
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   onClick={() => {
                     setSelectedInscricao(null)
                     setNotas({
-                      notaDisciplina: '',
-                      notaSelecao: '',
-                      coeficienteRendimento: '',
-                      feedbackProfessor: '',
+                      notaDisciplina: "",
+                      notaSelecao: "",
+                      coeficienteRendimento: "",
+                      feedbackProfessor: "",
                     })
                   }}
                 >
@@ -306,4 +297,4 @@ export default function GradeApplicationsPage() {
       </div>
     </PagesLayout>
   )
-} 
+}

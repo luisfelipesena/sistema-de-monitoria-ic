@@ -7,24 +7,18 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useAuth } from "@/hooks/use-auth"
+import { ProfessorSigningProjectItem } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowLeft, CheckCircle, Eye, FileSignature, Loader } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 
-type ProjetoListItem = {
-  id: number
-  titulo: string
-  status: string
-  departamentoNome: string
-  semestre: string
-  ano: number
-  disciplinas: Array<{ codigo: string; nome: string }>
-}
-
-export default function ProfessorDocumentSigningPage() {
+function DocumentSigningContent() {
+  const { user } = useAuth()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [showSigningDialog, setShowSigningDialog] = useState(false)
@@ -103,7 +97,7 @@ export default function ProfessorDocumentSigningPage() {
     }
   }
 
-  const colunasProjetos: ColumnDef<ProjetoListItem>[] = [
+  const colunasProjetos: ColumnDef<ProfessorSigningProjectItem>[] = [
     {
       header: "Título",
       accessorKey: "titulo",
@@ -264,4 +258,8 @@ export default function ProfessorDocumentSigningPage() {
       </Dialog>
     </PagesLayout>
   )
+}
+
+export default function ProfessorDocumentSigningPage() {
+  return <DocumentSigningContent />
 }

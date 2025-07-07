@@ -1,35 +1,29 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { TableComponent } from '@/components/layout/TableComponent'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { api } from '@/utils/api'
-import { ColumnDef } from '@tanstack/react-table'
-import { BookOpen, Edit, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { useQueryClient } from '@tanstack/react-query'
-
-type DisciplinaListItem = {
-  id: number
-  codigo: string
-  nome: string
-  departamentoId: number
-}
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DisciplinaListItem } from "@/types"
+import { api } from "@/utils/api"
+import { useQueryClient } from "@tanstack/react-query"
+import { ColumnDef } from "@tanstack/react-table"
+import { BookOpen, Edit, Plus, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
 
 export default function DisciplinasPage() {
   const queryClient = useQueryClient()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingDisciplina, setEditingDisciplina] = useState<DisciplinaListItem | null>(null)
   const [formData, setFormData] = useState({
-    codigo: '',
-    nome: '',
-    departamentoId: '',
+    codigo: "",
+    nome: "",
+    departamentoId: "",
   })
 
   const { data: disciplinas, isLoading } = api.discipline.getDisciplines.useQuery()
@@ -37,7 +31,7 @@ export default function DisciplinasPage() {
 
   const createMutation = api.discipline.create.useMutation({
     onSuccess: () => {
-      toast.success('Disciplina criada com sucesso!')
+      toast.success("Disciplina criada com sucesso!")
       queryClient.invalidateQueries()
       setIsCreateOpen(false)
       resetForm()
@@ -49,7 +43,7 @@ export default function DisciplinasPage() {
 
   const updateMutation = api.discipline.updateDiscipline.useMutation({
     onSuccess: () => {
-      toast.success('Disciplina atualizada com sucesso!')
+      toast.success("Disciplina atualizada com sucesso!")
       queryClient.invalidateQueries()
       setEditingDisciplina(null)
       resetForm()
@@ -61,7 +55,7 @@ export default function DisciplinasPage() {
 
   const deleteMutation = api.discipline.deleteDiscipline.useMutation({
     onSuccess: () => {
-      toast.success('Disciplina excluída com sucesso!')
+      toast.success("Disciplina excluída com sucesso!")
       queryClient.invalidateQueries()
     },
     onError: (error) => {
@@ -71,9 +65,9 @@ export default function DisciplinasPage() {
 
   const resetForm = () => {
     setFormData({
-      codigo: '',
-      nome: '',
-      departamentoId: '',
+      codigo: "",
+      nome: "",
+      departamentoId: "",
     })
   }
 
@@ -105,51 +99,39 @@ export default function DisciplinasPage() {
   }
 
   const handleDelete = (id: number) => {
-    if (confirm('Tem certeza que deseja excluir esta disciplina?')) {
+    if (confirm("Tem certeza que deseja excluir esta disciplina?")) {
       deleteMutation.mutate({ id })
     }
   }
 
   const columns: ColumnDef<DisciplinaListItem>[] = [
     {
-      header: 'Código',
-      accessorKey: 'codigo',
-      cell: ({ row }) => (
-        <span className="font-mono font-medium">{row.original.codigo}</span>
-      ),
+      header: "Código",
+      accessorKey: "codigo",
+      cell: ({ row }) => <span className="font-mono font-medium">{row.original.codigo}</span>,
     },
     {
-      header: 'Nome',
-      accessorKey: 'nome',
-      cell: ({ row }) => (
-        <span className="font-medium">{row.original.nome}</span>
-      ),
+      header: "Nome",
+      accessorKey: "nome",
+      cell: ({ row }) => <span className="font-medium">{row.original.nome}</span>,
     },
     {
-      header: 'Departamento',
-      accessorKey: 'departamentoId',
+      header: "Departamento",
+      accessorKey: "departamentoId",
       cell: ({ row }) => {
-        const dept = departamentos?.find(d => d.id === row.original.departamentoId)
-        return dept?.nome || 'N/A'
+        const dept = departamentos?.find((d) => d.id === row.original.departamentoId)
+        return dept?.nome || "N/A"
       },
     },
     {
-      header: 'Ações',
-      id: 'actions',
+      header: "Ações",
+      id: "actions",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleEdit(row.original)}
-          >
+          <Button variant="outline" size="sm" onClick={() => handleEdit(row.original)}>
             <Edit className="h-4 w-4" />
           </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => handleDelete(row.original.id)}
-          >
+          <Button variant="destructive" size="sm" onClick={() => handleDelete(row.original.id)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -190,8 +172,8 @@ export default function DisciplinasPage() {
           </div>
           <div>
             <Label htmlFor="departamento">Departamento</Label>
-            <Select 
-              value={formData.departamentoId} 
+            <Select
+              value={formData.departamentoId}
               onValueChange={(value) => setFormData({ ...formData, departamentoId: value })}
             >
               <SelectTrigger>
@@ -206,12 +188,8 @@ export default function DisciplinasPage() {
               </SelectContent>
             </Select>
           </div>
-          <Button 
-            onClick={handleCreate} 
-            className="w-full"
-            disabled={createMutation.isPending}
-          >
-            {createMutation.isPending ? 'Criando...' : 'Criar Disciplina'}
+          <Button onClick={handleCreate} className="w-full" disabled={createMutation.isPending}>
+            {createMutation.isPending ? "Criando..." : "Criar Disciplina"}
           </Button>
         </div>
       </DialogContent>
@@ -219,11 +197,7 @@ export default function DisciplinasPage() {
   )
 
   return (
-    <PagesLayout 
-      title="Disciplinas" 
-      subtitle="Gerencie as disciplinas do sistema"
-      actions={actions}
-    >
+    <PagesLayout title="Disciplinas" subtitle="Gerencie as disciplinas do sistema" actions={actions}>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -277,8 +251,8 @@ export default function DisciplinasPage() {
             </div>
             <div>
               <Label htmlFor="edit-departamento">Departamento</Label>
-              <Select 
-                value={formData.departamentoId} 
+              <Select
+                value={formData.departamentoId}
                 onValueChange={(value) => setFormData({ ...formData, departamentoId: value })}
               >
                 <SelectTrigger>
@@ -293,12 +267,8 @@ export default function DisciplinasPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button 
-              onClick={handleUpdate} 
-              className="w-full"
-              disabled={updateMutation.isPending}
-            >
-              {updateMutation.isPending ? 'Atualizando...' : 'Atualizar Disciplina'}
+            <Button onClick={handleUpdate} className="w-full" disabled={updateMutation.isPending}>
+              {updateMutation.isPending ? "Atualizando..." : "Atualizar Disciplina"}
             </Button>
           </div>
         </DialogContent>

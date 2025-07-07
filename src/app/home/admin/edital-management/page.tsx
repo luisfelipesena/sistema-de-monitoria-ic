@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useEditalPdf } from "@/hooks/use-files"
+import { editalFormSchema, EditalListItem } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ColumnDef } from "@tanstack/react-table"
@@ -20,53 +21,12 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
 
-const editalFormSchema = z
-  .object({
-    numeroEdital: z.string().min(1, "Número do edital é obrigatório"),
-    titulo: z.string().min(1, "Título é obrigatório"),
-    descricaoHtml: z.string().optional(),
-    ano: z.number().min(2000).max(2050),
-    semestre: z.enum(["SEMESTRE_1", "SEMESTRE_2"]),
-    dataInicio: z.date(),
-    dataFim: z.date(),
-  })
-  .refine((data) => data.dataFim > data.dataInicio, {
-    message: "Data de fim deve ser posterior à data de início",
-    path: ["dataFim"],
-  })
-
 type EditalFormData = z.infer<typeof editalFormSchema>
-
-type EditalItem = {
-  id: number
-  numeroEdital: string
-  titulo: string
-  descricaoHtml: string | null
-  fileIdAssinado: string | null
-  dataPublicacao: Date | null
-  publicado: boolean
-  createdAt: Date
-  periodoInscricao: {
-    id: number
-    semestre: "SEMESTRE_1" | "SEMESTRE_2"
-    ano: number
-    dataInicio: Date
-    dataFim: Date
-    status: "ATIVO" | "FUTURO" | "FINALIZADO"
-    totalProjetos: number
-    totalInscricoes: number
-  } | null
-  criadoPor: {
-    id: number
-    username: string
-    email: string
-  } | null
-}
 
 export default function EditalManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [selectedEdital, setSelectedEdital] = useState<EditalItem | null>(null)
+  const [selectedEdital, setSelectedEdital] = useState<EditalListItem | null>(null)
   const [uploadFile, setUploadFile] = useState<File | null>(null)
 
   const { data: editais, isLoading, refetch } = api.edital.getEditais.useQuery()
@@ -210,7 +170,7 @@ export default function EditalManagementPage() {
     }
   }
 
-  const openEditDialog = (edital: EditalItem) => {
+  const openEditDialog = (edital: EditalListItem) => {
     setSelectedEdital(edital)
     editForm.reset({
       numeroEdital: edital.numeroEdital,
@@ -224,7 +184,7 @@ export default function EditalManagementPage() {
     setIsEditDialogOpen(true)
   }
 
-  const getStatusBadge = (edital: EditalItem) => {
+  const getStatusBadge = (edital: EditalListItem) => {
     if (edital.publicado) {
       return (
         <Badge variant="default" className="bg-green-500">
@@ -284,7 +244,7 @@ export default function EditalManagementPage() {
     return diffDays
   }
 
-  const columns: ColumnDef<EditalItem>[] = [
+  const columns: ColumnDef<EditalListItem>[] = [
     {
       header: "Edital",
       accessorKey: "numeroEdital",

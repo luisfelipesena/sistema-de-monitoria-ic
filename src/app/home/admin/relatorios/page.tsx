@@ -15,7 +15,7 @@ import type {
   DisciplinaRelatorio,
   EditalRelatorio,
   ProfessorRelatorio,
-} from "@/types/relatorios"
+} from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ColumnDef } from "@tanstack/react-table"
@@ -111,91 +111,116 @@ export default function RelatoriosPage() {
   const departamentosColumns: ColumnDef<DepartamentoRelatorio>[] = [
     {
       header: "Departamento",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.departamento.sigla}</div>
-          <div className="text-sm text-muted-foreground">{row.original.departamento.nome}</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const departamento = row.original as DepartamentoRelatorio
+        return (
+          <div>
+            <div className="font-medium">{departamento.departamento.sigla}</div>
+            <div className="text-sm text-muted-foreground">{departamento.departamento.nome}</div>
+          </div>
+        )
+      },
     },
     {
       header: "Projetos",
       accessorKey: "projetos",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 text-blue-600" />
-          <span className="font-medium">{row.original.projetos}</span>
-          <span className="text-sm text-muted-foreground">({row.original.projetosAprovados} aprovados)</span>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const departamento = row.original as DepartamentoRelatorio
+        return (
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-blue-600" />
+            <span className="font-medium">{departamento.projetos}</span>
+            <span className="text-sm text-muted-foreground">({departamento.projetosAprovados} aprovados)</span>
+          </div>
+        )
+      },
     },
     {
       header: "Bolsas",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.bolsasDisponibilizadas} disponibilizadas</div>
-          <div className="text-sm text-muted-foreground">{row.original.bolsasSolicitadas} solicitadas</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const departamento = row.original as DepartamentoRelatorio
+        return (
+          <div>
+            <div className="font-medium">{departamento.bolsasDisponibilizadas} disponibilizadas</div>
+            <div className="text-sm text-muted-foreground">{departamento.bolsasSolicitadas} solicitadas</div>
+          </div>
+        )
+      },
     },
   ]
 
   const professoresColumns: ColumnDef<ProfessorRelatorio>[] = [
     {
       header: "Professor",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.professor.nomeCompleto}</div>
-          <div className="text-sm text-muted-foreground">{row.original.professor.emailInstitucional}</div>
-          <div className="text-xs text-muted-foreground">{row.original.departamento.sigla}</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const professor = row.original as ProfessorRelatorio
+        return (
+          <div>
+            <div className="font-medium">{professor.professor.nomeCompleto}</div>
+            <div className="text-sm text-muted-foreground">{professor.professor.emailInstitucional}</div>
+            <div className="text-xs text-muted-foreground">{professor.departamento.sigla}</div>
+          </div>
+        )
+      },
     },
     {
       header: "Projetos",
       accessorKey: "projetos",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <div className="font-medium">{row.original.projetos}</div>
-          <div className="text-sm text-muted-foreground">({row.original.projetosAprovados} aprovados)</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const professor = row.original as ProfessorRelatorio
+        return (
+          <div className="text-center">
+            <div className="font-medium">{professor.projetos}</div>
+            <div className="text-sm text-muted-foreground">({professor.projetosAprovados} aprovados)</div>
+          </div>
+        )
+      },
     },
     {
       header: "Bolsas",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <div className="font-medium">{row.original.bolsasDisponibilizadas}</div>
-          <div className="text-sm text-muted-foreground">de {row.original.bolsasSolicitadas}</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const professor = row.original as ProfessorRelatorio
+        return (
+          <div className="text-center">
+            <div className="font-medium">{professor.bolsasDisponibilizadas}</div>
+            <div className="text-sm text-muted-foreground">de {professor.bolsasSolicitadas}</div>
+          </div>
+        )
+      },
     },
   ]
 
   const alunosColumns: ColumnDef<AlunoRelatorio>[] = [
     {
       header: "Aluno",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.aluno.nomeCompleto}</div>
-          <div className="text-sm text-muted-foreground">Mat: {row.original.aluno.matricula}</div>
-          <div className="text-sm text-muted-foreground">CR: {row.original.aluno.cr}</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const aluno = row.original as AlunoRelatorio
+        return (
+          <div>
+            <div className="font-medium">{aluno.aluno.nomeCompleto}</div>
+            <div className="text-sm text-muted-foreground">Mat: {aluno.aluno.matricula}</div>
+            <div className="text-sm text-muted-foreground">CR: {aluno.aluno.cr}</div>
+          </div>
+        )
+      },
     },
     {
       header: "Projeto",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium truncate max-w-xs">{row.original.projeto.titulo}</div>
-          <div className="text-sm text-muted-foreground">{row.original.projeto.professorResponsavel}</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const aluno = row.original as AlunoRelatorio
+        return (
+          <div>
+            <div className="font-medium truncate max-w-xs">{aluno.projeto.titulo}</div>
+            <div className="text-sm text-muted-foreground">{aluno.projeto.professorResponsavel}</div>
+          </div>
+        )
+      },
     },
     {
       header: "Status",
       cell: ({ row }) => {
-        const status = row.original.statusInscricao
+        const aluno = row.original as AlunoRelatorio
+        const status = aluno.statusInscricao
         const getStatusBadge = () => {
           switch (status) {
             case "SUBMITTED":
@@ -237,71 +262,87 @@ export default function RelatoriosPage() {
     },
     {
       header: "Tipo Pretendido",
-      cell: ({ row }) => (
-        <Badge variant="outline">
-          {row.original.tipoVagaPretendida === "BOLSISTA"
-            ? "Bolsista"
-            : row.original.tipoVagaPretendida === "VOLUNTARIO"
-            ? "Voluntário"
-            : row.original.tipoVagaPretendida === "ANY"
-            ? "Qualquer"
-            : "N/A"}
-        </Badge>
-      ),
+      cell: ({ row }) => {
+        const aluno = row.original as AlunoRelatorio
+        return (
+          <Badge variant="outline">
+            {aluno.tipoVagaPretendida === "BOLSISTA"
+              ? "Bolsista"
+              : aluno.tipoVagaPretendida === "VOLUNTARIO"
+              ? "Voluntário"
+              : aluno.tipoVagaPretendida === "ANY"
+              ? "Qualquer"
+              : "N/A"}
+          </Badge>
+        )
+      },
     },
   ]
 
   const disciplinasColumns: ColumnDef<DisciplinaRelatorio>[] = [
     {
       header: "Disciplina",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.disciplina.codigo}</div>
-          <div className="text-sm text-muted-foreground">{row.original.disciplina.nome}</div>
-          <div className="text-xs text-muted-foreground">{row.original.departamento.sigla}</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const disciplina = row.original as DisciplinaRelatorio
+        return (
+          <div>
+            <div className="font-medium">{disciplina.disciplina.codigo}</div>
+            <div className="text-sm text-muted-foreground">{disciplina.disciplina.nome}</div>
+            <div className="text-xs text-muted-foreground">{disciplina.departamento.sigla}</div>
+          </div>
+        )
+      },
     },
     {
       header: "Projetos",
       accessorKey: "projetos",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <div className="font-medium">{row.original.projetos}</div>
-          <div className="text-sm text-muted-foreground">({row.original.projetosAprovados} aprovados)</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const disciplina = row.original as DisciplinaRelatorio
+        return (
+          <div className="text-center">
+            <div className="font-medium">{disciplina.projetos}</div>
+            <div className="text-sm text-muted-foreground">({disciplina.projetosAprovados} aprovados)</div>
+          </div>
+        )
+      },
     },
   ]
 
   const editaisColumns: ColumnDef<EditalRelatorio>[] = [
     {
       header: "Edital",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.edital.numeroEdital}</div>
-          <div className="text-sm text-muted-foreground">{row.original.edital.titulo}</div>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const edital = row.original as EditalRelatorio
+        return (
+          <div>
+            <div className="font-medium">{edital.edital.numeroEdital}</div>
+            <div className="text-sm text-muted-foreground">{edital.edital.titulo}</div>
+          </div>
+        )
+      },
     },
     {
       header: "Período",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">
-            {row.original.periodo.ano}/{row.original.periodo.semestre === "SEMESTRE_1" ? "1" : "2"}
+      cell: ({ row }) => {
+        const edital = row.original as EditalRelatorio
+        return (
+          <div>
+            <div className="font-medium">
+              {edital.periodo.ano}/{edital.periodo.semestre === "SEMESTRE_1" ? "1" : "2"}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {new Date(edital.periodo.dataInicio).toLocaleDateString("pt-BR")} -
+              {new Date(edital.periodo.dataFim).toLocaleDateString("pt-BR")}
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {new Date(row.original.periodo.dataInicio).toLocaleDateString("pt-BR")} -
-            {new Date(row.original.periodo.dataFim).toLocaleDateString("pt-BR")}
-          </div>
-        </div>
-      ),
+        )
+      },
     },
     {
       header: "Status",
-      cell: ({ row }) =>
-        row.original.edital.publicado ? (
+      cell: ({ row }) => {
+        const edital = row.original as EditalRelatorio
+        return edital.edital.publicado ? (
           <Badge variant="default" className="bg-green-500">
             <CheckCircle className="h-3 w-3 mr-1" />
             Publicado
@@ -311,14 +352,17 @@ export default function RelatoriosPage() {
             <Clock className="h-3 w-3 mr-1" />
             Rascunho
           </Badge>
-        ),
+        )
+      },
     },
     {
       header: "Data de Publicação",
-      cell: ({ row }) =>
-        row.original.edital.dataPublicacao
-          ? new Date(row.original.edital.dataPublicacao).toLocaleDateString("pt-BR")
-          : "-",
+      cell: ({ row }) => {
+        const edital = row.original as EditalRelatorio
+        return edital.edital.dataPublicacao
+          ? new Date(edital.edital.dataPublicacao).toLocaleDateString("pt-BR")
+          : "-"
+      },
     },
     {
       header: "Criado por",

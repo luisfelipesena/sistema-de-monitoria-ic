@@ -1,27 +1,24 @@
-'use client'
+"use client"
 
-import { MonitoriaFormTemplate, MonitoriaFormData } from '@/components/features/projects/MonitoriaFormTemplate'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
-import { PDFViewer } from '@react-pdf/renderer'
-import { CheckCircle, FileSignature, Loader2 } from 'lucide-react'
-import { useRef, useState, useEffect } from 'react'
-import SignatureCanvas from 'react-signature-canvas'
+import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
+import { MonitoriaFormData } from "@/types"
+import { api } from "@/utils/api"
+import { PDFViewer } from "@react-pdf/renderer"
+import { CheckCircle, FileSignature, Loader2 } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import SignatureCanvas from "react-signature-canvas"
 
 interface InteractiveProjectPDFProps {
   formData: MonitoriaFormData
-  userRole: 'professor' | 'admin'
+  userRole: "professor" | "admin"
   onSignatureComplete?: () => void
 }
 
-export function InteractiveProjectPDF({
-  formData,
-  userRole,
-  onSignatureComplete,
-}: InteractiveProjectPDFProps) {
+export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete }: InteractiveProjectPDFProps) {
   const { toast } = useToast()
   const [showSignatureDialog, setShowSignatureDialog] = useState(false)
   const [signedData, setSignedData] = useState<MonitoriaFormData>(formData)
@@ -29,13 +26,13 @@ export function InteractiveProjectPDF({
   const [isLoadingSignatures, setIsLoadingSignatures] = useState(true)
   const [useCustomSignature, setUseCustomSignature] = useState(false)
   const signatureRef = useRef<SignatureCanvas>(null)
-  
+
   const professorSignature = api.projeto.signProfessor.useMutation()
   const adminSignature = api.projeto.signAdmin.useMutation()
   const { data: userProfile } = api.user.getProfile.useQuery()
 
   const getDefaultSignature = () => {
-    if (userRole === 'professor') {
+    if (userRole === "professor") {
       return userProfile?.professorProfile?.assinaturaDefault || userProfile?.assinaturaDefault
     }
     return userProfile?.assinaturaDefault
@@ -53,9 +50,9 @@ export function InteractiveProjectPDF({
       setSignedData({
         ...formData,
         assinaturaProfessor: formData.assinaturaProfessor,
-        dataAssinaturaProfessor: formData.assinaturaProfessor ? new Date().toLocaleDateString('pt-BR') : undefined,
+        dataAssinaturaProfessor: formData.assinaturaProfessor ? new Date().toLocaleDateString("pt-BR") : undefined,
         assinaturaAdmin: formData.assinaturaAdmin,
-        dataAssinaturaAdmin: formData.assinaturaAdmin ? new Date().toLocaleDateString('pt-BR') : undefined,
+        dataAssinaturaAdmin: formData.assinaturaAdmin ? new Date().toLocaleDateString("pt-BR") : undefined,
       })
       setIsLoadingSignatures(false)
     }
@@ -75,16 +72,16 @@ export function InteractiveProjectPDF({
     const defaultSignature = getDefaultSignature()
     if (!defaultSignature || !formData.projetoId) {
       toast({
-        title: 'Erro',
-        description: 'Assinatura padrão não encontrada',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Assinatura padrão não encontrada",
+        variant: "destructive",
       })
       return
     }
 
     setIsSubmitting(true)
     try {
-      if (userRole === 'professor') {
+      if (userRole === "professor") {
         await professorSignature.mutateAsync({
           projetoId: formData.projetoId,
           signatureImage: defaultSignature,
@@ -93,10 +90,10 @@ export function InteractiveProjectPDF({
         const updatedFormData = {
           ...formData,
           assinaturaProfessor: defaultSignature,
-          dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
+          dataAssinaturaProfessor: new Date().toLocaleDateString("pt-BR"),
         }
         setSignedData(updatedFormData)
-      } else if (userRole === 'admin') {
+      } else if (userRole === "admin") {
         await adminSignature.mutateAsync({
           projetoId: formData.projetoId,
           signatureImage: defaultSignature,
@@ -105,23 +102,23 @@ export function InteractiveProjectPDF({
         const updatedFormData = {
           ...signedData,
           assinaturaAdmin: defaultSignature,
-          dataAssinaturaAdmin: new Date().toLocaleDateString('pt-BR'),
-          dataAprovacao: new Date().toLocaleDateString('pt-BR'),
+          dataAssinaturaAdmin: new Date().toLocaleDateString("pt-BR"),
+          dataAprovacao: new Date().toLocaleDateString("pt-BR"),
         }
         setSignedData(updatedFormData)
       }
-      
+
       toast({
-        title: 'Sucesso',
-        description: 'Documento assinado com sua assinatura padrão!',
+        title: "Sucesso",
+        description: "Documento assinado com sua assinatura padrão!",
       })
       onSignatureComplete?.()
     } catch (error) {
-      console.error('Error using default signature:', error)
+      console.error("Error using default signature:", error)
       toast({
-        title: 'Erro',
-        description: 'Erro ao usar assinatura padrão',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Erro ao usar assinatura padrão",
+        variant: "destructive",
       })
     } finally {
       setIsSubmitting(false)
@@ -139,8 +136,8 @@ export function InteractiveProjectPDF({
       setIsSubmitting(true)
       try {
         const signatureDataURL = signatureRef.current.toDataURL()
-        
-        if (userRole === 'professor') {
+
+        if (userRole === "professor") {
           await professorSignature.mutateAsync({
             projetoId: formData.projetoId,
             signatureImage: signatureDataURL,
@@ -149,10 +146,10 @@ export function InteractiveProjectPDF({
           const updatedFormData = {
             ...formData,
             assinaturaProfessor: signatureDataURL,
-            dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
+            dataAssinaturaProfessor: new Date().toLocaleDateString("pt-BR"),
           }
           setSignedData(updatedFormData)
-        } else if (userRole === 'admin') {
+        } else if (userRole === "admin") {
           await adminSignature.mutateAsync({
             projetoId: formData.projetoId,
             signatureImage: signatureDataURL,
@@ -161,33 +158,33 @@ export function InteractiveProjectPDF({
           const updatedFormData = {
             ...signedData,
             assinaturaAdmin: signatureDataURL,
-            dataAssinaturaAdmin: new Date().toLocaleDateString('pt-BR'),
-            dataAprovacao: new Date().toLocaleDateString('pt-BR'),
+            dataAssinaturaAdmin: new Date().toLocaleDateString("pt-BR"),
+            dataAprovacao: new Date().toLocaleDateString("pt-BR"),
           }
           setSignedData(updatedFormData)
         }
-        
+
         setShowSignatureDialog(false)
         toast({
-          title: 'Sucesso',
-          description: 'Assinatura salva com sucesso!',
+          title: "Sucesso",
+          description: "Assinatura salva com sucesso!",
         })
         onSignatureComplete?.()
       } catch (error) {
-        console.error('Error saving signature:', error)
+        console.error("Error saving signature:", error)
         toast({
-          title: 'Erro',
-          description: 'Erro ao salvar assinatura',
-          variant: 'destructive',
+          title: "Erro",
+          description: "Erro ao salvar assinatura",
+          variant: "destructive",
         })
       } finally {
         setIsSubmitting(false)
       }
     } else {
       toast({
-        title: 'Erro',
-        description: 'Por favor, faça a assinatura antes de salvar',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Por favor, faça a assinatura antes de salvar",
+        variant: "destructive",
       })
     }
   }
@@ -196,12 +193,11 @@ export function InteractiveProjectPDF({
     ...signedData,
     signingMode: userRole,
   }
-  
-  const hasSignature = userRole === 'professor' 
-    ? !!currentFormData.assinaturaProfessor 
-    : !!currentFormData.assinaturaAdmin
 
-  const roleLabel = userRole === 'professor' ? 'Professor' : 'Coordenador'
+  const hasSignature =
+    userRole === "professor" ? !!currentFormData.assinaturaProfessor : !!currentFormData.assinaturaAdmin
+
+  const roleLabel = userRole === "professor" ? "Professor" : "Coordenador"
 
   if (isLoadingSignatures) {
     return (
@@ -242,8 +238,8 @@ export function InteractiveProjectPDF({
                         </>
                       )}
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => {
                         setUseCustomSignature(true)
                         setShowSignatureDialog(true)
@@ -286,15 +282,13 @@ export function InteractiveProjectPDF({
           <div className="space-y-4">
             {hasDefaultSignature && !useCustomSignature && (
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-blue-800 font-medium mb-2">
-                  💡 Você tem uma assinatura padrão configurada
-                </p>
+                <p className="text-blue-800 font-medium mb-2">💡 Você tem uma assinatura padrão configurada</p>
                 <p className="text-blue-700 text-sm">
                   Use sua assinatura padrão ou desenhe uma nova assinatura específica para este documento.
                 </p>
                 <div className="flex gap-2 mt-3">
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     onClick={() => {
                       setShowSignatureDialog(false)
                       handleUseDefaultSignature()
@@ -302,29 +296,23 @@ export function InteractiveProjectPDF({
                   >
                     Usar Assinatura Padrão
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setUseCustomSignature(true)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setUseCustomSignature(true)}>
                     Desenhar Nova
                   </Button>
                 </div>
               </div>
             )}
-            
+
             {(!hasDefaultSignature || useCustomSignature) && (
               <>
-                <div className="text-sm text-muted-foreground">
-                  Desenhe sua assinatura no espaço abaixo:
-                </div>
+                <div className="text-sm text-muted-foreground">Desenhe sua assinatura no espaço abaixo:</div>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
                   <SignatureCanvas
                     ref={signatureRef}
                     canvasProps={{
                       width: 600,
                       height: 200,
-                      className: 'signature-canvas bg-white rounded border',
+                      className: "signature-canvas bg-white rounded border",
                     }}
                     backgroundColor="white"
                   />
@@ -332,15 +320,15 @@ export function InteractiveProjectPDF({
               </>
             )}
           </div>
-          
+
           {(!hasDefaultSignature || useCustomSignature) && (
             <div className="flex justify-between">
               <Button variant="outline" onClick={handleClearSignature}>
                 Limpar
               </Button>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setShowSignatureDialog(false)
                     setUseCustomSignature(false)

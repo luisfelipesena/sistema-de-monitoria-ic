@@ -14,9 +14,7 @@ export function formatUsernameToDisplayName(username: string): string {
 
   return username
     .split('.')
-    .map(part => 
-      part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-    )
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
     .join(' ')
 }
 
@@ -32,31 +30,31 @@ export function formatUsernameToProperName(username: string): string {
   }
 
   const nameParts = username.split('.')
-  
+
   return nameParts
-    .map(part => {
+    .map((part) => {
       // Handle common Portuguese name patterns
       const formatted = part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
-      
+
       // Handle common Portuguese names with special characters
       const nameMap: Record<string, string> = {
-        'joao': 'João',
-        'jose': 'José',
-        'antonio': 'Antônio',
-        'carlos': 'Carlos',
-        'paulo': 'Paulo',
-        'ana': 'Ana',
-        'maria': 'Maria',
-        'pedro': 'Pedro',
-        'andre': 'André',
-        'luis': 'Luís',
-        'caio': 'Caio',
-        'felipe': 'Felipe',
-        'viana': 'Viana',
-        'leahy': 'Leahy',
-        'sena': 'Sena'
+        joao: 'João',
+        jose: 'José',
+        antonio: 'Antônio',
+        carlos: 'Carlos',
+        paulo: 'Paulo',
+        ana: 'Ana',
+        maria: 'Maria',
+        pedro: 'Pedro',
+        andre: 'André',
+        luis: 'Luís',
+        caio: 'Caio',
+        felipe: 'Felipe',
+        viana: 'Viana',
+        leahy: 'Leahy',
+        sena: 'Sena',
       }
-      
+
       return nameMap[part.toLowerCase()] || formatted
     })
     .join(' ')
@@ -88,6 +86,6 @@ export function getUserInitials(username: string): string {
 
   return username
     .split('.')
-    .map(part => part.charAt(0).toUpperCase())
+    .map((part) => part.charAt(0).toUpperCase())
     .join('')
 }

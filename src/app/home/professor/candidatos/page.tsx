@@ -1,85 +1,52 @@
-'use client'
+"use client"
 
-import { Suspense } from 'react'
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
-import {
-  BookOpen,
-  CheckCircle,
-  Clock,
-  GraduationCap,
-  Star,
-  Users,
-} from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
-import { useMemo, useState } from 'react'
-
-interface QuickEvaluation {
-  inscricaoId: number
-  rating: 1 | 2 | 3 | 4 | 5
-  notes: string
-  decision: 'SELECT_SCHOLARSHIP' | 'SELECT_VOLUNTEER' | 'REJECT' | 'PENDING'
-}
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
+import { QuickEvaluation } from "@/types"
+import { api } from "@/utils/api"
+import { CheckCircle, Clock, GraduationCap, Star, Users } from "lucide-react"
+import { useSearchParams } from "next/navigation"
+import { Suspense, useMemo, useState } from "react"
 
 function ProjectApplicationsContent() {
   const searchParams = useSearchParams()
-  const projectId = searchParams.get('projetoId')
+  const projectId = searchParams.get("projetoId")
   const { toast } = useToast()
-  
+
   const { data: projetos } = api.projeto.getProjetos.useQuery()
   const { data: inscricoes, isLoading: loadingInscricoes } = api.inscricao.getInscricoesProjeto.useQuery(
-    { projetoId: parseInt(projectId || '0') },
+    { projetoId: parseInt(projectId || "0") },
     { enabled: !!projectId }
   )
   const avaliarCandidato = api.inscricao.avaliarCandidato.useMutation()
-  
+
   const [quickEvaluations, setQuickEvaluations] = useState<Record<number, QuickEvaluation>>({})
 
   // Filter projects that are approved and belong to the current professor
   const myApprovedProjects = useMemo(() => {
     if (!projetos) return []
-    return projetos.filter((projeto) => projeto.status === 'APPROVED')
+    return projetos.filter((projeto) => projeto.status === "APPROVED")
   }, [projetos])
 
-  const selectedProject = myApprovedProjects.find(
-    (p) => p.id === parseInt(projectId || '0')
-  )
+  const selectedProject = myApprovedProjects.find((p) => p.id === parseInt(projectId || "0"))
 
   const candidatesByType = useMemo(() => {
     if (!inscricoes) return { scholarship: [], volunteer: [] }
 
-    const scholarship = inscricoes.filter(
-      (c) =>
-        c.tipoVagaPretendida === 'BOLSISTA' || c.tipoVagaPretendida === 'ANY'
-    )
+    const scholarship = inscricoes.filter((c) => c.tipoVagaPretendida === "BOLSISTA" || c.tipoVagaPretendida === "ANY")
 
-    const volunteer = inscricoes.filter(
-      (c) =>
-        c.tipoVagaPretendida === 'VOLUNTARIO' || c.tipoVagaPretendida === 'ANY'
-    )
+    const volunteer = inscricoes.filter((c) => c.tipoVagaPretendida === "VOLUNTARIO" || c.tipoVagaPretendida === "ANY")
 
     return { scholarship, volunteer }
   }, [inscricoes])
 
-  const handleQuickEvaluation = (
-    inscricaoId: number,
-    field: keyof QuickEvaluation,
-    value: any
-  ) => {
+  const handleQuickEvaluation = (inscricaoId: number, field: keyof QuickEvaluation, value: any) => {
     setQuickEvaluations((prev) => ({
       ...prev,
       [inscricaoId]: {
@@ -94,9 +61,9 @@ function ProjectApplicationsContent() {
     const evaluation = quickEvaluations[inscricaoId]
     if (!evaluation || !evaluation.rating) {
       toast({
-        title: 'Erro',
-        description: 'Avaliação é obrigatória',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Avaliação é obrigatória",
+        variant: "destructive",
       })
       return
     }
@@ -110,8 +77,8 @@ function ProjectApplicationsContent() {
       })
 
       toast({
-        title: 'Sucesso',
-        description: 'Candidato avaliado com sucesso!',
+        title: "Sucesso",
+        description: "Candidato avaliado com sucesso!",
       })
 
       // Remove from quick evaluations
@@ -122,44 +89,44 @@ function ProjectApplicationsContent() {
       })
     } catch (error: any) {
       toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao avaliar candidato',
-        variant: 'destructive',
+        title: "Erro",
+        description: error.message || "Erro ao avaliar candidato",
+        variant: "destructive",
       })
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'SUBMITTED':
+      case "SUBMITTED":
         return <Badge variant="secondary">Aguardando Avaliação</Badge>
-      case 'SELECTED_BOLSISTA':
+      case "SELECTED_BOLSISTA":
         return (
           <Badge variant="default" className="bg-green-600">
             Selecionado (Bolsista)
           </Badge>
         )
-      case 'SELECTED_VOLUNTARIO':
+      case "SELECTED_VOLUNTARIO":
         return (
           <Badge variant="default" className="bg-blue-600">
             Selecionado (Voluntário)
           </Badge>
         )
-      case 'ACCEPTED_BOLSISTA':
+      case "ACCEPTED_BOLSISTA":
         return (
           <Badge variant="default" className="bg-green-800">
             Aceito (Bolsista)
           </Badge>
         )
-      case 'ACCEPTED_VOLUNTARIO':
+      case "ACCEPTED_VOLUNTARIO":
         return (
           <Badge variant="default" className="bg-blue-800">
             Aceito (Voluntário)
           </Badge>
         )
-      case 'REJECTED_BY_PROFESSOR':
+      case "REJECTED_BY_PROFESSOR":
         return <Badge variant="destructive">Rejeitado</Badge>
-      case 'REJECTED_BY_STUDENT':
+      case "REJECTED_BY_STUDENT":
         return <Badge variant="outline">Recusado pelo Estudante</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
@@ -179,9 +146,7 @@ function ProjectApplicationsContent() {
               <p className="text-sm text-gray-600">
                 Matrícula: {candidate.aluno.matricula} • CR: {candidate.aluno.cr}
               </p>
-              <p className="text-sm text-gray-500">
-                Email: {candidate.aluno.user.email}
-              </p>
+              <p className="text-sm text-gray-500">Email: {candidate.aluno.user.email}</p>
             </div>
             <div className="text-right">
               {getStatusBadge(candidate.status)}
@@ -189,7 +154,7 @@ function ProjectApplicationsContent() {
                 <div className="mt-1">
                   <Badge variant="outline" className="text-xs">
                     <Star className="h-3 w-3 mr-1" />
-                    Nota: {candidate.notaFinal?.toFixed(1) || 'N/A'}
+                    Nota: {candidate.notaFinal?.toFixed(1) || "N/A"}
                   </Badge>
                 </div>
               )}
@@ -197,25 +162,17 @@ function ProjectApplicationsContent() {
           </div>
         </CardHeader>
 
-        {!hasExistingEvaluation && candidate.status === 'SUBMITTED' && (
+        {!hasExistingEvaluation && candidate.status === "SUBMITTED" && (
           <CardContent className="pt-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label className="text-sm font-medium">
-                  Avaliação Rápida (1-5 estrelas)
-                </Label>
+                <Label className="text-sm font-medium">Avaliação Rápida (1-5 estrelas)</Label>
                 <div className="flex gap-1 mt-1">
                   {[1, 2, 3, 4, 5].map((rating) => (
                     <button
                       key={rating}
-                      onClick={() =>
-                        handleQuickEvaluation(candidate.id, 'rating', rating)
-                      }
-                      className={`p-1 ${
-                        evaluation?.rating >= rating
-                          ? 'text-yellow-500'
-                          : 'text-gray-300'
-                      }`}
+                      onClick={() => handleQuickEvaluation(candidate.id, "rating", rating)}
+                      className={`p-1 ${evaluation?.rating >= rating ? "text-yellow-500" : "text-gray-300"}`}
                     >
                       <Star className="h-5 w-5 fill-current" />
                     </button>
@@ -227,10 +184,8 @@ function ProjectApplicationsContent() {
                 <Label className="text-sm font-medium">Observações</Label>
                 <Textarea
                   placeholder="Observações sobre o candidato..."
-                  value={evaluation?.notes || ''}
-                  onChange={(e) =>
-                    handleQuickEvaluation(candidate.id, 'notes', e.target.value)
-                  }
+                  value={evaluation?.notes || ""}
+                  onChange={(e) => handleQuickEvaluation(candidate.id, "notes", e.target.value)}
                   rows={2}
                   className="text-sm"
                 />
@@ -257,7 +212,7 @@ function ProjectApplicationsContent() {
         {hasExistingEvaluation && (
           <CardContent className="pt-0">
             <div className="text-sm text-gray-600">
-              <strong>Observações:</strong> {candidate.feedbackProfessor || 'Nenhuma observação'}
+              <strong>Observações:</strong> {candidate.feedbackProfessor || "Nenhuma observação"}
             </div>
           </CardContent>
         )}
@@ -269,9 +224,7 @@ function ProjectApplicationsContent() {
     return (
       <PagesLayout title="Gerenciar Candidaturas">
         <div className="text-center py-8">
-          <p className="text-muted-foreground">
-            Nenhum projeto selecionado. Acesse esta página através do dashboard.
-          </p>
+          <p className="text-muted-foreground">Nenhum projeto selecionado. Acesse esta página através do dashboard.</p>
         </div>
       </PagesLayout>
     )
@@ -304,9 +257,7 @@ function ProjectApplicationsContent() {
                   <GraduationCap className="h-5 w-5 text-green-500" />
                   <div>
                     <p className="text-sm font-medium">Bolsas Disponíveis</p>
-                    <p className="text-2xl font-bold">
-                      {selectedProject.bolsasDisponibilizadas || 0}
-                    </p>
+                    <p className="text-2xl font-bold">{selectedProject.bolsasDisponibilizadas || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -318,9 +269,7 @@ function ProjectApplicationsContent() {
                   <Users className="h-5 w-5 text-purple-500" />
                   <div>
                     <p className="text-sm font-medium">Vagas Voluntárias</p>
-                    <p className="text-2xl font-bold">
-                      {selectedProject.voluntariosSolicitados || 0}
-                    </p>
+                    <p className="text-2xl font-bold">{selectedProject.voluntariosSolicitados || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -332,9 +281,7 @@ function ProjectApplicationsContent() {
                   <CheckCircle className="h-5 w-5 text-orange-500" />
                   <div>
                     <p className="text-sm font-medium">Avaliados</p>
-                    <p className="text-2xl font-bold">
-                      {inscricoes?.filter(i => i.notaFinal !== null).length || 0}
-                    </p>
+                    <p className="text-2xl font-bold">{inscricoes?.filter((i) => i.notaFinal !== null).length || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -351,12 +298,8 @@ function ProjectApplicationsContent() {
         ) : (
           <Tabs defaultValue="scholarship" className="space-y-4">
             <TabsList>
-              <TabsTrigger value="scholarship">
-                Candidatos a Bolsa ({candidatesByType.scholarship.length})
-              </TabsTrigger>
-              <TabsTrigger value="volunteer">
-                Candidatos Voluntários ({candidatesByType.volunteer.length})
-              </TabsTrigger>
+              <TabsTrigger value="scholarship">Candidatos a Bolsa ({candidatesByType.scholarship.length})</TabsTrigger>
+              <TabsTrigger value="volunteer">Candidatos Voluntários ({candidatesByType.volunteer.length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="scholarship" className="space-y-4">
@@ -364,18 +307,12 @@ function ProjectApplicationsContent() {
                 <Card>
                   <CardContent className="text-center py-12">
                     <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-700 mb-2">
-                      Nenhum candidato a bolsa
-                    </h3>
-                    <p className="text-gray-500">
-                      Ainda não há candidatos interessados em bolsas para este projeto.
-                    </p>
+                    <h3 className="text-lg font-medium text-gray-700 mb-2">Nenhum candidato a bolsa</h3>
+                    <p className="text-gray-500">Ainda não há candidatos interessados em bolsas para este projeto.</p>
                   </CardContent>
                 </Card>
               ) : (
-                candidatesByType.scholarship.map((candidate) =>
-                  renderCandidateCard(candidate)
-                )
+                candidatesByType.scholarship.map((candidate) => renderCandidateCard(candidate))
               )}
             </TabsContent>
 
@@ -384,18 +321,14 @@ function ProjectApplicationsContent() {
                 <Card>
                   <CardContent className="text-center py-12">
                     <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-700 mb-2">
-                      Nenhum candidato voluntário
-                    </h3>
+                    <h3 className="text-lg font-medium text-gray-700 mb-2">Nenhum candidato voluntário</h3>
                     <p className="text-gray-500">
                       Ainda não há candidatos interessados em vagas voluntárias para este projeto.
                     </p>
                   </CardContent>
                 </Card>
               ) : (
-                candidatesByType.volunteer.map((candidate) =>
-                  renderCandidateCard(candidate)
-                )
+                candidatesByType.volunteer.map((candidate) => renderCandidateCard(candidate))
               )}
             </TabsContent>
           </Tabs>

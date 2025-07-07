@@ -9,6 +9,7 @@ import { FilterModal, type FilterValues } from '@/components/ui/FilterModal';
 import { api } from '@/utils/api';
 import { useRouter } from 'next/navigation';
 import { formatUsernameToProperName } from '@/utils/username-formatter';
+import { UserListItem } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -27,34 +28,6 @@ import {
   BookOpen,
   Building,
 } from 'lucide-react';
-
-type UserListItem = {
-  id: number;
-  username: string;
-  email: string;
-  role: 'admin' | 'professor' | 'student';
-  professorProfile?: {
-    id: number;
-    nomeCompleto: string;
-    cpf: string;
-    telefone: string | null;
-    telefoneInstitucional: string | null;
-    emailInstitucional: string;
-    matriculaSiape: string | null;
-    regime: '20H' | '40H' | 'DE';
-    departamentoId: number;
-  } | null;
-  studentProfile?: {
-    id: number;
-    nomeCompleto: string;
-    matricula: string;
-    cpf: string;
-    cr: number;
-    cursoId: number;
-    telefone: string | null;
-    emailInstitucional: string;
-  } | null;
-};
 
 export default function UsersPage() {
   const router = useRouter();

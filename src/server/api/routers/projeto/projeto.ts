@@ -16,142 +16,13 @@ import {
 } from '@/server/db/schema'
 import { emailService } from '@/server/lib/email-service'
 import { PDFService } from '@/server/lib/pdf-service'
-import {
-  semestreSchema,
-  tipoProposicaoSchema,
-  projetoStatusSchema,
-  generoSchema,
-  regimeSchema,
-  nameSchema,
-  descriptionSchema,
-  idSchema,
-  anoSchema,
-  baseFilterSchema,
-} from '@/types'
+import { anoSchema, idSchema, nameSchema, projectDetailSchema, projectFormSchema, projectListItemSchema } from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 const log = logger.child({ context: 'ProjetoRouter' })
-
-export const projetoInputSchema = z.object({
-  titulo: nameSchema.min(5, 'Título deve ter pelo menos 5 caracteres'),
-  descricao: descriptionSchema.min(5, 'Descrição deve ter pelo menos 5 caracteres'),
-  departamentoId: idSchema,
-  disciplinaIds: z.array(idSchema).min(1, 'Deve selecionar pelo menos uma disciplina'),
-  ano: anoSchema,
-  semestre: semestreSchema,
-  tipoProposicao: tipoProposicaoSchema,
-  bolsasSolicitadas: z.number().min(0).optional(),
-  voluntariosSolicitados: z.number().min(0).optional(),
-  cargaHorariaSemana: z.number().min(1),
-  numeroSemanas: z.number().min(1),
-  publicoAlvo: z.string().min(1),
-  estimativaPessoasBenificiadas: z.number().min(0).optional(),
-  atividades: z.array(z.string()).optional(),
-  professoresParticipantes: z.array(idSchema).optional(),
-  professorResponsavelId: idSchema.optional(),
-})
-
-export const projetoListItemSchema = z.object({
-  id: idSchema,
-  titulo: nameSchema,
-  departamentoId: idSchema,
-  departamentoNome: nameSchema,
-  professorResponsavelId: idSchema,
-  professorResponsavelNome: nameSchema,
-  status: projetoStatusSchema,
-  ano: anoSchema,
-  semestre: semestreSchema,
-  tipoProposicao: tipoProposicaoSchema,
-  bolsasSolicitadas: z.number().nullable(),
-  voluntariosSolicitados: z.number().nullable(),
-  bolsasDisponibilizadas: z.number().nullable(),
-  cargaHorariaSemana: z.number(),
-  numeroSemanas: z.number(),
-  publicoAlvo: z.string(),
-  estimativaPessoasBenificiadas: z.number().nullable(),
-  descricao: descriptionSchema,
-  assinaturaProfessor: z.string().nullable(),
-  feedbackAdmin: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date().nullable(),
-  deletedAt: z.date().nullable(),
-  disciplinas: z.array(
-    z.object({
-      id: idSchema,
-      nome: nameSchema,
-      codigo: z.string(),
-    })
-  ),
-  totalInscritos: z.number(),
-  inscritosBolsista: z.number(),
-  inscritosVoluntario: z.number(),
-})
-
-export const projetoDetalhesSchema = z.object({
-  id: idSchema,
-  titulo: nameSchema,
-  descricao: descriptionSchema,
-  departamento: z.object({
-    id: idSchema,
-    nome: nameSchema,
-    sigla: z.string().nullable(),
-    unidadeUniversitaria: nameSchema,
-  }),
-  professorResponsavel: z.object({
-    id: idSchema,
-    nomeCompleto: nameSchema,
-    nomeSocial: z.string().nullable(),
-    genero: generoSchema,
-    cpf: z.string(),
-    matriculaSiape: z.string().nullable(),
-    regime: regimeSchema,
-    telefone: z.string().nullable(),
-    telefoneInstitucional: z.string().nullable(),
-    emailInstitucional: z.string(),
-  }),
-  disciplinas: z.array(
-    z.object({
-      id: idSchema,
-      nome: nameSchema,
-      codigo: z.string(),
-    })
-  ),
-  professoresParticipantes: z
-    .array(
-      z.object({
-        id: idSchema,
-        nomeCompleto: nameSchema,
-      })
-    )
-    .optional(),
-  atividades: z
-    .array(
-      z.object({
-        id: idSchema,
-        descricao: descriptionSchema,
-      })
-    )
-    .optional(),
-  status: projetoStatusSchema,
-  ano: anoSchema,
-  semestre: semestreSchema,
-  tipoProposicao: tipoProposicaoSchema,
-  bolsasSolicitadas: z.number().nullable(),
-  voluntariosSolicitados: z.number().nullable(),
-  bolsasDisponibilizadas: z.number().nullable(),
-  cargaHorariaSemana: z.number(),
-  numeroSemanas: z.number(),
-  publicoAlvo: z.string(),
-  estimativaPessoasBenificiadas: z.number().nullable(),
-  assinaturaProfessor: z.string().nullable(),
-  assinaturaAdmin: z.string().nullable(),
-  feedbackAdmin: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date().nullable(),
-})
 
 export const projetoRouter = createTRPCRouter({
   getProjetos: protectedProcedure
@@ -165,7 +36,7 @@ export const projetoRouter = createTRPCRouter({
       },
     })
     .input(z.void())
-    .output(z.array(projetoListItemSchema))
+    .output(z.array(projectListItemSchema))
     .query(async ({ ctx }) => {
       try {
         const userRole = ctx.user.role
@@ -284,7 +155,7 @@ export const projetoRouter = createTRPCRouter({
         id: idSchema,
       })
     )
-    .output(projetoDetalhesSchema)
+    .output(projectDetailSchema)
     .query(async ({ input, ctx }) => {
       const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.id), isNull(projetoTable.deletedAt)),
@@ -372,8 +243,8 @@ export const projetoRouter = createTRPCRouter({
         description: 'Create a new projeto',
       },
     })
-    .input(projetoInputSchema)
-    .output(projetoDetalhesSchema)
+    .input(projectFormSchema)
+    .output(projectDetailSchema)
     .mutation(async ({ input, ctx }) => {
       try {
         let professorResponsavelId: number
@@ -430,7 +301,7 @@ export const projetoRouter = createTRPCRouter({
           })
           .returning()
 
-        if (disciplinaIds.length > 0) {
+        if (disciplinaIds && disciplinaIds.length > 0) {
           const disciplinaValues = disciplinaIds.map((disciplinaId) => ({
             projetoId: novoProjeto.id,
             disciplinaId,
@@ -528,9 +399,9 @@ export const projetoRouter = createTRPCRouter({
         .object({
           id: idSchema,
         })
-        .merge(projetoInputSchema.partial())
+        .merge(projectFormSchema.partial())
     )
-    .output(projetoDetalhesSchema)
+    .output(projectDetailSchema)
     .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input
 

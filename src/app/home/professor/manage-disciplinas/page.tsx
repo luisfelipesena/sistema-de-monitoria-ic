@@ -1,65 +1,45 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Spinner } from '@/components/ui/spinner'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
-import { 
-  BookOpen, 
-  Plus, 
-  Calendar, 
-  Check, 
-  X,
-  ArrowLeft,
-  Users,
-  FileText,
-  Award
-} from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-
-interface DisciplineAssociation {
-  id: number
-  codigo: string
-  nome: string
-  departamentoId: number
-  isAssociated: boolean
-  ano?: number
-  semestre?: 'SEMESTRE_1' | 'SEMESTRE_2'
-}
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/ui/spinner"
+import { useToast } from "@/hooks/use-toast"
+import { DisciplineAssociation } from "@/types"
+import { api } from "@/utils/api"
+import { ArrowLeft, Award, BookOpen, Calendar, Check, FileText, Plus, Users, X } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function ManageDisciplinasPage() {
   const { toast } = useToast()
   const router = useRouter()
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [newDisciplina, setNewDisciplina] = useState({
-    nome: '',
-    codigo: '',
+    nome: "",
+    codigo: "",
     cargaHoraria: 60,
     periodo: 1,
   })
 
   const currentYear = new Date().getFullYear()
-  const currentSemester = new Date().getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2' as 'SEMESTRE_1' | 'SEMESTRE_2'
+  const currentSemester = new Date().getMonth() < 6 ? "SEMESTRE_1" : ("SEMESTRE_2" as "SEMESTRE_1" | "SEMESTRE_2")
 
-  const { data: professorDisciplinas, isLoading: loadingProfessorDisciplinas, refetch: refetchProfessorDisciplinas } = 
-    api.discipline.getProfessorDisciplines.useQuery(undefined)
+  const {
+    data: professorDisciplinas,
+    isLoading: loadingProfessorDisciplinas,
+    refetch: refetchProfessorDisciplinas,
+  } = api.discipline.getProfessorDisciplines.useQuery(undefined)
 
-  const { data: departmentDisciplinas, isLoading: loadingDepartmentDisciplinas, refetch: refetchDepartmentDisciplinas } = 
-    api.discipline.getDepartmentDisciplines.useQuery(undefined)
+  const {
+    data: departmentDisciplinas,
+    isLoading: loadingDepartmentDisciplinas,
+    refetch: refetchDepartmentDisciplinas,
+  } = api.discipline.getDepartmentDisciplines.useQuery(undefined)
 
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({})
   const { data: userProfile } = api.user.getProfile.useQuery()
@@ -69,23 +49,23 @@ export default function ManageDisciplinasPage() {
   const disassociateMutation = api.discipline.disassociateDiscipline.useMutation()
 
   const professorDepartamento = userProfile?.professorProfile?.departamentoId
-  const departamentoInfo = departamentos?.find(d => d.id === professorDepartamento)
+  const departamentoInfo = departamentos?.find((d) => d.id === professorDepartamento)
 
   const handleCreateDisciplina = async () => {
     if (!newDisciplina.nome || !newDisciplina.codigo) {
       toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha nome e código da disciplina',
-        variant: 'destructive',
+        title: "Campos obrigatórios",
+        description: "Preencha nome e código da disciplina",
+        variant: "destructive",
       })
       return
     }
 
     if (!professorDepartamento) {
       toast({
-        title: 'Erro',
-        description: 'Departamento do professor não encontrado',
-        variant: 'destructive',
+        title: "Erro",
+        description: "Departamento do professor não encontrado",
+        variant: "destructive",
       })
       return
     }
@@ -103,23 +83,20 @@ export default function ManageDisciplinasPage() {
         semestre: currentSemester,
       })
 
-      setNewDisciplina({ nome: '', codigo: '', cargaHoraria: 60, periodo: 1 })
+      setNewDisciplina({ nome: "", codigo: "", cargaHoraria: 60, periodo: 1 })
       setShowCreateForm(false)
-      
+
       toast({
-        title: 'Sucesso',
-        description: 'Disciplina criada e associada com sucesso!',
+        title: "Sucesso",
+        description: "Disciplina criada e associada com sucesso!",
       })
 
-      await Promise.all([
-        refetchProfessorDisciplinas(),
-        refetchDepartmentDisciplinas(),
-      ])
+      await Promise.all([refetchProfessorDisciplinas(), refetchDepartmentDisciplinas()])
     } catch (error: any) {
       toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao criar disciplina',
-        variant: 'destructive',
+        title: "Erro",
+        description: error.message || "Erro ao criar disciplina",
+        variant: "destructive",
       })
     }
   }
@@ -132,9 +109,9 @@ export default function ManageDisciplinasPage() {
           ano: currentYear,
           semestre: currentSemester,
         })
-        
+
         toast({
-          title: 'Sucesso',
+          title: "Sucesso",
           description: `Desassociado da disciplina ${disciplina.codigo}`,
         })
       } else {
@@ -143,28 +120,25 @@ export default function ManageDisciplinasPage() {
           ano: currentYear,
           semestre: currentSemester,
         })
-        
+
         toast({
-          title: 'Sucesso',
+          title: "Sucesso",
           description: `Associado à disciplina ${disciplina.codigo}`,
         })
       }
 
-      await Promise.all([
-        refetchProfessorDisciplinas(),
-        refetchDepartmentDisciplinas(),
-      ])
+      await Promise.all([refetchProfessorDisciplinas(), refetchDepartmentDisciplinas()])
     } catch (error: any) {
       toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao alterar associação',
-        variant: 'destructive',
+        title: "Erro",
+        description: error.message || "Erro ao alterar associação",
+        variant: "destructive",
       })
     }
   }
 
   const handleBackToDashboard = () => {
-    router.push('/home/professor/dashboard')
+    router.push("/home/professor/dashboard")
   }
 
   if (loadingProfessorDisciplinas || loadingDepartmentDisciplinas) {
@@ -180,7 +154,7 @@ export default function ManageDisciplinasPage() {
   return (
     <PagesLayout
       title="Gerenciar Disciplinas"
-      subtitle={`Gerencie suas disciplinas para ${currentYear}.${currentSemester === 'SEMESTRE_1' ? '1' : '2'}`}
+      subtitle={`Gerencie suas disciplinas para ${currentYear}.${currentSemester === "SEMESTRE_1" ? "1" : "2"}`}
     >
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -188,17 +162,13 @@ export default function ManageDisciplinasPage() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar ao Dashboard
           </Button>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
-              Período: {currentYear}.{currentSemester === 'SEMESTRE_1' ? '1' : '2'}
+              Período: {currentYear}.{currentSemester === "SEMESTRE_1" ? "1" : "2"}
             </div>
-            {departamentoInfo && (
-              <Badge variant="outline">
-                {departamentoInfo.sigla || departamentoInfo.nome}
-              </Badge>
-            )}
+            {departamentoInfo && <Badge variant="outline">{departamentoInfo.sigla || departamentoInfo.nome}</Badge>}
           </div>
         </div>
 
@@ -219,12 +189,8 @@ export default function ManageDisciplinasPage() {
               {!professorDisciplinas?.length ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <BookOpen className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium mb-2">
-                    Nenhuma disciplina associada
-                  </h3>
-                  <p className="text-sm">
-                    Associe-se a disciplinas existentes ou crie novas disciplinas
-                  </p>
+                  <h3 className="text-lg font-medium mb-2">Nenhuma disciplina associada</h3>
+                  <p className="text-sm">Associe-se a disciplinas existentes ou crie novas disciplinas</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -235,9 +201,7 @@ export default function ManageDisciplinasPage() {
                     >
                       <div>
                         <div className="font-medium">{disciplina.codigo}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {disciplina.nome}
-                        </div>
+                        <div className="text-sm text-muted-foreground">{disciplina.nome}</div>
                         <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <FileText className="h-3 w-3" />
@@ -290,9 +254,7 @@ export default function ManageDisciplinasPage() {
                       id="codigo"
                       placeholder="Ex: MAT001"
                       value={newDisciplina.codigo}
-                      onChange={(e) =>
-                        setNewDisciplina({ ...newDisciplina, codigo: e.target.value })
-                      }
+                      onChange={(e) => setNewDisciplina({ ...newDisciplina, codigo: e.target.value })}
                     />
                   </div>
 
@@ -302,9 +264,7 @@ export default function ManageDisciplinasPage() {
                       id="nome"
                       placeholder="Ex: Cálculo Diferencial e Integral I"
                       value={newDisciplina.nome}
-                      onChange={(e) =>
-                        setNewDisciplina({ ...newDisciplina, nome: e.target.value })
-                      }
+                      onChange={(e) => setNewDisciplina({ ...newDisciplina, nome: e.target.value })}
                     />
                   </div>
 
@@ -313,7 +273,7 @@ export default function ManageDisciplinasPage() {
                       variant="outline"
                       onClick={() => {
                         setShowCreateForm(false)
-                        setNewDisciplina({ nome: '', codigo: '', cargaHoraria: 60, periodo: 1 })
+                        setNewDisciplina({ nome: "", codigo: "", cargaHoraria: 60, periodo: 1 })
                       }}
                       className="flex-1"
                     >
@@ -324,7 +284,7 @@ export default function ManageDisciplinasPage() {
                       disabled={createDisciplinaMutation.isPending}
                       className="flex-1"
                     >
-                      {createDisciplinaMutation.isPending ? 'Criando...' : 'Criar'}
+                      {createDisciplinaMutation.isPending ? "Criando..." : "Criar"}
                     </Button>
                   </div>
                 </div>
@@ -349,12 +309,8 @@ export default function ManageDisciplinasPage() {
             {!departmentDisciplinas?.length ? (
               <div className="text-center py-8 text-muted-foreground">
                 <BookOpen className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">
-                  Nenhuma disciplina encontrada
-                </h3>
-                <p className="text-sm">
-                  Não há disciplinas cadastradas no seu departamento
-                </p>
+                <h3 className="text-lg font-medium mb-2">Nenhuma disciplina encontrada</h3>
+                <p className="text-sm">Não há disciplinas cadastradas no seu departamento</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -363,17 +319,15 @@ export default function ManageDisciplinasPage() {
                     key={disciplina.id}
                     className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
                       disciplina.isAssociated
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                        ? "bg-green-50 border-green-200"
+                        : "bg-gray-50 border-gray-200 hover:bg-gray-100"
                     }`}
                   >
                     <div className="flex-1">
                       <div className="font-medium">{disciplina.codigo}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {disciplina.nome}
-                      </div>
+                      <div className="text-sm text-muted-foreground">{disciplina.nome}</div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
                       {disciplina.isAssociated ? (
                         <Badge variant="default" className="bg-green-600">
@@ -386,14 +340,11 @@ export default function ManageDisciplinasPage() {
                           Não associado
                         </Badge>
                       )}
-                      
+
                       <Checkbox
                         checked={disciplina.isAssociated}
                         onCheckedChange={() => handleToggleAssociation(disciplina)}
-                        disabled={
-                          associateMutation.isPending ||
-                          disassociateMutation.isPending
-                        }
+                        disabled={associateMutation.isPending || disassociateMutation.isPending}
                       />
                     </div>
                   </div>
@@ -408,14 +359,20 @@ export default function ManageDisciplinasPage() {
             <div className="flex items-start gap-3">
               <BookOpen className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
-                <h4 className="font-medium text-blue-900 mb-2">
-                  Como funciona o gerenciamento de disciplinas
-                </h4>
+                <h4 className="font-medium text-blue-900 mb-2">Como funciona o gerenciamento de disciplinas</h4>
                 <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• <strong>Disciplinas Atuais:</strong> Disciplinas às quais você está associado neste semestre</li>
-                  <li>• <strong>Criar Nova:</strong> Crie disciplinas do seu departamento e associe-se automaticamente</li>
-                  <li>• <strong>Associar/Desassociar:</strong> Use os checkboxes para gerenciar suas associações</li>
-                  <li>• <strong>Período:</strong> As associações são específicas para o ano/semestre atual</li>
+                  <li>
+                    • <strong>Disciplinas Atuais:</strong> Disciplinas às quais você está associado neste semestre
+                  </li>
+                  <li>
+                    • <strong>Criar Nova:</strong> Crie disciplinas do seu departamento e associe-se automaticamente
+                  </li>
+                  <li>
+                    • <strong>Associar/Desassociar:</strong> Use os checkboxes para gerenciar suas associações
+                  </li>
+                  <li>
+                    • <strong>Período:</strong> As associações são específicas para o ano/semestre atual
+                  </li>
                 </ul>
               </div>
             </div>
@@ -424,4 +381,4 @@ export default function ManageDisciplinasPage() {
       </div>
     </PagesLayout>
   )
-} 
+}

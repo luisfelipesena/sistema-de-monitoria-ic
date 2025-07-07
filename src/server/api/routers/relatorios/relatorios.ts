@@ -19,7 +19,8 @@ import {
   relatorioFiltersSchema,
   relatorioFiltersWithDeptSchema,
   relatorioFiltersWithStatusSchema,
-} from '@/types/relatorios'
+} from '@/types'
+import { semestreSchema, tipoRelatorioSchema, tipoVagaSchema, type Semestre } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { and, count, desc, eq, sql, sum } from 'drizzle-orm'
 import { z } from 'zod'
@@ -28,7 +29,7 @@ async function checkDadosFaltantesPrograd(
   dbInstance: typeof db,
   input: {
     ano: number
-    semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
+    semestre: Semestre
     tipo: 'bolsistas' | 'voluntarios' | 'ambos'
   }
 ): Promise<ValidationResult> {
@@ -214,41 +215,39 @@ export const relatoriosRouter = createTRPCRouter({
     }
   }),
 
-  getRelatorioPorDepartamento: adminProtectedProcedure
-    .input(relatorioFiltersSchema)
-    .query(async ({ input, ctx }) => {
-      const departamentos = await ctx.db
-        .select({
-          departamento: {
-            id: departamentoTable.id,
-            nome: departamentoTable.nome,
-            sigla: departamentoTable.sigla,
-          },
-          projetos: count(projetoTable.id),
-          projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
-          bolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
-          bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
-        })
-        .from(departamentoTable)
-        .leftJoin(
-          projetoTable,
-          and(
-            eq(departamentoTable.id, projetoTable.departamentoId),
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
-          )
+  getRelatorioPorDepartamento: adminProtectedProcedure.input(relatorioFiltersSchema).query(async ({ input, ctx }) => {
+    const departamentos = await ctx.db
+      .select({
+        departamento: {
+          id: departamentoTable.id,
+          nome: departamentoTable.nome,
+          sigla: departamentoTable.sigla,
+        },
+        projetos: count(projetoTable.id),
+        projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+        bolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
+        bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
+      })
+      .from(departamentoTable)
+      .leftJoin(
+        projetoTable,
+        and(
+          eq(departamentoTable.id, projetoTable.departamentoId),
+          eq(projetoTable.ano, input.ano),
+          eq(projetoTable.semestre, input.semestre)
         )
-        .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)
-        .orderBy(desc(count(projetoTable.id)))
+      )
+      .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)
+      .orderBy(desc(count(projetoTable.id)))
 
-      return departamentos.map((dept) => ({
-        departamento: dept.departamento,
-        projetos: dept.projetos,
-        projetosAprovados: Number(dept.projetosAprovados) || 0,
-        bolsasSolicitadas: Number(dept.bolsasSolicitadas) || 0,
-        bolsasDisponibilizadas: Number(dept.bolsasDisponibilizadas) || 0,
-      }))
-    }),
+    return departamentos.map((dept) => ({
+      departamento: dept.departamento,
+      projetos: dept.projetos,
+      projetosAprovados: Number(dept.projetosAprovados) || 0,
+      bolsasSolicitadas: Number(dept.bolsasSolicitadas) || 0,
+      bolsasDisponibilizadas: Number(dept.bolsasDisponibilizadas) || 0,
+    }))
+  }),
 
   getRelatorioProfessores: adminProtectedProcedure
     .input(relatorioFiltersWithDeptSchema)
@@ -299,59 +298,57 @@ export const relatoriosRouter = createTRPCRouter({
       }))
     }),
 
-  getRelatorioAlunos: adminProtectedProcedure
-    .input(relatorioFiltersWithStatusSchema)
-    .query(async ({ input, ctx }) => {
-      const alunos = await ctx.db
-        .select({
-          aluno: {
-            id: alunoTable.id,
-            nomeCompleto: alunoTable.nomeCompleto,
-            emailInstitucional: alunoTable.emailInstitucional,
-            matricula: alunoTable.matricula,
-            cr: alunoTable.cr,
-          },
-          inscricoes: count(inscricaoTable.id),
-          statusInscricao: inscricaoTable.status,
-          tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
-          projeto: {
-            titulo: projetoTable.titulo,
-            professorResponsavel: professorTable.nomeCompleto,
-          },
-        })
-        .from(alunoTable)
-        .innerJoin(inscricaoTable, eq(alunoTable.id, inscricaoTable.alunoId))
-        .innerJoin(
-          projetoTable,
-          and(
-            eq(inscricaoTable.projetoId, projetoTable.id),
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
-          )
+  getRelatorioAlunos: adminProtectedProcedure.input(relatorioFiltersWithStatusSchema).query(async ({ input, ctx }) => {
+    const alunos = await ctx.db
+      .select({
+        aluno: {
+          id: alunoTable.id,
+          nomeCompleto: alunoTable.nomeCompleto,
+          emailInstitucional: alunoTable.emailInstitucional,
+          matricula: alunoTable.matricula,
+          cr: alunoTable.cr,
+        },
+        inscricoes: count(inscricaoTable.id),
+        statusInscricao: inscricaoTable.status,
+        tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
+        projeto: {
+          titulo: projetoTable.titulo,
+          professorResponsavel: professorTable.nomeCompleto,
+        },
+      })
+      .from(alunoTable)
+      .innerJoin(inscricaoTable, eq(alunoTable.id, inscricaoTable.alunoId))
+      .innerJoin(
+        projetoTable,
+        and(
+          eq(inscricaoTable.projetoId, projetoTable.id),
+          eq(projetoTable.ano, input.ano),
+          eq(projetoTable.semestre, input.semestre)
         )
-        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-        .where(input.status ? eq(inscricaoTable.status, input.status) : undefined)
-        .groupBy(
-          alunoTable.id,
-          alunoTable.nomeCompleto,
-          alunoTable.emailInstitucional,
-          alunoTable.matricula,
-          alunoTable.cr,
-          inscricaoTable.status,
-          inscricaoTable.tipoVagaPretendida,
-          projetoTable.titulo,
-          professorTable.nomeCompleto
-        )
-        .orderBy(desc(alunoTable.cr))
+      )
+      .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+      .where(input.status ? eq(inscricaoTable.status, input.status) : undefined)
+      .groupBy(
+        alunoTable.id,
+        alunoTable.nomeCompleto,
+        alunoTable.emailInstitucional,
+        alunoTable.matricula,
+        alunoTable.cr,
+        inscricaoTable.status,
+        inscricaoTable.tipoVagaPretendida,
+        projetoTable.titulo,
+        professorTable.nomeCompleto
+      )
+      .orderBy(desc(alunoTable.cr))
 
-      return alunos
-    }),
+    return alunos
+  }),
 
   getRelatorioDisciplinas: adminProtectedProcedure
     .input(
       z.object({
         ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        semestre: semestreSchema,
       })
     )
     .query(async ({ input, ctx }) => {
@@ -435,9 +432,9 @@ export const relatoriosRouter = createTRPCRouter({
   exportRelatorioCsv: adminProtectedProcedure
     .input(
       z.object({
-        tipo: z.enum(['geral', 'departamentos', 'professores', 'alunos', 'disciplinas', 'editais']),
+        tipo: tipoRelatorioSchema,
         ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        semestre: semestreSchema,
         filters: z.record(z.any()).optional(),
       })
     )
@@ -783,7 +780,7 @@ export const relatoriosRouter = createTRPCRouter({
     .input(
       z.object({
         ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        semestre: semestreSchema,
       })
     )
     .query(async ({ input, ctx }) => {
@@ -827,43 +824,47 @@ export const relatoriosRouter = createTRPCRouter({
     .input(
       z.object({
         ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        semestre: semestreSchema,
       })
     )
-    .output(z.array(z.object({
-      id: z.number(),
-      monitor: z.object({
-        nome: z.string(),
-        matricula: z.string(),
-        email: z.string(),
-        cr: z.number(),
-        banco: z.string().nullable(),
-        agencia: z.string().nullable(),
-        conta: z.string().nullable(),
-        digitoConta: z.string().nullable(),
-      }),
-      professor: z.object({
-        nome: z.string(),
-        matriculaSiape: z.string().nullable(),
-        email: z.string(),
-        departamento: z.string(),
-      }),
-      projeto: z.object({
-        titulo: z.string(),
-        disciplinas: z.string(),
-        ano: z.number(),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-        cargaHorariaSemana: z.number(),
-        numeroSemanas: z.number(),
-      }),
-      monitoria: z.object({
-        tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
-        dataInicio: z.string(),
-        dataFim: z.string(),
-        valorBolsa: z.number().optional(),
-        status: z.string(),
-      }),
-    })))
+    .output(
+      z.array(
+        z.object({
+          id: z.number(),
+          monitor: z.object({
+            nome: z.string(),
+            matricula: z.string(),
+            email: z.string(),
+            cr: z.number(),
+            banco: z.string().nullable(),
+            agencia: z.string().nullable(),
+            conta: z.string().nullable(),
+            digitoConta: z.string().nullable(),
+          }),
+          professor: z.object({
+            nome: z.string(),
+            matriculaSiape: z.string().nullable(),
+            email: z.string(),
+            departamento: z.string(),
+          }),
+          projeto: z.object({
+            titulo: z.string(),
+            disciplinas: z.string(),
+            ano: z.number(),
+            semestre: semestreSchema,
+            cargaHorariaSemana: z.number(),
+            numeroSemanas: z.number(),
+          }),
+          monitoria: z.object({
+            tipo: tipoVagaSchema,
+            dataInicio: z.string(),
+            dataFim: z.string(),
+            valorBolsa: z.number().optional(),
+            status: z.string(),
+          }),
+        })
+      )
+    )
     .mutation(async ({ input, ctx }) => {
       // Buscar todos os monitores aceitos no período
       const monitores = await ctx.db
@@ -938,7 +939,8 @@ export const relatoriosRouter = createTRPCRouter({
           const inicioSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
           const fimSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
 
-          const tipoMonitoria: 'BOLSISTA' | 'VOLUNTARIO' = monitor.inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
+          const tipoMonitoria: 'BOLSISTA' | 'VOLUNTARIO' =
+            monitor.inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
 
           return {
             id: monitor.inscricao.id,
@@ -985,7 +987,7 @@ export const relatoriosRouter = createTRPCRouter({
     .input(
       z.object({
         ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        semestre: semestreSchema,
         departamentoId: z.string().optional(),
       })
     )
@@ -1130,7 +1132,7 @@ export const relatoriosRouter = createTRPCRouter({
     .input(
       z.object({
         ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        semestre: semestreSchema,
         departamentoId: z.string().optional(),
       })
     )
@@ -1264,7 +1266,7 @@ export const relatoriosRouter = createTRPCRouter({
     .input(
       z.object({
         ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        semestre: semestreSchema,
         tipo: z.enum(['bolsistas', 'voluntarios', 'ambos']),
       })
     )
@@ -1277,7 +1279,7 @@ export const relatoriosRouter = createTRPCRouter({
     .input(
       z.object({
         ano: z.number().int().min(2000).max(2100),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        semestre: semestreSchema,
         incluirBolsistas: z.boolean().default(true),
         incluirVoluntarios: z.boolean().default(true),
         departamentoId: z.string().optional(),

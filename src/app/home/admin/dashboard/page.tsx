@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FilterModal, type FilterValues } from "@/components/ui/FilterModal"
+import { DashboardProjectItem, UserListItem } from "@/types"
 import { api } from "@/utils/api"
 import { getCurrentSemester } from "@/utils/utils"
 import { useQueryClient } from "@tanstack/react-query"
@@ -26,30 +27,10 @@ import {
   User,
   Users,
 } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
-
-type ProjetoListItem = {
-  id: number
-  titulo: string
-  status: string
-  departamentoId: number
-  departamentoNome: string
-  semestre: string
-  ano: number
-  bolsasDisponibilizadas: number | null
-  voluntariosSolicitados: number | null
-  totalInscritos: number
-  disciplinas: Array<{ codigo: string; nome: string }>
-}
-
-type ApiUser = {
-  id: number
-  username: string
-  email: string
-  role: string
-}
 
 export default function DashboardAdmin() {
   const router = useRouter()
@@ -236,7 +217,7 @@ export default function DashboardAdmin() {
   }
 
   // Column definitions for projects table
-  const colunasProjetos: ColumnDef<ProjetoListItem>[] = [
+  const colunasProjetos: ColumnDef<DashboardProjectItem>[] = [
     {
       header: () => (
         <div className="flex items-center gap-2">
@@ -294,19 +275,6 @@ export default function DashboardAdmin() {
     },
     {
       header: () => (
-        <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-gray-400" />
-          Bolsistas
-        </div>
-      ),
-      accessorKey: "bolsasDisponibilizadas",
-      cell: ({ row }) => {
-        const bolsas = row.original.bolsasDisponibilizadas || 0
-        return <span>{bolsas}</span>
-      },
-    },
-    {
-      header: () => (
         <div className="flex items-center justify-center gap-2">
           <Hand className="h-5 w-5 text-gray-400" />
           Voluntários
@@ -359,7 +327,7 @@ export default function DashboardAdmin() {
     },
   ]
 
-  const colunasProfessores: ColumnDef<ApiUser>[] = [
+  const colunasProfessores: ColumnDef<UserListItem>[] = [
     {
       header: () => (
         <div className="flex items-center gap-2">
@@ -389,7 +357,7 @@ export default function DashboardAdmin() {
     },
   ]
 
-  const colunasAlunos: ColumnDef<ApiUser>[] = [
+  const colunasAlunos: ColumnDef<UserListItem>[] = [
     {
       header: () => (
         <div className="flex items-center gap-2">
@@ -443,16 +411,6 @@ export default function DashboardAdmin() {
             <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Planilha PROGRAD</span>
             <span className="sm:hidden">PROGRAD</span>
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleManageProjectsClick}
-            className="text-xs sm:text-sm px-2 sm:px-4"
-          >
-            <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Gerenciar Projetos</span>
-            <span className="sm:hidden">Gerenciar</span>
           </Button>
         </>
       )}
@@ -551,18 +509,20 @@ export default function DashboardAdmin() {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-xs sm:text-sm font-medium">Pend. Assinatura</CardTitle>
-                    <FileSignature className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-lg sm:text-2xl font-bold text-purple-600">
-                      {statusCounts.pendingAdminSignature}
-                    </div>
-                    <p className="text-xs text-muted-foreground">Aguardando assinatura admin</p>
-                  </CardContent>
-                </Card>
+                <Link href="/home/admin/assinatura-documentos">
+                  <Card className="hover:bg-gray-100 transition-colors cursor-pointer">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-xs sm:text-sm font-medium">Pend. Assinatura</CardTitle>
+                      <FileSignature className="h-3 w-3 sm:h-4 sm:w-4 text-[hsl(var(--pending))]" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-lg sm:text-2xl font-bold text-[hsl(var(--pending))]">
+                        {statusCounts.pendingAdminSignature}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Aguardando assinatura admin</p>
+                    </CardContent>
+                  </Card>
+                </Link>
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

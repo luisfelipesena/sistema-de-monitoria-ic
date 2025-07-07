@@ -6,6 +6,7 @@ import {
   onboardingStatusResponseSchema,
 } from '@/server/db/schema'
 import { getCurrentSemester } from '@/utils/utils'
+import { generoSchema, regimeSchema } from '@/types'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
@@ -177,7 +178,7 @@ export const onboardingRouter = createTRPCRouter({
         cr: z.number().min(0).max(10),
         cursoId: z.number(),
         telefone: z.string().optional(),
-        genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
+        genero: generoSchema,
         especificacaoGenero: z.string().optional(),
         nomeSocial: z.string().optional(),
         rg: z.string().optional(),
@@ -256,9 +257,9 @@ export const onboardingRouter = createTRPCRouter({
         cpf: z.string().min(11),
         telefone: z.string().optional(),
         telefoneInstitucional: z.string().optional(),
-        regime: z.enum(['20H', '40H', 'DE']),
+        regime: regimeSchema,
         departamentoId: z.number(),
-        genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
+        genero: generoSchema,
         especificacaoGenero: z.string().optional(),
         nomeSocial: z.string().optional(),
       })

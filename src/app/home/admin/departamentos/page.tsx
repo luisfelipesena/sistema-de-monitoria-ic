@@ -28,35 +28,18 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import { DepartamentoListItem } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { Building, Edit, GraduationCap, Plus, Trash2, Users } from "lucide-react"
 import { useState } from "react"
-
-interface Departamento {
-  id: number
-  nome: string
-  sigla: string
-  descricao?: string
-  instituto?: string
-  coordenador?: string
-  email?: string
-  telefone?: string
-  professores: number
-  cursos: number
-  disciplinas: number
-  projetos: number
-  status: "ATIVO" | "INATIVO"
-  criadoEm: string
-  atualizadoEm: string
-}
 
 export default function DepartamentosPage() {
   const { toast } = useToast()
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedDepartamento, setSelectedDepartamento] = useState<Departamento | null>(null)
+  const [selectedDepartamento, setSelectedDepartamento] = useState<DepartamentoListItem | null>(null)
   const [formData, setFormData] = useState({
     nome: "",
     sigla: "",
@@ -88,7 +71,7 @@ export default function DepartamentosPage() {
     },
   })
 
-  const departamentos: Departamento[] =
+  const departamentos: DepartamentoListItem[] =
     departamentosData?.map((dept) => ({
       id: dept.id,
       nome: dept.nome,
@@ -156,7 +139,7 @@ export default function DepartamentosPage() {
     }
   }
 
-  const handleEdit = (departamento: Departamento) => {
+  const handleEdit = (departamento: DepartamentoListItem) => {
     setSelectedDepartamento(departamento)
     setFormData({
       nome: departamento.nome,
@@ -209,7 +192,7 @@ export default function DepartamentosPage() {
     }
   }
 
-  const handleDeleteClick = (departamento: Departamento) => {
+  const handleDeleteClick = (departamento: DepartamentoListItem) => {
     setSelectedDepartamento(departamento)
     setIsDeleteDialogOpen(true)
   }
@@ -245,7 +228,7 @@ export default function DepartamentosPage() {
     }
   }
 
-  const columns: ColumnDef<Departamento>[] = [
+  const columns: ColumnDef<DepartamentoListItem>[] = [
     {
       accessorKey: "nome",
       header: "Departamento",

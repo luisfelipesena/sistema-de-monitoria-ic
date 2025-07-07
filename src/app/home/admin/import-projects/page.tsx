@@ -1,45 +1,25 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { TableComponent } from '@/components/layout/TableComponent'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { api } from '@/utils/api'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { ColumnDef } from '@tanstack/react-table'
-import { Upload, FileSpreadsheet, Trash2, Eye, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
-import { z } from 'zod'
-
-const importFormSchema = z.object({
-  ano: z.number().int().min(2000).max(2100),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-})
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { importFormSchema, ImportHistoryItem } from "@/types"
+import { api } from "@/utils/api"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ColumnDef } from "@tanstack/react-table"
+import { AlertCircle, CheckCircle, Eye, FileSpreadsheet, Trash2, Upload, XCircle } from "lucide-react"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
 type ImportFormData = z.infer<typeof importFormSchema>
-
-type ImportHistoryItem = {
-  id: number
-  nomeArquivo: string
-  ano: number
-  semestre: string
-  totalProjetos: number
-  projetosCriados: number
-  projetosComErro: number
-  status: string
-  importadoPor: {
-    username: string
-    email: string
-  }
-  createdAt: Date
-}
 
 export default function ImportProjectsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -55,7 +35,7 @@ export default function ImportProjectsPage() {
   const uploadFileMutation = api.file.uploadFile.useMutation()
   const importProjectsMutation = api.importProjects.uploadFile.useMutation({
     onSuccess: () => {
-      toast.success('Arquivo enviado com sucesso! Processamento iniciado.')
+      toast.success("Arquivo enviado com sucesso! Processamento iniciado.")
       setIsDialogOpen(false)
       setSelectedFile(null)
       refetch()
@@ -68,7 +48,7 @@ export default function ImportProjectsPage() {
 
   const deleteImportMutation = api.importProjects.deleteImport.useMutation({
     onSuccess: () => {
-      toast.success('Importação excluída com sucesso!')
+      toast.success("Importação excluída com sucesso!")
       refetch()
     },
     onError: (error) => {
@@ -80,15 +60,15 @@ export default function ImportProjectsPage() {
     resolver: zodResolver(importFormSchema),
     defaultValues: {
       ano: new Date().getFullYear(),
-      semestre: 'SEMESTRE_1',
+      semestre: "SEMESTRE_1",
     },
   })
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-        toast.error('Por favor, selecione um arquivo Excel (.xlsx ou .xls)')
+      if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
+        toast.error("Por favor, selecione um arquivo Excel (.xlsx ou .xls)")
         return
       }
       setSelectedFile(file)
@@ -97,7 +77,7 @@ export default function ImportProjectsPage() {
 
   const handleImport = async (data: ImportFormData) => {
     if (!selectedFile) {
-      toast.error('Por favor, selecione um arquivo')
+      toast.error("Por favor, selecione um arquivo")
       return
     }
 
@@ -108,7 +88,7 @@ export default function ImportProjectsPage() {
         reader.onload = () => {
           const base64 = reader.result as string
           // Remove data:mime/type;base64, prefix
-          resolve(base64.split(',')[1])
+          resolve(base64.split(",")[1])
         }
         reader.onerror = reject
         reader.readAsDataURL(selectedFile)
@@ -118,7 +98,7 @@ export default function ImportProjectsPage() {
         fileName: selectedFile.name,
         fileData,
         mimeType: selectedFile.type,
-        entityType: 'imports',
+        entityType: "imports",
         entityId: `${data.ano}-${data.semestre}`,
       })
 
@@ -129,34 +109,34 @@ export default function ImportProjectsPage() {
         semestre: data.semestre,
       })
     } catch (error) {
-      console.error('Error during import:', error)
+      console.error("Error during import:", error)
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'PROCESSANDO':
+      case "PROCESSANDO":
         return (
           <Badge variant="outline" className="border-blue-500 text-blue-700">
             <AlertCircle className="h-3 w-3 mr-1" />
             Processando
           </Badge>
         )
-      case 'CONCLUIDO':
+      case "CONCLUIDO":
         return (
           <Badge variant="default" className="bg-green-500">
             <CheckCircle className="h-3 w-3 mr-1" />
             Concluído
           </Badge>
         )
-      case 'CONCLUIDO_COM_ERROS':
+      case "CONCLUIDO_COM_ERROS":
         return (
           <Badge variant="outline" className="border-yellow-500 text-yellow-700">
             <AlertCircle className="h-3 w-3 mr-1" />
             Concluído com Erros
           </Badge>
         )
-      case 'ERRO':
+      case "ERRO":
         return (
           <Badge variant="destructive">
             <XCircle className="h-3 w-3 mr-1" />
@@ -170,20 +150,20 @@ export default function ImportProjectsPage() {
 
   const columns: ColumnDef<ImportHistoryItem>[] = [
     {
-      header: 'Arquivo',
-      accessorKey: 'nomeArquivo',
+      header: "Arquivo",
+      accessorKey: "nomeArquivo",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.nomeArquivo}</div>
           <div className="text-sm text-muted-foreground">
-            {row.original.ano}/{row.original.semestre === 'SEMESTRE_1' ? '1' : '2'}
+            {row.original.ano}/{row.original.semestre === "SEMESTRE_1" ? "1" : "2"}
           </div>
         </div>
       ),
     },
     {
-      header: 'Projetos',
-      accessorKey: 'totalProjetos',
+      header: "Projetos",
+      accessorKey: "totalProjetos",
       cell: ({ row }) => (
         <div className="text-center">
           <div className="font-medium">{row.original.totalProjetos}</div>
@@ -194,13 +174,13 @@ export default function ImportProjectsPage() {
       ),
     },
     {
-      header: 'Status',
-      accessorKey: 'status',
+      header: "Status",
+      accessorKey: "status",
       cell: ({ row }) => getStatusBadge(row.original.status),
     },
     {
-      header: 'Importado por',
-      accessorKey: 'importadoPor.username',
+      header: "Importado por",
+      accessorKey: "importadoPor.username",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.importadoPor.username}</div>
@@ -209,20 +189,16 @@ export default function ImportProjectsPage() {
       ),
     },
     {
-      header: 'Data',
-      accessorKey: 'createdAt',
-      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString('pt-BR'),
+      header: "Data",
+      accessorKey: "createdAt",
+      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString("pt-BR"),
     },
     {
-      header: 'Ações',
-      id: 'actions',
+      header: "Ações",
+      id: "actions",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSelectedImportId(row.original.id)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setSelectedImportId(row.original.id)}>
             <Eye className="h-4 w-4" />
           </Button>
           <Button
@@ -239,10 +215,7 @@ export default function ImportProjectsPage() {
   ]
 
   return (
-    <PagesLayout 
-      title="Importar Planejamento" 
-      subtitle="Importe projetos de monitoria a partir de planilhas Excel"
-    >
+    <PagesLayout title="Importar Planejamento" subtitle="Importe projetos de monitoria a partir de planilhas Excel">
       <div className="space-y-6">
         <Card>
           <CardHeader>
@@ -271,9 +244,9 @@ export default function ImportProjectsPage() {
                           <FormItem>
                             <FormLabel>Ano</FormLabel>
                             <FormControl>
-                              <Input 
-                                type="number" 
-                                {...field} 
+                              <Input
+                                type="number"
+                                {...field}
                                 onChange={(e) => field.onChange(parseInt(e.target.value))}
                               />
                             </FormControl>
@@ -304,16 +277,9 @@ export default function ImportProjectsPage() {
                       />
                       <div className="space-y-2">
                         <label className="text-sm font-medium">Arquivo Excel</label>
-                        <Input
-                          type="file"
-                          accept=".xlsx,.xls"
-                          onChange={handleFileSelect}
-                          required
-                        />
+                        <Input type="file" accept=".xlsx,.xls" onChange={handleFileSelect} required />
                         {selectedFile && (
-                          <p className="text-sm text-muted-foreground">
-                            Arquivo selecionado: {selectedFile.name}
-                          </p>
+                          <p className="text-sm text-muted-foreground">Arquivo selecionado: {selectedFile.name}</p>
                         )}
                       </div>
                       <Button
@@ -321,7 +287,7 @@ export default function ImportProjectsPage() {
                         className="w-full"
                         disabled={importProjectsMutation.isPending || !selectedFile}
                       >
-                        {importProjectsMutation.isPending ? 'Importando...' : 'Importar'}
+                        {importProjectsMutation.isPending ? "Importando..." : "Importar"}
                       </Button>
                     </form>
                   </Form>
@@ -336,9 +302,7 @@ export default function ImportProjectsPage() {
               <p className="text-muted-foreground mb-4">
                 Faça upload de uma planilha Excel com os dados dos projetos para importação automática.
               </p>
-              <p className="text-sm text-muted-foreground">
-                Formatos aceitos: .xlsx, .xls
-              </p>
+              <p className="text-sm text-muted-foreground">Formatos aceitos: .xlsx, .xls</p>
             </div>
           </CardContent>
         </Card>
@@ -373,12 +337,8 @@ export default function ImportProjectsPage() {
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <FileSpreadsheet className="mx-auto h-12 w-12 mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  Nenhuma importação encontrada
-                </h3>
-                <p>
-                  Ainda não foram realizadas importações de projetos.
-                </p>
+                <h3 className="text-lg font-medium mb-2">Nenhuma importação encontrada</h3>
+                <p>Ainda não foram realizadas importações de projetos.</p>
               </div>
             )}
           </CardContent>
@@ -400,7 +360,7 @@ export default function ImportProjectsPage() {
                   <div>
                     <p className="text-sm font-medium">Período</p>
                     <p className="text-sm text-muted-foreground">
-                      {importDetails.ano}/{importDetails.semestre === 'SEMESTRE_1' ? '1' : '2'}
+                      {importDetails.ano}/{importDetails.semestre === "SEMESTRE_1" ? "1" : "2"}
                     </p>
                   </div>
                   <div>
@@ -412,7 +372,7 @@ export default function ImportProjectsPage() {
                     {getStatusBadge(importDetails.status)}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium text-green-600">Projetos Criados</p>

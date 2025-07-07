@@ -1,76 +1,20 @@
-import {
-  Document,
-  Image,
-  Page,
-  StyleSheet,
-  Text,
-  View,
-} from '@react-pdf/renderer'
-
-export interface MonitoriaFormData {
-  titulo: string
-  descricao: string
-  departamento?: {
-    id: number
-    nome: string
-  }
-  coordenadorResponsavel?: string
-  professorResponsavel?: {
-    id: number
-    nomeCompleto: string
-    nomeSocial?: string
-    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO'
-    cpf: string
-    matriculaSiape?: string
-    regime: '20H' | '40H' | 'DE'
-    telefone?: string
-    telefoneInstitucional?: string
-    emailInstitucional: string
-  }
-  ano: number
-  semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
-  tipoProposicao: 'INDIVIDUAL' | 'COLETIVA'
-  bolsasSolicitadas: number
-  voluntariosSolicitados: number
-  cargaHorariaSemana: number
-  numeroSemanas: number
-  publicoAlvo: string
-  estimativaPessoasBenificiadas?: number
-  disciplinas: Array<{
-    id: number
-    codigo: string
-    nome: string
-  }>
-  user?: {
-    username?: string
-    email?: string
-    nomeCompleto?: string
-    role?: string
-  }
-  assinaturaProfessor?: string
-  assinaturaAdmin?: string
-  dataAprovacao?: string
-  dataAssinaturaProfessor?: string
-  dataAssinaturaAdmin?: string
-  allowSigning?: boolean
-  signingMode?: 'professor' | 'admin' | 'view'
-  projetoId?: number
-}
+import { MonitoriaFormData } from "@/types"
+import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 
 const styles = StyleSheet.create({
   page: {
     padding: 20,
     fontSize: 9,
-    fontFamily: 'Helvetica',
-    backgroundColor: '#FFFFFF',
+    fontFamily: "Helvetica",
+    backgroundColor: "#FFFFFF",
     break: false,
   },
   header: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 20,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     wrap: false,
     break: false,
   },
@@ -80,13 +24,13 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   headerText: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    justifyContent: 'center',
+    flexDirection: "column",
+    alignItems: "flex-start",
+    justifyContent: "center",
   },
   universityName: {
     fontSize: 11,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 2,
   },
   departmentName: {
@@ -95,44 +39,44 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 10,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginVertical: 15,
     paddingHorizontal: 10,
     wrap: false,
   },
   section: {
     marginBottom: 8,
-    border: '1pt solid #000',
+    border: "1pt solid #000",
     break: false,
   },
   sectionHeader: {
-    backgroundColor: '#E0E0E0',
-    fontWeight: 'bold',
+    backgroundColor: "#E0E0E0",
+    fontWeight: "bold",
     fontSize: 9,
     padding: 3,
-    borderBottom: '1pt solid #000',
-    textAlign: 'center',
+    borderBottom: "1pt solid #000",
+    textAlign: "center",
   },
   row: {
-    borderBottom: '1pt solid #000',
+    borderBottom: "1pt solid #000",
     paddingVertical: 2,
     paddingHorizontal: 4,
     minHeight: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     break: false,
   },
   lastRow: {
     paddingVertical: 2,
     paddingHorizontal: 4,
     minHeight: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     break: false,
   },
   label: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 8,
   },
   value: {
@@ -148,12 +92,12 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontSize: 8,
     lineHeight: 1.3,
-    textAlign: 'justify',
+    textAlign: "justify",
   },
   professionalDataRow: {
     paddingVertical: 1,
     paddingHorizontal: 4,
-    flexDirection: 'row',
+    flexDirection: "row",
     fontSize: 8,
     break: false,
   },
@@ -168,9 +112,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   signatureArea: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 15,
     break: false,
   },
@@ -179,7 +123,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   signatureLine: {
-    borderBottom: '1pt solid #000',
+    borderBottom: "1pt solid #000",
     width: 200,
     height: 20,
     marginLeft: 10,
@@ -187,21 +131,21 @@ const styles = StyleSheet.create({
   signatureImage: {
     width: 200,
     height: 60,
-    objectFit: 'contain',
+    objectFit: "contain",
     marginLeft: 10,
   },
   activeSignatureArea: {
-    borderColor: '#0066cc',
-    borderWidth: '2pt',
-    backgroundColor: '#f0f8ff',
+    borderColor: "#0066cc",
+    borderWidth: "2pt",
+    backgroundColor: "#f0f8ff",
   },
   tableRow: {
-    borderBottom: '1pt solid #000',
+    borderBottom: "1pt solid #000",
     paddingVertical: 2,
     paddingHorizontal: 4,
     minHeight: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     break: false,
   },
   tableCell: {
@@ -211,23 +155,17 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 10,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginVertical: 15,
     paddingHorizontal: 10,
     wrap: false,
   },
 })
 
-export const MonitoriaFormTemplate = ({
-  data,
-}: {
-  data: MonitoriaFormData
-}) => {
-  const semestreLabel = `${data.ano}.${data.semestre === 'SEMESTRE_1' ? '1' : '2'}`
-  const disciplinasText =
-    data.disciplinas?.map((d) => `${d.codigo} - ${d.nome}`).join(', ') ||
-    'Não informado'
+export const MonitoriaFormTemplate = ({ data }: { data: MonitoriaFormData }) => {
+  const semestreLabel = `${data.ano}.${data.semestre === "SEMESTRE_1" ? "1" : "2"}`
+  const disciplinasText = data.disciplinas?.map((d) => `${d.codigo} - ${d.nome}`).join(", ") || "Não informado"
   const totalMonitores = data.bolsasSolicitadas + data.voluntariosSolicitados
   const cargaHorariaTotal = data.cargaHorariaSemana * data.numeroSemanas
 
@@ -237,21 +175,13 @@ export const MonitoriaFormTemplate = ({
         <View style={styles.header}>
           <Image style={styles.logo} src="/images/logo-ufba.png" />
           <View style={styles.headerText}>
-            <Text style={styles.universityName}>
-              UNIVERSIDADE FEDERAL DA BAHIA
-            </Text>
-            <Text style={styles.departmentName}>
-              Pró - Reitoria de Ensino de Graduação
-            </Text>
-            <Text style={styles.departmentName}>
-              Coordenação Acadêmica de Graduação
-            </Text>
+            <Text style={styles.universityName}>UNIVERSIDADE FEDERAL DA BAHIA</Text>
+            <Text style={styles.departmentName}>Pró - Reitoria de Ensino de Graduação</Text>
+            <Text style={styles.departmentName}>Coordenação Acadêmica de Graduação</Text>
           </View>
         </View>
 
-        <Text style={styles.title}>
-          ANEXO I – FORMULÁRIO PARA SUBMISSÃO DE PROJETO DE MONITORIA
-        </Text>
+        <Text style={styles.title}>ANEXO I – FORMULÁRIO PARA SUBMISSÃO DE PROJETO DE MONITORIA</Text>
 
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>1. IDENTIFICAÇÃO DO PROJETO</Text>
@@ -262,23 +192,17 @@ export const MonitoriaFormTemplate = ({
           </View>
 
           <View style={styles.row}>
-            <Text style={styles.label}>
-              1.2 Órgão responsável (Departamento ou Coord. Acadêmica):
-            </Text>
-            <Text style={styles.value}>
-              {data.departamento?.nome || 'Não selecionado'}
-            </Text>
+            <Text style={styles.label}>1.2 Órgão responsável (Departamento ou Coord. Acadêmica):</Text>
+            <Text style={styles.value}>{data.departamento?.nome || "Não selecionado"}</Text>
           </View>
 
           <View style={styles.row}>
             <Text style={styles.label}>1.3 Data da aprovação do projeto:</Text>
-            <Text style={styles.value}>{data.dataAprovacao || '_________________'}</Text>
+            <Text style={styles.value}>{data.dataAprovacao || "_________________"}</Text>
           </View>
 
           <View style={styles.row}>
-            <Text style={styles.label}>
-              1.4 Componente(s) curricular(es) (código e nome):
-            </Text>
+            <Text style={styles.label}>1.4 Componente(s) curricular(es) (código e nome):</Text>
             <Text style={styles.value}>{disciplinasText}</Text>
           </View>
 
@@ -290,10 +214,9 @@ export const MonitoriaFormTemplate = ({
           <View style={styles.row}>
             <Text style={styles.label}>1.6 Proposição:</Text>
             <Text style={styles.value}>
-              {data.tipoProposicao === 'INDIVIDUAL' ? '( X )' : '(   )'}{' '}
-              Individual
-              {data.tipoProposicao === 'COLETIVA' ? '( X )' : '(   )'} Coletiva
-              - Nesse caso, informar quantos professores: ___
+              {data.tipoProposicao === "INDIVIDUAL" ? "( X )" : "(   )"} Individual
+              {data.tipoProposicao === "COLETIVA" ? "( X )" : "(   )"} Coletiva - Nesse caso, informar quantos
+              professores: ___
             </Text>
           </View>
 
@@ -304,91 +227,91 @@ export const MonitoriaFormTemplate = ({
 
           <View style={styles.row}>
             <Text style={styles.label}>1.8 Carga horária semanal:</Text>
-            <Text style={styles.value}>
-              {data.cargaHorariaSemana}h (Resolução CAE Nº 05/2021, Art. 7º,
-              inciso I)
-            </Text>
+            <Text style={styles.value}>{data.cargaHorariaSemana}h (Resolução CAE Nº 05/2021, Art. 7º, inciso I)</Text>
           </View>
 
           <View style={styles.row}>
-            <Text style={styles.label}>
-              1.9 Carga horária total pretendida (12h x Nº de semanas):
-            </Text>
+            <Text style={styles.label}>1.9 Carga horária total pretendida (12h x Nº de semanas):</Text>
             <Text style={styles.value}>{cargaHorariaTotal}h</Text>
           </View>
 
           <View style={styles.row}>
             <Text style={styles.label}>1.10 Público-alvo:</Text>
             <Text style={styles.value}>
-              ( X ) Estudantes de graduação ( ) Outros ( ) - Informar qual:{' '}
-              {data.publicoAlvo}
+              ( X ) Estudantes de graduação ( ) Outros ( ) - Informar qual: {data.publicoAlvo}
             </Text>
           </View>
 
           <View style={styles.lastRow}>
-            <Text style={styles.label}>
-              1.11 Estimativa de quantas pessoas serão beneficiadas com o
-              projeto:
+            <Text style={styles.label}>1.11 Estimativa de quantas pessoas serão beneficiadas com o projeto:</Text>
+            <Text style={styles.value}>( {data.estimativaPessoasBenificiadas || "___"} )</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>2. DADOS DO PROFESSOR RESPONSÁVEL PELO PROJETO (PROPONENTE)</Text>
+
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>
+              2.1 Nome Completo:{" "}
+              {data.professorResponsavel?.nomeCompleto ||
+                (data.user?.role !== "admin" ? data.user?.nomeCompleto : "") ||
+                "Não informado"}
             </Text>
-            <Text style={styles.value}>
-              ( {data.estimativaPessoasBenificiadas || '___'} )
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>
+              2.2 Nome Social (se houver):{" "}
+              {data.professorResponsavel?.nomeSocial || "_________________________________"}
+            </Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>2.3 CPF: {data.professorResponsavel?.cpf || "___.___.___ - __"}</Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>
+              2.4 SIAPE: {data.professorResponsavel?.matriculaSiape || "_________________"}
+            </Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>
+              2.5 Regime: 20h ({data.professorResponsavel?.regime === "20H" ? "X" : " "}) 40h (
+              {data.professorResponsavel?.regime === "40H" ? "X" : " "}) DE (
+              {data.professorResponsavel?.regime === "DE" ? "X" : " "})
+            </Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>
+              2.6 Tel. Institucional: {data.professorResponsavel?.telefoneInstitucional || "_________________"}
+            </Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>
+              2.7 Celular: {data.professorResponsavel?.telefone || "_________________"}
+            </Text>
+          </View>
+          <View style={styles.tableRow}>
+            <Text style={styles.tableCell}>
+              2.8 E-mail institucional:{" "}
+              {data.professorResponsavel?.emailInstitucional || data.user?.email || "professor@ufba.br"}
             </Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>
-            2. DADOS DO PROFESSOR RESPONSÁVEL PELO PROJETO (PROPONENTE)
-          </Text>
-
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>2.1 Nome Completo: {data.professorResponsavel?.nomeCompleto || (data.user?.role !== 'admin' ? data.user?.nomeCompleto : '') || 'Não informado'}</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>2.2 Nome Social (se houver): {data.professorResponsavel?.nomeSocial || '_________________________________'}</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>2.3 CPF: {data.professorResponsavel?.cpf || '___.___.___ - __'}</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>2.4 SIAPE: {data.professorResponsavel?.matriculaSiape || '_________________'}</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>2.5 Regime: 20h ({data.professorResponsavel?.regime === '20H' ? 'X' : ' '}) 40h ({data.professorResponsavel?.regime === '40H' ? 'X' : ' '}) DE ({data.professorResponsavel?.regime === 'DE' ? 'X' : ' '})</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>2.6 Tel. Institucional: {data.professorResponsavel?.telefoneInstitucional || '_________________'}</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>2.7 Celular: {data.professorResponsavel?.telefone || '_________________'}</Text>
-          </View>
-          <View style={styles.tableRow}>
-            <Text style={styles.tableCell}>2.8 E-mail institucional: {data.professorResponsavel?.emailInstitucional || data.user?.email || 'professor@ufba.br'}</Text>
+          <Text style={styles.sectionHeader}>3. BREVE DESCRIÇÃO DO PROJETO</Text>
+          <View style={styles.descriptionSection}>
+            <Text style={styles.descriptionText}>{data.descricao || "Descrição do projeto não informada."}</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>
-            3. BREVE DESCRIÇÃO DO PROJETO
-          </Text>
+          <Text style={styles.sectionHeader}>4. ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)</Text>
           <View style={styles.descriptionSection}>
             <Text style={styles.descriptionText}>
-              {data.descricao || 'Descrição do projeto não informada.'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>
-            4. ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)
-          </Text>
-          <View style={styles.descriptionSection}>
-            <Text style={styles.descriptionText}>
-              • Auxiliar o professor na elaboração de problemas para listas e
-              provas{'\n'}• Auxiliar os alunos no uso das plataformas de
-              submissão de problemas{'\n'}• Auxiliar os alunos quanto ao uso das
-              técnicas e comandos de programação{'\n'}• Auxiliar os alunos em
-              horário extra classe{'\n'}• Outras atividades relacionadas ao
+              • Auxiliar o professor na elaboração de problemas para listas e provas{"\n"}• Auxiliar os alunos no uso
+              das plataformas de submissão de problemas{"\n"}• Auxiliar os alunos quanto ao uso das técnicas e comandos
+              de programação{"\n"}• Auxiliar os alunos em horário extra classe{"\n"}• Outras atividades relacionadas ao
               projeto de monitoria
             </Text>
           </View>
@@ -398,19 +321,25 @@ export const MonitoriaFormTemplate = ({
           <Text style={styles.sectionHeader}>5. DECLARAÇÃO</Text>
           <View style={styles.declarationSection}>
             <Text style={styles.declarationText}>
-              Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das
-              normas descritas no Edital PROGRAD/UFBA Nº 001/2025 – Programa de
-              Monitoria 2025.1 ( X )
+              Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das normas descritas no Edital PROGRAD/UFBA Nº
+              001/2025 – Programa de Monitoria 2025.1 ( X )
             </Text>
 
             <View style={styles.signatureArea}>
               <Text style={styles.signatureText}>
-                Data e Assinatura do(a) Prof(a). Responsável: {data.dataAssinaturaProfessor || new Date().toLocaleDateString('pt-BR')}
+                Data e Assinatura do(a) Prof(a). Responsável:{" "}
+                {data.dataAssinaturaProfessor || new Date().toLocaleDateString("pt-BR")}
               </Text>
               {data.assinaturaProfessor ? (
                 <Image src={data.assinaturaProfessor} style={styles.signatureImage} />
               ) : (
-                <View style={data.signingMode === 'professor' ? [styles.signatureLine, styles.activeSignatureArea] : styles.signatureLine} />
+                <View
+                  style={
+                    data.signingMode === "professor"
+                      ? [styles.signatureLine, styles.activeSignatureArea]
+                      : styles.signatureLine
+                  }
+                />
               )}
             </View>
           </View>
@@ -420,30 +349,34 @@ export const MonitoriaFormTemplate = ({
           <Text style={styles.sectionHeader}>6. APROVAÇÃO DO COORDENADOR</Text>
           <View style={styles.declarationSection}>
             <Text style={styles.declarationText}>
-              Declaro que o projeto de monitoria acima descrito foi analisado e
-              aprovado pelo departamento/coordenação acadêmica responsável,
-              estando em conformidade com as diretrizes institucionais.
+              Declaro que o projeto de monitoria acima descrito foi analisado e aprovado pelo departamento/coordenação
+              acadêmica responsável, estando em conformidade com as diretrizes institucionais.
             </Text>
 
             <View style={styles.signatureArea}>
               <Text style={styles.signatureText}>
-                Coordenador Responsável:{' '}
+                Coordenador Responsável:{" "}
                 {data.coordenadorResponsavel ||
-                  (data.user?.role === 'admin'
-                    ? data.user?.nomeCompleto
-                    : '') ||
-                  'Coordenador'}
+                  (data.user?.role === "admin" ? data.user?.nomeCompleto : "") ||
+                  "Coordenador"}
               </Text>
             </View>
 
             <View style={styles.signatureArea}>
               <Text style={styles.signatureText}>
-                Data e Assinatura do(a) Coordenador(a): {data.dataAssinaturaAdmin || new Date().toLocaleDateString('pt-BR')}
+                Data e Assinatura do(a) Coordenador(a):{" "}
+                {data.dataAssinaturaAdmin || new Date().toLocaleDateString("pt-BR")}
               </Text>
               {data.assinaturaAdmin ? (
                 <Image src={data.assinaturaAdmin} style={styles.signatureImage} />
               ) : (
-                <View style={data.signingMode === 'admin' ? [styles.signatureLine, styles.activeSignatureArea] : styles.signatureLine} />
+                <View
+                  style={
+                    data.signingMode === "admin"
+                      ? [styles.signatureLine, styles.activeSignatureArea]
+                      : styles.signatureLine
+                  }
+                />
               )}
             </View>
           </View>

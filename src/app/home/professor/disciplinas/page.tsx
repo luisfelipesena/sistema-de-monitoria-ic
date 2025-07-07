@@ -1,31 +1,21 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { TableComponent } from '@/components/layout/TableComponent'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { api } from '@/utils/api'
-import { ColumnDef } from '@tanstack/react-table'
-import { BookOpen, Users, Award } from 'lucide-react'
-
-type DisciplinaListItem = {
-  id: number
-  codigo: string
-  nome: string
-  cargaHoraria: number
-  projetosAtivos: number
-  monitoresAtivos: number
-  voluntariosAtivos: number
-}
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ProfessorDisciplinaListItem } from "@/types"
+import { api } from "@/utils/api"
+import { ColumnDef } from "@tanstack/react-table"
+import { Award, BookOpen, Users } from "lucide-react"
 
 export default function MinhasDisciplinasPage() {
   const { data: disciplinas, isLoading } = api.discipline.getProfessorDisciplines.useQuery()
 
-  const columns: ColumnDef<DisciplinaListItem>[] = [
+  const columns: ColumnDef<ProfessorDisciplinaListItem>[] = [
     {
-      header: 'Disciplina',
-      accessorKey: 'codigo',
+      header: "Disciplina",
+      accessorKey: "codigo",
       cell: ({ row }) => (
         <div>
           <span className="font-mono font-medium text-base">{row.original.codigo}</span>
@@ -34,13 +24,13 @@ export default function MinhasDisciplinasPage() {
       ),
     },
     {
-      header: 'Carga Horária',
-      accessorKey: 'cargaHoraria',
+      header: "Carga Horária",
+      accessorKey: "cargaHoraria",
       cell: ({ row }) => `${row.original.cargaHoraria}h`,
     },
     {
-      header: 'Projetos Ativos',
-      accessorKey: 'projetosAtivos',
+      header: "Projetos Ativos",
+      accessorKey: "projetosAtivos",
       cell: ({ row }) => (
         <Badge variant="outline" className="bg-blue-50 text-blue-700">
           {row.original.projetosAtivos} projeto(s)
@@ -48,8 +38,8 @@ export default function MinhasDisciplinasPage() {
       ),
     },
     {
-      header: 'Monitores',
-      accessorKey: 'monitoresAtivos',
+      header: "Monitores",
+      accessorKey: "monitoresAtivos",
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <Users className="h-4 w-4 text-green-600" />
@@ -58,8 +48,8 @@ export default function MinhasDisciplinasPage() {
       ),
     },
     {
-      header: 'Voluntários',
-      accessorKey: 'voluntariosAtivos',
+      header: "Voluntários",
+      accessorKey: "voluntariosAtivos",
       cell: ({ row }) => (
         <div className="flex items-center gap-1">
           <Award className="h-4 w-4 text-purple-600" />
@@ -70,10 +60,7 @@ export default function MinhasDisciplinasPage() {
   ]
 
   return (
-    <PagesLayout 
-      title="Minhas Disciplinas" 
-      subtitle="Disciplinas sob sua responsabilidade"
-    >
+    <PagesLayout title="Minhas Disciplinas" subtitle="Disciplinas sob sua responsabilidade">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -104,12 +91,8 @@ export default function MinhasDisciplinasPage() {
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <BookOpen className="mx-auto h-12 w-12 mb-4" />
-              <h3 className="text-lg font-medium mb-2">
-                Nenhuma disciplina encontrada
-              </h3>
-              <p>
-                Você não está associado a nenhuma disciplina no momento.
-              </p>
+              <h3 className="text-lg font-medium mb-2">Nenhuma disciplina encontrada</h3>
+              <p>Você não está associado a nenhuma disciplina no momento.</p>
             </div>
           )}
         </CardContent>

@@ -1,18 +1,11 @@
-'use client'
+"use client"
 
-import { MonitoriaFormTemplate, MonitoriaFormData } from '@/components/features/projects/MonitoriaFormTemplate'
-import { Button } from '@/components/ui/button'
-import { PDFViewer } from '@react-pdf/renderer'
-import {
-  AlertCircle,
-  CheckCircle,
-  Eye,
-  EyeOff,
-  FileText,
-  Loader2,
-  RefreshCw,
-} from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
+import { Button } from "@/components/ui/button"
+import { MonitoriaFormData } from "@/types"
+import { PDFViewer } from "@react-pdf/renderer"
+import { AlertCircle, CheckCircle, Eye, EyeOff, FileText, Loader2, RefreshCw } from "lucide-react"
+import { useMemo, useState } from "react"
 
 interface ProjectPDFPreviewProps {
   formData: Partial<MonitoriaFormData>
@@ -62,16 +55,8 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
     if (!pdfData || !showPreview) return null
 
     return (
-      <div
-        key={pdfRenderKey}
-        className="pdf-container h-[600px] w-full border rounded"
-      >
-        <PDFViewer
-          width="100%"
-          height="100%"
-          showToolbar={false}
-          style={{ border: 'none' }}
-        >
+      <div key={pdfRenderKey} className="pdf-container h-[600px] w-full border rounded">
+        <PDFViewer width="100%" height="100%" showToolbar={false} style={{ border: "none" }}>
           <MonitoriaFormTemplate data={pdfData} />
         </PDFViewer>
       </div>
@@ -83,16 +68,13 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
       return (
         <div className="p-8 text-center">
           <AlertCircle className="mx-auto h-12 w-12 mb-4 text-orange-500" />
-          <h4 className="text-lg font-medium text-gray-700 mb-2">
-            Campos obrigatórios pendentes
-          </h4>
+          <h4 className="text-lg font-medium text-gray-700 mb-2">Campos obrigatórios pendentes</h4>
           <p className="text-gray-500 text-sm mb-4">
             Preencha todos os campos obrigatórios para gerar o preview do PDF
           </p>
           <div className="text-xs text-gray-400 bg-gray-50 p-3 rounded">
-            <strong>Campos obrigatórios:</strong> Título, Descrição,
-            Departamento, Disciplinas, Ano, Semestre, Tipo de Proposição, Carga
-            Horária, Número de Semanas, Público Alvo
+            <strong>Campos obrigatórios:</strong> Título, Descrição, Departamento, Disciplinas, Ano, Semestre, Tipo de
+            Proposição, Carga Horária, Número de Semanas, Público Alvo
           </div>
         </div>
       )
@@ -102,12 +84,9 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
       return (
         <div className="p-8 text-center">
           <FileText className="mx-auto h-12 w-12 text-blue-400 mb-4" />
-          <h4 className="text-lg font-medium text-blue-700 mb-2">
-            Preview PDF Disponível
-          </h4>
+          <h4 className="text-lg font-medium text-blue-700 mb-2">Preview PDF Disponível</h4>
           <p className="text-blue-600 text-sm mb-4">
-            Clique para gerar o PDF com os dados atuais do formulário. O PDF não
-            será atualizado automaticamente.
+            Clique para gerar o PDF com os dados atuais do formulário. O PDF não será atualizado automaticamente.
           </p>
           <Button onClick={handleActivatePreview}>
             <Eye className="h-4 w-4 mr-2" />
@@ -122,12 +101,8 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
         <div className="h-[600px] w-full flex items-center justify-center bg-blue-50 border rounded-md">
           <div className="text-center">
             <Loader2 className="mx-auto h-12 w-12 text-blue-600 mb-4 animate-spin" />
-            <h4 className="text-lg font-medium text-blue-700 mb-2">
-              Atualizando PDF
-            </h4>
-            <p className="text-blue-600 text-sm">
-              Aguarde enquanto o documento é atualizado...
-            </p>
+            <h4 className="text-lg font-medium text-blue-700 mb-2">Atualizando PDF</h4>
+            <p className="text-blue-600 text-sm">Aguarde enquanto o documento é atualizado...</p>
           </div>
         </div>
       )
@@ -146,9 +121,7 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
             ) : (
               <AlertCircle className="h-4 w-4 text-orange-500" />
             )}
-            <span className="text-sm font-medium">
-              {hasRequiredFields ? 'Preview Disponível' : 'Campos Pendentes'}
-            </span>
+            <span className="text-sm font-medium">{hasRequiredFields ? "Preview Disponível" : "Campos Pendentes"}</span>
 
             {showPreview && hasChanges && !isUpdating && (
               <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded border border-orange-300">
@@ -159,12 +132,7 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
 
           <div className="flex items-center gap-2">
             {showPreview && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleHidePreview}
-                className="text-gray-600 border-gray-300"
-              >
+              <Button variant="outline" size="sm" onClick={handleHidePreview} className="text-gray-600 border-gray-300">
                 <EyeOff className="h-3 w-3 mr-1" />
                 Ocultar
               </Button>
@@ -178,8 +146,8 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
                 disabled={isUpdating}
                 className={
                   hasChanges
-                    ? 'text-orange-700 border-orange-400 bg-orange-50 font-medium'
-                    : 'text-blue-600 border-blue-300'
+                    ? "text-orange-700 border-orange-400 bg-orange-50 font-medium"
+                    : "text-blue-600 border-blue-300"
                 }
               >
                 {isUpdating ? (
@@ -187,7 +155,7 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
                 ) : (
                   <RefreshCw className="h-3 w-3 mr-1" />
                 )}
-                {hasChanges ? 'Atualizar PDF' : 'Atualizar'}
+                {hasChanges ? "Atualizar PDF" : "Atualizar"}
               </Button>
             )}
           </div>

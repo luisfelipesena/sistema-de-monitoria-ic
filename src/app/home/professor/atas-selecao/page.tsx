@@ -1,49 +1,20 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { PDFViewer } from '@react-pdf/renderer'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
-import { FileText, Download, Save, Eye } from 'lucide-react'
-import { AtaSelecaoTemplate } from '@/server/lib/pdfTemplates/AtaSelecaoTemplate'
-
-// Simplified AtaSelecaoData type
-type AtaSelecaoData = {
-  projeto: {
-    id: number
-    titulo: string
-    ano: number
-    semestre: string
-    departamento: { nome: string; sigla: string | null }
-    professorResponsavel: { nomeCompleto: string; matriculaSiape: string | null }
-    disciplinas: Array<{ codigo: string; nome: string }>
-  }
-  totalInscritos: number,
-  totalCompareceram: number,
-  inscricoesBolsista: any[],
-  inscricoesVoluntario: any[],
-  dataGeracao: Date,
-}
-
-// Simple AtaSelecaoTemplate component for PDF
-// function AtaSelecaoTemplate({ data }: { data: AtaSelecaoData }) {
-//   return (
-//     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-//       <h1>Ata de Seleção - Monitoria</h1>
-// ... existing code ...
-//         </div>
-//       ))}
-//     </div>
-//   )
-// }
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
+import { AtaSelecaoTemplate } from "@/server/lib/pdfTemplates/AtaSelecaoTemplate"
+import { AtaSelecaoData, SelecaoCandidato } from "@/types"
+import { api } from "@/utils/api"
+import { PDFViewer } from "@react-pdf/renderer"
+import { Eye, FileText, Save } from "lucide-react"
+import { useMemo, useState } from "react"
 
 export default function AtasSelecaoPage() {
   const { toast } = useToast()
@@ -51,9 +22,9 @@ export default function AtasSelecaoPage() {
   const [showPDF, setShowPDF] = useState(false)
   const [ataData, setAtaData] = useState<AtaSelecaoData | null>(null)
   const [ataInfo, setAtaInfo] = useState({
-    dataSelecao: new Date().toLocaleDateString('pt-BR'),
-    localSelecao: '',
-    observacoes: '',
+    dataSelecao: new Date().toLocaleDateString("pt-BR"),
+    localSelecao: "",
+    observacoes: "",
   })
 
   // Buscar projetos do professor
@@ -65,27 +36,58 @@ export default function AtasSelecaoPage() {
     { enabled: !!selectedProjectId }
   )
 
+  const pdfData: AtaSelecaoData | null = useMemo(() => {
+    if (!dadosAta) return null
+
+    const candidatos: AtaSelecaoData["candidatos"] = [
+      ...dadosAta.inscricoesBolsista,
+      ...dadosAta.inscricoesVoluntario,
+    ].map((c: SelecaoCandidato) => ({
+      id: c.id,
+      aluno: {
+        nomeCompleto: c.aluno.nomeCompleto,
+        matricula: c.aluno.matricula,
+        cr: c.aluno.cr,
+      },
+      tipoVagaPretendida: c.tipoVagaPretendida,
+      notaDisciplina: c.notaDisciplina ? Number(c.notaDisciplina) : null,
+      notaSelecao: c.notaSelecao ? Number(c.notaSelecao) : null,
+      coeficienteRendimento: c.coeficienteRendimento ? Number(c.coeficienteRendimento) : null,
+      notaFinal: c.notaFinal ? Number(c.notaFinal) : null,
+      status: c.status,
+      observacoes: c.feedbackProfessor,
+    }))
+
+    return {
+      ...dadosAta,
+      candidatos: candidatos,
+      ataInfo: {
+        dataSelecao: new Date().toLocaleDateString("pt-BR"),
+        localSelecao: "Online via Sistema de Monitoria",
+        observacoes: "O processo seletivo ocorreu de forma remota, com base nas notas e CR dos candidatos.",
+      },
+    }
+  }, [dadosAta])
+
   // Mutation para salvar ata
   const saveAtaMutation = api.selecao.publishResults.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Sucesso',
-        description: 'Ata salva com sucesso!',
+        title: "Sucesso",
+        description: "Ata salva com sucesso!",
       })
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
 
   // Projetos que podem ter ata (com inscrições avaliadas)
-  const projetosElegiveis = projetos?.filter(p => 
-    p.status === 'APPROVED' && p.totalInscritos > 0
-  ) || []
+  const projetosElegiveis = projetos?.filter((p) => p.status === "APPROVED" && p.totalInscritos > 0) || []
 
   const handleSelectProject = (projectId: string) => {
     setSelectedProjectId(parseInt(projectId))
@@ -103,13 +105,29 @@ export default function AtasSelecaoPage() {
         semestre: dadosAta.projeto.semestre,
         departamento: dadosAta.projeto.departamento,
         professorResponsavel: dadosAta.projeto.professorResponsavel,
-        disciplinas: [{ codigo: 'MON', nome: 'Monitoria' }],
+        disciplinas: dadosAta.projeto.disciplinas,
       },
       totalInscritos: dadosAta.totalInscritos,
       totalCompareceram: dadosAta.totalCompareceram,
       inscricoesBolsista: dadosAta.inscricoesBolsista,
       inscricoesVoluntario: dadosAta.inscricoesVoluntario,
       dataGeracao: dadosAta.dataGeracao,
+      candidatos: [...dadosAta.inscricoesBolsista, ...dadosAta.inscricoesVoluntario].map((c: SelecaoCandidato) => ({
+        id: c.id,
+        aluno: c.aluno,
+        tipoVagaPretendida: c.tipoVagaPretendida,
+        notaDisciplina: c.notaDisciplina ? Number(c.notaDisciplina) : null,
+        notaSelecao: c.notaSelecao ? Number(c.notaSelecao) : null,
+        coeficienteRendimento: c.coeficienteRendimento ? Number(c.coeficienteRendimento) : null,
+        notaFinal: c.notaFinal ? Number(c.notaFinal) : null,
+        status: c.status,
+        observacoes: c.feedbackProfessor,
+      })),
+      ataInfo: {
+        dataSelecao: new Date().toLocaleDateString("pt-BR"),
+        localSelecao: "Online via Sistema de Monitoria",
+        observacoes: "O processo seletivo ocorreu de forma remota, com base nas notas e CR dos candidatos.",
+      },
     }
 
     setAtaData(dataForPDF)
@@ -128,14 +146,14 @@ export default function AtasSelecaoPage() {
 
   const formatStatus = (status: string) => {
     switch (status) {
-      case 'SELECTED_BOLSISTA':
-        return 'Selecionado (Bolsista)'
-      case 'SELECTED_VOLUNTARIO':
-        return 'Selecionado (Voluntário)'
-      case 'REJECTED_BY_PROFESSOR':
-        return 'Não Selecionado'
-      case 'WAITING_LIST':
-        return 'Lista de Espera'
+      case "SELECTED_BOLSISTA":
+        return "Selecionado (Bolsista)"
+      case "SELECTED_VOLUNTARIO":
+        return "Selecionado (Voluntário)"
+      case "REJECTED_BY_PROFESSOR":
+        return "Não Selecionado"
+      case "WAITING_LIST":
+        return "Lista de Espera"
       default:
         return status
     }
@@ -143,16 +161,16 @@ export default function AtasSelecaoPage() {
 
   const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
-      case 'SELECTED_BOLSISTA':
-        return 'default'
-      case 'SELECTED_VOLUNTARIO':
-        return 'secondary'
-      case 'REJECTED_BY_PROFESSOR':
-        return 'destructive'
-      case 'WAITING_LIST':
-        return 'outline'
+      case "SELECTED_BOLSISTA":
+        return "default"
+      case "SELECTED_VOLUNTARIO":
+        return "secondary"
+      case "REJECTED_BY_PROFESSOR":
+        return "destructive"
+      case "WAITING_LIST":
+        return "outline"
       default:
-        return 'outline'
+        return "outline"
     }
   }
 
@@ -160,9 +178,7 @@ export default function AtasSelecaoPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Atas de Seleção</h1>
-        <p className="text-muted-foreground">
-          Gere e gerencie atas de seleção dos seus projetos de monitoria
-        </p>
+        <p className="text-muted-foreground">Gere e gerencie atas de seleção dos seus projetos de monitoria</p>
       </div>
 
       {/* Seleção de Projeto */}
@@ -172,9 +188,7 @@ export default function AtasSelecaoPage() {
             <FileText className="h-5 w-5" />
             Selecionar Projeto
           </CardTitle>
-          <CardDescription>
-            Escolha um projeto para gerar a ata de seleção
-          </CardDescription>
+          <CardDescription>Escolha um projeto para gerar a ata de seleção</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -189,7 +203,8 @@ export default function AtasSelecaoPage() {
                     <div className="flex flex-col">
                       <span className="font-medium">{projeto.titulo}</span>
                       <span className="text-sm text-muted-foreground">
-                        {projeto.ano}.{projeto.semestre === 'SEMESTRE_1' ? '1' : '2'} - {projeto.totalInscritos} candidatos
+                        {projeto.ano}.{projeto.semestre === "SEMESTRE_1" ? "1" : "2"} - {projeto.totalInscritos}{" "}
+                        candidatos
                       </span>
                     </div>
                   </SelectItem>
@@ -200,7 +215,8 @@ export default function AtasSelecaoPage() {
 
           {projetosElegiveis.length === 0 && !loadingProjetos && (
             <p className="text-sm text-muted-foreground">
-              Nenhum projeto elegível encontrado. Para gerar uma ata, o projeto deve estar aprovado e ter candidatos inscritos.
+              Nenhum projeto elegível encontrado. Para gerar uma ata, o projeto deve estar aprovado e ter candidatos
+              inscritos.
             </p>
           )}
         </CardContent>
@@ -211,9 +227,7 @@ export default function AtasSelecaoPage() {
         <Card>
           <CardHeader>
             <CardTitle>Informações da Ata</CardTitle>
-            <CardDescription>
-              Configure as informações adicionais da ata de seleção
-            </CardDescription>
+            <CardDescription>Configure as informações adicionais da ata de seleção</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -222,7 +236,7 @@ export default function AtasSelecaoPage() {
                 <Input
                   id="dataSelecao"
                   value={ataInfo.dataSelecao}
-                  onChange={(e) => setAtaInfo(prev => ({ ...prev, dataSelecao: e.target.value }))}
+                  onChange={(e) => setAtaInfo((prev) => ({ ...prev, dataSelecao: e.target.value }))}
                   placeholder="dd/mm/aaaa"
                 />
               </div>
@@ -231,7 +245,7 @@ export default function AtasSelecaoPage() {
                 <Input
                   id="localSelecao"
                   value={ataInfo.localSelecao}
-                  onChange={(e) => setAtaInfo(prev => ({ ...prev, localSelecao: e.target.value }))}
+                  onChange={(e) => setAtaInfo((prev) => ({ ...prev, localSelecao: e.target.value }))}
                   placeholder="Ex: Sala 123, Instituto de Computação"
                 />
               </div>
@@ -241,7 +255,7 @@ export default function AtasSelecaoPage() {
               <Textarea
                 id="observacoes"
                 value={ataInfo.observacoes}
-                onChange={(e) => setAtaInfo(prev => ({ ...prev, observacoes: e.target.value }))}
+                onChange={(e) => setAtaInfo((prev) => ({ ...prev, observacoes: e.target.value }))}
                 placeholder="Observações sobre o processo seletivo..."
                 rows={3}
               />
@@ -255,9 +269,7 @@ export default function AtasSelecaoPage() {
         <Card>
           <CardHeader>
             <CardTitle>Candidatos</CardTitle>
-            <CardDescription>
-              Resumo dos candidatos inscritos no projeto
-            </CardDescription>
+            <CardDescription>Resumo dos candidatos inscritos no projeto</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -267,21 +279,15 @@ export default function AtasSelecaoPage() {
                   <div className="text-sm text-muted-foreground">Total Inscritos</div>
                 </div>
                 <div className="p-3 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
-                    {dadosAta.totalCompareceram}
-                  </div>
+                  <div className="text-2xl font-bold text-green-600">{dadosAta.totalCompareceram}</div>
                   <div className="text-sm text-muted-foreground">Compareceram</div>
                 </div>
                 <div className="p-3 bg-blue-50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {dadosAta.inscricoesBolsista.length}
-                  </div>
+                  <div className="text-2xl font-bold text-blue-600">{dadosAta.inscricoesBolsista.length}</div>
                   <div className="text-sm text-muted-foreground">Bolsistas Aprovados</div>
                 </div>
                 <div className="p-3 bg-purple-50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {dadosAta.inscricoesVoluntario.length}
-                  </div>
+                  <div className="text-2xl font-bold text-purple-600">{dadosAta.inscricoesVoluntario.length}</div>
                   <div className="text-sm text-muted-foreground">Voluntários Aprovados</div>
                 </div>
               </div>
@@ -325,9 +331,7 @@ export default function AtasSelecaoPage() {
         <Card>
           <CardHeader>
             <CardTitle>Ações</CardTitle>
-            <CardDescription>
-              Gere o PDF da ata ou salve as informações
-            </CardDescription>
+            <CardDescription>Gere o PDF da ata ou salve as informações</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex gap-3">
@@ -349,12 +353,10 @@ export default function AtasSelecaoPage() {
         <Card>
           <CardHeader>
             <CardTitle>Visualização da Ata</CardTitle>
-            <CardDescription>
-              Prévia do documento PDF da ata de seleção
-            </CardDescription>
+            <CardDescription>Prévia do documento PDF da ata de seleção</CardDescription>
           </CardHeader>
           <CardContent>
-            <div style={{ height: '800px', width: '100%' }}>
+            <div style={{ height: "800px", width: "100%" }}>
               <PDFViewer width="100%" height="100%">
                 <AtaSelecaoTemplate data={ataData} />
               </PDFViewer>

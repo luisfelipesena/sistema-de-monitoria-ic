@@ -67,6 +67,9 @@
     --info: 224 76% 48%;
     /* #1171EF */
     --info-foreground: 210 40% 98%;
+
+    --pending: 262 83% 65%;
+    --pending-foreground: 0 0% 100%;
   }
 
   html {
@@ -100,6 +103,7 @@
 
 /* Calendar Enhanced Styles */
 @layer components {
+
   /* Popover Content com melhor aparência */
   .rdp {
     border-radius: 12px;
@@ -235,6 +239,7 @@
       opacity: 0;
       transform: translateY(-10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);

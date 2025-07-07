@@ -1,117 +1,31 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
-  inscricaoTable,
-  projetoTable,
   alunoTable,
-  professorTable,
-  disciplinaTable,
   departamentoTable,
-  projetoDisciplinaTable,
-  userTable,
-  periodoInscricaoTable,
+  disciplinaTable,
   inscricaoDocumentoTable,
+  inscricaoTable,
+  periodoInscricaoTable,
+  professorTable,
+  projetoDisciplinaTable,
+  projetoTable,
+  userTable,
 } from '@/server/db/schema'
-import { TRPCError } from '@trpc/server'
-import { eq, and, isNull, gte, lte, desc } from 'drizzle-orm'
-import { z } from 'zod'
+import {
+  acceptInscriptionSchema,
+  candidateEvaluationSchema,
+  idSchema,
+  inscriptionDetailSchema,
+  inscriptionFormSchema,
+  rejectInscriptionSchema,
+  tipoVagaSchema,
+} from '@/types'
 import { logger } from '@/utils/logger'
+import { TRPCError } from '@trpc/server'
+import { and, desc, eq, gte, isNull, lte } from 'drizzle-orm'
+import { z } from 'zod'
 
 const log = logger.child({ context: 'InscricaoRouter' })
-
-export const criarInscricaoSchema = z.object({
-  projetoId: z.number(),
-  tipoVagaPretendida: z.enum(['BOLSISTA', 'VOLUNTARIO', 'ANY']),
-  documentos: z
-    .array(
-      z.object({
-        fileId: z.string(),
-        tipoDocumento: z.string(),
-      })
-    )
-    .optional(),
-})
-
-export const inscricaoComDetalhesSchema = z.object({
-  id: z.number(),
-  projetoId: z.number(),
-  alunoId: z.number(),
-  tipoVagaPretendida: z.enum(['BOLSISTA', 'VOLUNTARIO', 'ANY']).nullable(),
-  status: z.enum([
-    'SUBMITTED',
-    'SELECTED_BOLSISTA',
-    'SELECTED_VOLUNTARIO',
-    'ACCEPTED_BOLSISTA',
-    'ACCEPTED_VOLUNTARIO',
-    'REJECTED_BY_PROFESSOR',
-    'REJECTED_BY_STUDENT',
-  ]),
-  notaDisciplina: z.number().nullable(),
-  notaSelecao: z.number().nullable(),
-  coeficienteRendimento: z.number().nullable(),
-  notaFinal: z.number().nullable(),
-  feedbackProfessor: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date().nullable(),
-  projeto: z.object({
-    id: z.number(),
-    titulo: z.string(),
-    descricao: z.string(),
-    ano: z.number(),
-    semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-    status: z.enum([
-      'DRAFT',
-      'SUBMITTED',
-      'APPROVED',
-      'REJECTED',
-      'PENDING_ADMIN_SIGNATURE',
-      'PENDING_PROFESSOR_SIGNATURE',
-    ]),
-    bolsasDisponibilizadas: z.number().nullable(),
-    voluntariosSolicitados: z.number().nullable(),
-    professorResponsavel: z.object({
-      id: z.number(),
-      nomeCompleto: z.string(),
-      emailInstitucional: z.string(),
-    }),
-    departamento: z.object({
-      id: z.number(),
-      nome: z.string(),
-    }),
-    disciplinas: z.array(
-      z.object({
-        id: z.number(),
-        nome: z.string(),
-        codigo: z.string(),
-      })
-    ),
-  }),
-  aluno: z.object({
-    id: z.number(),
-    nomeCompleto: z.string(),
-    matricula: z.string(),
-    cr: z.number(),
-    user: z.object({
-      id: z.number(),
-      email: z.string(),
-    }),
-  }),
-})
-
-export const avaliacaoCandidatoSchema = z.object({
-  inscricaoId: z.number(),
-  notaDisciplina: z.number().min(0).max(10),
-  notaSelecao: z.number().min(0).max(10),
-  observacoes: z.string().optional(),
-})
-
-export const aceitarInscricaoSchema = z.object({
-  inscricaoId: z.number(),
-})
-
-export const recusarInscricaoSchema = z.object({
-  inscricaoId: z.number(),
-  feedbackProfessor: z.string().min(5, 'Motivo da rejeição é obrigatório'),
-})
 
 export const inscricaoRouter = createTRPCRouter({
   getMyStatus: protectedProcedure
@@ -131,7 +45,7 @@ export const inscricaoRouter = createTRPCRouter({
         totalAprovacoes: z.number(),
         monitoriaAtiva: z
           .object({
-            id: z.number(),
+            id: idSchema,
             projeto: z.object({
               titulo: z.string(),
               disciplinas: z.array(
@@ -143,7 +57,7 @@ export const inscricaoRouter = createTRPCRouter({
               professorResponsavelNome: z.string(),
             }),
             status: z.string(),
-            tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
+            tipo: tipoVagaSchema,
             dataInicio: z.date().nullable(),
             dataFim: z.date().nullable(),
             cargaHorariaCumprida: z.number().optional(),
@@ -258,11 +172,10 @@ export const inscricaoRouter = createTRPCRouter({
               inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
                 ? 'APROVACAO'
                 : 'INSCRICAO',
-            descricao: `${
-              inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
-                ? 'Aprovado em'
-                : 'Inscrito em'
-            } ${inscricao.projeto.titulo}`,
+            descricao: `${inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
+              ? 'Aprovado em'
+              : 'Inscrito em'
+              } ${inscricao.projeto.titulo}`,
             data: inscricao.updatedAt || inscricao.createdAt,
           }))
 
@@ -310,8 +223,8 @@ export const inscricaoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        projetoId: z.number(),
-        tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
+        projetoId: idSchema,
+        tipo: tipoVagaSchema,
         motivacao: z.string().min(10, 'Motivação deve ter pelo menos 10 caracteres'),
         documentos: z
           .array(
@@ -323,7 +236,7 @@ export const inscricaoRouter = createTRPCRouter({
           .optional(),
       })
     )
-    .output(z.object({ success: z.boolean(), inscricaoId: z.number() }))
+    .output(z.object({ success: z.boolean(), inscricaoId: idSchema }))
     .mutation(async ({ input, ctx }) => {
       try {
         if (ctx.user.role !== 'student') {
@@ -442,9 +355,9 @@ export const inscricaoRouter = createTRPCRouter({
     .output(
       z.array(
         z.object({
-          id: z.number(),
+          id: idSchema,
           projeto: z.object({
-            id: z.number(),
+            id: idSchema,
             titulo: z.string(),
             disciplinas: z.array(
               z.object({
@@ -454,7 +367,7 @@ export const inscricaoRouter = createTRPCRouter({
             ),
             professorResponsavelNome: z.string(),
           }),
-          tipoInscricao: z.enum(['BOLSISTA', 'VOLUNTARIO']),
+          tipoInscricao: tipoVagaSchema,
           status: z.enum(['APROVADO', 'REPROVADO', 'EM_ANALISE', 'LISTA_ESPERA']),
           dataResultado: z.date().optional(),
           posicaoLista: z.number().optional(),
@@ -557,7 +470,7 @@ export const inscricaoRouter = createTRPCRouter({
       },
     })
     .input(z.void())
-    .output(z.array(inscricaoComDetalhesSchema))
+    .output(z.array(inscriptionDetailSchema))
     .query(async ({ ctx }) => {
       try {
         const aluno = await ctx.db.query.alunoTable.findFirst({
@@ -680,8 +593,8 @@ export const inscricaoRouter = createTRPCRouter({
         description: 'Create a new project application',
       },
     })
-    .input(criarInscricaoSchema)
-    .output(z.object({ id: z.number(), message: z.string() }))
+    .input(inscriptionFormSchema)
+    .output(z.object({ id: idSchema, message: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
         if (ctx.user.role !== 'student') {
@@ -802,7 +715,7 @@ export const inscricaoRouter = createTRPCRouter({
         description: 'Student accepts a selected application',
       },
     })
-    .input(aceitarInscricaoSchema)
+    .input(acceptInscriptionSchema)
     .output(z.object({ success: z.boolean(), message: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
@@ -904,7 +817,7 @@ export const inscricaoRouter = createTRPCRouter({
         description: 'Student rejects a selected application',
       },
     })
-    .input(recusarInscricaoSchema)
+    .input(rejectInscriptionSchema)
     .output(z.object({ success: z.boolean(), message: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
@@ -981,7 +894,7 @@ export const inscricaoRouter = createTRPCRouter({
         description: 'Professor grades a student application',
       },
     })
-    .input(avaliacaoCandidatoSchema)
+    .input(candidateEvaluationSchema)
     .output(z.object({ success: z.boolean(), notaFinal: z.number() }))
     .mutation(async ({ input, ctx }) => {
       try {
@@ -1075,10 +988,10 @@ export const inscricaoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        projetoId: z.number(),
+        projetoId: idSchema,
       })
     )
-    .output(z.array(inscricaoComDetalhesSchema))
+    .output(z.array(inscriptionDetailSchema))
     .query(async ({ input, ctx }) => {
       try {
         const projeto = await ctx.db.query.projetoTable.findFirst({
@@ -1213,7 +1126,7 @@ export const inscricaoRouter = createTRPCRouter({
   evaluateApplications: protectedProcedure
     .input(
       z.object({
-        inscricaoId: z.number(),
+        inscricaoId: idSchema,
         notaDisciplina: z.number().min(0).max(10),
         notaSelecao: z.number().min(0).max(10),
         coeficienteRendimento: z.number().min(0).max(10),
@@ -1287,7 +1200,7 @@ export const inscricaoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        inscricaoId: z.number(),
+        inscricaoId: idSchema,
       })
     )
     .output(z.object({ success: z.boolean(), message: z.string() }))
@@ -1396,7 +1309,7 @@ export const inscricaoRouter = createTRPCRouter({
     })
     .input(
       z.object({
-        inscricaoId: z.number(),
+        inscricaoId: idSchema,
         motivo: z.string().optional(),
       })
     )
@@ -1479,7 +1392,7 @@ export const inscricaoRouter = createTRPCRouter({
         description: 'Get data for generating commitment term PDF',
       },
     })
-    .input(z.object({ inscricaoId: z.number() }))
+    .input(z.object({ inscricaoId: idSchema }))
     .output(
       z.object({
         monitor: z.object({
@@ -1509,7 +1422,7 @@ export const inscricaoRouter = createTRPCRouter({
           numeroSemanas: z.number(),
         }),
         monitoria: z.object({
-          tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
+          tipo: tipoVagaSchema,
           dataInicio: z.string(),
           dataFim: z.string(),
           valorBolsa: z.number().optional(),

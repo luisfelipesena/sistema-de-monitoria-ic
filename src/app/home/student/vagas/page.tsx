@@ -10,6 +10,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { api } from '@/utils/api'
 import {
+  TIPO_INSCRICAO_ENUM,
+  STATUS_INSCRICAO_ENUM,
+  PROJETO_STATUS_ENUM,
+  type TipoInscricao,
+  type StatusInscricao,
+  getStatusInscricaoLabel,
+} from '@/types'
+import {
   AlertCircle,
   BookOpen,
   CheckCircle,
@@ -40,16 +48,16 @@ interface ApplicationModalProps {
 }
 
 const requiredDocuments = {
-  BOLSISTA: [
+  [TIPO_INSCRICAO_ENUM[0]]: [ // BOLSISTA
     { id: 'historico_escolar', name: 'Histórico Escolar' },
     { id: 'comprovante_matricula', name: 'Comprovante de Matrícula' },
     { id: 'comprovante_cr', name: 'Comprovante de CR' },
   ],
-  VOLUNTARIO: [
+  [TIPO_INSCRICAO_ENUM[1]]: [ // VOLUNTARIO
     { id: 'historico_escolar', name: 'Histórico Escolar' },
     { id: 'comprovante_matricula', name: 'Comprovante de Matrícula' },
   ],
-  ANY: [
+  [TIPO_INSCRICAO_ENUM[2]]: [ // ANY
     { id: 'historico_escolar', name: 'Histórico Escolar' },
     { id: 'comprovante_matricula', name: 'Comprovante de Matrícula' },
   ],
@@ -63,7 +71,7 @@ function ApplicationModal({
   isSubmitting = false,
 }: ApplicationModalProps) {
   const [formData, setFormData] = useState({
-    tipoVagaPretendida: 'ANY' as 'BOLSISTA' | 'VOLUNTARIO' | 'ANY',
+    tipoVagaPretendida: TIPO_INSCRICAO_ENUM[2] as TipoInscricao, // ANY
     motivation: '',
     experience: '',
     availability: '',
@@ -85,7 +93,7 @@ function ApplicationModal({
 
   const handleClose = () => {
     setFormData({
-      tipoVagaPretendida: 'ANY',
+      tipoVagaPretendida: TIPO_INSCRICAO_ENUM[2], // ANY
       motivation: '',
       experience: '',
       availability: '',
@@ -142,7 +150,7 @@ function ApplicationModal({
             <Label htmlFor="tipoVaga">Tipo de Vaga Pretendida*</Label>
             <Select
               value={formData.tipoVagaPretendida}
-              onValueChange={(value: 'BOLSISTA' | 'VOLUNTARIO' | 'ANY') =>
+              onValueChange={(value: TipoInscricao) =>
                 setFormData({ ...formData, tipoVagaPretendida: value })
               }
             >
@@ -150,13 +158,13 @@ function ApplicationModal({
                 <SelectValue placeholder="Selecione o tipo de vaga" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="BOLSISTA">
+                <SelectItem value={TIPO_INSCRICAO_ENUM[0]}>
                   Bolsista (apenas bolsa)
                 </SelectItem>
-                <SelectItem value="VOLUNTARIO">
+                <SelectItem value={TIPO_INSCRICAO_ENUM[1]}>
                   Voluntário (apenas voluntário)
                 </SelectItem>
-                <SelectItem value="ANY">
+                <SelectItem value={TIPO_INSCRICAO_ENUM[2]}>
                   Qualquer (bolsa ou voluntário)
                 </SelectItem>
               </SelectContent>
@@ -295,7 +303,7 @@ export default function InscricaoMonitoriaPage() {
     if (!projetos) return []
 
     return projetos
-      .filter((projeto) => projeto.status === 'APPROVED')
+      .filter((projeto) => projeto.status === PROJETO_STATUS_ENUM[2]) // APPROVED
       .filter((projeto) => {
         if (searchTerm) {
           const search = searchTerm.toLowerCase()
@@ -321,7 +329,7 @@ export default function InscricaoMonitoriaPage() {
     if (!projetos) return []
     const depts = new Set(
       projetos
-        .filter((p) => p.status === 'APPROVED')
+        .filter((p) => p.status === PROJETO_STATUS_ENUM[2]) // APPROVED
         .map((p) => ({
           id: p.departamentoId,
           name: p.departamentoNome
@@ -363,43 +371,26 @@ export default function InscricaoMonitoriaPage() {
     }
   }
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: StatusInscricao) => {
     switch (status) {
-      case 'SUBMITTED':
+      case STATUS_INSCRICAO_ENUM[0]: // SUBMITTED
         return <AlertCircle className="h-4 w-4 text-yellow-500" />
-      case 'SELECTED_BOLSISTA':
-      case 'SELECTED_VOLUNTARIO':
+      case STATUS_INSCRICAO_ENUM[1]: // SELECTED_BOLSISTA
+      case STATUS_INSCRICAO_ENUM[2]: // SELECTED_VOLUNTARIO
         return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'ACCEPTED_BOLSISTA':
-      case 'ACCEPTED_VOLUNTARIO':
+      case STATUS_INSCRICAO_ENUM[3]: // ACCEPTED_BOLSISTA
+      case STATUS_INSCRICAO_ENUM[4]: // ACCEPTED_VOLUNTARIO
         return <CheckCircle className="h-4 w-4 text-blue-500" />
-      case 'REJECTED_BY_PROFESSOR':
-      case 'REJECTED_BY_STUDENT':
+      case STATUS_INSCRICAO_ENUM[5]: // REJECTED_BY_PROFESSOR
+      case STATUS_INSCRICAO_ENUM[6]: // REJECTED_BY_STUDENT
         return <XCircle className="h-4 w-4 text-red-500" />
       default:
         return <AlertCircle className="h-4 w-4 text-gray-500" />
     }
   }
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'SUBMITTED':
-        return 'Enviada'
-      case 'SELECTED_BOLSISTA':
-        return 'Selecionado (Bolsista)'
-      case 'SELECTED_VOLUNTARIO':
-        return 'Selecionado (Voluntário)'
-      case 'ACCEPTED_BOLSISTA':
-        return 'Aceito (Bolsista)'
-      case 'ACCEPTED_VOLUNTARIO':
-        return 'Aceito (Voluntário)'
-      case 'REJECTED_BY_PROFESSOR':
-        return 'Não Selecionado'
-      case 'REJECTED_BY_STUDENT':
-        return 'Recusado'
-      default:
-        return status
-    }
+  const getStatusText = (status: StatusInscricao) => {
+    return getStatusInscricaoLabel(status)
   }
 
   return (
@@ -433,7 +424,7 @@ export default function InscricaoMonitoriaPage() {
                       </p>
                       <p className="text-sm text-gray-500">
                         Tipo pretendido:{' '}
-                        {inscricao.tipoVagaPretendida === 'ANY'
+                        {inscricao.tipoVagaPretendida === TIPO_INSCRICAO_ENUM[2]
                           ? 'Qualquer'
                           : inscricao.tipoVagaPretendida}
                       </p>
