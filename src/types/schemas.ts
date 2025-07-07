@@ -48,10 +48,10 @@ export const crSchema = z.number().min(0).max(10)
 
 // Bank account schemas
 export const bankAccountSchema = z.object({
-  banco: z.string().max(100).optional(),
-  agencia: z.string().max(20).optional(),
-  conta: z.string().max(30).optional(),
-  digitoConta: z.string().max(2).optional(),
+  banco: z.string().max(100).optional().nullable(),
+  agencia: z.string().max(20).optional().nullable(),
+  conta: z.string().max(30).optional().nullable(),
+  digitoConta: z.string().max(2).optional().nullable(),
 })
 
 // File schemas
@@ -326,11 +326,13 @@ export const baseDepartmentSchema = z.object({
   id: idSchema,
   unidadeUniversitaria: nameSchema,
   nome: nameSchema,
-  sigla: z.string().max(20).optional(),
-  coordenador: nameSchema.optional(),
-  email: emailSchema.optional(),
-  telefone: phoneSchema,
-  descricao: optionalDescriptionSchema,
+  sigla: z.string().max(20).optional().nullable(),
+  coordenador: nameSchema.optional().nullable(),
+  email: emailSchema.optional().nullable(),
+  telefone: phoneSchema.nullable(),
+  descricao: optionalDescriptionSchema.nullable(),
+  createdAt: dateSchema,
+  updatedAt: dateSchema.nullable(),
 })
 
 // Department creation schema
@@ -339,9 +341,29 @@ export const createDepartmentSchema = z.object({
   nome: nameSchema,
   sigla: z.string().max(20).optional(),
   coordenador: nameSchema.optional(),
-  email: emailSchema.optional(),
+  email: emailSchema.optional().or(z.literal('')).nullable(),
   telefone: phoneSchema,
   descricao: optionalDescriptionSchema,
+})
+
+// Department update schema
+export const updateDepartmentSchema = z.object({
+  id: idSchema,
+  unidadeUniversitaria: nameSchema.optional(),
+  nome: nameSchema.optional(),
+  sigla: z.string().max(20).optional(),
+  coordenador: nameSchema.optional(),
+  email: emailSchema.optional().or(z.literal('')).nullable(),
+  telefone: phoneSchema.optional(),
+  descricao: optionalDescriptionSchema.optional(),
+})
+
+// Department schema with optional stats
+export const departamentoSchema = baseDepartmentSchema.extend({
+  professores: z.number().optional(),
+  cursos: z.number().optional(),
+  disciplinas: z.number().optional(),
+  projetos: z.number().optional(),
 })
 
 // ========================================
@@ -367,8 +389,8 @@ export const createDisciplineSchema = z.object({
 // COURSE SCHEMAS
 // ========================================
 
-// Base course schema
-export const baseCourseSchema = z.object({
+// Base course schema, including optional stats
+export const courseSchema = z.object({
   id: idSchema,
   nome: nameSchema,
   codigo: z.number().int().positive(),
@@ -377,10 +399,15 @@ export const baseCourseSchema = z.object({
   duracao: z.number().int().positive(),
   departamentoId: idSchema,
   cargaHoraria: z.number().int().positive(),
-  descricao: optionalDescriptionSchema,
-  coordenador: nameSchema.optional(),
-  emailCoordenacao: emailSchema.optional(),
+  descricao: optionalDescriptionSchema.nullable(),
+  coordenador: nameSchema.optional().nullable(),
+  emailCoordenacao: emailSchema.optional().nullable(),
   status: statusCursoSchema,
+  createdAt: dateSchema,
+  updatedAt: dateSchema.nullable(),
+  // Optional counters
+  alunos: z.number().optional(),
+  disciplinas: z.number().optional(),
 })
 
 // Course creation schema
@@ -396,6 +423,22 @@ export const createCourseSchema = z.object({
   coordenador: nameSchema.optional(),
   emailCoordenacao: emailSchema.optional(),
   status: statusCursoSchema.default('ATIVO'),
+})
+
+// Course update schema
+export const updateCourseSchema = z.object({
+  id: idSchema,
+  nome: nameSchema.optional(),
+  codigo: z.number().optional(),
+  tipo: tipoCursoSchema.optional(),
+  modalidade: modalidadeCursoSchema.optional(),
+  duracao: z.number().optional(),
+  departamentoId: idSchema.optional(),
+  cargaHoraria: z.number().optional(),
+  descricao: z.string().optional().nullable(),
+  coordenador: z.string().optional().nullable(),
+  emailCoordenacao: z.string().optional().nullable(),
+  status: statusCursoSchema.optional(),
 })
 
 // ========================================
@@ -991,7 +1034,7 @@ export const duplicateTemplateSchema = z.object({
 
 // Create API key schema
 export const createApiKeySchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
+  name: nameSchema,
   description: z.string().optional(),
   expiresAt: dateSchema.optional(),
 })
@@ -999,9 +1042,57 @@ export const createApiKeySchema = z.object({
 // Update API key schema
 export const updateApiKeySchema = z.object({
   id: idSchema,
-  name: z.string().min(1, "Nome é obrigatório").optional(),
+  name: nameSchema.optional(),
   description: z.string().optional(),
   isActive: z.boolean().optional(),
+})
+
+// Delete API key schema
+export const deleteApiKeySchema = z.object({
+  id: idSchema,
+})
+
+// List API keys schema
+export const listApiKeysSchema = z.object({
+  userId: optionalIdSchema,
+})
+
+// ========================================
+// INVITATION SCHEMAS
+// ========================================
+
+// Send professor invitation schema
+export const sendInvitationSchema = z.object({
+  email: emailSchema,
+  expiresInDays: z.number().int().min(1).max(30).default(7),
+})
+
+// Get invitations schema
+export const getInvitationsSchema = z
+  .object({
+    status: z.enum(['PENDING', 'ACCEPTED', 'EXPIRED']).optional(),
+  })
+  .optional()
+
+// Resend invitation schema
+export const resendInvitationSchema = z.object({
+  invitationId: idSchema,
+  expiresInDays: z.number().int().min(1).max(30).default(7),
+})
+
+// Cancel invitation schema
+export const cancelInvitationSchema = z.object({
+  invitationId: idSchema,
+})
+
+// Delete invitation schema
+export const deleteInvitationSchema = z.object({
+  invitationId: idSchema,
+})
+
+// Validate invitation token schema
+export const validateInvitationTokenSchema = z.object({
+  token: z.string(),
 })
 
 // Schema for edital form
@@ -1087,4 +1178,59 @@ export const dashboardMetricsSchema = z.object({
       projetosAtivos: z.number(),
     })
   ),
+})
+
+export const dashboardQuickMetricsSchema = z.object({
+  totalProjetos: z.number(),
+  projetosAprovados: z.number(),
+  projetosPendentes: z.number(),
+  totalBolsas: z.number(),
+  totalInscricoes: z.number(),
+  totalVagas: z.number(),
+  taxaAprovacao: z.number(),
+})
+
+export const monitoresFinalFiltersSchema = relatorioFiltersSchema.extend({
+  departamentoId: z.string().optional(),
+})
+
+export const monitorFinalBolsistaSchema = z.object({
+  id: idSchema,
+  monitor: z.object({
+    nome: nameSchema,
+    matricula: matriculaSchema,
+    email: emailSchema,
+    rg: rgSchema.nullable(),
+    cpf: cpfSchema,
+    cr: crSchema,
+    telefone: phoneSchema.nullable(),
+    dadosBancarios: bankAccountSchema,
+  }),
+  professor: z.object({
+    nome: nameSchema,
+    matriculaSiape: z.string().nullable(),
+    email: emailSchema,
+  }),
+  projeto: z.object({
+    titulo: nameSchema,
+    disciplinas: z.string(),
+    cargaHorariaSemana: z.number(),
+    numeroSemanas: z.number(),
+  }),
+  departamento: z.object({
+    nome: nameSchema,
+    sigla: z.string().nullable(),
+  }),
+  periodo: z.object({
+    ano: anoSchema,
+    semestre: semestreSchema,
+    dataInicio: z.string(),
+    dataFim: z.string(),
+  }),
+  termo: z.object({
+    status: z.string(),
+    dataAssinaturaAluno: dateSchema.optional().nullable(),
+    dataAssinaturaProfessor: dateSchema.optional().nullable(),
+  }),
+  valorBolsa: z.number(),
 })

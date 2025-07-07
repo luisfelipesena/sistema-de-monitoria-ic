@@ -1,58 +1,9 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { cursoTable, alunoTable } from '@/server/db/schema'
-import { tipoCursoSchema, modalidadeCursoSchema, statusCursoSchema } from '@/types'
+import { alunoTable, cursoTable } from '@/server/db/schema'
+import { courseSchema, createCourseSchema, updateCourseSchema } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
-
-export const cursoSchema = z.object({
-  id: z.number(),
-  nome: z.string(),
-  codigo: z.number(),
-  tipo: tipoCursoSchema,
-  modalidade: modalidadeCursoSchema,
-  duracao: z.number(),
-  departamentoId: z.number(),
-  cargaHoraria: z.number(),
-  descricao: z.string().nullable(),
-  coordenador: z.string().nullable(),
-  emailCoordenacao: z.string().nullable(),
-  status: statusCursoSchema,
-  createdAt: z.date(),
-  updatedAt: z.date().nullable(),
-  // Contadores
-  alunos: z.number().optional(),
-  disciplinas: z.number().optional(),
-})
-
-export const newCursoSchema = z.object({
-  nome: z.string(),
-  codigo: z.number(),
-  tipo: tipoCursoSchema,
-  modalidade: modalidadeCursoSchema,
-  duracao: z.number(),
-  departamentoId: z.number(),
-  cargaHoraria: z.number(),
-  descricao: z.string().optional(),
-  coordenador: z.string().optional(),
-  emailCoordenacao: z.string().optional(),
-  status: statusCursoSchema.default('ATIVO'),
-})
-
-export const updateCursoSchema = z.object({
-  id: z.number(),
-  nome: z.string().optional(),
-  codigo: z.number().optional(),
-  tipo: tipoCursoSchema.optional(),
-  modalidade: modalidadeCursoSchema.optional(),
-  duracao: z.number().optional(),
-  departamentoId: z.number().optional(),
-  cargaHoraria: z.number().optional(),
-  descricao: z.string().optional(),
-  coordenador: z.string().optional(),
-  emailCoordenacao: z.string().optional(),
-  status: statusCursoSchema.optional(),
-})
 
 export const courseRouter = createTRPCRouter({
   getCourses: protectedProcedure
@@ -70,7 +21,7 @@ export const courseRouter = createTRPCRouter({
         includeStats: z.boolean().default(false),
       })
     )
-    .output(z.array(cursoSchema))
+    .output(z.array(courseSchema))
     .query(async ({ input, ctx }) => {
       const cursos = await ctx.db.query.cursoTable.findMany({
         orderBy: (cursos, { asc }) => [asc(cursos.nome)],
@@ -119,7 +70,7 @@ export const courseRouter = createTRPCRouter({
         id: z.number(),
       })
     )
-    .output(cursoSchema)
+    .output(courseSchema)
     .query(async ({ input, ctx }) => {
       const curso = await ctx.db.query.cursoTable.findFirst({
         where: eq(cursoTable.id, input.id),
@@ -142,8 +93,8 @@ export const courseRouter = createTRPCRouter({
         description: 'Create a new course',
       },
     })
-    .input(newCursoSchema)
-    .output(cursoSchema)
+    .input(createCourseSchema)
+    .output(courseSchema)
     .mutation(async ({ input, ctx }) => {
       const curso = await ctx.db.insert(cursoTable).values(input).returning()
       return curso[0]
@@ -159,8 +110,8 @@ export const courseRouter = createTRPCRouter({
         description: 'Update the course',
       },
     })
-    .input(updateCursoSchema)
-    .output(cursoSchema)
+    .input(updateCourseSchema)
+    .output(courseSchema)
     .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input
       const curso = await ctx.db.update(cursoTable).set(updateData).where(eq(cursoTable.id, id)).returning()

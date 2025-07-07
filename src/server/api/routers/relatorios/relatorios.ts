@@ -15,12 +15,25 @@ import {
   vagaTable,
 } from '@/server/db/schema'
 import {
-  ValidationResult,
+  alunoRelatorioSchema,
+  csvExportInputSchema,
+  csvExportOutputSchema,
+  dashboardQuickMetricsSchema,
+  departamentoRelatorioSchema,
+  disciplinaRelatorioSchema,
+  editalRelatorioSchema,
+  monitorConsolidadoSchema,
+  monitoresFinalFiltersSchema,
+  monitorFinalBolsistaSchema,
+  professorRelatorioSchema,
   relatorioFiltersSchema,
   relatorioFiltersWithDeptSchema,
   relatorioFiltersWithStatusSchema,
+  relatorioGeralSchema,
+  semestreSchema,
+  ValidationResult,
+  type Semestre,
 } from '@/types'
-import { semestreSchema, tipoRelatorioSchema, tipoVagaSchema, type Semestre } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { and, count, desc, eq, sql, sum } from 'drizzle-orm'
 import { z } from 'zod'
@@ -154,103 +167,110 @@ async function checkDadosFaltantesPrograd(
 }
 
 export const relatoriosRouter = createTRPCRouter({
-  getRelatorioGeral: adminProtectedProcedure.input(relatorioFiltersSchema).query(async ({ input, ctx }) => {
-    const [projetosStats] = await ctx.db
-      .select({
-        total: count(),
-        aprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
-        submetidos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'SUBMITTED' THEN 1 END)`,
-        rascunhos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'DRAFT' THEN 1 END)`,
-        totalBolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
-        totalBolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
-      })
-      .from(projetoTable)
-      .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
+  getRelatorioGeral: adminProtectedProcedure
+    .input(relatorioFiltersSchema)
+    .output(relatorioGeralSchema)
+    .query(async ({ input, ctx }) => {
+      const [projetosStats] = await ctx.db
+        .select({
+          total: count(),
+          aprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+          submetidos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'SUBMITTED' THEN 1 END)`,
+          rascunhos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'DRAFT' THEN 1 END)`,
+          totalBolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
+          totalBolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
+        })
+        .from(projetoTable)
+        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
-    const inscricoesSubquery = ctx.db
-      .select({ projetoId: projetoTable.id })
-      .from(projetoTable)
-      .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
+      const inscricoesSubquery = ctx.db
+        .select({ projetoId: projetoTable.id })
+        .from(projetoTable)
+        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
-    const [inscricoesStats] = await ctx.db
-      .select({
-        total: count(),
-        submetidas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} = 'SUBMITTED' THEN 1 END)`,
-        selecionadas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'SELECTED_%' THEN 1 END)`,
-        aceitas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'ACCEPTED_%' THEN 1 END)`,
-      })
-      .from(inscricaoTable)
-      .where(sql`${inscricaoTable.projetoId} IN (${inscricoesSubquery})`)
+      const [inscricoesStats] = await ctx.db
+        .select({
+          total: count(),
+          submetidas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} = 'SUBMITTED' THEN 1 END)`,
+          selecionadas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'SELECTED_%' THEN 1 END)`,
+          aceitas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'ACCEPTED_%' THEN 1 END)`,
+        })
+        .from(inscricaoTable)
+        .where(sql`${inscricaoTable.projetoId} IN (${inscricoesSubquery})`)
 
-    const [vagasStats] = await ctx.db
-      .select({
-        total: count(),
-        bolsistas: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = 'BOLSISTA' THEN 1 END)`,
-        voluntarios: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = 'VOLUNTARIO' THEN 1 END)`,
-      })
-      .from(vagaTable)
-      .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
-      .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
+      const [vagasStats] = await ctx.db
+        .select({
+          total: count(),
+          bolsistas: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = 'BOLSISTA' THEN 1 END)`,
+          voluntarios: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = 'VOLUNTARIO' THEN 1 END)`,
+        })
+        .from(vagaTable)
+        .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
+        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
-    return {
-      projetos: {
-        total: projetosStats?.total || 0,
-        aprovados: Number(projetosStats?.aprovados) || 0,
-        submetidos: Number(projetosStats?.submetidos) || 0,
-        rascunhos: Number(projetosStats?.rascunhos) || 0,
-        totalBolsasSolicitadas: Number(projetosStats?.totalBolsasSolicitadas) || 0,
-        totalBolsasDisponibilizadas: Number(projetosStats?.totalBolsasDisponibilizadas) || 0,
-      },
-      inscricoes: {
-        total: inscricoesStats?.total || 0,
-        submetidas: Number(inscricoesStats?.submetidas) || 0,
-        selecionadas: Number(inscricoesStats?.selecionadas) || 0,
-        aceitas: Number(inscricoesStats?.aceitas) || 0,
-      },
-      vagas: {
-        total: vagasStats?.total || 0,
-        bolsistas: Number(vagasStats?.bolsistas) || 0,
-        voluntarios: Number(vagasStats?.voluntarios) || 0,
-      },
-    }
-  }),
-
-  getRelatorioPorDepartamento: adminProtectedProcedure.input(relatorioFiltersSchema).query(async ({ input, ctx }) => {
-    const departamentos = await ctx.db
-      .select({
-        departamento: {
-          id: departamentoTable.id,
-          nome: departamentoTable.nome,
-          sigla: departamentoTable.sigla,
+      return {
+        projetos: {
+          total: projetosStats?.total || 0,
+          aprovados: Number(projetosStats?.aprovados) || 0,
+          submetidos: Number(projetosStats?.submetidos) || 0,
+          rascunhos: Number(projetosStats?.rascunhos) || 0,
+          totalBolsasSolicitadas: Number(projetosStats?.totalBolsasSolicitadas) || 0,
+          totalBolsasDisponibilizadas: Number(projetosStats?.totalBolsasDisponibilizadas) || 0,
         },
-        projetos: count(projetoTable.id),
-        projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
-        bolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
-        bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
-      })
-      .from(departamentoTable)
-      .leftJoin(
-        projetoTable,
-        and(
-          eq(departamentoTable.id, projetoTable.departamentoId),
-          eq(projetoTable.ano, input.ano),
-          eq(projetoTable.semestre, input.semestre)
-        )
-      )
-      .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)
-      .orderBy(desc(count(projetoTable.id)))
+        inscricoes: {
+          total: inscricoesStats?.total || 0,
+          submetidas: Number(inscricoesStats?.submetidas) || 0,
+          selecionadas: Number(inscricoesStats?.selecionadas) || 0,
+          aceitas: Number(inscricoesStats?.aceitas) || 0,
+        },
+        vagas: {
+          total: vagasStats?.total || 0,
+          bolsistas: Number(vagasStats?.bolsistas) || 0,
+          voluntarios: Number(vagasStats?.voluntarios) || 0,
+        },
+      }
+    }),
 
-    return departamentos.map((dept) => ({
-      departamento: dept.departamento,
-      projetos: dept.projetos,
-      projetosAprovados: Number(dept.projetosAprovados) || 0,
-      bolsasSolicitadas: Number(dept.bolsasSolicitadas) || 0,
-      bolsasDisponibilizadas: Number(dept.bolsasDisponibilizadas) || 0,
-    }))
-  }),
+  getRelatorioPorDepartamento: adminProtectedProcedure
+    .input(relatorioFiltersSchema)
+    .output(z.array(departamentoRelatorioSchema))
+    .query(async ({ input, ctx }) => {
+      const departamentos = await ctx.db
+        .select({
+          departamento: {
+            id: departamentoTable.id,
+            nome: departamentoTable.nome,
+            sigla: departamentoTable.sigla,
+          },
+          projetos: count(projetoTable.id),
+          projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+          bolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
+          bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
+        })
+        .from(departamentoTable)
+        .leftJoin(
+          projetoTable,
+          and(
+            eq(departamentoTable.id, projetoTable.departamentoId),
+            eq(projetoTable.ano, input.ano),
+            eq(projetoTable.semestre, input.semestre)
+          )
+        )
+        .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)
+        .orderBy(desc(count(projetoTable.id)))
+
+      return departamentos.map((dept) => ({
+        departamento: dept.departamento,
+        projetos: dept.projetos,
+        projetosAprovados: Number(dept.projetosAprovados) || 0,
+        bolsasSolicitadas: Number(dept.bolsasSolicitadas) || 0,
+        bolsasDisponibilizadas: Number(dept.bolsasDisponibilizadas) || 0,
+      }))
+    }),
 
   getRelatorioProfessores: adminProtectedProcedure
     .input(relatorioFiltersWithDeptSchema)
+    .output(z.array(professorRelatorioSchema))
     .query(async ({ input, ctx }) => {
       const professores = await ctx.db
         .select({
@@ -298,51 +318,54 @@ export const relatoriosRouter = createTRPCRouter({
       }))
     }),
 
-  getRelatorioAlunos: adminProtectedProcedure.input(relatorioFiltersWithStatusSchema).query(async ({ input, ctx }) => {
-    const alunos = await ctx.db
-      .select({
-        aluno: {
-          id: alunoTable.id,
-          nomeCompleto: alunoTable.nomeCompleto,
-          emailInstitucional: alunoTable.emailInstitucional,
-          matricula: alunoTable.matricula,
-          cr: alunoTable.cr,
-        },
-        inscricoes: count(inscricaoTable.id),
-        statusInscricao: inscricaoTable.status,
-        tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
-        projeto: {
-          titulo: projetoTable.titulo,
-          professorResponsavel: professorTable.nomeCompleto,
-        },
-      })
-      .from(alunoTable)
-      .innerJoin(inscricaoTable, eq(alunoTable.id, inscricaoTable.alunoId))
-      .innerJoin(
-        projetoTable,
-        and(
-          eq(inscricaoTable.projetoId, projetoTable.id),
-          eq(projetoTable.ano, input.ano),
-          eq(projetoTable.semestre, input.semestre)
+  getRelatorioAlunos: adminProtectedProcedure
+    .input(relatorioFiltersWithStatusSchema)
+    .output(z.array(alunoRelatorioSchema))
+    .query(async ({ input, ctx }) => {
+      const alunos = await ctx.db
+        .select({
+          aluno: {
+            id: alunoTable.id,
+            nomeCompleto: alunoTable.nomeCompleto,
+            emailInstitucional: alunoTable.emailInstitucional,
+            matricula: alunoTable.matricula,
+            cr: alunoTable.cr,
+          },
+          inscricoes: count(inscricaoTable.id),
+          statusInscricao: inscricaoTable.status,
+          tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
+          projeto: {
+            titulo: projetoTable.titulo,
+            professorResponsavel: professorTable.nomeCompleto,
+          },
+        })
+        .from(alunoTable)
+        .innerJoin(inscricaoTable, eq(alunoTable.id, inscricaoTable.alunoId))
+        .innerJoin(
+          projetoTable,
+          and(
+            eq(inscricaoTable.projetoId, projetoTable.id),
+            eq(projetoTable.ano, input.ano),
+            eq(projetoTable.semestre, input.semestre)
+          )
         )
-      )
-      .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-      .where(input.status ? eq(inscricaoTable.status, input.status) : undefined)
-      .groupBy(
-        alunoTable.id,
-        alunoTable.nomeCompleto,
-        alunoTable.emailInstitucional,
-        alunoTable.matricula,
-        alunoTable.cr,
-        inscricaoTable.status,
-        inscricaoTable.tipoVagaPretendida,
-        projetoTable.titulo,
-        professorTable.nomeCompleto
-      )
-      .orderBy(desc(alunoTable.cr))
+        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .where(input.status ? eq(inscricaoTable.status, input.status) : undefined)
+        .groupBy(
+          alunoTable.id,
+          alunoTable.nomeCompleto,
+          alunoTable.emailInstitucional,
+          alunoTable.matricula,
+          alunoTable.cr,
+          inscricaoTable.status,
+          inscricaoTable.tipoVagaPretendida,
+          projetoTable.titulo,
+          professorTable.nomeCompleto
+        )
+        .orderBy(desc(alunoTable.cr))
 
-    return alunos
-  }),
+      return alunos
+    }),
 
   getRelatorioDisciplinas: adminProtectedProcedure
     .input(
@@ -351,6 +374,7 @@ export const relatoriosRouter = createTRPCRouter({
         semestre: semestreSchema,
       })
     )
+    .output(z.array(disciplinaRelatorioSchema))
     .query(async ({ input, ctx }) => {
       const disciplinas = await ctx.db
         .select({
@@ -400,6 +424,7 @@ export const relatoriosRouter = createTRPCRouter({
         ano: z.number().int().min(2000).max(2100).optional(),
       })
     )
+    .output(z.array(editalRelatorioSchema))
     .query(async ({ input, ctx }) => {
       const editais = await ctx.db
         .select({
@@ -430,22 +455,8 @@ export const relatoriosRouter = createTRPCRouter({
     }),
 
   exportRelatorioCsv: adminProtectedProcedure
-    .input(
-      z.object({
-        tipo: tipoRelatorioSchema,
-        ano: z.number().int().min(2000).max(2100),
-        semestre: semestreSchema,
-        filters: z.record(z.any()).optional(),
-      })
-    )
-    .output(
-      z.object({
-        success: z.boolean(),
-        message: z.string(),
-        csvData: z.string(),
-        fileName: z.string(),
-      })
-    )
+    .input(csvExportInputSchema)
+    .output(csvExportOutputSchema)
     .mutation(async ({ input, ctx }) => {
       const generateCsvRow = (data: (string | number | null | undefined)[]) => {
         return data
@@ -777,12 +788,8 @@ export const relatoriosRouter = createTRPCRouter({
     }),
 
   getDashboardMetrics: adminProtectedProcedure
-    .input(
-      z.object({
-        ano: z.number().int().min(2000).max(2100),
-        semestre: semestreSchema,
-      })
-    )
+    .input(relatorioFiltersSchema)
+    .output(dashboardQuickMetricsSchema)
     .query(async ({ input, ctx }) => {
       // Quick overview metrics for the admin dashboard
       const [metrics] = await ctx.db
@@ -827,44 +834,7 @@ export const relatoriosRouter = createTRPCRouter({
         semestre: semestreSchema,
       })
     )
-    .output(
-      z.array(
-        z.object({
-          id: z.number(),
-          monitor: z.object({
-            nome: z.string(),
-            matricula: z.string(),
-            email: z.string(),
-            cr: z.number(),
-            banco: z.string().nullable(),
-            agencia: z.string().nullable(),
-            conta: z.string().nullable(),
-            digitoConta: z.string().nullable(),
-          }),
-          professor: z.object({
-            nome: z.string(),
-            matriculaSiape: z.string().nullable(),
-            email: z.string(),
-            departamento: z.string(),
-          }),
-          projeto: z.object({
-            titulo: z.string(),
-            disciplinas: z.string(),
-            ano: z.number(),
-            semestre: semestreSchema,
-            cargaHorariaSemana: z.number(),
-            numeroSemanas: z.number(),
-          }),
-          monitoria: z.object({
-            tipo: tipoVagaSchema,
-            dataInicio: z.string(),
-            dataFim: z.string(),
-            valorBolsa: z.number().optional(),
-            status: z.string(),
-          }),
-        })
-      )
-    )
+    .output(z.array(monitorConsolidadoSchema))
     .mutation(async ({ input, ctx }) => {
       // Buscar todos os monitores aceitos no período
       const monitores = await ctx.db
@@ -984,13 +954,8 @@ export const relatoriosRouter = createTRPCRouter({
 
   // Consolidação Final PROGRAD - Planilha de Bolsistas
   monitoresFinalBolsistas: adminProtectedProcedure
-    .input(
-      z.object({
-        ano: z.number().int().min(2000).max(2100),
-        semestre: semestreSchema,
-        departamentoId: z.string().optional(),
-      })
-    )
+    .input(monitoresFinalFiltersSchema)
+    .output(z.array(monitorFinalBolsistaSchema))
     .query(async ({ input, ctx }) => {
       let whereCondition = and(
         eq(vagaTable.tipo, 'BOLSISTA'),

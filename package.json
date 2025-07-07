@@ -13,7 +13,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:drop": "drizzle-kit drop",
-    "test": "vitest run",
+    "test": "vitest --run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "prepare": "husky"

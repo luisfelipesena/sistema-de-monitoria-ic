@@ -3,7 +3,64 @@ import { vi } from 'vitest'
 // Mock database connection to prevent real DB connections
 vi.mock('@/server/db', () => ({
   db: {
-    query: {},
+    query: {
+      vagaTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      assinaturaDocumentoTable: {
+        findMany: vi.fn(),
+        findFirst: vi.fn(),
+      },
+      alunoTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      professorTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      projetoTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      projetoDocumentoTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      periodoInscricaoTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      inscricaoTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      userTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      departamentoTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      disciplinaTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      cursoTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      editalTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+      apiKeyTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+    },
     select: vi.fn().mockReturnThis(),
     from: vi.fn().mockReturnThis(),
     innerJoin: vi.fn().mockReturnThis(),
@@ -13,7 +70,27 @@ vi.mock('@/server/db', () => ({
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
     delete: vi.fn().mockReturnThis(),
+    values: vi.fn().mockReturnThis(),
+    set: vi.fn().mockReturnThis(),
+    returning: vi.fn().mockResolvedValue([]),
     $count: vi.fn(),
+    transaction: vi.fn(async (callback) =>
+      await callback({
+        insert: vi.fn().mockReturnThis(),
+        update: vi.fn().mockReturnThis(),
+        delete: vi.fn().mockReturnThis(),
+        values: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        returning: vi.fn().mockResolvedValue([]),
+        query: {
+          assinaturaDocumentoTable: {
+            findMany: vi.fn(),
+            findFirst: vi.fn(),
+          },
+        },
+      })
+    ),
   },
 }))
 
@@ -94,4 +171,38 @@ vi.mock('@/server/lib/minio', () => ({
 vi.mock('@/server/lib/pdf-service', () => ({
   generateAndStorePDF: vi.fn().mockResolvedValue('mock-file-path.pdf'),
   getStoredPDF: vi.fn().mockResolvedValue(Buffer.from('mock-pdf-data')),
+}))
+
+// Mock React PDF
+vi.mock('@react-pdf/renderer', async () => {
+  const actual = await vi.importActual('@react-pdf/renderer')
+  return {
+    ...actual,
+    Font: {
+      register: vi.fn(),
+    },
+    renderToBuffer: vi.fn().mockResolvedValue(Buffer.from('mock-pdf')),
+  }
+})
+
+// Mock PDF-lib
+vi.mock('pdf-lib', () => ({
+  PDFDocument: {
+    load: vi.fn().mockResolvedValue({
+      getPages: vi.fn().mockReturnValue([{
+        drawImage: vi.fn(),
+      }]),
+      embedPng: vi.fn().mockResolvedValue({
+        scale: vi.fn().mockReturnValue({ width: 100, height: 50 }),
+      }),
+      save: vi.fn().mockResolvedValue(new ArrayBuffer(8)),
+    }),
+  },
+}))
+
+// Mock email service
+vi.mock('@/server/lib/email-service', () => ({
+  emailService: {
+    sendGenericEmail: vi.fn().mockResolvedValue({ success: true }),
+  },
 }))

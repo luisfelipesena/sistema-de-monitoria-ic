@@ -1,5 +1,4 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc"
-import { db } from "@/server/db"
 import {
   alunoTable,
   assinaturaDocumentoTable,
@@ -28,7 +27,7 @@ export const termosRouter = createTRPCRouter({
       const { user } = ctx
 
       // Buscar vaga com dados relacionados
-      const vagaData = await db.query.vagaTable.findFirst({
+      const vagaData = await ctx.db.query.vagaTable.findFirst({
         where: eq(vagaTable.id, parseInt(input.vagaId)),
         with: {
           aluno: {
@@ -120,7 +119,7 @@ export const termosRouter = createTRPCRouter({
         })
 
         // Salvar no banco (documento do projeto)
-        await db.insert(projetoDocumentoTable).values({
+        await ctx.db.insert(projetoDocumentoTable).values({
           projetoId: vagaData.projetoId,
           fileId: fileName,
           tipoDocumento: "ATA_SELECAO",
@@ -155,7 +154,7 @@ export const termosRouter = createTRPCRouter({
       const { user } = ctx
 
       // Buscar vaga
-      const vagaData = await db.query.vagaTable.findFirst({
+      const vagaData = await ctx.db.query.vagaTable.findFirst({
         where: eq(vagaTable.id, parseInt(input.vagaId)),
         with: {
           aluno: {
@@ -228,7 +227,7 @@ export const termosRouter = createTRPCRouter({
       const { user } = ctx
       const vagaId = parseInt(input.vagaId)
 
-      const vagaData = await db.query.vagaTable.findFirst({
+      const vagaData = await ctx.db.query.vagaTable.findFirst({
         where: eq(vagaTable.id, vagaId),
         with: {
           aluno: true,
@@ -254,7 +253,7 @@ export const termosRouter = createTRPCRouter({
         })
       }
 
-      const assinaturaExistente = await db.query.assinaturaDocumentoTable.findFirst({
+      const assinaturaExistente = await ctx.db.query.assinaturaDocumentoTable.findFirst({
         where: and(
           eq(assinaturaDocumentoTable.vagaId, vagaId),
           eq(assinaturaDocumentoTable.tipoAssinatura, input.tipoAssinatura)
@@ -270,7 +269,7 @@ export const termosRouter = createTRPCRouter({
       }.pdf`
 
       try {
-        await db.transaction(async (tx) => {
+        await ctx.db.transaction(async (tx) => {
           await tx.insert(assinaturaDocumentoTable).values({
             assinaturaData: input.assinaturaData,
             tipoAssinatura: input.tipoAssinatura,
@@ -278,7 +277,7 @@ export const termosRouter = createTRPCRouter({
             vagaId,
           })
 
-          const allSignatures = await tx.query.assinaturaDocumentoTable.findMany({
+          const allSignatures = await ctx.db.query.assinaturaDocumentoTable.findMany({
             where: eq(assinaturaDocumentoTable.vagaId, vagaId),
           })
 
@@ -341,7 +340,7 @@ export const termosRouter = createTRPCRouter({
 
       if (input.projetoId) {
         // Buscar todas as vagas do projeto
-        vagas = await db.query.vagaTable.findMany({
+        vagas = await ctx.db.query.vagaTable.findMany({
           where: eq(vagaTable.projetoId, parseInt(input.projetoId)),
           with: {
             aluno: {
@@ -367,7 +366,7 @@ export const termosRouter = createTRPCRouter({
         }
       } else {
         // Buscar vaga específica
-        const vaga = await db.query.vagaTable.findFirst({
+        const vaga = await ctx.db.query.vagaTable.findFirst({
           where: eq(vagaTable.id, parseInt(input.vagaId!)),
           with: {
             aluno: {
@@ -406,7 +405,7 @@ export const termosRouter = createTRPCRouter({
       // Para cada vaga, buscar status das assinaturas
       const termosStatus = await Promise.all(
         vagas.map(async (vagaItem) => {
-          const assinaturas = await db.query.assinaturaDocumentoTable.findMany({
+          const assinaturas = await ctx.db.query.assinaturaDocumentoTable.findMany({
             where: eq(assinaturaDocumentoTable.vagaId, vagaItem.id),
             with: {
               user: true,
@@ -449,7 +448,7 @@ export const termosRouter = createTRPCRouter({
 
     if (user.role === "student") {
       // Aluno: termos pendentes de sua assinatura
-      const vagasAluno = await db.query.vagaTable.findMany({
+      const vagasAluno = await ctx.db.query.vagaTable.findMany({
         where: sql`${vagaTable.alunoId} IN (
             SELECT id FROM ${alunoTable} WHERE ${alunoTable.userId} = ${user.id}
           )`,
@@ -468,7 +467,7 @@ export const termosRouter = createTRPCRouter({
 
       const termosPendentes = await Promise.all(
         vagasAluno.map(async (vagaItem) => {
-          const assinaturaAluno = await db.query.assinaturaDocumentoTable.findFirst({
+          const assinaturaAluno = await ctx.db.query.assinaturaDocumentoTable.findFirst({
             where: and(
               eq(assinaturaDocumentoTable.vagaId, vagaItem.id),
               eq(assinaturaDocumentoTable.tipoAssinatura, "TERMO_COMPROMISSO_ALUNO")
@@ -491,7 +490,7 @@ export const termosRouter = createTRPCRouter({
       return termosPendentes.filter(Boolean)
     } else if (user.role === "professor") {
       // Professor: termos pendentes de sua assinatura
-      const vagasProfessor = await db.query.vagaTable.findMany({
+      const vagasProfessor = await ctx.db.query.vagaTable.findMany({
         where: sql`${vagaTable.projetoId} IN (
             SELECT id FROM ${projetoTable} WHERE ${projetoTable.professorResponsavelId} = ${user.id}
           )`,
@@ -505,7 +504,7 @@ export const termosRouter = createTRPCRouter({
 
       const termosPendentes = await Promise.all(
         vagasProfessor.map(async (vagaItem) => {
-          const assinaturaProfessor = await db.query.assinaturaDocumentoTable.findFirst({
+          const assinaturaProfessor = await ctx.db.query.assinaturaDocumentoTable.findFirst({
             where: and(
               eq(assinaturaDocumentoTable.vagaId, vagaItem.id),
               eq(assinaturaDocumentoTable.tipoAssinatura, "ATA_SELECAO_PROFESSOR")
@@ -528,7 +527,7 @@ export const termosRouter = createTRPCRouter({
       return termosPendentes.filter(Boolean)
     } else {
       // Admin: todos os termos pendentes
-      const todasVagas = await db.query.vagaTable.findMany({
+      const todasVagas = await ctx.db.query.vagaTable.findMany({
         with: {
           projeto: {
             with: {
@@ -543,7 +542,7 @@ export const termosRouter = createTRPCRouter({
 
       const termosPendentes = await Promise.all(
         todasVagas.map(async (vagaItem) => {
-          const assinaturas = await db.query.assinaturaDocumentoTable.findMany({
+          const assinaturas = await ctx.db.query.assinaturaDocumentoTable.findMany({
             where: eq(assinaturaDocumentoTable.vagaId, vagaItem.id),
           })
 
@@ -590,7 +589,7 @@ export const termosRouter = createTRPCRouter({
       let vagas: any[] = []
 
       if (input.vagaId) {
-        const vaga = await db.query.vagaTable.findFirst({
+        const vaga = await ctx.db.query.vagaTable.findFirst({
           where: eq(vagaTable.id, parseInt(input.vagaId)),
           with: {
             aluno: { with: { user: true } },
@@ -599,7 +598,7 @@ export const termosRouter = createTRPCRouter({
         })
         if (vaga) vagas = [vaga]
       } else if (input.projetoId) {
-        vagas = await db.query.vagaTable.findMany({
+        vagas = await ctx.db.query.vagaTable.findMany({
           where: eq(vagaTable.projetoId, parseInt(input.projetoId)),
           with: {
             aluno: { with: { user: true } },
@@ -612,7 +611,7 @@ export const termosRouter = createTRPCRouter({
 
       for (const vaga of vagas) {
         // Verificar assinaturas pendentes
-        const assinaturas = await db.query.assinaturaDocumentoTable.findMany({
+        const assinaturas = await ctx.db.query.assinaturaDocumentoTable.findMany({
           where: eq(assinaturaDocumentoTable.vagaId, vaga.id),
         })
 
@@ -691,7 +690,7 @@ Sistema de Monitoria IC
     .query(async ({ input, ctx }) => {
       const { user } = ctx
 
-      const vagaData = await db.query.vagaTable.findFirst({
+      const vagaData = await ctx.db.query.vagaTable.findFirst({
         where: eq(vagaTable.id, parseInt(input.vagaId)),
         with: {
           aluno: { with: { user: true } },
@@ -719,7 +718,7 @@ Sistema de Monitoria IC
       }
 
       // Verificar assinaturas
-      const assinaturas = await db.query.assinaturaDocumentoTable.findMany({
+      const assinaturas = await ctx.db.query.assinaturaDocumentoTable.findMany({
         where: eq(assinaturaDocumentoTable.vagaId, parseInt(input.vagaId)),
       })
 

@@ -1,30 +1,15 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { apiKeyTable } from '@/server/db/schema'
+import {
+  createApiKeySchema,
+  deleteApiKeySchema,
+  listApiKeysSchema,
+  updateApiKeySchema,
+} from '@/types'
 import { TRPCError } from '@trpc/server'
+import { createHash, randomBytes } from 'crypto'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { createHash, randomBytes } from 'crypto'
-
-const createApiKeySchema = z.object({
-  name: z.string().min(1).max(255),
-  description: z.string().optional(),
-  expiresAt: z.date().optional(),
-})
-
-const updateApiKeySchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().min(1).max(255).optional(),
-  description: z.string().optional(),
-  isActive: z.boolean().optional(),
-})
-
-const deleteApiKeySchema = z.object({
-  id: z.number().int().positive(),
-})
-
-const listApiKeysSchema = z.object({
-  userId: z.number().int().positive().optional(),
-})
 
 export const apiKeyRouter = createTRPCRouter({
   // Criar nova API key (usuários podem criar suas próprias, admins podem criar para qualquer usuário)

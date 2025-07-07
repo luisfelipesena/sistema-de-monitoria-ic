@@ -1,50 +1,12 @@
-import { createTRPCRouter, protectedProcedure, adminProtectedProcedure } from '@/server/api/trpc'
-import { departamentoTable, disciplinaTable, professorTable, cursoTable, projetoTable } from '@/server/db/schema'
-import { TRPCError } from '@trpc/server'
-import { eq, and, isNull, sql } from 'drizzle-orm'
-import { z } from 'zod'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { cursoTable, departamentoTable, disciplinaTable, professorTable, projetoTable } from '@/server/db/schema'
+import { createDepartmentSchema, departamentoSchema, updateDepartmentSchema } from '@/types'
 import { logger } from '@/utils/logger'
+import { TRPCError } from '@trpc/server'
+import { and, eq, isNull, sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 const log = logger.child({ context: 'DepartamentoRouter' })
-
-export const departamentoSchema = z.object({
-  id: z.number(),
-  unidadeUniversitaria: z.string(),
-  nome: z.string(),
-  sigla: z.string().nullable(),
-  coordenador: z.string().nullable(),
-  email: z.string().nullable(),
-  telefone: z.string().nullable(),
-  descricao: z.string().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date().nullable(),
-  // Contadores
-  professores: z.number().optional(),
-  cursos: z.number().optional(),
-  disciplinas: z.number().optional(),
-  projetos: z.number().optional(),
-})
-
-export const newDepartamentoSchema = z.object({
-  unidadeUniversitaria: z.string().min(1, 'Unidade universitária é obrigatória'),
-  nome: z.string().min(1, 'Nome é obrigatório'),
-  sigla: z.string().optional(),
-  coordenador: z.string().optional(),
-  email: z.string().email('Email inválido').optional().or(z.literal('')),
-  telefone: z.string().optional(),
-  descricao: z.string().optional(),
-})
-
-export const updateDepartamentoSchema = z.object({
-  id: z.number(),
-  unidadeUniversitaria: z.string().optional(),
-  nome: z.string().optional(),
-  sigla: z.string().optional(),
-  coordenador: z.string().optional(),
-  email: z.string().email('Email inválido').optional().or(z.literal('')),
-  telefone: z.string().optional(),
-  descricao: z.string().optional(),
-})
 
 export const departamentoRouter = createTRPCRouter({
   getDepartamentos: protectedProcedure
@@ -159,7 +121,7 @@ export const departamentoRouter = createTRPCRouter({
         description: 'Create a new departamento',
       },
     })
-    .input(newDepartamentoSchema)
+    .input(createDepartmentSchema)
     .output(departamentoSchema)
     .mutation(async ({ input, ctx }) => {
       try {
@@ -197,7 +159,7 @@ export const departamentoRouter = createTRPCRouter({
         description: 'Update an existing departamento',
       },
     })
-    .input(updateDepartamentoSchema)
+    .input(updateDepartmentSchema)
     .output(departamentoSchema)
     .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input

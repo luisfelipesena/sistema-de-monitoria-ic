@@ -1,202 +1,180 @@
-import { z } from 'zod'
-import { eq, desc, and } from 'drizzle-orm'
-import { createTRPCRouter, adminProtectedProcedure } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter } from '@/server/api/trpc'
 import { db } from '@/server/db'
 import { professorInvitationTable, userTable } from '@/server/db/schema'
-import crypto from 'crypto'
+import {
+  cancelInvitationSchema,
+  deleteInvitationSchema,
+  getInvitationsSchema,
+  resendInvitationSchema,
+  sendInvitationSchema,
+  validateInvitationTokenSchema,
+} from '@/types'
 import { env } from '@/utils/env'
+import crypto from 'crypto'
+import { and, desc, eq } from 'drizzle-orm'
 
 export const inviteProfessorRouter = createTRPCRouter({
-  sendInvitation: adminProtectedProcedure
-    .input(
-      z.object({
-        email: z.string().email(),
-        expiresInDays: z.number().int().min(1).max(30).default(7),
+  sendInvitation: adminProtectedProcedure.input(sendInvitationSchema).mutation(async ({ ctx, input }) => {
+    // Check if email already exists as user
+    const existingUser = await ctx.db.query.userTable.findFirst({
+      where: eq(userTable.email, input.email),
+    })
+
+    if (existingUser) {
+      throw new Error('Usuário com este email já existe no sistema')
+    }
+
+    // Check if there's already a pending invitation
+    const existingInvitation = await ctx.db.query.professorInvitationTable.findFirst({
+      where: and(eq(professorInvitationTable.email, input.email), eq(professorInvitationTable.status, 'PENDING')),
+    })
+
+    if (existingInvitation) {
+      throw new Error('Já existe um convite pendente para este email')
+    }
+
+    // Generate unique token
+    const token = crypto.randomUUID()
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + input.expiresInDays)
+
+    // Create invitation
+    const [invitation] = await ctx.db
+      .insert(professorInvitationTable)
+      .values({
+        email: input.email,
+        token,
+        expiresAt,
+        invitedByUserId: ctx.user.id,
       })
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Check if email already exists as user
-      const existingUser = await ctx.db.query.userTable.findFirst({
-        where: eq(userTable.email, input.email),
-      })
+      .returning()
 
-      if (existingUser) {
-        throw new Error('Usuário com este email já existe no sistema')
-      }
+    // Send email notification
+    const { sendProfessorInvitationEmail } = await import('@/server/lib/email-service')
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+    const invitationLink = `${clientUrl}/auth/accept-invitation?token=${token}`
 
-      // Check if there's already a pending invitation
-      const existingInvitation = await ctx.db.query.professorInvitationTable.findFirst({
-        where: and(eq(professorInvitationTable.email, input.email), eq(professorInvitationTable.status, 'PENDING')),
-      })
+    await sendProfessorInvitationEmail({
+      professorEmail: input.email,
+      invitationLink,
+      adminName: ctx.user.username,
+      remetenteUserId: ctx.user.id,
+    })
 
-      if (existingInvitation) {
-        throw new Error('Já existe um convite pendente para este email')
-      }
+    return {
+      id: invitation.id,
+      email: invitation.email,
+      token: invitation.token,
+      expiresAt: invitation.expiresAt,
+    }
+  }),
 
-      // Generate unique token
-      const token = crypto.randomUUID()
-      const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + input.expiresInDays)
-
-      // Create invitation
-      const [invitation] = await ctx.db
-        .insert(professorInvitationTable)
-        .values({
-          email: input.email,
-          token,
-          expiresAt,
-          invitedByUserId: ctx.user.id,
-        })
-        .returning()
-
-      // Send email notification
-      const { sendProfessorInvitationEmail } = await import('@/server/lib/email-service')
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
-      const invitationLink = `${clientUrl}/auth/accept-invitation?token=${token}`
-
-      await sendProfessorInvitationEmail({
-        professorEmail: input.email,
-        invitationLink,
-        adminName: ctx.user.username,
-        remetenteUserId: ctx.user.id,
-      })
-
-      return {
-        id: invitation.id,
-        email: invitation.email,
-        token: invitation.token,
-        expiresAt: invitation.expiresAt,
-      }
-    }),
-
-  getInvitations: adminProtectedProcedure
-    .input(
-      z
-        .object({
-          status: z.enum(['PENDING', 'ACCEPTED', 'EXPIRED']).optional(),
-        })
-        .optional()
-    )
-    .query(async ({ input, ctx }) => {
-      const invitations = await ctx.db.query.professorInvitationTable.findMany({
-        where: input?.status ? eq(professorInvitationTable.status, input.status) : undefined,
-        orderBy: [desc(professorInvitationTable.createdAt)],
-        with: {
-          invitedByUser: {
-            columns: {
-              username: true,
-              email: true,
-            },
-          },
-          acceptedByUser: {
-            columns: {
-              username: true,
-              email: true,
-            },
+  getInvitations: adminProtectedProcedure.input(getInvitationsSchema).query(async ({ input, ctx }) => {
+    const invitations = await ctx.db.query.professorInvitationTable.findMany({
+      where: input?.status ? eq(professorInvitationTable.status, input.status) : undefined,
+      orderBy: [desc(professorInvitationTable.createdAt)],
+      with: {
+        invitedByUser: {
+          columns: {
+            username: true,
+            email: true,
           },
         },
-      })
+        acceptedByUser: {
+          columns: {
+            username: true,
+            email: true,
+          },
+        },
+      },
+    })
 
-      // Check for expired invitations and update status
-      const now = new Date()
-      const expiredInvitations = invitations.filter((inv) => inv.status === 'PENDING' && inv.expiresAt < now)
+    // Check for expired invitations and update status
+    const now = new Date()
+    const expiredInvitations = invitations.filter((inv) => inv.status === 'PENDING' && inv.expiresAt < now)
 
-      if (expiredInvitations.length > 0) {
-        await Promise.all(
-          expiredInvitations.map((inv) =>
-            db
-              .update(professorInvitationTable)
-              .set({ status: 'EXPIRED' })
-              .where(eq(professorInvitationTable.id, inv.id))
-          )
+    if (expiredInvitations.length > 0) {
+      await Promise.all(
+        expiredInvitations.map((inv) =>
+          db.update(professorInvitationTable).set({ status: 'EXPIRED' }).where(eq(professorInvitationTable.id, inv.id))
         )
-      }
+      )
+    }
 
-      return invitations.map((inv) => ({
-        ...inv,
-        status: inv.status === 'PENDING' && inv.expiresAt < now ? 'EXPIRED' : inv.status,
-      }))
-    }),
+    return invitations.map((inv) => ({
+      ...inv,
+      status: inv.status === 'PENDING' && inv.expiresAt < now ? 'EXPIRED' : inv.status,
+    }))
+  }),
 
-  resendInvitation: adminProtectedProcedure
-    .input(
-      z.object({
-        invitationId: z.number(),
-        expiresInDays: z.number().int().min(1).max(30).default(7),
+  resendInvitation: adminProtectedProcedure.input(resendInvitationSchema).mutation(async ({ ctx, input }) => {
+    const invitation = await ctx.db.query.professorInvitationTable.findFirst({
+      where: eq(professorInvitationTable.id, input.invitationId),
+    })
+
+    if (!invitation) {
+      throw new Error('Convite não encontrado')
+    }
+
+    if (invitation.status === 'ACCEPTED') {
+      throw new Error('Este convite já foi aceito')
+    }
+
+    // Generate new token and expiration
+    const token = crypto.randomUUID()
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + input.expiresInDays)
+
+    await ctx.db
+      .update(professorInvitationTable)
+      .set({
+        token,
+        expiresAt,
+        status: 'PENDING',
       })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const invitation = await ctx.db.query.professorInvitationTable.findFirst({
-        where: eq(professorInvitationTable.id, input.invitationId),
-      })
+      .where(eq(professorInvitationTable.id, input.invitationId))
 
-      if (!invitation) {
-        throw new Error('Convite não encontrado')
-      }
+    // Send email notification
+    const { sendProfessorInvitationEmail } = await import('@/server/lib/email-service')
+    const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
+    const invitationLink = `${clientUrl}/auth/accept-invitation?token=${token}`
 
-      if (invitation.status === 'ACCEPTED') {
-        throw new Error('Este convite já foi aceito')
-      }
+    await sendProfessorInvitationEmail({
+      professorEmail: invitation.email,
+      invitationLink,
+      adminName: ctx.user.username,
+      remetenteUserId: ctx.user.id,
+    })
 
-      // Generate new token and expiration
-      const token = crypto.randomUUID()
-      const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + input.expiresInDays)
+    return { success: true }
+  }),
 
-      await ctx.db
-        .update(professorInvitationTable)
-        .set({
-          token,
-          expiresAt,
-          status: 'PENDING',
-        })
-        .where(eq(professorInvitationTable.id, input.invitationId))
+  cancelInvitation: adminProtectedProcedure.input(cancelInvitationSchema).mutation(async ({ input, ctx }) => {
+    const invitation = await ctx.db.query.professorInvitationTable.findFirst({
+      where: eq(professorInvitationTable.id, input.invitationId),
+    })
 
-      // Send email notification
-      const { sendProfessorInvitationEmail } = await import('@/server/lib/email-service')
-      const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
-      const invitationLink = `${clientUrl}/auth/accept-invitation?token=${token}`
+    if (!invitation) {
+      throw new Error('Convite não encontrado')
+    }
 
-      await sendProfessorInvitationEmail({
-        professorEmail: invitation.email,
-        invitationLink,
-        adminName: ctx.user.username,
-        remetenteUserId: ctx.user.id,
-      })
+    if (invitation.status === 'ACCEPTED') {
+      throw new Error('Não é possível cancelar um convite já aceito')
+    }
 
-      return { success: true }
-    }),
+    await ctx.db
+      .update(professorInvitationTable)
+      .set({ status: 'EXPIRED' })
+      .where(eq(professorInvitationTable.id, input.invitationId))
 
-  cancelInvitation: adminProtectedProcedure
-    .input(z.object({ invitationId: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      const invitation = await ctx.db.query.professorInvitationTable.findFirst({
-        where: eq(professorInvitationTable.id, input.invitationId),
-      })
+    return { success: true }
+  }),
 
-      if (!invitation) {
-        throw new Error('Convite não encontrado')
-      }
+  deleteInvitation: adminProtectedProcedure.input(deleteInvitationSchema).mutation(async ({ input, ctx }) => {
+    await ctx.db.delete(professorInvitationTable).where(eq(professorInvitationTable.id, input.invitationId))
 
-      if (invitation.status === 'ACCEPTED') {
-        throw new Error('Não é possível cancelar um convite já aceito')
-      }
-
-      await ctx.db
-        .update(professorInvitationTable)
-        .set({ status: 'EXPIRED' })
-        .where(eq(professorInvitationTable.id, input.invitationId))
-
-      return { success: true }
-    }),
-
-  deleteInvitation: adminProtectedProcedure
-    .input(z.object({ invitationId: z.number() }))
-    .mutation(async ({ input, ctx }) => {
-      await ctx.db.delete(professorInvitationTable).where(eq(professorInvitationTable.id, input.invitationId))
-
-      return { success: true }
-    }),
+    return { success: true }
+  }),
 
   getInvitationStats: adminProtectedProcedure.query(async ({ ctx }) => {
     const invitations = await ctx.db.query.professorInvitationTable.findMany()
@@ -214,7 +192,7 @@ export const inviteProfessorRouter = createTRPCRouter({
   }),
 
   validateInvitationToken: adminProtectedProcedure
-    .input(z.object({ token: z.string() }))
+    .input(validateInvitationTokenSchema)
     .query(async ({ input, ctx }) => {
       const invitation = await ctx.db.query.professorInvitationTable.findFirst({
         where: eq(professorInvitationTable.token, input.token),
