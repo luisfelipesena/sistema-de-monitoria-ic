@@ -1,83 +1,125 @@
-"use client"
+"use client";
 
-import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { duplicateTemplateSchema, projectTemplateSchema, type ProjectTemplateItem } from "@/types"
-import { api } from "@/utils/api"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { ColumnDef } from "@tanstack/react-table"
-import { BookOpen, Clock, Copy, Edit, FileText, Plus, Target, Trash2 } from "lucide-react"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { toast } from "sonner"
-import { z } from "zod"
+import { PagesLayout } from "@/components/layout/PagesLayout";
+import { TableComponent } from "@/components/layout/TableComponent";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  duplicateTemplateSchema,
+  projectTemplateSchema,
+  type ProjectTemplateItem,
+} from "@/types";
+import { api } from "@/utils/api";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ColumnDef } from "@tanstack/react-table";
+import {
+  BookOpen,
+  Clock,
+  Copy,
+  Edit,
+  FileText,
+  Plus,
+  Target,
+  Trash2,
+} from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
-type TemplateFormData = z.infer<typeof projectTemplateSchema>
-type DuplicateFormData = z.infer<typeof duplicateTemplateSchema>
+type TemplateFormData = z.infer<typeof projectTemplateSchema>;
+type DuplicateFormData = z.infer<typeof duplicateTemplateSchema>;
 
 export default function ProjetoTemplatesPage() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false)
-  const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplateItem | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<ProjectTemplateItem | null>(null);
 
-  const { data: templates, isLoading, refetch } = api.projetoTemplates.getTemplates.useQuery()
-  const { data: disciplinasDisponiveis } = api.projetoTemplates.getDisciplinasDisponiveis.useQuery()
-  const { data: stats } = api.projetoTemplates.getTemplateStats.useQuery()
+  const {
+    data: templates,
+    isLoading,
+    refetch,
+  } = api.projetoTemplates.getTemplates.useQuery();
+  const { data: disciplinasDisponiveis } =
+    api.projetoTemplates.getDisciplinasDisponiveis.useQuery();
+  const { data: stats } = api.projetoTemplates.getTemplateStats.useQuery();
 
-  const createTemplateMutation = api.projetoTemplates.createTemplate.useMutation({
-    onSuccess: () => {
-      toast.success("Template criado com sucesso!")
-      setIsCreateDialogOpen(false)
-      refetch()
-      createForm.reset()
-    },
-    onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
-    },
-  })
+  const createTemplateMutation =
+    api.projetoTemplates.createTemplate.useMutation({
+      onSuccess: () => {
+        toast.success("Template criado com sucesso!");
+        setIsCreateDialogOpen(false);
+        refetch();
+        createForm.reset();
+      },
+      onError: (error) => {
+        toast.error(`Erro: ${error.message}`);
+      },
+    });
 
-  const updateTemplateMutation = api.projetoTemplates.updateTemplate.useMutation({
-    onSuccess: () => {
-      toast.success("Template atualizado com sucesso!")
-      setIsEditDialogOpen(false)
-      setSelectedTemplate(null)
-      refetch()
-    },
-    onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
-    },
-  })
+  const updateTemplateMutation =
+    api.projetoTemplates.updateTemplate.useMutation({
+      onSuccess: () => {
+        toast.success("Template atualizado com sucesso!");
+        setIsEditDialogOpen(false);
+        setSelectedTemplate(null);
+        refetch();
+      },
+      onError: (error) => {
+        toast.error(`Erro: ${error.message}`);
+      },
+    });
 
-  const deleteTemplateMutation = api.projetoTemplates.deleteTemplate.useMutation({
-    onSuccess: () => {
-      toast.success("Template excluído com sucesso!")
-      refetch()
-    },
-    onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
-    },
-  })
+  const deleteTemplateMutation =
+    api.projetoTemplates.deleteTemplate.useMutation({
+      onSuccess: () => {
+        toast.success("Template excluído com sucesso!");
+        refetch();
+      },
+      onError: (error) => {
+        toast.error(`Erro: ${error.message}`);
+      },
+    });
 
-  const duplicateTemplateMutation = api.projetoTemplates.duplicateTemplate.useMutation({
-    onSuccess: () => {
-      toast.success("Template duplicado com sucesso!")
-      setIsDuplicateDialogOpen(false)
-      refetch()
-      duplicateForm.reset()
-    },
-    onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
-    },
-  })
+  const duplicateTemplateMutation =
+    api.projetoTemplates.duplicateTemplate.useMutation({
+      onSuccess: () => {
+        toast.success("Template duplicado com sucesso!");
+        setIsDuplicateDialogOpen(false);
+        refetch();
+        duplicateForm.reset();
+      },
+      onError: (error) => {
+        toast.error(`Erro: ${error.message}`);
+      },
+    });
 
   const createForm = useForm<TemplateFormData>({
     resolver: zodResolver(projectTemplateSchema),
@@ -90,7 +132,7 @@ export default function ProjetoTemplatesPage() {
       publicoAlvoDefault: "",
       atividadesDefault: [],
     },
-  })
+  });
 
   const editForm = useForm<TemplateFormData>({
     resolver: zodResolver(projectTemplateSchema),
@@ -103,67 +145,68 @@ export default function ProjetoTemplatesPage() {
       publicoAlvoDefault: "",
       atividadesDefault: [],
     },
-  })
+  });
 
   // Manual state management for activities since useFieldArray has type issues
-  const [createAtividades, setCreateAtividades] = useState<string[]>([])
-  const [editAtividades, setEditAtividades] = useState<string[]>([])
+  const [createAtividades, setCreateAtividades] = useState<string[]>([]);
+  const [editAtividades, setEditAtividades] = useState<string[]>([]);
 
   const duplicateForm = useForm<DuplicateFormData>({
     resolver: zodResolver(duplicateTemplateSchema),
-  })
+  });
 
   const handleCreate = (data: TemplateFormData) => {
     const templateData = {
       ...data,
       atividadesDefault: createAtividades.filter((a) => a.trim() !== ""),
-    }
-    createTemplateMutation.mutate(templateData)
-  }
+    };
+    createTemplateMutation.mutate(templateData);
+  };
 
   const handleEdit = (data: TemplateFormData) => {
-    if (!selectedTemplate) return
-    const { disciplinaId, ...updateData } = data
+    if (!selectedTemplate) return;
+    const { disciplinaId, ...updateData } = data;
     const templateData = {
       ...updateData,
       atividadesDefault: editAtividades.filter((a) => a.trim() !== ""),
-    }
-    updateTemplateMutation.mutate({ id: selectedTemplate.id, ...templateData })
-  }
+    };
+    updateTemplateMutation.mutate({ id: selectedTemplate.id, ...templateData });
+  };
 
   const handleDelete = (id: number) => {
     if (confirm("Tem certeza que deseja excluir este template?")) {
-      deleteTemplateMutation.mutate({ id })
+      deleteTemplateMutation.mutate({ id });
     }
-  }
+  };
 
   const handleDuplicate = (data: DuplicateFormData) => {
-    duplicateTemplateMutation.mutate(data)
-  }
+    duplicateTemplateMutation.mutate(data);
+  };
 
   const openEditDialog = (template: ProjectTemplateItem) => {
-    setSelectedTemplate(template)
-    setEditAtividades(template.atividadesDefault || [])
+    setSelectedTemplate(template);
+    setEditAtividades(template.atividadesDefault || []);
     editForm.reset({
       disciplinaId: template.disciplinaId,
       tituloDefault: template.tituloDefault || "",
       descricaoDefault: template.descricaoDefault || "",
-      cargaHorariaSemanaDefault: template.cargaHorariaSemanaDefault || undefined,
+      cargaHorariaSemanaDefault:
+        template.cargaHorariaSemanaDefault || undefined,
       numeroSemanasDefault: template.numeroSemanasDefault || undefined,
       publicoAlvoDefault: template.publicoAlvoDefault || "",
       atividadesDefault: [],
-    })
-    setIsEditDialogOpen(true)
-  }
+    });
+    setIsEditDialogOpen(true);
+  };
 
   const openDuplicateDialog = (template: ProjectTemplateItem) => {
-    setSelectedTemplate(template)
+    setSelectedTemplate(template);
     duplicateForm.reset({
       sourceId: template.id,
       targetDisciplinaId: 0,
-    })
-    setIsDuplicateDialogOpen(true)
-  }
+    });
+    setIsDuplicateDialogOpen(true);
+  };
 
   const columns: ColumnDef<ProjectTemplateItem>[] = [
     {
@@ -171,8 +214,12 @@ export default function ProjetoTemplatesPage() {
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.disciplina.codigo}</div>
-          <div className="text-sm text-muted-foreground truncate max-w-xs">{row.original.disciplina.nome}</div>
-          <div className="text-xs text-muted-foreground">{row.original.disciplina.departamento.sigla}</div>
+          <div className="text-sm text-muted-foreground truncate max-w-xs">
+            {row.original.disciplina.nome}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {row.original.disciplina.departamento.sigla}
+          </div>
         </div>
       ),
     },
@@ -180,13 +227,17 @@ export default function ProjetoTemplatesPage() {
       header: "Template",
       cell: ({ row }) => (
         <div>
-          <div className="font-medium truncate max-w-xs">{row.original.tituloDefault || "Sem título"}</div>
+          <div className="font-medium truncate max-w-xs">
+            {row.original.tituloDefault || "Sem título"}
+          </div>
           <div className="text-sm text-muted-foreground">
-            {row.original.cargaHorariaSemanaDefault && row.original.numeroSemanasDefault && (
-              <span>
-                {row.original.cargaHorariaSemanaDefault}h/sem × {row.original.numeroSemanasDefault} sem
-              </span>
-            )}
+            {row.original.cargaHorariaSemanaDefault &&
+              row.original.numeroSemanasDefault && (
+                <span>
+                  {row.original.cargaHorariaSemanaDefault}h/sem ×{" "}
+                  {row.original.numeroSemanasDefault} sem
+                </span>
+              )}
           </div>
         </div>
       ),
@@ -196,7 +247,9 @@ export default function ProjetoTemplatesPage() {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Target className="h-4 w-4 text-blue-600" />
-          <span className="text-sm">{row.original.atividadesDefault.length} atividade(s)</span>
+          <span className="text-sm">
+            {row.original.atividadesDefault.length} atividade(s)
+          </span>
         </div>
       ),
     },
@@ -210,7 +263,10 @@ export default function ProjetoTemplatesPage() {
               : new Date(row.original.createdAt).toLocaleDateString("pt-BR")}
           </div>
           <div className="text-xs text-muted-foreground">
-            {(row.original.ultimaAtualizacaoPor || row.original.criadoPor)?.username}
+            {
+              (row.original.ultimaAtualizacaoPor || row.original.criadoPor)
+                ?.username
+            }
           </div>
         </div>
       ),
@@ -219,14 +275,22 @@ export default function ProjetoTemplatesPage() {
       header: "Ações",
       id: "actions",
       cell: ({ row }) => {
-        const template = row.original
+        const template = row.original;
 
         return (
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => openEditDialog(template)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openEditDialog(template)}
+            >
               <Edit className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={() => openDuplicateDialog(template)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openDuplicateDialog(template)}
+            >
               <Copy className="h-4 w-4" />
             </Button>
             <Button
@@ -238,10 +302,10 @@ export default function ProjetoTemplatesPage() {
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
 
   return (
     <PagesLayout
@@ -254,29 +318,37 @@ export default function ProjetoTemplatesPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                   <FileText className="h-5 w-5 text-blue-600" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Total de Templates</p>
-                    <p className="text-2xl font-semibold">{stats.totalTemplates}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Total de Templates
+                    </p>
+                    <p className="text-2xl font-semibold">
+                      {stats.totalTemplates}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                   <BookOpen className="h-5 w-5 text-green-600" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Total de Disciplinas</p>
-                    <p className="text-2xl font-semibold">{stats.totalDisciplinas}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Total de Disciplinas
+                    </p>
+                    <p className="text-2xl font-semibold">
+                      {stats.totalDisciplinas}
+                    </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                   <Target className="h-5 w-5 text-purple-600" />
                   <div>
                     <p className="text-sm text-muted-foreground">Cobertura</p>
@@ -287,11 +359,15 @@ export default function ProjetoTemplatesPage() {
             </Card>
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                   <Clock className="h-5 w-5 text-orange-600" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Sem Template</p>
-                    <p className="text-2xl font-semibold">{stats.disciplinasSemTemplate}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Sem Template
+                    </p>
+                    <p className="text-2xl font-semibold">
+                      {stats.disciplinasSemTemplate}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -312,9 +388,17 @@ export default function ProjetoTemplatesPage() {
                   </Badge>
                 )}
               </div>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <Dialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+              >
                 <DialogTrigger asChild>
-                  <Button disabled={!disciplinasDisponiveis || disciplinasDisponiveis.length === 0}>
+                  <Button
+                    disabled={
+                      !disciplinasDisponiveis ||
+                      disciplinasDisponiveis.length === 0
+                    }
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Novo Template
                   </Button>
@@ -324,7 +408,10 @@ export default function ProjetoTemplatesPage() {
                     <DialogTitle>Criar Novo Template</DialogTitle>
                   </DialogHeader>
                   <Form {...createForm}>
-                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
+                    <form
+                      onSubmit={createForm.handleSubmit(handleCreate)}
+                      className="space-y-4"
+                    >
                       <FormField
                         control={createForm.control}
                         name="disciplinaId"
@@ -332,7 +419,9 @@ export default function ProjetoTemplatesPage() {
                           <FormItem>
                             <FormLabel>Disciplina</FormLabel>
                             <Select
-                              onValueChange={(value) => field.onChange(parseInt(value))}
+                              onValueChange={(value) =>
+                                field.onChange(parseInt(value))
+                              }
                               value={field.value?.toString()}
                             >
                               <FormControl>
@@ -342,8 +431,12 @@ export default function ProjetoTemplatesPage() {
                               </FormControl>
                               <SelectContent>
                                 {disciplinasDisponiveis?.map((disciplina) => (
-                                  <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
-                                    {disciplina.codigo} - {disciplina.nome} ({disciplina.departamento.sigla})
+                                  <SelectItem
+                                    key={disciplina.id}
+                                    value={disciplina.id.toString()}
+                                  >
+                                    {disciplina.codigo} - {disciplina.nome} (
+                                    {disciplina.departamento.sigla})
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -359,7 +452,10 @@ export default function ProjetoTemplatesPage() {
                           <FormItem>
                             <FormLabel>Título Padrão</FormLabel>
                             <FormControl>
-                              <Input placeholder="Ex: Monitoria de [Disciplina]" {...field} />
+                              <Input
+                                placeholder="Ex: Monitoria de [Disciplina]"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -372,7 +468,11 @@ export default function ProjetoTemplatesPage() {
                           <FormItem>
                             <FormLabel>Descrição Padrão</FormLabel>
                             <FormControl>
-                              <Textarea rows={4} placeholder="Objetivos e justificativa do projeto..." {...field} />
+                              <Textarea
+                                rows={4}
+                                placeholder="Objetivos e justificativa do projeto..."
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -391,7 +491,11 @@ export default function ProjetoTemplatesPage() {
                                   placeholder="12"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(e.target.value ? parseInt(e.target.value) : undefined)
+                                    field.onChange(
+                                      e.target.value
+                                        ? parseInt(e.target.value)
+                                        : undefined
+                                    )
                                   }
                                 />
                               </FormControl>
@@ -411,7 +515,11 @@ export default function ProjetoTemplatesPage() {
                                   placeholder="16"
                                   {...field}
                                   onChange={(e) =>
-                                    field.onChange(e.target.value ? parseInt(e.target.value) : undefined)
+                                    field.onChange(
+                                      e.target.value
+                                        ? parseInt(e.target.value)
+                                        : undefined
+                                    )
                                   }
                                 />
                               </FormControl>
@@ -427,7 +535,11 @@ export default function ProjetoTemplatesPage() {
                           <FormItem>
                             <FormLabel>Público Alvo Padrão</FormLabel>
                             <FormControl>
-                              <Textarea rows={3} placeholder="Estudantes matriculados na disciplina..." {...field} />
+                              <Textarea
+                                rows={3}
+                                placeholder="Estudantes matriculados na disciplina..."
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -442,9 +554,9 @@ export default function ProjetoTemplatesPage() {
                               placeholder="Ex: Elaborar material de apoio"
                               value={atividade}
                               onChange={(e) => {
-                                const newAtividades = [...createAtividades]
-                                newAtividades[index] = e.target.value
-                                setCreateAtividades(newAtividades)
+                                const newAtividades = [...createAtividades];
+                                newAtividades[index] = e.target.value;
+                                setCreateAtividades(newAtividades);
                               }}
                             />
                             <Button
@@ -452,8 +564,10 @@ export default function ProjetoTemplatesPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                const newAtividades = createAtividades.filter((_, i) => i !== index)
-                                setCreateAtividades(newAtividades)
+                                const newAtividades = createAtividades.filter(
+                                  (_, i) => i !== index
+                                );
+                                setCreateAtividades(newAtividades);
                               }}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -464,14 +578,22 @@ export default function ProjetoTemplatesPage() {
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => setCreateAtividades([...createAtividades, ""])}
+                          onClick={() =>
+                            setCreateAtividades([...createAtividades, ""])
+                          }
                         >
                           <Plus className="h-4 w-4 mr-2" />
                           Adicionar Atividade
                         </Button>
                       </div>
-                      <Button type="submit" className="w-full" disabled={createTemplateMutation.isPending}>
-                        {createTemplateMutation.isPending ? "Criando..." : "Criar Template"}
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={createTemplateMutation.isPending}
+                      >
+                        {createTemplateMutation.isPending
+                          ? "Criando..."
+                          : "Criar Template"}
                       </Button>
                     </form>
                   </Form>
@@ -497,8 +619,13 @@ export default function ProjetoTemplatesPage() {
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <FileText className="mx-auto h-12 w-12 mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhum template encontrado</h3>
-                <p>Crie templates para agilizar a criação de projetos de monitoria.</p>
+                <h3 className="text-lg font-medium mb-2">
+                  Nenhum template encontrado
+                </h3>
+                <p>
+                  Crie templates para agilizar a criação de projetos de
+                  monitoria.
+                </p>
               </div>
             )}
           </CardContent>
@@ -511,9 +638,13 @@ export default function ProjetoTemplatesPage() {
               <DialogTitle>Editar Template</DialogTitle>
             </DialogHeader>
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleEdit)} className="space-y-4">
+              <form
+                onSubmit={editForm.handleSubmit(handleEdit)}
+                className="space-y-4"
+              >
                 <div className="text-sm text-muted-foreground">
-                  Disciplina: {selectedTemplate?.disciplina.codigo} - {selectedTemplate?.disciplina.nome}
+                  Disciplina: {selectedTemplate?.disciplina.codigo} -{" "}
+                  {selectedTemplate?.disciplina.nome}
                 </div>
                 <FormField
                   control={editForm.control}
@@ -552,7 +683,13 @@ export default function ProjetoTemplatesPage() {
                           <Input
                             type="number"
                             {...field}
-                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? parseInt(e.target.value)
+                                  : undefined
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -569,7 +706,13 @@ export default function ProjetoTemplatesPage() {
                           <Input
                             type="number"
                             {...field}
-                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  ? parseInt(e.target.value)
+                                  : undefined
+                              )
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -599,9 +742,9 @@ export default function ProjetoTemplatesPage() {
                         placeholder="Ex: Elaborar material de apoio"
                         value={atividade}
                         onChange={(e) => {
-                          const newAtividades = [...editAtividades]
-                          newAtividades[index] = e.target.value
-                          setEditAtividades(newAtividades)
+                          const newAtividades = [...editAtividades];
+                          newAtividades[index] = e.target.value;
+                          setEditAtividades(newAtividades);
                         }}
                       />
                       <Button
@@ -609,8 +752,10 @@ export default function ProjetoTemplatesPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          const newAtividades = editAtividades.filter((_, i) => i !== index)
-                          setEditAtividades(newAtividades)
+                          const newAtividades = editAtividades.filter(
+                            (_, i) => i !== index
+                          );
+                          setEditAtividades(newAtividades);
                         }}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -627,8 +772,14 @@ export default function ProjetoTemplatesPage() {
                     Adicionar Atividade
                   </Button>
                 </div>
-                <Button type="submit" className="w-full" disabled={updateTemplateMutation.isPending}>
-                  {updateTemplateMutation.isPending ? "Atualizando..." : "Atualizar Template"}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={updateTemplateMutation.isPending}
+                >
+                  {updateTemplateMutation.isPending
+                    ? "Atualizando..."
+                    : "Atualizar Template"}
                 </Button>
               </form>
             </Form>
@@ -636,15 +787,22 @@ export default function ProjetoTemplatesPage() {
         </Dialog>
 
         {/* Duplicate Dialog */}
-        <Dialog open={isDuplicateDialogOpen} onOpenChange={setIsDuplicateDialogOpen}>
+        <Dialog
+          open={isDuplicateDialogOpen}
+          onOpenChange={setIsDuplicateDialogOpen}
+        >
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Duplicar Template</DialogTitle>
             </DialogHeader>
             <Form {...duplicateForm}>
-              <form onSubmit={duplicateForm.handleSubmit(handleDuplicate)} className="space-y-4">
+              <form
+                onSubmit={duplicateForm.handleSubmit(handleDuplicate)}
+                className="space-y-4"
+              >
                 <div className="text-sm text-muted-foreground">
-                  Duplicando template de: {selectedTemplate?.disciplina.codigo} - {selectedTemplate?.disciplina.nome}
+                  Duplicando template de: {selectedTemplate?.disciplina.codigo}{" "}
+                  - {selectedTemplate?.disciplina.nome}
                 </div>
                 <FormField
                   control={duplicateForm.control}
@@ -653,7 +811,9 @@ export default function ProjetoTemplatesPage() {
                     <FormItem>
                       <FormLabel>Disciplina de Destino</FormLabel>
                       <Select
-                        onValueChange={(value) => field.onChange(parseInt(value))}
+                        onValueChange={(value) =>
+                          field.onChange(parseInt(value))
+                        }
                         value={field.value?.toString()}
                       >
                         <FormControl>
@@ -663,8 +823,12 @@ export default function ProjetoTemplatesPage() {
                         </FormControl>
                         <SelectContent>
                           {disciplinasDisponiveis?.map((disciplina) => (
-                            <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
-                              {disciplina.codigo} - {disciplina.nome} ({disciplina.departamento.sigla})
+                            <SelectItem
+                              key={disciplina.id}
+                              value={disciplina.id.toString()}
+                            >
+                              {disciplina.codigo} - {disciplina.nome} (
+                              {disciplina.departamento.sigla})
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -673,8 +837,14 @@ export default function ProjetoTemplatesPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={duplicateTemplateMutation.isPending}>
-                  {duplicateTemplateMutation.isPending ? "Duplicando..." : "Duplicar Template"}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={duplicateTemplateMutation.isPending}
+                >
+                  {duplicateTemplateMutation.isPending
+                    ? "Duplicando..."
+                    : "Duplicar Template"}
                 </Button>
               </form>
             </Form>
@@ -682,5 +852,5 @@ export default function ProjetoTemplatesPage() {
         </Dialog>
       </div>
     </PagesLayout>
-  )
+  );
 }
