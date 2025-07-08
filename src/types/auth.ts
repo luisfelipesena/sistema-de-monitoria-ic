@@ -5,10 +5,8 @@ import {
   crSchema,
   emailSchema,
   idSchema,
-  matriculaSchema,
   nameSchema,
-  phoneSchema,
-  usernameSchema,
+  usernameSchema
 } from './schemas'
 
 // ========================================
@@ -55,7 +53,7 @@ export interface UserListItem {
   professorProfile?: {
     id: number
     nomeCompleto: string
-    cpf: string
+    cpf?: string
     telefone?: string | null
     telefoneInstitucional?: string | null
     emailInstitucional: string
@@ -73,7 +71,7 @@ export interface UserListItem {
     id: number
     nomeCompleto: string
     matricula: string
-    cpf: string
+    cpf?: string
     cr: number
     cursoId: number
     telefone?: string | null
@@ -109,9 +107,9 @@ export const userListItemSchema = z.object({
     .object({
       id: idSchema,
       nomeCompleto: nameSchema,
-      cpf: cpfSchema,
-      telefone: phoneSchema.nullable().optional(),
-      telefoneInstitucional: phoneSchema.nullable().optional(),
+      cpf: cpfSchema.optional(),
+      telefone: z.string().nullable().optional(),
+      telefoneInstitucional: z.string().nullable().optional(),
       emailInstitucional: emailSchema,
       matriculaSiape: z.string().nullable().optional(),
       regime: regimeSchema,
@@ -129,11 +127,11 @@ export const userListItemSchema = z.object({
     .object({
       id: idSchema,
       nomeCompleto: nameSchema,
-      matricula: matriculaSchema,
-      cpf: cpfSchema,
+      matricula: z.string(),
+      cpf: cpfSchema.optional(),
       cr: crSchema,
       cursoId: idSchema,
-      telefone: phoneSchema.nullable().optional(),
+      telefone: z.string().nullable().optional(),
       emailInstitucional: emailSchema,
       historicoEscolarFileId: z.string().nullable().optional(),
       comprovanteMatriculaFileId: z.string().nullable().optional(),

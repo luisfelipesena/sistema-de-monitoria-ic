@@ -1,9 +1,15 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { alunoTable, cursoTable } from '@/server/db/schema'
+import { alunoTable, cursoTable, disciplinaTable, projetoTable } from '@/server/db/schema'
 import { courseSchema, createCourseSchema, updateCourseSchema } from '@/types'
 import { TRPCError } from '@trpc/server'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
+
+const courseWithStatsSchema = courseSchema.extend({
+  alunos: z.number().nonnegative(),
+  disciplinas: z.number().nonnegative(),
+  projetos: z.number().nonnegative(),
+})
 
 export const courseRouter = createTRPCRouter({
   getCourses: protectedProcedure
@@ -21,10 +27,10 @@ export const courseRouter = createTRPCRouter({
         includeStats: z.boolean().default(false),
       })
     )
-    .output(z.array(courseSchema))
+    .output(z.array(z.union([courseSchema, courseWithStatsSchema])))
     .query(async ({ input, ctx }) => {
       const cursos = await ctx.db.query.cursoTable.findMany({
-        orderBy: (cursos, { asc }) => [asc(cursos.nome)],
+        orderBy: (curso, { asc }) => [asc(curso.nome)],
       })
 
       if (!input.includeStats) {
@@ -39,15 +45,21 @@ export const courseRouter = createTRPCRouter({
             .from(alunoTable)
             .where(eq(alunoTable.cursoId, curso.id))
 
-          // Note: disciplinas are not directly linked to cursos in the current schema
-          // They are linked through departamento. This would need schema adjustment
-          // For now, we'll return 0 or implement a more complex query if needed
-          const disciplinasCount = 0
+          const [disciplinasCount] = await ctx.db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(disciplinaTable)
+            .where(eq(disciplinaTable.departamentoId, curso.departamentoId))
+
+          const [projetosCount] = await ctx.db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(projetoTable)
+            .where(and(eq(projetoTable.departamentoId, curso.departamentoId)))
 
           return {
             ...curso,
             alunos: alunosCount?.count || 0,
-            disciplinas: disciplinasCount,
+            disciplinas: disciplinasCount?.count || 0,
+            projetos: projetosCount?.count || 0,
           }
         })
       )
