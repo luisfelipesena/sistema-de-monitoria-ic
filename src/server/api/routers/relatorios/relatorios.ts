@@ -860,9 +860,7 @@ export const relatoriosRouter = createTRPCRouter({
         },
       })
 
-      const filteredVagas = vagas.filter(
-        (vaga) => vaga.projeto.ano === ano && vaga.projeto.semestre === semestre
-      )
+      const filteredVagas = vagas.filter((vaga) => vaga.projeto.ano === ano && vaga.projeto.semestre === semestre)
 
       const consolidados = await Promise.all(
         filteredVagas.map(async (vaga) => {

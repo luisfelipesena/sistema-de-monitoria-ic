@@ -8,6 +8,7 @@ import {
   regimeSchema,
   Semestre,
 } from './enums'
+import { cpfSchema } from './schemas'
 
 // ========================================
 // PROFESSOR TYPES
@@ -142,7 +143,7 @@ export const createProfessorSchema = z.object({
   genero: generoSchema,
   regime: regimeSchema,
   especificacaoGenero: z.string().optional(),
-  cpf: z.string().min(11).max(14),
+  cpf: cpfSchema,
   telefone: z.string().optional(),
   telefoneInstitucional: z.string().optional(),
   emailInstitucional: z.string().email(),

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { Genero, generoSchema } from './enums'
+import { cpfSchema } from './schemas'
 
 // ========================================
 // STUDENT TYPES
@@ -85,7 +86,7 @@ export const createStudentSchema = z.object({
   emailInstitucional: z.string().email(),
   matricula: z.string().min(1),
   rg: z.string().optional(),
-  cpf: z.string().min(11).max(14),
+  cpf: cpfSchema,
   cr: z.number().min(0).max(10),
   telefone: z.string().optional(),
   banco: z.string().optional(),

@@ -42,13 +42,13 @@ export interface SelecaoCandidato {
   alunoId: number
   tipoVagaPretendida: 'BOLSISTA' | 'VOLUNTARIO' | 'ANY' | null
   status:
-  | 'SUBMITTED'
-  | 'SELECTED_BOLSISTA'
-  | 'SELECTED_VOLUNTARIO'
-  | 'ACCEPTED_BOLSISTA'
-  | 'ACCEPTED_VOLUNTARIO'
-  | 'REJECTED_BY_PROFESSOR'
-  | 'REJECTED_BY_STUDENT'
+    | 'SUBMITTED'
+    | 'SELECTED_BOLSISTA'
+    | 'SELECTED_VOLUNTARIO'
+    | 'ACCEPTED_BOLSISTA'
+    | 'ACCEPTED_VOLUNTARIO'
+    | 'REJECTED_BY_PROFESSOR'
+    | 'REJECTED_BY_STUDENT'
   notaDisciplina: string | null
   notaSelecao: string | null
   coeficienteRendimento: string | null
