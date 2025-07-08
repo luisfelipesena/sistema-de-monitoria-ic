@@ -906,8 +906,8 @@ export const relatoriosRouter = createTRPCRouter({
           const disciplinasTexto = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
 
           // Calcular datas baseadas no período acadêmico
-          const inicioSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
-          const fimSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
+          const inicioSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 1 : 6, 1)
+          const fimSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 5 : 11, 30)
 
           const tipoMonitoria: 'BOLSISTA' | 'VOLUNTARIO' =
             monitor.inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
@@ -942,8 +942,8 @@ export const relatoriosRouter = createTRPCRouter({
               tipo: tipoMonitoria,
               dataInicio: inicioSemestre.toLocaleDateString('pt-BR'),
               dataFim: fimSemestre.toLocaleDateString('pt-BR'),
-              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 400.0 : undefined, // Valor fixo por enquanto
-              status: 'ATIVO', // Por enquanto, todos aceitos são considerados ativos
+              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 700.0 : undefined, // Valor fixo por enquanto
+              status: 'ATIVO'
             },
           }
         })
@@ -1143,8 +1143,8 @@ export const relatoriosRouter = createTRPCRouter({
 
           const anoSemestre = input.ano
           const dataInicio =
-            voluntario.vaga.dataInicio || new Date(anoSemestre, input.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
-          const dataFim = new Date(anoSemestre, input.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
+            voluntario.vaga.dataInicio || new Date(anoSemestre, input.semestre === 'SEMESTRE_1' ? 1 : 6, 1)
+          const dataFim = new Date(anoSemestre, input.semestre === 'SEMESTRE_1' ? 5 : 11, 30)
 
           return {
             id: voluntario.vaga.id,

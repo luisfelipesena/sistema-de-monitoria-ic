@@ -395,8 +395,8 @@ export default function NovoProjetoPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="SEMESTRE_1">2024.1</SelectItem>
-                              <SelectItem value="SEMESTRE_2">2024.2</SelectItem>
+                              <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
+                              <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
