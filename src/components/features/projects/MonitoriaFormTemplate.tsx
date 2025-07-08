@@ -1,5 +1,6 @@
 import { MonitoriaFormData } from "@/types"
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+import React from "react"
 
 const styles = StyleSheet.create({
   page: {
@@ -163,11 +164,27 @@ const styles = StyleSheet.create({
   },
 })
 
-export const MonitoriaFormTemplate = ({ data }: { data: MonitoriaFormData }) => {
-  const semestreLabel = `${data.ano}.${data.semestre === "SEMESTRE_1" ? "1" : "2"}`
-  const disciplinasText = data.disciplinas?.map((d) => `${d.codigo} - ${d.nome}`).join(", ") || "Não informado"
-  const totalMonitores = data.bolsasSolicitadas + data.voluntariosSolicitados
-  const cargaHorariaTotal = data.cargaHorariaSemana * data.numeroSemanas
+const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) => {
+  // Memo para evitar recálculos desnecessários
+  const semestreLabel = React.useMemo(() => 
+    `${data.ano}.${data.semestre === "SEMESTRE_1" ? "1" : "2"}`, 
+    [data.ano, data.semestre]
+  )
+  
+  const disciplinasText = React.useMemo(() => 
+    data.disciplinas?.map((d) => `${d.codigo} - ${d.nome}`).join(", ") || "Não informado",
+    [data.disciplinas]
+  )
+  
+  const totalMonitores = React.useMemo(() => 
+    data.bolsasSolicitadas + data.voluntariosSolicitados,
+    [data.bolsasSolicitadas, data.voluntariosSolicitados]
+  )
+  
+  const cargaHorariaTotal = React.useMemo(() => 
+    data.cargaHorariaSemana * data.numeroSemanas,
+    [data.cargaHorariaSemana, data.numeroSemanas]
+  )
 
   return (
     <Document>
@@ -385,3 +402,5 @@ export const MonitoriaFormTemplate = ({ data }: { data: MonitoriaFormData }) => 
     </Document>
   )
 }
+
+export const MonitoriaFormTemplate = React.memo(MonitoriaFormTemplateComponent)
