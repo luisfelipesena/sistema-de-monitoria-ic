@@ -9,17 +9,16 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import type { MonitorConsolidado } from "@/types"
-import { 
+import {
+  MonitorConsolidado,
   SEMESTRE_ENUM,
-  type Semestre,
-  TIPO_VAGA_ENUM,
-  type TipoVaga,
   STATUS_MONITOR_ENUM,
+  type Semestre,
   type StatusMonitor,
+  type TipoVaga,
   getSemestreLabel,
+  getStatusMonitorLabel,
   getTipoVagaLabel,
-  getStatusMonitorLabel
 } from "@/types"
 import { api } from "@/utils/api"
 import { AlertTriangle, Award, Calendar, CheckCircle, Download, FileSpreadsheet, Filter, Users } from "lucide-react"
@@ -202,7 +201,7 @@ export default function ConsolidacaoPROGRADPage() {
 
   const getStatusBadge = (status: string) => {
     // Try to match with known status enum values
-    const statusAsEnum = STATUS_MONITOR_ENUM.find(s => s === status) as StatusMonitor | undefined
+    const statusAsEnum = STATUS_MONITOR_ENUM.find((s) => s === status) as StatusMonitor | undefined
     if (statusAsEnum) {
       switch (statusAsEnum) {
         case "ATIVO":

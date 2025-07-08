@@ -156,8 +156,11 @@ export default function DashboardAdmin() {
     }
   }
 
-  // Use real data from APIs
-  const actualProjetos = projetos || []
+  // Use real data from APIs and map to ensure type compatibility
+  const actualProjetos = (projetos || []).map((projeto) => ({
+    ...projeto,
+    bolsasDisponibilizadas: projeto.bolsasDisponibilizadas ?? null,
+  })) as DashboardProjectItem[]
   const actualUsers = users?.users || []
 
   // Filtrar professores e alunos dos usuários

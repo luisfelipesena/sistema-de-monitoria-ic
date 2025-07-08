@@ -160,6 +160,7 @@ export default function ProjetoTemplatesPage() {
     setSelectedTemplate(template)
     duplicateForm.reset({
       sourceId: template.id,
+      targetDisciplinaId: 0,
     })
     setIsDuplicateDialogOpen(true)
   }

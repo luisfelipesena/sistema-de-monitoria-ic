@@ -36,17 +36,23 @@ export default function EditProjetoPage() {
 
   useEffect(() => {
     if (projeto) {
-      const cleanedData = {
-        ...projeto,
-        disciplinaId: projeto.disciplinas?.[0]?.id || 0,
-        bolsasSolicitadas: projeto.bolsasSolicitadas ?? undefined,
-        voluntariosSolicitados: projeto.voluntariosSolicitados ?? undefined,
+      const formData: ProjetoFormData = {
+        titulo: projeto.titulo,
+        descricao: projeto.descricao,
+        departamentoId: projeto.departamentoId,
+        ano: projeto.ano,
+        semestre: projeto.semestre,
+        tipoProposicao: projeto.tipoProposicao,
+        bolsasSolicitadas: projeto.bolsasSolicitadas,
+        voluntariosSolicitados: projeto.voluntariosSolicitados,
+        cargaHorariaSemana: projeto.cargaHorariaSemana,
+        numeroSemanas: projeto.numeroSemanas,
+        publicoAlvo: projeto.publicoAlvo,
         estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas ?? undefined,
-        professoresParticipantes: projeto.professoresParticipantes?.map((p) => p.id) || [],
-        atividades: projeto.atividades?.map((a) => a.descricao) || [],
+        disciplinas: projeto.disciplinas?.map((d) => d.id) || [],
       }
-      form.reset(cleanedData)
-      setAtividades(projeto.atividades?.map((a) => a.descricao) || [])
+      form.reset(formData)
+      setAtividades([])
     }
   }, [projeto, form])
 
@@ -57,7 +63,6 @@ export default function EditProjetoPage() {
       const projetoData = {
         id: projectId,
         ...data,
-        disciplinaIds: [data.disciplinaId],
         atividades: atividadesFiltradas,
       }
 

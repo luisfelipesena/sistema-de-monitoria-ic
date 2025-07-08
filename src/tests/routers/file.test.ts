@@ -81,7 +81,9 @@ describe('fileRouter', () => {
       vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(undefined)
       vi.spyOn(mockContext.db.query.projetoDocumentoTable, 'findFirst').mockResolvedValue(undefined)
 
-      await expect(caller.getPresignedUrlMutation({ fileId: 'some-file', action: 'view' })).rejects.toThrowError(/Erro ao acessar o arquivo/)
+      await expect(caller.getPresignedUrlMutation({ fileId: 'some-file', action: 'view' })).rejects.toThrowError(
+        /Erro ao acessar o arquivo/
+      )
     })
 
     it('should allow access for an admin', async () => {
@@ -102,4 +104,4 @@ describe('fileRouter', () => {
       expect(result).toBe('https://test-url.com/file')
     })
   })
-}) 
+})

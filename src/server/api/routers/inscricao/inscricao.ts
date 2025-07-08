@@ -172,10 +172,11 @@ export const inscricaoRouter = createTRPCRouter({
               inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
                 ? 'APROVACAO'
                 : 'INSCRICAO',
-            descricao: `${inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
-              ? 'Aprovado em'
-              : 'Inscrito em'
-              } ${inscricao.projeto.titulo}`,
+            descricao: `${
+              inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
+                ? 'Aprovado em'
+                : 'Inscrito em'
+            } ${inscricao.projeto.titulo}`,
             data: inscricao.updatedAt || inscricao.createdAt,
           }))
 

@@ -73,7 +73,8 @@ function ProjectApplicationsContent() {
         inscricaoId,
         notaDisciplina: evaluation.rating * 2, // Convert 1-5 rating to 0-10 scale
         notaSelecao: evaluation.rating * 2,
-        observacoes: evaluation.notes,
+        coeficienteRendimento: evaluation.rating * 2,
+        feedbackProfessor: evaluation.notes,
       })
 
       toast({

@@ -69,4 +69,4 @@ describe('projetoTemplatesRouter', () => {
       expect(result[0].nome).toBe('Disciplina sem Template')
     })
   })
-}) 
+})

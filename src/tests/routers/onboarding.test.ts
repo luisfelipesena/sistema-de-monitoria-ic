@@ -73,7 +73,9 @@ describe('onboardingRouter', () => {
 
       const mockProfile = { id: 1, curriculumVitaeFileId: 'cv-id', comprovanteVinculoFileId: 'vinculo-id' }
       vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfile as any)
-      vi.spyOn(mockContext.db.query.disciplinaProfessorResponsavelTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
+      vi.spyOn(mockContext.db.query.disciplinaProfessorResponsavelTable, 'findFirst').mockResolvedValue({
+        id: 1,
+      } as any)
 
       const result = await caller.getStatus()
       expect(result.pending).toBe(false)
@@ -81,4 +83,4 @@ describe('onboardingRouter', () => {
       expect(result.disciplinas?.configured).toBe(true)
     })
   })
-}) 
+})

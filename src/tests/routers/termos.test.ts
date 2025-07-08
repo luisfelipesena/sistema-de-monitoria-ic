@@ -41,10 +41,10 @@ describe('termosRouter', () => {
       const mockVaga = {
         id: 1,
         aluno: { userId: 999 }, // Different user ID
-        projeto: { 
+        projeto: {
           professorResponsavelId: 1,
           ano: 2024,
-          semestre: 'SEMESTRE_1'
+          semestre: 'SEMESTRE_1',
         },
       }
       vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as any)
@@ -66,10 +66,10 @@ describe('termosRouter', () => {
       const mockVaga = {
         id: 1,
         aluno: { userId: mockStudentUser.id },
-        projeto: { 
+        projeto: {
           professorResponsavelId: 2,
           ano: 2024,
-          semestre: 'SEMESTRE_1'
+          semestre: 'SEMESTRE_1',
         },
       }
       const mockSignature = { tipoAssinatura: 'TERMO_COMPROMISSO_ALUNO' }
@@ -92,13 +92,13 @@ describe('termosRouter', () => {
       const mockContext = createMockContext(mockProfessorUser)
       const caller = termosRouter.createCaller(mockContext)
 
-      const mockVaga = { 
-        id: 1, 
-        aluno: { userId: 3, user: { username: 'student' } }, 
-        projeto: { 
+      const mockVaga = {
+        id: 1,
+        aluno: { userId: 3, user: { username: 'student' } },
+        projeto: {
           professorResponsavelId: 2,
-          professorResponsavel: { user: { username: 'professor' } }
-        } 
+          professorResponsavel: { user: { username: 'professor' } },
+        },
       }
       vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as any)
       // Mock that only the professor has signed
@@ -116,13 +116,13 @@ describe('termosRouter', () => {
       const mockContext = createMockContext(mockProfessorUser)
       const caller = termosRouter.createCaller(mockContext)
 
-      const mockVaga = { 
-        id: 1, 
-        aluno: { userId: 3, user: { username: 'student' } }, 
-        projeto: { 
+      const mockVaga = {
+        id: 1,
+        aluno: { userId: 3, user: { username: 'student' } },
+        projeto: {
           professorResponsavelId: 2,
-          professorResponsavel: { user: { username: 'professor' } }
-        } 
+          professorResponsavel: { user: { username: 'professor' } },
+        },
       }
       vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as any)
       // Mock that both parties have signed

@@ -95,13 +95,10 @@ export default function CursosPage() {
       },
       coordenador: curso.coordenador || undefined,
       emailCoordenacao: curso.emailCoordenacao || undefined,
-      alunos: curso.alunos || 0,
-      disciplinas: curso.disciplinas || 0,
+      alunos: 0,
+      disciplinas: 0,
       projetos: 0,
-      status: (curso.status || (curso.alunos && curso.alunos > 0 ? "ATIVO" : "INATIVO")) as
-        | "ATIVO"
-        | "INATIVO"
-        | "EM_REFORMULACAO",
+      status: (curso.status || "ATIVO") as "ATIVO" | "INATIVO" | "EM_REFORMULACAO",
       criadoEm: curso.createdAt.toISOString(),
       atualizadoEm: curso.updatedAt?.toISOString() || curso.createdAt.toISOString(),
     })) || []

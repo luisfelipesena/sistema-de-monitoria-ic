@@ -1,21 +1,28 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
-import { CheckCircle, XCircle, Clock, Award, Users, AlertCircle, MessageSquare, FileText, Download } from 'lucide-react'
-import { PDFDownloadWrapper } from '@/components/ui/pdf-download-wrapper'
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { PDFDownloadWrapper } from "@/components/ui/pdf-download-wrapper"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
+import { api } from "@/utils/api"
+import { AlertCircle, Award, CheckCircle, Clock, FileText, MessageSquare, Users, XCircle } from "lucide-react"
+import { useState } from "react"
 
 export default function ResultadosPage() {
   const { toast } = useToast()
   const [selectedInscricao, setSelectedInscricao] = useState<number | null>(null)
-  const [motivoRecusa, setMotivoRecusa] = useState('')
+  const [motivoRecusa, setMotivoRecusa] = useState("")
   const [showRejectDialog, setShowRejectDialog] = useState(false)
 
   // Buscar inscrições do aluno
@@ -25,16 +32,16 @@ export default function ResultadosPage() {
   const aceitarVagaMutation = api.inscricao.acceptPosition.useMutation({
     onSuccess: (data) => {
       toast({
-        title: 'Sucesso',
+        title: "Sucesso",
         description: data.message,
       })
       refetch()
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -43,19 +50,19 @@ export default function ResultadosPage() {
   const recusarVagaMutation = api.inscricao.rejectPosition.useMutation({
     onSuccess: (data) => {
       toast({
-        title: 'Sucesso',
+        title: "Sucesso",
         description: data.message,
       })
       setShowRejectDialog(false)
-      setMotivoRecusa('')
+      setMotivoRecusa("")
       setSelectedInscricao(null)
       refetch()
     },
     onError: (error) => {
       toast({
-        title: 'Erro',
+        title: "Erro",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       })
     },
   })
@@ -80,32 +87,40 @@ export default function ResultadosPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'SELECTED_BOLSISTA':
+      case "SELECTED_BOLSISTA":
         return <Badge className="bg-green-500">Selecionado (Bolsista)</Badge>
-      case 'SELECTED_VOLUNTARIO':
+      case "SELECTED_VOLUNTARIO":
         return <Badge className="bg-blue-500">Selecionado (Voluntário)</Badge>
-      case 'ACCEPTED_BOLSISTA':
+      case "ACCEPTED_BOLSISTA":
         return <Badge className="bg-green-600">Aceito (Bolsista)</Badge>
-      case 'ACCEPTED_VOLUNTARIO':
+      case "ACCEPTED_VOLUNTARIO":
         return <Badge className="bg-blue-600">Aceito (Voluntário)</Badge>
-      case 'REJECTED_BY_PROFESSOR':
+      case "REJECTED_BY_PROFESSOR":
         return <Badge variant="destructive">Não Selecionado</Badge>
-      case 'REJECTED_BY_STUDENT':
+      case "REJECTED_BY_STUDENT":
         return <Badge variant="outline">Recusado por Você</Badge>
-      case 'WAITING_LIST':
-        return <Badge variant="outline" className="border-orange-500 text-orange-700">Lista de Espera</Badge>
-      case 'SUBMITTED':
-        return <Badge variant="secondary" className="bg-yellow-500 text-white">Em Análise</Badge>
+      case "WAITING_LIST":
+        return (
+          <Badge variant="outline" className="border-orange-500 text-orange-700">
+            Lista de Espera
+          </Badge>
+        )
+      case "SUBMITTED":
+        return (
+          <Badge variant="secondary" className="bg-yellow-500 text-white">
+            Em Análise
+          </Badge>
+        )
       default:
         return <Badge variant="outline">{status}</Badge>
     }
   }
 
-  const getTipoVagaIcon = (tipo: string | null) => {
+  const getTipoVagaIcon = (tipo: string | null | undefined) => {
     switch (tipo) {
-      case 'BOLSISTA':
+      case "BOLSISTA":
         return <Award className="h-4 w-4 text-yellow-600" />
-      case 'VOLUNTARIO':
+      case "VOLUNTARIO":
         return <Users className="h-4 w-4 text-blue-600" />
       default:
         return <AlertCircle className="h-4 w-4 text-gray-500" />
@@ -113,11 +128,11 @@ export default function ResultadosPage() {
   }
 
   const getStatusIcon = (status: string) => {
-    if (status.includes('SELECTED_')) {
+    if (status.includes("SELECTED_")) {
       return <CheckCircle className="h-5 w-5 text-green-500" />
-    } else if (status.includes('ACCEPTED_')) {
+    } else if (status.includes("ACCEPTED_")) {
       return <CheckCircle className="h-5 w-5 text-green-600" />
-    } else if (status.includes('REJECTED_')) {
+    } else if (status.includes("REJECTED_")) {
       return <XCircle className="h-5 w-5 text-red-500" />
     } else {
       return <Clock className="h-5 w-5 text-yellow-500" />
@@ -125,11 +140,11 @@ export default function ResultadosPage() {
   }
 
   const canAcceptOrReject = (status: string) => {
-    return status === 'SELECTED_BOLSISTA' || status === 'SELECTED_VOLUNTARIO'
+    return status === "SELECTED_BOLSISTA" || status === "SELECTED_VOLUNTARIO"
   }
 
   const isAccepted = (status: string) => {
-    return status === 'ACCEPTED_BOLSISTA' || status === 'ACCEPTED_VOLUNTARIO'
+    return status === "ACCEPTED_BOLSISTA" || status === "ACCEPTED_VOLUNTARIO"
   }
 
   // Component para download do termo de compromisso
@@ -173,25 +188,19 @@ export default function ResultadosPage() {
     )
   }
 
-  const inscricoesComResultado = inscricoes?.filter(i => 
-    !['SUBMITTED', 'UNDER_REVIEW'].includes(i.status)
-  ) || []
+  const inscricoesComResultado = inscricoes?.filter((i) => !["SUBMITTED", "UNDER_REVIEW"].includes(i.status)) || []
 
-  const inscricoesSelecionadas = inscricoesComResultado.filter(i => 
-    i.status.includes('SELECTED_') || i.status.includes('ACCEPTED_')
+  const inscricoesSelecionadas = inscricoesComResultado.filter(
+    (i) => i.status.includes("SELECTED_") || i.status.includes("ACCEPTED_")
   )
 
-  const inscricoesRejeitadas = inscricoesComResultado.filter(i => 
-    i.status.includes('REJECTED_')
-  )
+  const inscricoesRejeitadas = inscricoesComResultado.filter((i) => i.status.includes("REJECTED_"))
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Resultados da Seleção</h1>
-        <p className="text-muted-foreground">
-          Acompanhe os resultados das suas inscrições em projetos de monitoria
-        </p>
+        <p className="text-muted-foreground">Acompanhe os resultados das suas inscrições em projetos de monitoria</p>
       </div>
 
       {/* Estatísticas */}
@@ -213,7 +222,7 @@ export default function ResultadosPage() {
               <Award className="h-8 w-8 text-yellow-500" />
               <div>
                 <div className="text-2xl font-bold">
-                  {inscricoesSelecionadas.filter(i => i.status.includes('BOLSISTA')).length}
+                  {inscricoesSelecionadas.filter((i) => i.status.includes("BOLSISTA")).length}
                 </div>
                 <div className="text-sm text-muted-foreground">Bolsas</div>
               </div>
@@ -226,7 +235,7 @@ export default function ResultadosPage() {
               <Users className="h-8 w-8 text-blue-500" />
               <div>
                 <div className="text-2xl font-bold">
-                  {inscricoesSelecionadas.filter(i => i.status.includes('VOLUNTARIO')).length}
+                  {inscricoesSelecionadas.filter((i) => i.status.includes("VOLUNTARIO")).length}
                 </div>
                 <div className="text-sm text-muted-foreground">Voluntário</div>
               </div>
@@ -258,10 +267,7 @@ export default function ResultadosPage() {
           <CardContent>
             <div className="space-y-4">
               {inscricoesSelecionadas.map((inscricao) => (
-                <div
-                  key={inscricao.id}
-                  className="border rounded-lg p-4 bg-green-50 border-green-200"
-                >
+                <div key={inscricao.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
@@ -273,7 +279,7 @@ export default function ResultadosPage() {
                         Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
                       </p>
                       <p className="text-sm text-muted-foreground mb-2">
-                        Disciplinas: {inscricao.projeto.disciplinas.map(d => d.codigo).join(', ')}
+                        Disciplinas: {inscricao.projeto.disciplinas.map((d) => d.codigo).join(", ")}
                       </p>
                       <div className="flex items-center gap-2 mb-3">
                         {getStatusBadge(inscricao.status)}
@@ -290,7 +296,7 @@ export default function ResultadosPage() {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Botões de Ação */}
                     {canAcceptOrReject(inscricao.status) && (
                       <div className="flex gap-2 ml-4">
@@ -312,8 +318,8 @@ export default function ResultadosPage() {
                         </Button>
                       </div>
                     )}
-                    
-                    {inscricao.status.includes('ACCEPTED_') && (
+
+                    {inscricao.status.includes("ACCEPTED_") && (
                       <div className="ml-4 space-y-2">
                         <Badge className="bg-green-600">
                           <CheckCircle className="h-3 w-3 mr-1" />
@@ -344,10 +350,7 @@ export default function ResultadosPage() {
           <CardContent>
             <div className="space-y-4">
               {inscricoesRejeitadas.map((inscricao) => (
-                <div
-                  key={inscricao.id}
-                  className="border rounded-lg p-4"
-                >
+                <div key={inscricao.id} className="border rounded-lg p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
@@ -402,7 +405,7 @@ export default function ResultadosPage() {
               Tem certeza que deseja recusar esta vaga? Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label htmlFor="motivo">Motivo da recusa (opcional)</Label>
@@ -420,11 +423,7 @@ export default function ResultadosPage() {
             <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
               Cancelar
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleRejectConfirm}
-              disabled={recusarVagaMutation.isPending}
-            >
+            <Button variant="destructive" onClick={handleRejectConfirm} disabled={recusarVagaMutation.isPending}>
               Confirmar Recusa
             </Button>
           </DialogFooter>

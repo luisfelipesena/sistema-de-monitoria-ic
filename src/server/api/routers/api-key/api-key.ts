@@ -1,11 +1,6 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { apiKeyTable } from '@/server/db/schema'
-import {
-  createApiKeySchema,
-  deleteApiKeySchema,
-  listApiKeysSchema,
-  updateApiKeySchema,
-} from '@/types'
+import { createApiKeySchema, deleteApiKeySchema, listApiKeysSchema, updateApiKeySchema } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { createHash, randomBytes } from 'crypto'
 import { eq } from 'drizzle-orm'

@@ -1,3 +1,5 @@
+import type { TRPCContext } from '@/server/api/trpc'
+import type { User } from '@/server/db/schema'
 import { vi } from 'vitest'
 
 // Mock database connection to prevent real DB connections
@@ -74,22 +76,23 @@ vi.mock('@/server/db', () => ({
     set: vi.fn().mockReturnThis(),
     returning: vi.fn().mockResolvedValue([]),
     $count: vi.fn(),
-    transaction: vi.fn(async (callback) =>
-      await callback({
-        insert: vi.fn().mockReturnThis(),
-        update: vi.fn().mockReturnThis(),
-        delete: vi.fn().mockReturnThis(),
-        values: vi.fn().mockReturnThis(),
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([]),
-        query: {
-          assinaturaDocumentoTable: {
-            findMany: vi.fn(),
-            findFirst: vi.fn(),
+    transaction: vi.fn(
+      async (callback) =>
+        await callback({
+          insert: vi.fn().mockReturnThis(),
+          update: vi.fn().mockReturnThis(),
+          delete: vi.fn().mockReturnThis(),
+          values: vi.fn().mockReturnThis(),
+          set: vi.fn().mockReturnThis(),
+          where: vi.fn().mockReturnThis(),
+          returning: vi.fn().mockResolvedValue([]),
+          query: {
+            assinaturaDocumentoTable: {
+              findMany: vi.fn(),
+              findFirst: vi.fn(),
+            },
           },
-        },
-      })
+        })
     ),
   },
 }))
@@ -189,9 +192,11 @@ vi.mock('@react-pdf/renderer', async () => {
 vi.mock('pdf-lib', () => ({
   PDFDocument: {
     load: vi.fn().mockResolvedValue({
-      getPages: vi.fn().mockReturnValue([{
-        drawImage: vi.fn(),
-      }]),
+      getPages: vi.fn().mockReturnValue([
+        {
+          drawImage: vi.fn(),
+        },
+      ]),
       embedPng: vi.fn().mockResolvedValue({
         scale: vi.fn().mockReturnValue({ width: 100, height: 50 }),
       }),
@@ -206,3 +211,89 @@ vi.mock('@/server/lib/email-service', () => ({
     sendGenericEmail: vi.fn().mockResolvedValue({ success: true }),
   },
 }))
+
+export function createMockContext(user: User | null = null): TRPCContext {
+  return {
+    user,
+    db: {
+      query: {
+        userTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        apiKeyTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        cursoTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        departamentoTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        disciplinaTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        projetoTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        inscricaoTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        vagaTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        editalTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        notificacaoTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        selecaoTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        termosTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        fileTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+      },
+      insert: vi.fn().mockReturnValue({
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn(),
+        }),
+      }),
+      update: vi.fn().mockReturnValue({
+        set: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn(),
+          }),
+        }),
+      }),
+      delete: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          returning: vi.fn(),
+        }),
+      }),
+      select: vi.fn().mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          where: vi.fn(),
+          orderBy: vi.fn(),
+          limit: vi.fn(),
+        }),
+      }),
+    } as any,
+  }
+}

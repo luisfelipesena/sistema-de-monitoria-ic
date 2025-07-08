@@ -1,5 +1,12 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { assinaturaDocumentoTable, ataSelecaoTable, disciplinaTable, inscricaoTable, projetoDisciplinaTable, projetoTable } from '@/server/db/schema'
+import {
+  assinaturaDocumentoTable,
+  ataSelecaoTable,
+  disciplinaTable,
+  inscricaoTable,
+  projetoDisciplinaTable,
+  projetoTable,
+} from '@/server/db/schema'
 import { sendStudentSelectionResultNotification } from '@/server/lib/email-service'
 import { STATUS_INSCRICAO_ENUM } from '@/types'
 import { TRPCError } from '@trpc/server'
@@ -78,7 +85,7 @@ export const selecaoRouter = createTRPCRouter({
       return {
         projeto: {
           ...projetoData,
-          disciplinas: disciplinas.map(d => d.disciplina)
+          disciplinas: disciplinas.map((d) => d.disciplina),
         },
         totalInscritos: totalInscritos.length,
         totalCompareceram: inscricoes.length,

@@ -19,27 +19,12 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import { UserListItem as Professor } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { Eye, Mail, Plus, UserCheck, Users, UserX } from "lucide-react"
 import { useState } from "react"
-
-interface Professor {
-  id: number
-  nomeCompleto: string
-  emailInstitucional: string
-  matriculaSiape?: string
-  telefone?: string
-  regime?: "20H" | "40H" | "DE"
-  departamento: {
-    id: number
-    nome: string
-  }
-  status: "ATIVO" | "INATIVO" | "PENDENTE"
-  projetos?: number
-  criadoEm: string
-}
 
 export default function ProfessoresPage() {
   const { toast } = useToast()
@@ -70,24 +55,7 @@ export default function ProfessoresPage() {
 
   const departamentos = departamentosData || []
 
-  const professores: Professor[] =
-    usersData?.users
-      .filter((user) => user.professorProfile)
-      .map((user) => ({
-        id: user.id,
-        nomeCompleto: user.professorProfile!.nomeCompleto,
-        emailInstitucional: user.professorProfile!.emailInstitucional,
-        matriculaSiape: user.professorProfile!.matriculaSiape || undefined,
-        telefone: user.professorProfile!.telefone || undefined,
-        regime: user.professorProfile!.regime,
-        departamento: {
-          id: user.professorProfile!.departamentoId,
-          nome: departamentos.find((d) => d.id === user.professorProfile!.departamentoId)?.nome || "N/A",
-        },
-        status: user.professorProfile!.projetos && user.professorProfile!.projetos > 0 ? "ATIVO" : ("INATIVO" as const),
-        projetos: user.professorProfile!.projetos || 0,
-        criadoEm: user.createdAt?.toISOString() || new Date().toISOString(),
-      })) || []
+  const professores: Professor[] = usersData?.users.filter((u) => u.role === "professor") || []
 
   const handleInviteProfessor = async () => {
     try {
@@ -170,26 +138,32 @@ export default function ProfessoresPage() {
 
   const columns: ColumnDef<Professor>[] = [
     {
-      accessorKey: "nomeCompleto",
+      accessorKey: "professorProfile.nomeCompleto",
       header: "Nome",
-      cell: ({ row }) => <div className="font-medium">{row.original.nomeCompleto}</div>,
+      cell: ({ row }) => <div className="font-medium">{row.original.professorProfile?.nomeCompleto}</div>,
     },
     {
-      accessorKey: "emailInstitucional",
+      accessorKey: "professorProfile.emailInstitucional",
       header: "Email",
-      cell: ({ row }) => <div className="text-muted-foreground">{row.original.emailInstitucional}</div>,
+      cell: ({ row }) => (
+        <div className="text-muted-foreground">{row.original.professorProfile?.emailInstitucional}</div>
+      ),
     },
     {
-      accessorKey: "departamento.nome",
+      accessorKey: "professorProfile.departamento.nome",
       header: "Departamento",
+      cell: ({ row }) => {
+        const dept = departamentos.find((d) => d.id === row.original.professorProfile?.departamentoId)
+        return dept?.nome || "N/A"
+      },
     },
     {
-      accessorKey: "regime",
+      accessorKey: "professorProfile.regime",
       header: "Regime",
       cell: ({ row }) => (
         <div>
-          {row.original.regime ? (
-            <Badge variant="outline">{row.original.regime}</Badge>
+          {row.original.professorProfile?.regime ? (
+            <Badge variant="outline">{row.original.professorProfile.regime}</Badge>
           ) : (
             <span className="text-muted-foreground">-</span>
           )}
@@ -197,20 +171,20 @@ export default function ProfessoresPage() {
       ),
     },
     {
-      accessorKey: "projetos",
+      accessorKey: "professorProfile.projetos",
       header: "Projetos",
-      cell: ({ row }) => <div className="text-center">{row.original.projetos || 0}</div>,
+      cell: ({ row }) => <div className="text-center">{row.original.professorProfile?.projetos || 0}</div>,
     },
     {
-      accessorKey: "status",
+      accessorKey: "professorProfile.status",
       header: "Status",
-      cell: ({ row }) => renderStatusBadge(row.original.status),
+      cell: ({ row }) => renderStatusBadge(row.original.professorProfile?.projetos ? "ATIVO" : "INATIVO"),
     },
     {
-      accessorKey: "criadoEm",
+      accessorKey: "createdAt",
       header: "Cadastrado em",
       cell: ({ row }) => (
-        <div className="text-sm text-muted-foreground">{format(new Date(row.original.criadoEm), "dd/MM/yyyy")}</div>
+        <div className="text-sm text-muted-foreground">{format(new Date(row.original.createdAt!), "dd/MM/yyyy")}</div>
       ),
     },
     {
@@ -225,11 +199,13 @@ export default function ProfessoresPage() {
             </Button>
 
             <Button
-              variant={professor.status === "ATIVO" ? "destructive" : "default"}
+              variant={professor.professorProfile?.projetos ? "destructive" : "default"}
               size="sm"
-              onClick={() => handleToggleStatus(professor.id, professor.status)}
+              onClick={() =>
+                handleToggleStatus(professor.id, professor.professorProfile?.projetos ? "ATIVO" : "INATIVO")
+              }
             >
-              {professor.status === "ATIVO" ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+              {professor.professorProfile?.projetos ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
             </Button>
           </div>
         )
@@ -261,7 +237,7 @@ export default function ProfessoresPage() {
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Ativos</p>
                   <div className="text-2xl font-bold text-green-600">
-                    {professores.filter((p) => p.status === "ATIVO").length}
+                    {professores.filter((p) => p.professorProfile?.projetos).length}
                   </div>
                 </div>
               </div>
@@ -274,9 +250,7 @@ export default function ProfessoresPage() {
                 <Mail className="h-4 w-4 text-yellow-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
-                  <div className="text-2xl font-bold text-yellow-600">
-                    {professores.filter((p) => p.status === "PENDENTE").length}
-                  </div>
+                  <div className="text-2xl font-bold text-yellow-600">{0}</div>
                 </div>
               </div>
             </CardContent>
@@ -289,7 +263,7 @@ export default function ProfessoresPage() {
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Inativos</p>
                   <div className="text-2xl font-bold text-red-600">
-                    {professores.filter((p) => p.status === "INATIVO").length}
+                    {professores.filter((p) => !p.professorProfile?.projetos).length}
                   </div>
                 </div>
               </div>
@@ -407,7 +381,7 @@ export default function ProfessoresPage() {
             <TableComponent
               columns={columns}
               data={professores}
-              searchableColumn="nomeCompleto"
+              searchableColumn="professorProfile.nomeCompleto"
               searchPlaceholder="Buscar por nome do professor..."
             />
           </CardContent>
@@ -420,59 +394,62 @@ export default function ProfessoresPage() {
               <DialogTitle>Detalhes do Professor</DialogTitle>
             </DialogHeader>
 
-            {selectedProfessor && (
+            {selectedProfessor && selectedProfessor.professorProfile && (
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Nome Completo</Label>
-                    <p className="text-sm">{selectedProfessor.nomeCompleto}</p>
+                    <p className="text-sm">{selectedProfessor.professorProfile.nomeCompleto}</p>
                   </div>
 
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Email Institucional</Label>
-                    <p className="text-sm">{selectedProfessor.emailInstitucional}</p>
+                    <p className="text-sm">{selectedProfessor.professorProfile.emailInstitucional}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Matrícula SIAPE</Label>
-                    <p className="text-sm">{selectedProfessor.matriculaSiape || "-"}</p>
+                    <p className="text-sm">{selectedProfessor.professorProfile.matriculaSiape || "-"}</p>
                   </div>
 
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Telefone</Label>
-                    <p className="text-sm">{selectedProfessor.telefone || "-"}</p>
+                    <p className="text-sm">{selectedProfessor.professorProfile.telefone || "-"}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Departamento</Label>
-                    <p className="text-sm">{selectedProfessor.departamento.nome}</p>
+                    <p className="text-sm">
+                      {departamentos.find((d) => d.id === selectedProfessor.professorProfile?.departamentoId)?.nome ||
+                        "N/A"}
+                    </p>
                   </div>
 
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Regime de Trabalho</Label>
-                    <p className="text-sm">{selectedProfessor.regime || "-"}</p>
+                    <p className="text-sm">{selectedProfessor.professorProfile.regime || "-"}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                    <div>{renderStatusBadge(selectedProfessor.status)}</div>
+                    <div>{renderStatusBadge(selectedProfessor.professorProfile?.projetos ? "ATIVO" : "INATIVO")}</div>
                   </div>
 
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Projetos Ativos</Label>
-                    <p className="text-sm">{selectedProfessor.projetos || 0}</p>
+                    <p className="text-sm">{selectedProfessor.professorProfile.projetos || 0}</p>
                   </div>
                 </div>
 
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Cadastrado em</Label>
-                  <p className="text-sm">{format(new Date(selectedProfessor.criadoEm), "dd/MM/yyyy 'às' HH:mm")}</p>
+                  <p className="text-sm">{format(new Date(selectedProfessor.createdAt!), "dd/MM/yyyy 'às' HH:mm")}</p>
                 </div>
               </div>
             )}

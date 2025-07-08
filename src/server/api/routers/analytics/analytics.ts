@@ -182,6 +182,8 @@ export const analyticsRouter = createTRPCRouter({
           projetosRascunho: Number(projetosRascunhoResult?.count || 0),
           totalInscricoes: Number(totalInscricoesResult?.count || 0),
           totalVagas: totalVagasNum,
+          totalBolsas: Number(totalVagasResult?.bolsas || 0),
+          totalVoluntarios: Number(totalVagasResult?.voluntarios || 0),
           vagasOcupadas: vagasOcupadasNum,
           taxaAprovacao: Math.round(taxaAprovacao * 100) / 100,
 
@@ -190,6 +192,15 @@ export const analyticsRouter = createTRPCRouter({
           totalDepartamentos: Number(totalDepartamentosResult?.count || 0),
           totalCursos: Number(totalCursosResult?.count || 0),
           totalDisciplinas: Number(totalDisciplinasResult?.count || 0),
+
+          departamentos: projetosPorDepartamento.map((item, index) => ({
+            id: index + 1, // Using index as ID since we don't have department ID in the result
+            nome: item.departamento || 'Sem departamento',
+            projetos: Number(item.total),
+            professores: professoresPorDepartamento.find(p => p.departamento === item.departamento)?.professores || 0,
+          })),
+
+          ultimosProjetosAprovados: [], // TODO: Implement this query if needed
 
           projetosPorDepartamento: projetosPorDepartamento.map((item) => ({
             departamento: item.departamento || 'Sem departamento',
@@ -226,6 +237,8 @@ export const analyticsRouter = createTRPCRouter({
             professores: Number(item.professores),
             projetosAtivos: Number(item.projetosAtivos),
           })),
+
+          alertas: [], // TODO: Implement alerts logic if needed
         }
 
         log.info({ metrics }, 'Métricas do dashboard calculadas com sucesso')

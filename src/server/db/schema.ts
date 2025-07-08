@@ -1067,6 +1067,8 @@ export type Edital = typeof editalTable.$inferSelect
 export type NewEdital = typeof editalTable.$inferInsert
 export type ApiKey = typeof apiKeyTable.$inferSelect
 export type NewApiKey = typeof apiKeyTable.$inferInsert
+export type ProfessorInvitation = typeof professorInvitationTable.$inferSelect
+export type NewProfessorInvitation = typeof professorInvitationTable.$inferInsert
 
 // Zod schemas for validation
 export const disciplinaSchema = z.object({

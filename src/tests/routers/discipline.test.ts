@@ -62,11 +62,23 @@ describe('disciplineRouter', () => {
       const mockContext = createMockContext(mockAdminUser)
       const caller = disciplineRouter.createCaller(mockContext)
 
-      vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue({ id: 1, nome: 'Test Discipline', codigo: 'T01', departamentoId: 1, createdAt: new Date(), updatedAt: null, deletedAt: null })
-      vi.spyOn(mockContext.db.query.projetoDisciplinaTable, 'findFirst').mockResolvedValue({ id: 1, projetoId: 1, disciplinaId: 1, createdAt: new Date() }) // Dependency exists
+      vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue({
+        id: 1,
+        nome: 'Test Discipline',
+        codigo: 'T01',
+        departamentoId: 1,
+        createdAt: new Date(),
+        updatedAt: null,
+        deletedAt: null,
+      })
+      vi.spyOn(mockContext.db.query.projetoDisciplinaTable, 'findFirst').mockResolvedValue({
+        id: 1,
+        projetoId: 1,
+        disciplinaId: 1,
+        createdAt: new Date(),
+      }) // Dependency exists
       vi.spyOn(mockContext.db.query.disciplinaProfessorResponsavelTable, 'findFirst').mockResolvedValue(undefined)
       vi.spyOn(mockContext.db.query.projetoTemplateTable, 'findFirst').mockResolvedValue(undefined)
-
 
       await expect(caller.deleteDiscipline({ id: 1 })).rejects.toThrowError(/Não é possível excluir a disciplina/)
     })
@@ -77,11 +89,19 @@ describe('disciplineRouter', () => {
       const mockContext = createMockContext(mockProfessorUser)
       const caller = disciplineRouter.createCaller(mockContext)
 
-      vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue({ id: 1, nome: 'Test Discipline', codigo: 'T01', departamentoId: 1, createdAt: new Date(), updatedAt: null, deletedAt: null })
+      vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue({
+        id: 1,
+        nome: 'Test Discipline',
+        codigo: 'T01',
+        departamentoId: 1,
+        createdAt: new Date(),
+        updatedAt: null,
+        deletedAt: null,
+      })
       vi.spyOn(mockContext.db.query.disciplinaProfessorResponsavelTable, 'findFirst').mockResolvedValue(undefined)
 
-      const insertReturningMock = { returning: vi.fn().mockResolvedValue([{}]) };
-      const valuesMock = { values: vi.fn().mockReturnValue(insertReturningMock) };
+      const insertReturningMock = { returning: vi.fn().mockResolvedValue([{}]) }
+      const valuesMock = { values: vi.fn().mockReturnValue(insertReturningMock) }
       vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as any)
 
       const result = await caller.associateDiscipline({ id: 1, ano: 2024, semestre: 'SEMESTRE_1' })
@@ -92,9 +112,19 @@ describe('disciplineRouter', () => {
       const mockContext = createMockContext(mockProfessorUser)
       const caller = disciplineRouter.createCaller(mockContext)
 
-      vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue({ id: 1, nome: 'Test Discipline', codigo: 'T01', departamentoId: 2, createdAt: new Date(), updatedAt: null, deletedAt: null }) // Different departmentId
+      vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue({
+        id: 1,
+        nome: 'Test Discipline',
+        codigo: 'T01',
+        departamentoId: 2,
+        createdAt: new Date(),
+        updatedAt: null,
+        deletedAt: null,
+      }) // Different departmentId
 
-      await expect(caller.associateDiscipline({ id: 1, ano: 2024, semestre: 'SEMESTRE_1' })).rejects.toThrowError('Você só pode se associar a disciplinas do seu departamento')
+      await expect(caller.associateDiscipline({ id: 1, ano: 2024, semestre: 'SEMESTRE_1' })).rejects.toThrowError(
+        'Você só pode se associar a disciplinas do seu departamento'
+      )
     })
   })
-}) 
+})

@@ -90,11 +90,23 @@ describe('inscricaoRouter', () => {
       vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
       vi.spyOn(mockContext.db.query.inscricaoTable, 'findFirst')
         // For the inscription being accepted
-        .mockResolvedValueOnce({ id: 1, status: 'SELECTED_BOLSISTA', alunoId: 1, projeto: currentSemesterProject } as any)
+        .mockResolvedValueOnce({
+          id: 1,
+          status: 'SELECTED_BOLSISTA',
+          alunoId: 1,
+          projeto: currentSemesterProject,
+        } as any)
         // For the check of existing scholarships
-        .mockResolvedValueOnce({ id: 2, status: 'ACCEPTED_BOLSISTA', alunoId: 1, projeto: currentSemesterProject } as any)
+        .mockResolvedValueOnce({
+          id: 2,
+          status: 'ACCEPTED_BOLSISTA',
+          alunoId: 1,
+          projeto: currentSemesterProject,
+        } as any)
 
-      await expect(caller.acceptPosition({ inscricaoId: 1 })).rejects.toThrowError(/Você já possui uma bolsa neste semestr/)
+      await expect(caller.acceptPosition({ inscricaoId: 1 })).rejects.toThrowError(
+        /Você já possui uma bolsa neste semestr/
+      )
     })
   })
 })

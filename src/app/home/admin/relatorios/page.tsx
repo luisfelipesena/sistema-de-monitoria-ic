@@ -65,27 +65,20 @@ export default function RelatoriosPage() {
 
   const exportCsvMutation = api.relatorios.exportRelatorioCsv.useMutation({
     onSuccess: (data) => {
-      toast.success(data.message)
+      toast.success("Relatório exportado com sucesso!")
 
-      // Convert base64 to blob and trigger download
-      if (data.csvData && data.fileName) {
+      // Use downloadUrl to trigger download
+      if (data.downloadUrl && data.fileName) {
         try {
-          const csvContent = atob(data.csvData)
-          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
           const link = document.createElement("a")
-
-          if (link.download !== undefined) {
-            const url = URL.createObjectURL(blob)
-            link.setAttribute("href", url)
-            link.setAttribute("download", data.fileName)
-            link.style.visibility = "hidden"
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-            URL.revokeObjectURL(url)
-          }
+          link.setAttribute("href", data.downloadUrl)
+          link.setAttribute("download", data.fileName)
+          link.style.visibility = "hidden"
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
         } catch (error) {
-          toast.error("Erro ao processar arquivo CSV")
+          toast.error("Erro ao processar download do arquivo")
           console.error("Erro no download:", error)
         }
       }
@@ -359,9 +352,7 @@ export default function RelatoriosPage() {
       header: "Data de Publicação",
       cell: ({ row }) => {
         const edital = row.original as EditalRelatorio
-        return edital.edital.dataPublicacao
-          ? new Date(edital.edital.dataPublicacao).toLocaleDateString("pt-BR")
-          : "-"
+        return edital.edital.dataPublicacao ? new Date(edital.edital.dataPublicacao).toLocaleDateString("pt-BR") : "-"
       },
     },
     {

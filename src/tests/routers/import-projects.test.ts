@@ -53,8 +53,8 @@ describe('importProjectsRouter', () => {
       vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue(mockDisciplina as any)
       vi.spyOn(mockContext.db.query.importacaoPlanejamentoTable, 'findFirst').mockResolvedValue(mockImportacao as any)
 
-      const insertReturningMock = { returning: vi.fn().mockResolvedValue([{ id: 1 }]) };
-      const valuesMock = { values: vi.fn().mockReturnValue(insertReturningMock) };
+      const insertReturningMock = { returning: vi.fn().mockResolvedValue([{ id: 1 }]) }
+      const valuesMock = { values: vi.fn().mockReturnValue(insertReturningMock) }
       vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as any)
 
       const input = {
@@ -91,8 +91,8 @@ describe('importProjectsRouter', () => {
       vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
       vi.spyOn(mockContext.db.query.importacaoPlanejamentoTable, 'findFirst').mockResolvedValue(mockImportacao as any)
 
-      const insertReturningMock = { returning: vi.fn().mockResolvedValue([{ id: 1 }]) };
-      const valuesMock = { values: vi.fn().mockReturnValue(insertReturningMock) };
+      const insertReturningMock = { returning: vi.fn().mockResolvedValue([{ id: 1 }]) }
+      const valuesMock = { values: vi.fn().mockReturnValue(insertReturningMock) }
       vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as any)
 
       const input = {
@@ -125,4 +125,4 @@ describe('importProjectsRouter', () => {
       expect(result.erros).toContain('Professor com SIAPE 999999 não encontrado')
     })
   })
-}) 
+})

@@ -41,22 +41,25 @@ function DocumentSigningContent() {
     return {
       titulo: selectedProject.titulo,
       descricao: selectedProject.descricao,
-      departamento: {
-        id: selectedProject.departamento.id,
-        nome: selectedProject.departamento.nome,
-      },
+      departamento: selectedProject.departamento
+        ? {
+            id: selectedProject.departamento.id,
+            nome: selectedProject.departamento.nome,
+          }
+        : undefined,
       coordenadorResponsavel: "Coordenador",
-      professorResponsavel: {
-        id: selectedProject.professorResponsavel.id,
-        nomeCompleto: selectedProject.professorResponsavel.nomeCompleto,
-        genero: "OUTRO" as const,
-        cpf: "",
-        emailInstitucional: selectedProject.professorResponsavel.emailInstitucional,
-        regime: "20H" as const,
-        matriculaSiape: selectedProject.professorResponsavel.matriculaSiape || "",
-        telefone: "",
-        telefoneInstitucional: "",
-      },
+      professorResponsavel: selectedProject.professorResponsavel
+        ? {
+            id: selectedProject.professorResponsavel.id,
+            nomeCompleto: selectedProject.professorResponsavel.nomeCompleto,
+            genero: "OUTRO" as const,
+            cpf: "",
+            emailInstitucional: selectedProject.professorResponsavel.emailInstitucional,
+            regime: "20H" as const,
+            telefone: "",
+            telefoneInstitucional: "",
+          }
+        : undefined,
       ano: selectedProject.ano,
       semestre: selectedProject.semestre,
       tipoProposicao: selectedProject.tipoProposicao,

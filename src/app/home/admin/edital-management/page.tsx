@@ -97,6 +97,8 @@ export default function EditalManagementPage() {
       descricaoHtml: "",
       ano: new Date().getFullYear(),
       semestre: "SEMESTRE_1",
+      dataInicio: new Date(),
+      dataFim: new Date(new Date().setDate(new Date().getDate() + 30)),
     },
   })
 

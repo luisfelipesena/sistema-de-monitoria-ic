@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { SigningProjectItem } from "@/types"
+import { AdminSigningProjectItem } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowLeft, CheckCircle, Eye, FileSignature, Loader } from "lucide-react"
@@ -97,7 +97,7 @@ export default function DocumentSigningPage() {
     }
   }
 
-  const colunasProjetos: ColumnDef<SigningProjectItem>[] = [
+  const colunasProjetos: ColumnDef<AdminSigningProjectItem>[] = [
     {
       header: "Título",
       accessorKey: "titulo",
@@ -234,13 +234,20 @@ export default function DocumentSigningPage() {
                 titulo: projectDetails.titulo,
                 descricao: projectDetails.descricao,
                 departamento: projectDetails.departamento,
-                professorResponsavel: {
-                  ...projectDetails.professorResponsavel,
-                  nomeSocial: projectDetails.professorResponsavel.nomeSocial || undefined,
-                  matriculaSiape: projectDetails.professorResponsavel.matriculaSiape || undefined,
-                  telefone: projectDetails.professorResponsavel.telefone || undefined,
-                  telefoneInstitucional: projectDetails.professorResponsavel.telefoneInstitucional || undefined,
-                },
+                professorResponsavel: projectDetails.professorResponsavel
+                  ? {
+                      id: projectDetails.professorResponsavel.id,
+                      nomeCompleto: projectDetails.professorResponsavel.nomeCompleto,
+                      emailInstitucional: projectDetails.professorResponsavel.emailInstitucional,
+                      genero: "OUTRO" as const,
+                      cpf: "",
+                      regime: "20H" as const,
+                      nomeSocial: undefined,
+                      matriculaSiape: undefined,
+                      telefone: undefined,
+                      telefoneInstitucional: undefined,
+                    }
+                  : undefined,
                 ano: projectDetails.ano,
                 semestre: projectDetails.semestre,
                 tipoProposicao: projectDetails.tipoProposicao,
@@ -250,7 +257,7 @@ export default function DocumentSigningPage() {
                 numeroSemanas: projectDetails.numeroSemanas,
                 publicoAlvo: projectDetails.publicoAlvo,
                 estimativaPessoasBenificiadas: projectDetails.estimativaPessoasBenificiadas || undefined,
-                disciplinas: projectDetails.disciplinas,
+                disciplinas: projectDetails.disciplinas || [],
                 assinaturaProfessor: projectDetails.assinaturaProfessor || undefined,
                 dataAssinaturaProfessor: projectDetails.assinaturaProfessor
                   ? new Date().toLocaleDateString("pt-BR")

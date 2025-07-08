@@ -96,16 +96,28 @@ describe('editalRouter', () => {
       const mockContext = createMockContext(mockAdminUser)
       const caller = editalRouter.createCaller(mockContext)
 
-      const signedEdital = { id: 1, fileIdAssinado: 'signed-file-id', publicado: false, numeroEdital: '001/2024', titulo: 'Edital', criadoPorUserId: 1, createdAt: new Date(), updatedAt: null, descricaoHtml: null, dataPublicacao: null, periodoInscricaoId: 1 }
+      const signedEdital = {
+        id: 1,
+        fileIdAssinado: 'signed-file-id',
+        publicado: false,
+        numeroEdital: '001/2024',
+        titulo: 'Edital',
+        criadoPorUserId: 1,
+        createdAt: new Date(),
+        updatedAt: null,
+        descricaoHtml: null,
+        dataPublicacao: null,
+        periodoInscricaoId: 1,
+      }
       vi.spyOn(mockContext.db.query.editalTable, 'findFirst').mockResolvedValue(signedEdital as any)
       vi.spyOn(mockContext.db, 'update').mockReturnValue({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([{ ...signedEdital, publicado: true }])
+        returning: vi.fn().mockResolvedValue([{ ...signedEdital, publicado: true }]),
       } as any)
 
       const result = await caller.publishEdital({ id: 1 })
       expect(result.publicado).toBe(true)
     })
   })
-}) 
+})

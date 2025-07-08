@@ -4,6 +4,7 @@ import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaF
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -42,22 +43,21 @@ export default function NovoProjetoPage() {
   const form = useForm<ProjetoFormData>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
-      titulo: "Projeto de Monitoria - Programação I",
+      titulo: "Monitoria de Programação I",
       descricao:
-        "Este projeto tem como objetivo auxiliar os estudantes da disciplina Programação I no desenvolvimento de suas habilidades de programação, oferecendo suporte personalizado em algoritmos, estruturas de dados básicas e resolução de problemas computacionais.",
-      departamentoId: undefined,
+        "Projeto de monitoria para auxiliar estudantes da disciplina Programação I no desenvolvimento de habilidades de programação básica, resolução de problemas algorítmicos e compreensão de conceitos fundamentais da programação.",
+      departamentoId: 0,
       ano: new Date().getFullYear(),
       semestre: "SEMESTRE_1",
       tipoProposicao: "INDIVIDUAL",
-      bolsasSolicitadas: 2,
-      voluntariosSolicitados: 1,
-      cargaHorariaSemana: 20,
+      bolsasSolicitadas: 1,
+      voluntariosSolicitados: 2,
+      cargaHorariaSemana: 12,
       numeroSemanas: 16,
       publicoAlvo:
         "Estudantes matriculados na disciplina Programação I que apresentem dificuldades no aprendizado de conceitos básicos de programação",
       estimativaPessoasBenificiadas: 50,
-      disciplinaId: 0,
-      atividades: [],
+      disciplinas: [0],
     },
   })
 
@@ -83,7 +83,7 @@ export default function NovoProjetoPage() {
     if (!values.titulo) errors.push("Título")
     if (!values.descricao) errors.push("Descrição")
     if (!values.departamentoId) errors.push("Departamento")
-    if (!values.disciplinaId) errors.push("Disciplina")
+    if (!values.disciplinas || values.disciplinas.length === 0) errors.push("Disciplina")
     if (!values.publicoAlvo) errors.push("Público Alvo")
     return { isValid: errors.length === 0, missingFields: errors }
   }, [])
@@ -92,7 +92,7 @@ export default function NovoProjetoPage() {
     ? validateRequiredFields(debouncedFormValues)
     : { isValid: false, missingFields: ["Carregando..."] }
 
-  const firstDisciplinaId = debouncedFormValues?.disciplinaId
+  const firstDisciplinaId = debouncedFormValues?.disciplinas?.[0]
   const { data: disciplinaWithProfessor, isLoading: isLoadingProfessor } =
     api.discipline.getDisciplineWithProfessor.useQuery(
       { id: firstDisciplinaId! },
@@ -103,9 +103,9 @@ export default function NovoProjetoPage() {
     if (!showPreview || !canGeneratePreview || !debouncedFormValues || !disciplinaWithProfessor?.professor) return null
 
     const departamento = departamentos?.find((d) => d.id === debouncedFormValues.departamentoId)
-    const selectedDisciplina = disciplinas?.find((d) => d.id === debouncedFormValues.disciplinaId)
+    const selectedDisciplinas = disciplinas?.filter((d) => debouncedFormValues.disciplinas.includes(d.id)) || []
 
-    if (!departamento || !selectedDisciplina) return null
+    if (!departamento || selectedDisciplinas.length === 0) return null
 
     const professor = disciplinaWithProfessor?.professor
 
@@ -140,13 +140,11 @@ export default function NovoProjetoPage() {
       numeroSemanas: debouncedFormValues.numeroSemanas,
       publicoAlvo: debouncedFormValues.publicoAlvo,
       estimativaPessoasBenificiadas: debouncedFormValues.estimativaPessoasBenificiadas || 0,
-      disciplinas: [
-        {
-          id: selectedDisciplina.id,
-          codigo: selectedDisciplina.codigo,
-          nome: selectedDisciplina.nome,
-        },
-      ],
+      disciplinas: selectedDisciplinas.map((d) => ({
+        id: d.id,
+        codigo: d.codigo,
+        nome: d.nome,
+      })),
       user: {
         email: professor?.emailInstitucional || "professor@ufba.br",
         nomeCompleto: professor?.nomeCompleto || "Professor",
@@ -176,7 +174,7 @@ export default function NovoProjetoPage() {
 
       const projetoData = {
         ...data,
-        disciplinaIds: [data.disciplinaId], // Convert single disciplina to array for backend compatibility
+        disciplinaIds: data.disciplinas,
         atividades: atividadesFiltradas,
       }
 
@@ -296,7 +294,7 @@ export default function NovoProjetoPage() {
                           <Select
                             onValueChange={(value) => {
                               field.onChange(parseInt(value))
-                              form.setValue("disciplinaId", 0)
+                              form.setValue("disciplinas", []) // Clear disciplines when department changes
                             }}
                             value={field.value?.toString()}
                           >
@@ -320,28 +318,43 @@ export default function NovoProjetoPage() {
 
                     <FormField
                       control={form.control}
-                      name="disciplinaId"
+                      name="disciplinas"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Disciplina</FormLabel>
+                          <FormLabel>Disciplinas</FormLabel>
                           <Select
-                            onValueChange={(value) => field.onChange(parseInt(value))}
-                            value={field.value?.toString()}
+                            onValueChange={(value) => {
+                              const newValue = field.value?.includes(parseInt(value))
+                                ? field.value.filter((id: number) => id !== parseInt(value))
+                                : [...(field.value || []), parseInt(value)]
+                              field.onChange(newValue)
+                            }}
                             disabled={!departamentoSelecionado}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione a disciplina" />
+                                <SelectValue placeholder="Selecione a(s) disciplina(s)" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               {disciplinasFiltradas?.map((disciplina) => (
                                 <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
-                                  {disciplina.codigo} - {disciplina.nome}
+                                  <div className="flex items-center gap-2">
+                                    <Checkbox
+                                      checked={field.value?.includes(disciplina.id)}
+                                      onCheckedChange={() => {}}
+                                    />
+                                    {disciplina.codigo} - {disciplina.nome}
+                                  </div>
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
+                          {field.value?.length > 0 && (
+                            <div className="text-sm text-muted-foreground">
+                              {field.value.length} disciplina(s) selecionada(s)
+                            </div>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}

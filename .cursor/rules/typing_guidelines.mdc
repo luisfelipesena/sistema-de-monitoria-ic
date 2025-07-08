@@ -8,23 +8,189 @@ Esta regra estabelece as diretrizes obrigatórias para tipagem em todo o projeto
 ## Regras Obrigatórias
 
 1.  **PROIBIÇÃO ABSOLUTA de tipos inline ou locais**: Todos os tipos (interfaces, enums, schemas Zod, etc.) devem ser definidos em arquivos dedicados na pasta `src/types/`. Exceções muito raras devem ser explicitamente justificadas e aprovadas.
-2.  **CENTRALIZAÇÃO OBRIGATÓRIA em `src/types/`**: Todos os arquivos de definição de tipos devem residir exclusivamente dentro de `src/types/`. A estrutura interna desta pasta pode ser organizada por propósito (ex: `enums.ts`, `interfaces.ts`, `schemas.ts`), mas nunca por funcionalidade isolada de um módulo.
-3.  **IMPORTAÇÃO UNIFICADA apenas via `@/types`**: A importação de qualquer tipo, interface ou schema Zod deve ser feita exclusivamente a partir do path alias `@/types`. Nunca importe diretamente de `src/types/enums`, `src/types/interfaces`, etc.
+2.  **CENTRALIZAÇÃO OBRIGATÓRIA em `src/types/`**: Todos os arquivos de definição de tipos devem residir exclusivamente dentro de `src/types/`. A estrutura interna desta pasta deve ser organizada por domínio específico.
+3.  **IMPORTAÇÃO UNIFICADA apenas via `@/types`**: A importação de qualquer tipo, interface ou schema Zod deve ser feita exclusivamente a partir do path alias `@/types`. Nunca importe diretamente de `src/types/auth`, `src/types/professor`, etc.
 4.  **COMPATIBILIDADE DB com nullability adequada**: Ao definir interfaces para entidades de banco de dados, garanta que a `nullability` dos campos seja estritamente compatível com o schema do Drizzle. Campos opcionais no Drizzle devem ser `?` ou `| null` nas interfaces.
 5.  **VALIDAÇÃO RIGOROSA com build obrigatório**: O projeto deve compilar sem erros de tipagem. Erros de ESLint ou Biome relacionados a tipagem são considerados blockers para o merge.
 
-## Estrutura da Diretriz
+## Nova Arquitetura de Tipos
 
-Este documento serve como referência definitiva e inclui:
+A pasta `src/types/` agora segue uma estrutura organizacional por domínio, facilitando manutenção e escalabilidade:
 
-*   Regras de Implementação com exemplos de uso correto (`✅`) e incorreto (`❌`).
-*   Fluxo de Desenvolvimento detalhado para backend e frontend.
-*   Checklist de Code Review obrigatório para tipagem.
-*   Penalidades por não compliance (ex: rejeição de Pull Requests).
-*   Exemplos práticos de uso correto.
+### Estrutura de Pastas
+
+```
+src/types/
+├── index.ts          # Exportação centralizada de todos os tipos
+├── enums.ts          # Enums centralizados e utilitários
+├── schemas.ts        # Schemas Zod compartilhados e específicos
+├── interfaces.ts     # Interfaces legadas (backward compatibility)
+├── database.ts       # Tipos para mocks e operações de banco
+├── auth.ts           # Tipos relacionados à autenticação
+├── professor.ts      # Tipos específicos do domínio professor
+├── student.ts        # Tipos específicos do domínio estudante
+├── project.ts        # Tipos específicos do domínio projeto
+├── department.ts     # Tipos específicos do domínio departamento
+├── course.ts         # Tipos específicos do domínio curso
+├── discipline.ts     # Tipos específicos do domínio disciplina
+└── inscription.ts    # Tipos específicos do domínio inscrição
+```
+
+### Padrões de Organização
+
+#### 1. Arquivos por Domínio
+Cada domínio possui seu próprio arquivo de tipos, contendo:
+- Interfaces específicas do domínio
+- Schemas Zod de validação
+- Tipos derivados (z.infer)
+
+#### 2. Nomenclatura Consistente
+```typescript
+// ✅ CORRETO - Padrão consistente
+export interface CreateProfessorInput { ... }
+export const createProfessorSchema = z.object({ ... })
+export type CreateProfessorData = z.infer<typeof createProfessorSchema>
+
+// ❌ INCORRETO - Inconsistente
+export interface ProfessorInput { ... }
+export const professorCreateSchema = z.object({ ... })
+```
+
+#### 3. Compatibilidade com Database
+```typescript
+// ✅ CORRETO - Campos nullable quando apropriado
+export const courseSchema = z.object({
+  id: idSchema,
+  nome: nameSchema,
+  descricao: z.string().nullable().optional(),
+  coordenador: z.string().nullable().optional(),
+  emailCoordenacao: z.string().email().nullable().optional(),
+})
+
+// ❌ INCORRETO - Não reflete nullability do DB
+export const courseSchema = z.object({
+  id: idSchema,
+  nome: nameSchema,
+  descricao: z.string().optional(),
+  coordenador: z.string().optional(),
+  emailCoordenacao: emailSchema.optional(),
+})
+```
+
+### Tipos de Teste Fortemente Tipados
+
+#### 1. Database Mocks
+```typescript
+// ✅ CORRETO - Uso de tipos específicos para mocks
+import { type MockDatabase, type ApiKey } from '@/types'
+
+const createMockContext = (user: User | null): TRPCContext => ({
+  user,
+  db: {
+    query: {
+      apiKeyTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
+    },
+    // ... outras propriedades
+  } as MockDatabase,
+})
+
+// ❌ INCORRETO - Uso de 'as any'
+const createMockContext = (user: User | null): TRPCContext => ({
+  user,
+  db: {
+    // ... propriedades
+  } as any,
+})
+```
+
+#### 2. Dados de Teste Tipados
+```typescript
+// ✅ CORRETO - Dados completamente tipados
+const mockApiKey: ApiKey = {
+  id: 1,
+  name: 'Test Key',
+  keyValue: 'hashedvalue',
+  userId: 1,
+  isActive: true,
+  description: null,
+  expiresAt: null,
+  lastUsedAt: null,
+  createdAt: new Date(),
+  updatedAt: null,
+}
+
+// ❌ INCORRETO - Campos tipados como any ou omitidos
+const mockApiKey = {
+  id: 1,
+  name: 'Test Key',
+  // campos obrigatórios omitidos
+} as any
+```
+
+## Fluxo de Desenvolvimento
+
+### 1. Criação de Novos Tipos
+
+1. Identifique o domínio apropriado (auth, professor, student, etc.)
+2. Adicione tipos no arquivo correspondente em `src/types/`
+3. Certifique-se de que o tipo seja exportado pelo `index.ts`
+4. Use apenas importações via `@/types`
+
+### 2. Modificação de Tipos Existentes
+
+1. Localize o tipo no domínio apropriado
+2. Verifique compatibilidade com o schema do banco
+3. Atualize testes que dependem do tipo
+4. Execute `npm run build` e `npm run test`
+
+### 3. Validação de Schema
+
+```typescript
+// ✅ CORRETO - Schema com nullability apropriada
+export const updateCourseSchema = z.object({
+  id: idSchema,
+  nome: nameSchema.optional(),
+  descricao: z.string().nullable().optional(),
+  coordenador: z.string().nullable().optional(),
+  emailCoordenacao: z.string().email().nullable().optional(),
+})
+```
+
+## Checklist de Code Review
+
+### Tipagem Obrigatória
+- [ ] Todos os tipos estão definidos em `src/types/`
+- [ ] Importações usam apenas `@/types`
+- [ ] Nenhum uso de `any` ou `as any` nos testes
+- [ ] Schemas Zod refletem nullability do banco
+- [ ] `npm run build` passa sem erros
+- [ ] `npm run test` passa com 100% de sucesso
+
+### Organização
+- [ ] Tipos estão no arquivo de domínio correto
+- [ ] Nomenclatura segue padrões estabelecidos
+- [ ] Exports estão atualizados no `index.ts`
+
+### Testes
+- [ ] Mocks de banco usam tipos específicos (`MockDatabase`)
+- [ ] Dados de teste são completamente tipados
+- [ ] Nenhum uso de `as never` desnecessário
 
 ## Enforcement
 
 *   Pull Requests serão rejeitados se não seguirem as diretrizes de tipagem.
 *   O build deve passar antes de qualquer tentativa de merge.
 *   Refactoring para garantir compliance com estas regras é obrigatório quando identificado um desvio.
+*   Todos os testes devem passar com tipagem forte (sem `any`).
+
+## Benefícios da Nova Arquitetura
+
+1. **Escalabilidade**: Fácil adição de novos domínios sem impacto em outros
+2. **Manutenibilidade**: Tipos organizados por contexto facilitam modificações
+3. **DRY (Don't Repeat Yourself)**: Evita duplicação de schemas e tipos
+4. **Type Safety**: 100% de tipagem forte incluindo testes
+5. **Developer Experience**: IntelliSense e autocomplete aprimorados
+6. **Consistency**: Padrões uniformes em todo o projeto

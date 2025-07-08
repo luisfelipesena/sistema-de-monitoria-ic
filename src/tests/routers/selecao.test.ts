@@ -69,19 +69,27 @@ describe('selecaoRouter', () => {
       const mockContext = createMockContext(mockProfessorUser)
       const caller = selecaoRouter.createCaller(mockContext)
 
-      const mockProject = { id: 1, professorResponsavelId: 2, professorResponsavel: { nomeCompleto: 'Professor Teste', user: { username: 'prof' } } }
+      const mockProject = {
+        id: 1,
+        professorResponsavelId: 2,
+        professorResponsavel: { nomeCompleto: 'Professor Teste', user: { username: 'prof' } },
+      }
       const mockInscricoes = [
-        { id: 1, notaFinal: 8.0, tipoVagaPretendida: 'BOLSISTA', aluno: { id: 1, user: { email: 'student1@test.com', username: 'Aluno Teste' } } },
+        {
+          id: 1,
+          notaFinal: 8.0,
+          tipoVagaPretendida: 'BOLSISTA',
+          aluno: { id: 1, user: { email: 'student1@test.com', username: 'Aluno Teste' } },
+        },
       ]
 
       vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue(mockProject as any)
       vi.spyOn(mockContext.db.query.inscricaoTable, 'findMany').mockResolvedValue(mockInscricoes as any)
       const emailSpy = vi.spyOn(emailService, 'sendStudentSelectionResultNotification').mockResolvedValue()
 
-
       await caller.publishResults({ projetoId: '1', notifyStudents: true })
 
       expect(emailSpy).toHaveBeenCalledTimes(1)
     })
   })
-}) 
+})

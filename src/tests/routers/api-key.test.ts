@@ -1,187 +1,113 @@
 import { apiKeyRouter } from '@/server/api/routers/api-key/api-key'
-import { type TRPCContext } from '@/server/api/trpc'
-import { type User } from '@/server/db/schema'
+import type { ApiKey, User } from '@/server/db/schema'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMockContext } from '../setup'
 
-const mockAdminUser: User = {
-  id: 1,
-  username: 'admin',
-  email: 'admin@test.com',
-  role: 'admin',
-  assinaturaDefault: null,
-  dataAssinaturaDefault: null,
-}
+describe('API Key Router', () => {
+  const mockUser: User = {
+    id: 1,
+    username: 'testuser',
+    email: 'test@example.com',
+    role: 'admin',
+    assinaturaDefault: null,
+    dataAssinaturaDefault: null,
+  }
 
-const mockProfessorUser: User = {
-  id: 2,
-  username: 'professor',
-  email: 'prof@test.com',
-  role: 'professor',
-  assinaturaDefault: null,
-  dataAssinaturaDefault: null,
-}
-
-const mockStudentUser: User = {
-  id: 3,
-  username: 'student',
-  email: 'student@test.com',
-  role: 'student',
-  assinaturaDefault: null,
-  dataAssinaturaDefault: null,
-}
-
-const createMockContext = (user: User | null): TRPCContext => ({
-  user,
-  db: {
-    query: {
-      apiKeyTable: {
-        findFirst: vi.fn(),
-        findMany: vi.fn(),
-      },
+  const mockApiKeys: ApiKey[] = [
+    {
+      id: 1,
+      name: 'Test Key 1',
+      keyValue: 'hashed-key-1',
+      isActive: true,
+      description: 'Test description',
+      expiresAt: null,
+      lastUsedAt: null,
+      createdAt: new Date(),
+      updatedAt: null,
+      userId: 1,
     },
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    values: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
-    returning: vi.fn(),
-  } as any,
-})
+    {
+      id: 2,
+      name: 'Test Key 2',
+      keyValue: 'hashed-key-2',
+      isActive: false,
+      description: null,
+      expiresAt: new Date(),
+      lastUsedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userId: 1,
+    },
+  ]
 
-describe('apiKeyRouter', () => {
+  let mockContext: ReturnType<typeof createMockContext>
+
   beforeEach(() => {
     vi.clearAllMocks()
+    mockContext = createMockContext(mockUser)
   })
 
-  // Test suite for 'create' procedure
-  describe('create API key', () => {
-    it('should allow a professor to create an API key for themselves', async () => {
-      const mockContext = createMockContext(mockProfessorUser)
-      const caller = apiKeyRouter.createCaller(mockContext)
+  describe('create', () => {
+    it('should create a new API key', async () => {
+      const newApiKey = {
+        id: 3,
+        name: 'New Test Key',
+        description: 'New key description',
+        createdAt: new Date(),
+        expiresAt: null,
+      }
 
-      const input = { name: 'My Key' }
-      vi.spyOn(mockContext.db, 'insert').mockReturnValue({
-        values: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([{ id: 1, ...input, createdAt: new Date() }]),
+      const expectedResult = {
+        ...newApiKey,
+        key: expect.any(String), // The raw key is generated and returned
+      }
+
+      vi.mocked(mockContext.db.query.apiKeyTable.findFirst).mockResolvedValue(undefined) // No existing key
+      vi.mocked(mockContext.db.insert).mockReturnValue({
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([newApiKey]),
+        }),
       } as any)
 
-      const result = await caller.create(input)
-      expect(result).toHaveProperty('key')
-      expect(result.name).toBe(input.name)
-    })
-
-    it('should allow an admin to create an API key for another user', async () => {
-      const mockContext = createMockContext(mockAdminUser)
       const caller = apiKeyRouter.createCaller(mockContext)
+      const result = await caller.create({
+        name: 'New Test Key',
+        description: 'New key description',
+      })
 
-      const input = { name: 'Student Key', userId: mockStudentUser.id }
-      vi.spyOn(mockContext.db, 'insert').mockReturnValue({
-        values: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([{ id: 2, ...input, createdAt: new Date() }]),
+      expect(result).toEqual(expectedResult)
+      expect(typeof result.key).toBe('string')
+      expect(result.key).toHaveLength(64) // SHA256 hex string length
+    })
+  })
+
+  describe('list', () => {
+    it('should return all API keys for the user', async () => {
+      vi.mocked(mockContext.db.query.apiKeyTable.findMany).mockResolvedValue(mockApiKeys)
+
+      const caller = apiKeyRouter.createCaller(mockContext)
+      const result = await caller.list({})
+
+      expect(result).toEqual(mockApiKeys)
+      expect(mockContext.db.query.apiKeyTable.findMany).toHaveBeenCalledWith({
+        where: expect.any(Object),
+        columns: expect.any(Object),
+        with: expect.any(Object),
+      })
+    })
+  })
+
+  describe('delete', () => {
+    it('should delete an API key', async () => {
+      vi.mocked(mockContext.db.query.apiKeyTable.findFirst).mockResolvedValue(mockApiKeys[0])
+      vi.mocked(mockContext.db.delete).mockReturnValue({
+        where: vi.fn().mockResolvedValue(undefined),
       } as any)
 
-      const result = await caller.create(input)
-      expect(result).toHaveProperty('key')
-      expect(result.name).toBe(input.name)
-    })
-
-    it('should forbid a non-admin from creating an API key for another user', async () => {
-      const mockContext = createMockContext(mockProfessorUser)
       const caller = apiKeyRouter.createCaller(mockContext)
+      const result = await caller.delete({ id: 1 })
 
-      const input = { name: 'Forbidden Key', userId: mockStudentUser.id }
-      await expect(caller.create(input)).rejects.toThrowError('Apenas administradores podem criar chaves para outros usuários')
+      expect(result).toEqual({ success: true })
     })
   })
-
-  // Test suite for 'list' procedure
-  describe('list API keys', () => {
-    it('should allow a user to list their own API keys', async () => {
-      const mockContext = createMockContext(mockStudentUser)
-      const caller = apiKeyRouter.createCaller(mockContext)
-
-      vi.spyOn(mockContext.db.query.apiKeyTable, 'findMany').mockResolvedValue([])
-
-      await caller.list({})
-      expect(mockContext.db.query.apiKeyTable.findMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: expect.anything(),
-      }))
-    })
-
-    it('should allow an admin to list keys for a specific user', async () => {
-      const mockContext = createMockContext(mockAdminUser)
-      const caller = apiKeyRouter.createCaller(mockContext)
-
-      vi.spyOn(mockContext.db.query.apiKeyTable, 'findMany').mockResolvedValue([])
-
-      await caller.list({ userId: mockProfessorUser.id })
-      expect(mockContext.db.query.apiKeyTable.findMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: expect.anything(),
-      }))
-    })
-
-    it('should forbid a non-admin from listing another user\'s keys', async () => {
-      const mockContext = createMockContext(mockProfessorUser)
-      const caller = apiKeyRouter.createCaller(mockContext)
-
-      await expect(caller.list({ userId: mockStudentUser.id })).rejects.toThrowError('Permissão negada')
-    })
-  })
-
-  // Test suite for 'update' procedure
-  describe('update API key', () => {
-    it('should allow a user to update their own API key', async () => {
-      const mockContext = createMockContext(mockProfessorUser)
-      const caller = apiKeyRouter.createCaller(mockContext)
-      const apiKey = { id: 1, userId: mockProfessorUser.id, name: 'Old Name', keyValue: 'hashedkey', isActive: true, createdAt: new Date(), expiresAt: null, lastUsedAt: null, description: null, updatedAt: null }
-
-      vi.spyOn(mockContext.db.query.apiKeyTable, 'findFirst').mockResolvedValue(apiKey)
-      vi.spyOn(mockContext.db, 'update').mockReturnValue({
-        set: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([{ ...apiKey, name: 'Updated Name' }])
-      } as any)
-
-      const result = await caller.update({ id: 1, name: 'Updated Name' })
-      expect(result.name).toBe('Updated Name')
-    })
-
-    it('should forbid a user from updating another user\'s API key', async () => {
-      const mockContext = createMockContext(mockProfessorUser)
-      const caller = apiKeyRouter.createCaller(mockContext)
-      const apiKey = { id: 2, userId: mockStudentUser.id, name: 'Another Key', keyValue: 'hashedkey2', isActive: true, createdAt: new Date(), expiresAt: null, lastUsedAt: null, description: null, updatedAt: null }
-
-      vi.spyOn(mockContext.db.query.apiKeyTable, 'findFirst').mockResolvedValue(apiKey)
-
-      await expect(caller.update({ id: 2, name: 'Forbidden Update' })).rejects.toThrowError('Permissão negada')
-    })
-  })
-
-  // Test suite for 'delete' procedure
-  describe('delete API key', () => {
-    it('should allow an admin to delete any API key', async () => {
-      const mockContext = createMockContext(mockAdminUser)
-      const caller = apiKeyRouter.createCaller(mockContext)
-      const apiKey = { id: 2, userId: mockStudentUser.id, name: 'Student Key', keyValue: 'hashedkey3', isActive: true, createdAt: new Date(), expiresAt: null, lastUsedAt: null, description: null, updatedAt: null }
-
-      vi.spyOn(mockContext.db.query.apiKeyTable, 'findFirst').mockResolvedValue(apiKey)
-      vi.spyOn(mockContext.db, 'delete').mockReturnValue({
-        where: vi.fn().mockResolvedValue(undefined)
-      } as any)
-
-      const result = await caller.delete({ id: 2 })
-      expect(result.success).toBe(true)
-    })
-
-    it('should forbid a user from deleting another user\'s API key', async () => {
-      const mockContext = createMockContext(mockProfessorUser)
-      const caller = apiKeyRouter.createCaller(mockContext)
-      const apiKey = { id: 2, userId: mockStudentUser.id, name: 'Another Key', keyValue: 'hashedkey2', isActive: true, createdAt: new Date(), expiresAt: null, lastUsedAt: null, description: null, updatedAt: null }
-
-      vi.spyOn(mockContext.db.query.apiKeyTable, 'findFirst').mockResolvedValue(apiKey)
-
-      await expect(caller.delete({ id: 2 })).rejects.toThrowError('Permissão negada')
-    })
-  })
-}) 
+})

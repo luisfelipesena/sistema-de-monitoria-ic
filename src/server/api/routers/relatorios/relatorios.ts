@@ -781,9 +781,8 @@ export const relatoriosRouter = createTRPCRouter({
 
       return {
         success: true,
-        message: `Relatório ${input.tipo} exportado com sucesso`,
-        csvData: csvBase64,
         fileName,
+        downloadUrl: `data:text/csv;base64,${csvBase64}`,
       }
     }),
 
@@ -796,7 +795,6 @@ export const relatoriosRouter = createTRPCRouter({
         .select({
           totalProjetos: count(),
           projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
-          projetosPendentes: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'SUBMITTED' THEN 1 END)`,
           totalBolsas: sum(projetoTable.bolsasDisponibilizadas),
         })
         .from(projetoTable)
@@ -808,22 +806,24 @@ export const relatoriosRouter = createTRPCRouter({
         .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
         .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
 
-      const [totalVagas] = await ctx.db
+      const [totalVoluntarios] = await ctx.db
         .select({ count: count() })
         .from(vagaTable)
         .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
-        .where(and(eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre)))
+        .where(
+          and(
+            eq(projetoTable.ano, input.ano),
+            eq(projetoTable.semestre, input.semestre),
+            eq(vagaTable.tipo, 'VOLUNTARIO')
+          )
+        )
 
       return {
         totalProjetos: metrics?.totalProjetos || 0,
         projetosAprovados: Number(metrics?.projetosAprovados) || 0,
-        projetosPendentes: Number(metrics?.projetosPendentes) || 0,
-        totalBolsas: Number(metrics?.totalBolsas) || 0,
         totalInscricoes: totalInscricoes?.count || 0,
-        totalVagas: totalVagas?.count || 0,
-        taxaAprovacao: metrics?.totalProjetos
-          ? Math.round((Number(metrics.projetosAprovados) / metrics.totalProjetos) * 100)
-          : 0,
+        totalBolsas: Number(metrics?.totalBolsas) || 0,
+        totalVoluntarios: totalVoluntarios?.count || 0,
       }
     }),
 
@@ -964,7 +964,7 @@ export const relatoriosRouter = createTRPCRouter({
       )
 
       if (input.departamentoId) {
-        whereCondition = and(whereCondition, eq(projetoTable.departamentoId, parseInt(input.departamentoId)))
+        whereCondition = and(whereCondition, eq(projetoTable.departamentoId, input.departamentoId))
       }
 
       const bolsistas = await ctx.db
@@ -1023,67 +1023,30 @@ export const relatoriosRouter = createTRPCRouter({
             .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
             .where(eq(projetoDisciplinaTable.projetoId, bolsista.projeto.id))
 
-          const assinaturas = await ctx.db
-            .select({
-              tipoAssinatura: assinaturaDocumentoTable.tipoAssinatura,
-              createdAt: assinaturaDocumentoTable.createdAt,
-            })
-            .from(assinaturaDocumentoTable)
-            .where(eq(assinaturaDocumentoTable.vagaId, bolsista.vaga.id))
-
-          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
-          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
-          const statusTermo = assinaturaAluno && assinaturaProfessor ? 'COMPLETO' : 'PENDENTE'
           const disciplinasTexto = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
-
-          const anoSemestre = input.ano
-          const dataInicio =
-            bolsista.vaga.dataInicio || new Date(anoSemestre, input.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
-          const dataFim = new Date(anoSemestre, input.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
 
           return {
             id: bolsista.vaga.id,
-            monitor: {
-              nome: bolsista.aluno.nomeCompleto,
-              matricula: bolsista.aluno.matricula,
-              email: bolsista.alunoUser.email,
-              rg: bolsista.aluno.rg,
-              cpf: bolsista.aluno.cpf,
-              cr: bolsista.aluno.cr || 0,
-              telefone: bolsista.aluno.telefone,
-              dadosBancarios: {
-                banco: bolsista.aluno.banco,
-                agencia: bolsista.aluno.agencia,
-                conta: bolsista.aluno.conta,
-                digitoConta: bolsista.aluno.digitoConta,
-              },
-            },
-            professor: {
-              nome: bolsista.professor.nomeCompleto,
-              matriculaSiape: bolsista.professor.matriculaSiape,
-              email: bolsista.professor.emailInstitucional,
-            },
+            nomeCompleto: bolsista.aluno.nomeCompleto,
+            matricula: bolsista.aluno.matricula,
+            emailInstitucional: bolsista.alunoUser.email,
+            cr: bolsista.aluno.cr || 0,
+            rg: bolsista.aluno.rg || undefined,
+            cpf: bolsista.aluno.cpf,
+            banco: bolsista.aluno.banco || undefined,
+            agencia: bolsista.aluno.agencia || undefined,
+            conta: bolsista.aluno.conta || undefined,
+            digitoConta: bolsista.aluno.digitoConta || undefined,
             projeto: {
               titulo: bolsista.projeto.titulo,
-              disciplinas: disciplinasTexto,
+              departamento: bolsista.departamento.nome,
+              professorResponsavel: bolsista.professor.nomeCompleto,
+              matriculaSiape: bolsista.professor.matriculaSiape || undefined,
+              disciplinas: disciplinasTexto.split('; '),
               cargaHorariaSemana: bolsista.projeto.cargaHorariaSemana || 12,
               numeroSemanas: bolsista.projeto.numeroSemanas || 18,
             },
-            departamento: {
-              nome: bolsista.departamento.nome,
-              sigla: bolsista.departamento.sigla,
-            },
-            periodo: {
-              ano: anoSemestre,
-              semestre: input.semestre,
-              dataInicio: dataInicio.toLocaleDateString('pt-BR'),
-              dataFim: dataFim.toLocaleDateString('pt-BR'),
-            },
-            termo: {
-              status: statusTermo,
-              dataAssinaturaAluno: assinaturaAluno?.createdAt,
-              dataAssinaturaProfessor: assinaturaProfessor?.createdAt,
-            },
+            tipo: 'BOLSISTA' as const,
             valorBolsa: 700.0,
           }
         })

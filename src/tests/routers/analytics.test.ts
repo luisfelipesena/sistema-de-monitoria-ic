@@ -60,4 +60,4 @@ describe('analyticsRouter', () => {
       await expect(caller.getDashboard()).rejects.toThrow()
     })
   })
-}) 
+})

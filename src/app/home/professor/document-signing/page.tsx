@@ -231,13 +231,16 @@ function DocumentSigningContent() {
                 titulo: projectDetails.titulo,
                 descricao: projectDetails.descricao,
                 departamento: projectDetails.departamento,
-                professorResponsavel: {
-                  ...projectDetails.professorResponsavel,
-                  nomeSocial: projectDetails.professorResponsavel.nomeSocial || undefined,
-                  matriculaSiape: projectDetails.professorResponsavel.matriculaSiape || undefined,
-                  telefone: projectDetails.professorResponsavel.telefone || undefined,
-                  telefoneInstitucional: projectDetails.professorResponsavel.telefoneInstitucional || undefined,
-                },
+                professorResponsavel: projectDetails.professorResponsavel
+                  ? {
+                      id: projectDetails.professorResponsavel.id,
+                      nomeCompleto: projectDetails.professorResponsavel.nomeCompleto,
+                      emailInstitucional: projectDetails.professorResponsavel.emailInstitucional,
+                      genero: "OUTRO" as const,
+                      cpf: "",
+                      regime: "20H" as const,
+                    }
+                  : undefined,
                 ano: projectDetails.ano,
                 semestre: projectDetails.semestre,
                 tipoProposicao: projectDetails.tipoProposicao,
@@ -247,7 +250,7 @@ function DocumentSigningContent() {
                 numeroSemanas: projectDetails.numeroSemanas,
                 publicoAlvo: projectDetails.publicoAlvo,
                 estimativaPessoasBenificiadas: projectDetails.estimativaPessoasBenificiadas || undefined,
-                disciplinas: projectDetails.disciplinas,
+                disciplinas: projectDetails.disciplinas || [],
                 projetoId: projectDetails.id,
               }}
               userRole="professor"
