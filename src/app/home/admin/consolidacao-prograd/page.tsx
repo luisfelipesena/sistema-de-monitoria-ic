@@ -8,9 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useConsolidatedMonitoringData, useExportConsolidated, useValidateCompleteData } from "@/hooks/use-relatorios"
 import { useToast } from "@/hooks/use-toast"
 import {
-  MonitorConsolidado,
   SEMESTRE_ENUM,
   STATUS_MONITOR_ENUM,
   type Semestre,
@@ -20,9 +20,8 @@ import {
   getStatusMonitorLabel,
   getTipoVagaLabel,
 } from "@/types"
-import { api } from "@/utils/api"
 import { AlertTriangle, Award, Calendar, CheckCircle, Download, FileSpreadsheet, Filter, Users } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 export default function ConsolidacaoPROGRADPage() {
   const { toast } = useToast()
@@ -32,69 +31,39 @@ export default function ConsolidacaoPROGRADPage() {
   const [incluirVoluntarios, setIncluirVoluntarios] = useState(true)
   const [showValidation, setShowValidation] = useState(false)
 
-  // Buscar dados consolidados de monitoria
-  const [consolidationData, setConsolidationData] = useState<MonitorConsolidado[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-
-  const getConsolidatedMutation = api.relatorios.getConsolidatedMonitoringData.useMutation({
-    onSuccess: (data) => {
-      setConsolidationData(data)
-      setIsLoading(false)
-    },
-    onError: () => {
-      setIsLoading(false)
-    },
-  })
-
-  const refetch = () => {
-    setIsLoading(true)
-    getConsolidatedMutation.mutate({ ano: selectedYear, semestre: selectedSemester })
-  }
-
-  // Fetch data when component mounts or parameters change
-  useEffect(() => {
-    setIsLoading(true)
-    getConsolidatedMutation.mutate({ ano: selectedYear, semestre: selectedSemester })
-  }, [selectedYear, selectedSemester, getConsolidatedMutation])
-
-  // Buscar dados de bolsistas para validação
-  const { data: bolsistasData, isLoading: loadingBolsistas } = api.relatorios.monitoresFinalBolsistas.useQuery(
-    { ano: selectedYear, semestre: selectedSemester },
-    { enabled: incluirBolsistas }
-  )
-
-  // Buscar dados de voluntários para validação
-  const { data: voluntariosData, isLoading: loadingVoluntarios } = api.relatorios.monitoresFinalVoluntarios.useQuery(
-    { ano: selectedYear, semestre: selectedSemester },
-    { enabled: incluirVoluntarios }
-  )
+  const { data: consolidationData, isLoading, refetch } = useConsolidatedMonitoringData(selectedYear, selectedSemester)
 
   // Validar dados antes da exportação
-  const { data: validationData, isLoading: loadingValidation } = api.relatorios.validateCompleteData.useQuery(
-    {
-      ano: selectedYear,
-      semestre: selectedSemester,
-      tipo: incluirBolsistas && incluirVoluntarios ? "ambos" : incluirBolsistas ? "bolsistas" : "voluntarios",
-    },
-    { enabled: showValidation }
+  const { data: validationData, isLoading: loadingValidation } = useValidateCompleteData(
+    selectedYear,
+    selectedSemester,
+    incluirBolsistas && incluirVoluntarios ? "ambos" : incluirBolsistas ? "bolsistas" : "voluntarios",
+    showValidation
   )
 
   // Mutation para exportar consolidação final
-  const exportConsolidatedMutation = api.relatorios.exportConsolidated.useMutation({
-    onSuccess: (data) => {
+  const exportConsolidatedMutation = useExportConsolidated()
+
+  const handleGenerateExcel = async () => {
+    try {
+      const result = await exportConsolidatedMutation.mutateAsync({
+        ano: selectedYear,
+        semestre: selectedSemester,
+        incluirBolsistas,
+        incluirVoluntarios,
+      })
       toast({
         title: "Exportação Iniciada",
-        description: `${data.message} O arquivo ${data.fileName} será gerado.`,
+        description: `${result.message} O arquivo ${result.fileName} será gerado.`,
       })
-    },
-    onError: (error) => {
+    } catch (error: any) {
       toast({
         title: "Erro na Exportação",
-        description: error.message,
+        description: error.message || "Ocorreu um erro ao tentar exportar a planilha.",
         variant: "destructive",
       })
-    },
-  })
+    }
+  }
 
   const handleYearChange = (year: string) => {
     setSelectedYear(parseInt(year))
@@ -106,15 +75,6 @@ export default function ConsolidacaoPROGRADPage() {
 
   const handleValidateData = () => {
     setShowValidation(true)
-  }
-
-  const generateExcelSpreadsheet = async () => {
-    await exportConsolidatedMutation.mutateAsync({
-      ano: selectedYear,
-      semestre: selectedSemester,
-      incluirBolsistas,
-      incluirVoluntarios,
-    })
   }
 
   const generateCSVSpreadsheet = () => {
@@ -152,7 +112,7 @@ export default function ConsolidacaoPROGRADPage() {
       "Dígito",
     ]
 
-    const csvData = consolidationData.map((item) => [
+    const csvData = (consolidationData || []).map((item) => [
       item.monitor.matricula,
       item.monitor.nome,
       item.monitor.email,
@@ -224,8 +184,9 @@ export default function ConsolidacaoPROGRADPage() {
     )
   }
 
-  const monitoresBolsistas = consolidationData?.filter((item) => item.monitoria.tipo === "BOLSISTA") || []
-  const monitoresVoluntarios = consolidationData?.filter((item) => item.monitoria.tipo === "VOLUNTARIO") || []
+  const data = consolidationData || []
+  const monitoresBolsistas = data.filter((item) => item.monitoria.tipo === "BOLSISTA")
+  const monitoresVoluntarios = data.filter((item) => item.monitoria.tipo === "VOLUNTARIO")
   const totalBolsas = monitoresBolsistas.reduce((sum, item) => sum + (item.monitoria.valorBolsa || 0), 0)
 
   return (
@@ -349,14 +310,14 @@ export default function ConsolidacaoPROGRADPage() {
       )}
 
       {/* Estatísticas */}
-      {consolidationData && (
+      {data && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="flex items-center p-6">
               <div className="flex items-center space-x-2">
                 <Users className="h-8 w-8 text-blue-500" />
                 <div>
-                  <div className="text-2xl font-bold">{consolidationData.length}</div>
+                  <div className="text-2xl font-bold">{data.length}</div>
                   <div className="text-sm text-muted-foreground">Total de Monitores</div>
                 </div>
               </div>
@@ -416,10 +377,8 @@ export default function ConsolidacaoPROGRADPage() {
               </p>
               <div className="flex gap-2">
                 <Button
-                  onClick={() => generateExcelSpreadsheet()}
-                  disabled={
-                    exportConsolidatedMutation.isPending || !consolidationData || consolidationData.length === 0
-                  }
+                  onClick={handleGenerateExcel}
+                  disabled={exportConsolidatedMutation.isPending || !data || data.length === 0}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <FileSpreadsheet className="h-4 w-4 mr-2" />
@@ -436,7 +395,7 @@ export default function ConsolidacaoPROGRADPage() {
               <p className="text-sm text-muted-foreground">Formato CSV para análise rápida ou backup dos dados</p>
               <Button
                 onClick={generateCSVSpreadsheet}
-                disabled={isLoading || !consolidationData || consolidationData.length === 0}
+                disabled={isLoading || !data || data.length === 0}
                 variant="outline"
               >
                 <Download className="h-4 w-4 mr-2" />
@@ -445,7 +404,7 @@ export default function ConsolidacaoPROGRADPage() {
             </div>
           </div>
 
-          {consolidationData && consolidationData.length === 0 && (
+          {data && data.length === 0 && (
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">Nenhum monitor encontrado para o período selecionado.</p>
             </div>
@@ -454,13 +413,13 @@ export default function ConsolidacaoPROGRADPage() {
       </Card>
 
       {/* Lista de Monitores */}
-      {consolidationData && consolidationData.length > 0 && (
+      {data && data.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>
               Monitores do Período {selectedYear}.{selectedSemester === "SEMESTRE_1" ? "1" : "2"}
             </CardTitle>
-            <p className="text-sm text-muted-foreground">{consolidationData.length} monitor(es) encontrado(s)</p>
+            <p className="text-sm text-muted-foreground">{data.length} monitor(es) encontrado(s)</p>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -469,7 +428,7 @@ export default function ConsolidacaoPROGRADPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {consolidationData.map((item) => (
+                {data.map((item) => (
                   <div key={item.id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
