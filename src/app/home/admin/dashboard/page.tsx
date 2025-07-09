@@ -53,6 +53,10 @@ export default function DashboardAdmin() {
   const [filters, setFilters] = useState<FilterValues>({});
   const [groupedView, setGroupedView] = useState(false);
 
+  const activeFilters = Object.values(filters).filter(
+    (v) => v !== undefined && v !== ""
+  ).length;
+
   const { refetch: generateProgradSpreadsheet } =
     api.relatorios.getConsolidatedMonitoringData.useQuery(
       {
@@ -478,7 +482,7 @@ export default function DashboardAdmin() {
             size="sm"
             className="text-green-600 border-green-600 hover:bg-green-50 text-xs sm:text-sm px-2 sm:px-4 disabled:text-gray-700 disabled:bg-gray-300"
             onClick={() => handleDownloadPlanilhaPrograd()}
-            disabled={!projetos || projetos.length === 0}
+            disabled={!actualProjetos || actualProjetos.length === 0}
           >
             <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Planilha PROGRAD</span>
@@ -530,10 +534,15 @@ export default function DashboardAdmin() {
         variant="outline"
         size="sm"
         onClick={() => setFilterModalOpen(true)}
-        className="text-xs sm:text-sm px-2 sm:px-4"
+        className="relative text-xs sm:text-sm px-2 sm:px-4"
       >
         <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
         Filtros
+        {activeFilters > 0 && (
+          <span className="absolute -top-1 -right-1 bg-blue-600 text-white sm:text-xs rounded-full px-1.5 sm:px-2 py-0.5">
+            {activeFilters}
+          </span>
+        )}
       </Button>
     </div>
   );
