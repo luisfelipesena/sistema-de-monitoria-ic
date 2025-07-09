@@ -86,8 +86,8 @@ export interface DashboardProjectItem {
   departamentoNome: string
   semestre: string
   ano: number
-  bolsasDisponibilizadas: number | null
-  voluntariosSolicitados: number | null
+  bolsasDisponibilizadas?: number | null | undefined
+  voluntariosSolicitados?: number | null | undefined
   totalInscritos: number
   disciplinas: Array<{ codigo: string; nome: string }>
 }
@@ -100,8 +100,8 @@ export interface ManageProjectItem {
   departamentoNome: string
   semestre: string
   ano: number
-  bolsasDisponibilizadas?: number | null
-  voluntariosSolicitados?: number | null
+  bolsasDisponibilizadas?: number | null | undefined
+  voluntariosSolicitados?: number | null | undefined
   totalInscritos: number
   disciplinas: Array<{ codigo: string; nome: string }>
   professorResponsavelNome: string

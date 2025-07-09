@@ -72,6 +72,7 @@ function DocumentSigningContent() {
       projetoId: selectedProject.id,
       assinaturaProfessor: selectedProject.assinaturaProfessor || undefined,
       dataAprovacao: selectedProject.status === "APPROVED" ? new Date().toLocaleDateString("pt-BR") : undefined,
+      signingMode: "admin",
     }
   }, [selectedProject, user])
 
