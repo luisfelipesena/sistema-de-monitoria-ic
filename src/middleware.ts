@@ -1,11 +1,13 @@
 import { apiKeyTable, sessionTable, userTable } from '@/server/db/schema'
 import { env } from '@/utils/env'
 import { LUCIA_SESSION_COOKIE_NAME } from '@/utils/utils'
+import { createHash } from 'crypto'
 import { and, eq } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { NextRequest, NextResponse } from 'next/server'
 import postgres from 'postgres'
-import { createHash } from 'crypto'
+
+export const runtime = 'nodejs'
 
 interface SessionPayload {
   userId: number
