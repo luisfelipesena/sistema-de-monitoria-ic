@@ -1,5 +1,6 @@
 import { MonitoriaFormData } from "@/types"
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+import React from "react"
 
 const styles = StyleSheet.create({
   page: {
@@ -163,11 +164,12 @@ const styles = StyleSheet.create({
   },
 })
 
-export const MonitoriaFormTemplate = ({ data }: { data: MonitoriaFormData }) => {
+const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) => {
+  // Substituir useMemo por variáveis diretas
   const semestreLabel = `${data.ano}.${data.semestre === "SEMESTRE_1" ? "1" : "2"}`
   const disciplinasText = data.disciplinas?.map((d) => `${d.codigo} - ${d.nome}`).join(", ") || "Não informado"
-  const totalMonitores = data.bolsasSolicitadas + data.voluntariosSolicitados
-  const cargaHorariaTotal = data.cargaHorariaSemana * data.numeroSemanas
+  const totalMonitores = (data.bolsasSolicitadas || 0) + (data.voluntariosSolicitados || 0)
+  const cargaHorariaTotal = (data.cargaHorariaSemana || 0) * (data.numeroSemanas || 0)
 
   return (
     <Document>
@@ -385,3 +387,5 @@ export const MonitoriaFormTemplate = ({ data }: { data: MonitoriaFormData }) => 
     </Document>
   )
 }
+
+export const MonitoriaFormTemplate = React.memo(MonitoriaFormTemplateComponent) as React.FC<{ data: MonitoriaFormData }>

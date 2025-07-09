@@ -241,6 +241,18 @@ export function createMockContext(user: User | null = null): TRPCContext {
           findFirst: vi.fn(),
           findMany: vi.fn(),
         },
+        projetoDocumentoTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        professorTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
+        alunoTable: {
+          findFirst: vi.fn(),
+          findMany: vi.fn(),
+        },
         inscricaoTable: {
           findFirst: vi.fn(),
           findMany: vi.fn(),

@@ -835,65 +835,35 @@ export const relatoriosRouter = createTRPCRouter({
       })
     )
     .output(z.array(monitorConsolidadoSchema))
-    .mutation(async ({ input, ctx }) => {
-      // Buscar todos os monitores aceitos no período
-      const monitores = await ctx.db
-        .select({
-          inscricao: {
-            id: inscricaoTable.id,
-            status: inscricaoTable.status,
-            createdAt: inscricaoTable.createdAt,
-            updatedAt: inscricaoTable.updatedAt,
-          },
+    .query(async ({ input, ctx }) => {
+      const { ano, semestre } = input
+
+      const vagas = await ctx.db.query.vagaTable.findMany({
+        with: {
           aluno: {
-            id: alunoTable.id,
-            nomeCompleto: alunoTable.nomeCompleto,
-            matricula: alunoTable.matricula,
-            cr: alunoTable.cr,
-            banco: alunoTable.banco,
-            agencia: alunoTable.agencia,
-            conta: alunoTable.conta,
-            digitoConta: alunoTable.digitoConta,
-          },
-          alunoUser: {
-            email: userTable.email,
-          },
-          professor: {
-            id: professorTable.id,
-            nomeCompleto: professorTable.nomeCompleto,
-            matriculaSiape: professorTable.matriculaSiape,
-            emailInstitucional: professorTable.emailInstitucional,
-          },
-          departamento: {
-            nome: departamentoTable.nome,
+            with: {
+              user: true,
+            },
           },
           projeto: {
-            id: projetoTable.id,
-            titulo: projetoTable.titulo,
-            ano: projetoTable.ano,
-            semestre: projetoTable.semestre,
-            cargaHorariaSemana: projetoTable.cargaHorariaSemana,
-            numeroSemanas: projetoTable.numeroSemanas,
+            with: {
+              departamento: true,
+              professorResponsavel: true,
+            },
           },
-        })
-        .from(inscricaoTable)
-        .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
-        .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
-        .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
-        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-        .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-        .where(
-          and(
-            eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre),
-            sql`${inscricaoTable.status} IN ('ACCEPTED_BOLSISTA', 'ACCEPTED_VOLUNTARIO')`
-          )
-        )
-        .orderBy(inscricaoTable.status, alunoTable.nomeCompleto)
+          inscricao: {
+            with: {
+              aluno: true,
+              projeto: true,
+            },
+          },
+        },
+      })
 
-      // Para cada monitor, buscar as disciplinas do projeto
-      const monitoresComDisciplinas = await Promise.all(
-        monitores.map(async (monitor) => {
+      const filteredVagas = vagas.filter((vaga) => vaga.projeto.ano === ano && vaga.projeto.semestre === semestre)
+
+      const consolidados = await Promise.all(
+        filteredVagas.map(async (vaga) => {
           const disciplinas = await ctx.db
             .select({
               codigo: disciplinaTable.codigo,
@@ -901,55 +871,55 @@ export const relatoriosRouter = createTRPCRouter({
             })
             .from(disciplinaTable)
             .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
-            .where(eq(projetoDisciplinaTable.projetoId, monitor.projeto.id))
+            .where(eq(projetoDisciplinaTable.projetoId, vaga.projetoId))
 
           const disciplinasTexto = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
 
           // Calcular datas baseadas no período acadêmico
-          const inicioSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 1 : 6, 1)
-          const fimSemestre = new Date(monitor.projeto.ano, monitor.projeto.semestre === 'SEMESTRE_1' ? 5 : 11, 30)
+          const inicioSemestre = new Date(ano, semestre === 'SEMESTRE_1' ? 1 : 6, 1)
+          const fimSemestre = new Date(ano, semestre === 'SEMESTRE_1' ? 5 : 11, 30)
 
           const tipoMonitoria: 'BOLSISTA' | 'VOLUNTARIO' =
-            monitor.inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
+            vaga.inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
 
           return {
-            id: monitor.inscricao.id,
+            id: vaga.inscricaoId,
             monitor: {
-              nome: monitor.aluno.nomeCompleto,
-              matricula: monitor.aluno.matricula,
-              email: monitor.alunoUser.email,
-              cr: monitor.aluno.cr,
-              banco: monitor.aluno.banco,
-              agencia: monitor.aluno.agencia,
-              conta: monitor.aluno.conta,
-              digitoConta: monitor.aluno.digitoConta,
+              nome: vaga.aluno.nomeCompleto,
+              matricula: vaga.aluno.matricula,
+              email: vaga.aluno.user.email,
+              cr: vaga.aluno.cr,
+              banco: vaga.aluno.banco,
+              agencia: vaga.aluno.agencia,
+              conta: vaga.aluno.conta,
+              digitoConta: vaga.aluno.digitoConta,
             },
             professor: {
-              nome: monitor.professor.nomeCompleto,
-              matriculaSiape: monitor.professor.matriculaSiape,
-              email: monitor.professor.emailInstitucional,
-              departamento: monitor.departamento.nome,
+              nome: vaga.projeto.professorResponsavel.nomeCompleto,
+              matriculaSiape: vaga.projeto.professorResponsavel.matriculaSiape,
+              email: vaga.projeto.professorResponsavel.emailInstitucional,
+              departamento: vaga.projeto.departamento.nome,
             },
             projeto: {
-              titulo: monitor.projeto.titulo,
+              titulo: vaga.projeto.titulo,
               disciplinas: disciplinasTexto,
-              ano: monitor.projeto.ano,
-              semestre: monitor.projeto.semestre,
-              cargaHorariaSemana: monitor.projeto.cargaHorariaSemana,
-              numeroSemanas: monitor.projeto.numeroSemanas,
+              ano: vaga.projeto.ano,
+              semestre: vaga.projeto.semestre,
+              cargaHorariaSemana: vaga.projeto.cargaHorariaSemana,
+              numeroSemanas: vaga.projeto.numeroSemanas,
             },
             monitoria: {
               tipo: tipoMonitoria,
-              dataInicio: inicioSemestre.toLocaleDateString('pt-BR'),
-              dataFim: fimSemestre.toLocaleDateString('pt-BR'),
-              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 700.0 : undefined, // Valor fixo por enquanto
-              status: 'ATIVO'
+              dataInicio: vaga.dataInicio?.toISOString() || inicioSemestre.toISOString(),
+              dataFim: vaga.dataFim?.toISOString() || fimSemestre.toISOString(),
+              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 700 : 0, // Assuming a fixed value
+              status: 'ATIVO', // Placeholder, logic needed
             },
           }
         })
       )
 
-      return monitoresComDisciplinas
+      return consolidados
     }),
 
   // Consolidação Final PROGRAD - Planilha de Bolsistas

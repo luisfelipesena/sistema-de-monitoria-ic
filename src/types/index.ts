@@ -67,4 +67,6 @@ export type NonNullable<T> = T extends null | undefined ? never : T
 
 export type Nullable<T> = T | null
 
-export type ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[] ? ElementType : never
+export type ArrayElement<ArrayType extends readonly unknown[]> = ArrayType extends readonly (infer ElementType)[]
+  ? ElementType
+  : never

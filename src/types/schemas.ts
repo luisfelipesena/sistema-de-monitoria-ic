@@ -10,11 +10,17 @@ export const optionalIdSchema = z.number().int().positive().optional()
 export const nameSchema = z.string().min(1, 'Nome é obrigatório').max(255)
 export const descriptionSchema = z.string().max(1000).optional()
 export const emailSchema = z.string().email('Email inválido')
-export const phoneSchema = z.string().regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, 'Telefone inválido').optional()
+export const phoneSchema = z
+  .string()
+  .regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, 'Telefone inválido')
+  .optional()
 export const urlSchema = z.string().url('URL inválida').optional()
 
 // Username validation
-export const usernameSchema = z.string().min(3, 'Username deve ter pelo menos 3 caracteres').max(50, 'Username deve ter no máximo 50 caracteres')
+export const usernameSchema = z
+  .string()
+  .min(3, 'Username deve ter pelo menos 3 caracteres')
+  .max(50, 'Username deve ter no máximo 50 caracteres')
 
 // Signature validation
 export const signatureDataSchema = z.string().min(1, 'Assinatura é obrigatória')
@@ -22,10 +28,7 @@ export const optionalSignatureDataSchema = z.string().min(1).optional()
 
 // Date validations
 export const dateSchema = z.date()
-export const dateStringSchema = z.string().refine(
-  (date) => !isNaN(Date.parse(date)),
-  'Data inválida'
-)
+export const dateStringSchema = z.string().refine((date) => !isNaN(Date.parse(date)), 'Data inválida')
 
 // File validations
 export const fileSchema = z.object({
@@ -111,7 +114,17 @@ export const addressSchema = z.object({
 })
 
 // Document validation schemas
-export const cpfSchema = z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido')
+export const cpfSchema = z.string().refine(
+  (val) => {
+    // Remove non-digit characters
+    const cleaned = val.replace(/[^\d]/g, '')
+    // Check if the cleaned CPF has 11 digits
+    return cleaned.length === 11
+  },
+  {
+    message: 'CPF inválido. Deve conter 11 dígitos.',
+  }
+)
 export const rgSchema = z.string().min(5, 'RG inválido')
 
 // Academic record schemas
@@ -122,14 +135,11 @@ export const crSchema = z.number().min(0).max(10)
 // UTILITY FUNCTIONS
 // ========================================
 
-export const createOptionalSchema = <T extends z.ZodTypeAny>(schema: T) =>
-  schema.optional()
+export const createOptionalSchema = <T extends z.ZodTypeAny>(schema: T) => schema.optional()
 
-export const createNullableSchema = <T extends z.ZodTypeAny>(schema: T) =>
-  schema.nullable()
+export const createNullableSchema = <T extends z.ZodTypeAny>(schema: T) => schema.nullable()
 
-export const createOptionalNullableSchema = <T extends z.ZodTypeAny>(schema: T) =>
-  schema.optional().nullable()
+export const createOptionalNullableSchema = <T extends z.ZodTypeAny>(schema: T) => schema.optional().nullable()
 
 // ========================================
 // EXPORTED TYPES FROM SCHEMAS

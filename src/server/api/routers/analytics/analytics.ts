@@ -197,7 +197,7 @@ export const analyticsRouter = createTRPCRouter({
             id: index + 1, // Using index as ID since we don't have department ID in the result
             nome: item.departamento || 'Sem departamento',
             projetos: Number(item.total),
-            professores: professoresPorDepartamento.find(p => p.departamento === item.departamento)?.professores || 0,
+            professores: professoresPorDepartamento.find((p) => p.departamento === item.departamento)?.professores || 0,
           })),
 
           ultimosProjetosAprovados: [], // TODO: Implement this query if needed

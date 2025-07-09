@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FilterModal, type FilterValues } from "@/components/ui/FilterModal"
-import { DashboardProjectItem, UserListItem } from "@/types"
+import { DashboardProjectItem, MonitorConsolidado, UserListItem } from "@/types"
 import { api } from "@/utils/api"
 import { getCurrentSemester } from "@/utils/utils"
 import { useQueryClient } from "@tanstack/react-query"
@@ -44,18 +44,25 @@ export default function DashboardAdmin() {
   const [filters, setFilters] = useState<FilterValues>({})
   const [groupedView, setGroupedView] = useState(false)
 
-  const generateProgradSpreadsheetMutation = api.relatorios.getConsolidatedMonitoringData.useMutation()
+  const { refetch: generateProgradSpreadsheet } = api.relatorios.getConsolidatedMonitoringData.useQuery(
+    {
+      ano: new Date().getFullYear(),
+      semestre: getCurrentSemester().semester,
+    },
+    { enabled: false }
+  )
 
   const handleDownloadPlanilhaPrograd = async () => {
     try {
       toast.promise(
         (async () => {
-          const result = await generateProgradSpreadsheetMutation.mutateAsync({
-            ano: new Date().getFullYear(),
-            semestre: getCurrentSemester().semester,
-          })
+          const { data: result, isError, error } = await generateProgradSpreadsheet()
 
-          if (!result || result.length === 0) {
+          if (isError || !result) {
+            throw new Error(error?.message || "Erro ao buscar dados")
+          }
+
+          if (result.length === 0) {
             throw new Error("Não há dados para gerar a planilha")
           }
 
@@ -79,7 +86,7 @@ export default function DashboardAdmin() {
             "Período",
           ]
 
-          const csvData = result.map((item) => [
+          const csvData = result.map((item: MonitorConsolidado) => [
             item.monitor.matricula,
             item.monitor.nome,
             item.monitor.email,
@@ -99,7 +106,9 @@ export default function DashboardAdmin() {
             `${item.projeto.ano}.${item.projeto.semestre === "SEMESTRE_1" ? "1" : "2"}`,
           ])
 
-          const csvContent = [csvHeader, ...csvData].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n")
+          const csvContent = [csvHeader, ...csvData]
+            .map((row) => row.map((cell: string | number) => `"${cell}"`).join(","))
+            .join("\n")
 
           const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
           const link = document.createElement("a")

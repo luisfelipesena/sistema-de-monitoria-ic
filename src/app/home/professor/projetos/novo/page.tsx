@@ -17,6 +17,24 @@ import { PDFViewer } from "@react-pdf/renderer"
 import { Eye, FileText, Loader2, Plus, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import React, { useCallback, useEffect, useState } from "react"
+
+// Componente memoizado para o PDFViewer
+const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) => {
+  return (
+    <div className="border rounded-lg bg-white">
+      <div className="bg-blue-50 border-b px-4 py-2">
+        <p className="text-sm text-blue-800 font-medium">
+          ✅ Preview gerado com sucesso - Dados atualizados automaticamente
+        </p>
+      </div>
+      <div style={{ width: '100%', height: '800px' }}>
+        <PDFViewer width="100%" height="100%" showToolbar={false}>
+          <MonitoriaFormTemplate data={data} />
+        </PDFViewer>
+      </div>
+    </div>
+  )
+})
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
@@ -27,6 +45,7 @@ export default function NovoProjetoPage() {
   const router = useRouter()
   const [showPreview, setShowPreview] = useState(false)
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false)
+  const [pdfKey, setPdfKey] = useState(0)
   const [atividades, setAtividades] = useState<string[]>([
     "Auxiliar na elaboração de exercícios práticos de programação",
     "Apoiar estudantes em horários de plantão para esclarecimento de dúvidas",
@@ -80,11 +99,11 @@ export default function NovoProjetoPage() {
 
   const validateRequiredFields = useCallback((values: ProjetoFormData) => {
     const errors = []
-    if (!values.titulo) errors.push("Título")
-    if (!values.descricao) errors.push("Descrição")
-    if (!values.departamentoId) errors.push("Departamento")
-    if (!values.disciplinas || values.disciplinas.length === 0) errors.push("Disciplina")
-    if (!values.publicoAlvo) errors.push("Público Alvo")
+    if (!values.titulo?.trim()) errors.push("Título")
+    if (!values.descricao?.trim()) errors.push("Descrição")
+    if (!values.departamentoId || values.departamentoId === 0) errors.push("Departamento")
+    if (!values.disciplinas || values.disciplinas.length === 0 || values.disciplinas.includes(0)) errors.push("Disciplina")
+    if (!values.publicoAlvo?.trim()) errors.push("Público Alvo")
     return { isValid: errors.length === 0, missingFields: errors }
   }, [])
 
@@ -96,11 +115,11 @@ export default function NovoProjetoPage() {
   const { data: disciplinaWithProfessor, isLoading: isLoadingProfessor } =
     api.discipline.getDisciplineWithProfessor.useQuery(
       { id: firstDisciplinaId! },
-      { enabled: !!firstDisciplinaId && showPreview }
+      { enabled: !!firstDisciplinaId && firstDisciplinaId !== 0 && showPreview }
     )
 
   const pdfData: MonitoriaFormData | null = React.useMemo(() => {
-    if (!showPreview || !canGeneratePreview || !debouncedFormValues || !disciplinaWithProfessor?.professor) return null
+    if (!showPreview || !canGeneratePreview || !debouncedFormValues) return null
 
     const departamento = departamentos?.find((d) => d.id === debouncedFormValues.departamentoId)
     const selectedDisciplinas = disciplinas?.filter((d) => debouncedFormValues.disciplinas.includes(d.id)) || []
@@ -109,7 +128,8 @@ export default function NovoProjetoPage() {
 
     const professor = disciplinaWithProfessor?.professor
 
-    return {
+    // Cria um objeto estável para evitar re-renderização constante
+    const data: MonitoriaFormData = {
       titulo: debouncedFormValues.titulo,
       descricao: debouncedFormValues.descricao,
       departamento: {
@@ -151,7 +171,30 @@ export default function NovoProjetoPage() {
         role: "professor",
       },
     }
-  }, [showPreview, canGeneratePreview, debouncedFormValues, departamentos, disciplinas, disciplinaWithProfessor])
+
+    return data
+  }, [
+    showPreview, 
+    canGeneratePreview, 
+    debouncedFormValues?.titulo,
+    debouncedFormValues?.descricao,
+    debouncedFormValues?.departamentoId,
+    debouncedFormValues?.disciplinas?.join(','),
+    debouncedFormValues?.ano,
+    debouncedFormValues?.semestre,
+    debouncedFormValues?.tipoProposicao,
+    debouncedFormValues?.bolsasSolicitadas,
+    debouncedFormValues?.voluntariosSolicitados,
+    debouncedFormValues?.cargaHorariaSemana,
+    debouncedFormValues?.numeroSemanas,
+    debouncedFormValues?.publicoAlvo,
+    debouncedFormValues?.estimativaPessoasBenificiadas,
+    disciplinaWithProfessor?.professor?.id,
+    disciplinaWithProfessor?.professor?.nomeCompleto,
+    disciplinaWithProfessor?.professor?.emailInstitucional,
+    departamentos?.length,
+    disciplinas?.length
+  ])
 
   const handleAddAtividade = () => {
     setAtividades([...atividades, ""])
@@ -203,6 +246,7 @@ export default function NovoProjetoPage() {
     setIsGeneratingPreview(true)
     setTimeout(() => {
       setShowPreview(true)
+      setPdfKey(prev => prev + 1) // Força re-renderização do PDF
       setIsGeneratingPreview(false)
     }, 500)
   }
@@ -670,22 +714,13 @@ export default function NovoProjetoPage() {
               </div>
             ) : (
               <>
-                {isLoadingProfessor ? (
+                {isLoadingProfessor && firstDisciplinaId && firstDisciplinaId !== 0 ? (
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600 mb-4" />
                     <p>Carregando dados do professor...</p>
                   </div>
                 ) : pdfData ? (
-                  <div className="border rounded-lg bg-white">
-                    <div className="bg-blue-50 border-b px-4 py-2">
-                      <p className="text-sm text-blue-800 font-medium">
-                        ✅ Preview gerado com sucesso - Dados atualizados automaticamente
-                      </p>
-                    </div>
-                    <PDFViewer width="100%" height="800px" showToolbar={false}>
-                      <MonitoriaFormTemplate data={pdfData} />
-                    </PDFViewer>
-                  </div>
+                  <PDFPreviewComponent key={pdfKey} data={pdfData} />
                 ) : (
                   <div className="text-center py-8 text-red-500">
                     <p>Erro ao gerar preview. Verifique se todos os campos obrigatórios estão preenchidos.</p>
