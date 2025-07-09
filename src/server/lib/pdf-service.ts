@@ -6,6 +6,7 @@ import { renderToBuffer } from '@react-pdf/renderer'
 import { PDFDocument } from 'pdf-lib'
 import { AtaSelecaoTemplate } from './pdfTemplates/ata-selecao'
 import { EditalInternoData, EditalInternoTemplate } from './pdfTemplates/edital-interno'
+import React from 'react'
 
 const log = logger.child({ context: 'PDFService' })
 
@@ -19,7 +20,7 @@ export class PDFService {
       log.info({ projetoId: data.projetoId }, 'Generating PDF from template')
 
       // Create the PDF using @react-pdf/renderer
-      const pdfBuffer = await renderToBuffer(MonitoriaFormTemplate({ data }))
+      const pdfBuffer = await renderToBuffer(React.createElement(MonitoriaFormTemplate, { data }) as any)
 
       log.info({ projetoId: data.projetoId, size: pdfBuffer.length }, 'PDF generated successfully')
       return pdfBuffer
@@ -221,7 +222,7 @@ export class PDFService {
       log.info({ numeroEdital: data.numeroEdital }, 'Generating internal edital PDF')
 
       // Create the PDF using @react-pdf/renderer
-      const pdfBuffer = await renderToBuffer(EditalInternoTemplate({ data }))
+      const pdfBuffer = await renderToBuffer(React.createElement(EditalInternoTemplate, { data }) as any)
 
       log.info(
         { numeroEdital: data.numeroEdital, size: pdfBuffer.length },
@@ -268,7 +269,7 @@ export class PDFService {
       log.info({ projetoId: data.projeto.id }, 'Generating ata de seleção PDF')
 
       // Create the PDF using @react-pdf/renderer
-      const pdfBuffer = await renderToBuffer(AtaSelecaoTemplate({ data }))
+      const pdfBuffer = await renderToBuffer(React.createElement(AtaSelecaoTemplate, { data }) as any)
 
       log.info({ projetoId: data.projeto.id, size: pdfBuffer.length }, 'Ata de seleção PDF generated successfully')
       return pdfBuffer

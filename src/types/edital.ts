@@ -95,18 +95,20 @@ export const createEditalSchema = z.object({
   criadoPorUserId: z.number().int().positive(),
 })
 
-export const editalFormSchema = z.object({
-  numeroEdital: z.string().min(1),
-  titulo: z.string().min(1),
-  descricaoHtml: z.string().optional(),
-  ano: z.number().int().min(2000).max(2100),
-  semestre: semestreSchema,
-  dataInicio: z.date(),
-  dataFim: z.date(),
-}).refine((data) => data.dataFim > data.dataInicio, {
-  message: 'Data de fim deve ser posterior à data de início',
-  path: ['dataFim'],
-})
+export const editalFormSchema = z
+  .object({
+    numeroEdital: z.string().min(1),
+    titulo: z.string().min(1),
+    descricaoHtml: z.string().optional(),
+    ano: z.number().int().min(2000).max(2100),
+    semestre: semestreSchema,
+    dataInicio: z.date(),
+    dataFim: z.date(),
+  })
+  .refine((data) => data.dataFim > data.dataInicio, {
+    message: 'Data de fim deve ser posterior à data de início',
+    path: ['dataFim'],
+  })
 
 export type CreatePeriodoInscricaoData = z.infer<typeof createPeriodoInscricaoSchema>
 export type CreateEditalData = z.infer<typeof createEditalSchema>

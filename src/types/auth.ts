@@ -1,13 +1,6 @@
 import { z } from 'zod'
 import { regimeSchema, UserRole, userRoleSchema } from './enums'
-import {
-  cpfSchema,
-  crSchema,
-  emailSchema,
-  idSchema,
-  nameSchema,
-  usernameSchema
-} from './schemas'
+import { cpfSchema, crSchema, emailSchema, idSchema, nameSchema, usernameSchema } from './schemas'
 
 // ========================================
 // AUTH TYPES
