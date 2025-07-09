@@ -1,10 +1,10 @@
-"use client";
+"use client"
 
-import { PagesLayout } from "@/components/layout/PagesLayout";
-import { TableComponent } from "@/components/layout/TableComponent";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -13,39 +13,31 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { UserListItem as Professor } from "@/types";
-import { api } from "@/utils/api";
-import { ColumnDef } from "@tanstack/react-table";
-import { format } from "date-fns";
-import { Eye, Mail, Plus, UserCheck, Users, UserX } from "lucide-react";
-import { useState } from "react";
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
+import { UserListItem } from "@/types"
+import { api } from "@/utils/api"
+import { ColumnDef } from "@tanstack/react-table"
+import { format } from "date-fns"
+import { Eye, Mail, Plus, UserCheck, Users, UserX } from "lucide-react"
+import { useState } from "react"
 
 export default function ProfessoresPage() {
-  const { toast } = useToast();
-  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
-  const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(
-    null
-  );
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const { toast } = useToast()
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
+  const [selectedProfessor, setSelectedProfessor] = useState<UserListItem | null>(null)
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [inviteForm, setInviteForm] = useState({
     email: "",
     nomeCompleto: "",
     departamentoId: "",
     regime: "" as "20H" | "40H" | "DE" | "",
     mensagem: "",
-  });
+  })
 
   // Fetch professors data
   const {
@@ -55,136 +47,114 @@ export default function ProfessoresPage() {
   } = api.user.getUsers.useQuery({
     role: "professor",
     limit: 100,
-  });
+  })
 
-  const { data: departamentosData } =
-    api.departamento.getDepartamentos.useQuery({ includeStats: false });
-  const inviteProfessorMutation =
-    api.inviteProfessor.sendInvitation.useMutation();
-  const updateProfessorStatusMutation =
-    api.user.updateProfessorStatus.useMutation();
+  const { data: departamentosData } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
+  const inviteProfessorMutation = api.inviteProfessor.sendInvitation.useMutation()
+  const updateProfessorStatusMutation = api.user.updateProfessorStatus.useMutation()
 
-  const departamentos = departamentosData || [];
+  const departamentos = departamentosData || []
 
-  const professores: Professor[] =
-    usersData?.users.filter((u) => u.role === "professor") || [];
+  const professores = usersData?.users.filter((u) => u.role === "professor") || []
 
   const handleInviteProfessor = async () => {
     try {
-      if (
-        !inviteForm.email ||
-        !inviteForm.nomeCompleto ||
-        !inviteForm.departamentoId ||
-        !inviteForm.regime
-      ) {
+      if (!inviteForm.email || !inviteForm.nomeCompleto || !inviteForm.departamentoId || !inviteForm.regime) {
         toast({
           title: "Campos obrigatórios",
           description: "Por favor, preencha todos os campos obrigatórios",
           variant: "destructive",
-        });
-        return;
+        })
+        return
       }
 
       await inviteProfessorMutation.mutateAsync({
         email: inviteForm.email,
-      });
+      })
 
       toast({
         title: "Convite enviado",
         description: `Convite enviado para ${inviteForm.email}`,
-      });
+      })
 
-      setIsInviteDialogOpen(false);
+      setIsInviteDialogOpen(false)
       setInviteForm({
         email: "",
         nomeCompleto: "",
         departamentoId: "",
         regime: "",
         mensagem: "",
-      });
+      })
     } catch (error: any) {
       toast({
         title: "Erro ao enviar convite",
         description: error.message || "Não foi possível enviar o convite",
         variant: "destructive",
-      });
+      })
     }
-  };
+  }
 
-  const handleViewProfessor = (professor: Professor) => {
-    setSelectedProfessor(professor);
-    setIsDetailDialogOpen(true);
-  };
+  const handleViewProfessor = (professor: UserListItem) => {
+    setSelectedProfessor(professor)
+    setIsDetailDialogOpen(true)
+  }
 
-  const handleToggleStatus = async (
-    professorId: number,
-    currentStatus: string
-  ) => {
+  const handleToggleStatus = async (professorId: number, currentStatus: string) => {
     try {
-      const newStatus = currentStatus === "ATIVO" ? "INATIVO" : "ATIVO";
+      const newStatus = currentStatus === "ATIVO" ? "INATIVO" : "ATIVO"
 
       await updateProfessorStatusMutation.mutateAsync({
         id: professorId,
         status: newStatus,
-      });
+      })
 
-      await refetch();
+      await refetch()
 
       toast({
         title: "Status atualizado",
-        description: `Professor ${
-          newStatus === "ATIVO" ? "ativado" : "desativado"
-        } com sucesso`,
-      });
+        description: `Professor ${newStatus === "ATIVO" ? "ativado" : "desativado"} com sucesso`,
+      })
     } catch (error: any) {
       toast({
         title: "Erro ao atualizar status",
         description: error.message || "Não foi possível atualizar o status",
         variant: "destructive",
-      });
+      })
     }
-  };
+  }
 
   const renderStatusBadge = (status: string) => {
     switch (status) {
       case "ATIVO":
-        return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
+        return <Badge className="bg-green-100 text-green-800">Ativo</Badge>
       case "INATIVO":
-        return <Badge variant="destructive">Inativo</Badge>;
+        return <Badge variant="destructive">Inativo</Badge>
       case "PENDENTE":
-        return <Badge variant="secondary">Pendente</Badge>;
+        return <Badge variant="secondary">Pendente</Badge>
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline">{status}</Badge>
     }
-  };
+  }
 
-  const columns: ColumnDef<Professor>[] = [
+  const columns: ColumnDef<UserListItem>[] = [
     {
       accessorKey: "professorProfile.nomeCompleto",
       header: "Nome",
-      cell: ({ row }) => (
-        <div className="font-medium">
-          {row.original.professorProfile?.nomeCompleto}
-        </div>
-      ),
+      cell: ({ row }) => <div className="font-medium">{row.original.professorProfile?.nomeCompleto}</div>,
     },
     {
       accessorKey: "professorProfile.emailInstitucional",
       header: "Email",
       cell: ({ row }) => (
-        <div className="text-muted-foreground">
-          {row.original.professorProfile?.emailInstitucional}
-        </div>
+        <div className="text-muted-foreground">{row.original.professorProfile?.emailInstitucional}</div>
       ),
     },
     {
       accessorKey: "professorProfile.departamento.nome",
       header: "Departamento",
       cell: ({ row }) => {
-        const dept = departamentos.find(
-          (d) => d.id === row.original.professorProfile?.departamentoId
-        );
-        return dept?.nome || "N/A";
+        const dept = departamentos.find((d) => d.id === row.original.professorProfile?.departamentoId)
+        return dept?.nome || "N/A"
       },
     },
     {
@@ -193,9 +163,7 @@ export default function ProfessoresPage() {
       cell: ({ row }) => (
         <div>
           {row.original.professorProfile?.regime ? (
-            <Badge variant="outline">
-              {row.original.professorProfile.regime}
-            </Badge>
+            <Badge variant="outline">{row.original.professorProfile.regime}</Badge>
           ) : (
             <span className="text-muted-foreground">-</span>
           )}
@@ -205,26 +173,19 @@ export default function ProfessoresPage() {
     {
       accessorKey: "professorProfile.projetos",
       header: "Projetos",
-      cell: ({ row }) => (
-        <div className="text-center">
-          {row.original.professorProfile?.projetos || 0}
-        </div>
-      ),
+      cell: ({ row }) => <div className="text-center">{row.original.professorProfile?.projetos || 0}</div>,
     },
     {
       accessorKey: "professorProfile.status",
       header: "Status",
-      cell: ({ row }) =>
-        renderStatusBadge(
-          row.original.professorProfile?.projetos ? "ATIVO" : "INATIVO"
-        ),
+      cell: ({ row }) => renderStatusBadge(row.original.professorProfile?.projetos ? "ATIVO" : "INATIVO"),
     },
     {
       accessorKey: "createdAt",
       header: "Cadastrado em",
       cell: ({ row }) => (
         <div className="text-sm text-muted-foreground">
-          {format(new Date(row.original.createdAt!), "dd/MM/yyyy")}
+          {row.original.createdAt ? format(new Date(row.original.createdAt), "dd/MM/yyyy") : "N/A"}
         </div>
       ),
     },
@@ -232,46 +193,30 @@ export default function ProfessoresPage() {
       id: "actions",
       header: "Ações",
       cell: ({ row }) => {
-        const professor = row.original;
+        const professor = row.original
         return (
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleViewProfessor(professor)}
-            >
+            <Button variant="outline" size="sm" onClick={() => handleViewProfessor(professor)}>
               <Eye className="h-4 w-4" />
             </Button>
 
             <Button
-              variant={
-                professor.professorProfile?.projetos ? "destructive" : "default"
-              }
+              variant={professor.professorProfile?.projetos ? "destructive" : "default"}
               size="sm"
               onClick={() =>
-                handleToggleStatus(
-                  professor.id,
-                  professor.professorProfile?.projetos ? "ATIVO" : "INATIVO"
-                )
+                handleToggleStatus(professor.id, professor.professorProfile?.projetos ? "ATIVO" : "INATIVO")
               }
             >
-              {professor.professorProfile?.projetos ? (
-                <UserX className="h-4 w-4" />
-              ) : (
-                <UserCheck className="h-4 w-4" />
-              )}
+              {professor.professorProfile?.projetos ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
             </Button>
           </div>
-        );
+        )
       },
     },
-  ];
+  ]
 
   return (
-    <PagesLayout
-      title="Gerenciamento de Professores"
-      subtitle="Gerencie professores e envie convites"
-    >
+    <PagesLayout title="Gerenciamento de Professores" subtitle="Gerencie professores e envie convites">
       <div className="space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -280,9 +225,7 @@ export default function ProfessoresPage() {
               <div className="flex items-start">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <div className="ml-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Total de Professores
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Total de Professores</p>
                   <div className="text-2xl font-bold">{professores.length}</div>
                 </div>
               </div>
@@ -294,14 +237,9 @@ export default function ProfessoresPage() {
               <div className="flex items-start">
                 <UserCheck className="h-4 w-4 text-green-600" />
                 <div className="ml-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Ativos
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Ativos</p>
                   <div className="text-2xl font-bold text-green-600">
-                    {
-                      professores.filter((p) => p.professorProfile?.projetos)
-                        .length
-                    }
+                    {professores.filter((p) => p.professorProfile?.projetos).length}
                   </div>
                 </div>
               </div>
@@ -313,9 +251,7 @@ export default function ProfessoresPage() {
               <div className="flex items-start">
                 <Mail className="h-4 w-4 text-yellow-600" />
                 <div className="ml-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Pendentes
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
                   <div className="text-2xl font-bold text-yellow-600">{0}</div>
                 </div>
               </div>
@@ -327,14 +263,9 @@ export default function ProfessoresPage() {
               <div className="flex items-start">
                 <UserX className="h-4 w-4 text-red-600" />
                 <div className="ml-2">
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Inativos
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Inativos</p>
                   <div className="text-2xl font-bold text-red-600">
-                    {
-                      professores.filter((p) => !p.professorProfile?.projetos)
-                        .length
-                    }
+                    {professores.filter((p) => !p.professorProfile?.projetos).length}
                   </div>
                 </div>
               </div>
@@ -346,10 +277,7 @@ export default function ProfessoresPage() {
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Lista de Professores</h2>
 
-          <Dialog
-            open={isInviteDialogOpen}
-            onOpenChange={setIsInviteDialogOpen}
-          >
+          <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -359,9 +287,7 @@ export default function ProfessoresPage() {
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Convidar Novo Professor</DialogTitle>
-                <DialogDescription>
-                  Envie um convite para um professor se juntar à plataforma
-                </DialogDescription>
+                <DialogDescription>Envie um convite para um professor se juntar à plataforma</DialogDescription>
               </DialogHeader>
 
               <div className="grid gap-4 py-4">
@@ -372,9 +298,7 @@ export default function ProfessoresPage() {
                       id="email"
                       type="email"
                       value={inviteForm.email}
-                      onChange={(e) =>
-                        setInviteForm({ ...inviteForm, email: e.target.value })
-                      }
+                      onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
                       placeholder="professor@ufba.br"
                     />
                   </div>
@@ -400,9 +324,7 @@ export default function ProfessoresPage() {
                     <Label htmlFor="departamento">Departamento *</Label>
                     <Select
                       value={inviteForm.departamentoId}
-                      onValueChange={(value) =>
-                        setInviteForm({ ...inviteForm, departamentoId: value })
-                      }
+                      onValueChange={(value) => setInviteForm({ ...inviteForm, departamentoId: value })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o departamento" />
@@ -421,9 +343,7 @@ export default function ProfessoresPage() {
                     <Label htmlFor="regime">Regime de Trabalho *</Label>
                     <Select
                       value={inviteForm.regime}
-                      onValueChange={(value: "20H" | "40H" | "DE") =>
-                        setInviteForm({ ...inviteForm, regime: value })
-                      }
+                      onValueChange={(value: "20H" | "40H" | "DE") => setInviteForm({ ...inviteForm, regime: value })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o regime" />
@@ -438,15 +358,11 @@ export default function ProfessoresPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="mensagem">
-                    Mensagem Personalizada (Opcional)
-                  </Label>
+                  <Label htmlFor="mensagem">Mensagem Personalizada (Opcional)</Label>
                   <Textarea
                     id="mensagem"
                     value={inviteForm.mensagem}
-                    onChange={(e) =>
-                      setInviteForm({ ...inviteForm, mensagem: e.target.value })
-                    }
+                    onChange={(e) => setInviteForm({ ...inviteForm, mensagem: e.target.value })}
                     placeholder="Adicione uma mensagem personalizada ao convite..."
                     rows={3}
                   />
@@ -454,10 +370,7 @@ export default function ProfessoresPage() {
               </div>
 
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsInviteDialogOpen(false)}
-                >
+                <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
                   Cancelar
                 </Button>
                 <Button onClick={handleInviteProfessor}>
@@ -492,111 +405,64 @@ export default function ProfessoresPage() {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Nome Completo
-                    </Label>
-                    <p className="text-sm">
-                      {selectedProfessor.professorProfile.nomeCompleto}
-                    </p>
+                    <Label className="text-sm font-medium text-muted-foreground">Nome Completo</Label>
+                    <p className="text-sm">{selectedProfessor.professorProfile.nomeCompleto}</p>
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Email Institucional
-                    </Label>
-                    <p className="text-sm">
-                      {selectedProfessor.professorProfile.emailInstitucional}
-                    </p>
+                    <Label className="text-sm font-medium text-muted-foreground">Email Institucional</Label>
+                    <p className="text-sm">{selectedProfessor.professorProfile.emailInstitucional}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Matrícula SIAPE
-                    </Label>
-                    <p className="text-sm">
-                      {selectedProfessor.professorProfile.matriculaSiape || "-"}
-                    </p>
+                    <Label className="text-sm font-medium text-muted-foreground">Matrícula SIAPE</Label>
+                    <p className="text-sm">{selectedProfessor.professorProfile.matriculaSiape || "-"}</p>
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Telefone
-                    </Label>
-                    <p className="text-sm">
-                      {selectedProfessor.professorProfile.telefone || "-"}
-                    </p>
+                    <Label className="text-sm font-medium text-muted-foreground">Telefone</Label>
+                    <p className="text-sm">{selectedProfessor.professorProfile.telefone || "-"}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Departamento
-                    </Label>
+                    <Label className="text-sm font-medium text-muted-foreground">Departamento</Label>
                     <p className="text-sm">
-                      {departamentos.find(
-                        (d) =>
-                          d.id ===
-                          selectedProfessor.professorProfile?.departamentoId
-                      )?.nome || "N/A"}
+                      {departamentos.find((d) => d.id === selectedProfessor.professorProfile?.departamentoId)?.nome ||
+                        "N/A"}
                     </p>
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Regime de Trabalho
-                    </Label>
-                    <p className="text-sm">
-                      {selectedProfessor.professorProfile.regime || "-"}
-                    </p>
+                    <Label className="text-sm font-medium text-muted-foreground">Regime de Trabalho</Label>
+                    <p className="text-sm">{selectedProfessor.professorProfile.regime || "-"}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Status
-                    </Label>
-                    <div>
-                      {renderStatusBadge(
-                        selectedProfessor.professorProfile?.projetos
-                          ? "ATIVO"
-                          : "INATIVO"
-                      )}
-                    </div>
+                    <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                    <div>{renderStatusBadge(selectedProfessor.professorProfile?.projetos ? "ATIVO" : "INATIVO")}</div>
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Projetos Ativos
-                    </Label>
-                    <p className="text-sm">
-                      {selectedProfessor.professorProfile.projetos || 0}
-                    </p>
+                    <Label className="text-sm font-medium text-muted-foreground">Projetos Ativos</Label>
+                    <p className="text-sm">{selectedProfessor.professorProfile.projetos || 0}</p>
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">
-                    Cadastrado em
-                  </Label>
-                  <p className="text-sm">
-                    {format(
-                      new Date(selectedProfessor.createdAt!),
-                      "dd/MM/yyyy 'às' HH:mm"
-                    )}
-                  </p>
+                  <Label className="text-sm font-medium text-muted-foreground">Cadastrado em</Label>
+                  <p className="text-sm">{format(new Date(selectedProfessor.createdAt!), "dd/MM/yyyy 'às' HH:mm")}</p>
                 </div>
               </div>
             )}
 
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsDetailDialogOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
                 Fechar
               </Button>
             </DialogFooter>
@@ -604,5 +470,5 @@ export default function ProfessoresPage() {
         </Dialog>
       </div>
     </PagesLayout>
-  );
+  )
 }

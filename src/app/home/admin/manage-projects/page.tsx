@@ -407,7 +407,7 @@ export default function ManageProjectsPage() {
             <Button
               variant="outline"
               size="sm"
-              className="rounded-full flex items-center gap-1"
+              className="rounded-full flex items-center gap-1 md:hidden"
               onClick={() => handleViewProjectFiles(projeto)}
             >
               <Download className="h-4 w-4" />

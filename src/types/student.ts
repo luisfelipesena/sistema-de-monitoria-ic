@@ -56,7 +56,7 @@ export interface AlunoListItem {
   nomeCompleto: string
   matricula: string
   emailInstitucional: string
-  cpf?: string
+  cpf: string
   telefone?: string
   cr: number
   curso: {

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { regimeSchema, UserRole, userRoleSchema } from './enums'
-import { cpfSchema, crSchema, emailSchema, idSchema, nameSchema, usernameSchema } from './schemas'
+import { crSchema, emailSchema, idSchema, nameSchema, usernameSchema } from './schemas'
 
 // ========================================
 // AUTH TYPES
@@ -46,7 +46,7 @@ export interface UserListItem {
   professorProfile?: {
     id: number
     nomeCompleto: string
-    cpf?: string
+    cpf: string
     telefone?: string | null
     telefoneInstitucional?: string | null
     emailInstitucional: string
@@ -64,7 +64,7 @@ export interface UserListItem {
     id: number
     nomeCompleto: string
     matricula: string
-    cpf?: string
+    cpf: string
     cr: number
     cursoId: number
     telefone?: string | null
@@ -81,8 +81,8 @@ export interface UserListItem {
     documentosValidados?: number
     totalDocumentos?: number
   } | null
-  createdAt?: Date
-  updatedAt?: Date
+  createdAt?: Date | null
+  updatedAt?: Date | null
 }
 
 // ========================================
@@ -100,7 +100,7 @@ export const userListItemSchema = z.object({
     .object({
       id: idSchema,
       nomeCompleto: nameSchema,
-      cpf: cpfSchema.optional(),
+      cpf: z.string(),
       telefone: z.string().nullable().optional(),
       telefoneInstitucional: z.string().nullable().optional(),
       emailInstitucional: emailSchema,
@@ -121,7 +121,7 @@ export const userListItemSchema = z.object({
       id: idSchema,
       nomeCompleto: nameSchema,
       matricula: z.string(),
-      cpf: cpfSchema.optional(),
+      cpf: z.string(),
       cr: crSchema,
       cursoId: idSchema,
       telefone: z.string().nullable().optional(),
@@ -140,8 +140,8 @@ export const userListItemSchema = z.object({
     })
     .nullable()
     .optional(),
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
+  createdAt: z.date().nullable().optional(),
+  updatedAt: z.date().nullable().optional(),
 })
 
 export const createUserSchema = z.object({

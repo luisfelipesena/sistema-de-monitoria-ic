@@ -197,8 +197,8 @@ export const userRouter = createTRPCRouter({
               dataAssinaturaDefault: user.dataAssinaturaDefault,
               professorProfile: professorStats,
               studentProfile: studentStats,
-              createdAt: user.assinaturaDefault ? new Date() : undefined,
-              updatedAt: user.dataAssinaturaDefault || undefined,
+              createdAt: user.professorProfile?.createdAt || user.studentProfile?.createdAt || null,
+              updatedAt: user.professorProfile?.updatedAt || user.studentProfile?.updatedAt || null,
             }
           })
         )
