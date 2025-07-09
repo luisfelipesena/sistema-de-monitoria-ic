@@ -165,26 +165,11 @@ const styles = StyleSheet.create({
 })
 
 const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) => {
-  // Memo para evitar recálculos desnecessários
-  const semestreLabel = React.useMemo(() => 
-    `${data.ano}.${data.semestre === "SEMESTRE_1" ? "1" : "2"}`, 
-    [data.ano, data.semestre]
-  )
-  
-  const disciplinasText = React.useMemo(() => 
-    data.disciplinas?.map((d) => `${d.codigo} - ${d.nome}`).join(", ") || "Não informado",
-    [data.disciplinas]
-  )
-  
-  const totalMonitores = React.useMemo(() => 
-    data.bolsasSolicitadas + data.voluntariosSolicitados,
-    [data.bolsasSolicitadas, data.voluntariosSolicitados]
-  )
-  
-  const cargaHorariaTotal = React.useMemo(() => 
-    data.cargaHorariaSemana * data.numeroSemanas,
-    [data.cargaHorariaSemana, data.numeroSemanas]
-  )
+  // Substituir useMemo por variáveis diretas
+  const semestreLabel = `${data.ano}.${data.semestre === "SEMESTRE_1" ? "1" : "2"}`
+  const disciplinasText = data.disciplinas?.map((d) => `${d.codigo} - ${d.nome}`).join(", ") || "Não informado"
+  const totalMonitores = (data.bolsasSolicitadas || 0) + (data.voluntariosSolicitados || 0)
+  const cargaHorariaTotal = (data.cargaHorariaSemana || 0) * (data.numeroSemanas || 0)
 
   return (
     <Document>
