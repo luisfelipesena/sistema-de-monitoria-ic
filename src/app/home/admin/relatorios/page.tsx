@@ -103,6 +103,7 @@ export default function RelatoriosPage() {
   // Column definitions for different reports
   const departamentosColumns: ColumnDef<DepartamentoRelatorio>[] = [
     {
+      accessorKey: "departamento.sigla",
       header: "Departamento",
       cell: ({ row }) => {
         const departamento = row.original as DepartamentoRelatorio

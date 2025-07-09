@@ -21,8 +21,8 @@
     "prepare": "husky"
   },
   "engines": {
-    "node": "24.1.0",
-    "npm": "10.8.2"
+    "node": "20.19.3",
+    "npm": "10.9.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

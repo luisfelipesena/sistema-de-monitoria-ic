@@ -1,14 +1,14 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
-import { FileText, Download, User, Award, Users } from 'lucide-react'
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
+import { api } from "@/utils/api"
+import { Award, Download, FileText, User, Users } from "lucide-react"
+import { useState } from "react"
 
 export default function TermosCompromissoPage() {
   const { toast } = useToast()
@@ -19,7 +19,7 @@ export default function TermosCompromissoPage() {
 
   // Buscar vagas do projeto selecionado
   const { data: vagasProjeto, isLoading: loadingVagas } = api.vagas.getVagasByProject.useQuery(
-    { projetoId: selectedProjectId!.toString() },
+    { projetoId: selectedProjectId?.toString() || "" },
     { enabled: !!selectedProjectId }
   )
 
@@ -30,9 +30,7 @@ export default function TermosCompromissoPage() {
   )
 
   // Projetos que têm vagas ativas
-  const projetosComVagas = projetos?.filter(p => 
-    p.status === 'APPROVED'
-  ) || []
+  const projetosComVagas = projetos?.filter((p) => p.status === "APPROVED") || []
 
   const handleSelectProject = (projectId: string) => {
     const id = parseInt(projectId)
@@ -41,9 +39,9 @@ export default function TermosCompromissoPage() {
 
   const getStatusBadge = (tipoBolsa: string) => {
     switch (tipoBolsa) {
-      case 'bolsista':
+      case "bolsista":
         return <Badge className="bg-green-500">Monitor Bolsista</Badge>
-      case 'voluntario':
+      case "voluntario":
         return <Badge className="bg-blue-500">Monitor Voluntário</Badge>
       default:
         return <Badge variant="outline">{tipoBolsa}</Badge>
@@ -52,9 +50,9 @@ export default function TermosCompromissoPage() {
 
   const getTipoIcon = (tipoBolsa: string) => {
     switch (tipoBolsa) {
-      case 'bolsista':
+      case "bolsista":
         return <Award className="h-4 w-4 text-yellow-600" />
-      case 'voluntario':
+      case "voluntario":
         return <Users className="h-4 w-4 text-blue-600" />
       default:
         return <User className="h-4 w-4 text-gray-500" />
@@ -63,11 +61,19 @@ export default function TermosCompromissoPage() {
 
   const getTermoStatusBadge = (statusTermo: string) => {
     switch (statusTermo) {
-      case 'pendente_assinatura':
-        return <Badge variant="outline" className="text-orange-600">Pendente Assinatura</Badge>
-      case 'parcialmente_assinado':
-        return <Badge variant="secondary" className="text-blue-600">Parcialmente Assinado</Badge>
-      case 'assinado_completo':
+      case "pendente_assinatura":
+        return (
+          <Badge variant="outline" className="text-orange-600">
+            Pendente Assinatura
+          </Badge>
+        )
+      case "parcialmente_assinado":
+        return (
+          <Badge variant="secondary" className="text-blue-600">
+            Parcialmente Assinado
+          </Badge>
+        )
+      case "assinado_completo":
         return <Badge className="bg-green-500">Assinado Completo</Badge>
       default:
         return <Badge variant="outline">{statusTermo}</Badge>
@@ -75,7 +81,7 @@ export default function TermosCompromissoPage() {
   }
 
   // Component para gerar e baixar termo de compromisso
-  function TermoCompromissoActions({ vagaId, alunoNome }: { vagaId: string, alunoNome: string }) {
+  function TermoCompromissoActions({ vagaId, alunoNome }: { vagaId: string; alunoNome: string }) {
     const generateTermoMutation = api.termos.generateTermo.useMutation({
       onSuccess: () => {
         toast({
@@ -89,13 +95,13 @@ export default function TermosCompromissoPage() {
           description: error.message,
           variant: "destructive",
         })
-      }
+      },
     })
 
     const downloadTermoMutation = api.termos.downloadTermo.useMutation({
       onSuccess: (data) => {
         // Create download link
-        const link = document.createElement('a')
+        const link = document.createElement("a")
         link.href = data.downloadUrl
         link.download = data.fileName
         document.body.appendChild(link)
@@ -108,7 +114,7 @@ export default function TermosCompromissoPage() {
           description: error.message,
           variant: "destructive",
         })
-      }
+      },
     })
 
     const handleGenerateTermo = () => {
@@ -121,23 +127,13 @@ export default function TermosCompromissoPage() {
 
     return (
       <div className="flex gap-2">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={handleGenerateTermo}
-          disabled={generateTermoMutation.isPending}
-        >
+        <Button variant="outline" size="sm" onClick={handleGenerateTermo} disabled={generateTermoMutation.isPending}>
           <FileText className="h-4 w-4 mr-1" />
-          {generateTermoMutation.isPending ? 'Gerando...' : 'Gerar Termo'}
+          {generateTermoMutation.isPending ? "Gerando..." : "Gerar Termo"}
         </Button>
-        <Button 
-          variant="default" 
-          size="sm"
-          onClick={handleDownloadTermo}
-          disabled={downloadTermoMutation.isPending}
-        >
+        <Button variant="default" size="sm" onClick={handleDownloadTermo} disabled={downloadTermoMutation.isPending}>
           <Download className="h-4 w-4 mr-1" />
-          {downloadTermoMutation.isPending ? 'Baixando...' : 'Baixar'}
+          {downloadTermoMutation.isPending ? "Baixando..." : "Baixar"}
         </Button>
       </div>
     )
@@ -173,7 +169,7 @@ export default function TermosCompromissoPage() {
                     <div className="flex flex-col">
                       <span className="font-medium">{projeto.titulo}</span>
                       <span className="text-sm text-muted-foreground">
-                        {projeto.ano}.{projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}
+                        {projeto.ano}.{projeto.semestre === "SEMESTRE_1" ? "1" : "2"}
                       </span>
                     </div>
                   </SelectItem>
@@ -190,7 +186,7 @@ export default function TermosCompromissoPage() {
           <CardHeader>
             <CardTitle>Vagas Ativas do Projeto</CardTitle>
             <p className="text-sm text-muted-foreground">
-              {loadingVagas ? 'Carregando...' : `${vagasProjeto?.vagas.length || 0} vaga(s) ativa(s)`}
+              {loadingVagas ? "Carregando..." : `${vagasProjeto?.vagas.length || 0} vaga(s) ativa(s)`}
             </p>
           </CardHeader>
           <CardContent>
@@ -202,19 +198,14 @@ export default function TermosCompromissoPage() {
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">Nenhuma vaga ativa</h3>
-                <p className="text-muted-foreground">
-                  Este projeto ainda não possui vagas ativas.
-                </p>
+                <p className="text-muted-foreground">Este projeto ainda não possui vagas ativas.</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {vagasProjeto.vagas.map((vaga: any) => {
-                  const statusTermo = termosStatus?.find(t => t.vagaId === vaga.id)
+                  const statusTermo = termosStatus?.find((t) => t.vagaId === vaga.id)
                   return (
-                    <div
-                      key={vaga.id}
-                      className="border rounded-lg p-4 bg-blue-50 border-blue-200"
-                    >
+                    <div key={vaga.id} className="border rounded-lg p-4 bg-blue-50 border-blue-200">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
@@ -224,8 +215,11 @@ export default function TermosCompromissoPage() {
                           <div className="space-y-1 text-sm text-muted-foreground mb-3">
                             <p>Matrícula: {vaga.aluno.matricula}</p>
                             <p>E-mail: {vaga.aluno.user.email}</p>
-                            <p>CR: {vaga.aluno.cr?.toFixed(2) || 'N/A'}</p>
-                            <p>Data de Início: {vaga.dataInicio ? new Date(vaga.dataInicio).toLocaleDateString('pt-BR') : 'N/A'}</p>
+                            <p>CR: {vaga.aluno.cr?.toFixed(2) || "N/A"}</p>
+                            <p>
+                              Data de Início:{" "}
+                              {vaga.dataInicio ? new Date(vaga.dataInicio).toLocaleDateString("pt-BR") : "N/A"}
+                            </p>
                           </div>
                           <div className="flex items-center gap-2 mb-3">
                             {getStatusBadge(vaga.tipoBolsa)}
@@ -237,13 +231,10 @@ export default function TermosCompromissoPage() {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Ações do Termo */}
                         <div className="ml-4">
-                          <TermoCompromissoActions 
-                            vagaId={vaga.id.toString()}
-                            alunoNome={vaga.aluno.nomeCompleto}
-                          />
+                          <TermoCompromissoActions vagaId={vaga.id.toString()} alunoNome={vaga.aluno.nomeCompleto} />
                         </div>
                       </div>
                     </div>
@@ -269,19 +260,19 @@ export default function TermosCompromissoPage() {
               </div>
               <div className="p-3 bg-orange-50 rounded-lg">
                 <div className="text-2xl font-bold text-orange-600">
-                  {termosStatus.filter(t => t.statusTermo === 'pendente_assinatura').length}
+                  {termosStatus.filter((t) => t.statusTermo === "pendente_assinatura").length}
                 </div>
                 <div className="text-sm text-muted-foreground">Pendentes</div>
               </div>
               <div className="p-3 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">
-                  {termosStatus.filter(t => t.statusTermo === 'parcialmente_assinado').length}
+                  {termosStatus.filter((t) => t.statusTermo === "parcialmente_assinado").length}
                 </div>
                 <div className="text-sm text-muted-foreground">Parciais</div>
               </div>
               <div className="p-3 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
-                  {termosStatus.filter(t => t.statusTermo === 'assinado_completo').length}
+                  {termosStatus.filter((t) => t.statusTermo === "assinado_completo").length}
                 </div>
                 <div className="text-sm text-muted-foreground">Completos</div>
               </div>

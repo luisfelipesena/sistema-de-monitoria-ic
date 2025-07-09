@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/TypeScript-5.7.3-blue?style=flat-square&logo=typescript" alt="TypeScript" />
   <img src="https://img.shields.io/badge/tRPC-11.0.0-purple?style=flat-square&logo=trpc" alt="tRPC" />
   <img src="https://img.shields.io/badge/PostgreSQL-16.3-336791?style=flat-square&logo=postgresql" alt="PostgreSQL" />
-  <img src="https://img.shields.io/badge/Node.js-24.1.0-green?style=flat-square&logo=node.js" alt="Node.js" />
+  <img src="https://img.shields.io/badge/Node.js-20.19.3-green?style=flat-square&logo=node.js" alt="Node.js" />
 </p>
 
 ## 📋 Sumário
@@ -118,7 +118,7 @@ O **Sistema de Monitoria IC** é uma plataforma completa para gerenciamento de p
 #### Infraestrutura
 - **Database**: PostgreSQL 16.3
 - **Container**: Docker + Docker Compose
-- **Node**: v24.1.0
+- **Node**: v20.19.3
 - **Package Manager**: npm 10.8.2
 
 ### Padrões e Boas Práticas
@@ -133,7 +133,7 @@ O **Sistema de Monitoria IC** é uma plataforma completa para gerenciamento de p
 
 ### Pré-requisitos
 
-- Node.js 24.1.0
+- Node.js 20.19.3
 - npm 10.8.2
 - Docker e Docker Compose
 - Conta no MinIO ou S3

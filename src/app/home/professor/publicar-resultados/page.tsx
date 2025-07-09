@@ -57,7 +57,7 @@ export default function PublicarResultadosPage() {
 
   // Buscar dados dos resultados quando projeto for selecionado
   const { data: dadosResultados, isLoading: loadingResultados } = api.selecao.generateAtaData.useQuery(
-    { projetoId: selectedProjectId!.toString() },
+    { projetoId: selectedProjectId?.toString() || "" },
     { enabled: !!selectedProjectId }
   )
 
