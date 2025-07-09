@@ -1,30 +1,22 @@
 import { db } from '@/server/db'
 import {
-  departamentoTable,
-  cursoTable,
-  disciplinaTable,
-  userTable,
-  professorTable,
   alunoTable,
-  periodoInscricaoTable,
-  projetoTable,
-  projetoDisciplinaTable,
-  enderecoTable,
+  cursoTable,
+  departamentoTable,
   disciplinaProfessorResponsavelTable,
+  disciplinaTable,
+  enderecoTable,
+  periodoInscricaoTable,
+  professorTable,
+  projetoDisciplinaTable,
+  projetoTable,
+  userTable,
 } from '@/server/db/schema'
 import { logger } from '@/utils/logger'
-import { hash } from '@node-rs/argon2'
 
 const log = logger.child({ context: 'DatabaseSeed' })
 
-async function hashPassword(password: string): Promise<string> {
-  return await hash(password, {
-    memoryCost: 19456,
-    timeCost: 2,
-    outputLen: 32,
-    parallelism: 1,
-  })
-}
+
 
 async function seedDatabase() {
   log.info('🌱 Iniciando seed do banco de dados...')
@@ -191,26 +183,26 @@ async function seedDatabase() {
       { nome: 'Inteligência Artificial', codigo: 'MATC07', departamentoId: departamentos[0].id },
       { nome: 'Sistemas Operacionais', codigo: 'MATC08', departamentoId: departamentos[0].id },
       { nome: 'Computação Gráfica', codigo: 'MATC09', departamentoId: departamentos[0].id },
-      
+
       // Disciplinas de Matemática
       { nome: 'Cálculo I', codigo: 'MATA37', departamentoId: departamentos[1].id },
       { nome: 'Cálculo II', codigo: 'MATA38', departamentoId: departamentos[1].id },
       { nome: 'Álgebra Linear', codigo: 'MATA07', departamentoId: departamentos[1].id },
       { nome: 'Geometria Analítica', codigo: 'MATA08', departamentoId: departamentos[1].id },
       { nome: 'Matemática Discreta', codigo: 'MATA09', departamentoId: departamentos[1].id },
-      
+
       // Disciplinas de Estatística
       { nome: 'Estatística Descritiva', codigo: 'MATE01', departamentoId: departamentos[2].id },
       { nome: 'Probabilidade', codigo: 'MATE02', departamentoId: departamentos[2].id },
       { nome: 'Inferência Estatística', codigo: 'MATE03', departamentoId: departamentos[2].id },
       { nome: 'Análise de Regressão', codigo: 'MATE04', departamentoId: departamentos[2].id },
-      
+
       // Disciplinas de Física
       { nome: 'Física I', codigo: 'FISA01', departamentoId: departamentos[3].id },
       { nome: 'Física II', codigo: 'FISA02', departamentoId: departamentos[3].id },
       { nome: 'Física III', codigo: 'FISA03', departamentoId: departamentos[3].id },
       { nome: 'Mecânica Clássica', codigo: 'FISA04', departamentoId: departamentos[3].id },
-      
+
       // Disciplinas de Engenharia de Computação
       { nome: 'Circuitos Digitais', codigo: 'COMP01', departamentoId: departamentos[4].id },
       { nome: 'Microprocessadores', codigo: 'COMP02', departamentoId: departamentos[4].id },
@@ -252,8 +244,7 @@ async function seedDatabase() {
 
     // 6. Criar Usuários
     log.info('👤 Criando usuários...')
-    const hashedPassword = await hashPassword('123456')
-    
+
     const usuarios = await db.insert(userTable).values([
       {
         username: 'admin',
