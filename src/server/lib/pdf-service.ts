@@ -142,21 +142,22 @@ export class PDFService {
       const signatureImageBytes = Buffer.from(signatureDataUrl.split(',')[1] || signatureDataUrl, 'base64')
       const signatureImage = await pdfDoc.embedPng(signatureImageBytes)
 
-      // Calculate signature position
+      // Calculate signature position based on PDF content
       const signatureWidth = 150
       const signatureHeight = 60
       const pageWidth = firstPage.getWidth()
+      const _pageHeight = firstPage.getHeight()
 
-      // Position signatures differently for professor vs admin
+      // Position signatures in designated areas within the document
       let x: number, y: number
       if (signatureType === 'professor') {
-        // Professor signature goes at bottom left
-        x = 50
-        y = 50
-      } else {
-        // Admin signature goes at bottom right
+        // Professor signature goes in section 5 (professor declaration area)
         x = pageWidth - signatureWidth - 50
-        y = 50
+        y = 180 // Adjusted to align with professor signature area
+      } else {
+        // Admin signature goes in section 6 (admin approval area)
+        x = pageWidth - signatureWidth - 50
+        y = 80 // Adjusted to align with admin signature area
       }
 
       // Draw the signature
@@ -190,8 +191,17 @@ export class PDFService {
     try {
       log.info({ projetoId: data.projetoId }, 'Generating signed project PDF')
 
-      // Generate the base PDF
-      let pdfBuffer = await PDFService.generateProjetoPDF(data)
+      // Create a copy of data without existing signatures to avoid duplication
+      const cleanData = {
+        ...data,
+        assinaturaProfessor: undefined,
+        assinaturaAdmin: undefined,
+        dataAssinaturaProfessor: undefined,
+        dataAssinaturaAdmin: undefined,
+      }
+
+      // Generate the base PDF without signatures
+      let pdfBuffer = await PDFService.generateProjetoPDF(cleanData)
 
       // Add professor signature if provided
       if (professorSignature) {

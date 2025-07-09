@@ -62,7 +62,8 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
 
   const handleOpenSignature = () => {
     if (hasDefaultSignature && !useCustomSignature) {
-      handleUseDefaultSignature()
+      // Se tem assinatura padrão, abre o dialog para dar opção ao usuário
+      setShowSignatureDialog(true)
       return
     }
     setShowSignatureDialog(true)

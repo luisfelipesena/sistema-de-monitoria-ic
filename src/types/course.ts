@@ -74,7 +74,7 @@ export interface CursoListItem {
 
 export const createCourseSchema = z.object({
   nome: z.string().min(1),
-  codigo: z.number().int().positive(),
+  codigo: z.number().int().nonnegative(),
   tipo: tipoCursoSchema,
   modalidade: modalidadeCursoSchema,
   duracao: z.number().int().positive(),
@@ -89,7 +89,7 @@ export const createCourseSchema = z.object({
 export const courseSchema = z.object({
   id: idSchema,
   nome: nameSchema,
-  codigo: z.number().int().positive(),
+  codigo: z.number().int().nonnegative(),
   tipo: z.enum(['BACHARELADO', 'LICENCIATURA', 'TECNICO', 'POS_GRADUACAO']),
   modalidade: z.enum(['PRESENCIAL', 'EAD', 'HIBRIDO']),
   duracao: z.number().int().positive(),
@@ -106,7 +106,7 @@ export const courseSchema = z.object({
 export const updateCourseSchema = z.object({
   id: idSchema,
   nome: nameSchema.optional(),
-  codigo: z.number().int().positive().optional(),
+  codigo: z.number().int().nonnegative().optional(),
   tipo: z.enum(['BACHARELADO', 'LICENCIATURA', 'TECNICO', 'POS_GRADUACAO']).optional(),
   modalidade: z.enum(['PRESENCIAL', 'EAD', 'HIBRIDO']).optional(),
   duracao: z.number().int().positive().optional(),

@@ -114,17 +114,7 @@ export const addressSchema = z.object({
 })
 
 // Document validation schemas
-export const cpfSchema = z.string().refine(
-  (val) => {
-    // Remove non-digit characters
-    const cleaned = val.replace(/[^\d]/g, '')
-    // Check if the cleaned CPF has 11 digits
-    return cleaned.length === 11
-  },
-  {
-    message: 'CPF inválido. Deve conter 11 dígitos.',
-  }
-)
+export const cpfSchema = z.string().min(1, 'CPF é obrigatório')
 export const rgSchema = z.string().min(5, 'RG inválido')
 
 // Academic record schemas

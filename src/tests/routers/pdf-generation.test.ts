@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PDFService } from '@/server/lib/pdf-service'
-import { createMockContext } from '../setup'
 
 // Mock PDFService
 vi.mock('@/server/lib/pdf-service', () => ({
@@ -37,7 +36,7 @@ vi.mock('@/server/lib/email-service', () => ({
   },
 }))
 
-const mockProfessorUser = {
+const _mockProfessorUser = {
   id: 2,
   username: 'professor',
   email: 'prof@test.com',
@@ -46,7 +45,7 @@ const mockProfessorUser = {
   dataAssinaturaDefault: null,
 }
 
-const mockAdminUser = {
+const _mockAdminUser = {
   id: 1,
   username: 'admin',
   email: 'admin@test.com',
@@ -129,18 +128,10 @@ describe('PDF Generation Flow - Essential Tests', () => {
       const pdfBuffer = Buffer.from('original-pdf')
       const signatureData = 'data:image/png;base64,signature'
 
-      const result = await mockPDFService.addSignatureToPDF(
-        pdfBuffer,
-        signatureData,
-        'professor'
-      )
+      const result = await mockPDFService.addSignatureToPDF(pdfBuffer, signatureData, 'professor')
 
       expect(result).toBeInstanceOf(Buffer)
-      expect(mockPDFService.addSignatureToPDF).toHaveBeenCalledWith(
-        pdfBuffer,
-        signatureData,
-        'professor'
-      )
+      expect(mockPDFService.addSignatureToPDF).toHaveBeenCalledWith(pdfBuffer, signatureData, 'professor')
     })
 
     it('should save PDF to storage', async () => {
@@ -174,7 +165,7 @@ describe('PDF Generation Flow - Essential Tests', () => {
   describe('Integration Tests', () => {
     it('should handle complete PDF workflow', async () => {
       const mockPDFService = PDFService as any
-      
+
       // Mock the complete workflow
       mockPDFService.generateProjetoPDF.mockResolvedValue(Buffer.from('base-pdf'))
       mockPDFService.addSignatureToPDF.mockResolvedValue(Buffer.from('signed-pdf'))
@@ -243,9 +234,9 @@ describe('PDF Generation Flow - Essential Tests', () => {
       const pdfBuffer = Buffer.from('pdf-content')
       const signatureData = 'invalid-signature'
 
-      await expect(
-        mockPDFService.addSignatureToPDF(pdfBuffer, signatureData, 'professor')
-      ).rejects.toThrow('Signature addition failed')
+      await expect(mockPDFService.addSignatureToPDF(pdfBuffer, signatureData, 'professor')).rejects.toThrow(
+        'Signature addition failed'
+      )
     })
   })
 })
