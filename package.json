@@ -13,6 +13,8 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:drop": "drizzle-kit drop",
+    "db:seed": "tsx src/scripts/seed.ts",
+    "db:reset": "npm run db:drop && npm run db:push && npm run db:seed",
     "test": "vitest --run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
@@ -121,6 +123,7 @@
     "jsdom": "^26.1.0",
     "postcss": "^8.5.0",
     "tailwindcss": "^3.4.15",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "vite-tsconfig-paths": "^4.3.2"
   }

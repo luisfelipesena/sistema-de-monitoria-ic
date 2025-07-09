@@ -403,4 +403,4 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
   )
 }
 
-export const MonitoriaFormTemplate = React.memo(MonitoriaFormTemplateComponent)
+export const MonitoriaFormTemplate = React.memo(MonitoriaFormTemplateComponent) as React.FC<{ data: MonitoriaFormData }>

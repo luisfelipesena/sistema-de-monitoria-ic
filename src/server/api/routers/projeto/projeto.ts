@@ -832,8 +832,21 @@ export const projetoRouter = createTRPCRouter({
         const objectName = await PDFService.generateAndSaveSignedProjetoPDF(pdfData, input.signatureImage)
 
         log.info({ projetoId: input.projetoId, objectName }, 'PDF com assinatura do professor salvo no MinIO')
+        
+        // Verificar se o PDF foi salvo corretamente
+        const savedPdf = await PDFService.getLatestProjetoPDF(projeto.id)
+        if (!savedPdf) {
+          log.error({ projetoId: input.projetoId }, 'PDF não foi encontrado após ser salvo - possível problema de sincronização')
+        } else {
+          log.info({ projetoId: input.projetoId, objectName: savedPdf.objectName }, 'PDF verificado e encontrado após salvamento')
+        }
       } catch (error) {
-        log.warn({ projetoId: input.projetoId, error }, 'Erro ao salvar PDF no MinIO, mas assinatura foi salva')
+        log.error({ projetoId: input.projetoId, error }, 'ERRO CRÍTICO: Falha ao gerar/salvar PDF no MinIO após assinatura do professor')
+        // Não falhar silenciosamente - o PDF é importante para visualização
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Falha ao gerar PDF após assinatura. Tente novamente.',
+        })
       }
 
       // Enviar notificação para admins
@@ -1017,8 +1030,28 @@ export const projetoRouter = createTRPCRouter({
 
           log.info({ projetoId: input.projetoId, objectName }, 'PDF com assinatura completa gerado do zero')
         }
+        
+        // Verificar se o PDF final foi salvo corretamente
+        const finalPdf = await PDFService.getLatestProjetoPDF(projeto.id)
+        if (!finalPdf) {
+          log.error({ projetoId: input.projetoId }, 'PDF final não foi encontrado após assinatura do admin')
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Falha ao salvar PDF final. Tente novamente.',
+          })
+        } else {
+          log.info({ projetoId: input.projetoId, objectName: finalPdf.objectName }, 'PDF final verificado e encontrado')
+        }
       } catch (error) {
-        log.warn({ projetoId: input.projetoId, error }, 'Erro ao salvar PDF no MinIO, mas assinatura foi salva')
+        log.error({ projetoId: input.projetoId, error }, 'ERRO CRÍTICO: Falha ao gerar/salvar PDF no MinIO após assinatura do admin')
+        // Não falhar silenciosamente - o PDF é importante para visualização
+        if (error instanceof TRPCError) {
+          throw error
+        }
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Falha ao gerar PDF após assinatura do admin. Tente novamente.',
+        })
       }
 
       // Enviar notificação para o professor

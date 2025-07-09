@@ -111,13 +111,22 @@ export default function DashboardProfessor() {
       toast({
         title: 'PDF aberto em nova aba',
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('View PDF error:', error);
+      
+      let errorMessage = 'Não foi possível abrir o documento para visualização.';
+      
+      if (error?.message?.includes('PDF do projeto não encontrado')) {
+        errorMessage = 'PDF não encontrado. O documento pode ainda não ter sido gerado após a assinatura.';
+      } else if (error?.message?.includes('NOT_FOUND')) {
+        errorMessage = 'PDF não encontrado. Verifique se o projeto foi assinado corretamente.';
+      }
+      
       toast({
         title: 'Erro ao abrir PDF',
-        description: 'Não foi possível abrir o documento para visualização.',
+        description: errorMessage,
         variant: 'destructive',
       });
-      console.error('View PDF error:', error);
     }
   }
 
@@ -270,9 +279,10 @@ export default function DashboardProfessor() {
                 className="rounded-full flex items-center gap-1"
                 onClick={() => handleViewPdf(projeto.id)}
                 disabled={getProjetoPdfMutation.isPending}
+                title="Visualizar PDF do projeto assinado"
               >
                 <Download className="h-4 w-4" />
-                Visualizar PDF
+                {getProjetoPdfMutation.isPending ? 'Carregando...' : 'Visualizar PDF'}
               </Button>
             )}
 
