@@ -18,6 +18,11 @@
     "test": "vitest --run",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:install": "playwright install",
     "prepare": "husky"
   },
   "engines": {
@@ -110,6 +115,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@playwright/test": "^1.54.0",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.10.6",
     "@types/nodemailer": "^6.4.17",
