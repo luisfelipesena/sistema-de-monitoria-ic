@@ -10,6 +10,7 @@ import { api } from '@/utils/api'
 import { ColumnDef } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
+import { DashboardProjectItem } from '@/types'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +43,7 @@ export default function DashboardProfessor() {
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({})
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [projetoToDelete, setProjetoToDelete] = useState<any | null>(null)
+  const [projetoToDelete, setProjetoToDelete] = useState<DashboardProjectItem | null>(null)
   const apiUtils = api.useUtils()
   // Aplicar filtros aos projetos
   const projetosFiltrados = useMemo(() => {
@@ -61,7 +62,7 @@ export default function DashboardProfessor() {
     setFilters(newFilters)
   }
 
-  const handleDeleteProjeto = (projeto: any) => {
+  const handleDeleteProjeto = (projeto: DashboardProjectItem) => {
     setProjetoToDelete(projeto)
     setDeleteDialogOpen(true)
   }
@@ -131,7 +132,7 @@ export default function DashboardProfessor() {
   }
 
   // Column definitions for the projects table
-  const colunasProjetos: ColumnDef<any>[] = [
+  const colunasProjetos: ColumnDef<DashboardProjectItem>[] = [
     {
       header: () => (
         <div className="flex items-center gap-2">
@@ -186,7 +187,7 @@ export default function DashboardProfessor() {
       ),
       accessorKey: 'bolsasDisponibilizadas',
       cell: ({ row }) => {
-        const bolsas = row.original.bolsasDisponibilizadas || 0
+        const bolsas = row.original.bolsasDisponibilizadas ?? 0
         const status = row.original.status
         if (status === 'APPROVED') {
           return <span>{bolsas}</span>
@@ -207,7 +208,7 @@ export default function DashboardProfessor() {
         if (status === 'APPROVED') {
           return (
             <div className="text-center">
-              {row.original.voluntariosSolicitados}
+              {row.original.voluntariosSolicitados ?? 0}
             </div>
           )
         }

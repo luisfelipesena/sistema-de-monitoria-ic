@@ -16,6 +16,7 @@ import {
   type TipoInscricao,
   type StatusInscricao,
   getStatusInscricaoLabel,
+  type ManageProjectItem,
 } from '@/types'
 import {
   AlertCircle,
@@ -42,9 +43,18 @@ import {
 interface ApplicationModalProps {
   isOpen: boolean
   onClose: () => void
-  project: any
-  onSubmit: (data: any) => void
+  project: ManageProjectItem
+  onSubmit: (data: ApplicationFormData) => void
   isSubmitting?: boolean
+}
+
+interface ApplicationFormData {
+  tipoVagaPretendida: TipoInscricao
+  motivation: string
+  experience: string
+  availability: string
+  phone: string
+  documentos: { fileId: string; tipoDocumento: string }[]
 }
 
 const requiredDocuments = {
@@ -70,13 +80,13 @@ function ApplicationModal({
   onSubmit,
   isSubmitting = false,
 }: ApplicationModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ApplicationFormData>({
     tipoVagaPretendida: TIPO_INSCRICAO_ENUM[2] as TipoInscricao, // ANY
     motivation: '',
     experience: '',
     availability: '',
     phone: '',
-    documentos: [] as { fileId: string; tipoDocumento: string }[],
+    documentos: [],
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -133,7 +143,7 @@ function ApplicationModal({
         <div className="mb-6 p-4 bg-blue-50 rounded-lg">
           <h3 className="font-semibold text-blue-900">{project?.titulo}</h3>
           <p className="text-sm text-blue-700">
-            Professor: {project?.professorResponsavel?.nomeCompleto}
+            Professor: {project?.professorResponsavelNome}
           </p>
           <div className="mt-2 flex gap-4 text-sm">
             <span className="text-green-700">
@@ -286,7 +296,7 @@ export default function InscricaoMonitoriaPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [applicationModal, setApplicationModal] = useState<{
     isOpen: boolean
-    project: any
+    project: ManageProjectItem | null
   }>({
     isOpen: false,
     project: null,
@@ -339,11 +349,11 @@ export default function InscricaoMonitoriaPage() {
     return Array.from(depts).sort((a, b) => a.name.localeCompare(b.name))
   }, [projetos])
 
-  const handleApplyToProject = (project: any) => {
+  const handleApplyToProject = (project: ManageProjectItem) => {
     setApplicationModal({ isOpen: true, project })
   }
 
-  const handleSubmitApplication = async (applicationData: any) => {
+  const handleSubmitApplication = async (applicationData: ApplicationFormData) => {
     if (!applicationModal.project) return
 
     setIsSubmitting(true)
@@ -596,7 +606,7 @@ export default function InscricaoMonitoriaPage() {
                       <div>
                         <h4 className="font-medium mb-2">Disciplinas:</h4>
                         <div className="flex flex-wrap gap-2">
-                          {projeto.disciplinas.map((disciplina: any) => (
+                          {projeto.disciplinas.map((disciplina) => (
                             <Badge key={disciplina.id} variant="outline">
                               {disciplina.codigo} - {disciplina.nome}
                             </Badge>
@@ -649,13 +659,15 @@ export default function InscricaoMonitoriaPage() {
         )}
       </div>
 
-      <ApplicationModal
-        isOpen={applicationModal.isOpen}
-        onClose={() => setApplicationModal({ isOpen: false, project: null })}
-        project={applicationModal.project}
-        onSubmit={handleSubmitApplication}
-        isSubmitting={isSubmitting}
-      />
+      {applicationModal.project && (
+        <ApplicationModal
+          isOpen={applicationModal.isOpen}
+          onClose={() => setApplicationModal({ isOpen: false, project: null })}
+          project={applicationModal.project}
+          onSubmit={handleSubmitApplication}
+          isSubmitting={isSubmitting}
+        />
+      )}
     </PagesLayout>
   )
 }

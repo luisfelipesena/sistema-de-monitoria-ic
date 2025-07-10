@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { UserListItem as Professor } from "@/types"
+import { UserListItem } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
@@ -29,7 +29,7 @@ import { useState } from "react"
 export default function ProfessoresPage() {
   const { toast } = useToast()
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
-  const [selectedProfessor, setSelectedProfessor] = useState<Professor | null>(null)
+  const [selectedProfessor, setSelectedProfessor] = useState<UserListItem | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [inviteForm, setInviteForm] = useState({
     email: "",
@@ -55,7 +55,7 @@ export default function ProfessoresPage() {
 
   const departamentos = departamentosData || []
 
-  const professores: Professor[] = usersData?.users.filter((u) => u.role === "professor") || []
+  const professores = usersData?.users.filter((u) => u.role === "professor") || []
 
   const handleInviteProfessor = async () => {
     try {
@@ -94,7 +94,7 @@ export default function ProfessoresPage() {
     }
   }
 
-  const handleViewProfessor = (professor: Professor) => {
+  const handleViewProfessor = (professor: UserListItem) => {
     setSelectedProfessor(professor)
     setIsDetailDialogOpen(true)
   }
@@ -136,7 +136,7 @@ export default function ProfessoresPage() {
     }
   }
 
-  const columns: ColumnDef<Professor>[] = [
+  const columns: ColumnDef<UserListItem>[] = [
     {
       accessorKey: "professorProfile.nomeCompleto",
       header: "Nome",
@@ -184,7 +184,9 @@ export default function ProfessoresPage() {
       accessorKey: "createdAt",
       header: "Cadastrado em",
       cell: ({ row }) => (
-        <div className="text-sm text-muted-foreground">{format(new Date(row.original.createdAt!), "dd/MM/yyyy")}</div>
+        <div className="text-sm text-muted-foreground">
+          {row.original.createdAt ? format(new Date(row.original.createdAt), "dd/MM/yyyy") : "N/A"}
+        </div>
       ),
     },
     {
@@ -220,7 +222,7 @@ export default function ProfessoresPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center">
+              <div className="flex items-start">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Total de Professores</p>
@@ -232,7 +234,7 @@ export default function ProfessoresPage() {
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center">
+              <div className="flex items-start">
                 <UserCheck className="h-4 w-4 text-green-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Ativos</p>
@@ -246,7 +248,7 @@ export default function ProfessoresPage() {
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center">
+              <div className="flex items-start">
                 <Mail className="h-4 w-4 text-yellow-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
@@ -258,7 +260,7 @@ export default function ProfessoresPage() {
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center">
+              <div className="flex items-start">
                 <UserX className="h-4 w-4 text-red-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Inativos</p>
@@ -306,7 +308,12 @@ export default function ProfessoresPage() {
                     <Input
                       id="nomeCompleto"
                       value={inviteForm.nomeCompleto}
-                      onChange={(e) => setInviteForm({ ...inviteForm, nomeCompleto: e.target.value })}
+                      onChange={(e) =>
+                        setInviteForm({
+                          ...inviteForm,
+                          nomeCompleto: e.target.value,
+                        })
+                      }
                       placeholder="Nome do professor"
                     />
                   </div>

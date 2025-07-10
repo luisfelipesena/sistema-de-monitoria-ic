@@ -14,7 +14,6 @@ export const phoneSchema = z
   .string()
   .regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, 'Telefone inválido')
   .optional()
-export const urlSchema = z.string().url('URL inválida').optional()
 
 // Username validation
 export const usernameSchema = z
@@ -77,9 +76,6 @@ export const errorResponseSchema = z.object({
   details: z.unknown().optional(),
 })
 
-// Common status schemas
-export const statusSchema = z.enum(['active', 'inactive', 'pending', 'suspended'])
-
 // Academic period schemas
 export const semesterSchema = z.number().int().min(1).max(2)
 export const yearSchema = z.number().int().min(2020).max(2030)
@@ -92,40 +88,9 @@ export const periodSchema = z.object({
 
 // Grade and performance schemas
 export const gradeSchema = z.number().min(0).max(10)
-export const coefficientSchema = z.number().min(0).max(1)
-
-// Generic metadata schema
-export const metadataSchema = z.object({
-  createdAt: z.date().optional(),
-  updatedAt: z.date().optional(),
-  createdBy: z.string().optional(),
-  updatedBy: z.string().optional(),
-})
-
-// Address schema (common for users)
-export const addressSchema = z.object({
-  street: z.string().optional(),
-  number: z.string().optional(),
-  complement: z.string().optional(),
-  neighborhood: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  zipCode: z.string().optional(),
-})
 
 // Document validation schemas
-export const cpfSchema = z.string().refine(
-  (val) => {
-    // Remove non-digit characters
-    const cleaned = val.replace(/[^\d]/g, '')
-    // Check if the cleaned CPF has 11 digits
-    return cleaned.length === 11
-  },
-  {
-    message: 'CPF inválido. Deve conter 11 dígitos.',
-  }
-)
-export const rgSchema = z.string().min(5, 'RG inválido')
+export const cpfSchema = z.string().min(1, 'CPF é obrigatório')
 
 // Academic record schemas
 export const matriculaSchema = z.string().min(8, 'Matrícula deve ter pelo menos 8 caracteres')
@@ -151,19 +116,14 @@ export type Name = z.infer<typeof nameSchema>
 export type Username = z.infer<typeof usernameSchema>
 export type Email = z.infer<typeof emailSchema>
 export type Phone = z.infer<typeof phoneSchema>
-export type Url = z.infer<typeof urlSchema>
-export type Status = z.infer<typeof statusSchema>
 export type Semester = z.infer<typeof semesterSchema>
 export type Year = z.infer<typeof yearSchema>
 export type Period = z.infer<typeof periodSchema>
 export type Grade = z.infer<typeof gradeSchema>
-export type Coefficient = z.infer<typeof coefficientSchema>
 export type Pagination = z.infer<typeof paginationSchema>
 export type Search = z.infer<typeof searchSchema>
 export type FileInfo = z.infer<typeof fileSchema>
 export type FileId = z.infer<typeof fileIdSchema>
-export type Address = z.infer<typeof addressSchema>
-export type Metadata = z.infer<typeof metadataSchema>
 export type SignatureData = z.infer<typeof signatureDataSchema>
 export type SuccessResponse = z.infer<typeof successResponseSchema>
 export type ErrorResponse = z.infer<typeof errorResponseSchema>

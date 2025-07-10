@@ -62,7 +62,8 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
 
   const handleOpenSignature = () => {
     if (hasDefaultSignature && !useCustomSignature) {
-      handleUseDefaultSignature()
+      // Se tem assinatura padrão, abre o dialog para dar opção ao usuário
+      setShowSignatureDialog(true)
       return
     }
     setShowSignatureDialog(true)
@@ -91,6 +92,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
           ...formData,
           assinaturaProfessor: defaultSignature,
           dataAssinaturaProfessor: new Date().toLocaleDateString("pt-BR"),
+          signingMode: "professor" as const,
         }
         setSignedData(updatedFormData)
       } else if (userRole === "admin") {
@@ -104,6 +106,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
           assinaturaAdmin: defaultSignature,
           dataAssinaturaAdmin: new Date().toLocaleDateString("pt-BR"),
           dataAprovacao: new Date().toLocaleDateString("pt-BR"),
+          signingMode: "admin" as const,
         }
         setSignedData(updatedFormData)
       }
@@ -147,6 +150,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
             ...formData,
             assinaturaProfessor: signatureDataURL,
             dataAssinaturaProfessor: new Date().toLocaleDateString("pt-BR"),
+            signingMode: "professor" as const,
           }
           setSignedData(updatedFormData)
         } else if (userRole === "admin") {
@@ -160,6 +164,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
             assinaturaAdmin: signatureDataURL,
             dataAssinaturaAdmin: new Date().toLocaleDateString("pt-BR"),
             dataAprovacao: new Date().toLocaleDateString("pt-BR"),
+            signingMode: "admin" as const,
           }
           setSignedData(updatedFormData)
         }

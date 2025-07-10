@@ -6,9 +6,9 @@ import { and, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 const courseWithStatsSchema = courseSchema.extend({
-  alunos: z.number().nonnegative(),
-  disciplinas: z.number().nonnegative(),
-  projetos: z.number().nonnegative(),
+  alunos: z.number().min(0),
+  disciplinas: z.number().min(0),
+  projetos: z.number().min(0),
 })
 
 export const courseRouter = createTRPCRouter({

@@ -32,7 +32,7 @@ export default function AtasSelecaoPage() {
 
   // Buscar dados da ata quando projeto for selecionado
   const { data: dadosAta, isLoading: loadingAta } = api.selecao.generateAtaData.useQuery(
-    { projetoId: selectedProjectId!.toString() },
+    { projetoId: selectedProjectId?.toString() || "" },
     { enabled: !!selectedProjectId }
   )
 

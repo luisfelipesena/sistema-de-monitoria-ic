@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
+import { PagesLayout } from "@/components/layout/PagesLayout";
+import { TableComponent } from "@/components/layout/TableComponent";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,10 +11,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -23,23 +23,31 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
-import { DepartamentoListItem } from "@/types"
-import { api } from "@/utils/api"
-import { ColumnDef } from "@tanstack/react-table"
-import { Building, Edit, GraduationCap, Plus, Trash2, Users } from "lucide-react"
-import { useState } from "react"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { DepartamentoListItem } from "@/types";
+import { api } from "@/utils/api";
+import { ColumnDef } from "@tanstack/react-table";
+import {
+  Building,
+  Edit,
+  GraduationCap,
+  Plus,
+  Trash2,
+  Users,
+} from "lucide-react";
+import { useState } from "react";
 
 export default function DepartamentosPage() {
-  const { toast } = useToast()
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedDepartamento, setSelectedDepartamento] = useState<DepartamentoListItem | null>(null)
+  const { toast } = useToast();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedDepartamento, setSelectedDepartamento] =
+    useState<DepartamentoListItem | null>(null);
   const [formData, setFormData] = useState({
     nome: "",
     sigla: "",
@@ -48,28 +56,32 @@ export default function DepartamentosPage() {
     coordenador: "",
     email: "",
     telefone: "",
-  })
+  });
 
   // Fetch departments data with statistics
-  const { data: departamentosData, isLoading } = api.departamento.getDepartamentos.useQuery({
-    includeStats: true,
-  })
-  const apiUtils = api.useUtils()
-  const createDepartamentoMutation = api.departamento.createDepartamento.useMutation({
-    onSuccess: () => {
-      apiUtils.departamento.getDepartamentos.invalidate()
-    },
-  })
-  const updateDepartamentoMutation = api.departamento.updateDepartamento.useMutation({
-    onSuccess: () => {
-      apiUtils.departamento.getDepartamentos.invalidate()
-    },
-  })
-  const deleteDepartamentoMutation = api.departamento.deleteDepartamento.useMutation({
-    onSuccess: () => {
-      apiUtils.departamento.getDepartamentos.invalidate()
-    },
-  })
+  const { data: departamentosData, isLoading } =
+    api.departamento.getDepartamentos.useQuery({
+      includeStats: true,
+    });
+  const apiUtils = api.useUtils();
+  const createDepartamentoMutation =
+    api.departamento.createDepartamento.useMutation({
+      onSuccess: () => {
+        apiUtils.departamento.getDepartamentos.invalidate();
+      },
+    });
+  const updateDepartamentoMutation =
+    api.departamento.updateDepartamento.useMutation({
+      onSuccess: () => {
+        apiUtils.departamento.getDepartamentos.invalidate();
+      },
+    });
+  const deleteDepartamentoMutation =
+    api.departamento.deleteDepartamento.useMutation({
+      onSuccess: () => {
+        apiUtils.departamento.getDepartamentos.invalidate();
+      },
+    });
 
   const departamentos: DepartamentoListItem[] =
     departamentosData?.map((dept) => ({
@@ -87,8 +99,9 @@ export default function DepartamentosPage() {
       projetos: 0,
       status: "ATIVO" as const,
       criadoEm: dept.createdAt.toISOString(),
-      atualizadoEm: dept.updatedAt?.toISOString() || dept.createdAt.toISOString(),
-    })) || []
+      atualizadoEm:
+        dept.updatedAt?.toISOString() || dept.createdAt.toISOString(),
+    })) || [];
 
   const resetForm = () => {
     setFormData({
@@ -99,8 +112,8 @@ export default function DepartamentosPage() {
       coordenador: "",
       email: "",
       telefone: "",
-    })
-  }
+    });
+  };
 
   const handleCreate = async () => {
     try {
@@ -109,8 +122,8 @@ export default function DepartamentosPage() {
           title: "Campos obrigatórios",
           description: "Por favor, preencha o nome e a sigla do departamento",
           variant: "destructive",
-        })
-        return
+        });
+        return;
       }
 
       await createDepartamentoMutation.mutateAsync({
@@ -121,26 +134,26 @@ export default function DepartamentosPage() {
         email: formData.email || undefined,
         telefone: formData.telefone || undefined,
         descricao: formData.descricao || undefined,
-      })
+      });
 
       toast({
         title: "Departamento criado",
         description: `Departamento ${formData.nome} criado com sucesso`,
-      })
+      });
 
-      setIsCreateDialogOpen(false)
-      resetForm()
+      setIsCreateDialogOpen(false);
+      resetForm();
     } catch (error: any) {
       toast({
         description: error.message || "Não foi possível criar o departamento",
         title: "Erro ao criar departamento",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleEdit = (departamento: DepartamentoListItem) => {
-    setSelectedDepartamento(departamento)
+    setSelectedDepartamento(departamento);
     setFormData({
       nome: departamento.nome,
       sigla: departamento.sigla,
@@ -149,9 +162,9 @@ export default function DepartamentosPage() {
       coordenador: departamento.coordenador || "",
       email: departamento.email || "",
       telefone: departamento.telefone || "",
-    })
-    setIsEditDialogOpen(true)
-  }
+    });
+    setIsEditDialogOpen(true);
+  };
 
   const handleUpdate = async () => {
     try {
@@ -160,8 +173,8 @@ export default function DepartamentosPage() {
           title: "Campos obrigatórios",
           description: "Por favor, preencha o nome e a sigla do departamento",
           variant: "destructive",
-        })
-        return
+        });
+        return;
       }
 
       await updateDepartamentoMutation.mutateAsync({
@@ -173,60 +186,65 @@ export default function DepartamentosPage() {
         email: formData.email || undefined,
         telefone: formData.telefone || undefined,
         descricao: formData.descricao || undefined,
-      })
+      });
 
       toast({
         title: "Departamento atualizado",
         description: `Departamento ${formData.nome} atualizado com sucesso`,
-      })
+      });
 
-      setIsEditDialogOpen(false)
-      resetForm()
-      setSelectedDepartamento(null)
+      setIsEditDialogOpen(false);
+      resetForm();
+      setSelectedDepartamento(null);
     } catch (error: any) {
       toast({
         title: "Erro ao atualizar departamento",
-        description: error.message || "Não foi possível atualizar o departamento",
+        description:
+          error.message || "Não foi possível atualizar o departamento",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleDeleteClick = (departamento: DepartamentoListItem) => {
-    setSelectedDepartamento(departamento)
-    setIsDeleteDialogOpen(true)
-  }
+    setSelectedDepartamento(departamento);
+    setIsDeleteDialogOpen(true);
+  };
 
   const handleDelete = async () => {
     try {
-      await deleteDepartamentoMutation.mutateAsync({ id: selectedDepartamento!.id })
+      await deleteDepartamentoMutation.mutateAsync({
+        id: selectedDepartamento!.id,
+      });
 
       toast({
         title: "Departamento excluído",
-        description: `Departamento ${selectedDepartamento!.nome} excluído com sucesso`,
-      })
+        description: `Departamento ${
+          selectedDepartamento!.nome
+        } excluído com sucesso`,
+      });
 
-      setIsDeleteDialogOpen(false)
-      setSelectedDepartamento(null)
+      setIsDeleteDialogOpen(false);
+      setSelectedDepartamento(null);
     } catch (error: any) {
       toast({
         title: "Erro ao excluir departamento",
         description: error.message || "Não foi possível excluir o departamento",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const renderStatusBadge = (status: string) => {
     switch (status) {
       case "ATIVO":
-        return <Badge className="bg-green-100 text-green-800">Ativo</Badge>
+        return <Badge className="bg-green-100 text-green-800">Ativo</Badge>;
       case "INATIVO":
-        return <Badge variant="destructive">Inativo</Badge>
+        return <Badge variant="destructive">Inativo</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
 
   const columns: ColumnDef<DepartamentoListItem>[] = [
     {
@@ -244,7 +262,9 @@ export default function DepartamentosPage() {
     {
       accessorKey: "coordenador",
       header: "Coordenador",
-      cell: ({ row }) => <div className="text-sm">{row.original.coordenador || "-"}</div>,
+      cell: ({ row }) => (
+        <div className="text-sm">{row.original.coordenador || "-"}</div>
+      ),
     },
     {
       accessorKey: "professores",
@@ -291,38 +311,56 @@ export default function DepartamentosPage() {
       id: "actions",
       header: "Ações",
       cell: ({ row }) => {
-        const departamento = row.original
+        const departamento = row.original;
         return (
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleEdit(departamento)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleEdit(departamento)}
+            >
               <Edit className="h-4 w-4" />
             </Button>
 
-            <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(departamento)}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => handleDeleteClick(departamento)}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
 
-  const totalDepartamentos = departamentos.length
-  const departamentosAtivos = departamentos.filter((d) => d.status === "ATIVO").length
-  const totalProfessores = departamentos.reduce((sum, d) => sum + d.professores, 0)
-  const totalCursos = departamentos.reduce((sum, d) => sum + d.cursos, 0)
+  const totalDepartamentos = departamentos.length;
+  const departamentosAtivos = departamentos.filter(
+    (d) => d.status === "ATIVO"
+  ).length;
+  const totalProfessores = departamentos.reduce(
+    (sum, d) => sum + d.professores,
+    0
+  );
+  const totalCursos = departamentos.reduce((sum, d) => sum + d.cursos, 0);
 
   return (
-    <PagesLayout title="Gerenciamento de Departamentos" subtitle="Gerencie departamentos e suas informações">
+    <PagesLayout
+      title="Gerenciamento de Departamentos"
+      subtitle="Gerencie departamentos e suas informações"
+    >
       <div className="space-y-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center">
+              <div className="flex items-start">
                 <Building className="h-4 w-4 text-muted-foreground" />
                 <div className="ml-2">
-                  <p className="text-sm font-medium text-muted-foreground">Total de Departamentos</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Total de Departamentos
+                  </p>
                   <div className="text-2xl font-bold">{totalDepartamentos}</div>
                 </div>
               </div>
@@ -331,11 +369,15 @@ export default function DepartamentosPage() {
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center">
+              <div className="flex items-start">
                 <Building className="h-4 w-4 text-green-600" />
                 <div className="ml-2">
-                  <p className="text-sm font-medium text-muted-foreground">Ativos</p>
-                  <div className="text-2xl font-bold text-green-600">{departamentosAtivos}</div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Ativos
+                  </p>
+                  <div className="text-2xl font-bold text-green-600">
+                    {departamentosAtivos}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -343,11 +385,15 @@ export default function DepartamentosPage() {
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center">
+              <div className="flex items-start">
                 <Users className="h-4 w-4 text-blue-600" />
                 <div className="ml-2">
-                  <p className="text-sm font-medium text-muted-foreground">Total de Professores</p>
-                  <div className="text-2xl font-bold text-blue-600">{totalProfessores}</div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Total de Professores
+                  </p>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {totalProfessores}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -355,11 +401,15 @@ export default function DepartamentosPage() {
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center">
+              <div className="flex items-start">
                 <GraduationCap className="h-4 w-4 text-purple-600" />
                 <div className="ml-2">
-                  <p className="text-sm font-medium text-muted-foreground">Total de Cursos</p>
-                  <div className="text-2xl font-bold text-purple-600">{totalCursos}</div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Total de Cursos
+                  </p>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {totalCursos}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -370,7 +420,10 @@ export default function DepartamentosPage() {
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Lista de Departamentos</h2>
 
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog
+            open={isCreateDialogOpen}
+            onOpenChange={setIsCreateDialogOpen}
+          >
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -380,7 +433,9 @@ export default function DepartamentosPage() {
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle>Criar Novo Departamento</DialogTitle>
-                <DialogDescription>Preencha as informações do novo departamento</DialogDescription>
+                <DialogDescription>
+                  Preencha as informações do novo departamento
+                </DialogDescription>
               </DialogHeader>
 
               <div className="grid gap-4 py-4">
@@ -390,7 +445,9 @@ export default function DepartamentosPage() {
                     <Input
                       id="nome"
                       value={formData.nome}
-                      onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, nome: e.target.value })
+                      }
                       placeholder="Ex: Ciência da Computação"
                     />
                   </div>
@@ -400,7 +457,12 @@ export default function DepartamentosPage() {
                     <Input
                       id="sigla"
                       value={formData.sigla}
-                      onChange={(e) => setFormData({ ...formData, sigla: e.target.value.toUpperCase() })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          sigla: e.target.value.toUpperCase(),
+                        })
+                      }
                       placeholder="Ex: DCC"
                     />
                   </div>
@@ -411,7 +473,9 @@ export default function DepartamentosPage() {
                   <Input
                     id="instituto"
                     value={formData.instituto}
-                    onChange={(e) => setFormData({ ...formData, instituto: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, instituto: e.target.value })
+                    }
                     placeholder="Ex: Instituto de Matemática e Estatística"
                   />
                 </div>
@@ -421,7 +485,9 @@ export default function DepartamentosPage() {
                   <Input
                     id="coordenador"
                     value={formData.coordenador}
-                    onChange={(e) => setFormData({ ...formData, coordenador: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, coordenador: e.target.value })
+                    }
                     placeholder="Nome do coordenador"
                   />
                 </div>
@@ -433,7 +499,9 @@ export default function DepartamentosPage() {
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
                       placeholder="departamento@ufba.br"
                     />
                   </div>
@@ -443,7 +511,9 @@ export default function DepartamentosPage() {
                     <Input
                       id="telefone"
                       value={formData.telefone}
-                      onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, telefone: e.target.value })
+                      }
                       placeholder="(71) 3283-6800"
                     />
                   </div>
@@ -454,7 +524,9 @@ export default function DepartamentosPage() {
                   <Textarea
                     id="descricao"
                     value={formData.descricao}
-                    onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, descricao: e.target.value })
+                    }
                     placeholder="Descrição do departamento..."
                     rows={3}
                   />
@@ -465,8 +537,8 @@ export default function DepartamentosPage() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setIsCreateDialogOpen(false)
-                    resetForm()
+                    setIsCreateDialogOpen(false);
+                    resetForm();
                   }}
                 >
                   Cancelar
@@ -494,7 +566,9 @@ export default function DepartamentosPage() {
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle>Editar Departamento</DialogTitle>
-              <DialogDescription>Atualize as informações do departamento</DialogDescription>
+              <DialogDescription>
+                Atualize as informações do departamento
+              </DialogDescription>
             </DialogHeader>
 
             <div className="grid gap-4 py-4">
@@ -504,7 +578,9 @@ export default function DepartamentosPage() {
                   <Input
                     id="edit-nome"
                     value={formData.nome}
-                    onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, nome: e.target.value })
+                    }
                     placeholder="Ex: Ciência da Computação"
                   />
                 </div>
@@ -514,7 +590,12 @@ export default function DepartamentosPage() {
                   <Input
                     id="edit-sigla"
                     value={formData.sigla}
-                    onChange={(e) => setFormData({ ...formData, sigla: e.target.value.toUpperCase() })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        sigla: e.target.value.toUpperCase(),
+                      })
+                    }
                     placeholder="Ex: DCC"
                   />
                 </div>
@@ -525,7 +606,9 @@ export default function DepartamentosPage() {
                 <Input
                   id="edit-instituto"
                   value={formData.instituto}
-                  onChange={(e) => setFormData({ ...formData, instituto: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, instituto: e.target.value })
+                  }
                   placeholder="Ex: Instituto de Matemática e Estatística"
                 />
               </div>
@@ -535,7 +618,9 @@ export default function DepartamentosPage() {
                 <Input
                   id="edit-coordenador"
                   value={formData.coordenador}
-                  onChange={(e) => setFormData({ ...formData, coordenador: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, coordenador: e.target.value })
+                  }
                   placeholder="Nome do coordenador"
                 />
               </div>
@@ -547,7 +632,9 @@ export default function DepartamentosPage() {
                     id="edit-email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     placeholder="departamento@ufba.br"
                   />
                 </div>
@@ -557,7 +644,9 @@ export default function DepartamentosPage() {
                   <Input
                     id="edit-telefone"
                     value={formData.telefone}
-                    onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, telefone: e.target.value })
+                    }
                     placeholder="(71) 3283-6800"
                   />
                 </div>
@@ -568,7 +657,9 @@ export default function DepartamentosPage() {
                 <Textarea
                   id="edit-descricao"
                   value={formData.descricao}
-                  onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descricao: e.target.value })
+                  }
                   placeholder="Descrição do departamento..."
                   rows={3}
                 />
@@ -579,9 +670,9 @@ export default function DepartamentosPage() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setIsEditDialogOpen(false)
-                  resetForm()
-                  setSelectedDepartamento(null)
+                  setIsEditDialogOpen(false);
+                  resetForm();
+                  setSelectedDepartamento(null);
                 }}
               >
                 Cancelar
@@ -592,14 +683,20 @@ export default function DepartamentosPage() {
         </Dialog>
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
               <AlertDialogDescription>
                 Tem certeza que deseja excluir o departamento{" "}
-                <span className="font-semibold">{selectedDepartamento?.nome}</span>? Esta ação não pode ser desfeita e
-                pode afetar outros dados relacionados.
+                <span className="font-semibold">
+                  {selectedDepartamento?.nome}
+                </span>
+                ? Esta ação não pode ser desfeita e pode afetar outros dados
+                relacionados.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -615,5 +712,5 @@ export default function DepartamentosPage() {
         </AlertDialog>
       </div>
     </PagesLayout>
-  )
+  );
 }

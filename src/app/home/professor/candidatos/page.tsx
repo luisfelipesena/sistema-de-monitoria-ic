@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { QuickEvaluation } from "@/types"
+import { QuickEvaluation, SelecaoCandidato, DashboardProjectItem, InscriptionDetailData } from "@/types"
 import { api } from "@/utils/api"
 import { CheckCircle, Clock, GraduationCap, Star, Users } from "lucide-react"
 import { useSearchParams } from "next/navigation"
@@ -46,7 +46,7 @@ function ProjectApplicationsContent() {
     return { scholarship, volunteer }
   }, [inscricoes])
 
-  const handleQuickEvaluation = (inscricaoId: number, field: keyof QuickEvaluation, value: any) => {
+  const handleQuickEvaluation = (inscricaoId: number, field: keyof QuickEvaluation, value: number | string) => {
     setQuickEvaluations((prev) => ({
       ...prev,
       [inscricaoId]: {
@@ -134,7 +134,7 @@ function ProjectApplicationsContent() {
     }
   }
 
-  const renderCandidateCard = (candidate: any) => {
+  const renderCandidateCard = (candidate: InscriptionDetailData) => {
     const evaluation = quickEvaluations[candidate.id]
     const hasExistingEvaluation = candidate.notaFinal !== null
 
@@ -155,7 +155,7 @@ function ProjectApplicationsContent() {
                 <div className="mt-1">
                   <Badge variant="outline" className="text-xs">
                     <Star className="h-3 w-3 mr-1" />
-                    Nota: {candidate.notaFinal?.toFixed(1) || "N/A"}
+                    Nota: {candidate.notaFinal ? Number(candidate.notaFinal).toFixed(1) : "N/A"}
                   </Badge>
                 </div>
               )}

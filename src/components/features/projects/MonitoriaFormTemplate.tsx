@@ -115,13 +115,15 @@ const styles = StyleSheet.create({
   signatureArea: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-end",
     marginTop: 15,
+    minHeight: 70,
     break: false,
   },
   signatureText: {
     fontSize: 8,
     flex: 1,
+    paddingRight: 10,
   },
   signatureLine: {
     borderBottom: "1pt solid #000",
@@ -133,7 +135,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 60,
     objectFit: "contain",
-    marginLeft: 10,
+    alignSelf: "flex-end",
   },
   activeSignatureArea: {
     borderColor: "#0066cc",
@@ -175,7 +177,11 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Image style={styles.logo} src="/images/logo-ufba.png" />
+          <Image 
+            style={styles.logo} 
+            src="/images/logo-ufba.png" 
+            cache={false}
+          />
           <View style={styles.headerText}>
             <Text style={styles.universityName}>UNIVERSIDADE FEDERAL DA BAHIA</Text>
             <Text style={styles.departmentName}>Pró - Reitoria de Ensino de Graduação</Text>
@@ -332,17 +338,19 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                 Data e Assinatura do(a) Prof(a). Responsável:{" "}
                 {data.dataAssinaturaProfessor || new Date().toLocaleDateString("pt-BR")}
               </Text>
-              {data.assinaturaProfessor ? (
-                <Image src={data.assinaturaProfessor} style={styles.signatureImage} />
-              ) : (
-                <View
-                  style={
-                    data.signingMode === "professor"
-                      ? [styles.signatureLine, styles.activeSignatureArea]
-                      : styles.signatureLine
-                  }
-                />
-              )}
+              <View style={{ width: 200, height: 70, justifyContent: "flex-end" }}>
+                {data.assinaturaProfessor ? (
+                  <Image src={data.assinaturaProfessor} style={styles.signatureImage} />
+                ) : (
+                  <View
+                    style={
+                      data.signingMode === "professor"
+                        ? [styles.signatureLine, styles.activeSignatureArea]
+                        : styles.signatureLine
+                    }
+                  />
+                )}
+              </View>
             </View>
           </View>
         </View>
@@ -369,17 +377,19 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                 Data e Assinatura do(a) Coordenador(a):{" "}
                 {data.dataAssinaturaAdmin || new Date().toLocaleDateString("pt-BR")}
               </Text>
-              {data.assinaturaAdmin ? (
-                <Image src={data.assinaturaAdmin} style={styles.signatureImage} />
-              ) : (
-                <View
-                  style={
-                    data.signingMode === "admin"
-                      ? [styles.signatureLine, styles.activeSignatureArea]
-                      : styles.signatureLine
-                  }
-                />
-              )}
+              <View style={{ width: 200, height: 70, justifyContent: "flex-end" }}>
+                {data.assinaturaAdmin ? (
+                  <Image src={data.assinaturaAdmin} style={styles.signatureImage} />
+                ) : (
+                  <View
+                    style={
+                      data.signingMode === "admin"
+                        ? [styles.signatureLine, styles.activeSignatureArea]
+                        : styles.signatureLine
+                    }
+                  />
+                )}
+              </View>
             </View>
           </View>
         </View>

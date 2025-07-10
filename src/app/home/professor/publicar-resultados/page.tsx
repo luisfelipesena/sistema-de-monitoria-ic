@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { SelecaoCandidato } from "@/types"
+import { SelecaoCandidato, AtaSelecaoData } from "@/types"
 import { api } from "@/utils/api"
 import { Award, Eye, FileText, Send, Users } from "lucide-react"
 import { useState } from "react"
@@ -27,13 +27,26 @@ function ResultadoTemplate({ data }: { data: any }) {
       </p>
 
       <h2>Candidatos Selecionados</h2>
-      {data.selecionados.map((candidato: any) => (
+      {(data.inscricoesBolsista || []).map((candidato: any) => (
         <div key={candidato.id} style={{ margin: "10px 0", padding: "10px", border: "1px solid #4ade80" }}>
           <p>
-            <strong>Nome:</strong> {candidato.aluno.user.username}
+            <strong>Nome:</strong> {candidato.aluno?.user?.username || candidato.aluno?.nomeCompleto}
           </p>
           <p>
-            <strong>Tipo:</strong> {candidato.tipoVagaPretendida}
+            <strong>Tipo:</strong> Bolsista
+          </p>
+          <p>
+            <strong>Nota Final:</strong> {candidato.notaFinal}
+          </p>
+        </div>
+      ))}
+      {(data.inscricoesVoluntario || []).map((candidato: any) => (
+        <div key={candidato.id} style={{ margin: "10px 0", padding: "10px", border: "1px solid #3b82f6" }}>
+          <p>
+            <strong>Nome:</strong> {candidato.aluno?.user?.username || candidato.aluno?.nomeCompleto}
+          </p>
+          <p>
+            <strong>Tipo:</strong> Voluntário
           </p>
           <p>
             <strong>Nota Final:</strong> {candidato.notaFinal}
@@ -57,7 +70,7 @@ export default function PublicarResultadosPage() {
 
   // Buscar dados dos resultados quando projeto for selecionado
   const { data: dadosResultados, isLoading: loadingResultados } = api.selecao.generateAtaData.useQuery(
-    { projetoId: selectedProjectId!.toString() },
+    { projetoId: selectedProjectId?.toString() || "" },
     { enabled: !!selectedProjectId }
   )
 
@@ -354,12 +367,7 @@ export default function PublicarResultadosPage() {
                 overflow: "auto",
               }}
             >
-              <ResultadoTemplate
-                data={{
-                  projeto: previewData.projeto,
-                  selecionados: [...previewData.inscricoesBolsista, ...previewData.inscricoesVoluntario],
-                }}
-              />
+              <ResultadoTemplate data={previewData} />
             </div>
           </CardContent>
         </Card>
