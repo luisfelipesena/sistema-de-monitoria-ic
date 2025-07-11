@@ -1,0 +1,176 @@
+@page {
+  size: A4;
+}
+
+* {
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+}
+
+body {
+    width: 21cm;
+    height: 29.7cm;
+    margin: 0 auto;
+    font-family: "Carlito", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header {
+    font-weight: bold;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 0.45cm;
+    margin-top: 5vh;
+    margin-bottom: 1.2vh;
+    margin-right: 5.4cm;
+}
+
+header img {  
+    height: 90px; 
+    width: 64.8px;
+}
+
+#form{
+    width: 18.19cm;
+    font-size: 9pt;
+    margin-right: 0.8cm;
+}
+
+.form-section{
+    font-weight: bold;
+    border-style: solid;
+    border-top: none;
+    border-width: 1px;
+    height: 0.49cm;
+    padding: 3px 0.19cm 3px 0.19cm;
+    background-color: #BFBFBF;
+}
+
+#first-section{
+    border-top: solid;
+    border-width: 1px;
+    font-size: 8.6pt;
+}
+
+.form-item{
+    border-style: solid;
+    border-width: 1px;
+    border-top: none;
+    height: 0.54cm;
+    padding: 3px 0.19cm 3px 0.19cm;
+}
+
+#item-1\.5 > span:nth-child(1){
+    margin-right: 5px;
+    border-right: solid;
+    border-width: 1px;
+    padding: 3px 15px 3px 0px;
+    margin-top: -3px;
+    margin-bottom: -3px;
+}
+
+#item-1\.9{
+    display: inline-block;
+    width: 7.8cm;
+    margin-right: 5px;
+    border-right: solid;
+    border-width: 1px;
+    padding: 3px 5px 3px 0px;
+    margin-top: -3px;
+    margin-bottom: -3px;
+}
+
+#item-2\.2{
+    display: inline-block;
+    width: 6.3cm;
+    margin-right: 5px;
+    border-right: solid;
+    border-width: 1px;
+    padding: 3px 5px 3px 0px;
+    margin-top: -3px;
+    margin-bottom: -3px;
+}
+
+#item-2\.4{
+    display: inline-block;
+    width: 5.3cm;
+    margin-right: 5px;
+    border-right: solid;
+    border-width: 1px;
+    padding: 3px 5px 3px 0px;
+    margin-top: -3px;
+    margin-bottom: -3px;
+}
+
+#item-2\.5{
+    display: inline-block;
+    width: 6.3cm;
+    margin-right: 5px;
+    border-right: solid;
+    border-width: 1px;
+    padding: 3px 5px 3px 0px;
+    margin-top: -3px;
+    margin-bottom: -3px;
+}
+
+#item-5\.1{
+    height: 1.72cm;
+}
+
+#signature-section{
+    font-weight: bold;
+    margin-top: 0.5cm;
+    margin-bottom: 0.2cm;
+    font-size: 9pt;
+}
+
+#instructions-section{
+    font-size: 7.8pt;
+}
+
+#roteiro{
+    font-size: 8.6pt;
+    font-weight: bold;
+    text-decoration: underline;
+    margin-bottom: 0.2cm;
+}
+
+#num-ordem{
+    font-size: 8.6pt;
+}
+
+#instrucao-6{
+    color: red;
+}
+
+#signatureImage {
+    width: 200;
+    height: 60;
+    display: flex;
+    align-items: flex-end;
+    object-fit: "contain";
+}
+
+.activeSignatureArea {
+    border-color: #0066cc;
+    border-width: "2pt";
+    background-color: #f0f8ff;
+    width: 5.29cm;
+    height: 1.59cm;
+}
+
+#assinatura-professor{
+    margin-left: 8.9cm;
+    margin-top:-0.2cm;
+    margin-bottom: -0.2cm;
+}
+
+#assinatura-admin {
+    margin-left: 1cm;
+    margin-top: 0.2cm;
+}

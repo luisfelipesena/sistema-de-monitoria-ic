@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Inicial</title>
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <img src="ufba-logo-form.png">
+        <div>
+            <div>UNIVERSIDADE FEDERAL DA BAHIA</div>
+            <div>Pró-Reitoria de Ensino de Graduação</div>
+            <div>Coordenação Acadêmica de Graduação</div>
+        </div>
+    </header>
+    <div id="form-title"><b>ANEXO I - FORMULÁRIO PARA PROJETO DE MONITORIA</b></div>
+    <div id="form">
+        <div class="form-section" id="first-section">1 IDENTIFICAÇÃO DO PROJETO</div>
+        <div class="form-item">1.1 Unidade Universitária: <span id="1.1">Instituto de Computação</span></div>
+        <div class="form-item">1.2 Órgão (Departamento ou Coord. Acadêmica): <span id="1.2">{data.departamento?.nome || "Não selecionado"}</span></div>
+        <div class="form-item">1.3 Data da reunião de aprovação: <span id="1.3">{data.dataAprovacao || "--"}</span></div>
+        <div class="form-item">1.4 Componente curricular (código e nome): <span id="1.4">{disciplinasText}</span></div>
+        <div class="form-item" id="item-1.5">
+            1.5 Período das atividades de monitoria: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <span><span id="ano">${data.ano}</span>.1 (&nbsp; <span id="1.5-1">${data.semestre === "SEMESTRE_1" ? "X" : ""}</span> &nbsp;)</span>
+            <span><span id="ano">${data.ano}</span>.2 (&nbsp; <span id="1.5-2">${data.semestre === "SEMESTRE_2" ? "X" : ""}</span> &nbsp;)</span>
+        </div>
+        <div class="form-item">
+            <span>1.6 Monitoria voluntária (&nbsp; <span id="1.6">{data.voluntariosSolicitados > 0 ? "X" : ""}</span> &nbsp;)</span>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <span>1.7 Monitoria com bolsa (&nbsp; <span id="1.7">{data.bolsasSolicitadas > 0 ? "X" : ""}</span> &nbsp;)</span>
+        </div>
+        <div class="form-item">
+            1.8 Número previsto de vagas: &nbsp;&nbsp;&nbsp;
+            <span>Monitor(a) Bolsista(a) (&nbsp; <span id="1.8-bolsista">{data.bolsasSolicitadas || 0}</span> &nbsp;)</span>
+             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <span>Monitor(a) Voluntário(a) (&nbsp; <span id="1.8-voluntario">{data.voluntariosSolicitados || 0}</span> &nbsp;)</span>
+        </div>
+        <div class="form-item">
+            <span id="item-1.9">1.9 Carga horária semanal: <span id="1.9">{data.cargaHorariaSemana || 0}h</span></span>
+            <span>1.10 Carga horária total por semestre: <span id="1.10">{cargaHorariaTotal}h</span></span>
+        </div>
+        <div class="form-item">
+            1.11 Público-alvo:
+            <span>a. Estudantes de graduação (&nbsp; <span id="1.11-a">{data.publicoAlvo === "Estudantes de Graduação" ? "X" : ""}</span> &nbsp;)</span>
+            <span>b. Outros, informar qual (&nbsp; <span id="1.11-b">{data.publicoAlvo === "Estudantes de Graduação" ? "" : "X"}</span> &nbsp;): <span id="1.11-b-resposta">Resposta</span>{data.publicoAlvo === "Estudantes de Graduação" ? "" : data.publicoAlvo}</span>
+        </div>
+        <div class="form-item">1.12 Quantitativo previsto de pessoas a serem atendidas com o projeto: (&nbsp; <span id="1.12">{data.estimativaPessoasBenificiadas || "--"}</span> &nbsp;)
+        </div>
+
+        <div class="form-section">2 DADOS DO PROFESSOR RESPONSÁVEL PELO PROJETO</div>
+        <div class="form-item">2.1 Nome Completo: <span id="2.1">{data.professorResponsavel?.nomeCompleto ||
+                (data.user?.role !== "admin" ? data.user?.nomeCompleto : "") ||
+                "Não informado"}</span></div>
+        <div class="form-item">
+            <span id="item-2.2">2.2 CPF: <span id="2.2">{data.professorResponsavel?.cpf || "Não informado"}</span></span>
+            <span>2.3 Nº SIAPE: <span id="2.3">{data.professorResponsavel?.matriculaSiape || "Não informado"}</span></span>
+        </div>
+        <div class="form-item">
+            <span id="item-2.4">2.4 Feminino: (&nbsp; <span id="2.4-feminino">{data.professorResponsavel.genero === "FEMININO" ? "X" : ""}</span> &nbsp;) &nbsp;&nbsp; Masculino: (&nbsp; <span id="2.4-masculino">{data.professorResponsavel.genero === "MASCULINO" ? "X" : ""}</span> &nbsp;)</span>
+            <span id="item-2.5">2.5 Tel. Institucional: <span id="2.5-numero">{data.professorResponsavel?.telefoneInstitucional || "Não informado"}</span></span>
+            <span class="divider"></span>
+            <span>2.6 Tel. Celular: <span id="2.6-numero">{data.professorResponsavel?.telefone || "Não informado"}</span></span>
+        </div>
+        <div class="form-item">2.7 E-mail: <span id="2.7">{data.professorResponsavel?.emailInstitucional || data.user?.email || "Não informado"}</span></div>
+        
+        <div class="form-section">3 DESCRIÇÃO DO PROJETO</div>
+        <div class="form-item"><span id="3.1">Instrução: Quebrar texto de {data.descricao || "Descrição do projeto não informada."} em blocos de no máximo 120 catacteres (incluindo espaços) e distribuir entre as demais linhas</span></div>
+        <div class="form-item"><span id="3.2"></span></div>
+        <div class="form-item"><span id="3.3"></span></div>
+        <div class="form-item"><span id="3.4"></span></div>
+        <div class="form-item"><span id="3.5"></span></div>
+        <div class="form-item"><span id="3.6"></span></div>
+        <div class="form-item"><span id="3.7"></span></div>
+        <div class="form-item"><span id="3.8"></span></div>
+        <div class="form-item"><span id="3.9"></span></div>
+
+        <div class="form-section">4 ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)</div>
+        <div class="form-item"><span id="4.1">Auxiliar o professor na elaboração de problemas para listas e provas</span></div>
+        <div class="form-item"><span id="4.2">Auxiliar os alunos no uso
+              das plataformas de submissão de problemas</span></div>
+        <div class="form-item"><span id="4.3">Auxiliar os alunos quanto ao uso das técnicas e comandos
+              de programação</span></div>
+        <div class="form-item"><span id="4.4">Auxiliar os alunos em horário extra classe</span></div>
+        <div class="form-item"><span id="4.5">Outras atividades relacionadas ao
+              projeto de monitoria</span></div>
+        <div class="form-item"><span id="4.6"></span></div>
+
+        <div class="form-section">5. DECLARAÇÃO</div>
+        <div class="form-item" id="item-5.1">
+            <div>Declaro ter conhecimento da Resolução n. 06/2012 do CAE e das normas descritas no Edital 001/<span id="ano">Ano</span>/PROGRAD – Projetos de Monitoria com Bolsa (&nbsp; <span id="5.1">X</span> &nbsp;).</div>
+            <div>Declaro ter conhecimento da Resolução n. 06/2012 do CAE e das normas descritas no Edital 002/<span id="ano">Ano</span>/PROGRAD – Projetos de Monitoria com Bolsa (&nbsp; <span id="5.2">X</span> &nbsp;).</div>
+        </div>
+        <div id="signature-section">
+            <div class="activeSignatureArea" id="assinatura-professor"></div>
+            Data e Assinatura do Prof(a). responsável: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <span>
+                <span id="assinatura-dia">Dia</span>/<span id="assinatura-mes">Mes</span>/<span id="assinatura-ano">Ano</span>/
+                &nbsp;______________________________________
+            </span>
+        </div>
+        <div id="instructions-section">
+            <p id="roteiro">ROTEIRO PARA ELABORAÇÃO DO PROJETO:</p>
+            <div><span id="num-ordem">1.</span>&nbsp;&nbsp;&nbsp;&nbsp;O projeto deverá ser aprovado pelo Departamento e Congregação da Unidade Universitária.</div>
+            <div>
+                <span id="num-ordem">2.</span>&nbsp;&nbsp;&nbsp;&nbsp;O número máximo de monitores: 
+                <b>1(um) por professor(a) de 20 horas, 2(dois) por professor(a) de 40 horas e 3(três) por professor(a) DE.</b>
+            </div>
+            <div>
+                <span id="num-ordem">3.</span>&nbsp;&nbsp;&nbsp;&nbsp;As <b>Congregações</b> deverão encaminhar à PROGRAD os projetos elaborados pelos(as) professores(as), conforme descrito em edital.
+            </div>
+            <div>
+                <span id="num-ordem">4.</span>&nbsp;&nbsp;&nbsp;&nbsp;No projeto <b>poderá</b> constar a previsão de vagas para monitores(as) bolsistas e voluntários(as), desde que os prazos definidos em edital próprio para cada modalidade sejam acatados.
+            </div>
+            <div><span id="num-ordem">5.</span>&nbsp;&nbsp;&nbsp;&nbsp;O preenchimento de todos os dados deste formulário é indispensável.</div>
+            <div>
+                <span id="num-ordem">6.</span>&nbsp;&nbsp;&nbsp;&nbsp;<b id="instrucao-6">CASO SEJA PROJETO EM GRUPO, ANEXAR RELAÇÃO DE PROFESSORES PARTICIPANTES DO PROJETO, COM OS MESMOS DADOS SOLICITADOS ACIMA.</b>
+            </div>
+            <div class="activeSignatureArea" id="assinatura-admin"></div>
+        </div>
+    </div>
+</body>
+</html>
