@@ -140,7 +140,7 @@ export default function AnalyticsPage() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center">
+                <div className="flex items-start">
                   <Users className="h-4 w-4 text-blue-600" />
                   <div className="ml-2">
                     <p className="text-sm font-medium text-muted-foreground">Alunos</p>
@@ -152,7 +152,7 @@ export default function AnalyticsPage() {
 
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center">
+                <div className="flex items-start">
                   <UserCheck className="h-4 w-4 text-green-600" />
                   <div className="ml-2">
                     <p className="text-sm font-medium text-muted-foreground">Professores</p>
@@ -164,7 +164,7 @@ export default function AnalyticsPage() {
 
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center">
+                <div className="flex items-start">
                   <Building className="h-4 w-4 text-orange-600" />
                   <div className="ml-2">
                     <p className="text-sm font-medium text-muted-foreground">Departamentos</p>
@@ -176,7 +176,7 @@ export default function AnalyticsPage() {
 
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center">
+                <div className="flex items-start">
                   <GraduationCap className="h-4 w-4 text-purple-600" />
                   <div className="ml-2">
                     <p className="text-sm font-medium text-muted-foreground">Cursos</p>
@@ -188,7 +188,7 @@ export default function AnalyticsPage() {
 
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-center">
+                <div className="flex items-start">
                   <BookOpen className="h-4 w-4 text-indigo-600" />
                   <div className="ml-2">
                     <p className="text-sm font-medium text-muted-foreground">Disciplinas</p>
