@@ -63,13 +63,13 @@ export function PdfSignatureModal({
       const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
       
       // Calculate signature dimensions and position
-      const signatureWidth = 150;
-      const signatureHeight = 75;
+      const signatureWidth = 180;
+      const signatureHeight = 50;
       const pageWidth = lastPage.getWidth();
       
-      // Position signature at bottom right of last page
-      const x = pageWidth - signatureWidth - 50;
-      const y = 50;
+      // Position signature in the designated signature area
+      const x = pageWidth - signatureWidth - 20;
+      const y = 60;
       
       // Draw the signature
       lastPage.drawImage(signatureImage, {

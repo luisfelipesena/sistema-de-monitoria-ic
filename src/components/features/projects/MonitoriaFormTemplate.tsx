@@ -116,8 +116,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
-    marginTop: 15,
-    minHeight: 70,
+    marginTop: 10,
+    minHeight: 80,
     break: false,
   },
   signatureText: {
@@ -132,10 +132,10 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   signatureImage: {
-    width: 200,
-    height: 60,
+    width: 180,
+    height: 50,
     objectFit: "contain",
-    alignSelf: "flex-end",
+    alignSelf: "center",
   },
   activeSignatureArea: {
     borderColor: "#0066cc",
@@ -177,11 +177,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Image 
-            style={styles.logo} 
-            src="/images/logo-ufba.png" 
-            cache={false}
-          />
+          <Image style={styles.logo} src="/images/logo-ufba.png" cache={false} />
           <View style={styles.headerText}>
             <Text style={styles.universityName}>UNIVERSIDADE FEDERAL DA BAHIA</Text>
             <Text style={styles.departmentName}>Pró - Reitoria de Ensino de Graduação</Text>
@@ -338,7 +334,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                 Data e Assinatura do(a) Prof(a). Responsável:{" "}
                 {data.dataAssinaturaProfessor || new Date().toLocaleDateString("pt-BR")}
               </Text>
-              <View style={{ width: 200, height: 70, justifyContent: "flex-end" }}>
+              <View style={{ width: 200, height: 70, justifyContent: "center", alignItems: "center" }}>
                 {data.assinaturaProfessor ? (
                   <Image src={data.assinaturaProfessor} style={styles.signatureImage} />
                 ) : (
@@ -377,7 +373,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                 Data e Assinatura do(a) Coordenador(a):{" "}
                 {data.dataAssinaturaAdmin || new Date().toLocaleDateString("pt-BR")}
               </Text>
-              <View style={{ width: 200, height: 70, justifyContent: "flex-end" }}>
+              <View style={{ width: 200, height: 70, justifyContent: "center", alignItems: "center" }}>
                 {data.assinaturaAdmin ? (
                   <Image src={data.assinaturaAdmin} style={styles.signatureImage} />
                 ) : (
