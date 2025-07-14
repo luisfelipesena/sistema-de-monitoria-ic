@@ -857,7 +857,7 @@ export const projetoRouter = createTRPCRouter({
           estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || undefined,
           disciplinas,
           professoresParticipantes,
-          atividades,
+          atividades: atividades.map((a) => a.descricao),
           assinaturaProfessor: input.signatureImage,
           dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
           projetoId: projeto.id,
@@ -1031,7 +1031,7 @@ export const projetoRouter = createTRPCRouter({
           estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || undefined,
           disciplinas,
           professoresParticipantes,
-          atividades,
+          atividades: atividades.map((a) => a.descricao),
           projetoId: projeto.id,
         }
 

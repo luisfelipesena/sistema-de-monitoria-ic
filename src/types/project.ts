@@ -164,6 +164,7 @@ export interface MonitoriaFormData {
     codigo: string
     nome: string
   }>
+  atividades?: string[]
   user?: {
     username?: string
     email?: string
@@ -341,6 +342,24 @@ export const projectDetailSchema = z.object({
         id: z.number().int().positive(),
         nome: z.string(),
         codigo: z.string(),
+      })
+    )
+    .optional(),
+  atividades: z
+    .array(
+      z.object({
+        id: z.number().int().positive(),
+        descricao: z.string(),
+        projetoId: z.number().int().positive(),
+        createdAt: z.date(),
+      })
+    )
+    .optional(),
+  professoresParticipantes: z
+    .array(
+      z.object({
+        id: z.number().int().positive(),
+        nomeCompleto: z.string(),
       })
     )
     .optional(),

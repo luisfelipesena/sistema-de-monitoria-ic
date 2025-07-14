@@ -103,13 +103,14 @@ export default function RelatoriosPage() {
   // Column definitions for different reports
   const departamentosColumns: ColumnDef<DepartamentoRelatorio>[] = [
     {
-      accessorKey: "departamento.sigla",
+      id: "departamento",
+      accessorFn: (row) => row.departamento.sigla || row.departamento.nome,
       header: "Departamento",
       cell: ({ row }) => {
         const departamento = row.original as DepartamentoRelatorio
         return (
           <div>
-            <div className="font-medium">{departamento.departamento.sigla}</div>
+            <div className="font-medium">{departamento.departamento.sigla || departamento.departamento.nome}</div>
             <div className="text-sm text-muted-foreground">{departamento.departamento.nome}</div>
           </div>
         )
@@ -145,6 +146,8 @@ export default function RelatoriosPage() {
 
   const professoresColumns: ColumnDef<ProfessorRelatorio>[] = [
     {
+      id: "professor",
+      accessorFn: (row) => row.professor.nomeCompleto,
       header: "Professor",
       cell: ({ row }) => {
         const professor = row.original as ProfessorRelatorio
@@ -186,6 +189,8 @@ export default function RelatoriosPage() {
 
   const alunosColumns: ColumnDef<AlunoRelatorio>[] = [
     {
+      id: "aluno",
+      accessorFn: (row) => row.aluno.nomeCompleto,
       header: "Aluno",
       cell: ({ row }) => {
         const aluno = row.original as AlunoRelatorio
@@ -275,6 +280,8 @@ export default function RelatoriosPage() {
 
   const disciplinasColumns: ColumnDef<DisciplinaRelatorio>[] = [
     {
+      id: "disciplina",
+      accessorFn: (row) => `${row.disciplina.codigo} - ${row.disciplina.nome}`,
       header: "Disciplina",
       cell: ({ row }) => {
         const disciplina = row.original as DisciplinaRelatorio
@@ -304,6 +311,8 @@ export default function RelatoriosPage() {
 
   const editaisColumns: ColumnDef<EditalRelatorio>[] = [
     {
+      id: "edital",
+      accessorFn: (row) => row.edital.numeroEdital,
       header: "Edital",
       cell: ({ row }) => {
         const edital = row.original as EditalRelatorio
@@ -513,7 +522,7 @@ export default function RelatoriosPage() {
                   <TableComponent
                     columns={departamentosColumns}
                     data={departamentos}
-                    searchableColumn="departamento.sigla"
+                    searchableColumn="departamento"
                     searchPlaceholder="Buscar departamento..."
                   />
                 ) : (
@@ -552,7 +561,7 @@ export default function RelatoriosPage() {
                   <TableComponent
                     columns={professoresColumns}
                     data={professores}
-                    searchableColumn="professor.nomeCompleto"
+                    searchableColumn="professor"
                     searchPlaceholder="Buscar professor..."
                   />
                 ) : (
@@ -591,7 +600,7 @@ export default function RelatoriosPage() {
                   <TableComponent
                     columns={alunosColumns}
                     data={alunos}
-                    searchableColumn="aluno.nomeCompleto"
+                    searchableColumn="aluno"
                     searchPlaceholder="Buscar aluno..."
                   />
                 ) : (
@@ -630,7 +639,7 @@ export default function RelatoriosPage() {
                   <TableComponent
                     columns={disciplinasColumns}
                     data={disciplinas}
-                    searchableColumn="disciplina.codigo"
+                    searchableColumn="disciplina"
                     searchPlaceholder="Buscar disciplina..."
                   />
                 ) : (
@@ -669,7 +678,7 @@ export default function RelatoriosPage() {
                   <TableComponent
                     columns={editaisColumns}
                     data={editais}
-                    searchableColumn="edital.numeroEdital"
+                    searchableColumn="edital"
                     searchPlaceholder="Buscar edital..."
                   />
                 ) : (
