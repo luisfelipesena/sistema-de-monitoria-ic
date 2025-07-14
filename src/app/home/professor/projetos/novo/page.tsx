@@ -14,19 +14,19 @@ import { MonitoriaFormData, projectFormSchema } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PDFViewer } from "@react-pdf/renderer"
-import { Eye, FileText, Loader2, Plus, Trash2 } from "lucide-react"
+import { Eye, FileText, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import React, { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 
-// Componente memoizado para o PDFViewer
+// Componente memoizado para o PDFViewer - sem atualizações automáticas
 const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) => {
   return (
     <div className="border rounded-lg bg-white">
-      <div className="bg-blue-50 border-b px-4 py-2">
-        <p className="text-sm text-blue-800 font-medium">
-          ✅ Preview gerado com sucesso - Dados atualizados automaticamente
+      <div className="bg-green-50 border-b px-4 py-2">
+        <p className="text-sm text-green-800 font-medium">
+          ✅ Preview gerado com sucesso - Use "Atualizar Preview" para ver as alterações
         </p>
       </div>
       <div style={{ width: '100%', height: '800px' }}>
@@ -48,13 +48,14 @@ export default function NovoProjetoPage() {
   const [pdfKey, setPdfKey] = useState(0)
   const [publicoAlvoTipo, setPublicoAlvoTipo] = useState<"estudantes_graduacao" | "outro">("estudantes_graduacao")
   const [publicoAlvoCustom, setPublicoAlvoCustom] = useState("")
+  const [currentPdfData, setCurrentPdfData] = useState<MonitoriaFormData | null>(null)
+  const [hasChanges, setHasChanges] = useState(false)
   const [atividades, setAtividades] = useState<string[]>([
     "Auxiliar na elaboração de exercícios práticos de programação",
     "Apoiar estudantes em horários de plantão para esclarecimento de dúvidas",
     "Colaborar na revisão de códigos e debugging",
     "Ajudar na preparação de material didático complementar",
   ])
-  const [debouncedFormValues, setDebouncedFormValues] = useState<ProjetoFormData | null>(null)
 
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
   const { data: disciplinas } = api.discipline.getDisciplines.useQuery()
@@ -96,16 +97,15 @@ export default function NovoProjetoPage() {
     (disciplina) => disciplina.departamentoId === departamentoSelecionado
   )
 
-  const formValues = form.watch()
-
-  // Debounce form values to avoid excessive re-renders
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedFormValues(formValues)
-    }, 600) // 600ms debounce
-
-    return () => clearTimeout(timer)
-  }, [formValues])
+  // Track changes when form values change
+  React.useEffect(() => {
+    const subscription = form.watch(() => {
+      if (showPreview) {
+        setHasChanges(true)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form, showPreview])
 
   const validateRequiredFields = useCallback((values: ProjetoFormData) => {
     const errors = []
@@ -117,31 +117,31 @@ export default function NovoProjetoPage() {
     return { isValid: errors.length === 0, missingFields: errors }
   }, [])
 
-  const { isValid: canGeneratePreview, missingFields } = debouncedFormValues
-    ? validateRequiredFields(debouncedFormValues)
-    : { isValid: false, missingFields: ["Carregando..."] }
+  const getCurrentValidation = useCallback(() => {
+    const currentValues = form.getValues()
+    return validateRequiredFields(currentValues)
+  }, [form, validateRequiredFields])
 
-  const firstDisciplinaId = debouncedFormValues?.disciplinas?.[0]
+  const firstDisciplinaId = currentPdfData?.disciplinas?.[0]?.id
   const { data: disciplinaWithProfessor, isLoading: isLoadingProfessor } =
     api.discipline.getDisciplineWithProfessor.useQuery(
       { id: firstDisciplinaId! },
       { enabled: !!firstDisciplinaId && firstDisciplinaId !== 0 && showPreview }
     )
 
-  const pdfData: MonitoriaFormData | null = React.useMemo(() => {
-    if (!showPreview || !canGeneratePreview || !debouncedFormValues) return null
+  const generatePdfData = useCallback((formValues: ProjetoFormData): MonitoriaFormData | null => {
+    if (!departamentos || !disciplinas) return null
 
-    const departamento = departamentos?.find((d) => d.id === debouncedFormValues.departamentoId)
-    const selectedDisciplinas = disciplinas?.filter((d) => debouncedFormValues.disciplinas.includes(d.id)) || []
+    const departamento = departamentos.find((d) => d.id === formValues.departamentoId)
+    const selectedDisciplinas = disciplinas.filter((d) => formValues.disciplinas.includes(d.id))
 
     if (!departamento || selectedDisciplinas.length === 0) return null
 
     const professor = disciplinaWithProfessor?.professor
 
-    // Cria um objeto estável para evitar re-renderização constante
-    const data: MonitoriaFormData = {
-      titulo: debouncedFormValues.titulo,
-      descricao: debouncedFormValues.descricao,
+    return {
+      titulo: formValues.titulo,
+      descricao: formValues.descricao,
       departamento: {
         id: departamento.id,
         nome: departamento.nome,
@@ -161,15 +161,15 @@ export default function NovoProjetoPage() {
             emailInstitucional: professor.emailInstitucional,
           }
         : undefined,
-      ano: debouncedFormValues.ano,
-      semestre: debouncedFormValues.semestre,
-      tipoProposicao: debouncedFormValues.tipoProposicao,
-      bolsasSolicitadas: debouncedFormValues.bolsasSolicitadas || 0,
-      voluntariosSolicitados: debouncedFormValues.voluntariosSolicitados || 0,
-      cargaHorariaSemana: debouncedFormValues.cargaHorariaSemana,
-      numeroSemanas: debouncedFormValues.numeroSemanas,
-      publicoAlvo: debouncedFormValues.publicoAlvo,
-      estimativaPessoasBenificiadas: debouncedFormValues.estimativaPessoasBenificiadas || 0,
+      ano: formValues.ano,
+      semestre: formValues.semestre,
+      tipoProposicao: formValues.tipoProposicao,
+      bolsasSolicitadas: formValues.bolsasSolicitadas || 0,
+      voluntariosSolicitados: formValues.voluntariosSolicitados || 0,
+      cargaHorariaSemana: formValues.cargaHorariaSemana,
+      numeroSemanas: formValues.numeroSemanas,
+      publicoAlvo: formValues.publicoAlvo,
+      estimativaPessoasBenificiadas: formValues.estimativaPessoasBenificiadas || 0,
       disciplinas: selectedDisciplinas.map((d) => ({
         id: d.id,
         codigo: d.codigo,
@@ -181,30 +181,7 @@ export default function NovoProjetoPage() {
         role: "professor",
       },
     }
-
-    return data
-  }, [
-    showPreview, 
-    canGeneratePreview, 
-    debouncedFormValues?.titulo,
-    debouncedFormValues?.descricao,
-    debouncedFormValues?.departamentoId,
-    debouncedFormValues?.disciplinas?.join(','),
-    debouncedFormValues?.ano,
-    debouncedFormValues?.semestre,
-    debouncedFormValues?.tipoProposicao,
-    debouncedFormValues?.bolsasSolicitadas,
-    debouncedFormValues?.voluntariosSolicitados,
-    debouncedFormValues?.cargaHorariaSemana,
-    debouncedFormValues?.numeroSemanas,
-    debouncedFormValues?.publicoAlvo,
-    debouncedFormValues?.estimativaPessoasBenificiadas,
-    disciplinaWithProfessor?.professor?.id,
-    disciplinaWithProfessor?.professor?.nomeCompleto,
-    disciplinaWithProfessor?.professor?.emailInstitucional,
-    departamentos?.length,
-    disciplinas?.length
-  ])
+  }, [departamentos, disciplinas, disciplinaWithProfessor?.professor])
 
   const handleAddAtividade = () => {
     setAtividades([...atividades, ""])
@@ -251,14 +228,94 @@ export default function NovoProjetoPage() {
   }
 
   const handleGeneratePreview = async () => {
-    if (!canGeneratePreview) return
+    const validation = getCurrentValidation()
+    if (!validation.isValid) {
+      toast({
+        title: "Campos obrigatórios pendentes",
+        description: `Preencha os campos: ${validation.missingFields.join(', ')}`,
+        variant: "destructive",
+      })
+      return
+    }
 
     setIsGeneratingPreview(true)
-    setTimeout(() => {
+    
+    try {
+      const formValues = form.getValues()
+      const pdfData = generatePdfData(formValues)
+      
+      if (!pdfData) {
+        toast({
+          title: "Erro ao gerar preview",
+          description: "Não foi possível gerar o preview com os dados fornecidos",
+          variant: "destructive",
+        })
+        setIsGeneratingPreview(false)
+        return
+      }
+
+      // Simulate loading time for better UX
+      await new Promise(resolve => setTimeout(resolve, 800))
+      
+      setCurrentPdfData(pdfData)
       setShowPreview(true)
-      setPdfKey(prev => prev + 1) // Força re-renderização do PDF
+      setHasChanges(false)
+      setPdfKey(prev => prev + 1)
+      
+    } catch (error) {
+      toast({
+        title: "Erro ao gerar preview",
+        description: "Ocorreu um erro ao gerar o preview",
+        variant: "destructive",
+      })
+    } finally {
       setIsGeneratingPreview(false)
-    }, 500)
+    }
+  }
+
+  const handleUpdatePreview = async () => {
+    const validation = getCurrentValidation()
+    if (!validation.isValid) {
+      toast({
+        title: "Campos obrigatórios pendentes",
+        description: `Preencha os campos: ${validation.missingFields.join(', ')}`,
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsGeneratingPreview(true)
+    
+    try {
+      const formValues = form.getValues()
+      const pdfData = generatePdfData(formValues)
+      
+      if (!pdfData) {
+        toast({
+          title: "Erro ao atualizar preview",
+          description: "Não foi possível atualizar o preview com os dados fornecidos",
+          variant: "destructive",
+        })
+        setIsGeneratingPreview(false)
+        return
+      }
+
+      // Simulate loading time for better UX
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      setCurrentPdfData(pdfData)
+      setHasChanges(false)
+      setPdfKey(prev => prev + 1)
+      
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar preview",
+        description: "Ocorreu um erro ao atualizar o preview",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGeneratingPreview(false)
+    }
   }
 
   const isLoading = !departamentos || !disciplinas
@@ -698,11 +755,34 @@ export default function NovoProjetoPage() {
           <div className="bg-gray-50 border rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Preview do Documento</h3>
-              {showPreview && (
-                <Button variant="outline" size="sm" onClick={() => setShowPreview(false)}>
-                  Ocultar Preview
-                </Button>
-              )}
+              <div className="flex gap-2">
+                {showPreview && hasChanges && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleUpdatePreview}
+                    disabled={isGeneratingPreview}
+                    className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                  >
+                    {isGeneratingPreview ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Atualizando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Atualizar Preview
+                      </>
+                    )}
+                  </Button>
+                )}
+                {showPreview && (
+                  <Button variant="outline" size="sm" onClick={() => setShowPreview(false)}>
+                    Ocultar Preview
+                  </Button>
+                )}
+              </div>
             </div>
 
             {!showPreview ? (
@@ -713,20 +793,9 @@ export default function NovoProjetoPage() {
                   Visualize como ficará o formulário oficial de monitoria antes de salvar
                 </p>
 
-                {!canGeneratePreview && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                    <h5 className="font-medium text-amber-800 mb-2">Campos obrigatórios pendentes:</h5>
-                    <ul className="text-sm text-amber-700 list-disc list-inside">
-                      {missingFields.map((field) => (
-                        <li key={field}>{field}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
                 <Button
                   onClick={handleGeneratePreview}
-                  disabled={!canGeneratePreview || isGeneratingPreview}
+                  disabled={isGeneratingPreview}
                   size="lg"
                   className="bg-blue-600 hover:bg-blue-700"
                 >
@@ -749,13 +818,24 @@ export default function NovoProjetoPage() {
               </div>
             ) : (
               <>
+                {hasChanges && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-center">
+                      <RefreshCw className="w-4 h-4 mr-2 text-amber-600" />
+                      <p className="text-sm text-amber-800 font-medium">
+                        O formulário foi alterado. Clique em "Atualizar Preview" para ver as mudanças.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
                 {isLoadingProfessor && firstDisciplinaId && firstDisciplinaId !== 0 ? (
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600 mb-4" />
                     <p>Carregando dados do professor...</p>
                   </div>
-                ) : pdfData ? (
-                  <PDFPreviewComponent key={pdfKey} data={pdfData} />
+                ) : currentPdfData ? (
+                  <PDFPreviewComponent key={pdfKey} data={currentPdfData} />
                 ) : (
                   <div className="text-center py-8 text-red-500">
                     <p>Erro ao gerar preview. Verifique se todos os campos obrigatórios estão preenchidos.</p>

@@ -1,7 +1,7 @@
-import { z } from 'zod'
-import { eq, desc } from 'drizzle-orm'
-import { createTRPCRouter, adminProtectedProcedure } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter } from '@/server/api/trpc'
 import { projetoTemplateTable } from '@/server/db/schema'
+import { desc, eq } from 'drizzle-orm'
+import { z } from 'zod'
 
 export const projetoTemplatesRouter = createTRPCRouter({
   getTemplates: adminProtectedProcedure.query(async ({ ctx }) => {
@@ -266,7 +266,9 @@ export const projetoTemplatesRouter = createTRPCRouter({
     return {
       totalTemplates: totalTemplates.length,
       totalDisciplinas: totalDisciplinas.length,
-      cobertura: Math.round((totalTemplates.length / totalDisciplinas.length) * 100),
+      cobertura: totalDisciplinas.length > 0
+        ? Math.round((totalTemplates.length / totalDisciplinas.length) * 100)
+        : 0, 
       disciplinasSemTemplate: totalDisciplinas.length - totalTemplates.length,
     }
   }),

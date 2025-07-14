@@ -167,7 +167,7 @@ export async function sendProfessorAssinouPropostaNotification(
   adminEmails: string[]
 ) {
   const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
-  const linkProjeto = `${clientUrl}/home/admin/project/${data.projetoId}`
+  const linkProjeto = `${clientUrl}/home/admin/dashboard`
 
   const htmlMessage = `
     <p>O Prof(a). ${data.professorNome} assinou e enviou a proposta para o projeto "<strong>${data.projetoTitulo}</strong>".</p>

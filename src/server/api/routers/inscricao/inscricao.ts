@@ -304,6 +304,29 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
+        // Validar dados obrigatórios
+        if (!input.tipo) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Tipo de vaga é obrigatório',
+          })
+        }
+
+        // Verificar se há vagas disponíveis
+        if (input.tipo === 'BOLSISTA' && (!projeto.bolsasDisponibilizadas || projeto.bolsasDisponibilizadas <= 0)) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Não há vagas de bolsista disponíveis para este projeto',
+          })
+        }
+
+        if (input.tipo === 'VOLUNTARIO' && (!projeto.voluntariosSolicitados || projeto.voluntariosSolicitados <= 0)) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Não há vagas de voluntário disponíveis para este projeto',
+          })
+        }
+
         // Create the inscription
         const [novaInscricao] = await ctx.db
           .insert(inscricaoTable)
@@ -661,6 +684,14 @@ export const inscricaoRouter = createTRPCRouter({
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Você já possui uma inscrição para este projeto',
+          })
+        }
+
+        // Validar dados obrigatórios
+        if (!input.tipoVagaPretendida) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Tipo de vaga é obrigatório',
           })
         }
 

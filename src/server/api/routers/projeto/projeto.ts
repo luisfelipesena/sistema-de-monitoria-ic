@@ -302,6 +302,14 @@ export const projetoRouter = createTRPCRouter({
           .returning()
 
         if (disciplinaIds && disciplinaIds.length > 0) {
+          // Validar que apenas uma disciplina pode ser vinculada por projeto (conforme edital)
+          if (disciplinaIds.length > 1) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Um projeto pode ter apenas uma disciplina vinculada, conforme edital',
+            })
+          }
+
           const disciplinaValues = disciplinaIds.map((disciplinaId) => ({
             projetoId: novoProjeto.id,
             disciplinaId,
@@ -630,6 +638,7 @@ export const projetoRouter = createTRPCRouter({
         id: idSchema,
         bolsasDisponibilizadas: z.number().min(0).optional(),
         feedbackAdmin: z.string().optional(),
+        signatureRequired: z.boolean().default(true),
       })
     )
     .output(z.object({ success: z.boolean() }))
@@ -652,17 +661,43 @@ export const projetoRouter = createTRPCRouter({
         })
       }
 
-      await ctx.db
-        .update(projetoTable)
-        .set({
-          status: 'PENDING_ADMIN_SIGNATURE',
-          bolsasDisponibilizadas: input.bolsasDisponibilizadas,
-          feedbackAdmin: input.feedbackAdmin,
-          updatedAt: new Date(),
-        })
-        .where(eq(projetoTable.id, input.id))
+      // Verificar se a assinatura é obrigatória
+      if (input.signatureRequired) {
+        // Não permitir aprovação sem assinatura - deve ir para PENDING_ADMIN_SIGNATURE
+        await ctx.db
+          .update(projetoTable)
+          .set({
+            status: 'PENDING_ADMIN_SIGNATURE',
+            bolsasDisponibilizadas: input.bolsasDisponibilizadas,
+            feedbackAdmin: input.feedbackAdmin,
+            updatedAt: new Date(),
+          })
+          .where(eq(projetoTable.id, input.id))
 
-      log.info({ projetoId: input.id }, 'Projeto aprovado e pendente de assinatura do admin')
+        log.info({ projetoId: input.id }, 'Projeto aprovado e pendente de assinatura do admin')
+      } else {
+        // Permitir aprovação direta apenas em casos especiais (importação, etc.)
+        // e somente se admin assinatura já existe
+        if (!projeto.assinaturaAdmin) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Assinatura do administrador é obrigatória para aprovação',
+          })
+        }
+
+        await ctx.db
+          .update(projetoTable)
+          .set({
+            status: 'APPROVED',
+            bolsasDisponibilizadas: input.bolsasDisponibilizadas,
+            feedbackAdmin: input.feedbackAdmin,
+            updatedAt: new Date(),
+          })
+          .where(eq(projetoTable.id, input.id))
+
+        log.info({ projetoId: input.id }, 'Projeto aprovado diretamente com assinatura existente')
+      }
+
       return { success: true }
     }),
 
@@ -920,10 +955,18 @@ export const projetoRouter = createTRPCRouter({
         })
       }
 
-      if (projeto.status !== 'PENDING_ADMIN_SIGNATURE') {
+      if (projeto.status !== 'SUBMITTED' && projeto.status !== 'PENDING_ADMIN_SIGNATURE') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Projeto não está aguardando aprovação',
+          message: 'Projeto não está aguardando assinatura do admin',
+        })
+      }
+
+      // Validar se a assinatura não está vazia
+      if (!input.signatureImage || input.signatureImage.trim() === '') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Assinatura é obrigatória para aprovação',
         })
       }
 

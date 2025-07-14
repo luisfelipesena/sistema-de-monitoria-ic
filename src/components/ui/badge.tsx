@@ -8,23 +8,16 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
-        secondary:
-          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        destructive:
-          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        success:
-          'border-transparent bg-green-500 text-white hover:bg-green-600',
-        warning:
-          'border-transparent bg-yellow-400 text-black hover:bg-yellow-500',
-        muted: 'border-transparent bg-gray-300 text-gray-800 hover:bg-gray-400',
-        outline: 'text-foreground',
-        retaVerde:
-          'border-transparent bg-green-500 text-white hover:bg-green-600 rounded-none',
-        retaVermelha:
-          'border-transparent bg-red-500 text-white hover:bg-red-600 rounded-none',
-      },
+  default: 'border-transparent bg-blue-600 text-white hover:bg-blue-700',
+  secondary: 'border-transparent bg-gray-200 text-gray-800 hover:bg-gray-300',
+  destructive: 'border-transparent bg-red-500 text-white hover:bg-red-600',
+  success: 'border-transparent bg-emerald-500 text-white hover:bg-emerald-600',
+  warning: 'border-transparent bg-yellow-400 text-black hover:bg-yellow-500',
+  muted: 'border-transparent bg-gray-100 text-gray-500 hover:bg-gray-200',
+  outline: 'border border-gray-300 text-gray-800 hover:bg-gray-100',
+  retaVerde: 'border-transparent bg-emerald-500 text-white hover:bg-emerald-600 rounded-none',
+  retaVermelha: 'border-transparent bg-red-500 text-white hover:bg-red-600 rounded-none',
+},
     },
     defaultVariants: {
       variant: 'default',
