@@ -26,7 +26,7 @@ export default function DocumentSigningPage() {
     { enabled: !!selectedProjectId }
   )
 
-  const pendingSignatureProjetos = projetos?.filter((projeto) => projeto.status === "SUBMITTED") || []
+  const pendingSignatureProjetos = projetos?.filter((projeto) => projeto.status === "PENDING_ADMIN_SIGNATURE") || []
 
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
 

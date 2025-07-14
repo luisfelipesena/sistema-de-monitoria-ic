@@ -32,6 +32,10 @@ const createMockContext = (user: User | null): TRPCContext => ({
       periodoInscricaoTable: {
         findFirst: vi.fn(),
       },
+      projetoTable: {
+        findFirst: vi.fn(),
+        findMany: vi.fn(),
+      },
     },
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
@@ -39,7 +43,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
     values: vi.fn().mockReturnThis(),
     set: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
-    returning: vi.fn(),
+    returning: vi.fn().mockResolvedValue([]),
   } as any,
 })
 
@@ -87,7 +91,19 @@ describe('editalRouter', () => {
       const mockContext = createMockContext(mockAdminUser)
       const caller = editalRouter.createCaller(mockContext)
 
-      vi.spyOn(mockContext.db.query.editalTable, 'findFirst').mockResolvedValue({ id: 1, fileIdAssinado: null } as any)
+      vi.spyOn(mockContext.db.query.editalTable, 'findFirst').mockResolvedValue({
+        id: 1,
+        titulo: 'Edital Teste',
+        descricaoHtml: '<p>Descrição do edital</p>',
+        fileIdAssinado: null,
+        publicado: false,
+        numeroEdital: '001/2024',
+        criadoPorUserId: 1,
+        createdAt: new Date(),
+        updatedAt: null,
+        dataPublicacao: null,
+        periodoInscricaoId: 1,
+      } as any)
 
       await expect(caller.publishEdital({ id: 1 })).rejects.toThrowError(/O edital precisa estar assinado/)
     })
@@ -98,18 +114,25 @@ describe('editalRouter', () => {
 
       const signedEdital = {
         id: 1,
+        titulo: 'Edital Teste',
+        descricaoHtml: '<p>Descrição do edital</p>',
         fileIdAssinado: 'signed-file-id',
         publicado: false,
         numeroEdital: '001/2024',
-        titulo: 'Edital',
         criadoPorUserId: 1,
         createdAt: new Date(),
         updatedAt: null,
-        descricaoHtml: null,
         dataPublicacao: null,
         periodoInscricaoId: 1,
       }
-      vi.spyOn(mockContext.db.query.editalTable, 'findFirst').mockResolvedValue(signedEdital as any)
+      
+      vi.spyOn(mockContext.db.query.editalTable, 'findFirst')
+        .mockResolvedValueOnce(signedEdital as any)
+        .mockResolvedValueOnce({ ...signedEdital, periodoInscricao: { id: 1 } } as any)
+
+      // Mock para verificar projetos aprovados
+      vi.spyOn(mockContext.db.query.projetoTable, 'findMany').mockResolvedValue([{ id: 1 }] as any)
+
       vi.spyOn(mockContext.db, 'update').mockReturnValue({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),

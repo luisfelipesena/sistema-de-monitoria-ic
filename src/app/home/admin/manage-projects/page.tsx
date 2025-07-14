@@ -55,6 +55,7 @@ export default function ManageProjectsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showProjectFilesDialog, setShowProjectFilesDialog] = useState(false)
   const [rejectFeedback, setRejectFeedback] = useState("")
+  const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
 
   const approveProjectMutation = api.projeto.approveProjeto.useMutation({
     onSuccess: () => {
@@ -130,6 +131,7 @@ export default function ManageProjectsPage() {
   }
 
   const handleViewProjectPDF = async (projetoId: number) => {
+    setLoadingPdfProjetoId(projetoId)
     try {
       toast("Preparando visualização do PDF...")
 
@@ -151,6 +153,8 @@ export default function ManageProjectsPage() {
         description: "Não foi possível abrir o documento para visualização.",
       })
       console.error("View PDF error:", error)
+    } finally {
+      setLoadingPdfProjetoId(null)
     }
   }
 
@@ -203,7 +207,11 @@ export default function ManageProjectsPage() {
   }
 
   const handleGoToDocumentSigning = () => {
-    router.push("/home/admin/document-signing")
+    router.push("/home/admin/assinatura-documentos")
+  }
+
+  const handleSignSpecificProject = (projetoId: number) => {
+    router.push(`/home/admin/assinatura-documentos?projetoId=${projetoId}`)
   }
 
   const handleApplyFilters = (newFilters: FilterValues) => {
@@ -380,7 +388,7 @@ export default function ManageProjectsPage() {
                 variant="secondary"
                 size="sm"
                 className="rounded-full flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white"
-                onClick={handleGoToDocumentSigning}
+                onClick={() => handleSignSpecificProject(projeto.id)}
               >
                 <FileSignature className="h-4 w-4" />
                 Assinar
@@ -397,10 +405,10 @@ export default function ManageProjectsPage() {
                 size="sm"
                 className="rounded-full flex items-center gap-1"
                 onClick={() => handleViewProjectPDF(projeto.id)}
-                disabled={getProjetoPdfMutation.isPending}
+                disabled={loadingPdfProjetoId === projeto.id}
               >
                 <FileText className="h-4 w-4" />
-                {getProjetoPdfMutation.isPending ? "Carregando..." : "Ver PDF"}
+                {loadingPdfProjetoId === projeto.id ? "Carregando..." : "Ver PDF"}
               </Button>
             )}
 
@@ -592,9 +600,9 @@ export default function ManageProjectsPage() {
               <Button
                 variant="outline"
                 onClick={() => selectedProject && handleViewProjectPDF(selectedProject.id)}
-                disabled={getProjetoPdfMutation.isPending}
+                disabled={selectedProject ? loadingPdfProjetoId === selectedProject.id : false}
               >
-                {getProjetoPdfMutation.isPending ? "Carregando..." : "Abrir PDF"}
+                {selectedProject && loadingPdfProjetoId === selectedProject.id ? "Carregando..." : "Abrir PDF"}
               </Button>
             </div>
 

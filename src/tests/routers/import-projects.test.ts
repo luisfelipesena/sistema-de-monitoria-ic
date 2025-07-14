@@ -47,7 +47,7 @@ describe('importProjectsRouter', () => {
 
       const mockProfessor = { id: 1, departamentoId: 1 }
       const mockDisciplina = { id: 1 }
-      const mockImportacao = { id: 1, ano: 2024, semestre: 'SEMESTRE_1' as const }
+      const mockImportacao = { id: 1, ano: 2024, semestre: 'SEMESTRE_1' as const, status: 'PROCESSANDO' }
 
       vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfessor as any)
       vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue(mockDisciplina as any)
@@ -82,7 +82,7 @@ describe('importProjectsRouter', () => {
       const caller = importProjectsRouter.createCaller(mockContext)
 
       const mockProfessor = { id: 1, departamentoId: 1 }
-      const mockImportacao = { id: 1, ano: 2024, semestre: 'SEMESTRE_1' as const }
+      const mockImportacao = { id: 1, ano: 2024, semestre: 'SEMESTRE_1' as const, status: 'PROCESSANDO' }
 
       vi.spyOn(mockContext.db.query.professorTable, 'findFirst')
         .mockResolvedValueOnce(mockProfessor as any) // For the valid project
