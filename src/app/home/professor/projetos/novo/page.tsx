@@ -14,7 +14,7 @@ import { MonitoriaFormData, projectFormSchema } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PDFViewer } from "@react-pdf/renderer"
-import { Eye, FileText, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react"
+import { Eye, FileText, Layout, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import React, { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -56,9 +56,11 @@ export default function NovoProjetoPage() {
     "Colaborar na revisão de códigos e debugging",
     "Ajudar na preparação de material didático complementar",
   ])
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
 
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
   const { data: disciplinas } = api.discipline.getDisciplines.useQuery()
+  const { data: templates } = api.projetoTemplates.getProjetoTemplates.useQuery()
   const createProjeto = api.projeto.createProjeto.useMutation()
   const apiUtils = api.useUtils()
 
@@ -81,6 +83,69 @@ export default function NovoProjetoPage() {
       disciplinas: [],
     },
   })
+
+  // Aplicar template selecionado
+  const handleTemplateSelect = (templateId: string) => {
+    if (!templateId || templateId === "none" || !templates || templates.length === 0) {
+      setSelectedTemplateId("")
+      return
+    }
+
+    const template = templates.find(t => t.id === parseInt(templateId))
+    if (!template) return
+
+    setSelectedTemplateId(templateId)
+
+    // Aplicar valores do template ao formulário
+    if (template.tituloDefault) {
+      form.setValue("titulo", template.tituloDefault)
+    }
+    
+    if (template.descricaoDefault) {
+      form.setValue("descricao", template.descricaoDefault)
+    }
+    
+    if (template.cargaHorariaSemanaDefault) {
+      form.setValue("cargaHorariaSemana", template.cargaHorariaSemanaDefault)
+    }
+    
+    if (template.numeroSemanasDefault) {
+      form.setValue("numeroSemanas", template.numeroSemanasDefault)
+    }
+    
+    if (template.publicoAlvoDefault) {
+      form.setValue("publicoAlvo", template.publicoAlvoDefault)
+      // Ajustar o tipo de público alvo
+      if (template.publicoAlvoDefault === "Estudantes de graduação") {
+        setPublicoAlvoTipo("estudantes_graduacao")
+      } else {
+        setPublicoAlvoTipo("outro")
+        setPublicoAlvoCustom(template.publicoAlvoDefault)
+      }
+    }
+    
+    if (template.atividadesDefault && template.atividadesDefault.length > 0) {
+      setAtividades(template.atividadesDefault)
+    }
+
+    // Selecionar a disciplina do template
+    if (template.disciplinaId) {
+      // Primeiro definir o departamento da disciplina
+      const disciplina = disciplinas?.find(d => d.id === template.disciplinaId)
+      if (disciplina) {
+        form.setValue("departamentoId", disciplina.departamentoId)
+        // Aguardar um pouco para garantir que o departamento foi setado
+        setTimeout(() => {
+          form.setValue("disciplinas", [template.disciplinaId])
+        }, 100)
+      }
+    }
+
+    toast({
+      title: "Template aplicado",
+      description: `Os valores do template para ${template.disciplina.codigo} - ${template.disciplina.nome} foram aplicados ao formulário.`,
+    })
+  }
 
   // Atualiza o publicoAlvo baseado no tipo selecionado
   useEffect(() => {
@@ -206,6 +271,7 @@ export default function NovoProjetoPage() {
         ...data,
         disciplinaIds: data.disciplinas,
         atividades: atividadesFiltradas,
+        status: 'DRAFT' as const,
       }
 
       const result = await createProjeto.mutateAsync(projetoData)
@@ -320,6 +386,7 @@ export default function NovoProjetoPage() {
 
   const isLoading = !departamentos || !disciplinas
 
+
   if (isLoading) {
     return (
       <PagesLayout title="Novo Projeto de Monitoria">
@@ -351,6 +418,49 @@ export default function NovoProjetoPage() {
     <PagesLayout
       title="Novo projeto de monitoria"
       subtitle="Formulário para criação de projeto de monitoria - rascunho"
+      actions={
+        <div className="w-full max-w-sm">
+          <Select 
+            value={selectedTemplateId} 
+            onValueChange={handleTemplateSelect}
+            disabled={!templates || templates.length === 0}
+          >
+            <SelectTrigger className="w-full">
+              <div className="flex items-center gap-2">
+                <Layout className="h-4 w-4" />
+                <SelectValue 
+                  placeholder={
+                    !templates || templates.length === 0 
+                      ? "Nenhum template disponível" 
+                      : "Selecionar template"
+                  }
+                  className={
+                    !templates || templates.length === 0 
+                      ? "text-muted-foreground opacity-50 cursor-not-allowed" 
+                      : ""
+                  }
+                />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {templates && templates.length > 0 ? (
+                <>
+                  <SelectItem value="none">Nenhum template</SelectItem>
+                  {templates!.map((template) => (
+                    <SelectItem key={template.id} value={template.id.toString()}>
+                      {template.disciplina.codigo} - {template.disciplina.nome}
+                    </SelectItem>
+                  ))}
+                </>
+              ) : (
+                <SelectItem value="none" disabled className="text-muted-foreground cursor-not-allowed text-gray-300">
+                  Nenhum template disponível
+                </SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      }
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Formulário */}

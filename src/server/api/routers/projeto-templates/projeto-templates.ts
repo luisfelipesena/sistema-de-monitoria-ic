@@ -1,4 +1,4 @@
-import { adminProtectedProcedure, createTRPCRouter } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { projetoTemplateTable } from '@/server/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { z } from 'zod'
@@ -55,6 +55,43 @@ export const projetoTemplatesRouter = createTRPCRouter({
       },
       criadoPor: template.criadoPor,
       ultimaAtualizacaoPor: template.ultimaAtualizacaoPor,
+    }))
+  }),
+
+  // Endpoint acessível por professores para listar templates
+  getProjetoTemplates: protectedProcedure.query(async ({ ctx }) => {
+    const templates = await ctx.db.query.projetoTemplateTable.findMany({
+      orderBy: [desc(projetoTemplateTable.updatedAt)],
+      with: {
+        disciplina: {
+          with: {
+            departamento: {
+              columns: {
+                id: true,
+                nome: true,
+                sigla: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    return templates.map((template) => ({
+      id: template.id,
+      disciplinaId: template.disciplinaId,
+      tituloDefault: template.tituloDefault,
+      descricaoDefault: template.descricaoDefault,
+      cargaHorariaSemanaDefault: template.cargaHorariaSemanaDefault,
+      numeroSemanasDefault: template.numeroSemanasDefault,
+      publicoAlvoDefault: template.publicoAlvoDefault,
+      atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
+      disciplina: {
+        id: template.disciplina.id,
+        nome: template.disciplina.nome,
+        codigo: template.disciplina.codigo,
+        departamento: template.disciplina.departamento,
+      },
     }))
   }),
 
