@@ -4,9 +4,9 @@ import { AtaSelecaoData, MonitoriaFormData } from '@/types'
 import { logger } from '@/utils/logger'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { PDFDocument } from 'pdf-lib'
+import React from 'react'
 import { AtaSelecaoTemplate } from './pdfTemplates/ata-selecao'
 import { EditalInternoData, EditalInternoTemplate } from './pdfTemplates/edital-interno'
-import React from 'react'
 
 const log = logger.child({ context: 'PDFService' })
 
@@ -120,6 +120,7 @@ export class PDFService {
 
   /**
    * Adds a signature to an existing PDF buffer
+   * @deprecated This method is no longer used. Signatures are now rendered directly in the template via generateAndSaveSignedProjetoPDF
    */
   static async addSignatureToPDF(
     pdfBuffer: Buffer,
@@ -191,27 +192,17 @@ export class PDFService {
     try {
       log.info({ projetoId: data.projetoId }, 'Generating signed project PDF')
 
-      // Create a copy of data without existing signatures to avoid duplication
-      const cleanData = {
+      // Create the complete data with signatures included
+      const pdfData: MonitoriaFormData = {
         ...data,
-        assinaturaProfessor: undefined,
-        assinaturaAdmin: undefined,
-        dataAssinaturaProfessor: undefined,
-        dataAssinaturaAdmin: undefined,
+        assinaturaProfessor: professorSignature,
+        assinaturaAdmin: adminSignature,
+        dataAssinaturaProfessor: professorSignature ? new Date().toLocaleDateString('pt-BR') : undefined,
+        dataAssinaturaAdmin: adminSignature ? new Date().toLocaleDateString('pt-BR') : undefined,
       }
 
-      // Generate the base PDF without signatures
-      let pdfBuffer = await PDFService.generateProjetoPDF(cleanData)
-
-      // Add professor signature if provided
-      if (professorSignature) {
-        pdfBuffer = await PDFService.addSignatureToPDF(pdfBuffer, professorSignature, 'professor')
-      }
-
-      // Add admin signature if provided
-      if (adminSignature) {
-        pdfBuffer = await PDFService.addSignatureToPDF(pdfBuffer, adminSignature, 'admin')
-      }
+      // Generate the complete PDF with signatures included in the template
+      const pdfBuffer = await PDFService.generateProjetoPDF(pdfData)
 
       // Save the final PDF
       const objectName = await PDFService.saveProjetoPDF(data.projetoId!, pdfBuffer)

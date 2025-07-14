@@ -4,9 +4,9 @@ import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaF
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
@@ -17,6 +17,8 @@ import { PDFViewer } from "@react-pdf/renderer"
 import { Eye, FileText, Loader2, Plus, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import React, { useCallback, useEffect, useState } from "react"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 
 // Componente memoizado para o PDFViewer
 const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) => {
@@ -35,8 +37,6 @@ const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) =
     </div>
   )
 })
-import { useForm } from "react-hook-form"
-import { z } from "zod"
 
 type ProjetoFormData = z.infer<typeof projectFormSchema>
 
@@ -46,6 +46,8 @@ export default function NovoProjetoPage() {
   const [showPreview, setShowPreview] = useState(false)
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false)
   const [pdfKey, setPdfKey] = useState(0)
+  const [publicoAlvoTipo, setPublicoAlvoTipo] = useState<"estudantes_graduacao" | "outro">("estudantes_graduacao")
+  const [publicoAlvoCustom, setPublicoAlvoCustom] = useState("")
   const [atividades, setAtividades] = useState<string[]>([
     "Auxiliar na elaboração de exercícios práticos de programação",
     "Apoiar estudantes em horários de plantão para esclarecimento de dúvidas",
@@ -73,12 +75,20 @@ export default function NovoProjetoPage() {
       voluntariosSolicitados: 2,
       cargaHorariaSemana: 12,
       numeroSemanas: 16,
-      publicoAlvo:
-        "Estudantes matriculados na disciplina Programação I que apresentem dificuldades no aprendizado de conceitos básicos de programação",
+      publicoAlvo: "Estudantes de graduação",
       estimativaPessoasBenificiadas: 50,
-      disciplinas: [0],
+      disciplinas: [],
     },
   })
+
+  // Atualiza o publicoAlvo baseado no tipo selecionado
+  useEffect(() => {
+    if (publicoAlvoTipo === "estudantes_graduacao") {
+      form.setValue("publicoAlvo", "Estudantes de graduação")
+    } else if (publicoAlvoTipo === "outro" && publicoAlvoCustom.trim()) {
+      form.setValue("publicoAlvo", publicoAlvoCustom)
+    }
+  }, [publicoAlvoTipo, publicoAlvoCustom, form])
 
   const departamentoSelecionado = form.watch("departamentoId")
 
@@ -92,7 +102,7 @@ export default function NovoProjetoPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedFormValues(formValues)
-    }, 300) // 300ms debounce
+    }, 600) // 600ms debounce
 
     return () => clearTimeout(timer)
   }, [formValues])
@@ -102,7 +112,7 @@ export default function NovoProjetoPage() {
     if (!values.titulo?.trim()) errors.push("Título")
     if (!values.descricao?.trim()) errors.push("Descrição")
     if (!values.departamentoId || values.departamentoId === 0) errors.push("Departamento")
-    if (!values.disciplinas || values.disciplinas.length === 0 || values.disciplinas.includes(0)) errors.push("Disciplina")
+    if (!values.disciplinas || values.disciplinas.length === 0) errors.push("Disciplina")
     if (!values.publicoAlvo?.trim()) errors.push("Público Alvo")
     return { isValid: errors.length === 0, missingFields: errors }
   }, [])
@@ -338,7 +348,7 @@ export default function NovoProjetoPage() {
                           <Select
                             onValueChange={(value) => {
                               field.onChange(parseInt(value))
-                              form.setValue("disciplinas", []) // Clear disciplines when department changes
+                              form.setValue("disciplinas", []) // Reset discipline when department changes
                             }}
                             value={field.value?.toString()}
                           >
@@ -365,40 +375,28 @@ export default function NovoProjetoPage() {
                       name="disciplinas"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Disciplinas</FormLabel>
+                          <FormLabel>Disciplina</FormLabel>
                           <Select
                             onValueChange={(value) => {
-                              const newValue = field.value?.includes(parseInt(value))
-                                ? field.value.filter((id: number) => id !== parseInt(value))
-                                : [...(field.value || []), parseInt(value)]
-                              field.onChange(newValue)
+                              // Mantém como array mas com apenas um item
+                              field.onChange([parseInt(value)])
                             }}
                             disabled={!departamentoSelecionado}
+                            value={field.value?.[0]?.toString() || ""}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecione a(s) disciplina(s)" />
+                                <SelectValue placeholder="Selecione a disciplina" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               {disciplinasFiltradas?.map((disciplina) => (
                                 <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
-                                  <div className="flex items-center gap-2">
-                                    <Checkbox
-                                      checked={field.value?.includes(disciplina.id)}
-                                      onCheckedChange={() => {}}
-                                    />
                                     {disciplina.codigo} - {disciplina.nome}
-                                  </div>
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                          {field.value?.length > 0 && (
-                            <div className="text-sm text-muted-foreground">
-                              {field.value.length} disciplina(s) selecionada(s)
-                            </div>
-                          )}
                           <FormMessage />
                         </FormItem>
                       )}
@@ -526,7 +524,44 @@ export default function NovoProjetoPage() {
                       <FormItem>
                         <FormLabel>Público Alvo</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Descreva o público alvo do projeto" rows={3} {...field} />
+                          <div className="space-y-4">
+                            <RadioGroup
+                              value={publicoAlvoTipo}
+                              onValueChange={(value: "estudantes_graduacao" | "outro") => {
+                                setPublicoAlvoTipo(value)
+                                if (value === "estudantes_graduacao") {
+                                  field.onChange("Estudantes de graduação")
+                                }
+                              }}
+                              className="flex flex-col space-y-2"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="estudantes_graduacao" id="estudantes_graduacao" />
+                                <label htmlFor="estudantes_graduacao" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                  Estudantes de graduação
+                                </label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="outro" id="outro" />
+                                <label htmlFor="outro" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                  Outro
+                                </label>
+                              </div>
+                            </RadioGroup>
+                            
+                            {publicoAlvoTipo === "outro" && (
+                              <div className="mt-3">
+                                <Input
+                                  placeholder="Descreva o público alvo específico"
+                                  value={publicoAlvoCustom}
+                                  onChange={(e) => {
+                                    setPublicoAlvoCustom(e.target.value)
+                                    field.onChange(e.target.value)
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>

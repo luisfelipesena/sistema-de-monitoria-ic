@@ -1,4 +1,5 @@
 import { MonitoriaFormData } from "@/types"
+import { UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 import React from "react"
 
@@ -135,8 +136,8 @@ const styles = StyleSheet.create({
   signatureBox: {
     width: 130, // Reduced from 150
     height: 38,  // Reduced from 45
-    borderWidth: 1,
-    borderColor: "#000000",
+    borderWidth: 1, // Minimal border width (can't be 0)
+    borderColor: "white", // White border to be invisible on white background
     alignSelf: "flex-end",
     marginRight: 116.5, // Same as activeSignatureBox
     marginTop: -3,      // Same as activeSignatureBox
@@ -198,8 +199,8 @@ const styles = StyleSheet.create({
   adminSignatureBox: {
     width: 130, // Reduced from 150
     height: 38,  // Reduced from 45
-    borderWidth: 1,
-    borderColor: "#000000",
+    borderWidth: 1, // Minimal border width (can't be 0)
+    borderColor: "white", // White border to be invisible on white background
   },
   activeAdminSignatureBox: {
     width: 130, // Reduced from 150
@@ -267,7 +268,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
 
         {/* Header - Centered on page */}
         <View style={styles.header}>
-          <Image style={styles.headerImage} src="/images/ufba-logo-form.png" cache={false} />
+          <Image style={styles.headerImage} src={UFBA_LOGO__FORM_BASE64} cache={false} />
           <View style={styles.headerText}>
             <Text>UNIVERSIDADE FEDERAL DA BAHIA</Text>
             <Text>Pró-Reitoria de Ensino de Graduação</Text>

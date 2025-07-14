@@ -2,15 +2,6 @@
 
 import { PagesLayout } from '@/components/layout/PagesLayout'
 import { TableComponent } from '@/components/layout/TableComponent'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { FilterModal, FilterValues } from '@/components/ui/FilterModal'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
-import { ColumnDef } from '@tanstack/react-table'
-import { useMemo, useState } from 'react'
-import Link from 'next/link'
-import { DashboardProjectItem } from '@/types'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,18 +12,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { FilterModal, FilterValues } from '@/components/ui/FilterModal'
+import { useToast } from '@/hooks/use-toast'
+import { DashboardProjectItem } from '@/types'
+import { api } from '@/utils/api'
+import { ColumnDef } from '@tanstack/react-table'
+import Link from 'next/link'
+import { useMemo, useState } from 'react'
 
 import {
+  Download,
   Eye,
+  FileSignature,
   Filter,
   Hand,
   List,
   Loader,
   Plus,
-  Users,
-  FileSignature,
   Trash2,
-  Download,
+  Users,
 } from 'lucide-react'
 
 export default function DashboardProfessor() {
@@ -44,6 +44,7 @@ export default function DashboardProfessor() {
   const [filters, setFilters] = useState<FilterValues>({})
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [projetoToDelete, setProjetoToDelete] = useState<DashboardProjectItem | null>(null)
+  const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
   const apiUtils = api.useUtils()
   // Aplicar filtros aos projetos
   const projetosFiltrados = useMemo(() => {
@@ -94,6 +95,7 @@ export default function DashboardProfessor() {
   }
 
   const handleViewPdf = async (projetoId: number) => {
+    setLoadingPdfProjetoId(projetoId)
     try {
       const result = await getProjetoPdfMutation.mutateAsync({
         projetoId: projetoId,
@@ -128,6 +130,8 @@ export default function DashboardProfessor() {
         description: errorMessage,
         variant: 'destructive',
       });
+    } finally {
+      setLoadingPdfProjetoId(null)
     }
   }
 
@@ -279,11 +283,11 @@ export default function DashboardProfessor() {
                 size="sm"
                 className="rounded-full flex items-center gap-1"
                 onClick={() => handleViewPdf(projeto.id)}
-                disabled={getProjetoPdfMutation.isPending}
+                disabled={loadingPdfProjetoId === projeto.id}
                 title="Visualizar PDF do projeto assinado"
               >
                 <Download className="h-4 w-4" />
-                {getProjetoPdfMutation.isPending ? 'Carregando...' : 'Visualizar PDF'}
+                {loadingPdfProjetoId === projeto.id ? 'Carregando...' : 'Visualizar PDF'}
               </Button>
             )}
 

@@ -52,6 +52,7 @@ export default function DashboardAdmin() {
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<FilterValues>({});
   const [groupedView, setGroupedView] = useState(false);
+  const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null);
 
   const activeFilters = Object.values(filters).filter(
     (v) => v !== undefined && v !== ""
@@ -172,6 +173,7 @@ export default function DashboardAdmin() {
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation();
 
   const handleViewPdf = async (projetoId: number) => {
+    setLoadingPdfProjetoId(projetoId);
     try {
       const result = await getProjetoPdfMutation.mutateAsync({
         projetoId: projetoId,
@@ -195,6 +197,8 @@ export default function DashboardAdmin() {
         description: "Não foi possível abrir o documento para visualização.",
       });
       console.error("View PDF error:", error);
+    } finally {
+      setLoadingPdfProjetoId(null);
     }
   };
 
@@ -384,10 +388,10 @@ export default function DashboardAdmin() {
             size="sm"
             className="rounded-full flex items-center gap-1"
             onClick={() => handleViewPdf(row.original.id)}
-            disabled={getProjetoPdfMutation.isPending}
+            disabled={loadingPdfProjetoId === row.original.id}
           >
             <Download className="h-4 w-4" />
-            Visualizar PDF
+            {loadingPdfProjetoId === row.original.id ? 'Carregando...' : 'Visualizar PDF'}
           </Button>
         </div>
       ),

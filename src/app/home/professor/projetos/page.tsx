@@ -36,6 +36,7 @@ export default function ProfessorProjetosPage() {
   const { toast } = useToast()
   const [selectedProjeto, setSelectedProjeto] = useState<ProfessorProjetoListItem | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
 
   const { data: projetosData } = api.projeto.getProjetos.useQuery()
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
@@ -77,6 +78,7 @@ export default function ProfessorProjetosPage() {
   }
 
   const handleViewPdf = async (projetoId: number) => {
+    setLoadingPdfProjetoId(projetoId)
     try {
       toast({
         title: "Preparando visualização...",
@@ -107,6 +109,8 @@ export default function ProfessorProjetosPage() {
         variant: "destructive",
       })
       console.error("View PDF error:", error)
+    } finally {
+      setLoadingPdfProjetoId(null)
     }
   }
 
@@ -204,7 +208,7 @@ export default function ProfessorProjetosPage() {
           variant="outline"
           size="sm"
           onClick={() => handleViewPdf(projeto.id)}
-          disabled={getProjetoPdfMutation.isPending}
+          disabled={loadingPdfProjetoId === projeto.id}
         >
           <FileText className="h-4 w-4" />
         </Button>

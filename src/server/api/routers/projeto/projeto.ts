@@ -907,6 +907,10 @@ export const projetoRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const projeto = await ctx.db.query.projetoTable.findFirst({
         where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
+        with: {
+          departamento: true,
+          professorResponsavel: true,
+        },
       })
 
       if (!projeto) {
@@ -916,7 +920,7 @@ export const projetoRouter = createTRPCRouter({
         })
       }
 
-      if (projeto.status !== 'SUBMITTED') {
+      if (projeto.status !== 'PENDING_ADMIN_SIGNATURE') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Projeto não está aguardando aprovação',
@@ -933,112 +937,69 @@ export const projetoRouter = createTRPCRouter({
         .where(eq(projetoTable.id, input.projetoId))
 
       try {
-        // Get the existing PDF with professor signature
-        const existingPdf = await PDFService.getLatestProjetoPDF(projeto.id)
-
-        if (existingPdf) {
-          // Add admin signature to existing PDF
-          const pdfWithAdminSignature = await PDFService.addSignatureToPDF(
-            existingPdf.buffer,
-            input.signatureImage,
-            'admin'
-          )
-
-          // Save the updated PDF
-          const objectName = await PDFService.saveProjetoPDF(
-            projeto.id,
-            pdfWithAdminSignature,
-            `projetos/${projeto.id}/propostas_assinadas/proposta_assinada_completa_${Date.now()}.pdf`
-          )
-
-          log.info(
-            { projetoId: input.projetoId, objectName },
-            'PDF com assinatura completa (professor + admin) salvo no MinIO'
-          )
-        } else {
-          // Fallback: generate new PDF with both signatures
-          const projetoCompleto = await ctx.db.query.projetoTable.findFirst({
-            where: eq(projetoTable.id, input.projetoId),
-            with: {
-              departamento: true,
-              professorResponsavel: true,
-            },
-          })
-
-          if (!projetoCompleto) {
-            throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Projeto não encontrado para fallback',
+        // Prepare complete project data for PDF generation
+        const [disciplinas, professoresParticipantes, atividades] = await Promise.all([
+          db
+            .select({
+              id: disciplinaTable.id,
+              codigo: disciplinaTable.codigo,
+              nome: disciplinaTable.nome,
             })
-          }
+            .from(disciplinaTable)
+            .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
+            .where(eq(projetoDisciplinaTable.projetoId, projeto.id)),
 
-          const [disciplinas, professoresParticipantes, atividades] = await Promise.all([
-            db
-              .select({
-                id: disciplinaTable.id,
-                codigo: disciplinaTable.codigo,
-                nome: disciplinaTable.nome,
-              })
-              .from(disciplinaTable)
-              .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
-              .where(eq(projetoDisciplinaTable.projetoId, projeto.id)),
+          db
+            .select({
+              id: professorTable.id,
+              nomeCompleto: professorTable.nomeCompleto,
+            })
+            .from(professorTable)
+            .innerJoin(
+              projetoProfessorParticipanteTable,
+              eq(professorTable.id, projetoProfessorParticipanteTable.professorId)
+            )
+            .where(eq(projetoProfessorParticipanteTable.projetoId, projeto.id)),
 
-            db
-              .select({
-                id: professorTable.id,
-                nomeCompleto: professorTable.nomeCompleto,
-              })
-              .from(professorTable)
-              .innerJoin(
-                projetoProfessorParticipanteTable,
-                eq(professorTable.id, projetoProfessorParticipanteTable.professorId)
-              )
-              .where(eq(projetoProfessorParticipanteTable.projetoId, projeto.id)),
+          db.query.atividadeProjetoTable.findMany({
+            where: eq(atividadeProjetoTable.projetoId, projeto.id),
+          }),
+        ])
 
-            db.query.atividadeProjetoTable.findMany({
-              where: eq(atividadeProjetoTable.projetoId, projeto.id),
-            }),
-          ])
-
-          const pdfData = {
-            titulo: projetoCompleto.titulo,
-            descricao: projetoCompleto.descricao,
-            departamento: projetoCompleto.departamento,
-            professorResponsavel: {
-              ...projetoCompleto.professorResponsavel,
-              nomeSocial: projetoCompleto.professorResponsavel.nomeSocial || undefined,
-              matriculaSiape: projetoCompleto.professorResponsavel.matriculaSiape || undefined,
-              telefone: projetoCompleto.professorResponsavel.telefone || undefined,
-              telefoneInstitucional: projetoCompleto.professorResponsavel.telefoneInstitucional || undefined,
-            },
-            ano: projetoCompleto.ano,
-            semestre: projetoCompleto.semestre,
-            tipoProposicao: projetoCompleto.tipoProposicao,
-            bolsasSolicitadas: projetoCompleto.bolsasSolicitadas,
-            voluntariosSolicitados: projetoCompleto.voluntariosSolicitados,
-            cargaHorariaSemana: projetoCompleto.cargaHorariaSemana,
-            numeroSemanas: projetoCompleto.numeroSemanas,
-            publicoAlvo: projetoCompleto.publicoAlvo,
-            estimativaPessoasBenificiadas: projetoCompleto.estimativaPessoasBenificiadas || undefined,
-            disciplinas,
-            professoresParticipantes,
-            atividades,
-            assinaturaProfessor: projetoCompleto.assinaturaProfessor || undefined,
-            assinaturaAdmin: input.signatureImage,
-            dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
-            dataAssinaturaAdmin: new Date().toLocaleDateString('pt-BR'),
-            dataAprovacao: new Date().toLocaleDateString('pt-BR'),
-            projetoId: projetoCompleto.id,
-          }
-
-          const objectName = await PDFService.generateAndSaveSignedProjetoPDF(
-            pdfData,
-            projetoCompleto.assinaturaProfessor || undefined,
-            input.signatureImage
-          )
-
-          log.info({ projetoId: input.projetoId, objectName }, 'PDF com assinatura completa gerado do zero')
+        const pdfData = {
+          titulo: projeto.titulo,
+          descricao: projeto.descricao,
+          departamento: projeto.departamento,
+          professorResponsavel: {
+            ...projeto.professorResponsavel,
+            nomeSocial: projeto.professorResponsavel.nomeSocial || undefined,
+            matriculaSiape: projeto.professorResponsavel.matriculaSiape || undefined,
+            telefone: projeto.professorResponsavel.telefone || undefined,
+            telefoneInstitucional: projeto.professorResponsavel.telefoneInstitucional || undefined,
+          },
+          ano: projeto.ano,
+          semestre: projeto.semestre,
+          tipoProposicao: projeto.tipoProposicao,
+          bolsasSolicitadas: projeto.bolsasSolicitadas,
+          voluntariosSolicitados: projeto.voluntariosSolicitados,
+          cargaHorariaSemana: projeto.cargaHorariaSemana,
+          numeroSemanas: projeto.numeroSemanas,
+          publicoAlvo: projeto.publicoAlvo,
+          estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || undefined,
+          disciplinas,
+          professoresParticipantes,
+          atividades,
+          projetoId: projeto.id,
         }
+
+        // Use the refactored function to generate PDF with both signatures
+        const objectName = await PDFService.generateAndSaveSignedProjetoPDF(
+          pdfData,
+          projeto.assinaturaProfessor || undefined,  // Professor signature from database
+          input.signatureImage                        // Admin signature being added now
+        )
+
+        log.info({ projetoId: input.projetoId, objectName }, 'PDF com assinatura completa (professor e admin) salvo')
 
         // Verificar se o PDF final foi salvo corretamente
         const finalPdf = await PDFService.getLatestProjetoPDF(projeto.id)
