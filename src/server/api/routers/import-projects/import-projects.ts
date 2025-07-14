@@ -59,11 +59,38 @@ export const importProjectsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      const startTime = Date.now()
+      const TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes timeout
+
       let projetosCriados = 0
       let projetosComErro = 0
       const erros: string[] = []
 
+      // Validar tamanho da importação
+      if (input.projetos.length > 100) {
+        throw new Error('Importação muito grande. Máximo de 100 projetos por vez.')
+      }
+
+      // Primeiro, validar se a importação existe e está no status correto
+      const importacao = await ctx.db.query.importacaoPlanejamentoTable.findFirst({
+        where: eq(importacaoPlanejamentoTable.id, input.importacaoId),
+      })
+
+      if (!importacao) {
+        throw new Error('Importação não encontrada')
+      }
+
+      if (importacao.status !== 'PROCESSANDO') {
+        throw new Error('Importação não está em processamento')
+      }
+
       for (const projetoData of input.projetos) {
+        // Verificar timeout
+        if (Date.now() - startTime > TIMEOUT_MS) {
+          erros.push('Timeout: Importação cancelada devido ao tempo limite excedido')
+          break
+        }
+
         try {
           const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.matriculaSiape, projetoData.professorSiape),
@@ -84,14 +111,6 @@ export const importProjectsRouter = createTRPCRouter({
             erros.push(`Disciplina ${projetoData.disciplinaCodigo} não encontrada`)
             projetosComErro++
             continue
-          }
-
-          const importacao = await ctx.db.query.importacaoPlanejamentoTable.findFirst({
-            where: eq(importacaoPlanejamentoTable.id, input.importacaoId),
-          })
-
-          if (!importacao) {
-            throw new Error('Importação não encontrada')
           }
 
           const novoProjeto: NewProjeto = {
@@ -134,13 +153,21 @@ export const importProjectsRouter = createTRPCRouter({
         }
       }
 
+      // Determinar status final
+      let finalStatus = 'CONCLUIDO'
+      if (erros.some((erro) => erro.includes('Timeout'))) {
+        finalStatus = 'ERRO'
+      } else if (projetosComErro > 0) {
+        finalStatus = 'CONCLUIDO_COM_ERROS'
+      }
+
       await ctx.db
         .update(importacaoPlanejamentoTable)
         .set({
           totalProjetos: input.projetos.length,
           projetosCriados,
           projetosComErro,
-          status: projetosComErro > 0 ? 'CONCLUIDO_COM_ERROS' : 'CONCLUIDO',
+          status: finalStatus,
           erros: erros.length > 0 ? JSON.stringify(erros) : null,
         })
         .where(eq(importacaoPlanejamentoTable.id, input.importacaoId))

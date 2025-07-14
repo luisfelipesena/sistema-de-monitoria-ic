@@ -777,12 +777,21 @@ export const relatoriosRouter = createTRPCRouter({
           })
       }
 
+      // Verificar se há dados para exportar
+      if (csvData.split('\n').length <= 1) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Nenhum dado encontrado para exportar com os filtros aplicados',
+        })
+      }
+
       const csvBase64 = Buffer.from(csvData, 'utf-8').toString('base64')
 
       return {
         success: true,
         fileName,
-        downloadUrl: `data:text/csv;base64,${csvBase64}`,
+        downloadUrl: `data:text/csv;charset=utf-8;base64,${csvBase64}`,
+        message: 'Relatório gerado com sucesso. O download deve iniciar automaticamente.',
       }
     }),
 

@@ -491,11 +491,52 @@ export const editalRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND' })
       }
 
+      // Validar se o edital está completo antes de publicar
+      if (!edital.titulo || edital.titulo.trim() === '') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'O edital precisa ter um título antes de ser publicado.',
+        })
+      }
+
+      if (!edital.descricaoHtml || edital.descricaoHtml.trim() === '') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'O edital precisa ter uma descrição antes de ser publicado.',
+        })
+      }
+
       if (!edital.fileIdAssinado) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'O edital precisa estar assinado antes de ser publicado.',
         })
+      }
+
+      // Verificar se existem projetos aprovados para este período
+      const editalComPeriodo = await ctx.db.query.editalTable.findFirst({
+        where: eq(editalTable.id, input.id),
+        with: {
+          periodoInscricao: true,
+        },
+      })
+
+      if (editalComPeriodo?.periodoInscricao) {
+        const projetosAprovados = await ctx.db.query.projetoTable.findMany({
+          where: and(
+            eq(projetoTable.ano, editalComPeriodo.periodoInscricao.ano),
+            eq(projetoTable.semestre, editalComPeriodo.periodoInscricao.semestre),
+            eq(projetoTable.status, 'APPROVED')
+          ),
+          limit: 1, // Apenas verificar se existe pelo menos um
+        })
+
+        if (projetosAprovados.length === 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Não é possível publicar um edital sem projetos aprovados.',
+          })
+        }
       }
 
       const [updated] = await ctx.db

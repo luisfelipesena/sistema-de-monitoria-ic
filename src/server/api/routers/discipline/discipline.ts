@@ -310,9 +310,17 @@ export const disciplineRouter = createTRPCRouter({
           return []
         }
 
+        // Validate that disciplinaIds are numbers
+        const validDisciplinaIds = disciplinaIds.filter((id) => typeof id === 'number' && !isNaN(id))
+        
+        if (validDisciplinaIds.length === 0) {
+          log.error({ disciplinaIds }, 'IDs de disciplinas inválidos encontrados')
+          return []
+        }
+
         // Get discipline details
         const disciplinas = await ctx.db.query.disciplinaTable.findMany({
-          where: inArray(disciplinaTable.id, disciplinaIds),
+          where: inArray(disciplinaTable.id, validDisciplinaIds),
         })
 
         // Get active projects count for each discipline
@@ -325,7 +333,7 @@ export const disciplineRouter = createTRPCRouter({
           .innerJoin(projetoTable, eq(projetoDisciplinaTable.projetoId, projetoTable.id))
           .where(
             and(
-              inArray(projetoDisciplinaTable.disciplinaId, disciplinaIds),
+              inArray(projetoDisciplinaTable.disciplinaId, validDisciplinaIds),
               eq(projetoTable.professorResponsavelId, professor.id),
               eq(projetoTable.status, 'APPROVED'),
               eq(projetoTable.ano, currentYear),
@@ -348,7 +356,7 @@ export const disciplineRouter = createTRPCRouter({
           .leftJoin(inscricaoTable, eq(inscricaoTable.projetoId, projetoTable.id))
           .where(
             and(
-              inArray(projetoDisciplinaTable.disciplinaId, disciplinaIds),
+              inArray(projetoDisciplinaTable.disciplinaId, validDisciplinaIds),
               eq(projetoTable.professorResponsavelId, professor.id)
             )
           )
