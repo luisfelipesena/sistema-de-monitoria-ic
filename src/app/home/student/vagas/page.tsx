@@ -1,23 +1,24 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { FileUploadField } from "@/components/ui/FileUploadField"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
 import {
-  TIPO_INSCRICAO_ENUM,
-  STATUS_INSCRICAO_ENUM,
-  PROJETO_STATUS_ENUM,
-  type TipoInscricao,
-  type StatusInscricao,
   getStatusInscricaoLabel,
+  PROJETO_STATUS_ENUM,
+  STATUS_INSCRICAO_ENUM,
+  TIPO_INSCRICAO_ENUM,
   type ManageProjectItem,
-} from '@/types'
+  type StatusInscricao,
+  type TipoInscricao,
+} from "@/types"
+import { api } from "@/utils/api"
 import {
   AlertCircle,
   BookOpen,
@@ -28,17 +29,10 @@ import {
   Search,
   Users,
   XCircle,
-} from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { FileUploadField } from '@/components/ui/FileUploadField'
+} from "lucide-react"
+import { useMemo, useState } from "react"
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface ApplicationModalProps {
   isOpen: boolean
@@ -58,40 +52,37 @@ interface ApplicationFormData {
 }
 
 const requiredDocuments = {
-  [TIPO_INSCRICAO_ENUM[0]]: [ // BOLSISTA
-    { id: 'historico_escolar', name: 'Histórico Escolar' },
-    { id: 'comprovante_matricula', name: 'Comprovante de Matrícula' },
-    { id: 'comprovante_cr', name: 'Comprovante de CR' },
+  [TIPO_INSCRICAO_ENUM[0]]: [
+    // BOLSISTA
+    { id: "historico_escolar", name: "Histórico Escolar" },
+    { id: "comprovante_matricula", name: "Comprovante de Matrícula" },
+    { id: "comprovante_cr", name: "Comprovante de CR" },
   ],
-  [TIPO_INSCRICAO_ENUM[1]]: [ // VOLUNTARIO
-    { id: 'historico_escolar', name: 'Histórico Escolar' },
-    { id: 'comprovante_matricula', name: 'Comprovante de Matrícula' },
+  [TIPO_INSCRICAO_ENUM[1]]: [
+    // VOLUNTARIO
+    { id: "historico_escolar", name: "Histórico Escolar" },
+    { id: "comprovante_matricula", name: "Comprovante de Matrícula" },
   ],
-  [TIPO_INSCRICAO_ENUM[2]]: [ // ANY
-    { id: 'historico_escolar', name: 'Histórico Escolar' },
-    { id: 'comprovante_matricula', name: 'Comprovante de Matrícula' },
+  [TIPO_INSCRICAO_ENUM[2]]: [
+    // ANY
+    { id: "historico_escolar", name: "Histórico Escolar" },
+    { id: "comprovante_matricula", name: "Comprovante de Matrícula" },
   ],
 } as const
 
-function ApplicationModal({
-  isOpen,
-  onClose,
-  project,
-  onSubmit,
-  isSubmitting = false,
-}: ApplicationModalProps) {
+function ApplicationModal({ isOpen, onClose, project, onSubmit, isSubmitting = false }: ApplicationModalProps) {
   const [formData, setFormData] = useState<ApplicationFormData>({
     tipoVagaPretendida: TIPO_INSCRICAO_ENUM[2] as TipoInscricao, // ANY
-    motivation: '',
-    experience: '',
-    availability: '',
-    phone: '',
+    motivation: "",
+    experience: "",
+    availability: "",
+    phone: "",
     documentos: [],
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.motivation.trim()) {
       return
     }
@@ -104,10 +95,10 @@ function ApplicationModal({
   const handleClose = () => {
     setFormData({
       tipoVagaPretendida: TIPO_INSCRICAO_ENUM[2], // ANY
-      motivation: '',
-      experience: '',
-      availability: '',
-      phone: '',
+      motivation: "",
+      experience: "",
+      availability: "",
+      phone: "",
       documentos: [],
     })
     onClose()
@@ -116,19 +107,14 @@ function ApplicationModal({
   const handleDocumentUpload = (docType: string, fileId: string) => {
     setFormData((prev) => ({
       ...prev,
-      documentos: [
-        ...prev.documentos.filter((d) => d.tipoDocumento !== docType),
-        { fileId, tipoDocumento: docType },
-      ],
+      documentos: [...prev.documentos.filter((d) => d.tipoDocumento !== docType), { fileId, tipoDocumento: docType }],
     }))
   }
 
   if (!isOpen) return null
 
   const docsToUpload = requiredDocuments[formData.tipoVagaPretendida]
-  const allDocsUploaded = docsToUpload.every((doc) =>
-    formData.documentos.some((d) => d.tipoDocumento === doc.id)
-  )
+  const allDocsUploaded = docsToUpload.every((doc) => formData.documentos.some((d) => d.tipoDocumento === doc.id))
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -142,16 +128,10 @@ function ApplicationModal({
 
         <div className="mb-6 p-4 bg-blue-50 rounded-lg">
           <h3 className="font-semibold text-blue-900">{project?.titulo}</h3>
-          <p className="text-sm text-blue-700">
-            Professor: {project?.professorResponsavelNome}
-          </p>
+          <p className="text-sm text-blue-700">Professor: {project?.professorResponsavelNome}</p>
           <div className="mt-2 flex gap-4 text-sm">
-            <span className="text-green-700">
-              Bolsas: {project?.bolsasDisponibilizadas || 0}
-            </span>
-            <span className="text-blue-700">
-              Voluntários: {project?.voluntariosSolicitados || 0}
-            </span>
+            <span className="text-green-700">Bolsas: {project?.bolsasDisponibilizadas || 0}</span>
+            <span className="text-blue-700">Voluntários: {project?.voluntariosSolicitados || 0}</span>
           </div>
         </div>
 
@@ -160,45 +140,31 @@ function ApplicationModal({
             <Label htmlFor="tipoVaga">Tipo de Vaga Pretendida*</Label>
             <Select
               value={formData.tipoVagaPretendida}
-              onValueChange={(value: TipoInscricao) =>
-                setFormData({ ...formData, tipoVagaPretendida: value })
-              }
+              onValueChange={(value: TipoInscricao) => setFormData({ ...formData, tipoVagaPretendida: value })}
             >
               <SelectTrigger disabled={isSubmitting}>
                 <SelectValue placeholder="Selecione o tipo de vaga" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={TIPO_INSCRICAO_ENUM[0]}>
-                  Bolsista (apenas bolsa)
-                </SelectItem>
-                <SelectItem value={TIPO_INSCRICAO_ENUM[1]}>
-                  Voluntário (apenas voluntário)
-                </SelectItem>
-                <SelectItem value={TIPO_INSCRICAO_ENUM[2]}>
-                  Qualquer (bolsa ou voluntário)
-                </SelectItem>
+                <SelectItem value={TIPO_INSCRICAO_ENUM[0]}>Bolsista (apenas bolsa)</SelectItem>
+                <SelectItem value={TIPO_INSCRICAO_ENUM[1]}>Voluntário (apenas voluntário)</SelectItem>
+                <SelectItem value={TIPO_INSCRICAO_ENUM[2]}>Qualquer (bolsa ou voluntário)</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="motivation">
-              Motivação para a Monitoria* (máx. 500 caracteres)
-            </Label>
+            <Label htmlFor="motivation">Motivação para a Monitoria* (máx. 500 caracteres)</Label>
             <Textarea
               id="motivation"
               value={formData.motivation}
-              onChange={(e) =>
-                setFormData({ ...formData, motivation: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, motivation: e.target.value })}
               placeholder="Descreva sua motivação para participar desta monitoria..."
               rows={4}
               maxLength={500}
               disabled={isSubmitting}
             />
-            <div className="text-sm text-gray-500 text-right">
-              {formData.motivation.length}/500
-            </div>
+            <div className="text-sm text-gray-500 text-right">{formData.motivation.length}/500</div>
           </div>
 
           <div>
@@ -206,9 +172,7 @@ function ApplicationModal({
             <Textarea
               id="experience"
               value={formData.experience}
-              onChange={(e) =>
-                setFormData({ ...formData, experience: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
               placeholder="Descreva sua experiência prévia relacionada à disciplina..."
               rows={3}
               maxLength={300}
@@ -221,9 +185,7 @@ function ApplicationModal({
             <Textarea
               id="availability"
               value={formData.availability}
-              onChange={(e) =>
-                setFormData({ ...formData, availability: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
               placeholder="Informe sua disponibilidade de horários..."
               rows={2}
               maxLength={200}
@@ -236,9 +198,7 @@ function ApplicationModal({
             <Input
               id="phone"
               value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="(xx) xxxxx-xxxx"
               disabled={isSubmitting}
             />
@@ -261,12 +221,7 @@ function ApplicationModal({
           </div>
 
           <div className="flex gap-3 pt-4 border-t">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
               Cancelar
             </Button>
             <Button
@@ -274,7 +229,7 @@ function ApplicationModal({
               className="bg-blue-600 hover:bg-blue-700"
               disabled={isSubmitting || !formData.motivation.trim() || !allDocsUploaded}
             >
-              {isSubmitting ? 'Enviando...' : 'Enviar Inscrição'}
+              {isSubmitting ? "Enviando..." : "Enviar Inscrição"}
             </Button>
           </div>
         </form>
@@ -286,13 +241,10 @@ function ApplicationModal({
 export default function InscricaoMonitoriaPage() {
   const { toast } = useToast()
   const { data: projetos, isLoading } = api.projeto.getProjetos.useQuery()
-  const {
-    data: inscricoes,
-    isLoading: loadingInscricoes,
-  } = api.inscricao.getMinhasInscricoes.useQuery()
+  const { data: inscricoes, isLoading: loadingInscricoes } = api.inscricao.getMinhasInscricoes.useQuery()
   const criarInscricao = api.inscricao.criarInscricao.useMutation()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('')
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [applicationModal, setApplicationModal] = useState<{
     isOpen: boolean
@@ -320,15 +272,13 @@ export default function InscricaoMonitoriaPage() {
           return (
             projeto.titulo.toLowerCase().includes(search) ||
             projeto.professorResponsavelNome.toLowerCase().includes(search) ||
-            projeto.disciplinas.some((d) =>
-              d.nome.toLowerCase().includes(search),
-            )
+            projeto.disciplinas.some((d) => d.nome.toLowerCase().includes(search))
           )
         }
         return true
       })
       .filter((projeto) => {
-        if (selectedDepartment && selectedDepartment !== 'undefined') {
+        if (selectedDepartment && selectedDepartment !== "undefined" && selectedDepartment !== "ALL") {
           return projeto.departamentoId.toString() === selectedDepartment
         }
         return true
@@ -342,7 +292,7 @@ export default function InscricaoMonitoriaPage() {
         .filter((p) => p.status === PROJETO_STATUS_ENUM[2]) // APPROVED
         .map((p) => ({
           id: p.departamentoId,
-          name: p.departamentoNome
+          name: p.departamentoNome,
         }))
         .filter((d) => d.id && d.name)
     )
@@ -365,16 +315,16 @@ export default function InscricaoMonitoriaPage() {
       })
 
       toast({
-        title: 'Sucesso',
-        description: 'Inscrição enviada com sucesso!',
+        title: "Sucesso",
+        description: "Inscrição enviada com sucesso!",
       })
       setApplicationModal({ isOpen: false, project: null })
     } catch (error: any) {
-      console.error('Error submitting application:', error)
+      console.error("Error submitting application:", error)
       toast({
-        title: 'Erro',
-        description: error.message || 'Erro ao enviar inscrição',
-        variant: 'destructive',
+        title: "Erro",
+        description: error.message || "Erro ao enviar inscrição",
+        variant: "destructive",
       })
     } finally {
       setIsSubmitting(false)
@@ -404,10 +354,7 @@ export default function InscricaoMonitoriaPage() {
   }
 
   return (
-    <PagesLayout
-      title="Vagas de Monitoria"
-      subtitle="Candidate-se às vagas de monitoria disponíveis"
-    >
+    <PagesLayout title="Vagas de Monitoria" subtitle="Candidate-se às vagas de monitoria disponíveis">
       <div className="space-y-6">
         {/* My Applications Section */}
         {inscricoes && inscricoes.length > 0 && (
@@ -421,29 +368,20 @@ export default function InscricaoMonitoriaPage() {
             <CardContent>
               <div className="space-y-3">
                 {inscricoes.map((inscricao) => (
-                  <div
-                    key={inscricao.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
+                  <div key={inscricao.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
-                      <h4 className="font-medium">
-                        {inscricao.projeto.titulo}
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        {inscricao.projeto.professorResponsavel.nomeCompleto}
-                      </p>
+                      <h4 className="font-medium">{inscricao.projeto.titulo}</h4>
+                      <p className="text-sm text-gray-600">{inscricao.projeto.professorResponsavel.nomeCompleto}</p>
                       <p className="text-sm text-gray-500">
-                        Tipo pretendido:{' '}
+                        Tipo pretendido:{" "}
                         {inscricao.tipoVagaPretendida === TIPO_INSCRICAO_ENUM[2]
-                          ? 'Qualquer'
+                          ? "Qualquer"
                           : inscricao.tipoVagaPretendida}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       {getStatusIcon(inscricao.status)}
-                      <span className="text-sm font-medium">
-                        {getStatusText(inscricao.status)}
-                      </span>
+                      <span className="text-sm font-medium">{getStatusText(inscricao.status)}</span>
                     </div>
                   </div>
                 ))}
@@ -465,17 +403,14 @@ export default function InscricaoMonitoriaPage() {
           </div>
           {departments.length > 0 && (
             <div className="flex-0 w-full sm:w-1/3">
-              <Select
-                value={selectedDepartment}
-                onValueChange={(value) => setSelectedDepartment(value)}
-              >
+              <Select value={selectedDepartment} onValueChange={(value) => setSelectedDepartment(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os Departamentos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os Departamentos</SelectItem>
+                  <SelectItem value="ALL">Todos os Departamentos</SelectItem>
                   {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id?.toString() || 'undefined'}>
+                    <SelectItem key={dept.id} value={dept.id?.toString() || "undefined"}>
                       {dept.name}
                     </SelectItem>
                   ))}
@@ -492,12 +427,8 @@ export default function InscricaoMonitoriaPage() {
               <div className="flex items-center space-x-2">
                 <BookOpen className="h-5 w-5 text-blue-500" />
                 <div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {availableProjects.length}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Projetos Disponíveis
-                  </p>
+                  <div className="text-2xl font-bold text-blue-600">{availableProjects.length}</div>
+                  <p className="text-sm text-muted-foreground">Projetos Disponíveis</p>
                 </div>
               </div>
             </CardContent>
@@ -508,14 +439,9 @@ export default function InscricaoMonitoriaPage() {
                 <Users className="h-5 w-5 text-green-500" />
                 <div>
                   <div className="text-2xl font-bold text-green-600">
-                    {availableProjects.reduce(
-                      (sum, p) => sum + (p.bolsasDisponibilizadas || 0),
-                      0,
-                    )}
+                    {availableProjects.reduce((sum, p) => sum + (p.bolsasDisponibilizadas || 0), 0)}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Bolsas Disponíveis
-                  </p>
+                  <p className="text-sm text-muted-foreground">Bolsas Disponíveis</p>
                 </div>
               </div>
             </CardContent>
@@ -526,14 +452,9 @@ export default function InscricaoMonitoriaPage() {
                 <GraduationCap className="h-5 w-5 text-purple-500" />
                 <div>
                   <div className="text-2xl font-bold text-purple-600">
-                    {availableProjects.reduce(
-                      (sum, p) => sum + (p.voluntariosSolicitados || 0),
-                      0,
-                    )}
+                    {availableProjects.reduce((sum, p) => sum + (p.voluntariosSolicitados || 0), 0)}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Vagas Voluntárias
-                  </p>
+                  <p className="text-sm text-muted-foreground">Vagas Voluntárias</p>
                 </div>
               </div>
             </CardContent>
@@ -552,13 +473,11 @@ export default function InscricaoMonitoriaPage() {
           <Card>
             <CardContent className="text-center py-12">
               <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-700 mb-2">
-                Nenhum projeto disponível
-              </h3>
+              <h3 className="text-lg font-medium text-gray-700 mb-2">Nenhum projeto disponível</h3>
               <p className="text-gray-500">
                 {searchTerm || selectedDepartment
-                  ? 'Tente ajustar os filtros de busca.'
-                  : 'Não há projetos abertos para inscrição no momento.'}
+                  ? "Tente ajustar os filtros de busca."
+                  : "Não há projetos abertos para inscrição no momento."}
               </p>
             </CardContent>
           </Card>
@@ -567,16 +486,11 @@ export default function InscricaoMonitoriaPage() {
             {availableProjects.map((projeto) => {
               const hasApplied = appliedProjectIds.has(projeto.id)
               return (
-                <Card
-                  key={projeto.id}
-                  className="hover:shadow-lg transition-shadow"
-                >
+                <Card key={projeto.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <CardTitle className="text-lg mb-2">
-                          {projeto.titulo}
-                        </CardTitle>
+                        <CardTitle className="text-lg mb-2">{projeto.titulo}</CardTitle>
                         <div className="flex flex-wrap gap-2 text-sm text-gray-600">
                           <span className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
@@ -589,10 +503,7 @@ export default function InscricaoMonitoriaPage() {
                         </div>
                       </div>
                       {hasApplied ? (
-                        <Badge
-                          variant="secondary"
-                          className="bg-green-100 text-green-800"
-                        >
+                        <Badge variant="secondary" className="bg-green-100 text-green-800">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Inscrito
                         </Badge>
@@ -616,27 +527,17 @@ export default function InscricaoMonitoriaPage() {
 
                       <div>
                         <h4 className="font-medium mb-2">Informações:</h4>
-                        <p className="text-gray-700 text-sm">
-                          Público-alvo: {projeto.publicoAlvo || 'Não informado'}
-                        </p>
+                        <p className="text-gray-700 text-sm">Público-alvo: {projeto.publicoAlvo || "Não informado"}</p>
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="bg-green-50 p-3 rounded">
-                          <div className="font-medium text-green-800">
-                            Bolsas Disponíveis
-                          </div>
-                          <div className="text-2xl font-bold text-green-600">
-                            {projeto.bolsasDisponibilizadas || 0}
-                          </div>
+                          <div className="font-medium text-green-800">Bolsas Disponíveis</div>
+                          <div className="text-2xl font-bold text-green-600">{projeto.bolsasDisponibilizadas || 0}</div>
                         </div>
                         <div className="bg-blue-50 p-3 rounded">
-                          <div className="font-medium text-blue-800">
-                            Vagas Voluntárias
-                          </div>
-                          <div className="text-2xl font-bold text-blue-600">
-                            {projeto.voluntariosSolicitados || 0}
-                          </div>
+                          <div className="font-medium text-blue-800">Vagas Voluntárias</div>
+                          <div className="text-2xl font-bold text-blue-600">{projeto.voluntariosSolicitados || 0}</div>
                         </div>
                       </div>
 
@@ -647,7 +548,7 @@ export default function InscricaoMonitoriaPage() {
                           disabled={hasApplied}
                         >
                           <FileText className="h-4 w-4 mr-2" />
-                          {hasApplied ? 'Já Inscrito' : 'Candidatar-se'}
+                          {hasApplied ? "Já Inscrito" : "Candidatar-se"}
                         </Button>
                       </div>
                     </div>

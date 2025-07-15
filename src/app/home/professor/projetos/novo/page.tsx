@@ -458,7 +458,7 @@ export default function NovoProjetoPage() {
                             <SelectContent>
                               {disciplinasFiltradas?.map((disciplina) => (
                                 <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
-                                  {disciplina.codigo} - {disciplina.nome}
+                                  {disciplina.codigo} ({disciplina.turma}) - {disciplina.nome}
                                 </SelectItem>
                               ))}
                             </SelectContent>

@@ -22,6 +22,7 @@ export default function ManageDisciplinasPage() {
   const [newDisciplina, setNewDisciplina] = useState({
     nome: "",
     codigo: "",
+    turma: "T1",
     cargaHoraria: 60,
     periodo: 1,
   })
@@ -74,6 +75,7 @@ export default function ManageDisciplinasPage() {
       const disciplina = await createDisciplinaMutation.mutateAsync({
         nome: newDisciplina.nome,
         codigo: newDisciplina.codigo,
+        turma: newDisciplina.turma,
         departamentoId: professorDepartamento,
       })
 
@@ -83,7 +85,7 @@ export default function ManageDisciplinasPage() {
         semestre: currentSemester,
       })
 
-      setNewDisciplina({ nome: "", codigo: "", cargaHoraria: 60, periodo: 1 })
+      setNewDisciplina({ nome: "", codigo: "", turma: "T1", cargaHoraria: 60, periodo: 1 })
       setShowCreateForm(false)
 
       toast({
@@ -273,7 +275,7 @@ export default function ManageDisciplinasPage() {
                       variant="outline"
                       onClick={() => {
                         setShowCreateForm(false)
-                        setNewDisciplina({ nome: "", codigo: "", cargaHoraria: 60, periodo: 1 })
+                        setNewDisciplina({ nome: "", codigo: "", turma: "T1", cargaHoraria: 60, periodo: 1 })
                       }}
                       className="flex-1"
                     >

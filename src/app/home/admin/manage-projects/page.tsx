@@ -328,7 +328,7 @@ export default function ManageProjectsPage() {
       header: () => (
         <div className="flex items-center justify-center gap-2">
           <Users className="h-5 w-5 text-gray-400" />
-          Bolsistas
+          Bolsas
         </div>
       ),
       accessorKey: "bolsasDisponibilizadas",
@@ -467,7 +467,18 @@ export default function ManageProjectsPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+            <Card className="border-2 border-blue-200 bg-blue-50">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-blue-800">Total de Projetos</CardTitle>
+                <List className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-blue-700">{filteredProjetos?.length || 0}</div>
+                <p className="text-xs text-blue-600">Todos os projetos</p>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Rascunhos</CardTitle>

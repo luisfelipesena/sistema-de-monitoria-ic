@@ -1,16 +1,14 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
   disciplinaProfessorResponsavelTable,
-  disciplinaSchema,
   disciplinaTable,
   inscricaoTable,
-  newDisciplinaSchema,
   professorTable,
   projetoDisciplinaTable,
   projetoTable,
   projetoTemplateTable,
 } from '@/server/db/schema'
-import { updateDisciplineSchema } from '@/types'
+import { disciplinaSchema, newDisciplinaSchema, updateDisciplineSchema } from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { and, eq, inArray, sql } from 'drizzle-orm'
@@ -312,7 +310,7 @@ export const disciplineRouter = createTRPCRouter({
 
         // Validate that disciplinaIds are numbers
         const validDisciplinaIds = disciplinaIds.filter((id) => typeof id === 'number' && !isNaN(id))
-        
+
         if (validDisciplinaIds.length === 0) {
           log.error({ disciplinaIds }, 'IDs de disciplinas inválidos encontrados')
           return []
