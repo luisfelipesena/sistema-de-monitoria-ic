@@ -1,9 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import {
-  alunoTable,
-  disciplinaProfessorResponsavelTable,
-  professorTable,
-} from '@/server/db/schema'
+import { alunoTable, disciplinaProfessorResponsavelTable, professorTable } from '@/server/db/schema'
 import { generoSchema, onboardingStatusResponseSchema, regimeSchema } from '@/types'
 import { logger } from '@/utils/logger'
 import { getCurrentSemester } from '@/utils/utils'

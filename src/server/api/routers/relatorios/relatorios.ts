@@ -921,7 +921,7 @@ export const relatoriosRouter = createTRPCRouter({
               tipo: tipoMonitoria,
               dataInicio: vaga.dataInicio?.toISOString() || inicioSemestre.toISOString(),
               dataFim: vaga.dataFim?.toISOString() || fimSemestre.toISOString(),
-              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 700 : 0, // Assuming a fixed value
+              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 400 : 0, // Valor padrão conforme UFBA
               status: 'ATIVO', // Placeholder, logic needed
             },
           }

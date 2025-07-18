@@ -165,6 +165,22 @@ export const analyticsRouter = createTRPCRouter({
           .groupBy(departamentoTable.id, departamentoTable.nome)
           .orderBy(sql`count(${professorTable.id}) desc`)
 
+        // 10. Projetos com disciplinas para últimos projetos aprovados
+        const projetosComDisciplinas = await ctx.db
+          .select({
+            id: projetoTable.id,
+            titulo: projetoTable.titulo,
+            status: projetoTable.status,
+            createdAt: projetoTable.createdAt,
+            professorResponsavelNome: professorTable.nomeCompleto,
+            departamentoNome: departamentoTable.nome,
+          })
+          .from(projetoTable)
+          .leftJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+          .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+          .where(isNull(projetoTable.deletedAt))
+          .orderBy(desc(projetoTable.createdAt))
+
         // Calcular métricas
         const totalProjetosNum = Number(totalProjetosResult?.count || 0)
         const aprovadosNum = Number(projetosAprovadosResult?.count || 0)
@@ -200,7 +216,16 @@ export const analyticsRouter = createTRPCRouter({
             professores: professoresPorDepartamento.find((p) => p.departamento === item.departamento)?.professores || 0,
           })),
 
-          ultimosProjetosAprovados: [], // TODO: Implement this query if needed
+          ultimosProjetosAprovados: projetosComDisciplinas
+            .filter((p) => p.status === 'APPROVED')
+            .slice(0, 5)
+            .map((p) => ({
+              id: p.id,
+              titulo: p.titulo,
+              professorResponsavel: p.professorResponsavelNome || 'N/A',
+              departamento: p.departamentoNome || 'N/A',
+              dataAprovacao: p.createdAt,
+            })),
 
           projetosPorDepartamento: projetosPorDepartamento.map((item) => ({
             departamento: item.departamento || 'Sem departamento',
@@ -238,7 +263,26 @@ export const analyticsRouter = createTRPCRouter({
             projetosAtivos: Number(item.projetosAtivos),
           })),
 
-          alertas: [], // TODO: Implement alerts logic if needed
+          alertas: [
+            ...(projetosComDisciplinas.filter((p) => p.status === 'DRAFT').length > 5
+              ? [
+                  {
+                    tipo: 'warning' as const,
+                    titulo: 'Projetos pendentes',
+                    descricao: `${projetosComDisciplinas.filter((p) => p.status === 'DRAFT').length} projetos ainda em rascunho`,
+                  },
+                ]
+              : []),
+            ...(taxaOcupacao < 0.3
+              ? [
+                  {
+                    tipo: 'info' as const,
+                    titulo: 'Baixa ocupação',
+                    descricao: `Taxa de ocupação das vagas está em ${Math.round(taxaOcupacao * 100)}%`,
+                  },
+                ]
+              : []),
+          ],
         }
 
         log.info({ metrics }, 'Métricas do dashboard calculadas com sucesso')

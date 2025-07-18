@@ -278,7 +278,7 @@ export default function InscricaoMonitoriaPage() {
         return true
       })
       .filter((projeto) => {
-        if (selectedDepartment && selectedDepartment !== "undefined" && selectedDepartment !== "ALL") {
+        if (selectedDepartment && selectedDepartment !== "ALL" && !selectedDepartment.startsWith("dept-")) {
           return projeto.departamentoId.toString() === selectedDepartment
         }
         return true
@@ -410,7 +410,7 @@ export default function InscricaoMonitoriaPage() {
                 <SelectContent>
                   <SelectItem value="ALL">Todos os Departamentos</SelectItem>
                   {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id?.toString() || "undefined"}>
+                    <SelectItem key={dept.id} value={dept.id?.toString() || `dept-${dept.name}`}>
                       {dept.name}
                     </SelectItem>
                   ))}
@@ -519,7 +519,7 @@ export default function InscricaoMonitoriaPage() {
                         <div className="flex flex-wrap gap-2">
                           {projeto.disciplinas.map((disciplina) => (
                             <Badge key={disciplina.id} variant="outline">
-                              {disciplina.codigo} - {disciplina.nome}
+                              {disciplina.codigo} ({disciplina.turma}) - {disciplina.nome}
                             </Badge>
                           ))}
                         </div>

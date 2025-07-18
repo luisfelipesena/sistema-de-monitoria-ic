@@ -266,9 +266,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
     return {
       totalTemplates: totalTemplates.length,
       totalDisciplinas: totalDisciplinas.length,
-      cobertura: totalDisciplinas.length > 0
-        ? Math.round((totalTemplates.length / totalDisciplinas.length) * 100)
-        : 0, 
+      cobertura: totalDisciplinas.length > 0 ? Math.round((totalTemplates.length / totalDisciplinas.length) * 100) : 0,
       disciplinasSemTemplate: totalDisciplinas.length - totalTemplates.length,
     }
   }),

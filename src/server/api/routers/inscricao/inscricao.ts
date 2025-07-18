@@ -52,6 +52,7 @@ export const inscricaoRouter = createTRPCRouter({
                 z.object({
                   codigo: z.string(),
                   nome: z.string(),
+                  turma: z.string(),
                 })
               ),
               professorResponsavelNome: z.string(),
@@ -144,6 +145,7 @@ export const inscricaoRouter = createTRPCRouter({
               disciplinas: monitoriaAtiva.projeto.disciplinas.map((pd) => ({
                 codigo: pd.disciplina.codigo,
                 nome: pd.disciplina.nome,
+                turma: pd.disciplina.turma,
               })),
               professorResponsavelNome: monitoriaAtiva.projeto.professorResponsavel.nomeCompleto,
             },
@@ -464,6 +466,7 @@ export const inscricaoRouter = createTRPCRouter({
               disciplinas: inscricao.projeto.disciplinas.map((pd) => ({
                 codigo: pd.disciplina.codigo,
                 nome: pd.disciplina.nome,
+                turma: pd.disciplina.turma,
               })),
               professorResponsavelNome: inscricao.projeto.professorResponsavel.nomeCompleto,
             },
@@ -568,6 +571,7 @@ export const inscricaoRouter = createTRPCRouter({
                 id: disciplinaTable.id,
                 nome: disciplinaTable.nome,
                 codigo: disciplinaTable.codigo,
+                turma: disciplinaTable.turma,
               })
               .from(disciplinaTable)
               .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
@@ -1116,6 +1120,7 @@ export const inscricaoRouter = createTRPCRouter({
                 id: disciplinaTable.id,
                 nome: disciplinaTable.nome,
                 codigo: disciplinaTable.codigo,
+                turma: disciplinaTable.turma,
               })
               .from(disciplinaTable)
               .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
@@ -1530,6 +1535,7 @@ export const inscricaoRouter = createTRPCRouter({
           .select({
             codigo: disciplinaTable.codigo,
             nome: disciplinaTable.nome,
+            turma: disciplinaTable.turma,
           })
           .from(disciplinaTable)
           .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))

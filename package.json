@@ -23,6 +23,8 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:install": "playwright install",
+    "test:e2e:ci": "playwright test --config=playwright-ci.config.ts",
+    "test:e2e:smoke": "playwright test basic-smoke-test.spec.ts --config=playwright-ci.config.ts",
     "prepare": "husky"
   },
   "engines": {

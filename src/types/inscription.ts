@@ -224,6 +224,7 @@ export const inscriptionDetailSchema = z.object({
         id: idSchema,
         nome: z.string(),
         codigo: z.string(),
+        turma: z.string(),
       })
     ),
   }),

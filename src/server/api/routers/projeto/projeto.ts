@@ -109,6 +109,7 @@ export const projetoRouter = createTRPCRouter({
                 id: disciplinaTable.id,
                 nome: disciplinaTable.nome,
                 codigo: disciplinaTable.codigo,
+                turma: disciplinaTable.turma,
               })
               .from(disciplinaTable)
               .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
@@ -191,6 +192,7 @@ export const projetoRouter = createTRPCRouter({
             id: disciplinaTable.id,
             nome: disciplinaTable.nome,
             codigo: disciplinaTable.codigo,
+            turma: disciplinaTable.turma,
           })
           .from(disciplinaTable)
           .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
@@ -291,6 +293,60 @@ export const projetoRouter = createTRPCRouter({
 
         const { disciplinaIds, professoresParticipantes, atividades, professorResponsavelId: _, ...rest } = input
 
+        // Validar que apenas uma disciplina pode ser vinculada por projeto (conforme edital)
+        if (disciplinaIds && disciplinaIds.length > 1) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Um projeto pode ter apenas uma disciplina vinculada, conforme edital',
+          })
+        }
+
+        // Verificar se já existe projeto para a mesma disciplina-turma no período
+        if (disciplinaIds && disciplinaIds.length > 0) {
+          const disciplinaId = disciplinaIds[0]
+
+          // Buscar disciplina para obter informações de turma
+          const disciplina = await ctx.db.query.disciplinaTable.findFirst({
+            where: eq(disciplinaTable.id, disciplinaId),
+          })
+
+          if (!disciplina) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Disciplina não encontrada',
+            })
+          }
+
+          // Verificar se já existe projeto para a mesma disciplina no período
+          const projetoExistente = await ctx.db.query.projetoTable.findFirst({
+            where: and(
+              eq(projetoTable.ano, rest.ano),
+              eq(projetoTable.semestre, rest.semestre),
+              isNull(projetoTable.deletedAt)
+            ),
+            with: {
+              disciplinas: {
+                with: {
+                  disciplina: true,
+                },
+              },
+            },
+          })
+
+          if (projetoExistente) {
+            const disciplinaConflito = projetoExistente.disciplinas.find(
+              (pd) => pd.disciplina.codigo === disciplina.codigo && pd.disciplina.turma === disciplina.turma
+            )
+
+            if (disciplinaConflito) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: `Já existe um projeto para a disciplina ${disciplina.codigo} (${disciplina.turma}) no período ${rest.ano}.${rest.semestre}`,
+              })
+            }
+          }
+        }
+
         const [novoProjeto] = await ctx.db
           .insert(projetoTable)
           .values({
@@ -302,14 +358,6 @@ export const projetoRouter = createTRPCRouter({
           .returning()
 
         if (disciplinaIds && disciplinaIds.length > 0) {
-          // Validar que apenas uma disciplina pode ser vinculada por projeto (conforme edital)
-          if (disciplinaIds.length > 1) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Um projeto pode ter apenas uma disciplina vinculada, conforme edital',
-            })
-          }
-
           const disciplinaValues = disciplinaIds.map((disciplinaId) => ({
             projetoId: novoProjeto.id,
             disciplinaId,
@@ -352,6 +400,7 @@ export const projetoRouter = createTRPCRouter({
               id: disciplinaTable.id,
               nome: disciplinaTable.nome,
               codigo: disciplinaTable.codigo,
+              turma: disciplinaTable.turma,
             })
             .from(disciplinaTable)
             .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
@@ -469,6 +518,7 @@ export const projetoRouter = createTRPCRouter({
             id: disciplinaTable.id,
             nome: disciplinaTable.nome,
             codigo: disciplinaTable.codigo,
+            turma: disciplinaTable.turma,
           })
           .from(disciplinaTable)
           .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
@@ -813,6 +863,7 @@ export const projetoRouter = createTRPCRouter({
               id: disciplinaTable.id,
               codigo: disciplinaTable.codigo,
               nome: disciplinaTable.nome,
+              turma: disciplinaTable.turma,
             })
             .from(disciplinaTable)
             .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
@@ -987,6 +1038,7 @@ export const projetoRouter = createTRPCRouter({
               id: disciplinaTable.id,
               codigo: disciplinaTable.codigo,
               nome: disciplinaTable.nome,
+              turma: disciplinaTable.turma,
             })
             .from(disciplinaTable)
             .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
@@ -1038,8 +1090,8 @@ export const projetoRouter = createTRPCRouter({
         // Use the refactored function to generate PDF with both signatures
         const objectName = await PDFService.generateAndSaveSignedProjetoPDF(
           pdfData,
-          projeto.assinaturaProfessor || undefined,  // Professor signature from database
-          input.signatureImage                        // Admin signature being added now
+          projeto.assinaturaProfessor || undefined, // Professor signature from database
+          input.signatureImage // Admin signature being added now
         )
 
         log.info({ projetoId: input.projetoId, objectName }, 'PDF com assinatura completa (professor e admin) salvo')
@@ -1151,6 +1203,7 @@ export const projetoRouter = createTRPCRouter({
             z.object({
               codigo: z.string(),
               nome: nameSchema,
+              turma: z.string(),
             })
           ),
           bolsasDisponibilizadas: z.number(),
@@ -1242,6 +1295,7 @@ export const projetoRouter = createTRPCRouter({
               .select({
                 codigo: disciplinaTable.codigo,
                 nome: disciplinaTable.nome,
+                turma: disciplinaTable.turma,
               })
               .from(disciplinaTable)
               .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
@@ -1363,6 +1417,7 @@ export const projetoRouter = createTRPCRouter({
               .select({
                 codigo: disciplinaTable.codigo,
                 nome: disciplinaTable.nome,
+                turma: disciplinaTable.turma,
               })
               .from(disciplinaTable)
               .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
@@ -1555,6 +1610,7 @@ export const projetoRouter = createTRPCRouter({
           .select({
             codigo: disciplinaTable.codigo,
             nome: disciplinaTable.nome,
+            turma: disciplinaTable.turma,
           })
           .from(disciplinaTable)
           .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))

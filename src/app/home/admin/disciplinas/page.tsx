@@ -187,8 +187,11 @@ export default function DisciplinasPage() {
                 <SelectValue placeholder="Selecione a turma" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="T1">T1</SelectItem>
-                <SelectItem value="T2">T2</SelectItem>
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                  <SelectItem key={`T${num}`} value={`T${num}`}>
+                    T{num}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

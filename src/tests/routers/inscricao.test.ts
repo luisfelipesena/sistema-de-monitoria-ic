@@ -68,13 +68,13 @@ describe('inscricaoRouter', () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = inscricaoRouter.createCaller(mockContext)
       vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1, cr: 8.5 } as any)
-      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({ 
-        id: 1, 
+      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({
+        id: 1,
         status: 'APPROVED',
         bolsasDisponibilizadas: 2,
         voluntariosSolicitados: 1,
         ano: 2024,
-        semestre: 'SEMESTRE_1'
+        semestre: 'SEMESTRE_1',
       } as any)
       vi.spyOn(mockContext.db.query.periodoInscricaoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
       vi.spyOn(mockContext.db.query.inscricaoTable, 'findFirst').mockResolvedValue(undefined)

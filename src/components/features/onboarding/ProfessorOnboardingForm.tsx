@@ -544,6 +544,24 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                                 className="mt-1"
                               />
                             </div>
+                            <div>
+                              <Label htmlFor="disciplinaTurma">Turma *</Label>
+                              <Select
+                                value={newDisciplina.turma}
+                                onValueChange={(value) => setNewDisciplina({ ...newDisciplina, turma: value })}
+                              >
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Selecione a turma" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                                    <SelectItem key={`T${num}`} value={`T${num}`}>
+                                      T{num}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                             <div className="grid grid-cols-2 gap-3">
                               <div>
                                 <Label htmlFor="cargaHoraria">Carga Horária</Label>

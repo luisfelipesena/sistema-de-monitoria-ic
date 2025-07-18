@@ -89,7 +89,7 @@ export interface DashboardProjectItem {
   bolsasDisponibilizadas?: number | null | undefined
   voluntariosSolicitados?: number | null | undefined
   totalInscritos: number
-  disciplinas: Array<{ codigo: string; nome: string }>
+  disciplinas: Array<{ codigo: string; nome: string; turma: string }>
 }
 
 export interface ManageProjectItem {
@@ -103,7 +103,7 @@ export interface ManageProjectItem {
   bolsasDisponibilizadas?: number | null | undefined
   voluntariosSolicitados?: number | null | undefined
   totalInscritos: number
-  disciplinas: Array<{ codigo: string; nome: string }>
+  disciplinas: Array<{ codigo: string; nome: string; turma: string }>
   professorResponsavelNome: string
 }
 
@@ -122,7 +122,7 @@ export interface ProjetoDisponivelListItem {
   titulo: string
   departamentoNome: string
   professorResponsavelNome: string
-  disciplinas: Array<{ codigo: string; nome: string }>
+  disciplinas: Array<{ codigo: string; nome: string; turma: string }>
   bolsasDisponibilizadas: number
   voluntariosSolicitados: number
   totalInscritos: number
@@ -216,7 +216,7 @@ export interface AdminSigningProjectItem {
   professorResponsavelNome: string
   semestre: string
   ano: number
-  disciplinas: Array<{ codigo: string; nome: string }>
+  disciplinas: Array<{ codigo: string; nome: string; turma: string }>
 }
 
 // ========================================
@@ -440,6 +440,7 @@ export const projectListItemSchema = z.object({
       id: z.number().int().positive(),
       nome: z.string(),
       codigo: z.string(),
+      turma: z.string(),
     })
   ),
   totalInscritos: z.number(),

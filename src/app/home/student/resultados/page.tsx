@@ -279,7 +279,7 @@ export default function ResultadosPage() {
                         Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
                       </p>
                       <p className="text-sm text-muted-foreground mb-2">
-                        Disciplinas: {inscricao.projeto.disciplinas.map((d) => d.codigo).join(", ")}
+                        Disciplinas: {inscricao.projeto.disciplinas.map((d) => `${d.codigo} (${d.turma})`).join(", ")}
                       </p>
                       <div className="flex items-center gap-2 mb-3">
                         {getStatusBadge(inscricao.status)}
