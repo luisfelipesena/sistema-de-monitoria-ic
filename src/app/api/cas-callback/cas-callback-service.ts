@@ -90,7 +90,8 @@ export class CasCallbackService {
         'imoreira@ufba.br',
         'icaro.baliza@ufba.br',
         'rubisleypl@ufba.br',
-        'rubisley@ufba.br'
+        'rubisley@ufba.br',
+        'dcc@ufba.br'
       ]
 
       if (ADMIN_EMAILS.includes(existingUser.email)) {
