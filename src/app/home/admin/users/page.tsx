@@ -12,7 +12,7 @@ import { formatUsernameToProperName } from '@/utils/username-formatter';
 import { UserListItem } from '@/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Filter,
@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 
 export default function UsersPage() {
+  const { toast } = useToast()
+
   const router = useRouter();
   const queryClient = useQueryClient();
   

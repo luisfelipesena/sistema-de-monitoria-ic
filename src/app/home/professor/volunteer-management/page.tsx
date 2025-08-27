@@ -9,17 +9,26 @@ import { VoluntarioListItem } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { Check, Mail, Phone, Users, X } from "lucide-react"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 
 export default function VolunteerManagementPage() {
+  const { toast } = useToast()
+
   const { data: voluntarios, isLoading, refetch } = api.projeto.getVolunteers.useQuery()
   const updateVolunteerMutation = api.projeto.updateVolunteerStatus.useMutation({
     onSuccess: () => {
-      toast.success("Status do voluntário atualizado!")
+      toast({
+        title: "Sucesso!",
+        description: "Status do voluntário atualizado!",
+      })
       refetch()
     },
     onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 

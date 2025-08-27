@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import { useToast } from "@/hooks/use-toast"
 import { DisciplineAssociation } from "@/types"
@@ -22,6 +23,7 @@ export default function ManageDisciplinasPage() {
   const [newDisciplina, setNewDisciplina] = useState({
     nome: "",
     codigo: "",
+    turma: "T1",
     cargaHoraria: 60,
     periodo: 1,
   })
@@ -74,6 +76,7 @@ export default function ManageDisciplinasPage() {
       const disciplina = await createDisciplinaMutation.mutateAsync({
         nome: newDisciplina.nome,
         codigo: newDisciplina.codigo,
+        turma: newDisciplina.turma,
         departamentoId: professorDepartamento,
       })
 
@@ -83,7 +86,7 @@ export default function ManageDisciplinasPage() {
         semestre: currentSemester,
       })
 
-      setNewDisciplina({ nome: "", codigo: "", cargaHoraria: 60, periodo: 1 })
+      setNewDisciplina({ nome: "", codigo: "", turma: "T1", cargaHoraria: 60, periodo: 1 })
       setShowCreateForm(false)
 
       toast({
@@ -268,12 +271,28 @@ export default function ManageDisciplinasPage() {
                     />
                   </div>
 
+                  <div>
+                    <Label htmlFor="turma">Turma</Label>
+                    <Select value={newDisciplina.turma} onValueChange={(value) => setNewDisciplina({ ...newDisciplina, turma: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a turma" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                          <SelectItem key={`T${num}`} value={`T${num}`}>
+                            T{num}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
                       onClick={() => {
                         setShowCreateForm(false)
-                        setNewDisciplina({ nome: "", codigo: "", cargaHoraria: 60, periodo: 1 })
+                        setNewDisciplina({ nome: "", codigo: "", turma: "T1", cargaHoraria: 60, periodo: 1 })
                       }}
                       className="flex-1"
                     >

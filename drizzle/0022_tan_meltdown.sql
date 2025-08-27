@@ -1,0 +1,1 @@
+ALTER TABLE "disciplina" ADD COLUMN "turma" varchar DEFAULT 'T1' NOT NULL;

@@ -1,313 +1,377 @@
 "use client"
 
-import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { ProjetoDisponivelListItem } from "@/types"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useToast } from "@/hooks/use-toast"
+import { TIPO_VAGA_LABELS } from "@/types/enums"
 import { api } from "@/utils/api"
-import { ColumnDef } from "@tanstack/react-table"
-import { Award, Eye, GraduationCap, Plus, Users } from "lucide-react"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Award, BookOpen, Calendar, Clock, FileText, MapPin, Search, User, Users } from "lucide-react"
 import { useState } from "react"
-import { toast } from "sonner"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
 
-export default function InscricaoMonitoriaPage() {
-  const [inscricaoOpen, setInscricaoOpen] = useState(false)
-  const [projetoSelecionado, setProjetoSelecionado] = useState<ProjetoDisponivelListItem | null>(null)
-  const [tipoInscricao, setTipoInscricao] = useState<"BOLSISTA" | "VOLUNTARIO">("BOLSISTA")
-  const [motivacao, setMotivacao] = useState("")
+const inscricaoSchema = z.object({
+  projetoId: z.number(),
+  tipoVagaPretendida: z.enum([TIPO_VAGA_LABELS.BOLSISTA, TIPO_VAGA_LABELS.VOLUNTARIO]),
+})
 
-  const { data: projetos, isLoading, refetch } = api.projeto.getAvailableProjects.useQuery()
-  const inscricaoMutation = api.inscricao.createInscricao.useMutation({
-    onSuccess: () => {
-      toast.success("Inscrição realizada com sucesso!")
-      setInscricaoOpen(false)
-      setMotivacao("")
+type InscricaoForm = z.infer<typeof inscricaoSchema>
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6">
+      {Array.from({ length: 6 }, (_, i) => (
+        <Card key={i}>
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-64" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <Skeleton className="h-6 w-20" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <div className="flex gap-4">
+                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-8 w-24" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+export default function InscricaoMonitoria() {
+  const { toast } = useToast()
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedDepartamento, setSelectedDepartamento] = useState<string>("")
+  const [tipoVagaFilter, setTipoVagaFilter] = useState<string>("")
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [selectedProjeto, setSelectedProjeto] = useState<any>(null)
+
+  const { data: projetos = [], isLoading, refetch } = api.projeto.getProjetos.useQuery()
+  const { data: departamentos = [] } = api.departamento.getDepartamentos.useQuery({})
+  const createInscricao = api.inscricao.criarInscricao.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: "Sucesso!",
+        description: result.message,
+      })
+      setDialogOpen(false)
+      form.reset()
       refetch()
     },
     onError: (error) => {
-      let errorMessage = error.message
-
-      // Handle specific error cases for better user experience
-      if (error.message.includes("Período de inscrições não está ativo")) {
-        errorMessage = "As inscrições para este projeto não estão abertas no momento."
-      } else if (error.message.includes("já se inscreveu neste projeto")) {
-        errorMessage = "Você já possui uma inscrição ativa para este projeto."
-      } else if (error.message.includes("Perfil de estudante não encontrado")) {
-        errorMessage = "Complete seu perfil de estudante antes de se inscrever em projetos."
-      } else if (error.message.includes("Motivação deve ter pelo menos")) {
-        errorMessage = "A motivação deve ter pelo menos 10 caracteres."
-      } else if (error.message.includes("não encontrado ou não aprovado")) {
-        errorMessage = "Este projeto não está mais disponível para inscrições."
-      }
-
-      toast.error(errorMessage)
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      })
     },
   })
 
-  const handleInscricao = (projeto: ProjetoDisponivelListItem) => {
-    setProjetoSelecionado(projeto)
-    setInscricaoOpen(true)
+  const form = useForm<InscricaoForm>({
+    resolver: zodResolver(inscricaoSchema),
+    defaultValues: {
+      tipoVagaPretendida: TIPO_VAGA_LABELS.BOLSISTA,
+    },
+  })
+
+  // Filter projects - only show APPROVED projects
+  const filteredProjetos = projetos.filter((projeto) => {
+    if (projeto.status !== "APPROVED") return false
+
+    const matchesSearch =
+      projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      projeto.professorResponsavelNome.toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesDepartamento = !selectedDepartamento || projeto.departamentoId.toString() === selectedDepartamento
+
+    const matchesTipoVaga =
+      !tipoVagaFilter ||
+      (tipoVagaFilter === TIPO_VAGA_LABELS.BOLSISTA && (projeto.bolsasDisponibilizadas ?? 0) > 0) ||
+      (tipoVagaFilter === TIPO_VAGA_LABELS.VOLUNTARIO && (projeto.voluntariosSolicitados ?? 0) > 0)
+
+    return matchesSearch && matchesDepartamento && matchesTipoVaga
+  })
+
+  const handleInscricaoSubmit = async (data: InscricaoForm) => {
+    try {
+      await createInscricao.mutateAsync({
+        projetoId: data.projetoId,
+        tipoVagaPretendida: data.tipoVagaPretendida === TIPO_VAGA_LABELS.BOLSISTA ? "BOLSISTA" : "VOLUNTARIO",
+      })
+    } catch (error) {
+      // Error handling is done in the mutation onError
+    }
   }
 
-  const handleSubmitInscricao = () => {
-    if (!projetoSelecionado) {
-      toast.error("Nenhum projeto selecionado")
-      return
-    }
-
-    if (!motivacao.trim()) {
-      toast.error("Preencha sua motivação para participar do projeto")
-      return
-    }
-
-    if (motivacao.trim().length < 10) {
-      toast.error("A motivação deve ter pelo menos 10 caracteres")
-      return
-    }
-
-    // Check if inscriptions are still open
-    if (!projetoSelecionado.inscricaoAberta) {
-      toast.error("As inscrições para este projeto não estão mais abertas")
-      return
-    }
-
-    // Check if already enrolled
-    if (projetoSelecionado.jaInscrito) {
-      toast.error("Você já possui uma inscrição ativa para este projeto")
-      return
-    }
-
-    inscricaoMutation.mutate({
-      projetoId: projetoSelecionado.id,
-      tipo: tipoInscricao,
-      motivacao: motivacao.trim(),
-    })
+  const openInscricaoDialog = (projeto: any) => {
+    setSelectedProjeto(projeto)
+    form.setValue("projetoId", projeto.id)
+    setDialogOpen(true)
   }
 
-  const getStatusBadge = (projeto: ProjetoDisponivelListItem) => {
-    if (projeto.jaInscrito) {
-      return (
-        <Badge variant="default" className="bg-green-500">
-          Inscrito
-        </Badge>
-      )
-    }
-    if (!projeto.inscricaoAberta) {
-      return <Badge variant="secondary">Inscrições Fechadas</Badge>
-    }
+  if (isLoading) {
     return (
-      <Badge variant="outline" className="border-green-500 text-green-700">
-        Inscrições Abertas
-      </Badge>
+      <div className="container mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight">Inscrição em Monitoria</h1>
+          <p className="text-muted-foreground">Encontre e inscreva-se em projetos de monitoria disponíveis.</p>
+        </div>
+        <LoadingSkeleton />
+      </div>
     )
   }
 
-  const columns: ColumnDef<ProjetoDisponivelListItem>[] = [
-    {
-      header: "Projeto",
-      accessorKey: "titulo",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.titulo}</div>
-          <div className="text-sm text-muted-foreground">
-            {row.original.disciplinas[0]?.codigo} - {row.original.professorResponsavelNome}
-          </div>
-          <div className="text-sm text-muted-foreground">{row.original.departamentoNome}</div>
-        </div>
-      ),
-    },
-    {
-      header: "Vagas",
-      id: "vagas",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-1">
-            <Award className="h-4 w-4 text-yellow-600" />
-            <span className="text-sm font-medium">{row.original.bolsasDisponibilizadas} bolsa(s)</span>
-          </div>
-          <div className="flex items-center justify-center gap-2">
-            <Users className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium">{row.original.voluntariosSolicitados} voluntário(s)</span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: "Inscritos",
-      accessorKey: "totalInscritos",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <span className="text-lg font-bold">{row.original.totalInscritos}</span>
-          <div className="text-xs text-muted-foreground">candidatos</div>
-        </div>
-      ),
-    },
-    {
-      header: "Status",
-      id: "status",
-      cell: ({ row }) => getStatusBadge(row.original),
-    },
-    {
-      header: "Ações",
-      id: "actions",
-      cell: ({ row }) => {
-        const projeto = row.original
-        return (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                /* Implementar visualização do projeto */
-              }}
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              Ver Detalhes
-            </Button>
-            {!projeto.jaInscrito && projeto.inscricaoAberta && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handleInscricao(projeto)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Inscrever-se
-              </Button>
-            )}
-          </div>
-        )
-      },
-    },
-  ]
-
   return (
-    <PagesLayout title="Inscrição em Monitoria" subtitle="Inscreva-se em projetos de monitoria disponíveis">
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold tracking-tight">Inscrição em Monitoria</h1>
+        <p className="text-muted-foreground">Encontre e inscreva-se em projetos de monitoria disponíveis.</p>
+      </div>
+
+      {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" />
-            Projetos Disponíveis
-            {projetos && (
-              <Badge variant="outline" className="ml-2">
-                {projetos.length} projeto(s)
-              </Badge>
-            )}
-          </CardTitle>
+          <CardTitle className="text-lg">Filtros</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center py-8">
-              <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                <p className="mt-2">Carregando projetos disponíveis...</p>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <Label htmlFor="search">Buscar projetos</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  placeholder="Título ou professor..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
             </div>
-          ) : projetos && projetos.length > 0 ? (
-            <TableComponent
-              columns={columns}
-              data={projetos}
-              searchableColumn="titulo"
-              searchPlaceholder="Buscar por projeto ou disciplina..."
-            />
-          ) : (
-            <div className="text-center py-12 text-muted-foreground">
-              <GraduationCap className="mx-auto h-12 w-12 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Nenhum projeto disponível</h3>
-              <p>Não há projetos de monitoria com inscrições abertas no momento.</p>
+
+            <div>
+              <Label htmlFor="departamento">Departamento</Label>
+              <Select value={selectedDepartamento} onValueChange={setSelectedDepartamento}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os departamentos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos os departamentos</SelectItem>
+                  {departamentos.map((dept: any) => (
+                    <SelectItem key={dept.id} value={dept.id.toString()}>
+                      {dept.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          )}
+
+            <div>
+              <Label htmlFor="tipoVaga">Tipo de vaga</Label>
+              <Select value={tipoVagaFilter} onValueChange={setTipoVagaFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os tipos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos os tipos</SelectItem>
+                  <SelectItem value={TIPO_VAGA_LABELS.BOLSISTA}>{TIPO_VAGA_LABELS.BOLSISTA}</SelectItem>
+                  <SelectItem value={TIPO_VAGA_LABELS.VOLUNTARIO}>{TIPO_VAGA_LABELS.VOLUNTARIO}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Dialog de Inscrição */}
-      <Dialog open={inscricaoOpen} onOpenChange={setInscricaoOpen}>
-        <DialogContent>
+      {/* Results Summary */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {filteredProjetos.length} projeto{filteredProjetos.length !== 1 ? "s" : ""} encontrado
+          {filteredProjetos.length !== 1 ? "s" : ""}
+        </p>
+      </div>
+
+      {/* Project Cards */}
+      <div className="space-y-4">
+        {filteredProjetos.length === 0 ? (
+          <Card>
+            <CardContent className="py-12">
+              <div className="text-center">
+                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Nenhum projeto encontrado</h3>
+                <p className="text-muted-foreground">Tente ajustar os filtros para encontrar projetos disponíveis.</p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredProjetos.map((projeto) => (
+            <Card key={projeto.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="text-xl">{projeto.titulo}</CardTitle>
+                    <CardDescription className="text-base">
+                      <div className="flex items-center gap-4 text-sm">
+                        <div className="flex items-center gap-1">
+                          <User className="h-4 w-4" />
+                          {projeto.professorResponsavelNome}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          {projeto.departamentoNome}
+                        </div>
+                      </div>
+                    </CardDescription>
+                  </div>
+                  <Badge variant="default">Ativo</Badge>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground line-clamp-3">{projeto.descricao}</p>
+
+                {/* Período e Carga Horária */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      {projeto.ano}.{projeto.semestre === "SEMESTRE_1" ? "1" : "2"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{projeto.cargaHorariaSemana}h/semana</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-blue-600" />
+                    <span>{projeto.bolsasDisponibilizadas || 0} bolsas</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-green-600" />
+                    <span>{projeto.voluntariosSolicitados || 0} voluntários</span>
+                  </div>
+                </div>
+
+                {/* Público Alvo */}
+                {projeto.publicoAlvo && (
+                  <div className="flex items-start gap-2 text-sm">
+                    <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <span>Público-alvo: {projeto.publicoAlvo}</span>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    onClick={() => openInscricaoDialog(projeto)}
+                    disabled={
+                      createInscricao.isPending ||
+                      ((projeto.bolsasDisponibilizadas ?? 0) === 0 && (projeto.voluntariosSolicitados ?? 0) === 0)
+                    }
+                    className="flex-1"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Inscrever-se
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Inscrição Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Inscrição em Monitoria</DialogTitle>
+            <DialogTitle>Inscrever-se no Projeto</DialogTitle>
+            <DialogDescription>{selectedProjeto?.titulo}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            {projetoSelecionado && (
-              <div className="p-3 bg-muted rounded-lg">
-                <h4 className="font-medium">{projetoSelecionado.titulo}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {projetoSelecionado.disciplinas[0]?.codigo} - {projetoSelecionado.professorResponsavelNome}
-                </p>
-              </div>
-            )}
 
+          <form onSubmit={form.handleSubmit(handleInscricaoSubmit)} className="space-y-4">
             <div>
-              <Label>Tipo de Monitoria</Label>
-              <div className="flex gap-4 mt-2">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="tipo"
-                    value="BOLSISTA"
-                    checked={tipoInscricao === "BOLSISTA"}
-                    onChange={(e) => setTipoInscricao(e.target.value as "BOLSISTA")}
-                  />
-                  <span>Bolsista</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="tipo"
-                    value="VOLUNTARIO"
-                    checked={tipoInscricao === "VOLUNTARIO"}
-                    onChange={(e) => setTipoInscricao(e.target.value as "VOLUNTARIO")}
-                  />
-                  <span>Voluntário</span>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="motivacao">Motivação *</Label>
-                <span className={`text-xs ${motivacao.length >= 10 ? "text-green-600" : "text-red-600"}`}>
-                  {motivacao.length}/10 min
-                </span>
-              </div>
-              <Textarea
-                id="motivacao"
-                value={motivacao}
-                onChange={(e) => setMotivacao(e.target.value)}
-                placeholder="Descreva sua motivação para participar deste projeto de monitoria..."
-                rows={4}
-                className={motivacao.length > 0 && motivacao.length < 10 ? "border-red-300" : ""}
-              />
-              {motivacao.length > 0 && motivacao.length < 10 && (
-                <p className="text-xs text-red-600 mt-1">A motivação deve ter pelo menos 10 caracteres</p>
+              <Label htmlFor="tipoVaga">Tipo de vaga desejada</Label>
+              <Select
+                value={form.watch("tipoVagaPretendida")}
+                onValueChange={(value: typeof TIPO_VAGA_LABELS.BOLSISTA | typeof TIPO_VAGA_LABELS.VOLUNTARIO) =>
+                  form.setValue("tipoVagaPretendida", value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(selectedProjeto?.bolsasDisponibilizadas ?? 0) > 0 && (
+                    <SelectItem value={TIPO_VAGA_LABELS.BOLSISTA}>
+                      Bolsista ({selectedProjeto.bolsasDisponibilizadas} disponível
+                      {selectedProjeto.bolsasDisponibilizadas !== 1 ? "is" : ""})
+                    </SelectItem>
+                  )}
+                  {(selectedProjeto?.voluntariosSolicitados ?? 0) > 0 && (
+                    <SelectItem value={TIPO_VAGA_LABELS.VOLUNTARIO}>
+                      Voluntário ({selectedProjeto.voluntariosSolicitados} vaga
+                      {selectedProjeto.voluntariosSolicitados !== 1 ? "s" : ""})
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.tipoVagaPretendida && (
+                <p className="text-sm text-red-500 mt-1">{form.formState.errors.tipoVagaPretendida.message}</p>
               )}
             </div>
 
-            <div className="flex gap-2 pt-4">
-              <Button
-                onClick={handleSubmitInscricao}
-                disabled={
-                  inscricaoMutation.isPending ||
-                  !motivacao.trim() ||
-                  motivacao.trim().length < 10 ||
-                  !projetoSelecionado?.inscricaoAberta ||
-                  projetoSelecionado?.jaInscrito
-                }
-                className="flex-1"
-              >
-                {inscricaoMutation.isPending ? "Inscrevendo..." : "Confirmar Inscrição"}
-              </Button>
-              <Button variant="outline" onClick={() => setInscricaoOpen(false)} className="flex-1">
+            <div className="p-3 bg-muted rounded-lg text-sm">
+              <p>
+                <strong>Professor:</strong> {selectedProjeto?.professorResponsavelNome}
+              </p>
+              <p>
+                <strong>Departamento:</strong> {selectedProjeto?.departamentoNome}
+              </p>
+              <p>
+                <strong>Carga horária:</strong> {selectedProjeto?.cargaHorariaSemana}h/semana por{" "}
+                {selectedProjeto?.numeroSemanas} semanas
+              </p>
+              <p>
+                <strong>Período:</strong> {selectedProjeto?.ano}.
+                {selectedProjeto?.semestre === "SEMESTRE_1" ? "1" : "2"}
+              </p>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar
               </Button>
-            </div>
-          </div>
+              <Button type="submit" disabled={createInscricao.isPending}>
+                {createInscricao.isPending ? "Inscrevendo..." : "Confirmar Inscrição"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
-    </PagesLayout>
+    </div>
   )
 }

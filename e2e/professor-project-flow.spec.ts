@@ -84,7 +84,8 @@ test.describe('Professor Project Creation Flow', () => {
       }
 
       // Test that dropdowns are present
-      await expect(page.locator('select, [role="combobox"]')).toHaveCount({ greaterThan: 0 })
+      const dropdownCount = await page.locator('select, [role="combobox"]').count()
+      expect(dropdownCount).toBeGreaterThan(0)
 
       // Test that submit button is present
       await expect(page.locator('button[type="submit"]')).toBeVisible()
@@ -157,7 +158,8 @@ test.describe('Professor Project Creation Flow', () => {
 
         // Check if new activity field was added
         const activityInputs = page.locator('input[placeholder*="Atividade"]')
-        await expect(activityInputs).toHaveCount({ greaterThan: 4 })
+        const activityCount = await activityInputs.count()
+        expect(activityCount).toBeGreaterThan(4)
       }
     }
   })

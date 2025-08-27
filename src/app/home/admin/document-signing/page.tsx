@@ -7,15 +7,17 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
 import { AdminSigningProjectItem } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { ArrowLeft, CheckCircle, Eye, FileSignature, Loader } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { toast } from "sonner"
 
 export default function DocumentSigningPage() {
+  const { toast } = useToast()
+
   const router = useRouter()
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [showSigningDialog, setShowSigningDialog] = useState(false)
@@ -31,7 +33,9 @@ export default function DocumentSigningPage() {
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
 
   const handleViewStoredPDF = async (projetoId: number) => {
-    toast("Preparando visualização...")
+    toast({
+      title: "Preparando visualização...",
+    })
     try {
       const result = await getProjetoPdfMutation.mutateAsync({
         projetoId,
@@ -39,16 +43,23 @@ export default function DocumentSigningPage() {
 
       const newWindow = window.open(result.url, "_blank", "noopener,noreferrer")
       if (!newWindow) {
-        toast.error("Popup bloqueado", {
+        toast({
+          title: "Erro",
           description: "Permita popups para visualizar o PDF em nova aba.",
+          variant: "destructive",
         })
         return
       }
 
-      toast.success("PDF aberto em nova aba")
+      toast({
+        title: "Sucesso!",
+        description: "PDF aberto em nova aba",
+      })
     } catch (error) {
-      toast.error("Erro ao abrir PDF", {
+      toast({
+        title: "Erro",
         description: "Não foi possível abrir o documento para visualização.",
+        variant: "destructive",
       })
       console.error("View PDF error:", error)
     }
@@ -63,7 +74,10 @@ export default function DocumentSigningPage() {
     setShowSigningDialog(false)
     setSelectedProjectId(null)
     refetch()
-    toast.success("Documento assinado com sucesso!")
+    toast({
+      title: "Sucesso!",
+      description: "Documento assinado com sucesso!",
+    })
   }
 
   const handleBackToDashboard = () => {

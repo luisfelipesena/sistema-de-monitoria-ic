@@ -92,3 +92,25 @@ export const testUsers = {
 export function hashApiKey(rawKey: string): string {
   return createHash('sha256').update(rawKey).digest('hex')
 }
+
+// Simplified auth setup for E2E tests
+export async function setupAuth(page: Page, userRole: 'admin' | 'professor' | 'student') {
+  const user = testUsers[userRole]
+
+  // For E2E testing, we'll simulate being logged in by setting session data
+  // This is a simplified approach for testing - in real app, auth flows through CAS
+  await page.addInitScript((userData) => {
+    // Mock the session/auth state in localStorage for testing
+    localStorage.setItem('test-auth-user', JSON.stringify(userData))
+  }, user)
+
+  // Set cookie that the app can read to determine auth state
+  await page.context().addCookies([
+    {
+      name: 'test-session',
+      value: `user-${user.id}-role-${user.role}`,
+      domain: 'localhost',
+      path: '/',
+    },
+  ])
+}

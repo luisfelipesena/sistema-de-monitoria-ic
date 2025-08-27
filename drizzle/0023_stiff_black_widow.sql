@@ -1,0 +1,1 @@
+ALTER TABLE "edital" ADD COLUMN "valor_bolsa" numeric(10, 2) DEFAULT '400.00' NOT NULL;

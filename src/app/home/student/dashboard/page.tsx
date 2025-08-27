@@ -1,262 +1,369 @@
-"use client"
+'use client'
 
-import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAuth } from "@/hooks/use-auth"
-import { api } from "@/utils/api"
-import { ColumnDef } from "@tanstack/react-table"
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { api } from '@/utils/api'
 import {
+  Activity,
   AlertTriangle,
   Award,
-  CheckCircle,
+  BookOpen,
+  Calendar,
+  CheckCircle2,
   Clock,
   Eye,
   FileText,
-  GraduationCap,
-  Loader,
-  School,
+  Trophy,
   User,
   UserPlus,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
+} from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
-export default function DashboardStudent() {
-  const router = useRouter()
-  const { isAuthenticated, user } = useAuth()
-
-  const { data: inscricoes, isLoading: loadingInscricoes } = api.inscricao.getMinhasInscricoes.useQuery()
-
-  if (!isAuthenticated || user?.role !== "student") {
-    return null
-  }
-
-  const statusCounts = {
-    inscrito: inscricoes?.filter((i: any) => i.status === "SUBMITTED").length || 0,
-    selecionado:
-      inscricoes?.filter((i: any) => i.status === "SELECTED_BOLSISTA" || i.status === "SELECTED_VOLUNTARIO").length ||
-      0,
-    aprovado:
-      inscricoes?.filter((i: any) => i.status === "ACCEPTED_BOLSISTA" || i.status === "ACCEPTED_VOLUNTARIO").length ||
-      0,
-    rejeitado: inscricoes?.filter((i: any) => i.status === "REJECTED_BY_PROFESSOR").length || 0,
-  }
-
-  const colunas: ColumnDef<any>[] = [
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-          <span className="text-xs sm:text-sm">Disciplina</span>
-        </div>
-      ),
-      accessorKey: "projeto",
-      cell: ({ row }) => {
-        const disciplinas = row.original.projeto?.disciplinas
-        const disciplina = disciplinas && disciplinas.length > 0 ? disciplinas[0] : null
-        return (
-          <div>
-            <span className="font-semibold text-sm sm:text-base text-gray-900">{disciplina?.codigo || "N/A"}</span>
-            <div className="text-xs sm:text-sm text-muted-foreground">{disciplina?.nome || ""}</div>
-          </div>
-        )
-      },
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <User className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-          <span className="text-xs sm:text-sm">Professor</span>
-        </div>
-      ),
-      accessorKey: "projeto",
-      cell: ({ row }) => (
-        <div className="text-xs sm:text-sm">{row.original.projeto?.professorResponsavel?.nomeCompleto || "N/A"}</div>
-      ),
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <School className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-          <span className="text-xs sm:text-sm">Departamento</span>
-        </div>
-      ),
-      accessorKey: "projeto",
-      cell: ({ row }) => <div className="text-xs sm:text-sm">{row.original.projeto?.departamento?.nome || "N/A"}</div>,
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Award className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-          <span className="text-xs sm:text-sm">Tipo</span>
-        </div>
-      ),
-      accessorKey: "tipoVagaPretendida",
-      cell: ({ row }) => (
-        <Badge variant={row.original.tipoVagaPretendida === "BOLSISTA" ? "default" : "secondary"} className="text-xs">
-          {row.original.tipoVagaPretendida === "BOLSISTA" ? "Bolsista" : "Voluntário"}
-        </Badge>
-      ),
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-          <span className="text-xs sm:text-sm">Status</span>
-        </div>
-      ),
-      accessorKey: "status",
-      cell: ({ row }) => {
-        const status = row.original.status
-        const getStatusBadge = () => {
-          switch (status) {
-            case "inscrito":
-              return (
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
-                  Inscrito
-                </Badge>
-              )
-            case "selecionado":
-              return (
-                <Badge variant="default" className="bg-green-500 text-xs">
-                  Selecionado
-                </Badge>
-              )
-            case "aprovado":
-              return (
-                <Badge variant="default" className="bg-green-600 text-xs">
-                  Aprovado
-                </Badge>
-              )
-            case "rejeitado":
-              return (
-                <Badge variant="destructive" className="text-xs">
-                  Rejeitado
-                </Badge>
-              )
-            default:
-              return (
-                <Badge variant="outline" className="text-xs">
-                  {status}
-                </Badge>
-              )
-          }
-        }
-        return getStatusBadge()
-      },
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
-          <span className="text-xs sm:text-sm">Período</span>
-        </div>
-      ),
-      accessorKey: "projeto",
-      cell: ({ row }) => (
-        <div className="text-xs sm:text-sm">
-          {row.original.projeto?.ano || ""}.{row.original.projeto?.semestre === "SEMESTRE_1" ? "1" : "2"}
-        </div>
-      ),
-    },
-  ]
-
-  const dashboardActions = (
-    <div className="flex flex-wrap gap-2 sm:gap-3">
-      <Button
-        variant="primary"
-        size="sm"
-        onClick={() => router.push("/home/student/inscricao-monitoria")}
-        className="text-xs sm:text-sm px-2 sm:px-4"
-      >
-        <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-        <span className="hidden sm:inline">Inscrever-se</span>
-        <span className="sm:hidden">Inscrever</span>
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => router.push("/home/student/resultados")}
-        className="text-xs sm:text-sm px-2 sm:px-4"
-      >
-        <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-        <span className="hidden sm:inline">Ver Resultados</span>
-        <span className="sm:hidden">Resultados</span>
-      </Button>
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-4 bg-muted animate-pulse rounded" />
+            </CardHeader>
+            <CardContent>
+              <div className="h-8 w-16 bg-muted animate-pulse rounded" />
+              <div className="h-3 w-32 bg-muted animate-pulse rounded mt-1" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   )
+}
+
+export default function StudentDashboard() {
+  const router = useRouter()
+  const { data: status, isLoading, error } = api.inscricao.getMyStatus.useQuery()
+  const { data: inscricoes } = api.inscricao.getMinhasInscricoes.useQuery()
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard do Estudante</h1>
+          <p className="text-muted-foreground">
+            Acompanhe suas inscrições, resultados e atividades de monitoria.
+          </p>
+        </div>
+        <LoadingSkeleton />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard do Estudante</h1>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-muted-foreground mb-4">
+                Erro ao carregar dados: {error.message}
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="text-primary hover:underline"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const progressPercentage = status?.totalInscricoes ? (status.totalAprovacoes / status.totalInscricoes) * 100 : 0
 
   return (
-    <PagesLayout
-      title="Dashboard - Aluno"
-      subtitle="Acompanhe suas inscrições e status nas monitorias"
-      actions={dashboardActions}
-    >
-      {loadingInscricoes ? (
-        <div className="flex justify-center items-center py-8">
-          <Loader className="h-8 w-8 animate-spin" />
-          <span className="ml-2 text-sm sm:text-base">Carregando inscrições...</span>
-        </div>
-      ) : (
-        <>
-          {/* Cards de Resumo */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Inscrições</CardTitle>
-                <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold text-blue-600">{statusCounts.inscrito}</div>
-                <p className="text-xs text-muted-foreground">Aguardando seleção</p>
-              </CardContent>
-            </Card>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard do Estudante</h1>
+        <p className="text-muted-foreground">
+          Acompanhe suas inscrições, resultados e atividades de monitoria.
+        </p>
+      </div>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Selecionado</CardTitle>
-                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold text-green-600">{statusCounts.selecionado}</div>
-                <p className="text-xs text-muted-foreground">Aguardando aprovação</p>
-              </CardContent>
-            </Card>
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Inscrições</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{status?.totalInscricoes ?? 0}</div>
+            <p className="text-xs text-muted-foreground">inscrições realizadas</p>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Aprovado</CardTitle>
-                <Award className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold text-green-700">{statusCounts.aprovado}</div>
-                <p className="text-xs text-muted-foreground">Monitor ativo</p>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Aprovações</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{status?.totalAprovacoes ?? 0}</div>
+            <p className="text-xs text-muted-foreground">aprovações obtidas</p>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xs sm:text-sm font-medium">Rejeitado</CardTitle>
-                <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg sm:text-2xl font-bold text-red-600">{statusCounts.rejeitado}</div>
-                <p className="text-xs text-muted-foreground">Não selecionado</p>
-              </CardContent>
-            </Card>
-          </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Taxa de Sucesso</CardTitle>
+            <Trophy className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{Math.round(progressPercentage)}%</div>
+            <Progress value={progressPercentage} className="mt-2" />
+          </CardContent>
+        </Card>
 
-          <TableComponent
-            columns={colunas}
-            data={inscricoes || []}
-            searchPlaceholder="Buscar por disciplina..."
-            isLoading={loadingInscricoes}
-            emptyMessage="Nenhuma inscrição encontrada."
-          />
-        </>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Status Atual</CardTitle>
+            <User className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              <Badge variant={status?.monitoriaAtiva ? 'default' : 'secondary'}>
+                {status?.monitoriaAtiva ? 'Monitor Ativo' : 'Disponível'}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {status?.monitoriaAtiva ? 'monitoria em andamento' : 'disponível para inscrições'}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        {/* Monitoria Ativa */}
+        <Card className="col-span-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5" />
+              Monitoria Ativa
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {status?.monitoriaAtiva ? (
+              <div className="space-y-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-semibold">{status.monitoriaAtiva.projeto.titulo}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Professor: {status.monitoriaAtiva.projeto.professorResponsavelNome}
+                    </p>
+                  </div>
+                  <Badge variant="outline">{status.monitoriaAtiva.tipo}</Badge>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Disciplinas:</span>
+                    <span>
+                      {status.monitoriaAtiva.projeto.disciplinas
+                        .map((d) => `${d.codigo} - ${d.nome}`)
+                        .join(', ')}
+                    </span>
+                  </div>
+                  {status.monitoriaAtiva.dataInicio && (
+                    <div className="flex justify-between text-sm">
+                      <span>Período:</span>
+                      <span>
+                        {status.monitoriaAtiva.dataInicio?.toLocaleDateString('pt-BR')} a{' '}
+                        {status.monitoriaAtiva.dataFim?.toLocaleDateString('pt-BR')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {status.monitoriaAtiva.cargaHorariaPlanejada && (
+                  <div className="pt-2">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Carga Horária</span>
+                      <span>
+                        {status.monitoriaAtiva.cargaHorariaCumprida || 0} /{' '}
+                        {status.monitoriaAtiva.cargaHorariaPlanejada}h
+                      </span>
+                    </div>
+                    <Progress
+                      value={
+                        ((status.monitoriaAtiva.cargaHorariaCumprida || 0) /
+                          status.monitoriaAtiva.cargaHorariaPlanejada) *
+                        100
+                      }
+                    />
+                  </div>
+                )}
+
+                <Separator />
+                <div className="flex gap-2">
+                  <Link
+                    href="/home/common/status"
+                    className="text-sm text-primary hover:underline flex items-center gap-1"
+                  >
+                    <Activity className="h-3 w-3" />
+                    Ver detalhes completos
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">Nenhuma monitoria ativa</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Você não possui monitoria ativa no momento. Que tal se inscrever em um projeto?
+                </p>
+                <div className="flex gap-2 justify-center">
+                  <Link
+                    href="/home/student/vagas"
+                    className="text-sm text-primary hover:underline flex items-center gap-1"
+                  >
+                    <Award className="h-3 w-3" />
+                    Ver vagas disponíveis
+                  </Link>
+                  <Link
+                    href="/home/student/inscricao-monitoria"
+                    className="text-sm text-primary hover:underline flex items-center gap-1"
+                  >
+                    <FileText className="h-3 w-3" />
+                    Nova inscrição
+                  </Link>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Próximas Ações */}
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Próximas Ações
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {status?.proximasAcoes && status.proximasAcoes.length > 0 ? (
+              <div className="space-y-3">
+                {status.proximasAcoes.map((acao, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="mt-1">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{acao.titulo}</p>
+                      <p className="text-xs text-muted-foreground">{acao.descricao}</p>
+                      {acao.prazo && (
+                        <p className="text-xs text-orange-600 mt-1">
+                          Prazo: {acao.prazo.toLocaleDateString('pt-BR')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhuma ação pendente</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Histórico de Atividades */}
+      {status?.historicoAtividades && status.historicoAtividades.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Histórico de Atividades
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {status.historicoAtividades.slice(0, 5).map((atividade, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="text-xs">
+                      {atividade.tipo}
+                    </Badge>
+                    <span className="text-sm">{atividade.descricao}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {atividade.data.toLocaleDateString('pt-BR')}
+                  </span>
+                </div>
+              ))}
+              {status.historicoAtividades.length > 5 && (
+                <div className="pt-2 text-center">
+                  <Link
+                    href="/home/common/status"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Ver histórico completo
+                  </Link>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       )}
-    </PagesLayout>
+
+      {/* Actions */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/home/student/vagas')}>
+          <CardContent className="p-6 text-center">
+            <Award className="h-8 w-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold mb-1">Vagas Disponíveis</h3>
+            <p className="text-xs text-muted-foreground">Veja todas as vagas abertas</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/home/student/inscricao-monitoria')}>
+          <CardContent className="p-6 text-center">
+            <FileText className="h-8 w-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold mb-1">Nova Inscrição</h3>
+            <p className="text-xs text-muted-foreground">Inscreva-se em um projeto</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/home/student/resultados')}>
+          <CardContent className="p-6 text-center">
+            <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold mb-1">Resultados</h3>
+            <p className="text-xs text-muted-foreground">Acompanhe seus resultados</p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/home/common/status')}>
+          <CardContent className="p-6 text-center">
+            <User className="h-8 w-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold mb-1">Meu Status</h3>
+            <p className="text-xs text-muted-foreground">Status completo da monitoria</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   )
 }

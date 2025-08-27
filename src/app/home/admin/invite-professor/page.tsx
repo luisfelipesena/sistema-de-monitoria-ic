@@ -44,12 +44,14 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 type InviteFormData = z.infer<typeof inviteFormSchema>;
 
 export default function InviteProfessorPage() {
+  const { toast } = useToast()
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<
     "PENDING" | "ACCEPTED" | "EXPIRED" | "ALL"
@@ -67,13 +69,20 @@ export default function InviteProfessorPage() {
   const sendInvitationMutation = api.inviteProfessor.sendInvitation.useMutation(
     {
       onSuccess: () => {
-        toast.success("Convite enviado com sucesso!");
+        toast({
+        title: "Sucesso!",
+        description: "Convite enviado com sucesso!",
+      });
         setIsDialogOpen(false);
         refetch();
         form.reset();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     }
   );
@@ -81,33 +90,54 @@ export default function InviteProfessorPage() {
   const resendInvitationMutation =
     api.inviteProfessor.resendInvitation.useMutation({
       onSuccess: () => {
-        toast.success("Convite reenviado com sucesso!");
+        toast({
+        title: "Sucesso!",
+        description: "Convite reenviado com sucesso!",
+      });
         refetch();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     });
 
   const cancelInvitationMutation =
     api.inviteProfessor.cancelInvitation.useMutation({
       onSuccess: () => {
-        toast.success("Convite cancelado!");
+        toast({
+        title: "Sucesso!",
+        description: "Convite cancelado!",
+      });
         refetch();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     });
 
   const deleteInvitationMutation =
     api.inviteProfessor.deleteInvitation.useMutation({
       onSuccess: () => {
-        toast.success("Convite excluído!");
+        toast({
+        title: "Sucesso!",
+        description: "Convite excluído!",
+      });
         refetch();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     });
 
@@ -178,7 +208,10 @@ export default function InviteProfessorPage() {
   const copyInviteLink = (token: string) => {
     const link = getInviteLink(token);
     navigator.clipboard.writeText(link);
-    toast.success("Link copiado para a área de transferência!");
+    toast({
+        title: "Sucesso!",
+        description: "Link copiado para a área de transferência!",
+      });
   };
 
   const columns: ColumnDef<InvitationItem>[] = [

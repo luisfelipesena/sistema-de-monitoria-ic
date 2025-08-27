@@ -33,6 +33,7 @@ import {
   semestreSchema,
   ValidationResult,
   type Semestre,
+  ACCEPTED_BOLSISTA,
 } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { and, count, desc, eq, sql, sum } from 'drizzle-orm'
@@ -889,7 +890,7 @@ export const relatoriosRouter = createTRPCRouter({
           const fimSemestre = new Date(ano, semestre === 'SEMESTRE_1' ? 5 : 11, 30)
 
           const tipoMonitoria: 'BOLSISTA' | 'VOLUNTARIO' =
-            vaga.inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
+            vaga.inscricao.status === ACCEPTED_BOLSISTA ? 'BOLSISTA' : 'VOLUNTARIO'
 
           return {
             id: vaga.inscricaoId,
@@ -921,7 +922,7 @@ export const relatoriosRouter = createTRPCRouter({
               tipo: tipoMonitoria,
               dataInicio: vaga.dataInicio?.toISOString() || inicioSemestre.toISOString(),
               dataFim: vaga.dataFim?.toISOString() || fimSemestre.toISOString(),
-              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 700 : 0, // Assuming a fixed value
+              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 400 : 0, // Valor padrão conforme UFBA
               status: 'ATIVO', // Placeholder, logic needed
             },
           }
@@ -981,6 +982,9 @@ export const relatoriosRouter = createTRPCRouter({
             nome: departamentoTable.nome,
             sigla: departamentoTable.sigla,
           },
+          edital: {
+            valorBolsa: editalTable.valorBolsa,
+          },
         })
         .from(vagaTable)
         .innerJoin(alunoTable, eq(vagaTable.alunoId, alunoTable.id))
@@ -988,6 +992,9 @@ export const relatoriosRouter = createTRPCRouter({
         .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
         .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+        .innerJoin(inscricaoTable, eq(vagaTable.inscricaoId, inscricaoTable.id))
+        .innerJoin(periodoInscricaoTable, eq(inscricaoTable.periodoInscricaoId, periodoInscricaoTable.id))
+        .innerJoin(editalTable, eq(periodoInscricaoTable.id, editalTable.periodoInscricaoId))
         .where(whereCondition)
         .orderBy(departamentoTable.nome, alunoTable.nomeCompleto)
 
@@ -1026,7 +1033,7 @@ export const relatoriosRouter = createTRPCRouter({
               numeroSemanas: bolsista.projeto.numeroSemanas || 18,
             },
             tipo: 'BOLSISTA' as const,
-            valorBolsa: 700.0,
+            valorBolsa: parseFloat(bolsista.edital.valorBolsa),
           }
         })
       )

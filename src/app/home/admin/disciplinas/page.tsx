@@ -14,15 +14,18 @@ import { useQueryClient } from "@tanstack/react-query"
 import { ColumnDef } from "@tanstack/react-table"
 import { BookOpen, Edit, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 
 export default function DisciplinasPage() {
+  const { toast } = useToast()
+
   const queryClient = useQueryClient()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingDisciplina, setEditingDisciplina] = useState<DisciplinaListItem | null>(null)
   const [formData, setFormData] = useState({
     codigo: "",
     nome: "",
+    turma: "",
     departamentoId: "",
   })
 
@@ -31,35 +34,56 @@ export default function DisciplinasPage() {
 
   const createMutation = api.discipline.create.useMutation({
     onSuccess: () => {
-      toast.success("Disciplina criada com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Disciplina criada com sucesso!",
+      })
       queryClient.invalidateQueries()
       setIsCreateOpen(false)
       resetForm()
     },
     onError: (error) => {
-      toast.error(`Erro ao criar disciplina: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao criar disciplina: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const updateMutation = api.discipline.updateDiscipline.useMutation({
     onSuccess: () => {
-      toast.success("Disciplina atualizada com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Disciplina atualizada com sucesso!",
+      })
       queryClient.invalidateQueries()
       setEditingDisciplina(null)
       resetForm()
     },
     onError: (error) => {
-      toast.error(`Erro ao atualizar disciplina: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao atualizar disciplina: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const deleteMutation = api.discipline.deleteDiscipline.useMutation({
     onSuccess: () => {
-      toast.success("Disciplina excluída com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Disciplina excluída com sucesso!",
+      })
       queryClient.invalidateQueries()
     },
     onError: (error) => {
-      toast.error(`Erro ao excluir disciplina: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao excluir disciplina: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
@@ -67,6 +91,7 @@ export default function DisciplinasPage() {
     setFormData({
       codigo: "",
       nome: "",
+      turma: "",
       departamentoId: "",
     })
   }
@@ -75,6 +100,7 @@ export default function DisciplinasPage() {
     createMutation.mutate({
       codigo: formData.codigo,
       nome: formData.nome,
+      turma: formData.turma,
       departamentoId: parseInt(formData.departamentoId),
     })
   }
@@ -85,6 +111,7 @@ export default function DisciplinasPage() {
       id: editingDisciplina.id,
       codigo: formData.codigo,
       nome: formData.nome,
+      turma: formData.turma,
       departamentoId: parseInt(formData.departamentoId),
     })
   }
@@ -94,6 +121,7 @@ export default function DisciplinasPage() {
     setFormData({
       codigo: disciplina.codigo,
       nome: disciplina.nome,
+      turma: disciplina.turma,
       departamentoId: disciplina.departamentoId.toString(),
     })
   }
@@ -109,6 +137,11 @@ export default function DisciplinasPage() {
       header: "Código",
       accessorKey: "codigo",
       cell: ({ row }) => <span className="font-mono font-medium">{row.original.codigo}</span>,
+    },
+    {
+      header: "Turma",
+      accessorKey: "turma",
+      cell: ({ row }) => <span className="font-mono font-medium">{row.original.turma}</span>,
     },
     {
       header: "Nome",
@@ -169,6 +202,21 @@ export default function DisciplinasPage() {
               onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
               placeholder="Ex: Matemática I"
             />
+          </div>
+          <div>
+            <Label htmlFor="turma">Turma</Label>
+            <Select value={formData.turma} onValueChange={(value) => setFormData({ ...formData, turma: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a turma" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                  <SelectItem key={`T${num}`} value={`T${num}`}>
+                    T{num}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="departamento">Departamento</Label>

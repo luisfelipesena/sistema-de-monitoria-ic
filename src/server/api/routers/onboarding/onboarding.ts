@@ -1,16 +1,11 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import {
-  alunoTable,
-  disciplinaProfessorResponsavelTable,
-  professorTable,
-  onboardingStatusResponseSchema,
-} from '@/server/db/schema'
+import { alunoTable, disciplinaProfessorResponsavelTable, professorTable } from '@/server/db/schema'
+import { generoSchema, onboardingStatusResponseSchema, regimeSchema } from '@/types'
+import { logger } from '@/utils/logger'
 import { getCurrentSemester } from '@/utils/utils'
-import { generoSchema, regimeSchema } from '@/types'
+import { TRPCError } from '@trpc/server'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { TRPCError } from '@trpc/server'
-import { logger } from '@/utils/logger'
 
 const log = logger.child({ context: 'OnboardingRouter' })
 

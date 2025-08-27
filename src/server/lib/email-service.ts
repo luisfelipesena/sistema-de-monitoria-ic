@@ -2,6 +2,7 @@ import { env } from '@/utils/env'
 import nodemailer from 'nodemailer'
 
 import { logger } from '@/utils/logger'
+import { SELECTED_BOLSISTA, SELECTED_VOLUNTARIO, REJECTED_BY_PROFESSOR } from '@/types'
 import { db } from '@/server/db'
 import { getProfessorInvitationEmailHTML } from '@/server/email-templates/professor-invitation'
 import {
@@ -258,7 +259,7 @@ export interface StudentSelectionNotificationData extends ProjetoContextData {
   studentEmail: string
   projectTitle: string
   professorName: string
-  status: 'SELECTED_BOLSISTA' | 'SELECTED_VOLUNTARIO' | 'REJECTED_BY_PROFESSOR'
+  status: typeof SELECTED_BOLSISTA | typeof SELECTED_VOLUNTARIO | typeof REJECTED_BY_PROFESSOR
   linkConfirmacao?: string
   feedbackProfessor?: string
 }
@@ -272,8 +273,8 @@ export async function sendStudentSelectionResultNotification(
   let color = '#1976d2'
   let ctaButton = ''
 
-  if (data.status === 'SELECTED_BOLSISTA' || data.status === 'SELECTED_VOLUNTARIO') {
-    const tipoVaga = data.status === 'SELECTED_BOLSISTA' ? 'Bolsista' : 'Voluntário'
+  if (data.status === SELECTED_BOLSISTA || data.status === SELECTED_VOLUNTARIO) {
+    const tipoVaga = data.status === SELECTED_BOLSISTA ? 'Bolsista' : 'Voluntário'
     title = `🎉 Parabéns! Você foi selecionado(a) para Monitoria (${tipoVaga})`
     message = `<p>Você foi <strong>SELECIONADO(A)</strong> como <strong>${tipoVaga}</strong> para a monitoria do projeto "<strong>${data.projectTitle}</strong>" com o Prof(a). ${data.professorName}.</p>`
     message += `<p>Por favor, acesse o sistema para confirmar ou recusar sua participação até [PRAZO_CONFIRMACAO].</p>`
@@ -281,7 +282,7 @@ export async function sendStudentSelectionResultNotification(
       ctaButton = `<a href="${data.linkConfirmacao}" class="action-button">Confirmar/Recusar Vaga</a>`
     }
     color = '#4caf50'
-  } else if (data.status === 'REJECTED_BY_PROFESSOR') {
+  } else if (data.status === REJECTED_BY_PROFESSOR) {
     title = 'Resultado da Seleção de Monitoria'
     message = `<p>Agradecemos seu interesse na monitoria do projeto "<strong>${data.projectTitle}</strong>".</p>
                <p>Neste momento, você não foi selecionado(a) para esta vaga.</p>`

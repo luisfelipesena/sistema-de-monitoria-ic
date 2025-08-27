@@ -16,12 +16,14 @@ import { ColumnDef } from "@tanstack/react-table"
 import { AlertCircle, CheckCircle, Eye, FileSpreadsheet, Trash2, Upload, XCircle } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { z } from "zod"
 
 type ImportFormData = z.infer<typeof importFormSchema>
 
 export default function ImportProjectsPage() {
+  const { toast } = useToast()
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedImportId, setSelectedImportId] = useState<number | null>(null)
@@ -35,24 +37,38 @@ export default function ImportProjectsPage() {
   const uploadFileMutation = api.file.uploadFile.useMutation()
   const importProjectsMutation = api.importProjects.uploadFile.useMutation({
     onSuccess: () => {
-      toast.success("Arquivo enviado com sucesso! Processamento iniciado.")
+      toast({
+        title: "Sucesso!",
+        description: "Arquivo enviado com sucesso! Processamento iniciado.",
+      })
       setIsDialogOpen(false)
       setSelectedFile(null)
       refetch()
       form.reset()
     },
     onError: (error) => {
-      toast.error(`Erro ao importar: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao importar: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const deleteImportMutation = api.importProjects.deleteImport.useMutation({
     onSuccess: () => {
-      toast.success("Importação excluída com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Importação excluída com sucesso!",
+      })
       refetch()
     },
     onError: (error) => {
-      toast.error(`Erro ao excluir: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao excluir: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
@@ -68,7 +84,11 @@ export default function ImportProjectsPage() {
     const file = event.target.files?.[0]
     if (file) {
       if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
-        toast.error("Por favor, selecione um arquivo Excel (.xlsx ou .xls)")
+        toast({
+          title: "Erro",
+          description: "Por favor, selecione um arquivo Excel (.xlsx ou .xls).",
+          variant: "destructive",
+        })
         return
       }
       setSelectedFile(file)
@@ -77,7 +97,11 @@ export default function ImportProjectsPage() {
 
   const handleImport = async (data: ImportFormData) => {
     if (!selectedFile) {
-      toast.error("Por favor, selecione um arquivo")
+      toast({
+        title: "Erro",
+        description: "Por favor, selecione um arquivo",
+        variant: "destructive",
+      })
       return
     }
 

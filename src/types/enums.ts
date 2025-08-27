@@ -64,6 +64,7 @@ export const STATUS_INSCRICAO_ENUM = [
   'ACCEPTED_VOLUNTARIO',
   'REJECTED_BY_PROFESSOR',
   'REJECTED_BY_STUDENT',
+  'WAITING_LIST',
 ] as const
 export const statusInscricaoSchema = z.enum(STATUS_INSCRICAO_ENUM)
 export type StatusInscricao = z.infer<typeof statusInscricaoSchema>
@@ -146,6 +147,16 @@ export const STATUS_MONITOR_ENUM = ['ATIVO', 'CONCLUÍDO', 'CANCELADO'] as const
 export const statusMonitorSchema = z.enum(STATUS_MONITOR_ENUM)
 export type StatusMonitor = z.infer<typeof statusMonitorSchema>
 
+// Individual status constants for easier access
+export const SUBMITTED = 'SUBMITTED' as const
+export const SELECTED_BOLSISTA = 'SELECTED_BOLSISTA' as const
+export const SELECTED_VOLUNTARIO = 'SELECTED_VOLUNTARIO' as const
+export const ACCEPTED_BOLSISTA = 'ACCEPTED_BOLSISTA' as const
+export const ACCEPTED_VOLUNTARIO = 'ACCEPTED_VOLUNTARIO' as const
+export const REJECTED_BY_PROFESSOR = 'REJECTED_BY_PROFESSOR' as const
+export const REJECTED_BY_STUDENT = 'REJECTED_BY_STUDENT' as const
+export const WAITING_LIST = 'WAITING_LIST' as const
+
 // ========================================
 // UTILITY FUNCTIONS
 // ========================================
@@ -196,6 +207,7 @@ export const STATUS_INSCRICAO_LABELS = {
   ACCEPTED_VOLUNTARIO: 'Aceito (Voluntário)',
   REJECTED_BY_PROFESSOR: 'Rejeitado pelo Professor',
   REJECTED_BY_STUDENT: 'Rejeitado pelo Estudante',
+  WAITING_LIST: 'Lista de Espera',
 } as const
 
 export const STATUS_MONITOR_LABELS = {

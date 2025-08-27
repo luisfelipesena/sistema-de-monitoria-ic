@@ -9,13 +9,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { api } from "@/utils/api"
 import { useState } from "react"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { Copy, Key, Plus, Trash2, Eye, EyeOff } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { useAuth } from "@/hooks/use-auth"
 
 export default function UserApiKeysPage() {
+  const { toast } = useToast()
+
   const { user } = useAuth()
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [newKeyName, setNewKeyName] = useState("")
@@ -48,10 +50,17 @@ export default function UserApiKeysPage() {
       setNewKeyName("")
       setNewKeyDescription("")
       setNewKeyExpiration("")
-      toast.success("API Key criada com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "API Key criada com sucesso!",
+      })
       await refetch()
     } catch (error) {
-      toast.error("Erro ao criar API Key")
+      toast({
+        title: "Erro",
+        description: "Erro ao criar API Key",
+        variant: "destructive",
+      })
     }
   }
 
@@ -59,10 +68,17 @@ export default function UserApiKeysPage() {
     if (confirm("Tem certeza que deseja deletar esta API Key?")) {
       try {
         await deleteApiKeyMutation.mutateAsync({ id })
-        toast.success("API Key deletada com sucesso!")
+        toast({
+        title: "Sucesso!",
+        description: "API Key deletada com sucesso!",
+      })
         await refetch()
       } catch (error) {
-        toast.error("Erro ao deletar API Key")
+        toast({
+        title: "Erro",
+        description: "Erro ao deletar API Key",
+        variant: "destructive",
+      })
       }
     }
   }
@@ -70,16 +86,26 @@ export default function UserApiKeysPage() {
   const handleToggleActive = async (id: number, isActive: boolean) => {
     try {
       await updateApiKeyMutation.mutateAsync({ id, isActive: !isActive })
-      toast.success(`API Key ${!isActive ? 'ativada' : 'desativada'} com sucesso!`)
+      toast({
+        title: "Sucesso!",
+        description: `API Key ${!isActive ? 'ativada' : 'desativada'} com sucesso!`,
+      })
       await refetch()
     } catch (error) {
-      toast.error("Erro ao atualizar API Key")
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar API Key",
+        variant: "destructive",
+      })
     }
   }
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
-    toast.success("Copiado para a área de transferência!")
+    toast({
+        title: "Sucesso!",
+        description: "Copiado para a área de transferência!",
+      })
   }
 
   const closeGeneratedKeyDialog = () => {

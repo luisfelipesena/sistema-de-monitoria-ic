@@ -34,7 +34,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { z } from "zod"
 
 const filtersSchema = z.object({
@@ -45,6 +45,8 @@ const filtersSchema = z.object({
 type FiltersData = z.infer<typeof filtersSchema>
 
 export default function RelatoriosPage() {
+  const { toast } = useToast()
+
   const [filters, setFilters] = useState<FiltersData>({
     ano: new Date().getFullYear(),
     semestre: "SEMESTRE_1",
@@ -65,7 +67,10 @@ export default function RelatoriosPage() {
 
   const exportCsvMutation = api.relatorios.exportRelatorioCsv.useMutation({
     onSuccess: (data) => {
-      toast.success("Relatório exportado com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Relatório exportado com sucesso!",
+      })
 
       // Use downloadUrl to trigger download
       if (data.downloadUrl && data.fileName) {
@@ -78,13 +83,21 @@ export default function RelatoriosPage() {
           link.click()
           document.body.removeChild(link)
         } catch (error) {
-          toast.error("Erro ao processar download do arquivo")
+          toast({
+        title: "Erro",
+        description: "Erro ao processar download do arquivo",
+        variant: "destructive",
+      })
           console.error("Erro no download:", error)
         }
       }
     },
     onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
@@ -103,13 +116,14 @@ export default function RelatoriosPage() {
   // Column definitions for different reports
   const departamentosColumns: ColumnDef<DepartamentoRelatorio>[] = [
     {
-      accessorKey: "departamento.sigla",
+      id: "departamento",
+      accessorFn: (row) => row.departamento.sigla || row.departamento.nome,
       header: "Departamento",
       cell: ({ row }) => {
         const departamento = row.original as DepartamentoRelatorio
         return (
           <div>
-            <div className="font-medium">{departamento.departamento.sigla}</div>
+            <div className="font-medium">{departamento.departamento.sigla || departamento.departamento.nome}</div>
             <div className="text-sm text-muted-foreground">{departamento.departamento.nome}</div>
           </div>
         )
@@ -145,6 +159,8 @@ export default function RelatoriosPage() {
 
   const professoresColumns: ColumnDef<ProfessorRelatorio>[] = [
     {
+      id: "professor",
+      accessorFn: (row) => row.professor.nomeCompleto,
       header: "Professor",
       cell: ({ row }) => {
         const professor = row.original as ProfessorRelatorio
@@ -186,6 +202,8 @@ export default function RelatoriosPage() {
 
   const alunosColumns: ColumnDef<AlunoRelatorio>[] = [
     {
+      id: "aluno",
+      accessorFn: (row) => row.aluno.nomeCompleto,
       header: "Aluno",
       cell: ({ row }) => {
         const aluno = row.original as AlunoRelatorio
@@ -275,6 +293,8 @@ export default function RelatoriosPage() {
 
   const disciplinasColumns: ColumnDef<DisciplinaRelatorio>[] = [
     {
+      id: "disciplina",
+      accessorFn: (row) => `${row.disciplina.codigo} - ${row.disciplina.nome}`,
       header: "Disciplina",
       cell: ({ row }) => {
         const disciplina = row.original as DisciplinaRelatorio
@@ -304,6 +324,8 @@ export default function RelatoriosPage() {
 
   const editaisColumns: ColumnDef<EditalRelatorio>[] = [
     {
+      id: "edital",
+      accessorFn: (row) => row.edital.numeroEdital,
       header: "Edital",
       cell: ({ row }) => {
         const edital = row.original as EditalRelatorio
@@ -513,7 +535,7 @@ export default function RelatoriosPage() {
                   <TableComponent
                     columns={departamentosColumns}
                     data={departamentos}
-                    searchableColumn="departamento.sigla"
+                    searchableColumn="departamento"
                     searchPlaceholder="Buscar departamento..."
                   />
                 ) : (
@@ -552,7 +574,7 @@ export default function RelatoriosPage() {
                   <TableComponent
                     columns={professoresColumns}
                     data={professores}
-                    searchableColumn="professor.nomeCompleto"
+                    searchableColumn="professor"
                     searchPlaceholder="Buscar professor..."
                   />
                 ) : (
@@ -591,7 +613,7 @@ export default function RelatoriosPage() {
                   <TableComponent
                     columns={alunosColumns}
                     data={alunos}
-                    searchableColumn="aluno.nomeCompleto"
+                    searchableColumn="aluno"
                     searchPlaceholder="Buscar aluno..."
                   />
                 ) : (
@@ -630,7 +652,7 @@ export default function RelatoriosPage() {
                   <TableComponent
                     columns={disciplinasColumns}
                     data={disciplinas}
-                    searchableColumn="disciplina.codigo"
+                    searchableColumn="disciplina"
                     searchPlaceholder="Buscar disciplina..."
                   />
                 ) : (
@@ -669,7 +691,7 @@ export default function RelatoriosPage() {
                   <TableComponent
                     columns={editaisColumns}
                     data={editais}
-                    searchableColumn="edital.numeroEdital"
+                    searchableColumn="edital"
                     searchPlaceholder="Buscar edital..."
                   />
                 ) : (
