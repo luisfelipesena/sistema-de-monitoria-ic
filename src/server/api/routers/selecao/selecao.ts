@@ -289,9 +289,9 @@ export const selecaoRouter = createTRPCRouter({
               const aprovado = inscricao.notaFinal && Number(inscricao.notaFinal) >= 7.0
               const status = aprovado
                 ? inscricao.tipoVagaPretendida === 'BOLSISTA'
-                  ? STATUS_INSCRICAO_ENUM[1] // 'SELECTED_BOLSISTA'
-                  : STATUS_INSCRICAO_ENUM[2] // 'SELECTED_VOLUNTARIO'
-                : STATUS_INSCRICAO_ENUM[5] // 'REJECTED_BY_PROFESSOR'
+                  ? STATUS_INSCRICAO_ENUM[1] // SELECTED_BOLSISTA
+                  : STATUS_INSCRICAO_ENUM[2] // SELECTED_VOLUNTARIO
+                : STATUS_INSCRICAO_ENUM[5] // REJECTED_BY_PROFESSOR
               return tx.update(inscricaoTable).set({ status }).where(eq(inscricaoTable.id, inscricao.id))
             })
           )
@@ -309,9 +309,9 @@ export const selecaoRouter = createTRPCRouter({
           const aprovado = inscricaoItem.notaFinal && Number(inscricaoItem.notaFinal) >= 7.0
           const status = aprovado
             ? inscricaoItem.tipoVagaPretendida === 'BOLSISTA'
-              ? STATUS_INSCRICAO_ENUM[1] // 'SELECTED_BOLSISTA'
-              : STATUS_INSCRICAO_ENUM[2] // 'SELECTED_VOLUNTARIO'
-            : STATUS_INSCRICAO_ENUM[5] // 'REJECTED_BY_PROFESSOR'
+              ? STATUS_INSCRICAO_ENUM[1] // SELECTED_BOLSISTA
+              : STATUS_INSCRICAO_ENUM[2] // SELECTED_VOLUNTARIO
+            : STATUS_INSCRICAO_ENUM[5] // REJECTED_BY_PROFESSOR
 
           return sendStudentSelectionResultNotification(
             {

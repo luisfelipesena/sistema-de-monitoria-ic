@@ -29,7 +29,7 @@ const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) =
           ✅ Preview gerado com sucesso - Use "Atualizar Preview" para ver as alterações
         </p>
       </div>
-      <div style={{ width: '100%', height: '800px' }}>
+      <div style={{ width: "100%", height: "800px" }}>
         <PDFViewer width="100%" height="100%" showToolbar={false}>
           <MonitoriaFormTemplate data={data} />
         </PDFViewer>
@@ -147,6 +147,7 @@ export default function NovoProjetoPage() {
     })
   }
 
+
   // Atualiza o publicoAlvo baseado no tipo selecionado
   useEffect(() => {
     if (publicoAlvoTipo === "estudantes_graduacao") {
@@ -172,6 +173,13 @@ export default function NovoProjetoPage() {
     return () => subscription.unsubscribe()
   }, [form, showPreview])
 
+  // Track changes when atividades change
+  React.useEffect(() => {
+    if (showPreview) {
+      setHasChanges(true)
+    }
+  }, [atividades, showPreview])
+
   const validateRequiredFields = useCallback((values: ProjetoFormData) => {
     const errors = []
     if (!values.titulo?.trim()) errors.push("Título")
@@ -194,59 +202,63 @@ export default function NovoProjetoPage() {
       { enabled: !!firstDisciplinaId && firstDisciplinaId !== 0 && showPreview }
     )
 
-  const generatePdfData = useCallback((formValues: ProjetoFormData): MonitoriaFormData | null => {
-    if (!departamentos || !disciplinas) return null
+  const generatePdfData = useCallback(
+    (formValues: ProjetoFormData): MonitoriaFormData | null => {
+      if (!departamentos || !disciplinas) return null
 
-    const departamento = departamentos.find((d) => d.id === formValues.departamentoId)
-    const selectedDisciplinas = disciplinas.filter((d) => formValues.disciplinas.includes(d.id))
+      const departamento = departamentos.find((d) => d.id === formValues.departamentoId)
+      const selectedDisciplinas = disciplinas.filter((d) => formValues.disciplinas.includes(d.id))
 
-    if (!departamento || selectedDisciplinas.length === 0) return null
+      if (!departamento || selectedDisciplinas.length === 0) return null
 
-    const professor = disciplinaWithProfessor?.professor
+      const professor = disciplinaWithProfessor?.professor
 
-    return {
-      titulo: formValues.titulo,
-      descricao: formValues.descricao,
-      departamento: {
-        id: departamento.id,
-        nome: departamento.nome,
-      },
-      coordenadorResponsavel: "Coordenador Responsável",
-      professorResponsavel: professor
-        ? {
-            id: professor.id,
-            nomeCompleto: professor.nomeCompleto,
-            nomeSocial: professor.nomeSocial || undefined,
-            genero: professor.genero,
-            cpf: professor.cpf,
-            matriculaSiape: professor.matriculaSiape || undefined,
-            regime: professor.regime,
-            telefone: professor.telefone || undefined,
-            telefoneInstitucional: professor.telefoneInstitucional || undefined,
-            emailInstitucional: professor.emailInstitucional,
-          }
-        : undefined,
-      ano: formValues.ano,
-      semestre: formValues.semestre,
-      tipoProposicao: formValues.tipoProposicao,
-      bolsasSolicitadas: formValues.bolsasSolicitadas || 0,
-      voluntariosSolicitados: formValues.voluntariosSolicitados || 0,
-      cargaHorariaSemana: formValues.cargaHorariaSemana,
-      numeroSemanas: formValues.numeroSemanas,
-      publicoAlvo: formValues.publicoAlvo,
-      estimativaPessoasBenificiadas: formValues.estimativaPessoasBenificiadas || 0,
-      disciplinas: selectedDisciplinas.map((d) => ({
-        id: d.id,
-        codigo: d.codigo,
-        nome: d.nome,
-      })),
-      user: {
-        email: professor?.emailInstitucional || "professor@ufba.br",
-        nomeCompleto: professor?.nomeCompleto || "Professor",
-        role: "professor",
-      },
-    }
-  }, [departamentos, disciplinas, disciplinaWithProfessor?.professor])
+      return {
+        titulo: formValues.titulo,
+        descricao: formValues.descricao,
+        departamento: {
+          id: departamento.id,
+          nome: departamento.nome,
+        },
+        coordenadorResponsavel: "Coordenador Responsável",
+        professorResponsavel: professor
+          ? {
+              id: professor.id,
+              nomeCompleto: professor.nomeCompleto,
+              nomeSocial: professor.nomeSocial || undefined,
+              genero: professor.genero,
+              cpf: professor.cpf,
+              matriculaSiape: professor.matriculaSiape || undefined,
+              regime: professor.regime,
+              telefone: professor.telefone || undefined,
+              telefoneInstitucional: professor.telefoneInstitucional || undefined,
+              emailInstitucional: professor.emailInstitucional,
+            }
+          : undefined,
+        ano: formValues.ano,
+        semestre: formValues.semestre,
+        tipoProposicao: formValues.tipoProposicao,
+        bolsasSolicitadas: formValues.bolsasSolicitadas || 0,
+        voluntariosSolicitados: formValues.voluntariosSolicitados || 0,
+        cargaHorariaSemana: formValues.cargaHorariaSemana,
+        numeroSemanas: formValues.numeroSemanas,
+        publicoAlvo: formValues.publicoAlvo,
+        estimativaPessoasBenificiadas: formValues.estimativaPessoasBenificiadas || 0,
+        disciplinas: selectedDisciplinas.map((d) => ({
+          id: d.id,
+          codigo: d.codigo,
+          nome: d.nome,
+        })),
+        atividades: atividades.filter((atividade) => atividade.trim() !== ""),
+        user: {
+          email: professor?.emailInstitucional || "professor@ufba.br",
+          nomeCompleto: professor?.nomeCompleto || "Professor",
+          role: "professor",
+        },
+      }
+    },
+    [departamentos, disciplinas, disciplinaWithProfessor?.professor, atividades]
+  )
 
   const handleAddAtividade = () => {
     setAtividades([...atividades, ""])
@@ -298,18 +310,18 @@ export default function NovoProjetoPage() {
     if (!validation.isValid) {
       toast({
         title: "Campos obrigatórios pendentes",
-        description: `Preencha os campos: ${validation.missingFields.join(', ')}`,
+        description: `Preencha os campos: ${validation.missingFields.join(", ")}`,
         variant: "destructive",
       })
       return
     }
 
     setIsGeneratingPreview(true)
-    
+
     try {
       const formValues = form.getValues()
       const pdfData = generatePdfData(formValues)
-      
+
       if (!pdfData) {
         toast({
           title: "Erro ao gerar preview",
@@ -321,13 +333,12 @@ export default function NovoProjetoPage() {
       }
 
       // Simulate loading time for better UX
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
+      await new Promise((resolve) => setTimeout(resolve, 800))
+
       setCurrentPdfData(pdfData)
       setShowPreview(true)
       setHasChanges(false)
-      setPdfKey(prev => prev + 1)
-      
+      setPdfKey((prev) => prev + 1)
     } catch (error) {
       toast({
         title: "Erro ao gerar preview",
@@ -344,18 +355,18 @@ export default function NovoProjetoPage() {
     if (!validation.isValid) {
       toast({
         title: "Campos obrigatórios pendentes",
-        description: `Preencha os campos: ${validation.missingFields.join(', ')}`,
+        description: `Preencha os campos: ${validation.missingFields.join(", ")}`,
         variant: "destructive",
       })
       return
     }
 
     setIsGeneratingPreview(true)
-    
+
     try {
       const formValues = form.getValues()
       const pdfData = generatePdfData(formValues)
-      
+
       if (!pdfData) {
         toast({
           title: "Erro ao atualizar preview",
@@ -367,12 +378,11 @@ export default function NovoProjetoPage() {
       }
 
       // Simulate loading time for better UX
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
       setCurrentPdfData(pdfData)
       setHasChanges(false)
-      setPdfKey(prev => prev + 1)
-      
+      setPdfKey((prev) => prev + 1)
     } catch (error) {
       toast({
         title: "Erro ao atualizar preview",
@@ -559,7 +569,7 @@ export default function NovoProjetoPage() {
                             <SelectContent>
                               {disciplinasFiltradas?.map((disciplina) => (
                                 <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
-                                    {disciplina.codigo} - {disciplina.nome}
+                                  {disciplina.codigo} ({disciplina.turma}) - {disciplina.nome}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -704,18 +714,25 @@ export default function NovoProjetoPage() {
                             >
                               <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="estudantes_graduacao" id="estudantes_graduacao" />
-                                <label htmlFor="estudantes_graduacao" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                <label
+                                  htmlFor="estudantes_graduacao"
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
                                   Estudantes de graduação
                                 </label>
                               </div>
                               <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="outro" id="outro" />
-                                <label htmlFor="outro" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                <label
+                                  htmlFor="outro"
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
                                   Outro
                                 </label>
                               </div>
                             </RadioGroup>
-                            
+
+
                             {publicoAlvoTipo === "outro" && (
                               <div className="mt-3">
                                 <Input
@@ -938,7 +955,7 @@ export default function NovoProjetoPage() {
                     </div>
                   </div>
                 )}
-                
+
                 {isLoadingProfessor && firstDisciplinaId && firstDisciplinaId !== 0 ? (
                   <div className="flex justify-center items-center py-8">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600 mb-4" />

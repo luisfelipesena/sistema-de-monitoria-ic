@@ -4,6 +4,7 @@ import {
   date,
   decimal,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   real,
@@ -13,7 +14,6 @@ import {
   uniqueIndex,
   varchar,
 } from 'drizzle-orm/pg-core'
-import { z } from 'zod'
 
 // --- Auth Schema ---
 
@@ -119,6 +119,7 @@ export const statusInscricaoEnum = pgEnum('status_inscricao_enum', [
   'ACCEPTED_VOLUNTARIO', // Aluno aceitou (voluntário)
   'REJECTED_BY_PROFESSOR', // Professor rejeitou
   'REJECTED_BY_STUDENT', // Aluno recusou
+  'WAITING_LIST', // Em lista de espera
   // 'INAPTO', 'APTO' seem less relevant if selection is direct
 ])
 
@@ -291,6 +292,7 @@ export const disciplinaTable = pgTable(
     id: serial('id').primaryKey(),
     nome: varchar('nome').notNull(),
     codigo: varchar('codigo').notNull(),
+    turma: varchar('turma').notNull().default('T1'), // T1, T2, etc.
     departamentoId: integer('departamento_id')
       .references(() => departamentoTable.id)
       .notNull(), // Add department link
@@ -865,6 +867,7 @@ export const editalTable = pgTable('edital', {
   fileIdAssinado: text('file_id_assinado'), // PDF do edital assinado
   dataPublicacao: date('data_publicacao', { mode: 'date' }),
   publicado: boolean('publicado').default(false).notNull(),
+  valorBolsa: numeric('valor_bolsa', { precision: 10, scale: 2 }).default('400.00').notNull(), // Valor da bolsa para este edital
   criadoPorUserId: integer('criado_por_user_id')
     .references(() => userTable.id)
     .notNull(),
@@ -1069,133 +1072,3 @@ export type ApiKey = typeof apiKeyTable.$inferSelect
 export type NewApiKey = typeof apiKeyTable.$inferInsert
 export type ProfessorInvitation = typeof professorInvitationTable.$inferSelect
 export type NewProfessorInvitation = typeof professorInvitationTable.$inferInsert
-
-// Zod schemas for validation
-export const disciplinaSchema = z.object({
-  id: z.number().int().positive(),
-  nome: z.string().min(1),
-  codigo: z.string().min(1),
-  departamentoId: z.number().int().positive(),
-  createdAt: z.date(),
-  updatedAt: z.date().nullable(),
-  deletedAt: z.date().nullable(),
-})
-
-export const newDisciplinaSchema = z.object({
-  nome: z.string().min(1),
-  codigo: z.string().min(1),
-  departamentoId: z.number().int().positive(),
-})
-
-export const projetoSchema = z.object({
-  id: z.number().int().positive(),
-  departamentoId: z.number().int().positive(),
-  ano: z.number().int().min(2000).max(2100),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
-  bolsasSolicitadas: z.number().int().min(0),
-  voluntariosSolicitados: z.number().int().min(0),
-  bolsasDisponibilizadas: z.number().int().min(0).nullable(),
-  cargaHorariaSemana: z.number().int().positive(),
-  numeroSemanas: z.number().int().positive(),
-  publicoAlvo: z.string().min(1),
-  estimativaPessoasBenificiadas: z.number().int().min(0).nullable(),
-  professorResponsavelId: z.number().int().positive(),
-  titulo: z.string().min(1),
-  descricao: z.string().min(1),
-  status: z.enum([
-    'DRAFT',
-    'SUBMITTED',
-    'APPROVED',
-    'REJECTED',
-    'PENDING_ADMIN_SIGNATURE',
-    'PENDING_PROFESSOR_SIGNATURE',
-  ]),
-  assinaturaProfessor: z.string().nullable(),
-  feedbackAdmin: z.string().nullable(),
-})
-
-export const newProjetoSchema = z.object({
-  departamentoId: z.number().int().positive(),
-  ano: z.number().int().min(2000).max(2100),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
-  bolsasSolicitadas: z.number().int().min(0).default(0),
-  voluntariosSolicitados: z.number().int().min(0).default(0),
-  bolsasDisponibilizadas: z.number().int().min(0).optional(),
-  cargaHorariaSemana: z.number().int().positive(),
-  numeroSemanas: z.number().int().positive(),
-  publicoAlvo: z.string().min(1),
-  estimativaPessoasBenificiadas: z.number().int().min(0).optional(),
-  professorResponsavelId: z.number().int().positive(),
-  titulo: z.string().min(1),
-  descricao: z.string().min(1),
-  status: z
-    .enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_ADMIN_SIGNATURE', 'PENDING_PROFESSOR_SIGNATURE'])
-    .default('DRAFT'),
-  assinaturaProfessor: z.string().optional(),
-  feedbackAdmin: z.string().optional(),
-})
-
-export const updateProjetoSchema = z.object({
-  id: z.number().int().positive(),
-  departamentoId: z.number().int().positive().optional(),
-  ano: z.number().int().min(2000).max(2100).optional(),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']).optional(),
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']).optional(),
-  bolsasSolicitadas: z.number().int().min(0).optional(),
-  voluntariosSolicitados: z.number().int().min(0).optional(),
-  bolsasDisponibilizadas: z.number().int().min(0).optional(),
-  cargaHorariaSemana: z.number().int().positive().optional(),
-  numeroSemanas: z.number().int().positive().optional(),
-  publicoAlvo: z.string().min(1).optional(),
-  estimativaPessoasBenificiadas: z.number().int().min(0).optional(),
-  professorResponsavelId: z.number().int().positive().optional(),
-  titulo: z.string().min(1).optional(),
-  descricao: z.string().min(1).optional(),
-  status: z
-    .enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_ADMIN_SIGNATURE', 'PENDING_PROFESSOR_SIGNATURE'])
-    .optional(),
-  assinaturaProfessor: z.string().optional(),
-  feedbackAdmin: z.string().optional(),
-})
-
-export const onboardingStatusResponseSchema = z.object({
-  pending: z.boolean(),
-  profile: z.object({
-    exists: z.boolean(),
-    type: z.enum(['student', 'professor', 'admin']),
-  }),
-  documents: z.object({
-    required: z.array(z.string()),
-    uploaded: z.array(z.string()),
-    missing: z.array(z.string()),
-  }),
-  disciplinas: z
-    .object({
-      configured: z.boolean(),
-    })
-    .optional(),
-})
-
-export const insertProjetoTableSchema = z.object({
-  departamentoId: z.number().int().positive(),
-  ano: z.number().int().min(2000).max(2100),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
-  bolsasSolicitadas: z.number().int().min(0).default(0),
-  voluntariosSolicitados: z.number().int().min(0).default(0),
-  bolsasDisponibilizadas: z.number().int().min(0).optional(),
-  cargaHorariaSemana: z.number().int().positive(),
-  numeroSemanas: z.number().int().positive(),
-  publicoAlvo: z.string().min(1),
-  estimativaPessoasBenificiadas: z.number().int().min(0).optional(),
-  professorResponsavelId: z.number().int().positive(),
-  titulo: z.string().min(1).max(255),
-  descricao: z.string().min(1),
-  status: z
-    .enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_ADMIN_SIGNATURE', 'PENDING_PROFESSOR_SIGNATURE'])
-    .default('DRAFT'),
-  assinaturaProfessor: z.string().optional(),
-  feedbackAdmin: z.string().optional(),
-})

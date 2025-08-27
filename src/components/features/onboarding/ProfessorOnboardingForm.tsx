@@ -1,48 +1,48 @@
-'use client'
+"use client"
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { FileUploadField } from '@/components/ui/FileUploadField'
-import { Checkbox } from '@/components/ui/checkbox'
-import { api } from '@/utils/api'
-import { useState, useEffect } from 'react'
-import { toast } from 'sonner'
-import { CheckCircle, AlertTriangle, Info, ArrowRight, BookOpen, Plus } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import type { OnboardingStatusResponse } from '@/server/api/routers/onboarding/onboarding'
-import { PagesLayout } from '@/components/layout/PagesLayout'
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { FileUploadField } from "@/components/ui/FileUploadField"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import type { OnboardingStatusResponse } from "@/server/api/routers/onboarding/onboarding"
+import { api } from "@/utils/api"
+import { AlertTriangle, ArrowRight, BookOpen, CheckCircle, Info, Plus } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useToast } from "@/hooks/use-toast"
 
 interface ProfessorOnboardingFormProps {
   onboardingStatus: OnboardingStatusResponse
 }
 
 export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardingFormProps) {
+  const { toast } = useToast()
   const router = useRouter()
   const [formData, setFormData] = useState({
-    nomeCompleto: '',
-    matriculaSiape: '',
-    cpf: '',
-    telefone: '',
-    telefoneInstitucional: '',
-    regime: '' as '20H' | '40H' | 'DE' | '',
+    nomeCompleto: "",
+    matriculaSiape: "",
+    cpf: "",
+    telefone: "",
+    telefoneInstitucional: "",
+    regime: "" as "20H" | "40H" | "DE" | "",
     departamentoId: 0,
-    genero: '' as 'MASCULINO' | 'FEMININO' | 'OUTRO' | '',
-    especificacaoGenero: '',
-    nomeSocial: '',
+    genero: "" as "MASCULINO" | "FEMININO" | "OUTRO" | "",
+    especificacaoGenero: "",
+    nomeSocial: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedDisciplinas, setSelectedDisciplinas] = useState<number[]>([])
   const [newDisciplina, setNewDisciplina] = useState({
-    nome: '',
-    codigo: '',
+    nome: "",
+    codigo: "",
+    turma: "T1",
     cargaHoraria: 0,
     periodo: 1,
   })
-
 
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
   const { data: disciplinas, refetch: refetchDisciplinas } = api.discipline.getDisciplines.useQuery()
@@ -53,8 +53,8 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const { refetch: refetchOnboardingStatus } = api.onboarding.getStatus.useQuery()
 
   const hasProfile = onboardingStatus.profile.exists
-  const { data: userProfile } = api.user.getProfile.useQuery(undefined, { 
-    enabled: hasProfile // Only fetch when profile exists
+  const { data: userProfile } = api.user.getProfile.useQuery(undefined, {
+    enabled: hasProfile, // Only fetch when profile exists
   })
   const requiredDocs = onboardingStatus.documents.required
   const uploadedDocs = onboardingStatus.documents.uploaded
@@ -62,15 +62,19 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const hasDisciplinas = onboardingStatus.disciplinas?.configured || false
 
   // Get professor's department ID from user profile or form data
-  const professorDepartamentoId = hasProfile 
+  const professorDepartamentoId = hasProfile
     ? userProfile?.professorProfile?.departamentoId || formData.departamentoId
     : formData.departamentoId
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.nomeCompleto || !formData.cpf || !formData.regime || !formData.departamentoId || !formData.genero) {
-      toast.error('Preencha todos os campos obrigatórios')
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive",
+      })
       return
     }
 
@@ -78,13 +82,20 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
     try {
       await createProfileMutation.mutateAsync({
         ...formData,
-        regime: formData.regime as '20H' | '40H' | 'DE',
-        genero: formData.genero as 'MASCULINO' | 'FEMININO' | 'OUTRO'
+        regime: formData.regime as "20H" | "40H" | "DE",
+        genero: formData.genero as "MASCULINO" | "FEMININO" | "OUTRO",
       })
-      toast.success('Perfil criado com sucesso!')
+      toast({
+        title: "Sucesso!",
+        description: "Perfil criado com sucesso!",
+      })
       await refetchOnboardingStatus()
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao criar perfil')
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao criar perfil",
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -93,22 +104,33 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const handleDocumentUpload = async (docType: string, fileId: string, fileName: string) => {
     try {
       await updateDocumentMutation.mutateAsync({
-        documentType: docType as 'curriculum_vitae' | 'comprovante_vinculo',
+        documentType: docType as "curriculum_vitae" | "comprovante_vinculo",
         fileId,
       })
 
-      toast.success('Documento vinculado com sucesso!')
+      toast({
+        title: "Sucesso!",
+        description: "Documento vinculado com sucesso!",
+      })
       await refetchOnboardingStatus()
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao vincular documento')
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao vincular documento",
+        variant: "destructive",
+      })
     }
   }
 
   const handleCreateDisciplina = async () => {
     const departamentoId = professorDepartamentoId || formData.departamentoId
-    
+
     if (!newDisciplina.nome || !newDisciplina.codigo || !departamentoId) {
-      toast.error('Preencha todos os campos da disciplina e certifique-se de ter um departamento selecionado')
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos da disciplina e certifique-se de ter um departamento selecionado",
+        variant: "destructive",
+      })
       return
     }
 
@@ -119,18 +141,29 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
       })
 
       setSelectedDisciplinas([...selectedDisciplinas, disciplina.id])
-      setNewDisciplina({ nome: '', codigo: '', cargaHoraria: 0, periodo: 1 })
+      setNewDisciplina({ nome: "", codigo: "", turma: "T1", cargaHoraria: 0, periodo: 1 })
       // Refetch disciplines to include the newly created one
       await refetchDisciplinas()
-      toast.success('Disciplina criada e selecionada com sucesso!')
+      toast({
+        title: "Sucesso!",
+        description: "Disciplina criada e selecionada com sucesso!",
+      })
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao criar disciplina')
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao criar disciplina",
+        variant: "destructive",
+      })
     }
   }
 
   const handleLinkDisciplinas = async () => {
     if (selectedDisciplinas.length === 0) {
-      toast.error('Selecione pelo menos uma disciplina')
+      toast({
+        title: "Erro",
+        description: "Selecione pelo menos uma disciplina",
+        variant: "destructive",
+      })
       return
     }
 
@@ -139,47 +172,53 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
         disciplinaIds: selectedDisciplinas,
       })
 
-      toast.success('Disciplinas vinculadas com sucesso!')
+      toast({
+        title: "Sucesso!",
+        description: "Disciplinas vinculadas com sucesso!",
+      })
       await refetchOnboardingStatus()
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao vincular disciplinas')
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao vincular disciplinas",
+        variant: "destructive",
+      })
     }
   }
 
   const handleContinue = () => {
-    router.push('/home/professor/dashboard')
+    router.push("/home/professor/dashboard")
   }
 
   const getDocumentStatus = (docType: string) => {
     if (uploadedDocs.includes(docType)) {
-      return 'uploaded'
+      return "uploaded"
     }
     if (requiredDocs.includes(docType)) {
-      return 'required'
+      return "required"
     }
-    return 'optional'
+    return "optional"
   }
 
   const documents = [
     {
-      id: 'curriculum_vitae',
-      name: 'Curriculum Vitae',
-      description: 'CV atualizado com experiência acadêmica e profissional',
+      id: "curriculum_vitae",
+      name: "Curriculum Vitae",
+      description: "CV atualizado com experiência acadêmica e profissional",
       required: true,
     },
     {
-      id: 'comprovante_vinculo',
-      name: 'Comprovante de Vínculo',
-      description: 'Comprovante de vínculo institucional com a universidade',
+      id: "comprovante_vinculo",
+      name: "Comprovante de Vínculo",
+      description: "Comprovante de vínculo institucional com a universidade",
       required: true,
     },
   ]
 
   const isOnboardingComplete = hasProfile && missingDocs.length === 0 && hasDisciplinas
-    
-  const departamentoDisciplinas = disciplinas?.filter(d => 
-    d.departamentoId === professorDepartamentoId && professorDepartamentoId > 0
-  ) || []
+
+  const departamentoDisciplinas =
+    disciplinas?.filter((d) => d.departamentoId === professorDepartamentoId && professorDepartamentoId > 0) || []
 
   // Refetch disciplines when department changes
   useEffect(() => {
@@ -265,7 +304,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     <Label htmlFor="genero">Gênero *</Label>
                     <Select
                       value={formData.genero}
-                      onValueChange={(value: 'MASCULINO' | 'FEMININO' | 'OUTRO') =>
+                      onValueChange={(value: "MASCULINO" | "FEMININO" | "OUTRO") =>
                         setFormData({ ...formData, genero: value })
                       }
                     >
@@ -280,7 +319,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     </Select>
                   </div>
 
-                  {formData.genero === 'OUTRO' && (
+                  {formData.genero === "OUTRO" && (
                     <div>
                       <Label htmlFor="especificacaoGenero">Especificação de Gênero</Label>
                       <Input
@@ -296,9 +335,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     <Label htmlFor="departamento">Departamento *</Label>
                     <Select
                       value={formData.departamentoId.toString()}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, departamentoId: parseInt(value) })
-                      }
+                      onValueChange={(value) => setFormData({ ...formData, departamentoId: parseInt(value) })}
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Selecione seu departamento" />
@@ -317,9 +354,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     <Label htmlFor="regime">Regime de Trabalho *</Label>
                     <Select
                       value={formData.regime}
-                      onValueChange={(value: '20H' | '40H' | 'DE') =>
-                        setFormData({ ...formData, regime: value })
-                      }
+                      onValueChange={(value: "20H" | "40H" | "DE") => setFormData({ ...formData, regime: value })}
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Selecione o regime" />
@@ -334,8 +369,13 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                 </div>
 
                 <div className="pt-4">
-                  <Button type="submit" disabled={isSubmitting} size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
-                    {isSubmitting ? 'Criando perfil...' : 'Criar Perfil'}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    size="lg"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isSubmitting ? "Criando perfil..." : "Criar Perfil"}
                   </Button>
                 </div>
               </form>
@@ -346,16 +386,14 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
         <Card className="shadow-lg">
           <CardHeader className="text-center">
             <CardTitle className="text-xl">Documentos</CardTitle>
-            <p className="text-sm text-gray-600">
-              Envie os documentos necessários para validar seu perfil
-            </p>
+            <p className="text-sm text-gray-600">Envie os documentos necessários para validar seu perfil</p>
           </CardHeader>
           <CardContent className="p-8">
             <div className="space-y-6">
               {documents.map((doc) => {
                 const status = getDocumentStatus(doc.id)
-                const isUploaded = status === 'uploaded'
-                
+                const isUploaded = status === "uploaded"
+
                 return (
                   <div key={doc.id} className="border rounded-lg p-6 bg-gray-50">
                     <div className="flex items-center gap-3 mb-4">
@@ -366,14 +404,14 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                           Enviado
                         </Badge>
                       )}
-                      {status === 'required' && !isUploaded && (
+                      {status === "required" && !isUploaded && (
                         <Badge variant="destructive">
                           <AlertTriangle className="h-3 w-3 mr-1" />
                           Obrigatório
                         </Badge>
                       )}
                     </div>
-                    
+
                     {!isUploaded && (
                       <FileUploadField
                         label=""
@@ -386,15 +424,11 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                       />
                     )}
 
-                    {isUploaded && (
-                      <p className="text-sm text-green-700 font-medium">
-                        ✅ {doc.description}
-                      </p>
-                    )}
+                    {isUploaded && <p className="text-sm text-green-700 font-medium">✅ {doc.description}</p>}
                   </div>
                 )
               })}
-              
+
               {!hasProfile && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                   <Info className="h-5 w-5 text-blue-600 mx-auto mb-2" />
@@ -422,11 +456,10 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
               {professorDepartamentoId === 0 ? (
                 <div className="text-center py-8">
                   <BookOpen className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-amber-800 mb-2">
-                    Selecione seu departamento
-                  </h3>
+                  <h3 className="text-lg font-medium text-amber-800 mb-2">Selecione seu departamento</h3>
                   <p className="text-sm text-amber-700">
-                    Para configurar suas disciplinas, primeiro complete suas informações pessoais e selecione seu departamento.
+                    Para configurar suas disciplinas, primeiro complete suas informações pessoais e selecione seu
+                    departamento.
                   </p>
                 </div>
               ) : (
@@ -448,12 +481,12 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                             <div className="max-h-48 overflow-y-auto border rounded-lg bg-white p-3">
                               <div className="grid gap-2">
                                 {departamentoDisciplinas.map((disciplina) => (
-                                  <div 
-                                    key={disciplina.id} 
+                                  <div
+                                    key={disciplina.id}
                                     className={`flex items-center justify-between p-3 border rounded-lg transition-colors ${
-                                      selectedDisciplinas.includes(disciplina.id) 
-                                        ? 'border-blue-300 bg-blue-100' 
-                                        : 'border-gray-200 hover:border-blue-200'
+                                      selectedDisciplinas.includes(disciplina.id)
+                                        ? "border-blue-300 bg-blue-100"
+                                        : "border-gray-200 hover:border-blue-200"
                                     }`}
                                   >
                                     <div className="flex items-center space-x-3">
@@ -464,20 +497,22 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                                           if (checked) {
                                             setSelectedDisciplinas([...selectedDisciplinas, disciplina.id])
                                           } else {
-                                            setSelectedDisciplinas(selectedDisciplinas.filter(id => id !== disciplina.id))
+                                            setSelectedDisciplinas(
+                                              selectedDisciplinas.filter((id) => id !== disciplina.id)
+                                            )
                                           }
                                         }}
                                       />
                                       <div>
-                                        <Label 
-                                          htmlFor={`disciplina-${disciplina.id}`} 
+                                        <Label
+                                          htmlFor={`disciplina-${disciplina.id}`}
                                           className="text-sm font-medium cursor-pointer"
                                         >
                                           {disciplina.codigo} - {disciplina.nome}
                                         </Label>
                                       </div>
                                     </div>
-                                    
+
                                     {selectedDisciplinas.includes(disciplina.id) && (
                                       <Badge variant="default" className="bg-blue-600 text-white">
                                         <CheckCircle className="h-3 w-3 mr-1" />
@@ -488,7 +523,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                                 ))}
                               </div>
                             </div>
-                            
+
                             {selectedDisciplinas.length > 0 && (
                               <div className="bg-blue-100 border border-blue-200 rounded-lg p-4">
                                 <p className="text-sm text-blue-800 mb-3 font-medium">
@@ -500,7 +535,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                                   size="lg"
                                   className="w-full bg-blue-600 hover:bg-blue-700"
                                 >
-                                  {linkDisciplinasMutation.isPending ? 'Vinculando...' : `Confirmar Seleção`}
+                                  {linkDisciplinasMutation.isPending ? "Vinculando..." : `Confirmar Seleção`}
                                 </Button>
                               </div>
                             )}
@@ -525,9 +560,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                           <Plus className="h-5 w-5" />
                           Criar Nova Disciplina
                         </CardTitle>
-                        <p className="text-sm text-green-700">
-                          Cadastre uma nova disciplina que você irá lecionar
-                        </p>
+                        <p className="text-sm text-green-700">Cadastre uma nova disciplina que você irá lecionar</p>
                       </CardHeader>
                       <CardContent className="pt-0">
                         <div className="space-y-4">
@@ -552,6 +585,24 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                                 className="mt-1"
                               />
                             </div>
+                            <div>
+                              <Label htmlFor="disciplinaTurma">Turma *</Label>
+                              <Select
+                                value={newDisciplina.turma}
+                                onValueChange={(value) => setNewDisciplina({ ...newDisciplina, turma: value })}
+                              >
+                                <SelectTrigger className="mt-1">
+                                  <SelectValue placeholder="Selecione a turma" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
+                                    <SelectItem key={`T${num}`} value={`T${num}`}>
+                                      T{num}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                             <div className="grid grid-cols-2 gap-3">
                               <div>
                                 <Label htmlFor="cargaHoraria">Carga Horária</Label>
@@ -559,7 +610,9 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                                   id="cargaHoraria"
                                   type="number"
                                   value={newDisciplina.cargaHoraria}
-                                  onChange={(e) => setNewDisciplina({ ...newDisciplina, cargaHoraria: parseInt(e.target.value) || 0 })}
+                                  onChange={(e) =>
+                                    setNewDisciplina({ ...newDisciplina, cargaHoraria: parseInt(e.target.value) || 0 })
+                                  }
                                   placeholder="60"
                                   className="mt-1"
                                 />
@@ -568,7 +621,9 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                                 <Label htmlFor="periodo">Período</Label>
                                 <Select
                                   value={newDisciplina.periodo.toString()}
-                                  onValueChange={(value) => setNewDisciplina({ ...newDisciplina, periodo: parseInt(value) })}
+                                  onValueChange={(value) =>
+                                    setNewDisciplina({ ...newDisciplina, periodo: parseInt(value) })
+                                  }
                                 >
                                   <SelectTrigger className="mt-1">
                                     <SelectValue />
@@ -584,7 +639,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="bg-green-100 border border-green-200 rounded-lg p-3">
                             <div className="flex items-start gap-2">
                               <Info className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
@@ -593,14 +648,16 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                               </p>
                             </div>
                           </div>
-                          
+
                           <Button
                             onClick={handleCreateDisciplina}
-                            disabled={createDisciplinaMutation.isPending || !newDisciplina.nome || !newDisciplina.codigo}
+                            disabled={
+                              createDisciplinaMutation.isPending || !newDisciplina.nome || !newDisciplina.codigo
+                            }
                             size="lg"
                             className="w-full bg-green-600 hover:bg-green-700"
                           >
-                            {createDisciplinaMutation.isPending ? 'Criando...' : 'Criar e Selecionar Disciplina'}
+                            {createDisciplinaMutation.isPending ? "Criando..." : "Criar e Selecionar Disciplina"}
                           </Button>
                         </div>
                       </CardContent>
@@ -611,9 +668,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     <div className="bg-amber-100 border border-amber-200 rounded-lg p-6">
                       <div className="text-center">
                         <CheckCircle className="h-8 w-8 text-amber-600 mx-auto mb-3" />
-                        <h3 className="text-lg font-medium text-amber-800 mb-2">
-                          Disciplinas Configuradas
-                        </h3>
+                        <h3 className="text-lg font-medium text-amber-800 mb-2">Disciplinas Configuradas</h3>
                         <p className="text-sm text-amber-700 mb-4">
                           Você selecionou {selectedDisciplinas.length} disciplina(s). Confirme para continuar.
                         </p>
@@ -623,7 +678,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                           size="lg"
                           className="bg-amber-600 hover:bg-amber-700 px-8"
                         >
-                          {linkDisciplinasMutation.isPending ? 'Configurando...' : 'Confirmar Configuração'}
+                          {linkDisciplinasMutation.isPending ? "Configurando..." : "Confirmar Configuração"}
                         </Button>
                       </div>
                     </div>
@@ -646,11 +701,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
               <p className="text-green-700 mb-6 text-lg">
                 Parabéns! Seu perfil está completo e você já pode utilizar todas as funcionalidades do sistema.
               </p>
-              <Button
-                onClick={handleContinue}
-                size="lg"
-                className="bg-green-600 hover:bg-green-700 px-8"
-              >
+              <Button onClick={handleContinue} size="lg" className="bg-green-600 hover:bg-green-700 px-8">
                 Continuar para o Dashboard
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
@@ -660,4 +711,4 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
       </div>
     </section>
   )
-} 
+}

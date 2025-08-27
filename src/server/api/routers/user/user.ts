@@ -161,7 +161,7 @@ export const userRouter = createTRPCRouter({
                 .where(
                   and(
                     eq(inscricaoTable.alunoId, user.studentProfile.id),
-                    sql`${inscricaoTable.status} IN ('ACCEPTED_BOLSISTA', 'ACCEPTED_VOLUNTARIO')`
+                    sql`${inscricaoTable.status} IN (ACCEPTED_BOLSISTA, ACCEPTED_VOLUNTARIO)`
                   )
                 )
 

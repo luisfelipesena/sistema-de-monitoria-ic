@@ -10,11 +10,13 @@ import { api } from '@/utils/api'
 import { useRouter } from 'next/navigation'
 import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { toast } from 'sonner'
+import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Save, User, Loader } from 'lucide-react'
 import { formatUsernameToProperName } from '@/utils/username-formatter'
 
 export default function EditUserPage() {
+  const { toast } = useToast()
+
   const router = useRouter()
   const params = useParams()
   const userId = parseInt(params.id as string)
@@ -32,12 +34,19 @@ export default function EditUserPage() {
   const { data: user, isLoading } = api.user.getUserById.useQuery({ id: userId })
   const updateUserMutation = api.user.updateUser.useMutation({
     onSuccess: () => {
-      toast.success('Usuário atualizado com sucesso!')
+      toast({
+        title: "Sucesso!",
+        description: 'Usuário atualizado com sucesso!',
+      })
       router.push('/home/admin/users')
       window.location.reload()
     },
     onError: (error) => {
-      toast.error(`Erro ao atualizar usuário: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao atualizar usuário: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 

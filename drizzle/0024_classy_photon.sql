@@ -1,0 +1,1 @@
+ALTER TYPE "public"."status_inscricao_enum" ADD VALUE 'WAITING_LIST';

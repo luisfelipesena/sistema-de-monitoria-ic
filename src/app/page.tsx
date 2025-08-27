@@ -16,7 +16,7 @@ export default function LandingPageComponent() {
           </div>
           <div className="w-full sm:w-auto flex justify-center sm:justify-end mt-4 sm:mt-0">
             <Button className="w-full sm:w-auto" onClick={signIn}>
-              Acessar Dashboard com Login UFBA
+              Login
             </Button>
           </div>
         </div>
@@ -31,7 +31,7 @@ export default function LandingPageComponent() {
               UFBA.
             </p>
             <Button size="lg" onClick={signIn}>
-              Acessar Dashboard com Login UFBA
+              Login
             </Button>
           </div>
 

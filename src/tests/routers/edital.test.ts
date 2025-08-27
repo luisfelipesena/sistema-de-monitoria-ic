@@ -125,7 +125,7 @@ describe('editalRouter', () => {
         dataPublicacao: null,
         periodoInscricaoId: 1,
       }
-      
+
       vi.spyOn(mockContext.db.query.editalTable, 'findFirst')
         .mockResolvedValueOnce(signedEdital as any)
         .mockResolvedValueOnce({ ...signedEdital, periodoInscricao: { id: 1 } } as any)

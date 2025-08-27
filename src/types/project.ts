@@ -89,7 +89,7 @@ export interface DashboardProjectItem {
   bolsasDisponibilizadas?: number | null | undefined
   voluntariosSolicitados?: number | null | undefined
   totalInscritos: number
-  disciplinas: Array<{ codigo: string; nome: string }>
+  disciplinas: Array<{ codigo: string; nome: string; turma: string }>
 }
 
 export interface ManageProjectItem {
@@ -103,7 +103,7 @@ export interface ManageProjectItem {
   bolsasDisponibilizadas?: number | null | undefined
   voluntariosSolicitados?: number | null | undefined
   totalInscritos: number
-  disciplinas: Array<{ codigo: string; nome: string }>
+  disciplinas: Array<{ codigo: string; nome: string; turma: string }>
   professorResponsavelNome: string
 }
 
@@ -122,7 +122,7 @@ export interface ProjetoDisponivelListItem {
   titulo: string
   departamentoNome: string
   professorResponsavelNome: string
-  disciplinas: Array<{ codigo: string; nome: string }>
+  disciplinas: Array<{ codigo: string; nome: string; turma: string }>
   bolsasDisponibilizadas: number
   voluntariosSolicitados: number
   totalInscritos: number
@@ -164,6 +164,7 @@ export interface MonitoriaFormData {
     codigo: string
     nome: string
   }>
+  atividades?: string[]
   user?: {
     username?: string
     email?: string
@@ -215,7 +216,7 @@ export interface AdminSigningProjectItem {
   professorResponsavelNome: string
   semestre: string
   ano: number
-  disciplinas: Array<{ codigo: string; nome: string }>
+  disciplinas: Array<{ codigo: string; nome: string; turma: string }>
 }
 
 // ========================================
@@ -259,6 +260,51 @@ export const updateProjectSchema = z.object({
   titulo: z.string().min(1).optional(),
   descricao: z.string().min(1).optional(),
   status: projetoStatusSchema.optional(),
+  assinaturaProfessor: z.string().optional(),
+  feedbackAdmin: z.string().optional(),
+})
+
+export const updateProjetoSchema = z.object({
+  id: z.number().int().positive(),
+  departamentoId: z.number().int().positive().optional(),
+  ano: z.number().int().min(2000).max(2100).optional(),
+  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']).optional(),
+  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']).optional(),
+  bolsasSolicitadas: z.number().int().min(0).optional(),
+  voluntariosSolicitados: z.number().int().min(0).optional(),
+  bolsasDisponibilizadas: z.number().int().min(0).optional(),
+  cargaHorariaSemana: z.number().int().positive().optional(),
+  numeroSemanas: z.number().int().positive().optional(),
+  publicoAlvo: z.string().min(1).optional(),
+  estimativaPessoasBenificiadas: z.number().int().min(0).optional(),
+  professorResponsavelId: z.number().int().positive().optional(),
+  titulo: z.string().min(1).optional(),
+  descricao: z.string().min(1).optional(),
+  status: z
+    .enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_ADMIN_SIGNATURE', 'PENDING_PROFESSOR_SIGNATURE'])
+    .optional(),
+  assinaturaProfessor: z.string().optional(),
+  feedbackAdmin: z.string().optional(),
+})
+
+export const insertProjetoTableSchema = z.object({
+  departamentoId: z.number().int().positive(),
+  ano: z.number().int().min(2000).max(2100),
+  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
+  bolsasSolicitadas: z.number().int().min(0).default(0),
+  voluntariosSolicitados: z.number().int().min(0).default(0),
+  bolsasDisponibilizadas: z.number().int().min(0).optional(),
+  cargaHorariaSemana: z.number().int().positive(),
+  numeroSemanas: z.number().int().positive(),
+  publicoAlvo: z.string().min(1),
+  estimativaPessoasBenificiadas: z.number().int().min(0).optional(),
+  professorResponsavelId: z.number().int().positive(),
+  titulo: z.string().min(1).max(255),
+  descricao: z.string().min(1),
+  status: z
+    .enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_ADMIN_SIGNATURE', 'PENDING_PROFESSOR_SIGNATURE'])
+    .default('DRAFT'),
   assinaturaProfessor: z.string().optional(),
   feedbackAdmin: z.string().optional(),
 })
@@ -344,6 +390,24 @@ export const projectDetailSchema = z.object({
       })
     )
     .optional(),
+  atividades: z
+    .array(
+      z.object({
+        id: z.number().int().positive(),
+        descricao: z.string(),
+        projetoId: z.number().int().positive(),
+        createdAt: z.date(),
+      })
+    )
+    .optional(),
+  professoresParticipantes: z
+    .array(
+      z.object({
+        id: z.number().int().positive(),
+        nomeCompleto: z.string(),
+      })
+    )
+    .optional(),
 })
 
 export const projectListItemSchema = z.object({
@@ -376,6 +440,7 @@ export const projectListItemSchema = z.object({
       id: z.number().int().positive(),
       nome: z.string(),
       codigo: z.string(),
+      turma: z.string(),
     })
   ),
   totalInscritos: z.number(),
@@ -390,3 +455,5 @@ export type DuplicateTemplateData = z.infer<typeof duplicateTemplateSchema>
 export type ProjectFormData = z.infer<typeof projectFormSchema>
 export type ProjectDetailData = z.infer<typeof projectDetailSchema>
 export type ProjectListItemData = z.infer<typeof projectListItemSchema>
+export type UpdateProjetoData = z.infer<typeof updateProjetoSchema>
+export type InsertProjetoTableData = z.infer<typeof insertProjetoTableSchema>

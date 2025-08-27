@@ -18,12 +18,14 @@ import { ColumnDef } from "@tanstack/react-table"
 import { AlertCircle, CheckCircle, Clock, Edit, Eye, FileText, Plus, Trash2, Upload } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { z } from "zod"
 
 type EditalFormData = z.infer<typeof editalFormSchema>
 
 export default function EditalManagementPage() {
+  const { toast } = useToast()
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedEdital, setSelectedEdital] = useState<EditalListItem | null>(null)
@@ -33,56 +35,91 @@ export default function EditalManagementPage() {
 
   const createEditalMutation = api.edital.createEdital.useMutation({
     onSuccess: () => {
-      toast.success("Edital criado com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Edital criado com sucesso!",
+      })
       setIsCreateDialogOpen(false)
       refetch()
       createForm.reset()
     },
     onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const updateEditalMutation = api.edital.updateEdital.useMutation({
     onSuccess: () => {
-      toast.success("Edital atualizado com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Edital atualizado com sucesso!",
+      })
       setIsEditDialogOpen(false)
       setSelectedEdital(null)
       refetch()
     },
     onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const deleteEditalMutation = api.edital.deleteEdital.useMutation({
     onSuccess: () => {
-      toast.success("Edital excluído com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Edital excluído com sucesso!",
+      })
       refetch()
     },
     onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const publishEditalMutation = api.edital.publishEdital.useMutation({
     onSuccess: () => {
-      toast.success("Edital publicado com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Edital publicado com sucesso!",
+      })
       refetch()
     },
     onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const uploadSignedMutation = api.edital.uploadSignedEdital.useMutation({
     onSuccess: () => {
-      toast.success("Edital assinado carregado com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Edital assinado carregado com sucesso!",
+      })
       setUploadFile(null)
       refetch()
     },
     onError: (error) => {
-      toast.error(`Erro: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
@@ -129,7 +166,11 @@ export default function EditalManagementPage() {
 
   const handleUploadSigned = async (editalId: number) => {
     if (!uploadFile) {
-      toast.error("Selecione um arquivo PDF assinado")
+      toast({
+        title: "Erro",
+        description: "Selecione um arquivo PDF assinado",
+        variant: "destructive",
+      })
       return
     }
 
@@ -165,9 +206,16 @@ export default function EditalManagementPage() {
     try {
       const result = await generatePdfMutation.mutateAsync({ id: editalId })
       window.open(result.url, "_blank", "noopener,noreferrer")
-      toast.success("PDF do edital aberto em nova aba")
+      toast({
+        title: "Sucesso!",
+        description: "PDF do edital aberto em nova aba",
+      })
     } catch (error) {
-      toast.error("Erro ao gerar PDF do edital")
+      toast({
+        title: "Erro",
+        description: "Erro ao gerar PDF do edital",
+        variant: "destructive",
+      })
       console.error("Error generating PDF:", error)
     }
   }

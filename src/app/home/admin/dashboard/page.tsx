@@ -34,9 +34,11 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardAdmin() {
+  const { toast } = useToast()
+
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -69,7 +71,12 @@ export default function DashboardAdmin() {
 
   const handleDownloadPlanilhaPrograd = async () => {
     try {
-      toast.promise(
+      toast({
+        title: "Preparando planilha...",
+        description: "Gerando planilha para PROGRAD",
+      })
+      
+      await (
         (async () => {
           const {
             data: result,
@@ -150,15 +157,20 @@ export default function DashboardAdmin() {
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
-        })(),
-        {
-          loading: "Gerando planilha PROGRAD...",
-          success: "Planilha PROGRAD baixada com sucesso!",
-          error: (err) => `Erro ao gerar planilha: ${err.message}`,
-        }
-      );
-    } catch (error) {
+        })()
+      )
+      
+      toast({
+        title: "Sucesso!",
+        description: "Planilha PROGRAD baixada com sucesso!",
+      })
+    } catch (error: any) {
       console.error("Erro ao gerar planilha PROGRAD:", error);
+      toast({
+        title: "Erro",
+        description: `Erro ao gerar planilha: ${error?.message || 'Erro desconhecido'}`,
+        variant: "destructive",
+      })
     }
   };
 
@@ -185,16 +197,23 @@ export default function DashboardAdmin() {
         "noopener,noreferrer"
       );
       if (!newWindow) {
-        toast.error("Popup bloqueado", {
+        toast({
+          title: "Erro",
           description: "Permita popups para visualizar o PDF em nova aba.",
+          variant: "destructive",
         });
         return;
       }
 
-      toast.success("PDF aberto em nova aba");
+      toast({
+        title: "Sucesso!",
+        description: "PDF aberto em nova aba",
+      });
     } catch (error) {
-      toast.error("Erro ao abrir PDF", {
+      toast({
+        title: "Erro",
         description: "Não foi possível abrir o documento para visualização.",
+        variant: "destructive",
       });
       console.error("View PDF error:", error);
     } finally {

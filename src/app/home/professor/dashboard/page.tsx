@@ -1,7 +1,7 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { TableComponent } from '@/components/layout/TableComponent'
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,29 +11,18 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { FilterModal, FilterValues } from '@/components/ui/FilterModal'
-import { useToast } from '@/hooks/use-toast'
-import { DashboardProjectItem } from '@/types'
-import { api } from '@/utils/api'
-import { ColumnDef } from '@tanstack/react-table'
-import Link from 'next/link'
-import { useMemo, useState } from 'react'
+} from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { FilterModal, FilterValues } from "@/components/ui/FilterModal"
+import { useToast } from "@/hooks/use-toast"
+import { DashboardProjectItem } from "@/types"
+import { api } from "@/utils/api"
+import { ColumnDef } from "@tanstack/react-table"
+import Link from "next/link"
+import { useMemo, useState } from "react"
 
-import {
-  Download,
-  Eye,
-  FileSignature,
-  Filter,
-  Hand,
-  List,
-  Loader,
-  Plus,
-  Trash2,
-  Users,
-} from 'lucide-react'
+import { Download, Eye, FileSignature, Filter, Hand, List, Loader, Plus, Trash2, Users } from "lucide-react"
 
 export default function DashboardProfessor() {
   const { toast } = useToast()
@@ -52,8 +41,7 @@ export default function DashboardProfessor() {
 
     return projetos.filter((projeto) => {
       if (filters.status && projeto.status !== filters.status) return false
-      if (filters.semestre && projeto.semestre !== filters.semestre)
-        return false
+      if (filters.semestre && projeto.semestre !== filters.semestre) return false
       if (filters.ano && projeto.ano.toString() !== filters.ano) return false
       return true
     })
@@ -76,8 +64,8 @@ export default function DashboardProfessor() {
       {
         onSuccess: async () => {
           toast({
-            title: 'Projeto excluído',
-            description: 'O projeto foi excluído com sucesso.',
+            title: "Projeto excluído",
+            description: "O projeto foi excluído com sucesso.",
           })
           setDeleteDialogOpen(false)
           setProjetoToDelete(null)
@@ -85,9 +73,9 @@ export default function DashboardProfessor() {
         },
         onError: (error) => {
           toast({
-            title: 'Erro ao excluir projeto',
-            description: error.message || 'Ocorreu um erro ao excluir o projeto.',
-            variant: 'destructive',
+            title: "Erro ao excluir projeto",
+            description: error.message || "Ocorreu um erro ao excluir o projeto.",
+            variant: "destructive",
           })
         },
       }
@@ -99,37 +87,37 @@ export default function DashboardProfessor() {
     try {
       const result = await getProjetoPdfMutation.mutateAsync({
         projetoId: projetoId,
-      });
+      })
 
-      const newWindow = window.open(result.url, '_blank', 'noopener,noreferrer');
+      const newWindow = window.open(result.url, "_blank", "noopener,noreferrer")
       if (!newWindow) {
         toast({
-          title: 'Popup bloqueado',
-          description: 'Permita popups para visualizar o PDF em nova aba.',
-          variant: 'destructive',
-        });
-        return;
+          title: "Popup bloqueado",
+          description: "Permita popups para visualizar o PDF em nova aba.",
+          variant: "destructive",
+        })
+        return
       }
-    
+
       toast({
-        title: 'PDF aberto em nova aba',
-      });
+        title: "PDF aberto em nova aba",
+      })
     } catch (error: any) {
-      console.error('View PDF error:', error);
-      
-      let errorMessage = 'Não foi possível abrir o documento para visualização.';
-      
-      if (error?.message?.includes('PDF do projeto não encontrado')) {
-        errorMessage = 'PDF não encontrado. O documento pode ainda não ter sido gerado após a assinatura.';
-      } else if (error?.message?.includes('NOT_FOUND')) {
-        errorMessage = 'PDF não encontrado. Verifique se o projeto foi assinado corretamente.';
+      console.error("View PDF error:", error)
+
+      let errorMessage = "Não foi possível abrir o documento para visualização."
+
+      if (error?.message?.includes("PDF do projeto não encontrado")) {
+        errorMessage = "PDF não encontrado. O documento pode ainda não ter sido gerado após a assinatura."
+      } else if (error?.message?.includes("NOT_FOUND")) {
+        errorMessage = "PDF não encontrado. Verifique se o projeto foi assinado corretamente."
       }
-      
+
       toast({
-        title: 'Erro ao abrir PDF',
+        title: "Erro ao abrir PDF",
         description: errorMessage,
-        variant: 'destructive',
-      });
+        variant: "destructive",
+      })
     } finally {
       setLoadingPdfProjetoId(null)
     }
@@ -144,16 +132,11 @@ export default function DashboardProfessor() {
           Componente curricular
         </div>
       ),
-      accessorKey: 'titulo',
+      accessorKey: "titulo",
       cell: ({ row }) => {
         const disciplinas = row.original.disciplinas
-        const codigoDisciplina =
-          disciplinas.length > 0 ? disciplinas[0].codigo : 'N/A'
-        return (
-          <span className="font-semibold text-base text-gray-900">
-            {codigoDisciplina}
-          </span>
-        )
+        const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
+        return <span className="font-semibold text-base text-gray-900">{codigoDisciplina}</span>
       },
     },
     {
@@ -163,21 +146,33 @@ export default function DashboardProfessor() {
           Status
         </div>
       ),
-      accessorKey: 'status',
+      accessorKey: "status",
       cell: ({ row }) => {
         const status = row.original.status
-        if (status === 'APPROVED') {
-          return <Badge variant="secondary" className="bg-green-100 text-green-800">Aprovado</Badge>
-        } else if (status === 'REJECTED') {
+        if (status === "APPROVED") {
+          return (
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              Aprovado
+            </Badge>
+          )
+        } else if (status === "REJECTED") {
           return <Badge variant="destructive">Rejeitado</Badge>
-        } else if (status === 'SUBMITTED') {
-          return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Em análise</Badge>
-        } else if (status === 'DRAFT') {
+        } else if (status === "SUBMITTED") {
+          return (
+            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+              Em análise
+            </Badge>
+          )
+        } else if (status === "DRAFT") {
           return <Badge variant="outline">Rascunho</Badge>
-        } else if (status === 'PENDING_PROFESSOR_SIGNATURE') {
+        } else if (status === "PENDING_PROFESSOR_SIGNATURE") {
           return <Badge variant="secondary">Aguardando Assinatura do Professor</Badge>
-        } else if (status === 'PENDING_ADMIN_SIGNATURE') {
-          return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Aguardando Assinatura do Admin</Badge>
+        } else if (status === "PENDING_ADMIN_SIGNATURE") {
+          return (
+            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+              Aguardando Assinatura do Admin
+            </Badge>
+          )
         }
         return <Badge variant="outline">{status}</Badge>
       },
@@ -186,14 +181,14 @@ export default function DashboardProfessor() {
       header: () => (
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-gray-400" />
-          Bolsistas
+          Bolsas
         </div>
       ),
-      accessorKey: 'bolsasDisponibilizadas',
+      accessorKey: "bolsasDisponibilizadas",
       cell: ({ row }) => {
         const bolsas = row.original.bolsasDisponibilizadas ?? 0
         const status = row.original.status
-        if (status === 'APPROVED') {
+        if (status === "APPROVED") {
           return <span>{bolsas}</span>
         }
         return <span>-</span>
@@ -206,15 +201,11 @@ export default function DashboardProfessor() {
           Voluntários
         </div>
       ),
-      accessorKey: 'voluntariosSolicitados',
+      accessorKey: "voluntariosSolicitados",
       cell: ({ row }) => {
         const status = row.original.status
-        if (status === 'APPROVED') {
-          return (
-            <div className="text-center">
-              {row.original.voluntariosSolicitados ?? 0}
-            </div>
-          )
+        if (status === "APPROVED") {
+          return <div className="text-center">{row.original.voluntariosSolicitados ?? 0}</div>
         }
         return <div className="text-center">-</div>
       },
@@ -226,15 +217,11 @@ export default function DashboardProfessor() {
           Inscritos
         </div>
       ),
-      accessorKey: 'totalInscritos',
+      accessorKey: "totalInscritos",
       cell: ({ row }) => {
         const status = row.original.status
-        if (status === 'APPROVED') {
-          return (
-            <div className="text-center text-base">
-              {row.original.totalInscritos}
-            </div>
-          )
+        if (status === "APPROVED") {
+          return <div className="text-center text-base">{row.original.totalInscritos}</div>
         }
         return <div className="text-center">-</div>
       },
@@ -246,20 +233,16 @@ export default function DashboardProfessor() {
           Ações
         </div>
       ),
-      accessorKey: 'acoes',
+      accessorKey: "acoes",
       cell: ({ row }) => {
         const projeto = row.original
 
         return (
           <div className="flex gap-2">
-            {(projeto.status === 'DRAFT' || projeto.status === 'PENDING_PROFESSOR_SIGNATURE') && (
+            {(projeto.status === "DRAFT" || projeto.status === "PENDING_PROFESSOR_SIGNATURE") && (
               <>
                 <Link href={`/home/professor/assinatura-documentos?projetoId=${projeto.id}`}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full flex items-center gap-1"
-                  >
+                  <Button variant="outline" size="sm" className="rounded-full flex items-center gap-1">
                     <FileSignature className="h-4 w-4" />
                     Assinar
                   </Button>
@@ -277,7 +260,10 @@ export default function DashboardProfessor() {
               </>
             )}
 
-            {(projeto.status === 'SUBMITTED' || projeto.status === 'PENDING_ADMIN_SIGNATURE' || projeto.status === 'APPROVED' || projeto.status === 'REJECTED') && (
+            {(projeto.status === "SUBMITTED" ||
+              projeto.status === "PENDING_ADMIN_SIGNATURE" ||
+              projeto.status === "APPROVED" ||
+              projeto.status === "REJECTED") && (
               <Button
                 variant="outline"
                 size="sm"
@@ -287,17 +273,13 @@ export default function DashboardProfessor() {
                 title="Visualizar PDF do projeto assinado"
               >
                 <Download className="h-4 w-4" />
-                {loadingPdfProjetoId === projeto.id ? 'Carregando...' : 'Visualizar PDF'}
+                {loadingPdfProjetoId === projeto.id ? "Carregando..." : "Visualizar PDF"}
               </Button>
             )}
 
-            {projeto.status === 'APPROVED' && (
+            {projeto.status === "APPROVED" && (
               <Link href={`/home/professor/candidatos?projetoId=${projeto.id}`}>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="rounded-full flex items-center gap-1"
-                >
+                <Button variant="primary" size="sm" className="rounded-full flex items-center gap-1">
                   <Users className="h-4 w-4" />
                   Ver Candidatos
                 </Button>
@@ -313,19 +295,12 @@ export default function DashboardProfessor() {
   const dashboardActions = (
     <>
       <Link href="/home/professor/projetos/novo">
-        <Button
-          variant="primary"
-          className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors"
-        >
+        <Button variant="primary" className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors">
           <Plus className="w-4 h-4 mr-2" />
           Novo Projeto
         </Button>
       </Link>
-      <Button
-        variant="outline"
-        className="text-gray-600"
-        onClick={() => setFilterModalOpen(true)}
-      >
+      <Button variant="outline" className="text-gray-600" onClick={() => setFilterModalOpen(true)}>
         <Filter className="w-4 h-4 mr-1" />
         Filtros
       </Button>
@@ -345,14 +320,9 @@ export default function DashboardProfessor() {
             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-blue-700">
-                  Filtros ativos:{' '}
-                  {Object.values(filters).filter(Boolean).length}
+                  Filtros ativos: {Object.values(filters).filter(Boolean).length}
                 </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFilters({})}
-                >
+                <Button variant="outline" size="sm" onClick={() => setFilters({})}>
                   Limpar filtros
                 </Button>
               </div>
@@ -366,15 +336,11 @@ export default function DashboardProfessor() {
           <h3 className="text-lg font-medium">Nenhum projeto encontrado</h3>
           <p className="text-muted-foreground mb-4">
             {projetos && projetos.length === 0
-              ? 'Você ainda não criou nenhum projeto de monitoria.'
-              : 'Nenhum projeto corresponde aos filtros selecionados.'}
+              ? "Você ainda não criou nenhum projeto de monitoria."
+              : "Nenhum projeto corresponde aos filtros selecionados."}
           </p>
           <Link href="/home/professor/projetos/novo">
-            <Button>
-              {projetos && projetos.length === 0
-                ? 'Criar Primeiro Projeto'
-                : 'Criar Novo Projeto'}
-            </Button>
+            <Button>{projetos && projetos.length === 0 ? "Criar Primeiro Projeto" : "Criar Novo Projeto"}</Button>
           </Link>
         </div>
       )}
@@ -394,11 +360,9 @@ export default function DashboardProfessor() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o projeto{' '}
-              <span className="font-semibold">
-                {projetoToDelete?.disciplinas?.[0]?.codigo || 'N/A'}
-              </span>
-              ? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o projeto{" "}
+              <span className="font-semibold">{projetoToDelete?.disciplinas?.[0]?.codigo || "N/A"}</span>? Esta ação não
+              pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -416,9 +380,7 @@ export default function DashboardProfessor() {
               disabled={deleteProjeto.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteProjeto.isPending ? (
-                <Loader className="w-4 h-4 mr-2 animate-spin" />
-              ) : null}
+              {deleteProjeto.isPending ? <Loader className="w-4 h-4 mr-2 animate-spin" /> : null}
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

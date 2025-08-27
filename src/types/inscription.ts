@@ -1,5 +1,18 @@
 import { z } from 'zod'
-import { StatusInscricao, statusInscricaoSchema, TipoInscricao, tipoInscricaoSchema } from './enums'
+import {
+  StatusInscricao,
+  statusInscricaoSchema,
+  TipoInscricao,
+  tipoInscricaoSchema,
+  SELECTED_BOLSISTA,
+  SELECTED_VOLUNTARIO,
+  ACCEPTED_BOLSISTA,
+  ACCEPTED_VOLUNTARIO,
+  REJECTED_BY_PROFESSOR,
+  SUBMITTED,
+  REJECTED_BY_STUDENT,
+  WAITING_LIST,
+} from './enums'
 import { idSchema } from './schemas'
 
 // ========================================
@@ -42,13 +55,14 @@ export interface SelecaoCandidato {
   alunoId: number
   tipoVagaPretendida: 'BOLSISTA' | 'VOLUNTARIO' | 'ANY' | null
   status:
-    | 'SUBMITTED'
-    | 'SELECTED_BOLSISTA'
-    | 'SELECTED_VOLUNTARIO'
-    | 'ACCEPTED_BOLSISTA'
-    | 'ACCEPTED_VOLUNTARIO'
-    | 'REJECTED_BY_PROFESSOR'
-    | 'REJECTED_BY_STUDENT'
+    | typeof SUBMITTED
+    | typeof SELECTED_BOLSISTA
+    | typeof SELECTED_VOLUNTARIO
+    | typeof ACCEPTED_BOLSISTA
+    | typeof ACCEPTED_VOLUNTARIO
+    | typeof REJECTED_BY_PROFESSOR
+    | typeof REJECTED_BY_STUDENT
+    | typeof WAITING_LIST
   notaDisciplina: string | null
   notaSelecao: string | null
   coeficienteRendimento: string | null
@@ -224,6 +238,7 @@ export const inscriptionDetailSchema = z.object({
         id: idSchema,
         nome: z.string(),
         codigo: z.string(),
+        turma: z.string(),
       })
     ),
   }),

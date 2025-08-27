@@ -1,6 +1,7 @@
 import { inscricaoRouter } from '@/server/api/routers/inscricao/inscricao'
 import { type TRPCContext } from '@/server/api/trpc'
 import { type User } from '@/server/db/schema'
+import { SELECTED_BOLSISTA, ACCEPTED_BOLSISTA } from '@/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockStudentUser: User = {
@@ -68,13 +69,13 @@ describe('inscricaoRouter', () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = inscricaoRouter.createCaller(mockContext)
       vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1, cr: 8.5 } as any)
-      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({ 
-        id: 1, 
+      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({
+        id: 1,
         status: 'APPROVED',
         bolsasDisponibilizadas: 2,
         voluntariosSolicitados: 1,
         ano: 2024,
-        semestre: 'SEMESTRE_1'
+        semestre: 'SEMESTRE_1',
       } as any)
       vi.spyOn(mockContext.db.query.periodoInscricaoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
       vi.spyOn(mockContext.db.query.inscricaoTable, 'findFirst').mockResolvedValue(undefined)
@@ -99,14 +100,14 @@ describe('inscricaoRouter', () => {
         // For the inscription being accepted
         .mockResolvedValueOnce({
           id: 1,
-          status: 'SELECTED_BOLSISTA',
+          status: SELECTED_BOLSISTA,
           alunoId: 1,
           projeto: currentSemesterProject,
         } as any)
         // For the check of existing scholarships
         .mockResolvedValueOnce({
           id: 2,
-          status: 'ACCEPTED_BOLSISTA',
+          status: ACCEPTED_BOLSISTA,
           alunoId: 1,
           projeto: currentSemesterProject,
         } as any)

@@ -13,12 +13,14 @@ import { inscriptionDetailSchema } from "@/types"
 import { api } from "@/utils/api"
 import { Calculator, ClipboardCheck, Save, Users } from "lucide-react"
 import { useState } from "react"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 import { z } from "zod"
 
 type InscricaoComDetalhes = z.infer<typeof inscriptionDetailSchema>
 
 export default function GradeApplicationsPage() {
+  const { toast } = useToast()
+
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [selectedInscricao, setSelectedInscricao] = useState<number | null>(null)
   const [notas, setNotas] = useState({
@@ -40,7 +42,10 @@ export default function GradeApplicationsPage() {
   // Mutation para avaliar candidato
   const evaluateApplicationMutation = api.inscricao.evaluateApplications.useMutation({
     onSuccess: () => {
-      toast.success("Notas salvas com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Notas salvas com sucesso!",
+      })
       setSelectedInscricao(null)
       setNotas({
         notaDisciplina: "",
@@ -50,7 +55,11 @@ export default function GradeApplicationsPage() {
       })
     },
     onError: (error) => {
-      toast.error(error.message || "Erro ao salvar notas")
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao salvar notas",
+        variant: "destructive",
+      })
     },
   })
 
@@ -62,7 +71,11 @@ export default function GradeApplicationsPage() {
     const coeficienteRendimento = parseFloat(notas.coeficienteRendimento)
 
     if (isNaN(notaDisciplina) || isNaN(notaSelecao) || isNaN(coeficienteRendimento)) {
-      toast.error("Todas as notas devem ser números válidos")
+      toast({
+        title: "Erro",
+        description: "Todas as notas devem ser números válidos",
+        variant: "destructive",
+      })
       return
     }
 

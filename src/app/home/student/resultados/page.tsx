@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { PDFDownloadWrapper } from "@/components/ui/pdf-download-wrapper"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import { TIPO_VAGA_LABELS } from "@/types/enums"
 import { api } from "@/utils/api"
 import { AlertCircle, Award, CheckCircle, Clock, FileText, MessageSquare, Users, XCircle } from "lucide-react"
 import { useState } from "react"
@@ -29,10 +30,10 @@ export default function ResultadosPage() {
   const { data: inscricoes, isLoading, refetch } = api.inscricao.getMinhasInscricoes.useQuery()
 
   // Mutation para aceitar vaga
-  const aceitarVagaMutation = api.inscricao.acceptPosition.useMutation({
+  const aceitarVagaMutation = api.vagas.acceptVaga.useMutation({
     onSuccess: (data) => {
       toast({
-        title: "Sucesso",
+        title: "Sucesso!",
         description: data.message,
       })
       refetch()
@@ -47,10 +48,10 @@ export default function ResultadosPage() {
   })
 
   // Mutation para recusar vaga
-  const recusarVagaMutation = api.inscricao.rejectPosition.useMutation({
+  const recusarVagaMutation = api.vagas.rejectVaga.useMutation({
     onSuccess: (data) => {
       toast({
-        title: "Sucesso",
+        title: "Sucesso!",
         description: data.message,
       })
       setShowRejectDialog(false)
@@ -67,8 +68,11 @@ export default function ResultadosPage() {
     },
   })
 
-  const handleAccept = (inscricaoId: number) => {
-    aceitarVagaMutation.mutate({ inscricaoId })
+  const handleAccept = (inscricaoId: number, tipoVagaPretendida: string) => {
+    aceitarVagaMutation.mutate({
+      inscricaoId: inscricaoId.toString(),
+      tipoBolsa: tipoVagaPretendida as "BOLSISTA" | "VOLUNTARIO",
+    })
   }
 
   const handleRejectClick = (inscricaoId: number) => {
@@ -79,7 +83,7 @@ export default function ResultadosPage() {
   const handleRejectConfirm = () => {
     if (selectedInscricao) {
       recusarVagaMutation.mutate({
-        inscricaoId: selectedInscricao,
+        inscricaoId: selectedInscricao.toString(),
         motivo: motivoRecusa || undefined,
       })
     }
@@ -118,9 +122,9 @@ export default function ResultadosPage() {
 
   const getTipoVagaIcon = (tipo: string | null | undefined) => {
     switch (tipo) {
-      case "BOLSISTA":
+      case TIPO_VAGA_LABELS.BOLSISTA:
         return <Award className="h-4 w-4 text-yellow-600" />
-      case "VOLUNTARIO":
+      case TIPO_VAGA_LABELS.VOLUNTARIO:
         return <Users className="h-4 w-4 text-blue-600" />
       default:
         return <AlertCircle className="h-4 w-4 text-gray-500" />
@@ -279,7 +283,7 @@ export default function ResultadosPage() {
                         Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
                       </p>
                       <p className="text-sm text-muted-foreground mb-2">
-                        Disciplinas: {inscricao.projeto.disciplinas.map((d) => d.codigo).join(", ")}
+                        Disciplinas: {inscricao.projeto.disciplinas.map((d) => `${d.codigo} (${d.turma})`).join(", ")}
                       </p>
                       <div className="flex items-center gap-2 mb-3">
                         {getStatusBadge(inscricao.status)}
@@ -301,7 +305,7 @@ export default function ResultadosPage() {
                     {canAcceptOrReject(inscricao.status) && (
                       <div className="flex gap-2 ml-4">
                         <Button
-                          onClick={() => handleAccept(inscricao.id)}
+                          onClick={() => handleAccept(inscricao.id, inscricao.tipoVagaPretendida as string)}
                           disabled={aceitarVagaMutation.isPending}
                           className="bg-green-600 hover:bg-green-700"
                         >
