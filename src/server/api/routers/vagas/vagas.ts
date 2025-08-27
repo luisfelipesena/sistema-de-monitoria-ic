@@ -1,7 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { alunoTable, assinaturaDocumentoTable, inscricaoTable, projetoTable, vagaTable } from '@/server/db/schema'
 import { emailService } from '@/server/lib/email-service'
-import { semestreSchema, tipoVagaSchema, STATUS_INSCRICAO_ENUM } from '@/types'
+import { semestreSchema, tipoVagaSchema, ACCEPTED_BOLSISTA, ACCEPTED_VOLUNTARIO, REJECTED_BY_STUDENT, BOLSISTA, VOLUNTARIO } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
@@ -19,7 +19,7 @@ export const vagasRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       // Se for voluntário, sempre pode aceitar múltiplas
-      if (input.tipoBolsa === 'VOLUNTARIO') {
+      if (input.tipoBolsa === VOLUNTARIO) {
         return { canAccept: true, reason: null }
       }
 
@@ -27,7 +27,7 @@ export const vagasRouter = createTRPCRouter({
       const bolsaExistente = await ctx.db.query.vagaTable.findFirst({
         where: and(
           eq(vagaTable.alunoId, parseInt(input.alunoId)),
-          eq(vagaTable.tipo, 'BOLSISTA'),
+          eq(vagaTable.tipo, BOLSISTA),
           sql`EXISTS (SELECT 1 FROM ${projetoTable} WHERE ${projetoTable.id} = ${vagaTable.projetoId} 
               AND ${projetoTable.ano} = ${input.ano} AND ${projetoTable.semestre} = ${input.semestre})`
         ),
@@ -109,12 +109,12 @@ export const vagasRouter = createTRPCRouter({
       }
 
       // Verificar limite de bolsas se for bolsista
-      if (input.tipoBolsa === 'BOLSISTA') {
+      if (input.tipoBolsa === BOLSISTA) {
         // Verificar se já tem bolsa no semestre
         const bolsaExistente = await ctx.db.query.vagaTable.findFirst({
           where: and(
             eq(vagaTable.alunoId, inscricaoData.alunoId),
-            eq(vagaTable.tipo, 'BOLSISTA'),
+            eq(vagaTable.tipo, BOLSISTA),
             sql`EXISTS (SELECT 1 FROM ${projetoTable} WHERE ${projetoTable.id} = ${vagaTable.projetoId} 
                 AND ${projetoTable.ano} = ${inscricaoData.projeto.ano} AND ${projetoTable.semestre} = ${inscricaoData.projeto.semestre})`
           ),
@@ -149,7 +149,7 @@ export const vagasRouter = createTRPCRouter({
         await tx
           .update(inscricaoTable)
           .set({
-            status: input.tipoBolsa === 'BOLSISTA' ? STATUS_INSCRICAO_ENUM[3] : STATUS_INSCRICAO_ENUM[4], // ACCEPTED_BOLSISTA : ACCEPTED_VOLUNTARIO
+            status: input.tipoBolsa === BOLSISTA ? ACCEPTED_BOLSISTA : ACCEPTED_VOLUNTARIO, // ACCEPTED_BOLSISTA : ACCEPTED_VOLUNTARIO
             updatedAt: new Date(),
           })
           .where(eq(inscricaoTable.id, parseInt(input.inscricaoId)))
@@ -247,7 +247,7 @@ Sistema de Monitoria IC
       await ctx.db
         .update(inscricaoTable)
         .set({
-          status: STATUS_INSCRICAO_ENUM[6], // 'REJECTED_BY_STUDENT'
+          status: REJECTED_BY_STUDENT, // 'REJECTED_BY_STUDENT'
           feedbackProfessor: input.motivo || 'Vaga recusada pelo aluno',
           updatedAt: new Date(),
         })

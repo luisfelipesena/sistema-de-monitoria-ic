@@ -34,6 +34,17 @@ import {
   ValidationResult,
   type Semestre,
   ACCEPTED_BOLSISTA,
+  SUBMITTED,
+  APPROVED,
+  REJECTED,
+  SELECTED_BOLSISTA,
+  SELECTED_VOLUNTARIO,
+  ACCEPTED_VOLUNTARIO,
+  BOLSISTA,
+  VOLUNTARIO,
+  TIPO_VAGA_ENUM,
+  PROJETO_STATUS_ENUM,
+  SEMESTRE_LABELS,
 } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { and, count, desc, eq, sql, sum } from 'drizzle-orm'
@@ -102,7 +113,7 @@ async function checkDadosFaltantesPrograd(
       .innerJoin(alunoTable, eq(vagaTable.alunoId, alunoTable.id))
       .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
       .where(
-        and(eq(vagaTable.tipo, 'BOLSISTA'), eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre))
+        and(eq(vagaTable.tipo, BOLSISTA), eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre))
       )
 
     for (const bolsista of bolsistas) {
@@ -137,7 +148,7 @@ async function checkDadosFaltantesPrograd(
       .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
       .where(
         and(
-          eq(vagaTable.tipo, 'VOLUNTARIO'),
+          eq(vagaTable.tipo, VOLUNTARIO),
           eq(projetoTable.ano, input.ano),
           eq(projetoTable.semestre, input.semestre)
         )
@@ -175,8 +186,8 @@ export const relatoriosRouter = createTRPCRouter({
       const [projetosStats] = await ctx.db
         .select({
           total: count(),
-          aprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
-          submetidos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'SUBMITTED' THEN 1 END)`,
+          aprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = ${APPROVED} THEN 1 END)`,
+          submetidos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = ${SUBMITTED} THEN 1 END)`,
           rascunhos: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'DRAFT' THEN 1 END)`,
           totalBolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
           totalBolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
@@ -192,7 +203,7 @@ export const relatoriosRouter = createTRPCRouter({
       const [inscricoesStats] = await ctx.db
         .select({
           total: count(),
-          submetidas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} = 'SUBMITTED' THEN 1 END)`,
+          submetidas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} = ${SUBMITTED} THEN 1 END)`,
           selecionadas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'SELECTED_%' THEN 1 END)`,
           aceitas: sql<number>`COUNT(CASE WHEN ${inscricaoTable.status} LIKE 'ACCEPTED_%' THEN 1 END)`,
         })
@@ -202,8 +213,8 @@ export const relatoriosRouter = createTRPCRouter({
       const [vagasStats] = await ctx.db
         .select({
           total: count(),
-          bolsistas: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = 'BOLSISTA' THEN 1 END)`,
-          voluntarios: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = 'VOLUNTARIO' THEN 1 END)`,
+          bolsistas: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = ${BOLSISTA} THEN 1 END)`,
+          voluntarios: sql<number>`COUNT(CASE WHEN ${vagaTable.tipo} = ${VOLUNTARIO} THEN 1 END)`,
         })
         .from(vagaTable)
         .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
@@ -244,7 +255,7 @@ export const relatoriosRouter = createTRPCRouter({
             sigla: departamentoTable.sigla,
           },
           projetos: count(projetoTable.id),
-          projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+          projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = ${APPROVED} THEN 1 END)`,
           bolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
           bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
         })
@@ -285,7 +296,7 @@ export const relatoriosRouter = createTRPCRouter({
             sigla: departamentoTable.sigla,
           },
           projetos: count(projetoTable.id),
-          projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+          projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = ${APPROVED} THEN 1 END)`,
           bolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
           bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
         })
@@ -389,7 +400,7 @@ export const relatoriosRouter = createTRPCRouter({
             sigla: departamentoTable.sigla,
           },
           projetos: count(projetoTable.id),
-          projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+          projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = ${APPROVED} THEN 1 END)`,
         })
         .from(disciplinaTable)
         .innerJoin(departamentoTable, eq(disciplinaTable.departamentoId, departamentoTable.id))
@@ -482,7 +493,7 @@ export const relatoriosRouter = createTRPCRouter({
                 sigla: departamentoTable.sigla,
               },
               projetos: count(projetoTable.id),
-              projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+              projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = ${APPROVED} THEN 1 END)`,
               bolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
               bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
             })
@@ -532,7 +543,7 @@ export const relatoriosRouter = createTRPCRouter({
                 sigla: departamentoTable.sigla,
               },
               projetos: count(projetoTable.id),
-              projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+              projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = ${APPROVED} THEN 1 END)`,
               bolsasSolicitadas: sum(projetoTable.bolsasSolicitadas),
               bolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
             })
@@ -648,7 +659,7 @@ export const relatoriosRouter = createTRPCRouter({
                 sigla: departamentoTable.sigla,
               },
               projetos: count(projetoTable.id),
-              projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+              projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = ${APPROVED} THEN 1 END)`,
             })
             .from(disciplinaTable)
             .innerJoin(departamentoTable, eq(disciplinaTable.departamentoId, departamentoTable.id))
@@ -733,7 +744,7 @@ export const relatoriosRouter = createTRPCRouter({
               item.edital.numeroEdital,
               item.edital.titulo,
               item.periodo.ano,
-              item.periodo.semestre === 'SEMESTRE_1' ? '1º Semestre' : '2º Semestre',
+              SEMESTRE_LABELS[item.periodo.semestre as keyof typeof SEMESTRE_LABELS],
               new Date(item.periodo.dataInicio).toLocaleDateString('pt-BR'),
               new Date(item.periodo.dataFim).toLocaleDateString('pt-BR'),
               item.edital.publicado ? 'Sim' : 'Não',
@@ -804,7 +815,7 @@ export const relatoriosRouter = createTRPCRouter({
       const [metrics] = await ctx.db
         .select({
           totalProjetos: count(),
-          projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = 'APPROVED' THEN 1 END)`,
+          projetosAprovados: sql<number>`COUNT(CASE WHEN ${projetoTable.status} = ${APPROVED} THEN 1 END)`,
           totalBolsas: sum(projetoTable.bolsasDisponibilizadas),
         })
         .from(projetoTable)
@@ -824,7 +835,7 @@ export const relatoriosRouter = createTRPCRouter({
           and(
             eq(projetoTable.ano, input.ano),
             eq(projetoTable.semestre, input.semestre),
-            eq(vagaTable.tipo, 'VOLUNTARIO')
+            eq(vagaTable.tipo, VOLUNTARIO)
           )
         )
 
@@ -889,8 +900,8 @@ export const relatoriosRouter = createTRPCRouter({
           const inicioSemestre = new Date(ano, semestre === 'SEMESTRE_1' ? 1 : 6, 1)
           const fimSemestre = new Date(ano, semestre === 'SEMESTRE_1' ? 5 : 11, 30)
 
-          const tipoMonitoria: 'BOLSISTA' | 'VOLUNTARIO' =
-            vaga.inscricao.status === ACCEPTED_BOLSISTA ? 'BOLSISTA' : 'VOLUNTARIO'
+          const tipoMonitoria: typeof TIPO_VAGA_ENUM[number] =
+            vaga.inscricao.status === ACCEPTED_BOLSISTA ? BOLSISTA : VOLUNTARIO
 
           return {
             id: vaga.inscricaoId,
@@ -922,7 +933,7 @@ export const relatoriosRouter = createTRPCRouter({
               tipo: tipoMonitoria,
               dataInicio: vaga.dataInicio?.toISOString() || inicioSemestre.toISOString(),
               dataFim: vaga.dataFim?.toISOString() || fimSemestre.toISOString(),
-              valorBolsa: tipoMonitoria === 'BOLSISTA' ? 400 : 0, // Valor padrão conforme UFBA
+              valorBolsa: tipoMonitoria === BOLSISTA ? 400 : 0, // Valor padrão conforme UFBA
               status: 'ATIVO', // Placeholder, logic needed
             },
           }
@@ -938,7 +949,7 @@ export const relatoriosRouter = createTRPCRouter({
     .output(z.array(monitorFinalBolsistaSchema))
     .query(async ({ input, ctx }) => {
       let whereCondition = and(
-        eq(vagaTable.tipo, 'BOLSISTA'),
+        eq(vagaTable.tipo, BOLSISTA),
         eq(projetoTable.ano, input.ano),
         eq(projetoTable.semestre, input.semestre)
       )
@@ -1032,7 +1043,7 @@ export const relatoriosRouter = createTRPCRouter({
               cargaHorariaSemana: bolsista.projeto.cargaHorariaSemana || 12,
               numeroSemanas: bolsista.projeto.numeroSemanas || 18,
             },
-            tipo: 'BOLSISTA' as const,
+            tipo: BOLSISTA,
             valorBolsa: parseFloat(bolsista.edital.valorBolsa),
           }
         })
@@ -1052,7 +1063,7 @@ export const relatoriosRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       let whereCondition = and(
-        eq(vagaTable.tipo, 'VOLUNTARIO'),
+        eq(vagaTable.tipo, VOLUNTARIO),
         eq(projetoTable.ano, input.ano),
         eq(projetoTable.semestre, input.semestre)
       )
