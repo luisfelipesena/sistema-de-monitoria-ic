@@ -1,6 +1,7 @@
 import { inscricaoRouter } from '@/server/api/routers/inscricao/inscricao'
 import { type TRPCContext } from '@/server/api/trpc'
 import { type User } from '@/server/db/schema'
+import { SELECTED_BOLSISTA, ACCEPTED_BOLSISTA } from '@/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockStudentUser: User = {
@@ -99,14 +100,14 @@ describe('inscricaoRouter', () => {
         // For the inscription being accepted
         .mockResolvedValueOnce({
           id: 1,
-          status: 'SELECTED_BOLSISTA',
+          status: SELECTED_BOLSISTA,
           alunoId: 1,
           projeto: currentSemesterProject,
         } as any)
         // For the check of existing scholarships
         .mockResolvedValueOnce({
           id: 2,
-          status: 'ACCEPTED_BOLSISTA',
+          status: ACCEPTED_BOLSISTA,
           alunoId: 1,
           projeto: currentSemesterProject,
         } as any)

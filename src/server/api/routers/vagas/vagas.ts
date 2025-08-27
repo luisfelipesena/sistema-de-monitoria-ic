@@ -149,7 +149,7 @@ export const vagasRouter = createTRPCRouter({
         await tx
           .update(inscricaoTable)
           .set({
-            status: input.tipoBolsa === 'BOLSISTA' ? STATUS_INSCRICAO_ENUM[3] : STATUS_INSCRICAO_ENUM[4], // 'ACCEPTED_BOLSISTA' : 'ACCEPTED_VOLUNTARIO'
+            status: input.tipoBolsa === 'BOLSISTA' ? STATUS_INSCRICAO_ENUM[3] : STATUS_INSCRICAO_ENUM[4], // ACCEPTED_BOLSISTA : ACCEPTED_VOLUNTARIO
             updatedAt: new Date(),
           })
           .where(eq(inscricaoTable.id, parseInt(input.inscricaoId)))

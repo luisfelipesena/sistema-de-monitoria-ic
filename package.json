@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "typecheck": "tsc --noEmit",
     "start": "next start",
     "lint": "biome check",
     "lint:fix": "npm run lint -- --fix --diagnostic-level=error --unsafe",

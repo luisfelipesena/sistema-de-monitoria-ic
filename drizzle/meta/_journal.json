@@ -162,6 +162,20 @@
       "when": 1752555815914,
       "tag": "0022_tan_meltdown",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1756298048836,
+      "tag": "0023_stiff_black_widow",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1756298886491,
+      "tag": "0024_classy_photon",
+      "breakpoints": true
     }
   ]
 }

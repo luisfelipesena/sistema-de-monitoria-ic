@@ -15,6 +15,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDepartamentoList } from '@/hooks/use-departamento';
+import { 
+  SUBMITTED, 
+  SELECTED_BOLSISTA, 
+  SELECTED_VOLUNTARIO,
+  ACCEPTED_BOLSISTA,
+  ACCEPTED_VOLUNTARIO,
+  REJECTED_BY_PROFESSOR,
+  WAITING_LIST
+} from '@/types';
 import { useState } from 'react';
 
 export interface FilterValues {
@@ -58,12 +67,13 @@ export function FilterModal({
   const getStatusOptions = () => {
     if (type === 'student') {
       return [
-        { value: 'SUBMITTED', label: 'Inscrito' },
-        { value: 'SELECTED_BOLSISTA', label: 'Selecionado (Bolsista)' },
-        { value: 'SELECTED_VOLUNTARIO', label: 'Selecionado (Voluntário)' },
-        { value: 'ACCEPTED_BOLSISTA', label: 'Aprovado (Bolsista)' },
-        { value: 'ACCEPTED_VOLUNTARIO', label: 'Aprovado (Voluntário)' },
-        { value: 'REJECTED_BY_PROFESSOR', label: 'Rejeitado' },
+        { value: SUBMITTED, label: 'Inscrito' },
+        { value: SELECTED_BOLSISTA, label: 'Selecionado (Bolsista)' },
+        { value: SELECTED_VOLUNTARIO, label: 'Selecionado (Voluntário)' },
+        { value: ACCEPTED_BOLSISTA, label: 'Aprovado (Bolsista)' },
+        { value: ACCEPTED_VOLUNTARIO, label: 'Aprovado (Voluntário)' },
+        { value: REJECTED_BY_PROFESSOR, label: 'Rejeitado' },
+        { value: WAITING_LIST, label: 'Lista de Espera' },
       ];
     }
 

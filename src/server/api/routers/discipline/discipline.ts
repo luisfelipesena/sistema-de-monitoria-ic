@@ -346,8 +346,8 @@ export const disciplineRouter = createTRPCRouter({
         const monitores = await ctx.db
           .select({
             disciplinaId: projetoDisciplinaTable.disciplinaId,
-            bolsistas: sql<number>`count(case when ${inscricaoTable.status} = 'ACCEPTED_BOLSISTA' then 1 end)`,
-            voluntarios: sql<number>`count(case when ${inscricaoTable.status} = 'ACCEPTED_VOLUNTARIO' then 1 end)`,
+            bolsistas: sql<number>`count(case when ${inscricaoTable.status} = ACCEPTED_BOLSISTA then 1 end)`,
+            voluntarios: sql<number>`count(case when ${inscricaoTable.status} = ACCEPTED_VOLUNTARIO then 1 end)`,
           })
           .from(projetoDisciplinaTable)
           .innerJoin(projetoTable, eq(projetoDisciplinaTable.projetoId, projetoTable.id))

@@ -9,6 +9,7 @@ import {
   projetoTable,
   vagaTable,
 } from '@/server/db/schema'
+import { SELECTED_BOLSISTA, SELECTED_VOLUNTARIO } from '@/types'
 import { and, count, desc, eq, sum } from 'drizzle-orm'
 import { z } from 'zod'
 
@@ -227,8 +228,8 @@ export const scholarshipAllocationRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Update inscription status
       const statusMap = {
-        BOLSISTA: 'SELECTED_BOLSISTA' as const,
-        VOLUNTARIO: 'SELECTED_VOLUNTARIO' as const,
+        BOLSISTA: SELECTED_BOLSISTA,
+        VOLUNTARIO: SELECTED_VOLUNTARIO,
       }
 
       await ctx.db

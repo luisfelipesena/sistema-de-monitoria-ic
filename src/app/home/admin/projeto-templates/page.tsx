@@ -49,13 +49,15 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 type TemplateFormData = z.infer<typeof projectTemplateSchema>;
 type DuplicateFormData = z.infer<typeof duplicateTemplateSchema>;
 
 export default function ProjetoTemplatesPage() {
+  const { toast } = useToast()
+
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDuplicateDialogOpen, setIsDuplicateDialogOpen] = useState(false);
@@ -74,50 +76,78 @@ export default function ProjetoTemplatesPage() {
   const createTemplateMutation =
     api.projetoTemplates.createTemplate.useMutation({
       onSuccess: () => {
-        toast.success("Template criado com sucesso!");
+        toast({
+        title: "Sucesso!",
+        description: "Template criado com sucesso!",
+      });
         setIsCreateDialogOpen(false);
         refetch();
         createForm.reset();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     });
 
   const updateTemplateMutation =
     api.projetoTemplates.updateTemplate.useMutation({
       onSuccess: () => {
-        toast.success("Template atualizado com sucesso!");
+        toast({
+        title: "Sucesso!",
+        description: "Template atualizado com sucesso!",
+      });
         setIsEditDialogOpen(false);
         setSelectedTemplate(null);
         refetch();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     });
 
   const deleteTemplateMutation =
     api.projetoTemplates.deleteTemplate.useMutation({
       onSuccess: () => {
-        toast.success("Template excluído com sucesso!");
+        toast({
+        title: "Sucesso!",
+        description: "Template excluído com sucesso!",
+      });
         refetch();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     });
 
   const duplicateTemplateMutation =
     api.projetoTemplates.duplicateTemplate.useMutation({
       onSuccess: () => {
-        toast.success("Template duplicado com sucesso!");
+        toast({
+        title: "Sucesso!",
+        description: "Template duplicado com sucesso!",
+      });
         setIsDuplicateDialogOpen(false);
         refetch();
         duplicateForm.reset();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     });
 

@@ -33,7 +33,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Award, Edit, Eye, Save, TrendingUp, Users } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
 const filterFormSchema = z.object({
@@ -44,6 +44,8 @@ const filterFormSchema = z.object({
 type FilterFormData = z.infer<typeof filterFormSchema>;
 
 export default function ScholarshipAllocationPage() {
+  const { toast } = useToast()
+
   const [filters, setFilters] = useState<FilterFormData>({
     ano: new Date().getFullYear(),
     semestre: "SEMESTRE_1",
@@ -76,34 +78,55 @@ export default function ScholarshipAllocationPage() {
   const updateAllocationMutation =
     api.scholarshipAllocation.updateScholarshipAllocation.useMutation({
       onSuccess: () => {
-        toast.success("Alocação atualizada!");
+        toast({
+        title: "Sucesso!",
+        description: "Alocação atualizada!",
+      });
         refetch();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     });
 
   const bulkUpdateMutation =
     api.scholarshipAllocation.bulkUpdateAllocations.useMutation({
       onSuccess: () => {
-        toast.success("Alocações atualizadas!");
+        toast({
+        title: "Sucesso!",
+        description: "Alocações atualizadas!",
+      });
         setEditingAllocations({});
         refetch();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     });
 
   const allocateCandidateMutation =
     api.scholarshipAllocation.allocateScholarshipToCandidate.useMutation({
       onSuccess: () => {
-        toast.success("Candidato selecionado!");
+        toast({
+        title: "Sucesso!",
+        description: "Candidato selecionado!",
+      });
         refetch();
       },
       onError: (error) => {
-        toast.error(`Erro: ${error.message}`);
+        toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
       },
     });
 

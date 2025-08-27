@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { FileUploadField } from '@/components/ui/FileUploadField'
 import { api } from '@/utils/api'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { useToast } from "@/hooks/use-toast"
 import { CheckCircle, AlertTriangle, ArrowRight, Info } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { OnboardingStatusResponse } from '@/server/api/routers/onboarding/onboarding'
@@ -19,6 +19,7 @@ interface StudentOnboardingFormProps {
 }
 
 export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFormProps) {
+  const { toast } = useToast()
   const router = useRouter()
   const [formData, setFormData] = useState({
     nomeCompleto: '',
@@ -48,13 +49,21 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
     e.preventDefault()
     
     if (!formData.nomeCompleto || !formData.matricula || !formData.cpf || !formData.cursoId || !formData.genero || !formData.cr) {
-      toast.error('Preencha todos os campos obrigatórios')
+      toast({
+        title: "Erro",
+        description: 'Preencha todos os campos obrigatórios',
+        variant: "destructive",
+      })
       return
     }
 
     const crValue = parseFloat(formData.cr)
     if (isNaN(crValue) || crValue < 0 || crValue > 10) {
-      toast.error('CR deve ser um número válido entre 0 e 10')
+      toast({
+        title: "Erro",
+        description: 'CR deve ser um número válido entre 0 e 10',
+        variant: "destructive",
+      })
       return
     }
 
@@ -65,10 +74,17 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
         cr: crValue,
         genero: formData.genero as 'MASCULINO' | 'FEMININO' | 'OUTRO'
       })
-      toast.success('Perfil criado com sucesso!')
+      toast({
+        title: "Sucesso!",
+        description: 'Perfil criado com sucesso!',
+      })
       await refetchOnboardingStatus()
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao criar perfil')
+      toast({
+        title: "Erro",
+        description: error.message || 'Erro ao criar perfil',
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -81,10 +97,17 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
         fileId,
       })
 
-      toast.success('Documento vinculado com sucesso!')
+      toast({
+        title: "Sucesso!",
+        description: 'Documento vinculado com sucesso!',
+      })
       await refetchOnboardingStatus()
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao vincular documento')
+      toast({
+        title: "Erro",
+        description: error.message || 'Erro ao vincular documento',
+        variant: "destructive",
+      })
     }
   }
 

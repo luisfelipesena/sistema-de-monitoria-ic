@@ -1,5 +1,12 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
+  SELECTED_BOLSISTA,
+  SELECTED_VOLUNTARIO,
+  ACCEPTED_BOLSISTA,
+  ACCEPTED_VOLUNTARIO,
+  REJECTED_BY_PROFESSOR,
+} from '@/types'
+import {
   alunoTable,
   departamentoTable,
   disciplinaTable,
@@ -125,15 +132,15 @@ export const inscricaoRouter = createTRPCRouter({
         const totalInscricoes = inscricoes.length
         const totalAprovacoes = inscricoes.filter(
           (inscricao) =>
-            inscricao.status === 'SELECTED_BOLSISTA' ||
-            inscricao.status === 'SELECTED_VOLUNTARIO' ||
-            inscricao.status === 'ACCEPTED_BOLSISTA' ||
-            inscricao.status === 'ACCEPTED_VOLUNTARIO'
+            inscricao.status === SELECTED_BOLSISTA ||
+            inscricao.status === SELECTED_VOLUNTARIO ||
+            inscricao.status === ACCEPTED_BOLSISTA ||
+            inscricao.status === ACCEPTED_VOLUNTARIO
         ).length
 
         // Check for active monitoring position
         const monitoriaAtiva = inscricoes.find(
-          (inscricao) => inscricao.status === 'ACCEPTED_BOLSISTA' || inscricao.status === 'ACCEPTED_VOLUNTARIO'
+          (inscricao) => inscricao.status === ACCEPTED_BOLSISTA || inscricao.status === ACCEPTED_VOLUNTARIO
         )
 
         let monitoriaAtivaFormatted = null
@@ -442,13 +449,13 @@ export const inscricaoRouter = createTRPCRouter({
           // Map status from DB to display format
           let status: 'APROVADO' | 'REPROVADO' | 'EM_ANALISE' | 'LISTA_ESPERA'
           switch (inscricao.status) {
-            case 'SELECTED_BOLSISTA':
-            case 'SELECTED_VOLUNTARIO':
-            case 'ACCEPTED_BOLSISTA':
-            case 'ACCEPTED_VOLUNTARIO':
+            case SELECTED_BOLSISTA:
+            case SELECTED_VOLUNTARIO:
+            case ACCEPTED_BOLSISTA:
+            case ACCEPTED_VOLUNTARIO:
               status = 'APROVADO'
               break
-            case 'REJECTED_BY_PROFESSOR':
+            case REJECTED_BY_PROFESSOR:
               status = 'REPROVADO'
               break
             case 'SUBMITTED':
@@ -787,7 +794,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        if (!['SELECTED_BOLSISTA', 'SELECTED_VOLUNTARIO'].includes(inscricao.status)) {
+        if (![SELECTED_BOLSISTA, SELECTED_VOLUNTARIO].includes(inscricao.status as any)) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Inscrição não está selecionada',
@@ -795,9 +802,9 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Verificar se já aceita bolsa no mesmo semestre (limite de 1 bolsa)
-        if (inscricao.status === 'SELECTED_BOLSISTA') {
+        if (inscricao.status === SELECTED_BOLSISTA) {
           const bolsaExistente = await ctx.db.query.inscricaoTable.findFirst({
-            where: and(eq(inscricaoTable.alunoId, aluno.id), eq(inscricaoTable.status, 'ACCEPTED_BOLSISTA')),
+            where: and(eq(inscricaoTable.alunoId, aluno.id), eq(inscricaoTable.status, ACCEPTED_BOLSISTA)),
             with: {
               projeto: true,
             },
@@ -815,7 +822,7 @@ export const inscricaoRouter = createTRPCRouter({
           }
         }
 
-        const novoStatus = inscricao.status === 'SELECTED_BOLSISTA' ? 'ACCEPTED_BOLSISTA' : 'ACCEPTED_VOLUNTARIO'
+        const novoStatus = inscricao.status === SELECTED_BOLSISTA ? ACCEPTED_BOLSISTA : ACCEPTED_VOLUNTARIO
 
         await ctx.db
           .update(inscricaoTable)
@@ -886,7 +893,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        if (!['SELECTED_BOLSISTA', 'SELECTED_VOLUNTARIO'].includes(inscricao.status)) {
+        if (![SELECTED_BOLSISTA, SELECTED_VOLUNTARIO].includes(inscricao.status as any)) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Inscrição não está selecionada',
@@ -1285,9 +1292,9 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Se for bolsista, verificar se já tem bolsa no semestre
-        if (inscricao.status === 'SELECTED_BOLSISTA') {
+        if (inscricao.status === SELECTED_BOLSISTA) {
           const bolsaExistente = await ctx.db.query.inscricaoTable.findFirst({
-            where: and(eq(inscricaoTable.alunoId, aluno.id), eq(inscricaoTable.status, 'ACCEPTED_BOLSISTA')),
+            where: and(eq(inscricaoTable.alunoId, aluno.id), eq(inscricaoTable.status, ACCEPTED_BOLSISTA)),
             with: {
               projeto: true,
             },
@@ -1306,7 +1313,7 @@ export const inscricaoRouter = createTRPCRouter({
         }
 
         // Atualizar status para aceito
-        const newStatus = inscricao.status === 'SELECTED_BOLSISTA' ? 'ACCEPTED_BOLSISTA' : 'ACCEPTED_VOLUNTARIO'
+        const newStatus = inscricao.status === SELECTED_BOLSISTA ? ACCEPTED_BOLSISTA : ACCEPTED_VOLUNTARIO
 
         await ctx.db
           .update(inscricaoTable)
@@ -1316,7 +1323,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
           .where(eq(inscricaoTable.id, input.inscricaoId))
 
-        const tipoVaga = newStatus === 'ACCEPTED_BOLSISTA' ? 'bolsista' : 'voluntária'
+        const tipoVaga = newStatus === ACCEPTED_BOLSISTA ? 'bolsista' : 'voluntária'
         log.info({ inscricaoId: input.inscricaoId, newStatus }, `Vaga ${tipoVaga} aceita`)
 
         return {
@@ -1401,7 +1408,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
           .where(eq(inscricaoTable.id, input.inscricaoId))
 
-        const tipoVaga = inscricao.status === 'SELECTED_BOLSISTA' ? 'bolsista' : 'voluntária'
+        const tipoVaga = inscricao.status === SELECTED_BOLSISTA ? 'bolsista' : 'voluntária'
         log.info({ inscricaoId: input.inscricaoId, motivo: input.motivo }, `Vaga ${tipoVaga} recusada`)
 
         return {
@@ -1487,6 +1494,11 @@ export const inscricaoRouter = createTRPCRouter({
                 departamento: true,
               },
             },
+            periodoInscricao: {
+              with: {
+                edital: true,
+              },
+            },
           },
         })
 
@@ -1546,7 +1558,7 @@ export const inscricaoRouter = createTRPCRouter({
         const inicioSemestre = new Date(inscricao.projeto.ano, inscricao.projeto.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
         const fimSemestre = new Date(inscricao.projeto.ano, inscricao.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
 
-        const tipoMonitoria = inscricao.status === 'ACCEPTED_BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
+        const tipoMonitoria = inscricao.status === ACCEPTED_BOLSISTA ? 'BOLSISTA' : 'VOLUNTARIO'
 
         // Gerar número do termo
         const numeroTermo = `${inscricao.projeto.ano}${inscricao.projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}-${inscricao.id.toString().padStart(4, '0')}`
@@ -1577,7 +1589,8 @@ export const inscricaoRouter = createTRPCRouter({
             tipo: tipoMonitoria,
             dataInicio: inicioSemestre.toLocaleDateString('pt-BR'),
             dataFim: fimSemestre.toLocaleDateString('pt-BR'),
-            valorBolsa: tipoMonitoria === 'BOLSISTA' ? 400.0 : undefined, // Valor fixo por enquanto
+            valorBolsa:
+              tipoMonitoria === 'BOLSISTA' ? parseFloat(inscricao.periodoInscricao.edital.valorBolsa) : undefined,
           },
           termo: {
             numero: numeroTermo,

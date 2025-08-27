@@ -16,7 +16,18 @@ import {
 } from '@/server/db/schema'
 import { emailService } from '@/server/lib/email-service'
 import { PDFService } from '@/server/lib/pdf-service'
-import { anoSchema, idSchema, nameSchema, projectDetailSchema, projectFormSchema, projectListItemSchema } from '@/types'
+import {
+  anoSchema,
+  idSchema,
+  nameSchema,
+  projectDetailSchema,
+  projectFormSchema,
+  projectListItemSchema,
+  SELECTED_BOLSISTA,
+  SELECTED_VOLUNTARIO,
+  REJECTED_BY_PROFESSOR,
+  ACCEPTED_VOLUNTARIO,
+} from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm'
@@ -1407,7 +1418,7 @@ export const projetoRouter = createTRPCRouter({
           .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
           .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
           .where(
-            and(eq(projetoTable.professorResponsavelId, professor.id), eq(inscricaoTable.status, 'ACCEPTED_VOLUNTARIO'))
+            and(eq(projetoTable.professorResponsavelId, professor.id), eq(inscricaoTable.status, ACCEPTED_VOLUNTARIO))
           )
 
         const voluntarios = await Promise.all(
@@ -1488,7 +1499,7 @@ export const projetoRouter = createTRPCRouter({
 
         // Find the inscription for this volunteer
         const inscricao = await ctx.db.query.inscricaoTable.findFirst({
-          where: and(eq(inscricaoTable.alunoId, input.id), eq(inscricaoTable.status, 'ACCEPTED_VOLUNTARIO')),
+          where: and(eq(inscricaoTable.alunoId, input.id), eq(inscricaoTable.status, ACCEPTED_VOLUNTARIO)),
           with: {
             projeto: true,
           },
@@ -1859,14 +1870,14 @@ export const projetoRouter = createTRPCRouter({
         // Enviar notificações para todos os candidatos
         for (const candidato of candidatos) {
           try {
-            let status: 'SELECTED_BOLSISTA' | 'SELECTED_VOLUNTARIO' | 'REJECTED_BY_PROFESSOR'
+            let status: typeof SELECTED_BOLSISTA | typeof SELECTED_VOLUNTARIO | typeof REJECTED_BY_PROFESSOR
 
-            if (candidato.inscricao.status === 'SELECTED_BOLSISTA') {
-              status = 'SELECTED_BOLSISTA'
-            } else if (candidato.inscricao.status === 'SELECTED_VOLUNTARIO') {
-              status = 'SELECTED_VOLUNTARIO'
+            if (candidato.inscricao.status === SELECTED_BOLSISTA) {
+              status = SELECTED_BOLSISTA
+            } else if (candidato.inscricao.status === SELECTED_VOLUNTARIO) {
+              status = SELECTED_VOLUNTARIO
             } else {
-              status = 'REJECTED_BY_PROFESSOR'
+              status = REJECTED_BY_PROFESSOR
             }
 
             await emailService.sendStudentSelectionResultNotification(

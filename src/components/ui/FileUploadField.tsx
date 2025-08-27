@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { api } from '@/utils/api'
-import { toast } from 'sonner'
+import { useToast } from "@/hooks/use-toast"
 import { 
   Upload, 
   FileText, 
@@ -50,6 +50,7 @@ export function FileUploadField({
   description,
   disabled = false,
 }: FileUploadFieldProps) {
+  const { toast } = useToast()
   const [uploadState, setUploadState] = useState<UploadState>(currentFileId ? 'success' : 'idle')
   const [isDragging, setIsDragging] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -140,8 +141,10 @@ export function FileUploadField({
     const validation = validateFile(file)
     if (validation) {
       setUploadState('error')
-      toast.error('Arquivo inválido', {
+      toast({
+        title: "Erro",
         description: validation,
+        variant: "destructive",
       })
       setTimeout(() => setUploadState('idle'), 3000)
       return
@@ -180,14 +183,17 @@ export function FileUploadField({
         await onFileUploaded(newFile.id, newFile.name, file)
       }
 
-      toast.success('Arquivo enviado com sucesso!', {
-        description: `${file.name} foi enviado.`,
+      toast({
+        title: "Sucesso!",
+        description: `${file.name} foi enviado com sucesso!`,
       })
 
     } catch (error: any) {
       setUploadState('error')
-      toast.error('Erro ao enviar arquivo', {
+      toast({
+        title: "Erro",
         description: error.message || 'Não foi possível enviar o arquivo.',
+        variant: "destructive",
       })
       setTimeout(() => setUploadState('idle'), 3000)
     }
@@ -249,13 +255,17 @@ export function FileUploadField({
 
       const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
       if (!newWindow) {
-        toast.error('Popup bloqueado', {
+        toast({
+          title: "Erro",
           description: 'Permita popups para visualizar o arquivo.',
+          variant: "destructive",
         })
       }
     } catch (error: any) {
-      toast.error('Erro ao visualizar arquivo', {
+      toast({
+        title: "Erro",
         description: error.message || 'Não foi possível abrir o arquivo.',
+        variant: "destructive",
       })
     }
   }
@@ -276,8 +286,10 @@ export function FileUploadField({
       link.click()
       document.body.removeChild(link)
     } catch (error: any) {
-      toast.error('Erro ao baixar arquivo', {
+      toast({
+        title: "Erro",
         description: error.message || 'Não foi possível baixar o arquivo.',
+        variant: "destructive",
       })
     }
   }
@@ -287,7 +299,10 @@ export function FileUploadField({
     setUploadState('idle')
     setUploadProgress(0)
     onFileDeleted?.()
-    toast.success('Arquivo removido')
+    toast({
+        title: "Sucesso!",
+        description: 'Arquivo removido',
+      })
   }
 
   const handleSelectFile = () => {

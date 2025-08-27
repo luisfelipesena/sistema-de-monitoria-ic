@@ -13,13 +13,14 @@ import { api } from "@/utils/api"
 import { AlertTriangle, ArrowRight, BookOpen, CheckCircle, Info, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 
 interface ProfessorOnboardingFormProps {
   onboardingStatus: OnboardingStatusResponse
 }
 
 export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardingFormProps) {
+  const { toast } = useToast()
   const router = useRouter()
   const [formData, setFormData] = useState({
     nomeCompleto: "",
@@ -69,7 +70,11 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
     e.preventDefault()
 
     if (!formData.nomeCompleto || !formData.cpf || !formData.regime || !formData.departamentoId || !formData.genero) {
-      toast.error("Preencha todos os campos obrigatórios")
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios",
+        variant: "destructive",
+      })
       return
     }
 
@@ -80,10 +85,17 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
         regime: formData.regime as "20H" | "40H" | "DE",
         genero: formData.genero as "MASCULINO" | "FEMININO" | "OUTRO",
       })
-      toast.success("Perfil criado com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Perfil criado com sucesso!",
+      })
       await refetchOnboardingStatus()
     } catch (error: any) {
-      toast.error(error.message || "Erro ao criar perfil")
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao criar perfil",
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }
@@ -96,10 +108,17 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
         fileId,
       })
 
-      toast.success("Documento vinculado com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Documento vinculado com sucesso!",
+      })
       await refetchOnboardingStatus()
     } catch (error: any) {
-      toast.error(error.message || "Erro ao vincular documento")
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao vincular documento",
+        variant: "destructive",
+      })
     }
   }
 
@@ -107,7 +126,11 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
     const departamentoId = professorDepartamentoId || formData.departamentoId
 
     if (!newDisciplina.nome || !newDisciplina.codigo || !departamentoId) {
-      toast.error("Preencha todos os campos da disciplina e certifique-se de ter um departamento selecionado")
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos da disciplina e certifique-se de ter um departamento selecionado",
+        variant: "destructive",
+      })
       return
     }
 
@@ -121,15 +144,26 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
       setNewDisciplina({ nome: "", codigo: "", turma: "T1", cargaHoraria: 0, periodo: 1 })
       // Refetch disciplines to include the newly created one
       await refetchDisciplinas()
-      toast.success("Disciplina criada e selecionada com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Disciplina criada e selecionada com sucesso!",
+      })
     } catch (error: any) {
-      toast.error(error.message || "Erro ao criar disciplina")
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao criar disciplina",
+        variant: "destructive",
+      })
     }
   }
 
   const handleLinkDisciplinas = async () => {
     if (selectedDisciplinas.length === 0) {
-      toast.error("Selecione pelo menos uma disciplina")
+      toast({
+        title: "Erro",
+        description: "Selecione pelo menos uma disciplina",
+        variant: "destructive",
+      })
       return
     }
 
@@ -138,10 +172,17 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
         disciplinaIds: selectedDisciplinas,
       })
 
-      toast.success("Disciplinas vinculadas com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Disciplinas vinculadas com sucesso!",
+      })
       await refetchOnboardingStatus()
     } catch (error: any) {
-      toast.error(error.message || "Erro ao vincular disciplinas")
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao vincular disciplinas",
+        variant: "destructive",
+      })
     }
   }
 

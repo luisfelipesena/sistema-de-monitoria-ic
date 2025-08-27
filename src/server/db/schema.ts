@@ -4,6 +4,7 @@ import {
   date,
   decimal,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   real,
@@ -118,6 +119,7 @@ export const statusInscricaoEnum = pgEnum('status_inscricao_enum', [
   'ACCEPTED_VOLUNTARIO', // Aluno aceitou (voluntário)
   'REJECTED_BY_PROFESSOR', // Professor rejeitou
   'REJECTED_BY_STUDENT', // Aluno recusou
+  'WAITING_LIST', // Em lista de espera
   // 'INAPTO', 'APTO' seem less relevant if selection is direct
 ])
 
@@ -865,6 +867,7 @@ export const editalTable = pgTable('edital', {
   fileIdAssinado: text('file_id_assinado'), // PDF do edital assinado
   dataPublicacao: date('data_publicacao', { mode: 'date' }),
   publicado: boolean('publicado').default(false).notNull(),
+  valorBolsa: numeric('valor_bolsa', { precision: 10, scale: 2 }).default('400.00').notNull(), // Valor da bolsa para este edital
   criadoPorUserId: integer('criado_por_user_id')
     .references(() => userTable.id)
     .notNull(),

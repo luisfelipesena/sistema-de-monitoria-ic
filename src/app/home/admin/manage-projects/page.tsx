@@ -38,9 +38,11 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ManageProjectsPage() {
+  const { toast } = useToast()
+
   const router = useRouter()
   const queryClient = useQueryClient()
 
@@ -59,38 +61,59 @@ export default function ManageProjectsPage() {
 
   const approveProjectMutation = api.projeto.approveProjeto.useMutation({
     onSuccess: () => {
-      toast.success("Projeto aprovado! Agora pendente de assinatura administrativa.")
+      toast({
+        title: "Sucesso!",
+        description: "Projeto aprovado! Agora pendente de assinatura administrativa.",
+      })
       queryClient.invalidateQueries()
       setShowPreviewDialog(false)
       setSelectedProject(null)
     },
     onError: (error) => {
-      toast.error(`Erro ao aprovar projeto: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao aprovar projeto: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const rejectProjectMutation = api.projeto.rejectProjeto.useMutation({
     onSuccess: () => {
-      toast.success("Projeto rejeitado!")
+      toast({
+        title: "Sucesso!",
+        description: "Projeto rejeitado!",
+      })
       queryClient.invalidateQueries()
       setShowRejectDialog(false)
       setSelectedProject(null)
       setRejectFeedback("")
     },
     onError: (error) => {
-      toast.error(`Erro ao rejeitar projeto: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao rejeitar projeto: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const deleteProjectMutation = api.projeto.deleteProjeto.useMutation({
     onSuccess: () => {
-      toast.success("Projeto removido com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Projeto removido com sucesso!",
+      })
       queryClient.invalidateQueries()
       setShowDeleteDialog(false)
       setSelectedProject(null)
     },
     onError: (error) => {
-      toast.error(`Erro ao remover projeto: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao remover projeto: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
@@ -118,9 +141,16 @@ export default function ManageProjectsPage() {
       link.click()
       document.body.removeChild(link)
 
-      toast.success("Download iniciado")
+      toast({
+        title: "Sucesso!",
+        description: "Download iniciado",
+      })
     } catch (error) {
-      toast.error("Erro ao baixar arquivo")
+      toast({
+        title: "Erro",
+        description: "Erro ao baixar arquivo",
+        variant: "destructive",
+      })
       console.error("Download error:", error)
     }
   }
@@ -133,7 +163,10 @@ export default function ManageProjectsPage() {
   const handleViewProjectPDF = async (projetoId: number) => {
     setLoadingPdfProjetoId(projetoId)
     try {
-      toast("Preparando visualização do PDF...")
+      toast({
+        title: "Preparando visualização...",
+        description: "Preparando visualização do PDF...",
+      })
 
       const result = await getProjetoPdfMutation.mutateAsync({
         projetoId: projetoId,
@@ -141,16 +174,23 @@ export default function ManageProjectsPage() {
 
       const newWindow = window.open(result.url, "_blank", "noopener,noreferrer")
       if (!newWindow) {
-        toast.error("Popup bloqueado", {
-          description: "Permita popups para visualizar o PDF em nova aba.",
-        })
+        toast({
+        title: "Erro",
+        description: "Permita popups para visualizar o PDF em nova aba.",
+        variant: "destructive",
+      })
         return
       }
 
-      toast.success("PDF aberto em nova aba")
+      toast({
+        title: "Sucesso!",
+        description: "PDF aberto em nova aba",
+      })
     } catch (error) {
-      toast.error("Erro ao abrir PDF", {
+      toast({
+        title: "Erro",
         description: "Não foi possível abrir o documento para visualização.",
+        variant: "destructive",
       })
       console.error("View PDF error:", error)
     } finally {

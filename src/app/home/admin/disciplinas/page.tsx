@@ -14,9 +14,11 @@ import { useQueryClient } from "@tanstack/react-query"
 import { ColumnDef } from "@tanstack/react-table"
 import { BookOpen, Edit, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 
 export default function DisciplinasPage() {
+  const { toast } = useToast()
+
   const queryClient = useQueryClient()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingDisciplina, setEditingDisciplina] = useState<DisciplinaListItem | null>(null)
@@ -32,35 +34,56 @@ export default function DisciplinasPage() {
 
   const createMutation = api.discipline.create.useMutation({
     onSuccess: () => {
-      toast.success("Disciplina criada com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Disciplina criada com sucesso!",
+      })
       queryClient.invalidateQueries()
       setIsCreateOpen(false)
       resetForm()
     },
     onError: (error) => {
-      toast.error(`Erro ao criar disciplina: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao criar disciplina: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const updateMutation = api.discipline.updateDiscipline.useMutation({
     onSuccess: () => {
-      toast.success("Disciplina atualizada com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Disciplina atualizada com sucesso!",
+      })
       queryClient.invalidateQueries()
       setEditingDisciplina(null)
       resetForm()
     },
     onError: (error) => {
-      toast.error(`Erro ao atualizar disciplina: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao atualizar disciplina: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
   const deleteMutation = api.discipline.deleteDiscipline.useMutation({
     onSuccess: () => {
-      toast.success("Disciplina excluída com sucesso!")
+      toast({
+        title: "Sucesso!",
+        description: "Disciplina excluída com sucesso!",
+      })
       queryClient.invalidateQueries()
     },
     onError: (error) => {
-      toast.error(`Erro ao excluir disciplina: ${error.message}`)
+      toast({
+        title: "Erro",
+        description: `Erro ao excluir disciplina: ${error.message}`,
+        variant: "destructive",
+      })
     },
   })
 
