@@ -281,196 +281,196 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
         <View style={styles.contentContainer}>
           {/* Form Container */}
           <View style={styles.formContainer}>
-            {/* Section 1 */}
-            <Text style={styles.sectionHeader}>1 IDENTIFICAÇÃO DO PROJETO</Text>
-
-            <View style={styles.formRow}>
-              <Text>1.1 Unidade Universitária: Instituto de Computação</Text>
-            </View>
-
-            <View style={styles.formRow}>
-              <Text>1.2 Órgão (Departamento ou Coord. Acadêmica): {data.departamento?.nome || "Não selecionado"}</Text>
-            </View>
-
-            <View style={styles.formRow}>
-              <Text>1.3 Data da reunião de aprovação: {data.dataAprovacao || "--"}</Text>
-            </View>
-
-            <View style={styles.formRow}>
-              <Text>1.4 Componente curricular (código e nome): {disciplinasText}</Text>
-            </View>
-
-            <View style={styles.formRow}>
-              <Text>
-                1.5 Período das atividades de monitoria: {data.ano}.1 ( {data.semestre === "SEMESTRE_1" ? "X" : ""} ){" "}
-                {data.ano}.2 ( {data.semestre === "SEMESTRE_2" ? "X" : ""} )
-              </Text>
-            </View>
-
-            <View style={styles.formRow}>
-              <Text>
-                1.6 Monitoria voluntária ( {data.voluntariosSolicitados > 0 ? "X" : ""} ) 1.7 Monitoria com bolsa ({" "}
-                {data.bolsasSolicitadas > 0 ? "X" : ""} )
-              </Text>
-            </View>
-
-            <View style={styles.formRow}>
-              <Text>
-                1.8 Número previsto de vagas: Monitor(a) Bolsista(a) ( {data.bolsasSolicitadas || 0} ) Monitor(a)
-                Voluntário(a) ( {data.voluntariosSolicitados || 0} )
-              </Text>
-            </View>
-
-            <View style={styles.splitRow}>
-              <View style={styles.splitLeft}>
-                <Text>1.9 Carga horária semanal: {data.cargaHorariaSemana || 0}h</Text>
-              </View>
-              <View style={styles.splitRight}>
-                <Text>1.10 Carga horária total por semestre: {cargaHorariaTotal}h</Text>
-              </View>
-            </View>
-
-            <View style={styles.formRow}>
-              <Text>
-                1.11 Público-alvo: a. Estudantes de graduação ({" "}
-                {data.publicoAlvo === "Estudantes de graduação" ? "X" : ""} ) b. Outros, informar qual ({" "}
-                {data.publicoAlvo === "Estudantes de graduação" ? "" : "X"} ):{" "}
-                {data.publicoAlvo === "Estudantes de graduação" ? "" : data.publicoAlvo}
-              </Text>
-            </View>
-
-            <View style={styles.formRow}>
-              <Text>
-                1.12 Quantitativo previsto de pessoas a serem atendidas com o projeto: ({" "}
-                {data.estimativaPessoasBenificiadas || "--"} )
-              </Text>
-            </View>
-
-            {/* Section 2 */}
-            <Text style={styles.sectionHeader}>2 DADOS DO PROFESSOR RESPONSÁVEL PELO PROJETO</Text>
-
-            <View style={styles.formRow}>
-              <Text>
-                2.1 Nome Completo:{" "}
-                {data.professorResponsavel?.nomeCompleto ||
-                  (data.user?.role !== "admin" ? data.user?.nomeCompleto : "") ||
-                  "Não informado"}
-              </Text>
-            </View>
-
-            <View style={styles.splitRow}>
-              <View style={styles.splitLeft}>
-                <Text>2.2 CPF: {data.professorResponsavel?.cpf || "Não informado"}</Text>
-              </View>
-              <View style={styles.splitRight}>
-                <Text>2.3 Nº SIAPE: {data.professorResponsavel?.matriculaSiape || "Não informado"}</Text>
-              </View>
-            </View>
-
-            <View style={styles.threeColumnRow}>
-              <View style={styles.threeColumnLeft}>
-                <Text>
-                  2.4 Feminino: ( {data.professorResponsavel?.genero === "FEMININO" ? "X" : ""} ) Masculino: ({" "}
-                  {data.professorResponsavel?.genero === "MASCULINO" ? "X" : ""} )
-                </Text>
-              </View>
-              <View style={styles.threeColumnMiddle}>
-                <Text>
-                  2.5 Tel. Institucional: {data.professorResponsavel?.telefoneInstitucional || "Não informado"}
-                </Text>
-              </View>
-              <View style={styles.threeColumnRight}>
-                <Text>2.6 Tel. Celular: {data.professorResponsavel?.telefone || "Não informado"}</Text>
-              </View>
-            </View>
-
-            <View style={styles.formRow}>
-              <Text>
-                2.7 E-mail: {data.professorResponsavel?.emailInstitucional || data.user?.email || "Não informado"}
-              </Text>
-            </View>
-
-            {/* Section 3 */}
-            <Text style={styles.sectionHeader}>3 DESCRIÇÃO DO PROJETO</Text>
-            {descricaoLines.map((line, index) => (
-              <View key={index} style={styles.formRow}>
-                <Text>{line}</Text>
-              </View>
-            ))}
-
-            {/* Section 4 */}
-            <Text style={styles.sectionHeader}>4 ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)</Text>
-            {data.atividades && data.atividades.length > 0 ? (
-              <>
-                {data.atividades.map((atividade, index) => (
-                  <View key={index} style={styles.formRow}>
-                    <Text>{atividade}</Text>
-                  </View>
-                ))}
-                {/* Add empty rows to maintain consistent layout (minimum 6 rows) */}
-                {Array.from({ length: Math.max(0, 6 - data.atividades.length) }).map((_, index) => (
-                  <View key={`empty-${index}`} style={styles.formRow}>
-                    <Text></Text>
-                  </View>
-                ))}
-              </>
-            ) : (
-              <>
-                <View style={styles.formRow}>
-                  <Text>Auxiliar o professor na elaboração de problemas para listas e provas</Text>
-                </View>
-                <View style={styles.formRow}>
-                  <Text>Auxiliar os alunos no uso das plataformas de submissão de problemas</Text>
-                </View>
-                <View style={styles.formRow}>
-                  <Text>Auxiliar os alunos quanto ao uso das técnicas e comandos de programação</Text>
-                </View>
-                <View style={styles.formRow}>
-                  <Text>Auxiliar os alunos em horário extra classe</Text>
-                </View>
-                <View style={styles.formRow}>
-                  <Text>Outras atividades relacionadas ao projeto de monitoria</Text>
-                </View>
-                <View style={styles.formRow}>
-                  <Text></Text>
-                </View>
-              </>
-            )}
-
-            {/* Section 5 */}
-            <Text style={styles.sectionHeader}>5. DECLARAÇÃO</Text>
-            <View style={styles.formRowTall}>
-              <Text>
-                Declaro ter conhecimento da Resolução n. 06/2012 do CAE e das normas descritas no Edital 001/{data.ano}
-                /PROGRAD – Projetos de Monitoria com Bolsa ( {data.semestre === "SEMESTRE_1" ? "X" : ""} ).
-              </Text>
-              <Text style={{ marginTop: 8 }}>
-                Declaro ter conhecimento da Resolução n. 06/2012 do CAE e das normas descritas no Edital 002/{data.ano}
-                /PROGRAD – Projetos de Monitoria com Bolsa ( {data.semestre === "SEMESTRE_2" ? "X" : ""} ).
-              </Text>
-            </View>
+          {/* Section 1 */}
+          <Text style={styles.sectionHeader}>1 IDENTIFICAÇÃO DO PROJETO</Text>
+          
+          <View style={styles.formRow}>
+            <Text>1.1 Unidade Universitária: Instituto de Computação</Text>
           </View>
-
-          {/* Professor Signature */}
-          <View style={styles.signatureSection}>
-            {/* Signature box first - positioned before text */}
-            {data.signingMode === "professor" && (
-              <View style={styles.activeSignatureBox}>
-                {data.assinaturaProfessor && <Image src={data.assinaturaProfessor} style={styles.signatureImage} />}
-              </View>
-            )}
-            {data.assinaturaProfessor && !data.signingMode && (
-              <View style={styles.signatureBox}>
-                <Image src={data.assinaturaProfessor} style={styles.signatureImage} />
-              </View>
-            )}
-
-            {/* Text line second - signature box overlaps this */}
-            <Text style={{ fontWeight: "bold" }}>
-              Data e Assinatura do Prof(a). responsável:{" "}
-              {data.dataAssinaturaProfessor || new Date().toLocaleDateString("pt-BR")} / ______________________________
+          
+          <View style={styles.formRow}>
+            <Text>1.2 Órgão (Departamento ou Coord. Acadêmica): {data.departamento?.nome || "Não selecionado"}</Text>
+          </View>
+          
+          <View style={styles.formRow}>
+            <Text>1.3 Data da reunião de aprovação: {data.dataAprovacao || "--"}</Text>
+          </View>
+          
+          <View style={styles.formRow}>
+            <Text>1.4 Componente curricular (código e nome): {disciplinasText}</Text>
+          </View>
+          
+          <View style={styles.formRow}>
+            <Text>
+              1.5 Período das atividades de monitoria: {data.ano}.1 ( {data.semestre === "SEMESTRE_1" ? "X" : ""} ){" "}
+              {data.ano}.2 ( {data.semestre === "SEMESTRE_2" ? "X" : ""} )
             </Text>
           </View>
+          
+          <View style={styles.formRow}>
+            <Text>
+              1.6 Monitoria voluntária ( {data.voluntariosSolicitados > 0 ? "X" : ""} ) 1.7 Monitoria com bolsa ({" "}
+              {data.bolsasSolicitadas > 0 ? "X" : ""} )
+            </Text>
+          </View>
+          
+          <View style={styles.formRow}>
+            <Text>
+              1.8 Número previsto de vagas: Monitor(a) Bolsista(a) ( {data.bolsasSolicitadas || 0} ) Monitor(a)
+              Voluntário(a) ( {data.voluntariosSolicitados || 0} )
+            </Text>
+          </View>
+          
+          <View style={styles.splitRow}>
+            <View style={styles.splitLeft}>
+              <Text>1.9 Carga horária semanal: {data.cargaHorariaSemana || 0}h</Text>
+            </View>
+            <View style={styles.splitRight}>
+              <Text>1.10 Carga horária total por semestre: {cargaHorariaTotal}h</Text>
+            </View>
+          </View>
+          
+          <View style={styles.formRow}>
+            <Text>
+              1.11 Público-alvo: a. Estudantes de graduação ({" "}
+              {data.publicoAlvo === "Estudantes de graduação" ? "X" : ""} ) b. Outros, informar qual ({" "}
+              {data.publicoAlvo === "Estudantes de graduação" ? "" : "X"} ):{" "}
+              {data.publicoAlvo === "Estudantes de graduação" ? "" : data.publicoAlvo}
+            </Text>
+          </View>
+          
+          <View style={styles.formRow}>
+            <Text>
+              1.12 Quantitativo previsto de pessoas a serem atendidas com o projeto: ({" "}
+              {data.estimativaPessoasBenificiadas || "--"} )
+            </Text>
+          </View>
+
+          {/* Section 2 */}
+          <Text style={styles.sectionHeader}>2 DADOS DO PROFESSOR RESPONSÁVEL PELO PROJETO</Text>
+          
+          <View style={styles.formRow}>
+            <Text>
+              2.1 Nome Completo:{" "}
+              {data.professorResponsavel?.nomeCompleto ||
+                (data.user?.role !== "admin" ? data.user?.nomeCompleto : "") ||
+                "Não informado"}
+            </Text>
+          </View>
+          
+          <View style={styles.splitRow}>
+            <View style={styles.splitLeft}>
+              <Text>2.2 CPF: {data.professorResponsavel?.cpf || "Não informado"}</Text>
+            </View>
+            <View style={styles.splitRight}>
+              <Text>2.3 Nº SIAPE: {data.professorResponsavel?.matriculaSiape || "Não informado"}</Text>
+            </View>
+          </View>
+          
+          <View style={styles.threeColumnRow}>
+            <View style={styles.threeColumnLeft}>
+              <Text>
+                2.4 Feminino: ( {data.professorResponsavel?.genero === "FEMININO" ? "X" : ""} ) Masculino: ({" "}
+                {data.professorResponsavel?.genero === "MASCULINO" ? "X" : ""} )
+              </Text>
+            </View>
+            <View style={styles.threeColumnMiddle}>
+              <Text>
+                2.5 Tel. Institucional: {data.professorResponsavel?.telefoneInstitucional || "Não informado"}
+              </Text>
+            </View>
+            <View style={styles.threeColumnRight}>
+              <Text>2.6 Tel. Celular: {data.professorResponsavel?.telefone || "Não informado"}</Text>
+            </View>
+          </View>
+          
+          <View style={styles.formRow}>
+            <Text>
+              2.7 E-mail: {data.professorResponsavel?.emailInstitucional || data.user?.email || "Não informado"}
+            </Text>
+          </View>
+
+          {/* Section 3 */}
+          <Text style={styles.sectionHeader}>3 DESCRIÇÃO DO PROJETO</Text>
+          {descricaoLines.map((line, index) => (
+            <View key={index} style={styles.formRow}>
+              <Text>{line}</Text>
+            </View>
+          ))}
+
+          {/* Section 4 */}
+          <Text style={styles.sectionHeader}>4 ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)</Text>
+          {data.atividades && data.atividades.length > 0 ? (
+            <>
+              {data.atividades.map((atividade, index) => (
+                <View key={index} style={styles.formRow}>
+                  <Text>{atividade}</Text>
+                </View>
+              ))}
+              {/* Add empty rows to maintain consistent layout (minimum 6 rows) */}
+              {Array.from({ length: Math.max(0, 6 - data.atividades.length) }).map((_, index) => (
+                <View key={`empty-${index}`} style={styles.formRow}>
+                  <Text></Text>
+                </View>
+              ))}
+            </>
+          ) : (
+            <>
+              <View style={styles.formRow}>
+                <Text>Auxiliar o professor na elaboração de problemas para listas e provas</Text>
+              </View>
+              <View style={styles.formRow}>
+                <Text>Auxiliar os alunos no uso das plataformas de submissão de problemas</Text>
+              </View>
+              <View style={styles.formRow}>
+                <Text>Auxiliar os alunos quanto ao uso das técnicas e comandos de programação</Text>
+              </View>
+              <View style={styles.formRow}>
+                <Text>Auxiliar os alunos em horário extra classe</Text>
+              </View>
+              <View style={styles.formRow}>
+                <Text>Outras atividades relacionadas ao projeto de monitoria</Text>
+              </View>
+              <View style={styles.formRow}>
+                <Text></Text>
+              </View>
+            </>
+          )}
+
+          {/* Section 5 */}
+          <Text style={styles.sectionHeader}>5. DECLARAÇÃO</Text>
+          <View style={styles.formRowTall}>
+            <Text>
+              Declaro ter conhecimento da Resolução n. 06/2012 do CAE e das normas descritas no Edital 001/{data.ano}
+              /PROGRAD – Projetos de Monitoria com Bolsa ( {data.semestre === "SEMESTRE_1" ? "X" : ""} ).
+            </Text>
+            <Text style={{ marginTop: 8 }}>
+              Declaro ter conhecimento da Resolução n. 06/2012 do CAE e das normas descritas no Edital 002/{data.ano}
+              /PROGRAD – Projetos de Monitoria com Bolsa ( {data.semestre === "SEMESTRE_2" ? "X" : ""} ).
+            </Text>
+          </View>
+        </View>
+
+        {/* Professor Signature */}
+        <View style={styles.signatureSection}>
+          {/* Signature box first - positioned before text */}
+          {data.signingMode === "professor" && (
+            <View style={styles.activeSignatureBox}>
+              {data.assinaturaProfessor && <Image src={data.assinaturaProfessor} style={styles.signatureImage} />}
+            </View>
+          )}
+          {data.assinaturaProfessor && !data.signingMode && (
+            <View style={styles.signatureBox}>
+              <Image src={data.assinaturaProfessor} style={styles.signatureImage} />
+            </View>
+          )}
+          
+          {/* Text line second - signature box overlaps this */}
+          <Text style={{ fontWeight: "bold" }}>
+            Data e Assinatura do Prof(a). responsável:{" "}
+            {data.dataAssinaturaProfessor || new Date().toLocaleDateString("pt-BR")} / ______________________________
+          </Text>
+        </View>
 
           {/* Instructions - Same width as formContainer */}
           <View style={styles.instructionsSection}>
@@ -508,7 +508,6 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                 modalidade sejam acatados.
               </Text>
             </View>
-
             <View style={styles.instructionItem}>
               <Text style={styles.instructionNumber}>5.</Text>
               <Text>O preenchimento de todos os dados deste formulário é indispensável.</Text>

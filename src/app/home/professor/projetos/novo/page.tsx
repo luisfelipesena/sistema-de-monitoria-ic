@@ -147,7 +147,6 @@ export default function NovoProjetoPage() {
     })
   }
 
-
   // Atualiza o publicoAlvo baseado no tipo selecionado
   useEffect(() => {
     if (publicoAlvoTipo === "estudantes_graduacao") {
@@ -731,8 +730,6 @@ export default function NovoProjetoPage() {
                                 </label>
                               </div>
                             </RadioGroup>
-
-
                             {publicoAlvoTipo === "outro" && (
                               <div className="mt-3">
                                 <Input
