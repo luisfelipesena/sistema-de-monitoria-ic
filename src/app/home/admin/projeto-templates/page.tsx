@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -83,6 +84,9 @@ export default function ProjetoTemplatesPage() {
         setIsCreateDialogOpen(false);
         refetch();
         createForm.reset();
+        setCreateAtividades([]);
+        setCreatePublicoAlvoTipo("estudantes_graduacao");
+        setCreatePublicoAlvoCustom("");
       },
       onError: (error) => {
         toast({
@@ -180,6 +184,12 @@ export default function ProjetoTemplatesPage() {
   // Manual state management for activities since useFieldArray has type issues
   const [createAtividades, setCreateAtividades] = useState<string[]>([]);
   const [editAtividades, setEditAtividades] = useState<string[]>([]);
+  
+  // Estado para gerenciar o tipo de público alvo
+  const [createPublicoAlvoTipo, setCreatePublicoAlvoTipo] = useState<"estudantes_graduacao" | "outro">("estudantes_graduacao");
+  const [createPublicoAlvoCustom, setCreatePublicoAlvoCustom] = useState("");
+  const [editPublicoAlvoTipo, setEditPublicoAlvoTipo] = useState<"estudantes_graduacao" | "outro">("estudantes_graduacao");
+  const [editPublicoAlvoCustom, setEditPublicoAlvoCustom] = useState("");
 
   const duplicateForm = useForm<DuplicateFormData>({
     resolver: zodResolver(duplicateTemplateSchema),
@@ -216,6 +226,16 @@ export default function ProjetoTemplatesPage() {
   const openEditDialog = (template: ProjectTemplateItem) => {
     setSelectedTemplate(template);
     setEditAtividades(template.atividadesDefault || []);
+    
+    // Configurar o tipo de público alvo
+    if (template.publicoAlvoDefault === "Estudantes de graduação") {
+      setEditPublicoAlvoTipo("estudantes_graduacao");
+      setEditPublicoAlvoCustom("");
+    } else {
+      setEditPublicoAlvoTipo("outro");
+      setEditPublicoAlvoCustom(template.publicoAlvoDefault || "");
+    }
+    
     editForm.reset({
       disciplinaId: template.disciplinaId,
       tituloDefault: template.tituloDefault || "",
@@ -565,11 +585,44 @@ export default function ProjetoTemplatesPage() {
                           <FormItem>
                             <FormLabel>Público Alvo Padrão</FormLabel>
                             <FormControl>
-                              <Textarea
-                                rows={3}
-                                placeholder="Estudantes matriculados na disciplina..."
-                                {...field}
-                              />
+                              <div className="space-y-4">
+                                <RadioGroup
+                                  value={createPublicoAlvoTipo}
+                                  onValueChange={(value: "estudantes_graduacao" | "outro") => {
+                                    setCreatePublicoAlvoTipo(value)
+                                    if (value === "estudantes_graduacao") {
+                                      field.onChange("Estudantes de graduação")
+                                    }
+                                  }}
+                                  className="flex flex-col space-y-2"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="estudantes_graduacao" id="create_estudantes_graduacao" />
+                                    <label htmlFor="create_estudantes_graduacao" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                      Estudantes de graduação
+                                    </label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="outro" id="create_outro" />
+                                    <label htmlFor="create_outro" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                      Outro
+                                    </label>
+                                  </div>
+                                </RadioGroup>
+                                
+                                {createPublicoAlvoTipo === "outro" && (
+                                  <div className="mt-3">
+                                    <Input
+                                      placeholder="Descreva o público alvo específico"
+                                      value={createPublicoAlvoCustom}
+                                      onChange={(e) => {
+                                        setCreatePublicoAlvoCustom(e.target.value)
+                                        field.onChange(e.target.value)
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -757,7 +810,44 @@ export default function ProjetoTemplatesPage() {
                     <FormItem>
                       <FormLabel>Público Alvo Padrão</FormLabel>
                       <FormControl>
-                        <Textarea rows={3} {...field} />
+                        <div className="space-y-4">
+                          <RadioGroup
+                            value={editPublicoAlvoTipo}
+                            onValueChange={(value: "estudantes_graduacao" | "outro") => {
+                              setEditPublicoAlvoTipo(value)
+                              if (value === "estudantes_graduacao") {
+                                field.onChange("Estudantes de graduação")
+                              }
+                            }}
+                            className="flex flex-col space-y-2"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="estudantes_graduacao" id="edit_estudantes_graduacao" />
+                              <label htmlFor="edit_estudantes_graduacao" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Estudantes de graduação
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="outro" id="edit_outro" />
+                              <label htmlFor="edit_outro" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Outro
+                              </label>
+                            </div>
+                          </RadioGroup>
+                          
+                          {editPublicoAlvoTipo === "outro" && (
+                            <div className="mt-3">
+                              <Input
+                                placeholder="Descreva o público alvo específico"
+                                value={editPublicoAlvoCustom}
+                                onChange={(e) => {
+                                  setEditPublicoAlvoCustom(e.target.value)
+                                  field.onChange(e.target.value)
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

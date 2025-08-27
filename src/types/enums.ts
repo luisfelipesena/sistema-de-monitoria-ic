@@ -157,6 +157,17 @@ export const REJECTED_BY_PROFESSOR = 'REJECTED_BY_PROFESSOR' as const
 export const REJECTED_BY_STUDENT = 'REJECTED_BY_STUDENT' as const
 export const WAITING_LIST = 'WAITING_LIST' as const
 
+// Project status constants
+export const DRAFT = 'DRAFT' as const
+export const APPROVED = 'APPROVED' as const
+export const REJECTED = 'REJECTED' as const
+export const PENDING_ADMIN_SIGNATURE = 'PENDING_ADMIN_SIGNATURE' as const
+export const PENDING_PROFESSOR_SIGNATURE = 'PENDING_PROFESSOR_SIGNATURE' as const
+
+// Monitor/Vaga type constants
+export const BOLSISTA = 'BOLSISTA' as const
+export const VOLUNTARIO = 'VOLUNTARIO' as const
+
 // ========================================
 // UTILITY FUNCTIONS
 // ========================================
