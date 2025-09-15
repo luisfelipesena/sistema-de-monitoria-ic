@@ -161,7 +161,7 @@ export const userRouter = createTRPCRouter({
                 .where(
                   and(
                     eq(inscricaoTable.alunoId, user.studentProfile.id),
-                    sql`${inscricaoTable.status} IN (ACCEPTED_BOLSISTA, ACCEPTED_VOLUNTARIO)`
+                    sql`${inscricaoTable.status} IN ('ACCEPTED_BOLSISTA', 'ACCEPTED_VOLUNTARIO')`
                   )
                 )
 
@@ -262,38 +262,38 @@ export const userRouter = createTRPCRouter({
           dataAssinaturaDefault: user.dataAssinaturaDefault,
           professorProfile: user.professorProfile
             ? {
-                id: user.professorProfile.id,
-                nomeCompleto: user.professorProfile.nomeCompleto,
-                cpf: user.professorProfile.cpf,
-                telefone: user.professorProfile.telefone,
-                telefoneInstitucional: user.professorProfile.telefoneInstitucional,
-                emailInstitucional: user.professorProfile.emailInstitucional,
-                matriculaSiape: user.professorProfile.matriculaSiape,
-                regime: user.professorProfile.regime as z.infer<typeof regimeSchema>,
-                departamentoId: user.professorProfile.departamentoId,
-                curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
-                comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
-                assinaturaDefault: user.professorProfile.assinaturaDefault,
-                dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
-              }
+              id: user.professorProfile.id,
+              nomeCompleto: user.professorProfile.nomeCompleto,
+              cpf: user.professorProfile.cpf,
+              telefone: user.professorProfile.telefone,
+              telefoneInstitucional: user.professorProfile.telefoneInstitucional,
+              emailInstitucional: user.professorProfile.emailInstitucional,
+              matriculaSiape: user.professorProfile.matriculaSiape,
+              regime: user.professorProfile.regime as z.infer<typeof regimeSchema>,
+              departamentoId: user.professorProfile.departamentoId,
+              curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
+              comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
+              assinaturaDefault: user.professorProfile.assinaturaDefault,
+              dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
+            }
             : null,
           studentProfile: user.studentProfile
             ? {
-                id: user.studentProfile.id,
-                nomeCompleto: user.studentProfile.nomeCompleto,
-                matricula: user.studentProfile.matricula,
-                cpf: user.studentProfile.cpf,
-                cr: user.studentProfile.cr,
-                cursoId: user.studentProfile.cursoId,
-                telefone: user.studentProfile.telefone,
-                emailInstitucional: user.studentProfile.emailInstitucional,
-                historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
-                comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
-                banco: user.studentProfile.banco,
-                agencia: user.studentProfile.agencia,
-                conta: user.studentProfile.conta,
-                digitoConta: user.studentProfile.digitoConta,
-              }
+              id: user.studentProfile.id,
+              nomeCompleto: user.studentProfile.nomeCompleto,
+              matricula: user.studentProfile.matricula,
+              cpf: user.studentProfile.cpf,
+              cr: user.studentProfile.cr,
+              cursoId: user.studentProfile.cursoId,
+              telefone: user.studentProfile.telefone,
+              emailInstitucional: user.studentProfile.emailInstitucional,
+              historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
+              comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
+              banco: user.studentProfile.banco,
+              agencia: user.studentProfile.agencia,
+              conta: user.studentProfile.conta,
+              digitoConta: user.studentProfile.digitoConta,
+            }
             : null,
         }
       } catch (error) {

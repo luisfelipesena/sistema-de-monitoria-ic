@@ -138,6 +138,7 @@ export default function ProfessoresPage() {
 
   const columns: ColumnDef<UserListItem>[] = [
     {
+      id: "nomeCompleto",
       accessorKey: "professorProfile.nomeCompleto",
       header: "Nome",
       cell: ({ row }) => <div className="font-medium">{row.original.professorProfile?.nomeCompleto}</div>,
@@ -388,7 +389,7 @@ export default function ProfessoresPage() {
             <TableComponent
               columns={columns}
               data={professores}
-              searchableColumn="professorProfile.nomeCompleto"
+              searchableColumn="nomeCompleto"
               searchPlaceholder="Buscar por nome do professor..."
             />
           </CardContent>
