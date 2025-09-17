@@ -69,8 +69,11 @@ export default function InscricaoMonitoria() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedProjeto, setSelectedProjeto] = useState<any>(null)
 
-  const { data: projetos = [], isLoading, refetch } = api.projeto.getProjetos.useQuery()
+  const { data: projetos = [], isLoading: isLoadingProjetos, refetch } = api.projeto.getProjetos.useQuery()
   const { data: departamentos = [] } = api.departamento.getDepartamentos.useQuery({})
+  const { data: activePeriodData, isLoading: isLoadingPeriod } = api.edital.getActivePeriod.useQuery()
+
+  const isLoading = isLoadingProjetos || isLoadingPeriod
   const createInscricao = api.inscricao.criarInscricao.useMutation({
     onSuccess: (result) => {
       toast({
@@ -97,18 +100,23 @@ export default function InscricaoMonitoria() {
     },
   })
 
-  // Filter projects - only show APPROVED projects
+  // Check if there's an active enrollment period
+  const hasActivePeriod = activePeriodData?.periodo !== null
+  const activePeriod = activePeriodData?.periodo
+
+  // Filter projects - only show APPROVED projects and only during active period
   const filteredProjetos = projetos.filter((projeto) => {
     if (projeto.status !== "APPROVED") return false
+    if (!hasActivePeriod) return false // Don't show projects if no active period
 
     const matchesSearch =
       projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       projeto.professorResponsavelNome.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesDepartamento = !selectedDepartamento || projeto.departamentoId.toString() === selectedDepartamento
+    const matchesDepartamento = !selectedDepartamento || selectedDepartamento === "all" || projeto.departamentoId.toString() === selectedDepartamento
 
     const matchesTipoVaga =
-      !tipoVagaFilter ||
+      !tipoVagaFilter || tipoVagaFilter === "all" ||
       (tipoVagaFilter === TIPO_VAGA_LABELS.BOLSISTA && (projeto.bolsasDisponibilizadas ?? 0) > 0) ||
       (tipoVagaFilter === TIPO_VAGA_LABELS.VOLUNTARIO && (projeto.voluntariosSolicitados ?? 0) > 0)
 
@@ -150,6 +158,35 @@ export default function InscricaoMonitoria() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Inscrição em Monitoria</h1>
         <p className="text-muted-foreground">Encontre e inscreva-se em projetos de monitoria disponíveis.</p>
+
+        {/* Period Status */}
+        {activePeriod ? (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <Calendar className="h-5 w-5 text-green-600 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-green-800">Período de Inscrições Ativo</h3>
+                <p className="text-sm text-green-700 mt-1">
+                  {activePeriod.ano}.{activePeriod.semestre === "SEMESTRE_1" ? "1" : "2"} •
+                  Até {activePeriod.dataFim.toLocaleDateString('pt-BR')} •
+                  {activePeriod.totalProjetos} projetos disponíveis
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <Clock className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-yellow-800">Período de Inscrições Fechado</h3>
+                <p className="text-sm text-yellow-700 mt-1">
+                  Não há período de inscrições ativo no momento. Aguarde a publicação do próximo edital.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -180,7 +217,7 @@ export default function InscricaoMonitoria() {
                   <SelectValue placeholder="Todos os departamentos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os departamentos</SelectItem>
+                  <SelectItem value="all">Todos os departamentos</SelectItem>
                   {departamentos.map((dept: any) => (
                     <SelectItem key={dept.id} value={dept.id.toString()}>
                       {dept.nome}
@@ -197,7 +234,7 @@ export default function InscricaoMonitoria() {
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os tipos</SelectItem>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
                   <SelectItem value={TIPO_VAGA_LABELS.BOLSISTA}>{TIPO_VAGA_LABELS.BOLSISTA}</SelectItem>
                   <SelectItem value={TIPO_VAGA_LABELS.VOLUNTARIO}>{TIPO_VAGA_LABELS.VOLUNTARIO}</SelectItem>
                 </SelectContent>

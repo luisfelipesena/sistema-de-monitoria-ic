@@ -1,5 +1,5 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { cursoTable, departamentoTable, disciplinaTable, professorTable, projetoTable } from '@/server/db/schema'
+import { alunoTable, cursoTable, departamentoTable, disciplinaTable, professorTable, projetoTable } from '@/server/db/schema'
 import { createDepartmentSchema, departamentoSchema, updateDepartmentSchema } from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
@@ -199,7 +199,7 @@ export const departamentoRouter = createTRPCRouter({
         path: '/departamentos/{id}',
         tags: ['departamentos'],
         summary: 'Delete departamento',
-        description: 'Delete a departamento',
+        description: 'Delete a departamento and all its dependencies',
       },
     })
     .input(
@@ -220,20 +220,26 @@ export const departamentoRouter = createTRPCRouter({
         })
       }
 
-      // Check if there are associated disciplines
-      const disciplinasAssociadas = await ctx.db.query.disciplinaTable.findFirst({
-        where: eq(disciplinaTable.departamentoId, input.id),
-      })
+      try {
+        // Use transaction to ensure all deletions succeed or fail together
+        await ctx.db.transaction(async (tx) => {
+          // Note: The schema already has proper cascade relationships:
+          // - cursoTable -> alunoTable (cascade)
+          // - departamentoTable -> cursoTable, disciplinaTable, professorTable, projetoTable
+          // When we delete the department, all dependent records should cascade automatically
 
-      if (disciplinasAssociadas) {
+          await tx.delete(departamentoTable).where(eq(departamentoTable.id, input.id))
+
+          log.info({ departamentoId: input.id }, 'Departamento e dependências deletados com sucesso')
+        })
+
+        return { success: true }
+      } catch (error) {
+        log.error(error, 'Erro ao deletar departamento')
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Não é possível excluir o departamento, pois há disciplinas associadas a ele',
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao deletar departamento e suas dependências',
         })
       }
-
-      await ctx.db.delete(departamentoTable).where(eq(departamentoTable.id, input.id))
-
-      return { success: true }
     }),
 })

@@ -4,6 +4,7 @@ import {
   ataSelecaoTable,
   disciplinaTable,
   inscricaoTable,
+  professorTable,
   projetoDisciplinaTable,
   projetoTable,
 } from '@/server/db/schema'
@@ -339,6 +340,188 @@ export const selecaoRouter = createTRPCRouter({
         success: true,
         notificationsCount: inscricoes.length,
         message: 'Resultados publicados e notificações enviadas',
+      }
+    }),
+
+  // Obter projetos do professor com candidatos para seleção
+  getProfessorProjectsWithCandidates: protectedProcedure.query(async ({ ctx }) => {
+    const { user } = ctx
+
+    if (user.role !== 'professor') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Apenas professores podem visualizar projetos com candidatos',
+      })
+    }
+
+    const professor = await ctx.db.query.professorTable.findFirst({
+      where: eq(professorTable.userId, user.id),
+    })
+
+    if (!professor) {
+      return []
+    }
+
+    const projetos = await ctx.db.query.projetoTable.findMany({
+      where: and(
+        eq(projetoTable.professorResponsavelId, professor.id),
+        eq(projetoTable.status, 'APPROVED')
+      ),
+      with: {
+        departamento: true,
+        inscricoes: {
+          with: {
+            aluno: {
+              with: { user: true },
+            },
+          },
+          orderBy: [desc(inscricaoTable.notaFinal)],
+        },
+        disciplinas: {
+          with: {
+            disciplina: true,
+          },
+        },
+      },
+    })
+
+    return projetos.map(projeto => ({
+      ...projeto,
+      inscricoes: projeto.inscricoes.filter(inscricao =>
+        inscricao.status === 'SUBMITTED' ||
+        inscricao.status?.startsWith('SELECTED_') ||
+        inscricao.status?.startsWith('REJECTED_')
+      ),
+    }))
+  }),
+
+  // Selecionar monitores para um projeto
+  selectMonitors: protectedProcedure
+    .input(
+      z.object({
+        projetoId: z.number(),
+        bolsistas: z.array(z.number()),
+        voluntarios: z.array(z.number()),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { user } = ctx
+
+      if (user.role !== 'professor') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Apenas professores podem selecionar monitores',
+        })
+      }
+
+      const professor = await ctx.db.query.professorTable.findFirst({
+        where: eq(professorTable.userId, user.id),
+      })
+
+      if (!professor) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Professor não encontrado',
+        })
+      }
+
+      const projeto = await ctx.db.query.projetoTable.findFirst({
+        where: eq(projetoTable.id, input.projetoId),
+      })
+
+      if (!projeto) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Projeto não encontrado',
+        })
+      }
+
+      if (projeto.professorResponsavelId !== professor.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Você só pode selecionar monitores para seus próprios projetos',
+        })
+      }
+
+      // Verificar quotas
+      const maxBolsistas = projeto.bolsasDisponibilizadas || 0
+      const maxVoluntarios = projeto.voluntariosSolicitados || 0
+
+      if (input.bolsistas.length > maxBolsistas) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Número de bolsistas excede o limite disponível (${maxBolsistas})`,
+        })
+      }
+
+      if (input.voluntarios.length > maxVoluntarios) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Número de voluntários excede o limite disponível (${maxVoluntarios})`,
+        })
+      }
+
+      await ctx.db.transaction(async (tx) => {
+        // Reset all inscricoes for this project
+        await tx
+          .update(inscricaoTable)
+          .set({ status: 'SUBMITTED' })
+          .where(eq(inscricaoTable.projetoId, input.projetoId))
+
+        // Set selected bolsistas
+        if (input.bolsistas.length > 0) {
+          await Promise.all(
+            input.bolsistas.map((inscricaoId) =>
+              tx
+                .update(inscricaoTable)
+                .set({ status: 'SELECTED_BOLSISTA' })
+                .where(eq(inscricaoTable.id, inscricaoId))
+            )
+          )
+        }
+
+        // Set selected voluntarios
+        if (input.voluntarios.length > 0) {
+          await Promise.all(
+            input.voluntarios.map((inscricaoId) =>
+              tx
+                .update(inscricaoTable)
+                .set({ status: 'SELECTED_VOLUNTARIO' })
+                .where(eq(inscricaoTable.id, inscricaoId))
+            )
+          )
+        }
+
+        // Set rejected for unselected candidates
+        const allSelected = [...input.bolsistas, ...input.voluntarios]
+        if (allSelected.length > 0) {
+          const allInscricoes = await tx
+            .select({ id: inscricaoTable.id })
+            .from(inscricaoTable)
+            .where(eq(inscricaoTable.projetoId, input.projetoId))
+
+          const unselected = allInscricoes
+            .filter((inscricao) => !allSelected.includes(inscricao.id))
+            .map((inscricao) => inscricao.id)
+
+          if (unselected.length > 0) {
+            await Promise.all(
+              unselected.map((inscricaoId) =>
+                tx
+                  .update(inscricaoTable)
+                  .set({ status: 'REJECTED_BY_PROFESSOR' })
+                  .where(eq(inscricaoTable.id, inscricaoId))
+              )
+            )
+          }
+        }
+      })
+
+      return {
+        success: true,
+        message: 'Monitores selecionados com sucesso',
+        bolsistasSelecionados: input.bolsistas.length,
+        voluntariosSelecionados: input.voluntarios.length,
       }
     }),
 

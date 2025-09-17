@@ -11,11 +11,13 @@ import { useRouter } from 'next/navigation'
 import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/hooks/use-auth"
 import { ArrowLeft, Save, User, Loader } from 'lucide-react'
 import { formatUsernameToProperName } from '@/utils/username-formatter'
 
 export default function EditUserPage() {
   const { toast } = useToast()
+  const { user: currentUser } = useAuth()
 
   const router = useRouter()
   const params = useParams()
@@ -38,7 +40,13 @@ export default function EditUserPage() {
         title: "Sucesso!",
         description: 'Usuário atualizado com sucesso!',
       })
-      router.push('/home/admin/users')
+
+      // Se editou o próprio usuário, redireciona para /home
+      if (currentUser?.id === userId) {
+        router.push('/home')
+      } else {
+        router.push('/home/admin/users')
+      }
       window.location.reload()
     },
     onError: (error) => {

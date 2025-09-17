@@ -183,7 +183,7 @@ export const disciplineRouter = createTRPCRouter({
         path: '/disciplines/{id}',
         tags: ['disciplines'],
         summary: 'Delete discipline',
-        description: 'Delete the discipline',
+        description: 'Delete the discipline and all its dependencies',
       },
     })
     .input(
@@ -202,40 +202,34 @@ export const disciplineRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Disciplina não encontrada' })
       }
 
-      // Check for foreign key constraints
-      const dependencies = await Promise.all([
-        // Check projeto-disciplina relationships
-        ctx.db.query.projetoDisciplinaTable.findFirst({
-          where: eq(projetoDisciplinaTable.disciplinaId, input.id),
-        }),
-        // Check professor responsibilities
-        ctx.db.query.disciplinaProfessorResponsavelTable.findFirst({
-          where: eq(disciplinaProfessorResponsavelTable.disciplinaId, input.id),
-        }),
-        // Check project templates
-        ctx.db.query.projetoTemplateTable.findFirst({
-          where: eq(projetoTemplateTable.disciplinaId, input.id),
-        }),
-      ])
+      try {
+        // Use transaction to ensure all deletions succeed or fail together
+        await ctx.db.transaction(async (tx) => {
+          // Delete projeto templates first
+          await tx.delete(projetoTemplateTable).where(eq(projetoTemplateTable.disciplinaId, input.id))
 
-      const [projetoDisciplina, professorResponsavel, projetoTemplate] = dependencies
+          // Delete professor responsibilities
+          await tx.delete(disciplinaProfessorResponsavelTable).where(eq(disciplinaProfessorResponsavelTable.disciplinaId, input.id))
 
-      const issues = []
-      if (projetoDisciplina) issues.push('projetos associados')
-      if (professorResponsavel) issues.push('professores responsáveis')
-      if (projetoTemplate) issues.push('templates de projeto')
+          // Delete projeto-disciplina relationships
+          await tx.delete(projetoDisciplinaTable).where(eq(projetoDisciplinaTable.disciplinaId, input.id))
 
-      if (issues.length > 0) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: `Não é possível excluir a disciplina porque ela possui ${issues.join(', ')}. Remova essas dependências primeiro.`,
+          // Finally, delete the discipline
+          const result = await tx.delete(disciplinaTable).where(eq(disciplinaTable.id, input.id)).returning()
+
+          if (!result.length) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Erro ao deletar disciplina' })
+          }
+
+          log.info({ disciplinaId: input.id }, 'Disciplina e dependências deletadas com sucesso')
         })
-      }
-
-      const result = await ctx.db.delete(disciplinaTable).where(eq(disciplinaTable.id, input.id)).returning()
-
-      if (!result.length) {
-        throw new TRPCError({ code: 'NOT_FOUND' })
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        log.error(error, 'Erro ao deletar disciplina')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao deletar disciplina e suas dependências',
+        })
       }
     }),
 

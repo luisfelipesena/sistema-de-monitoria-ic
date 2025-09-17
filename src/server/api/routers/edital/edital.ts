@@ -89,6 +89,84 @@ export const editalListItemSchema = editalSchema.extend({
 })
 
 export const editalRouter = createTRPCRouter({
+  getActivePeriod: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/editais/active-period',
+        tags: ['editais'],
+        summary: 'Get active enrollment period',
+        description: 'Get the currently active enrollment period',
+      },
+    })
+    .input(z.void())
+    .output(
+      z.object({
+        periodo: periodoInscricaoComStatusSchema.nullable(),
+        edital: editalSchema.nullable(),
+      })
+    )
+    .query(async ({ ctx }) => {
+      try {
+        const now = new Date()
+
+        // Find active enrollment period
+        const activePeriod = await ctx.db
+          .select()
+          .from(periodoInscricaoTable)
+          .where(
+            and(
+              lte(periodoInscricaoTable.dataInicio, now),
+              gte(periodoInscricaoTable.dataFim, now)
+            )
+          )
+          .limit(1)
+
+        if (activePeriod.length === 0) {
+          return { periodo: null, edital: null }
+        }
+
+        const period = activePeriod[0]
+
+        // Get associated edital
+        const edital = await ctx.db
+          .select()
+          .from(editalTable)
+          .where(eq(editalTable.periodoInscricaoId, period.id))
+          .limit(1)
+
+        // Get statistics
+        const [projectsCount] = await ctx.db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(projetoTable)
+          .where(
+            and(
+              eq(projetoTable.ano, period.ano),
+              eq(projetoTable.semestre, period.semestre),
+              eq(projetoTable.status, 'APPROVED')
+            )
+          )
+
+        const periodWithStatus = {
+          ...period,
+          status: 'ATIVO' as const,
+          totalProjetos: projectsCount?.count || 0,
+          totalInscricoes: 0, // Could add this if needed
+        }
+
+        return {
+          periodo: periodWithStatus,
+          edital: edital[0] || null,
+        }
+      } catch (error) {
+        log.error(error, 'Erro ao buscar período ativo')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao buscar período ativo',
+        })
+      }
+    }),
+
   getEditais: protectedProcedure
     .meta({
       openapi: {

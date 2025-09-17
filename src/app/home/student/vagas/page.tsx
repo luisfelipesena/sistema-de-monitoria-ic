@@ -46,8 +46,15 @@ export default function VagasPage() {
   const [selectedDepartamento, setSelectedDepartamento] = useState<string>("")
   const [tipoVagaFilter, setTipoVagaFilter] = useState<string>("")
 
-  const { data: projetos = [], isLoading } = api.projeto.getProjetos.useQuery()
+  const { data: projetos = [], isLoading: isLoadingProjetos } = api.projeto.getProjetos.useQuery()
   const { data: departamentos = [] } = api.departamento.getDepartamentos.useQuery({})
+  const { data: activePeriodData, isLoading: isLoadingPeriod } = api.edital.getActivePeriod.useQuery()
+
+  const isLoading = isLoadingProjetos || isLoadingPeriod
+
+  // Check if there's an active enrollment period
+  const hasActivePeriod = activePeriodData?.periodo !== null
+  const activePeriod = activePeriodData?.periodo
 
   // Filter projects - only show APPROVED projects
   const filteredProjetos = projetos.filter((projeto) => {
@@ -57,10 +64,10 @@ export default function VagasPage() {
       projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       projeto.professorResponsavelNome.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesDepartamento = !selectedDepartamento || projeto.departamentoId.toString() === selectedDepartamento
+    const matchesDepartamento = !selectedDepartamento || selectedDepartamento === "all" || projeto.departamentoId.toString() === selectedDepartamento
 
     const matchesTipoVaga =
-      !tipoVagaFilter ||
+      !tipoVagaFilter || tipoVagaFilter === "all" ||
       (tipoVagaFilter === TIPO_VAGA_LABELS.BOLSISTA && (projeto.bolsasDisponibilizadas ?? 0) > 0) ||
       (tipoVagaFilter === TIPO_VAGA_LABELS.VOLUNTARIO && (projeto.voluntariosSolicitados ?? 0) > 0)
 
@@ -87,6 +94,35 @@ export default function VagasPage() {
         <p className="text-muted-foreground">
           Explore vagas de monitoria e voluntariado disponíveis nos projetos aprovados.
         </p>
+
+        {/* Period Status */}
+        {!hasActivePeriod && (
+          <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-orange-600" />
+              <div>
+                <p className="text-orange-800 font-medium">Período de inscrições encerrado</p>
+                <p className="text-orange-700 text-sm">
+                  Não há período ativo para inscrições em monitoria no momento.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {hasActivePeriod && activePeriod && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-green-800 font-medium">Período de inscrições ativo</p>
+                <p className="text-green-700 text-sm">
+                  Inscrições abertas até {new Date(activePeriod.dataFim).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -117,7 +153,7 @@ export default function VagasPage() {
                   <SelectValue placeholder="Todos os departamentos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os departamentos</SelectItem>
+                  <SelectItem value="all">Todos os departamentos</SelectItem>
                   {departamentos.map((dept: any) => (
                     <SelectItem key={dept.id} value={dept.id.toString()}>
                       {dept.nome}
@@ -134,7 +170,7 @@ export default function VagasPage() {
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os tipos</SelectItem>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
                   <SelectItem value={TIPO_VAGA_LABELS.BOLSISTA}>{TIPO_VAGA_LABELS.BOLSISTA}</SelectItem>
                   <SelectItem value={TIPO_VAGA_LABELS.VOLUNTARIO}>{TIPO_VAGA_LABELS.VOLUNTARIO}</SelectItem>
                 </SelectContent>
@@ -261,13 +297,30 @@ export default function VagasPage() {
                 )}
 
                 {/* Info Notice */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-700">
-                    Para se inscrever neste projeto, visite a página de{" "}
-                    <a href="/home/student/inscricao-monitoria" className="underline font-medium">
-                      Inscrição em Monitoria
-                    </a>
-                    .
+                <div className={`border rounded-lg p-3 ${
+                  hasActivePeriod
+                    ? "bg-blue-50 border-blue-200"
+                    : "bg-gray-50 border-gray-200"
+                }`}>
+                  <p className={`text-sm ${
+                    hasActivePeriod
+                      ? "text-blue-700"
+                      : "text-gray-600"
+                  }`}>
+                    {hasActivePeriod ? (
+                      <>
+                        Para se inscrever neste projeto, visite a página de{" "}
+                        <a href="/home/student/inscricao-monitoria" className="underline font-medium">
+                          Inscrição em Monitoria
+                        </a>
+                        .
+                      </>
+                    ) : (
+                      <>
+                        As inscrições para este projeto estão fechadas no momento.
+                        Aguarde a abertura do próximo período de inscrições.
+                      </>
+                    )}
                   </p>
                 </div>
               </CardContent>

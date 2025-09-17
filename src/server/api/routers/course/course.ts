@@ -142,7 +142,7 @@ export const courseRouter = createTRPCRouter({
         path: '/courses/{id}',
         tags: ['courses'],
         summary: 'Delete course',
-        description: 'Delete the course',
+        description: 'Delete the course and all its dependencies',
       },
     })
     .input(
@@ -152,10 +152,26 @@ export const courseRouter = createTRPCRouter({
     )
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
-      const result = await ctx.db.delete(cursoTable).where(eq(cursoTable.id, input.id)).returning()
+      // Check if course exists
+      const curso = await ctx.db.query.cursoTable.findFirst({
+        where: eq(cursoTable.id, input.id),
+      })
 
-      if (!result.length) {
-        throw new TRPCError({ code: 'NOT_FOUND' })
+      if (!curso) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Curso não encontrado' })
       }
+
+      // Use transaction to ensure all deletions succeed or fail together
+      await ctx.db.transaction(async (tx) => {
+        // Note: Due to cascade delete constraints in the schema (onDelete: 'cascade'),
+        // related records in aluno table will be automatically deleted when we delete the course
+        // This is already configured in the schema where alunoTable references cursoTable
+
+        const result = await tx.delete(cursoTable).where(eq(cursoTable.id, input.id)).returning()
+
+        if (!result.length) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Erro ao deletar curso' })
+        }
+      })
     }),
 })
