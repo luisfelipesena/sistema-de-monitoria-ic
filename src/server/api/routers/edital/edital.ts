@@ -114,12 +114,7 @@ export const editalRouter = createTRPCRouter({
         const activePeriod = await ctx.db
           .select()
           .from(periodoInscricaoTable)
-          .where(
-            and(
-              lte(periodoInscricaoTable.dataInicio, now),
-              gte(periodoInscricaoTable.dataFim, now)
-            )
-          )
+          .where(and(lte(periodoInscricaoTable.dataInicio, now), gte(periodoInscricaoTable.dataFim, now)))
           .limit(1)
 
         if (activePeriod.length === 0) {

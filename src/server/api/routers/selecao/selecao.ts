@@ -363,10 +363,7 @@ export const selecaoRouter = createTRPCRouter({
     }
 
     const projetos = await ctx.db.query.projetoTable.findMany({
-      where: and(
-        eq(projetoTable.professorResponsavelId, professor.id),
-        eq(projetoTable.status, 'APPROVED')
-      ),
+      where: and(eq(projetoTable.professorResponsavelId, professor.id), eq(projetoTable.status, 'APPROVED')),
       with: {
         departamento: true,
         inscricoes: {
@@ -385,12 +382,13 @@ export const selecaoRouter = createTRPCRouter({
       },
     })
 
-    return projetos.map(projeto => ({
+    return projetos.map((projeto) => ({
       ...projeto,
-      inscricoes: projeto.inscricoes.filter(inscricao =>
-        inscricao.status === 'SUBMITTED' ||
-        inscricao.status?.startsWith('SELECTED_') ||
-        inscricao.status?.startsWith('REJECTED_')
+      inscricoes: projeto.inscricoes.filter(
+        (inscricao) =>
+          inscricao.status === 'SUBMITTED' ||
+          inscricao.status?.startsWith('SELECTED_') ||
+          inscricao.status?.startsWith('REJECTED_')
       ),
     }))
   }),
@@ -472,10 +470,7 @@ export const selecaoRouter = createTRPCRouter({
         if (input.bolsistas.length > 0) {
           await Promise.all(
             input.bolsistas.map((inscricaoId) =>
-              tx
-                .update(inscricaoTable)
-                .set({ status: 'SELECTED_BOLSISTA' })
-                .where(eq(inscricaoTable.id, inscricaoId))
+              tx.update(inscricaoTable).set({ status: 'SELECTED_BOLSISTA' }).where(eq(inscricaoTable.id, inscricaoId))
             )
           )
         }
@@ -484,10 +479,7 @@ export const selecaoRouter = createTRPCRouter({
         if (input.voluntarios.length > 0) {
           await Promise.all(
             input.voluntarios.map((inscricaoId) =>
-              tx
-                .update(inscricaoTable)
-                .set({ status: 'SELECTED_VOLUNTARIO' })
-                .where(eq(inscricaoTable.id, inscricaoId))
+              tx.update(inscricaoTable).set({ status: 'SELECTED_VOLUNTARIO' }).where(eq(inscricaoTable.id, inscricaoId))
             )
           )
         }

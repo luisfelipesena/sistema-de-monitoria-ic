@@ -174,14 +174,38 @@ Este guia fornece os passos exatos para testar cada etapa do processo de monitor
    - Revise todas as informações do projeto
    - Clique em "Aprovar Projeto"
    - Adicione comentários se necessário
+   - Status muda para: PENDING_ADMIN_SIGNATURE
+
+3. **Assinar Projeto Aprovado**
+   - Navegue: `Admin > Documentos > Assinatura de Documentos`
+   - Encontre projeto com status PENDING_ADMIN_SIGNATURE
+   - Clique em "Assinar Projeto"
+   - Assine digitalmente o projeto
    - Status muda para: APPROVED
+   - **IMPORTANTE:** Aparecerá toast com próximos passos
 
-### **PASSO 4: Disponibilização de Vagas (Automático)**
+### **PASSO 4: Configuração para Disponibilizar Vagas aos Alunos**
 
-1. **Verificar Vagas Disponíveis**
-   - As vagas são automaticamente disponibilizadas quando:
-     - Projeto está APPROVED
-     - Existe período ativo de inscrições
+1. **Alocar Bolsas** (OBRIGATÓRIO)
+   - Navegue: `Admin > Projetos > Alocação de Bolsas`
+   - Para cada projeto APPROVED, defina quantas bolsas serão disponibilizadas
+   - Clique em "Salvar Alocações"
+
+2. **Configurar Período de Inscrições** (OBRIGATÓRIO)
+   - Navegue: `Admin > Editais > Gerenciar Editais`
+   - Clique em "Criar Novo Período"
+   - Configure:
+     - Data de início das inscrições
+     - Data de fim das inscrições
+     - Data de início da avaliação
+     - Data de fim da avaliação
+   - Publique o edital
+
+3. **Verificar Disponibilização**
+   - As vagas ficam disponíveis para alunos quando:
+     - Projeto está APPROVED ✅
+     - Bolsas foram alocadas ✅
+     - Período de inscrições está ativo ✅
    - Navegue: `Admin > Sistema > Analytics`
    - Verifique estatísticas de vagas disponíveis
 

@@ -81,7 +81,9 @@ describe('disciplineRouter', () => {
       vi.spyOn(mockContext.db.query.disciplinaProfessorResponsavelTable, 'findFirst').mockResolvedValue(undefined)
       vi.spyOn(mockContext.db.query.projetoTemplateTable, 'findFirst').mockResolvedValue(undefined)
 
-      await expect(caller.deleteDiscipline({ id: 1 })).rejects.toThrowError(/Erro ao deletar disciplina e suas dependências/)
+      await expect(caller.deleteDiscipline({ id: 1 })).rejects.toThrowError(
+        /Erro ao deletar disciplina e suas dependências/
+      )
     })
   })
 

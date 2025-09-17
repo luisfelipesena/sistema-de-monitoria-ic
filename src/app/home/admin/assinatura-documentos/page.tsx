@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
 import { MonitoriaFormData } from "@/types"
 import { api } from "@/utils/api"
 import { ArrowLeft, CheckCircle, FileSignature } from "lucide-react"
@@ -16,6 +17,7 @@ import { Suspense, useMemo, useState } from "react"
 
 function DocumentSigningContent() {
   const { user } = useAuth()
+  const { toast } = useToast()
   const searchParams = useSearchParams()
   const projectId = searchParams.get("projetoId")
   const { data: projetos, isLoading: loadingProjetos, refetch } = api.projeto.getProjetos.useQuery()
@@ -81,6 +83,13 @@ function DocumentSigningContent() {
   }
 
   const handleSignComplete = () => {
+    // Show informative toast about next steps
+    toast({
+      title: "Projeto Assinado com Sucesso! 🎉",
+      description: "Próximos passos: 1) Acesse 'Alocação de Bolsas' para definir quantas bolsas serão disponibilizadas. 2) Configure um período ativo de inscrições em 'Editais'. 3) Os alunos poderão se inscrever quando ambos estiverem configurados.",
+      duration: 8000, // 8 seconds to allow reading
+    })
+
     refetch()
     setSelectedProjectId(null)
   }

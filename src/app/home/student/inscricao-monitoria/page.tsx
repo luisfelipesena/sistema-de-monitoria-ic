@@ -69,7 +69,7 @@ export default function InscricaoMonitoria() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedProjeto, setSelectedProjeto] = useState<any>(null)
 
-  const { data: projetos = [], isLoading: isLoadingProjetos, refetch } = api.projeto.getProjetos.useQuery()
+  const { data: projetos = [], isLoading: isLoadingProjetos, refetch } = api.projeto.getAvailableProjects.useQuery()
   const { data: departamentos = [] } = api.departamento.getDepartamentos.useQuery({})
   const { data: activePeriodData, isLoading: isLoadingPeriod } = api.edital.getActivePeriod.useQuery()
 
@@ -104,16 +104,15 @@ export default function InscricaoMonitoria() {
   const hasActivePeriod = activePeriodData?.periodo !== null
   const activePeriod = activePeriodData?.periodo
 
-  // Filter projects - only show APPROVED projects and only during active period
+  // Filter projects - getAvailableProjects already filters for APPROVED and active period
   const filteredProjetos = projetos.filter((projeto) => {
-    if (projeto.status !== "APPROVED") return false
     if (!hasActivePeriod) return false // Don't show projects if no active period
 
     const matchesSearch =
       projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       projeto.professorResponsavelNome.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesDepartamento = !selectedDepartamento || selectedDepartamento === "all" || projeto.departamentoId.toString() === selectedDepartamento
+    const matchesDepartamento = !selectedDepartamento || selectedDepartamento === "all" || projeto.departamentoNome === selectedDepartamento
 
     const matchesTipoVaga =
       !tipoVagaFilter || tipoVagaFilter === "all" ||
@@ -219,7 +218,7 @@ export default function InscricaoMonitoria() {
                 <SelectContent>
                   <SelectItem value="all">Todos os departamentos</SelectItem>
                   {departamentos.map((dept: any) => (
-                    <SelectItem key={dept.id} value={dept.id.toString()}>
+                    <SelectItem key={dept.id} value={dept.nome}>
                       {dept.nome}
                     </SelectItem>
                   ))}

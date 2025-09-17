@@ -23,6 +23,7 @@ import {
   projectDetailSchema,
   projectFormSchema,
   projectListItemSchema,
+  semestreSchema,
   SELECTED_BOLSISTA,
   SELECTED_VOLUNTARIO,
   REJECTED_BY_PROFESSOR,
@@ -1208,8 +1209,13 @@ export const projetoRouter = createTRPCRouter({
         z.object({
           id: idSchema,
           titulo: nameSchema,
+          descricao: z.string(),
           departamentoNome: nameSchema,
           professorResponsavelNome: nameSchema,
+          ano: z.number(),
+          semestre: semestreSchema,
+          cargaHorariaSemana: z.number(),
+          publicoAlvo: z.string(),
           disciplinas: z.array(
             z.object({
               codigo: z.string(),
@@ -1264,8 +1270,13 @@ export const projetoRouter = createTRPCRouter({
           .select({
             id: projetoTable.id,
             titulo: projetoTable.titulo,
+            descricao: projetoTable.descricao,
             departamentoNome: departamentoTable.nome,
             professorResponsavelNome: professorTable.nomeCompleto,
+            ano: projetoTable.ano,
+            semestre: projetoTable.semestre,
+            cargaHorariaSemana: projetoTable.cargaHorariaSemana,
+            publicoAlvo: projetoTable.publicoAlvo,
             bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
             voluntariosSolicitados: projetoTable.voluntariosSolicitados,
           })
@@ -1319,8 +1330,13 @@ export const projetoRouter = createTRPCRouter({
             return {
               id: projeto.id,
               titulo: projeto.titulo,
+              descricao: projeto.descricao,
               departamentoNome: projeto.departamentoNome,
               professorResponsavelNome: projeto.professorResponsavelNome,
+              ano: projeto.ano,
+              semestre: projeto.semestre,
+              cargaHorariaSemana: projeto.cargaHorariaSemana,
+              publicoAlvo: projeto.publicoAlvo,
               disciplinas,
               bolsasDisponibilizadas: projeto.bolsasDisponibilizadas || 0,
               voluntariosSolicitados: projeto.voluntariosSolicitados || 0,

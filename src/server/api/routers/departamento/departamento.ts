@@ -1,5 +1,5 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { alunoTable, cursoTable, departamentoTable, disciplinaTable, professorTable, projetoTable } from '@/server/db/schema'
+import { cursoTable, departamentoTable, disciplinaTable, professorTable, projetoTable } from '@/server/db/schema'
 import { createDepartmentSchema, departamentoSchema, updateDepartmentSchema } from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'

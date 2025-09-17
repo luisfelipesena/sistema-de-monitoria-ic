@@ -10,7 +10,7 @@ import {
   vagaTable,
 } from '@/server/db/schema'
 import { SELECTED_BOLSISTA, SELECTED_VOLUNTARIO } from '@/types'
-import { and, count, desc, eq, sum } from 'drizzle-orm'
+import { and, count, desc, eq, isNull, sum } from 'drizzle-orm'
 import { z } from 'zod'
 
 export const scholarshipAllocationRouter = createTRPCRouter({
@@ -47,7 +47,8 @@ export const scholarshipAllocationRouter = createTRPCRouter({
           and(
             eq(projetoTable.status, 'APPROVED'),
             eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
+            eq(projetoTable.semestre, input.semestre),
+            isNull(projetoTable.deletedAt)
           )
         )
         .orderBy(desc(projetoTable.titulo))
@@ -147,7 +148,8 @@ export const scholarshipAllocationRouter = createTRPCRouter({
           and(
             eq(projetoTable.status, 'APPROVED'),
             eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
+            eq(projetoTable.semestre, input.semestre),
+            isNull(projetoTable.deletedAt)
           )
         )
 
@@ -169,7 +171,8 @@ export const scholarshipAllocationRouter = createTRPCRouter({
           and(
             eq(projetoTable.status, 'APPROVED'),
             eq(projetoTable.ano, input.ano),
-            eq(projetoTable.semestre, input.semestre)
+            eq(projetoTable.semestre, input.semestre),
+            isNull(projetoTable.deletedAt)
           )
         )
         .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)

@@ -36,14 +36,9 @@ import {
   ACCEPTED_BOLSISTA,
   SUBMITTED,
   APPROVED,
-  REJECTED,
-  SELECTED_BOLSISTA,
-  SELECTED_VOLUNTARIO,
-  ACCEPTED_VOLUNTARIO,
   BOLSISTA,
   VOLUNTARIO,
   TIPO_VAGA_ENUM,
-  PROJETO_STATUS_ENUM,
   SEMESTRE_LABELS,
 } from '@/types'
 import { TRPCError } from '@trpc/server'
@@ -147,11 +142,7 @@ async function checkDadosFaltantesPrograd(
       .innerJoin(alunoTable, eq(vagaTable.alunoId, alunoTable.id))
       .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
       .where(
-        and(
-          eq(vagaTable.tipo, VOLUNTARIO),
-          eq(projetoTable.ano, input.ano),
-          eq(projetoTable.semestre, input.semestre)
-        )
+        and(eq(vagaTable.tipo, VOLUNTARIO), eq(projetoTable.ano, input.ano), eq(projetoTable.semestre, input.semestre))
       )
 
     for (const voluntario of voluntarios) {
@@ -900,7 +891,7 @@ export const relatoriosRouter = createTRPCRouter({
           const inicioSemestre = new Date(ano, semestre === 'SEMESTRE_1' ? 1 : 6, 1)
           const fimSemestre = new Date(ano, semestre === 'SEMESTRE_1' ? 5 : 11, 30)
 
-          const tipoMonitoria: typeof TIPO_VAGA_ENUM[number] =
+          const tipoMonitoria: (typeof TIPO_VAGA_ENUM)[number] =
             vaga.inscricao.status === ACCEPTED_BOLSISTA ? BOLSISTA : VOLUNTARIO
 
           return {

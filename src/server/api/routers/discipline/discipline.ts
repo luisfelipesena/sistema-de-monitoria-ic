@@ -209,7 +209,9 @@ export const disciplineRouter = createTRPCRouter({
           await tx.delete(projetoTemplateTable).where(eq(projetoTemplateTable.disciplinaId, input.id))
 
           // Delete professor responsibilities
-          await tx.delete(disciplinaProfessorResponsavelTable).where(eq(disciplinaProfessorResponsavelTable.disciplinaId, input.id))
+          await tx
+            .delete(disciplinaProfessorResponsavelTable)
+            .where(eq(disciplinaProfessorResponsavelTable.disciplinaId, input.id))
 
           // Delete projeto-disciplina relationships
           await tx.delete(projetoDisciplinaTable).where(eq(projetoDisciplinaTable.disciplinaId, input.id))

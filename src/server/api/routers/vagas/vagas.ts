@@ -1,7 +1,15 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { alunoTable, assinaturaDocumentoTable, inscricaoTable, projetoTable, vagaTable } from '@/server/db/schema'
 import { emailService } from '@/server/lib/email-service'
-import { semestreSchema, tipoVagaSchema, ACCEPTED_BOLSISTA, ACCEPTED_VOLUNTARIO, REJECTED_BY_STUDENT, BOLSISTA, VOLUNTARIO } from '@/types'
+import {
+  semestreSchema,
+  tipoVagaSchema,
+  ACCEPTED_BOLSISTA,
+  ACCEPTED_VOLUNTARIO,
+  REJECTED_BY_STUDENT,
+  BOLSISTA,
+  VOLUNTARIO,
+} from '@/types'
 import { TRPCError } from '@trpc/server'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
