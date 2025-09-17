@@ -326,7 +326,156 @@ ALUNO: Visualiza Vagas → Inscreve-se → Aceita/Recusa → Assina Termo
 
 **Resultado Final**: Sistema completo de monitoria funcionando end-to-end com todas as assinaturas digitais, documentos gerados e integração PROGRAD operacional.
 
-## 8. Conclusão
+## 8. Próximos Passos Após Fechamento do Prazo de Inscrições
+
+### **FASE PÓS-INSCRIÇÃO: Processo Seletivo e Finalização**
+
+Após o fechamento do prazo de inscrições dos alunos, o sistema entra na fase crítica de seleção e finalização. Aqui está o fluxo detalhado dos próximos steps:
+
+### **STEP 1: Transição Automática do Sistema**
+**Responsável**: Sistema (Automático)
+- ✅ **Data de Fim das Inscrições Alcançada**: O sistema automaticamente bloqueia novas inscrições
+- ✅ **Interface do Estudante**: Página de inscrição exibe "Período de Inscrições Encerrado"
+- ✅ **Roteamento**: Alunos são redirecionados para `Monitoria > Meu Status` para acompanhar resultados
+- ✅ **Notificações**: Sistema pode enviar email automático confirmando fim das inscrições
+
+### **STEP 2: Início do Período de Avaliação (Professores)**
+**Responsável**: Professores
+**Páginas Principais**:
+- `/home/professor/candidatos` - Listar todos os candidatos inscritos
+- `/home/professor/grade-applications` - Avaliar individualmente cada candidato
+- `/home/professor/select-monitors` - Selecionar monitores finais
+
+**Fluxo Detalhado**:
+1. **Gerenciar Candidatos** (`/professor/candidatos`):
+   - Visualiza lista completa de inscritos por projeto
+   - Pode filtrar por tipo de vaga (bolsista/voluntário)
+   - Acesso direto aos documentos enviados pelos alunos
+   - Status: `SUBMITTED` (aguardando avaliação)
+
+2. **Avaliar Candidatos** (`/professor/grade-applications`):
+   - Interface individual para cada candidato
+   - Campos de avaliação: nota disciplina, nota seleção, CR, nota final calculada
+   - Campo de feedback/comentários do professor
+   - **Router tRPC**: `src/server/api/routers/inscricao/inscricao.ts` - mutations para salvar avaliações
+   - Status continua: `SUBMITTED` (avaliado, mas não selecionado)
+
+3. **Selecionar Monitores** (`/professor/select-monitors`):
+   - Lista candidatos ordenados por nota final
+   - Professor seleciona dentro das cotas disponíveis:
+     - Bolsistas: limitado pelo `bolsasDisponibilizadas` do projeto
+     - Voluntários: limitado pelo `voluntariosSolicitados` do projeto
+   - **Router tRPC**: `src/server/api/routers/selecao/selecao.ts` - `selectMonitors` mutation
+   - **Status Update**:
+     - Selecionados → `SELECTED_BOLSISTA` ou `SELECTED_VOLUNTARIO`
+     - Não selecionados → `REJECTED_BY_PROFESSOR`
+
+### **STEP 3: Publicação de Resultados (Professores)**
+**Responsável**: Professores
+**Página Principal**: `/home/professor/publicar-resultados`
+
+**Fluxo Detalhado**:
+1. Professor acessa página de publicação de resultados
+2. Revisa seleções finais de todos os seus projetos
+3. Clica em "Publicar Resultados"
+4. **Sistema executa** (`selecao.ts` - `publishResults`):
+   - Finaliza status de todas as inscrições
+   - Envia emails automáticos para todos os alunos (selecionados e não selecionados)
+   - Marca resultados como públicos no sistema
+5. **Notificação por Email**: Sistema envia automaticamente via `sendStudentSelectionResultNotification`
+
+### **STEP 4: Resposta dos Alunos (Students)**
+**Responsável**: Alunos selecionados
+**Páginas Principais**:
+- `/home/student/resultados` - Ver resultado da seleção
+- `/home/common/status` - Acompanhar status e aceitar/recusar vaga
+
+**Fluxo Detalhado**:
+1. **Verificar Resultado** (`/student/resultados`):
+   - Aluno vê se foi selecionado ou não
+   - Status visível: `SELECTED_BOLSISTA`, `SELECTED_VOLUNTARIO`, ou `REJECTED_BY_PROFESSOR`
+   - Feedback do professor (se fornecido)
+
+2. **Aceitar ou Recusar Vaga** (`/common/status`):
+   - **Se selecionado**: Interface para aceitar ou recusar
+   - **Aceitar**: Status → `ACCEPTED_BOLSISTA` ou `ACCEPTED_VOLUNTARIO`
+   - **Recusar**: Status → `REJECTED_BY_STUDENT`
+   - **Router tRPC**: Mutations para atualizar status de aceitação
+
+### **STEP 5: Geração de Documentos Oficiais (Professores)**
+**Responsável**: Professores
+**Páginas Principais**:
+- `/home/professor/atas-selecao` - Gerar e assinar atas de seleção
+- `/home/professor/termos-compromisso` - Gerenciar termos de compromisso
+
+**Fluxo Detalhado**:
+1. **Atas de Seleção** (`/professor/atas-selecao`):
+   - **Router tRPC**: `selecao.ts` - `generateAtaData` para dados da ata
+   - Professor gera ata PDF com candidatos selecionados
+   - Assinatura digital da ata via `react-signature-canvas`
+   - **Router tRPC**: `selecao.ts` - `signAta` mutation
+   - Ata finalizada fica disponível para download
+
+2. **Termos de Compromisso** (`/professor/termos-compromisso`):
+   - Sistema gera automaticamente termos para alunos que aceitaram
+   - Professor pode revisar antes de disponibilizar para assinatura do aluno
+   - **Schema**: `termoCompromissoTable` registra histórico de termos
+
+### **STEP 6: Assinatura de Termos (Students)**
+**Responsável**: Alunos que aceitaram vagas
+**Fluxo Detalhado**:
+1. Aluno com status `ACCEPTED_*` acessa `/common/status`
+2. Sistema apresenta termo de compromisso para assinatura
+3. Assinatura digital via `react-signature-canvas`
+4. **PDF Processing**: Embedding da assinatura no PDF via `pdf-lib`
+5. **Storage**: Documento final salvo no MinIO
+6. Status final: Monitor oficialmente cadastrado
+
+### **STEP 7: Finalização Administrativa (Admin)**
+**Responsável**: Administradores
+**Páginas Principais**:
+- `/home/admin/analytics` - Acompanhar estatísticas gerais
+- `/home/admin/relatorios` - Gerar relatórios PROGRAD
+- `/home/admin/consolidacao-prograd` - Consolidar dados finais
+
+**Fluxo Detalhado**:
+1. **Analytics e Acompanhamento**:
+   - Dashboard com estatísticas de todo o processo seletivo
+   - Número de inscritos, selecionados, vagas preenchidas
+   - Status de documentação por projeto
+
+2. **Relatórios PROGRAD**:
+   - Geração de planilhas oficiais com monitores finalizados
+   - Export de dados para submissão à PROGRAD
+   - Validação de limites (1 bolsa por aluno por semestre)
+
+3. **Consolidação Final**:
+   - Confirmação de que todos os documentos foram assinados
+   - Verificação de pendências
+   - Fechamento oficial do processo seletivo
+
+### **ENTIDADES E STATUS ENVOLVIDOS**
+
+**Estados da Inscrição** (`statusInscricaoEnum`):
+- `SUBMITTED` → `SELECTED_BOLSISTA/SELECTED_VOLUNTARIO/REJECTED_BY_PROFESSOR` → `ACCEPTED_BOLSISTA/ACCEPTED_VOLUNTARIO/REJECTED_BY_STUDENT`
+
+**Tabelas Principais Utilizadas**:
+- `inscricaoTable` - Controla todo o fluxo de status
+- `ataSelecaoTable` - Registros das atas geradas e assinadas
+- `termoCompromissoTable` - Termos assinados pelos monitores
+- `assinaturaDocumentoTable` - Todas as assinaturas digitais do processo
+
+### **PONTOS CRÍTICOS DE VALIDAÇÃO**
+
+1. **Quotas de Vagas**: Sistema deve respeitar `bolsasDisponibilizadas` e `voluntariosSolicitados`
+2. **Limite por Aluno**: Validação de 1 bolsa por aluno por semestre
+3. **Prazos**: Verificação se período de avaliação está ativo
+4. **Documentação**: Todos os documentos oficiais devem ser assinados digitalmente
+5. **Integridade de Dados**: Status devem ser atualizados atomicamente via transactions
+
+**Resultado Final**: Sistema de monitoria completo com processo seletivo finalizado, documentos assinados e dados prontos para submissão à PROGRAD.
+
+## 9. Conclusão
 
 O desenvolvimento das funcionalidades críticas do Sistema de Monitoria IC está **completamente finalizado**. O sistema passou por uma limpeza completa do código, eliminando todos os placeholders e TODOs, e está totalmente estável, testado e pronto para implantação em produção.
 
@@ -340,6 +489,7 @@ Todas as funcionalidades solicitadas pelo cliente foram implementadas e estão o
 - ✅ Processo seletivo com interface para professores
 - ✅ Validações de período em todas as páginas relevantes
 - ✅ Fluxo completo de documentação e exportação
+- ✅ **Processo pós-inscrição documentado e funcional**
 --------------------------------
 
  ✅ MÓDULO 1: Gestão de Projetos - 100% COMPLETO
