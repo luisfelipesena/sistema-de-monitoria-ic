@@ -6,22 +6,22 @@
 **TAREFA** - Remover documentos obrigatórios do onboarding professor
 **DESCRIÇÃO** - Remover Curriculum Vitae e Comprovante de Vínculo como documentos obrigatórios no onboarding
 **CONTEXTO** - Atualmente o onboarding força upload de documentos que não são necessários para o fluxo. O sistema deve focar apenas no essencial: dados pessoais e assinatura digital
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Remover vínculo de disciplinas do onboarding professor
 **DESCRIÇÃO** - Retirar toda lógica de seleção/criação de disciplinas do onboarding do professor
 **CONTEXTO** - As disciplinas devem ser vinculadas apenas no momento da criação do projeto, não no onboarding. Isso simplifica o onboarding e torna o fluxo mais natural
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Tornar assinatura digital obrigatória no onboarding professor
 **DESCRIÇÃO** - Mover assinatura digital do "Meu Perfil" para o onboarding, tornando-a obrigatória para completar o cadastro
 **CONTEXTO** - A assinatura digital é essencial para assinar projetos, deve estar disponível desde o onboarding
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Tornar SIAPE obrigatório no onboarding professor
 **DESCRIÇÃO** - Alterar campo matriculaSiape para obrigatório no formulário de onboarding
 **CONTEXTO** - SIAPE é identificador essencial do professor na universidade, deve ser obrigatório
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 ### 2. REMOÇÃO DE FUNCIONALIDADES DESNECESSÁRIAS
 **TAREFA** - Remover "Minhas API Keys" do sistema
@@ -162,10 +162,14 @@
 7. **Sistema editais melhorado** - Associação com semestres
 8. **UX/UI improvements** - Simplificação sidebar e navegação
 
-**STATUS ATUAL**: 🟡 **EM PROGRESSO** - 3 tickets completados (Templates, Professores Coletivos, Carga Horária 204h)
+**STATUS ATUAL**: 🟡 **EM PROGRESSO** - 7 tickets completados (Templates, Professores Coletivos, Carga Horária 204h, Onboarding Professor Simplificado)
 **META**: Implementar todos os tickets para versão final do sistema
 
 ### ✅ TICKETS COMPLETADOS
 - ✅ **Implementar sistema de templates de projeto por disciplina** - Sistema completo com workflows de template/projeto
 - ✅ **Implementar campo de professores participantes em projetos coletivos** - Campo condicional implementado
 - ✅ **Ajustar valores padrão de carga horária** - Padrão 204h implementado
+- ✅ **Remover documentos obrigatórios do onboarding professor** - Documentos CV e Comprovante removidos como obrigatórios
+- ✅ **Remover vínculo de disciplinas do onboarding professor** - Disciplinas movidas para criação de projetos
+- ✅ **Tornar assinatura digital obrigatória no onboarding professor** - Assinatura integrada ao fluxo obrigatório
+- ✅ **Tornar SIAPE obrigatório no onboarding professor** - Campo matriculaSiape já configurado como obrigatório

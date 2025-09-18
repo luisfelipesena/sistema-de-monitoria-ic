@@ -71,16 +71,16 @@ describe('onboardingRouter', () => {
       const mockContext = createMockContext(mockProfessorUser)
       const caller = onboardingRouter.createCaller(mockContext)
 
-      const mockProfile = { id: 1, curriculumVitaeFileId: 'cv-id', comprovanteVinculoFileId: 'vinculo-id' }
-      vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfile as any)
-      vi.spyOn(mockContext.db.query.disciplinaProfessorResponsavelTable, 'findFirst').mockResolvedValue({
+      const mockProfile = {
         id: 1,
-      } as any)
+        assinaturaDefault: 'base64signature',
+        dataAssinaturaDefault: new Date()
+      }
+      vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfile as any)
 
       const result = await caller.getStatus()
       expect(result.pending).toBe(false)
       expect(result.documents.missing).toHaveLength(0)
-      expect(result.disciplinas?.configured).toBe(true)
     })
   })
 })

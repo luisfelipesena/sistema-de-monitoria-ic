@@ -183,6 +183,13 @@
       "when": 1758206305539,
       "tag": "0025_sharp_the_captain",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1758210877216,
+      "tag": "0026_curly_flatman",
+      "breakpoints": true
     }
   ]
 }
