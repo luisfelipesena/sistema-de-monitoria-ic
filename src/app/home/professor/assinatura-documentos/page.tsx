@@ -98,8 +98,6 @@ function DocumentSigningContent() {
         return <Badge variant="outline">Aguardando Assinatura Professor</Badge>
       case "SUBMITTED":
         return <Badge variant="secondary">Submetido para Análise</Badge>
-      case "PENDING_ADMIN_SIGNATURE":
-        return <Badge variant="secondary">Aguardando Assinatura Admin</Badge>
       case "APPROVED":
         return <Badge className="bg-green-100 text-green-800">Aprovado</Badge>
       case "REJECTED":

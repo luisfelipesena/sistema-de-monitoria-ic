@@ -167,12 +167,6 @@ export default function DashboardProfessor() {
           return <Badge variant="outline">Rascunho</Badge>
         } else if (status === "PENDING_PROFESSOR_SIGNATURE") {
           return <Badge variant="secondary">Aguardando Assinatura do Professor</Badge>
-        } else if (status === "PENDING_ADMIN_SIGNATURE") {
-          return (
-            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-              Aguardando Assinatura do Admin
-            </Badge>
-          )
         }
         return <Badge variant="outline">{status}</Badge>
       },
@@ -261,7 +255,6 @@ export default function DashboardProfessor() {
             )}
 
             {(projeto.status === "SUBMITTED" ||
-              projeto.status === "PENDING_ADMIN_SIGNATURE" ||
               projeto.status === "APPROVED" ||
               projeto.status === "REJECTED") && (
               <Button

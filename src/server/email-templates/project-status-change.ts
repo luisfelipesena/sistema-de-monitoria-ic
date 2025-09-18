@@ -31,12 +31,6 @@ export function getProjetoStatusChangeHTML(data: ProjetoStatusChangeData): strin
                  <p>Por favor, acesse o sistema para revisar os detalhes, baixar o documento para assinatura e realizar o upload do documento assinado.</p>`
       color = '#ff9800'
       break
-    case 'PENDING_ADMIN_SIGNATURE':
-      title = '✍️ Projeto Aguardando Assinatura do Administrador'
-      message = `<p>O projeto de monitoria "<strong>${data.projetoTitulo}</strong>", submetido pelo Prof(a). ${data.professorNome}, foi aprovado preliminarmente e agora aguarda a assinatura do administrador.</p>
-                 <p>Acesse o sistema para revisar e assinar a proposta.</p>`
-      color = '#ff9800'
-      break
     case 'APPROVED':
       title = '✅ Projeto Aprovado!'
       message = `<p>Parabéns! Seu projeto de monitoria "<strong>${data.projetoTitulo}</strong>" foi <strong>APROVADO</strong>.</p>`

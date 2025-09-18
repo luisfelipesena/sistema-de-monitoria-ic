@@ -39,7 +39,6 @@ export const PROJETO_STATUS_ENUM = [
   'SUBMITTED',
   'APPROVED',
   'REJECTED',
-  'PENDING_ADMIN_SIGNATURE',
   'PENDING_PROFESSOR_SIGNATURE',
 ] as const
 export const projetoStatusSchema = z.enum(PROJETO_STATUS_ENUM)
@@ -161,7 +160,6 @@ export const WAITING_LIST = 'WAITING_LIST' as const
 export const DRAFT = 'DRAFT' as const
 export const APPROVED = 'APPROVED' as const
 export const REJECTED = 'REJECTED' as const
-export const PENDING_ADMIN_SIGNATURE = 'PENDING_ADMIN_SIGNATURE' as const
 export const PENDING_PROFESSOR_SIGNATURE = 'PENDING_PROFESSOR_SIGNATURE' as const
 
 // Monitor/Vaga type constants
@@ -206,7 +204,6 @@ export const PROJETO_STATUS_LABELS = {
   SUBMITTED: 'Submetido',
   APPROVED: 'Aprovado',
   REJECTED: 'Rejeitado',
-  PENDING_ADMIN_SIGNATURE: 'Pendente Assinatura Admin',
   PENDING_PROFESSOR_SIGNATURE: 'Pendente Assinatura Professor',
 } as const
 

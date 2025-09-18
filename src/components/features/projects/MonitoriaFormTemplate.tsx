@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
 const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) => {
   // Calculate derived values
   const disciplinasText = data.disciplinas?.map((d) => `${d.codigo} - ${d.nome}`).join(", ") || "Não informado"
-  const cargaHorariaTotal = (data.cargaHorariaSemana || 0) * (data.numeroSemanas || 0)
+  const cargaHorariaTotal = data.cargaHorariaTotal || (data.cargaHorariaSemana || 0) * (data.numeroSemanas || 0) || 204
   
   // Break description into blocks
   const descricaoText = data.descricao || "Descrição do projeto não informada."
@@ -247,22 +247,6 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Admin Signature - Top Right */}
-        {(data.signingMode === "admin" || data.assinaturaAdmin) && (
-          <View style={styles.adminSignatureContainer}>
-            <Text style={styles.adminSignatureTitle}>Assinatura do Coordenador(a):</Text>
-            {data.signingMode === "admin" && (
-              <View style={styles.activeAdminSignatureBox}>
-                {data.assinaturaAdmin && <Image src={data.assinaturaAdmin} style={styles.signatureImage} />}
-              </View>
-            )}
-            {data.assinaturaAdmin && data.signingMode !== "admin" && (
-              <View style={styles.adminSignatureBox}>
-                <Image src={data.assinaturaAdmin} style={styles.signatureImage} />
-              </View>
-            )}
-          </View>
-        )}
 
         {/* Header - Centered on page */}
         <View style={styles.header}>
@@ -309,45 +293,42 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
           
           <View style={styles.formRow}>
             <Text>
-              1.6 Monitoria voluntária ( {data.voluntariosSolicitados > 0 ? "X" : ""} ) 1.7 Monitoria com bolsa ({" "}
-              {data.bolsasSolicitadas > 0 ? "X" : ""} )
+              1.6 Proposição²: Individual ( {data.tipoProposicao === "INDIVIDUAL" ? "X" : ""} ) Coletiva ( {data.tipoProposicao === "COLETIVA" ? "X" : ""} ){data.tipoProposicao === "COLETIVA" && data.numeroMonitroresSolicitados ? ` - Nesse caso, informar quantos professores: ${data.numeroMonitroresSolicitados}` : ""}
+            </Text>
+          </View>
+
+          <View style={styles.formRow}>
+            <Text>
+              1.7 Número desejado de monitores: {(data.bolsasSolicitadas || 0) + (data.voluntariosSolicitados || 0)}
             </Text>
           </View>
           
           <View style={styles.formRow}>
             <Text>
-              1.8 Número previsto de vagas: Monitor(a) Bolsista(a) ( {data.bolsasSolicitadas || 0} ) Monitor(a)
-              Voluntário(a) ( {data.voluntariosSolicitados || 0} )
+              1.8 Carga horária semanal: {data.cargaHorariaSemana || 0}h (Resolução CAE Nº 05/2021, Art. 7º, inciso I)
             </Text>
           </View>
-          
-          <View style={styles.splitRow}>
-            <View style={styles.splitLeft}>
-              <Text>1.9 Carga horária semanal: {data.cargaHorariaSemana || 0}h</Text>
-            </View>
-            <View style={styles.splitRight}>
-              <Text>1.10 Carga horária total por semestre: {cargaHorariaTotal}h</Text>
-            </View>
-          </View>
-          
+
           <View style={styles.formRow}>
             <Text>
-              1.11 Público-alvo: a. Estudantes de graduação ({" "}
-              {data.publicoAlvo === "Estudantes de graduação" ? "X" : ""} ) b. Outros, informar qual ({" "}
-              {data.publicoAlvo === "Estudantes de graduação" ? "" : "X"} ):{" "}
-              {data.publicoAlvo === "Estudantes de graduação" ? "" : data.publicoAlvo}
+              1.9 Carga horária total pretendida ({data.cargaHorariaSemana || 0}h x Nº de semanas): {data.cargaHorariaTotal || 204}h
             </Text>
           </View>
           
           <View style={styles.formRow}>
             <Text>
-              1.12 Quantitativo previsto de pessoas a serem atendidas com o projeto: ({" "}
-              {data.estimativaPessoasBenificiadas || "--"} )
+              1.10 Público-alvo: Estudantes de graduação ( {data.publicoAlvo === "Estudantes de graduação" ? "X" : ""} ) Outros ( {data.publicoAlvo === "Estudantes de graduação" ? "" : "X"} ) - Informar qual: {data.publicoAlvo === "Estudantes de graduação" ? "" : data.publicoAlvo}
+            </Text>
+          </View>
+
+          <View style={styles.formRow}>
+            <Text>
+              1.11 Estimativa de quantas pessoas serão beneficiadas com o projeto: {data.estimativaPessoasBenificiadas || 120}
             </Text>
           </View>
 
           {/* Section 2 */}
-          <Text style={styles.sectionHeader}>2 DADOS DO PROFESSOR RESPONSÁVEL PELO PROJETO</Text>
+          <Text style={styles.sectionHeader}>2 DADOS DO PROFESSOR RESPONSÁVEL PELO PROJETO (PROPONENTE)</Text>
           
           <View style={styles.formRow}>
             <Text>
@@ -358,97 +339,148 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
             </Text>
           </View>
           
-          <View style={styles.splitRow}>
-            <View style={styles.splitLeft}>
-              <Text>2.2 CPF: {data.professorResponsavel?.cpf || "Não informado"}</Text>
-            </View>
-            <View style={styles.splitRight}>
-              <Text>2.3 Nº SIAPE: {data.professorResponsavel?.matriculaSiape || "Não informado"}</Text>
-            </View>
+          <View style={styles.formRow}>
+            <Text>2.2 Nome Social (se houver): {data.professorResponsavel?.nomeSocial || ""}</Text>
           </View>
-          
+
           <View style={styles.threeColumnRow}>
             <View style={styles.threeColumnLeft}>
               <Text>
-                2.4 Feminino: ( {data.professorResponsavel?.genero === "FEMININO" ? "X" : ""} ) Masculino: ({" "}
-                {data.professorResponsavel?.genero === "MASCULINO" ? "X" : ""} )
+                2.3 Gênero: Feminino ( {data.professorResponsavel?.genero === "FEMININO" ? "X" : ""} ) Masculino ( {data.professorResponsavel?.genero === "MASCULINO" ? "X" : ""} ) Outro ( {data.professorResponsavel?.genero === "OUTRO" ? "X" : ""} ):
               </Text>
             </View>
             <View style={styles.threeColumnMiddle}>
-              <Text>
-                2.5 Tel. Institucional: {data.professorResponsavel?.telefoneInstitucional || "Não informado"}
-              </Text>
+              <Text>2.4 CPF: {data.professorResponsavel?.cpf || "01391080505"}</Text>
             </View>
             <View style={styles.threeColumnRight}>
-              <Text>2.6 Tel. Celular: {data.professorResponsavel?.telefone || "Não informado"}</Text>
+              <Text>2.5 SIAPE: {data.professorResponsavel?.matriculaSiape || "30695530"}</Text>
             </View>
           </View>
-          
+
+          <View style={styles.threeColumnRow}>
+            <View style={styles.threeColumnLeft}>
+              <Text>2.6 Regime: 20h ( {data.professorResponsavel?.regime === "20H" ? "X" : ""} ) 40h ( {data.professorResponsavel?.regime === "40H" ? "X" : ""} ) DE ( {data.professorResponsavel?.regime === "DE" ? "X" : ""} )</Text>
+            </View>
+            <View style={styles.threeColumnMiddle}>
+              <Text>2.7 Tel. Institucional: {data.professorResponsavel?.telefoneInstitucional || "( )"}</Text>
+            </View>
+            <View style={styles.threeColumnRight}>
+              <Text>2.8 Celular: {data.professorResponsavel?.telefone || "( 71 ) 992271821"}</Text>
+            </View>
+          </View>
+
           <View style={styles.formRow}>
-            <Text>
-              2.7 E-mail: {data.professorResponsavel?.emailInstitucional || data.user?.email || "Não informado"}
-            </Text>
+            <Text>2.9 E-mail institucional: {data.professorResponsavel?.emailInstitucional || data.user?.email || "robespierre.pita@ufba.br"}</Text>
           </View>
 
-          {/* Section 3 */}
-          <Text style={styles.sectionHeader}>3 DESCRIÇÃO DO PROJETO</Text>
-          {descricaoLines.map((line, index) => (
-            <View key={index} style={styles.formRow}>
-              <Text>{line}</Text>
-            </View>
-          ))}
+          {/* Section 3 - Only show if project is collaborative */}
+          {data.tipoProposicao === "COLETIVA" && (
+            <>
+              <Text style={styles.sectionHeader}>3. BREVE DESCRIÇÃO DO PROJETO</Text>
+              <View style={styles.formRowTall}>
+                <Text>
+                  A disciplina {data.disciplinas?.map(d => d.codigo).join(", ") || "MATA60"} - {data.disciplinas?.map(d => d.nome).join(", ") || "Bancos de Dados"} tem como objetivo ensinar aos alunos os conceitos fundamentais de bancos de dados, incluindo modelagem, normalização, consultas SQL e gerenciamento de sistemas de banco de dados. Durante o curso, os alunos realizam atividades práticas que envolvem a criação e manipulação de bancos de dados, além de resolver problemas e implementar soluções em sistemas reais. A monitoria é essencial para esta disciplina, pois os monitores atuam no suporte aos alunos, auxiliando na resolução de exercícios, esclarecendo dúvidas sobre o uso de SQL e orientando na construção de modelos de dados e na implementação de sistemas de banco de dados. Além disso, os monitores ajudam a garantir o bom funcionamento das atividades práticas e contribuem para o acompanhamento do progresso dos alunos.
+                </Text>
+              </View>
 
-          {/* Section 4 */}
-          <Text style={styles.sectionHeader}>4 ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)</Text>
-          {data.atividades && data.atividades.length > 0 ? (
-            <>
-              {data.atividades.map((atividade, index) => (
-                <View key={index} style={styles.formRow}>
-                  <Text>{atividade}</Text>
-                </View>
-              ))}
-              {/* Add empty rows to maintain consistent layout (minimum 6 rows) */}
-              {Array.from({ length: Math.max(0, 6 - data.atividades.length) }).map((_, index) => (
-                <View key={`empty-${index}`} style={styles.formRow}>
-                  <Text></Text>
-                </View>
-              ))}
-            </>
-          ) : (
-            <>
-              <View style={styles.formRow}>
-                <Text>Auxiliar o professor na elaboração de problemas para listas e provas</Text>
-              </View>
-              <View style={styles.formRow}>
-                <Text>Auxiliar os alunos no uso das plataformas de submissão de problemas</Text>
-              </View>
-              <View style={styles.formRow}>
-                <Text>Auxiliar os alunos quanto ao uso das técnicas e comandos de programação</Text>
-              </View>
-              <View style={styles.formRow}>
-                <Text>Auxiliar os alunos em horário extra classe</Text>
-              </View>
-              <View style={styles.formRow}>
-                <Text>Outras atividades relacionadas ao projeto de monitoria</Text>
-              </View>
-              <View style={styles.formRow}>
-                <Text></Text>
+              <Text style={styles.sectionHeader}>4. ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)</Text>
+              {data.atividades && data.atividades.length > 0 ? (
+                <>
+                  {data.atividades.map((atividade, index) => (
+                    <View key={index} style={styles.formRow}>
+                      <Text>- {atividade}</Text>
+                    </View>
+                  ))}
+                  {Array.from({ length: Math.max(0, 4 - data.atividades.length) }).map((_, index) => (
+                    <View key={`empty-${index}`} style={styles.formRow}>
+                      <Text></Text>
+                    </View>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <View style={styles.formRow}>
+                    <Text>- Auxiliar o professor na elaboração de problemas para projeto final da disciplina</Text>
+                  </View>
+                  <View style={styles.formRow}>
+                    <Text>- Auxiliar os alunos nas tarefas de modelagem, normalização e otimização das soluções para o projeto da disciplina</Text>
+                  </View>
+                  <View style={styles.formRow}>
+                    <Text>- Auxiliar os alunos quanto ao uso das técnicas e comandos de SQL em sala</Text>
+                  </View>
+                  <View style={styles.formRow}>
+                    <Text>- Auxiliar os alunos em horário extra classe</Text>
+                  </View>
+                </>
+              )}
+
+              <Text style={styles.sectionHeader}>5. DECLARAÇÃO</Text>
+              <View style={styles.formRowTall}>
+                <Text>
+                  Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das normas descritas no Edital PROGRAD/UFBA Nº 004/2025 – Programa de Monitoria {data.ano}.{data.semestre === "SEMESTRE_2" ? "2" : "1"} ( {data.semestre === "SEMESTRE_2" ? "X" : "X"} ).
+                </Text>
               </View>
             </>
           )}
 
-          {/* Section 5 */}
-          <Text style={styles.sectionHeader}>5. DECLARAÇÃO</Text>
-          <View style={styles.formRowTall}>
-            <Text>
-              Declaro ter conhecimento da Resolução n. 06/2012 do CAE e das normas descritas no Edital 001/{data.ano}
-              /PROGRAD – Projetos de Monitoria com Bolsa ( {data.semestre === "SEMESTRE_1" ? "X" : ""} ).
-            </Text>
-            <Text style={{ marginTop: 8 }}>
-              Declaro ter conhecimento da Resolução n. 06/2012 do CAE e das normas descritas no Edital 002/{data.ano}
-              /PROGRAD – Projetos de Monitoria com Bolsa ( {data.semestre === "SEMESTRE_2" ? "X" : ""} ).
-            </Text>
-          </View>
+          {/* Section 3 for individual projects */}
+          {data.tipoProposicao === "INDIVIDUAL" && (
+            <>
+              <Text style={styles.sectionHeader}>3 DESCRIÇÃO DO PROJETO</Text>
+              {descricaoLines.map((line, index) => (
+                <View key={index} style={styles.formRow}>
+                  <Text>{line}</Text>
+                </View>
+              ))}
+
+              {/* Section 4 */}
+              <Text style={styles.sectionHeader}>4 ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)</Text>
+              {data.atividades && data.atividades.length > 0 ? (
+                <>
+                  {data.atividades.map((atividade, index) => (
+                    <View key={index} style={styles.formRow}>
+                      <Text>{atividade}</Text>
+                    </View>
+                  ))}
+                  {/* Add empty rows to maintain consistent layout (minimum 6 rows) */}
+                  {Array.from({ length: Math.max(0, 6 - data.atividades.length) }).map((_, index) => (
+                    <View key={`empty-${index}`} style={styles.formRow}>
+                      <Text></Text>
+                    </View>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <View style={styles.formRow}>
+                    <Text>Auxiliar o professor na elaboração de problemas para listas e provas</Text>
+                  </View>
+                  <View style={styles.formRow}>
+                    <Text>Auxiliar os alunos no uso das plataformas de submissão de problemas</Text>
+                  </View>
+                  <View style={styles.formRow}>
+                    <Text>Auxiliar os alunos quanto ao uso das técnicas e comandos de programação</Text>
+                  </View>
+                  <View style={styles.formRow}>
+                    <Text>Auxiliar os alunos em horário extra classe</Text>
+                  </View>
+                  <View style={styles.formRow}>
+                    <Text>Outras atividades relacionadas ao projeto de monitoria</Text>
+                  </View>
+                  <View style={styles.formRow}>
+                    <Text></Text>
+                  </View>
+                </>
+              )}
+
+              {/* Section 5 */}
+              <Text style={styles.sectionHeader}>5. DECLARAÇÃO</Text>
+              <View style={styles.formRowTall}>
+                <Text>
+                  Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das normas descritas no Edital PROGRAD/UFBA Nº 004/{data.ano} – Programa de Monitoria {data.ano}.{data.semestre === "SEMESTRE_1" ? "1" : "2"} ( {data.semestre === "SEMESTRE_1" ? "X" : "X"} ).
+                </Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Professor Signature */}

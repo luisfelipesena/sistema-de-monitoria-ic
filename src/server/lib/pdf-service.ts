@@ -187,7 +187,7 @@ export class PDFService {
   static async generateAndSaveSignedProjetoPDF(
     data: MonitoriaFormData,
     professorSignature?: string,
-    adminSignature?: string
+    _adminSignature?: string
   ): Promise<string> {
     try {
       log.info({ projetoId: data.projetoId }, 'Generating signed project PDF')
@@ -196,9 +196,7 @@ export class PDFService {
       const pdfData: MonitoriaFormData = {
         ...data,
         assinaturaProfessor: professorSignature,
-        assinaturaAdmin: adminSignature,
         dataAssinaturaProfessor: professorSignature ? new Date().toLocaleDateString('pt-BR') : undefined,
-        dataAssinaturaAdmin: adminSignature ? new Date().toLocaleDateString('pt-BR') : undefined,
       }
 
       // Generate the complete PDF with signatures included in the template

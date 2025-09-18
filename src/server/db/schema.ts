@@ -80,9 +80,8 @@ export const tipoVagaEnum = pgEnum('tipo_vaga_enum', ['BOLSISTA', 'VOLUNTARIO'])
 export const projetoStatusEnum = pgEnum('projeto_status_enum', [
   'DRAFT', // Professor creating the project
   'SUBMITTED', // Professor submitted for admin approval
-  'APPROVED', // Admin approved and signed
+  'APPROVED', // Admin approved (professor already signed)
   'REJECTED', // Admin rejected
-  'PENDING_ADMIN_SIGNATURE', // Admin approved but needs to sign (optional status)
   'PENDING_PROFESSOR_SIGNATURE', // Generated from import, needs professor signature
 ])
 
@@ -165,10 +164,11 @@ export const projetoTable = pgTable('projeto', {
     .references(() => professorTable.id)
     .notNull(),
   titulo: varchar('titulo').notNull(), // Added title
+  disciplinaNome: varchar('disciplina_nome'), // Main disciplina name for PROGRAD spreadsheet
   descricao: text('descricao').notNull(), // Objectives/Justification
+  professoresParticipantes: text('professores_participantes'), // Names of participating professors for collective projects
   status: projetoStatusEnum('status').notNull().default('DRAFT'),
   assinaturaProfessor: text('assinatura_professor'), // base64 data URL
-  assinaturaAdmin: text('assinatura_admin'), // base64 data URL
   // analiseSubmissao: text('analise_submissao'), // Renamed/Repurposed
   feedbackAdmin: text('feedback_admin'), // Admin feedback on approval/rejection
   // documentoUniqueId: text('documento_unique_id'), // Link to separate document table
@@ -256,7 +256,7 @@ export const professorTable = pgTable('professor', {
     .notNull(),
   nomeCompleto: varchar('nome_completo').notNull(),
   nomeSocial: varchar('nome_social'),
-  matriculaSiape: varchar('matricula_siape'),
+  matriculaSiape: varchar('matricula_siape').notNull(),
   genero: generoEnum('genero').notNull(),
   regime: regimeEnum('regime').notNull(),
   especificacaoGenero: varchar('especificacao_genero'),

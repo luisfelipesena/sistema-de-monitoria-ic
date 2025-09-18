@@ -15,7 +15,7 @@ export interface OnboardingStatus {
     uploaded: string[]
     missing: string[]
   }
-  disciplinas?: {
+  signature?: {
     configured: boolean
   }
 }
@@ -35,7 +35,7 @@ export const onboardingStatusResponseSchema = z.object({
     uploaded: z.array(z.string()),
     missing: z.array(z.string()),
   }),
-  disciplinas: z
+  signature: z
     .object({
       configured: z.boolean(),
     })

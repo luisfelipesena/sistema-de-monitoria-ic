@@ -67,7 +67,6 @@ export default function ProfessorProjetosPage() {
         estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || 0,
         disciplinas: [],
         assinaturaProfessor: projeto.assinaturaProfessor || undefined,
-        assinaturaAdmin: projeto.assinaturaAdmin || undefined,
         criadoEm: new Date().toISOString(),
         atualizadoEm: new Date().toISOString(),
       })) || []
@@ -201,7 +200,7 @@ export default function ProfessorProjetosPage() {
     }
 
     // PDF view button - for submitted, approved or rejected projects
-    if (["SUBMITTED", "APPROVED", "REJECTED", "PENDING_ADMIN_SIGNATURE"].includes(projeto.status)) {
+    if (["SUBMITTED", "APPROVED", "REJECTED"].includes(projeto.status)) {
       buttons.push(
         <Button
           key="pdf"
@@ -518,22 +517,6 @@ export default function ProfessorProjetosPage() {
                       </div>
                     </div>
 
-                    <div>
-                      <Label className="text-sm font-medium text-muted-foreground">Assinatura do Administrador</Label>
-                      <div className="mt-1">
-                        {selectedProjeto.assinaturaAdmin ? (
-                          <Badge className="bg-green-100 text-green-800">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Assinado
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline">
-                            <AlertCircle className="h-3 w-3 mr-1" />
-                            Pendente
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
 

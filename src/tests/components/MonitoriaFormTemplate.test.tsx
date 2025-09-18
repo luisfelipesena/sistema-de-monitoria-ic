@@ -57,10 +57,8 @@ const mockMonitoriaFormData: MonitoriaFormData = {
     role: 'professor',
   },
   assinaturaProfessor: undefined,
-  assinaturaAdmin: undefined,
   dataAprovacao: undefined,
   dataAssinaturaProfessor: undefined,
-  dataAssinaturaAdmin: undefined,
   projetoId: 1,
 }
 

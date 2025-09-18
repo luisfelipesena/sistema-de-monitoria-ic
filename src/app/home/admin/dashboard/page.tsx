@@ -7,11 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FilterModal, type FilterValues } from "@/components/ui/FilterModal";
 import {
   DashboardProjectItem,
-  MonitorConsolidado,
   UserListItem,
 } from "@/types";
 import { api } from "@/utils/api";
-import { getCurrentSemester } from "@/utils/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import {
@@ -31,7 +29,6 @@ import {
   User,
   Users,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -60,119 +57,6 @@ export default function DashboardAdmin() {
     (v) => v !== undefined && v !== ""
   ).length;
 
-  const { refetch: generateProgradSpreadsheet } =
-    api.relatorios.getConsolidatedMonitoringData.useQuery(
-      {
-        ano: new Date().getFullYear(),
-        semestre: getCurrentSemester().semester,
-      },
-      { enabled: false }
-    );
-
-  const handleDownloadPlanilhaPrograd = async () => {
-    try {
-      toast({
-        title: "Preparando planilha...",
-        description: "Gerando planilha para PROGRAD",
-      })
-      
-      await (
-        (async () => {
-          const {
-            data: result,
-            isError,
-            error,
-          } = await generateProgradSpreadsheet();
-
-          if (isError || !result) {
-            throw new Error(error?.message || "Erro ao buscar dados");
-          }
-
-          if (result.length === 0) {
-            throw new Error("Não há dados para gerar a planilha");
-          }
-
-          const csvHeader = [
-            "Matrícula Monitor",
-            "Nome Monitor",
-            "Email Monitor",
-            "CR",
-            "Tipo Monitoria",
-            "Valor Bolsa",
-            "Projeto",
-            "Disciplinas",
-            "Professor Responsável",
-            "SIAPE Professor",
-            "Departamento",
-            "Carga Horária Semanal",
-            "Total Horas",
-            "Data Início",
-            "Data Fim",
-            "Status",
-            "Período",
-          ];
-
-          const csvData = result.map((item: MonitorConsolidado) => [
-            item.monitor.matricula,
-            item.monitor.nome,
-            item.monitor.email,
-            item.monitor.cr.toFixed(2),
-            item.monitoria.tipo === "BOLSISTA" ? "Bolsista" : "Voluntário",
-            item.monitoria.valorBolsa
-              ? `R$ ${item.monitoria.valorBolsa.toFixed(2)}`
-              : "N/A",
-            item.projeto.titulo,
-            item.projeto.disciplinas,
-            item.professor.nome,
-            item.professor.matriculaSiape || "N/A",
-            item.professor.departamento,
-            item.projeto.cargaHorariaSemana,
-            item.projeto.cargaHorariaSemana * item.projeto.numeroSemanas,
-            item.monitoria.dataInicio,
-            item.monitoria.dataFim,
-            item.monitoria.status,
-            `${item.projeto.ano}.${
-              item.projeto.semestre === "SEMESTRE_1" ? "1" : "2"
-            }`,
-          ]);
-
-          const csvContent = [csvHeader, ...csvData]
-            .map((row) =>
-              row.map((cell: string | number) => `"${cell}"`).join(",")
-            )
-            .join("\n");
-
-          const blob = new Blob([csvContent], {
-            type: "text/csv;charset=utf-8;",
-          });
-          const link = document.createElement("a");
-          const url = URL.createObjectURL(blob);
-          link.setAttribute("href", url);
-          link.setAttribute(
-            "download",
-            `planilha-prograd-${new Date().getFullYear()}-1.csv`
-          );
-          link.style.visibility = "hidden";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        })()
-      )
-      
-      toast({
-        title: "Sucesso!",
-        description: "Planilha PROGRAD baixada com sucesso!",
-      })
-    } catch (error: any) {
-      console.error("Erro ao gerar planilha PROGRAD:", error);
-      toast({
-        title: "Erro",
-        description: `Erro ao gerar planilha: ${error?.message || 'Erro desconhecido'}`,
-        variant: "destructive",
-      })
-    }
-  };
 
   const handleGenerateEditalInterno = () => {
     router.push("/home/admin/edital-management");
@@ -239,7 +123,6 @@ export default function DashboardAdmin() {
       return {
         draft: 0,
         submitted: 0,
-        pendingAdminSignature: 0,
         approved: 0,
         rejected: 0,
       };
@@ -253,9 +136,6 @@ export default function DashboardAdmin() {
           case "SUBMITTED":
             acc.submitted++;
             break;
-          case "PENDING_ADMIN_SIGNATURE":
-            acc.pendingAdminSignature++;
-            break;
           case "APPROVED":
             acc.approved++;
             break;
@@ -268,7 +148,6 @@ export default function DashboardAdmin() {
       {
         draft: 0,
         submitted: 0,
-        pendingAdminSignature: 0,
         approved: 0,
         rejected: 0,
       }
@@ -345,12 +224,6 @@ export default function DashboardAdmin() {
           );
         } else if (status === "DRAFT") {
           return <Badge variant="outline">Rascunho</Badge>;
-        } else if (status === "PENDING_ADMIN_SIGNATURE") {
-          return (
-            <Badge variant="secondary" className="bg-purple-500 text-white">
-              Pendente de assinatura
-            </Badge>
-          );
         }
         return <Badge variant="outline">{status}</Badge>;
       },
@@ -503,9 +376,8 @@ export default function DashboardAdmin() {
           <Button
             variant="outline"
             size="sm"
-            className="text-green-600 border-green-600 hover:bg-green-50 text-xs sm:text-sm px-2 sm:px-4 disabled:text-gray-700 disabled:bg-gray-300"
-            onClick={() => handleDownloadPlanilhaPrograd()}
-            disabled={!actualProjetos || actualProjetos.length === 0}
+            className="text-green-600 border-green-600 hover:bg-green-50 text-xs sm:text-sm px-2 sm:px-4"
+            onClick={() => router.push("/home/admin/planilha-prograd")}
           >
             <Download className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Planilha PROGRAD</span>
@@ -623,24 +495,6 @@ export default function DashboardAdmin() {
                   </CardContent>
                 </Card>
 
-                <Link href="/home/admin/assinatura-documentos">
-                  <Card className="hover:bg-gray-100 transition-colors cursor-pointer">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-xs sm:text-sm font-medium">
-                        Pend. Assinatura
-                      </CardTitle>
-                      <FileSignature className="h-3 w-3 sm:h-4 sm:w-4 text-[hsl(var(--pending))]" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-lg sm:text-2xl font-bold text-[hsl(var(--pending))]">
-                        {statusCounts.pendingAdminSignature}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Aguardando assinatura admin
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

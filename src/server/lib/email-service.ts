@@ -354,6 +354,72 @@ export async function sendProfessorInvitationEmail(data: ProfessorInvitationEmai
   })
 }
 
+export async function sendPlanilhaPROGRADEmail(data: {
+  progradEmail: string
+  planilhaPDFBuffer: Buffer
+  semestre: string
+  ano: number
+  remetenteUserId?: number
+}) {
+  const semestreDisplay = data.semestre === 'SEMESTRE_1' ? '1' : '2'
+  const filename = `Planilha_PROGRAD_${data.ano}_${semestreDisplay}.pdf`
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #1976d2; text-align: center;">Planilha PROGRAD - ${data.ano}.${semestreDisplay}</h2>
+
+      <p>Prezados,</p>
+
+      <p>Segue em anexo a planilha de detalhamento dos projetos de monitoria aprovados na Congregação do Instituto de Computação para o período ${data.ano}.${semestreDisplay}.</p>
+
+      <p>Esta planilha contém informações detalhadas sobre:</p>
+      <ul>
+        <li>Projetos aprovados por departamento</li>
+        <li>Códigos das disciplinas</li>
+        <li>Professores responsáveis e participantes</li>
+        <li>Componentes curriculares envolvidos</li>
+      </ul>
+
+      <p>Para dúvidas ou esclarecimentos, entrar em contato através do Sistema de Monitoria IC.</p>
+
+      <p>Atenciosamente,<br>
+      Sistema de Monitoria IC - UFBA<br>
+      Instituto de Computação</p>
+    </div>
+  `
+
+  await transporter.sendMail({
+    from: `"Sistema de Monitoria IC - UFBA" <${env.EMAIL_USER}>`,
+    to: data.progradEmail,
+    subject: `[Monitoria IC] Planilha PROGRAD - ${data.ano}.${semestreDisplay}`,
+    html,
+    attachments: [
+      {
+        filename,
+        content: data.planilhaPDFBuffer,
+        contentType: 'application/pdf',
+      },
+    ],
+  })
+
+  await db.insert(notificacaoHistoricoTable).values({
+    destinatarioEmail: data.progradEmail,
+    assunto: `[Monitoria IC] Planilha PROGRAD - ${data.ano}.${semestreDisplay}`,
+    tipoNotificacao: 'PLANILHA_PROGRAD_ENVIADA',
+    statusEnvio: statusEnvioEnum.enumValues[0],
+    remetenteUserId: data.remetenteUserId,
+  })
+
+  log.info(
+    {
+      email: data.progradEmail,
+      semestre: data.semestre,
+      ano: data.ano,
+    },
+    'Planilha PROGRAD enviada com sucesso.'
+  )
+}
+
 export const emailService = {
   sendGenericEmail,
   sendProjetoStatusChangeNotification,
@@ -365,4 +431,5 @@ export const emailService = {
   sendLembreteSubmissaoProjetoPendente,
   sendLembreteSelecaoMonitoresPendente,
   sendProfessorInvitationEmail,
+  sendPlanilhaPROGRADEmail,
 }

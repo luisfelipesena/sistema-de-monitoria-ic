@@ -87,7 +87,6 @@ export const projetoRouter = createTRPCRouter({
             estimativaPessoasBenificiadas: projetoTable.estimativaPessoasBenificiadas,
             descricao: projetoTable.descricao,
             assinaturaProfessor: projetoTable.assinaturaProfessor,
-            assinaturaAdmin: projetoTable.assinaturaAdmin,
             feedbackAdmin: projetoTable.feedbackAdmin,
             createdAt: projetoTable.createdAt,
             updatedAt: projetoTable.updatedAt,
@@ -378,14 +377,14 @@ export const projetoRouter = createTRPCRouter({
           await ctx.db.insert(projetoDisciplinaTable).values(disciplinaValues)
         }
 
-        if (professoresParticipantes?.length) {
-          const participanteValues = professoresParticipantes.map((professorId) => ({
-            projetoId: novoProjeto.id,
-            professorId,
-          }))
-
-          await ctx.db.insert(projetoProfessorParticipanteTable).values(participanteValues)
-        }
+        // Professores participantes são agora armazenados como string no campo de descrição/observações
+        // if (professoresParticipantes?.length) {
+        //   const participanteValues = professoresParticipantes.map((professorId) => ({
+        //     projetoId: novoProjeto.id,
+        //     professorId,
+        //   }))
+        //   await ctx.db.insert(projetoProfessorParticipanteTable).values(participanteValues)
+        // }
 
         if (atividades?.length) {
           const atividadeValues = atividades.map((descricao) => ({
@@ -406,7 +405,7 @@ export const projetoRouter = createTRPCRouter({
           },
         })
 
-        const [disciplinas, professoresParticipantesResult, atividadesResult] = await Promise.all([
+        const [disciplinas, atividadesResult] = await Promise.all([
           db
             .select({
               id: disciplinaTable.id,
@@ -418,18 +417,6 @@ export const projetoRouter = createTRPCRouter({
             .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
             .where(eq(projetoDisciplinaTable.projetoId, novoProjeto.id)),
 
-          db
-            .select({
-              id: professorTable.id,
-              nomeCompleto: professorTable.nomeCompleto,
-            })
-            .from(professorTable)
-            .innerJoin(
-              projetoProfessorParticipanteTable,
-              eq(professorTable.id, projetoProfessorParticipanteTable.professorId)
-            )
-            .where(eq(projetoProfessorParticipanteTable.projetoId, novoProjeto.id)),
-
           db.query.atividadeProjetoTable.findMany({
             where: eq(atividadeProjetoTable.projetoId, novoProjeto.id),
           }),
@@ -438,7 +425,7 @@ export const projetoRouter = createTRPCRouter({
         return {
           ...projetoCompleto!,
           disciplinas,
-          professoresParticipantes: professoresParticipantesResult,
+          professoresParticipantes: [], // Campo será preenchido via formulário
           atividades: atividadesResult,
         }
       } catch (error) {
@@ -524,7 +511,7 @@ export const projetoRouter = createTRPCRouter({
         },
       })
 
-      const [disciplinas, professoresParticipantesResult, atividadesResult] = await Promise.all([
+      const [disciplinas, atividadesResult] = await Promise.all([
         db
           .select({
             id: disciplinaTable.id,
@@ -536,18 +523,6 @@ export const projetoRouter = createTRPCRouter({
           .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
           .where(eq(projetoDisciplinaTable.projetoId, id)),
 
-        db
-          .select({
-            id: professorTable.id,
-            nomeCompleto: professorTable.nomeCompleto,
-          })
-          .from(professorTable)
-          .innerJoin(
-            projetoProfessorParticipanteTable,
-            eq(professorTable.id, projetoProfessorParticipanteTable.professorId)
-          )
-          .where(eq(projetoProfessorParticipanteTable.projetoId, id)),
-
         db.query.atividadeProjetoTable.findMany({
           where: eq(atividadeProjetoTable.projetoId, id),
         }),
@@ -556,7 +531,7 @@ export const projetoRouter = createTRPCRouter({
       return {
         ...projetoCompleto!,
         disciplinas,
-        professoresParticipantes: professoresParticipantesResult,
+        professoresParticipantes: [], // Campo será preenchido via formulário
         atividades: atividadesResult,
       }
     }),
@@ -700,7 +675,6 @@ export const projetoRouter = createTRPCRouter({
         id: idSchema,
         bolsasDisponibilizadas: z.number().min(0).optional(),
         feedbackAdmin: z.string().optional(),
-        signatureRequired: z.boolean().default(true),
       })
     )
     .output(z.object({ success: z.boolean() }))
@@ -723,42 +697,18 @@ export const projetoRouter = createTRPCRouter({
         })
       }
 
-      // Verificar se a assinatura é obrigatória
-      if (input.signatureRequired) {
-        // Não permitir aprovação sem assinatura - deve ir para PENDING_ADMIN_SIGNATURE
-        await ctx.db
-          .update(projetoTable)
-          .set({
-            status: 'PENDING_ADMIN_SIGNATURE',
-            bolsasDisponibilizadas: input.bolsasDisponibilizadas,
-            feedbackAdmin: input.feedbackAdmin,
-            updatedAt: new Date(),
-          })
-          .where(eq(projetoTable.id, input.id))
+      // Admin aprova diretamente (professor já assinou)
+      await ctx.db
+        .update(projetoTable)
+        .set({
+          status: 'APPROVED',
+          bolsasDisponibilizadas: input.bolsasDisponibilizadas,
+          feedbackAdmin: input.feedbackAdmin,
+          updatedAt: new Date(),
+        })
+        .where(eq(projetoTable.id, input.id))
 
-        log.info({ projetoId: input.id }, 'Projeto aprovado e pendente de assinatura do admin')
-      } else {
-        // Permitir aprovação direta apenas em casos especiais (importação, etc.)
-        // e somente se admin assinatura já existe
-        if (!projeto.assinaturaAdmin) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Assinatura do administrador é obrigatória para aprovação',
-          })
-        }
-
-        await ctx.db
-          .update(projetoTable)
-          .set({
-            status: 'APPROVED',
-            bolsasDisponibilizadas: input.bolsasDisponibilizadas,
-            feedbackAdmin: input.feedbackAdmin,
-            updatedAt: new Date(),
-          })
-          .where(eq(projetoTable.id, input.id))
-
-        log.info({ projetoId: input.id }, 'Projeto aprovado diretamente com assinatura existente')
-      }
+      log.info({ projetoId: input.id }, 'Projeto aprovado pelo admin')
 
       return { success: true }
     }),
@@ -869,7 +819,7 @@ export const projetoRouter = createTRPCRouter({
 
       try {
         // Prepare PDF data
-        const [disciplinas, professoresParticipantes, atividades] = await Promise.all([
+        const [disciplinas, atividades] = await Promise.all([
           db
             .select({
               id: disciplinaTable.id,
@@ -880,18 +830,6 @@ export const projetoRouter = createTRPCRouter({
             .from(disciplinaTable)
             .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
             .where(eq(projetoDisciplinaTable.projetoId, projeto.id)),
-
-          db
-            .select({
-              id: professorTable.id,
-              nomeCompleto: professorTable.nomeCompleto,
-            })
-            .from(professorTable)
-            .innerJoin(
-              projetoProfessorParticipanteTable,
-              eq(professorTable.id, projetoProfessorParticipanteTable.professorId)
-            )
-            .where(eq(projetoProfessorParticipanteTable.projetoId, projeto.id)),
 
           db.query.atividadeProjetoTable.findMany({
             where: eq(atividadeProjetoTable.projetoId, projeto.id),
@@ -919,7 +857,7 @@ export const projetoRouter = createTRPCRouter({
           publicoAlvo: projeto.publicoAlvo,
           estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || undefined,
           disciplinas,
-          professoresParticipantes,
+          professoresParticipantes: '', // Campo será preenchido via formulário
           atividades: atividades.map((a) => a.descricao),
           assinaturaProfessor: input.signatureImage,
           dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
@@ -985,181 +923,6 @@ export const projetoRouter = createTRPCRouter({
       return { success: true }
     }),
 
-  signAdmin: adminProtectedProcedure
-    .meta({
-      openapi: {
-        method: 'POST',
-        path: '/projetos/{projetoId}/sign-admin',
-        tags: ['projetos'],
-        summary: 'Sign project as admin',
-        description: 'Add admin signature and approve project',
-      },
-    })
-    .input(
-      z.object({
-        projetoId: idSchema,
-        signatureImage: z.string().min(1, 'Assinatura é obrigatória'),
-      })
-    )
-    .output(z.object({ success: z.boolean() }))
-    .mutation(async ({ input, ctx }) => {
-      const projeto = await ctx.db.query.projetoTable.findFirst({
-        where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
-        with: {
-          departamento: true,
-          professorResponsavel: true,
-        },
-      })
-
-      if (!projeto) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Projeto não encontrado',
-        })
-      }
-
-      if (projeto.status !== 'SUBMITTED' && projeto.status !== 'PENDING_ADMIN_SIGNATURE') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Projeto não está aguardando assinatura do admin',
-        })
-      }
-
-      // Validar se a assinatura não está vazia
-      if (!input.signatureImage || input.signatureImage.trim() === '') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Assinatura é obrigatória para aprovação',
-        })
-      }
-
-      await ctx.db
-        .update(projetoTable)
-        .set({
-          assinaturaAdmin: input.signatureImage,
-          status: 'APPROVED',
-          updatedAt: new Date(),
-        })
-        .where(eq(projetoTable.id, input.projetoId))
-
-      try {
-        // Prepare complete project data for PDF generation
-        const [disciplinas, professoresParticipantes, atividades] = await Promise.all([
-          db
-            .select({
-              id: disciplinaTable.id,
-              codigo: disciplinaTable.codigo,
-              nome: disciplinaTable.nome,
-              turma: disciplinaTable.turma,
-            })
-            .from(disciplinaTable)
-            .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
-            .where(eq(projetoDisciplinaTable.projetoId, projeto.id)),
-
-          db
-            .select({
-              id: professorTable.id,
-              nomeCompleto: professorTable.nomeCompleto,
-            })
-            .from(professorTable)
-            .innerJoin(
-              projetoProfessorParticipanteTable,
-              eq(professorTable.id, projetoProfessorParticipanteTable.professorId)
-            )
-            .where(eq(projetoProfessorParticipanteTable.projetoId, projeto.id)),
-
-          db.query.atividadeProjetoTable.findMany({
-            where: eq(atividadeProjetoTable.projetoId, projeto.id),
-          }),
-        ])
-
-        const pdfData = {
-          titulo: projeto.titulo,
-          descricao: projeto.descricao,
-          departamento: projeto.departamento,
-          professorResponsavel: {
-            ...projeto.professorResponsavel,
-            nomeSocial: projeto.professorResponsavel.nomeSocial || undefined,
-            matriculaSiape: projeto.professorResponsavel.matriculaSiape || undefined,
-            telefone: projeto.professorResponsavel.telefone || undefined,
-            telefoneInstitucional: projeto.professorResponsavel.telefoneInstitucional || undefined,
-          },
-          ano: projeto.ano,
-          semestre: projeto.semestre,
-          tipoProposicao: projeto.tipoProposicao,
-          bolsasSolicitadas: projeto.bolsasSolicitadas,
-          voluntariosSolicitados: projeto.voluntariosSolicitados,
-          cargaHorariaSemana: projeto.cargaHorariaSemana,
-          numeroSemanas: projeto.numeroSemanas,
-          publicoAlvo: projeto.publicoAlvo,
-          estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || undefined,
-          disciplinas,
-          professoresParticipantes,
-          atividades: atividades.map((a) => a.descricao),
-          projetoId: projeto.id,
-        }
-
-        // Use the refactored function to generate PDF with both signatures
-        const objectName = await PDFService.generateAndSaveSignedProjetoPDF(
-          pdfData,
-          projeto.assinaturaProfessor || undefined, // Professor signature from database
-          input.signatureImage // Admin signature being added now
-        )
-
-        log.info({ projetoId: input.projetoId, objectName }, 'PDF com assinatura completa (professor e admin) salvo')
-
-        // Verificar se o PDF final foi salvo corretamente
-        const finalPdf = await PDFService.getLatestProjetoPDF(projeto.id)
-        if (!finalPdf) {
-          log.error({ projetoId: input.projetoId }, 'PDF final não foi encontrado após assinatura do admin')
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Falha ao salvar PDF final. Tente novamente.',
-          })
-        }
-        log.info({ projetoId: input.projetoId, objectName: finalPdf.objectName }, 'PDF final verificado e encontrado')
-      } catch (error) {
-        log.error(
-          { projetoId: input.projetoId, error },
-          'ERRO CRÍTICO: Falha ao gerar/salvar PDF no MinIO após assinatura do admin'
-        )
-        // Não falhar silenciosamente - o PDF é importante para visualização
-        if (error instanceof TRPCError) {
-          throw error
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Falha ao gerar PDF após assinatura do admin. Tente novamente.',
-        })
-      }
-
-      // Enviar notificação para o professor
-      try {
-        const projetoCompleto = await ctx.db.query.projetoTable.findFirst({
-          where: eq(projetoTable.id, input.projetoId),
-          with: {
-            professorResponsavel: true,
-          },
-        })
-
-        if (projetoCompleto) {
-          await emailService.sendAdminAssinouPropostaNotification({
-            professorEmail: projetoCompleto.professorResponsavel.emailInstitucional,
-            professorNome: projetoCompleto.professorResponsavel.nomeCompleto,
-            projetoTitulo: projetoCompleto.titulo,
-            projetoId: projetoCompleto.id,
-            novoStatusProjeto: 'APPROVED',
-          })
-          log.info({ projetoId: input.projetoId }, 'Notificação enviada para professor')
-        }
-      } catch (error) {
-        log.error({ error, projetoId: input.projetoId }, 'Erro ao enviar notificação, mas assinatura foi salva')
-      }
-
-      log.info({ projetoId: input.projetoId }, 'Assinatura do admin adicionada e projeto aprovado')
-      return { success: true }
-    }),
-
   signDocument: protectedProcedure
     .input(
       z.object({
@@ -1179,15 +942,11 @@ export const projetoRouter = createTRPCRouter({
             updatedAt: new Date(),
           })
           .where(eq(projetoTable.id, input.projetoId))
-      } else if (userRole === 'admin') {
-        await ctx.db
-          .update(projetoTable)
-          .set({
-            assinaturaAdmin: input.signatureData,
-            status: 'APPROVED',
-            updatedAt: new Date(),
-          })
-          .where(eq(projetoTable.id, input.projetoId))
+      } else {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Apenas professores podem assinar projetos',
+        })
       }
 
       return { success: true }

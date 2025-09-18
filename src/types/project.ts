@@ -30,7 +30,6 @@ export interface Project {
   descricao: string
   status: ProjetoStatus
   assinaturaProfessor?: string
-  assinaturaAdmin?: string
   feedbackAdmin?: string
   createdAt: Date
   updatedAt?: Date
@@ -153,10 +152,13 @@ export interface MonitoriaFormData {
   ano: number
   semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
   tipoProposicao: 'INDIVIDUAL' | 'COLETIVA'
+  professoresParticipantes?: string
+  numeroMonitroresSolicitados?: number
   bolsasSolicitadas: number
   voluntariosSolicitados: number
   cargaHorariaSemana: number
   numeroSemanas: number
+  cargaHorariaTotal?: number
   publicoAlvo: string
   estimativaPessoasBenificiadas?: number
   disciplinas: Array<{
@@ -172,7 +174,6 @@ export interface MonitoriaFormData {
     role?: string
   }
   assinaturaProfessor?: string
-  assinaturaAdmin?: string
   dataAprovacao?: string
   dataAssinaturaProfessor?: string
   dataAssinaturaAdmin?: string
@@ -280,9 +281,7 @@ export const updateProjetoSchema = z.object({
   professorResponsavelId: z.number().int().positive().optional(),
   titulo: z.string().min(1).optional(),
   descricao: z.string().min(1).optional(),
-  status: z
-    .enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_ADMIN_SIGNATURE', 'PENDING_PROFESSOR_SIGNATURE'])
-    .optional(),
+  status: z.enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_PROFESSOR_SIGNATURE']).optional(),
   assinaturaProfessor: z.string().optional(),
   feedbackAdmin: z.string().optional(),
 })
@@ -302,9 +301,7 @@ export const insertProjetoTableSchema = z.object({
   professorResponsavelId: z.number().int().positive(),
   titulo: z.string().min(1).max(255),
   descricao: z.string().min(1),
-  status: z
-    .enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_ADMIN_SIGNATURE', 'PENDING_PROFESSOR_SIGNATURE'])
-    .default('DRAFT'),
+  status: z.enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_PROFESSOR_SIGNATURE']).default('DRAFT'),
   assinaturaProfessor: z.string().optional(),
   feedbackAdmin: z.string().optional(),
 })
@@ -339,7 +336,7 @@ export const projectFormSchema = z.object({
   estimativaPessoasBenificiadas: z.number().int().min(0).optional(),
   disciplinas: z.array(z.number().int().positive()),
   disciplinaIds: z.array(z.number().int().positive()).optional(),
-  professoresParticipantes: z.array(z.number().int().positive()).optional(),
+  professoresParticipantes: z.string().optional(),
   atividades: z.array(z.string()).optional(),
   professorResponsavelId: z.number().int().positive().optional(),
 })
@@ -362,7 +359,6 @@ export const projectDetailSchema = z.object({
   professorResponsavelId: z.number().int().positive(),
   status: projetoStatusSchema,
   assinaturaProfessor: z.string().nullable().optional(),
-  assinaturaAdmin: z.string().nullable().optional(),
   feedbackAdmin: z.string().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date().nullable().optional(),
@@ -430,7 +426,6 @@ export const projectListItemSchema = z.object({
   estimativaPessoasBenificiadas: z.number().int().min(0).nullable().optional(),
   descricao: z.string(),
   assinaturaProfessor: z.string().nullable().optional(),
-  assinaturaAdmin: z.string().nullable().optional(),
   feedbackAdmin: z.string().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date().nullable().optional(),

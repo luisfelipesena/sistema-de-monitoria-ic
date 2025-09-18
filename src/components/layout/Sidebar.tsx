@@ -130,12 +130,6 @@ const menuConfig: MenuConfig[] = [
     roles: ["admin"],
     items: [
       {
-        label: "Assinatura de Documentos",
-        href: "/home/admin/assinatura-documentos",
-        icon: FileSignature,
-        roles: ["admin"],
-      },
-      {
         label: "Gerenciar Arquivos",
         href: "/home/admin/files",
         icon: FileText,
@@ -297,12 +291,6 @@ const menuConfig: MenuConfig[] = [
     icon: FileSignature,
     roles: ["professor"],
     items: [
-      {
-        label: "Assinatura de Documentos",
-        href: "/home/professor/assinatura-documentos",
-        icon: FileSignature,
-        roles: ["professor"],
-      },
       {
         label: "Atas de Seleção",
         href: "/home/professor/atas-selecao",

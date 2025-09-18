@@ -108,7 +108,6 @@ export interface ProfessorProjetoListItem {
   estimativaPessoasBenificiadas: number
   disciplinas: Array<{ id: number; nome: string }>
   assinaturaProfessor?: string
-  assinaturaAdmin?: string
   criadoEm: string
   atualizadoEm: string
 }

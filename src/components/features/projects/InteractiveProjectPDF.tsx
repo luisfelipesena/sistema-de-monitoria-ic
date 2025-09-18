@@ -28,7 +28,6 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
   const signatureRef = useRef<SignatureCanvas>(null)
 
   const professorSignature = api.projeto.signProfessor.useMutation()
-  const adminSignature = api.projeto.signAdmin.useMutation()
   const { data: userProfile } = api.user.getProfile.useQuery()
 
   const getDefaultSignature = () => {
@@ -51,8 +50,6 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
         ...formData,
         assinaturaProfessor: formData.assinaturaProfessor,
         dataAssinaturaProfessor: formData.assinaturaProfessor ? new Date().toLocaleDateString("pt-BR") : undefined,
-        assinaturaAdmin: formData.assinaturaAdmin,
-        dataAssinaturaAdmin: formData.assinaturaAdmin ? new Date().toLocaleDateString("pt-BR") : undefined,
       })
       setIsLoadingSignatures(false)
     }
@@ -95,20 +92,13 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
           signingMode: "professor" as const,
         }
         setSignedData(updatedFormData)
-      } else if (userRole === "admin") {
-        await adminSignature.mutateAsync({
-          projetoId: formData.projetoId,
-          signatureImage: defaultSignature,
+      } else {
+        toast({
+          title: "Erro",
+          description: "Apenas professores podem assinar projetos.",
+          variant: "destructive",
         })
-
-        const updatedFormData = {
-          ...signedData,
-          assinaturaAdmin: defaultSignature,
-          dataAssinaturaAdmin: new Date().toLocaleDateString("pt-BR"),
-          dataAprovacao: new Date().toLocaleDateString("pt-BR"),
-          signingMode: "admin" as const,
-        }
-        setSignedData(updatedFormData)
+        return
       }
 
       toast({
@@ -153,20 +143,13 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
             signingMode: "professor" as const,
           }
           setSignedData(updatedFormData)
-        } else if (userRole === "admin") {
-          await adminSignature.mutateAsync({
-            projetoId: formData.projetoId,
-            signatureImage: signatureDataURL,
+        } else {
+          toast({
+            title: "Erro",
+            description: "Apenas professores podem assinar projetos.",
+            variant: "destructive",
           })
-
-          const updatedFormData = {
-            ...signedData,
-            assinaturaAdmin: signatureDataURL,
-            dataAssinaturaAdmin: new Date().toLocaleDateString("pt-BR"),
-            dataAprovacao: new Date().toLocaleDateString("pt-BR"),
-            signingMode: "admin" as const,
-          }
-          setSignedData(updatedFormData)
+          return
         }
 
         setShowSignatureDialog(false)
@@ -199,8 +182,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
     signingMode: userRole,
   }
 
-  const hasSignature =
-    userRole === "professor" ? !!currentFormData.assinaturaProfessor : !!currentFormData.assinaturaAdmin
+  const hasSignature = !!currentFormData.assinaturaProfessor
 
   const roleLabel = userRole === "professor" ? "Professor" : "Coordenador"
 

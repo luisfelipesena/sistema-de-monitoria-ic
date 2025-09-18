@@ -12,9 +12,13 @@ import {
 } from '@/server/db/schema'
 import { DashboardMetrics, dashboardMetricsSchema } from '@/types'
 import { logger } from '@/utils/logger'
+import { sendPlanilhaPROGRADEmail } from '@/server/lib/email-service'
 import { TRPCError } from '@trpc/server'
 import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm'
 import { z } from 'zod'
+import React from 'react'
+import { renderToBuffer } from '@react-pdf/renderer'
+import { PlanilhaPROGRAD } from '@/components/features/prograd/PlanilhaPROGRAD'
 
 const log = logger.child({ context: 'AnalyticsRouter' })
 
@@ -294,6 +298,217 @@ export const analyticsRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Erro interno ao calcular métricas',
+        })
+      }
+    }),
+
+  getProjetosAprovadosPROGRAD: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/analytics/planilha-prograd',
+        tags: ['analytics'],
+        summary: 'Get approved projects for PROGRAD spreadsheet',
+        description: 'Get all approved projects for a specific semester to generate PROGRAD spreadsheet',
+      },
+    })
+    .input(
+      z.object({
+        ano: z.number().min(2020).max(2050),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+      })
+    )
+    .output(
+      z.object({
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        ano: z.number(),
+        projetos: z.array(
+          z.object({
+            id: z.number(),
+            codigo: z.string(),
+            disciplinaNome: z.string(),
+            professorNome: z.string(),
+            professoresParticipantes: z.string(),
+            departamentoNome: z.string(),
+            tipoProposicao: z.string(),
+          })
+        ),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Acesso permitido apenas para administradores',
+          })
+        }
+
+        const projetos = await ctx.db
+          .select({
+            id: projetoTable.id,
+            titulo: projetoTable.titulo,
+            disciplinaNome: projetoTable.disciplinaNome,
+            professorNome: professorTable.nomeCompleto,
+            professoresParticipantes: projetoTable.professoresParticipantes,
+            departamentoNome: departamentoTable.nome,
+            tipoProposicao: projetoTable.tipoProposicao,
+          })
+          .from(projetoTable)
+          .leftJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+          .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+          .where(
+            and(
+              eq(projetoTable.status, 'APPROVED'),
+              eq(projetoTable.ano, input.ano),
+              eq(projetoTable.semestre, input.semestre),
+              isNull(projetoTable.deletedAt)
+            )
+          )
+          .orderBy(departamentoTable.nome, projetoTable.id)
+
+        log.info(
+          { ano: input.ano, semestre: input.semestre, totalProjetos: projetos.length },
+          'Projetos aprovados para planilha PROGRAD obtidos'
+        )
+
+        return {
+          semestre: input.semestre,
+          ano: input.ano,
+          projetos: projetos.map((p) => ({
+            id: p.id,
+            codigo: p.disciplinaNome || p.titulo || 'N/A',
+            disciplinaNome: p.disciplinaNome || p.titulo || '',
+            professorNome: p.professorNome || '',
+            professoresParticipantes: p.professoresParticipantes || '',
+            departamentoNome: p.departamentoNome || '',
+            tipoProposicao: p.tipoProposicao || 'INDIVIDUAL',
+          })),
+        }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        log.error(error, 'Erro ao buscar projetos aprovados para PROGRAD')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro interno ao buscar projetos',
+        })
+      }
+    }),
+
+  sendPlanilhaPROGRAD: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/analytics/send-planilha-prograd',
+        tags: ['analytics'],
+        summary: 'Send PROGRAD spreadsheet via email',
+        description: 'Generate and send the PROGRAD spreadsheet PDF via email',
+      },
+    })
+    .input(
+      z.object({
+        ano: z.number().min(2020).max(2050),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        progradEmail: z.string().email('Email inválido'),
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        message: z.string(),
+        totalProjetos: z.number(),
+        progradEmail: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Acesso permitido apenas para administradores',
+          })
+        }
+
+        // Get approved projects data
+        const projetos = await ctx.db
+          .select({
+            id: projetoTable.id,
+            titulo: projetoTable.titulo,
+            disciplinaNome: projetoTable.disciplinaNome,
+            professorNome: professorTable.nomeCompleto,
+            professoresParticipantes: projetoTable.professoresParticipantes,
+            departamentoNome: departamentoTable.nome,
+            tipoProposicao: projetoTable.tipoProposicao,
+          })
+          .from(projetoTable)
+          .leftJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+          .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+          .where(
+            and(
+              eq(projetoTable.status, 'APPROVED'),
+              eq(projetoTable.ano, input.ano),
+              eq(projetoTable.semestre, input.semestre),
+              isNull(projetoTable.deletedAt)
+            )
+          )
+          .orderBy(departamentoTable.nome, projetoTable.id)
+
+        if (projetos.length === 0) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Nenhum projeto aprovado encontrado para o período especificado',
+          })
+        }
+
+        // Prepare data for PDF generation
+        const planilhaData = {
+          semestre: input.semestre,
+          ano: input.ano,
+          projetos: projetos.map((p) => ({
+            id: p.id,
+            codigo: p.disciplinaNome || p.titulo || 'N/A',
+            disciplinaNome: p.disciplinaNome || p.titulo || '',
+            professorNome: p.professorNome || '',
+            professoresParticipantes: p.professoresParticipantes || '',
+            departamentoNome: p.departamentoNome || '',
+            tipoProposicao: p.tipoProposicao || 'INDIVIDUAL',
+          })),
+        }
+
+        // Generate PDF buffer
+        const pdfBuffer = await renderToBuffer(React.createElement(PlanilhaPROGRAD, { data: planilhaData }) as any)
+
+        // Send email with PDF attachment
+        await sendPlanilhaPROGRADEmail({
+          progradEmail: input.progradEmail,
+          planilhaPDFBuffer: pdfBuffer,
+          semestre: input.semestre,
+          ano: input.ano,
+          remetenteUserId: ctx.user.id,
+        })
+
+        log.info(
+          {
+            progradEmail: input.progradEmail,
+            ano: input.ano,
+            semestre: input.semestre,
+            totalProjetos: projetos.length,
+          },
+          'Planilha PROGRAD enviada por email com sucesso'
+        )
+
+        return {
+          success: true,
+          message: 'Planilha PROGRAD enviada com sucesso',
+          totalProjetos: projetos.length,
+          progradEmail: input.progradEmail,
+        }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        log.error(error, 'Erro ao enviar planilha PROGRAD por email')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro interno ao enviar planilha',
         })
       }
     }),

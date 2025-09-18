@@ -307,4 +307,79 @@ export const projetoTemplatesRouter = createTRPCRouter({
       disciplinasSemTemplate: totalDisciplinas.length - totalTemplates.length,
     }
   }),
+
+  // Professor pode obter template por disciplina
+  getTemplateByDisciplinaForProfessor: protectedProcedure
+    .input(z.object({ disciplinaId: z.number() }))
+    .query(async ({ input, ctx }) => {
+      const template = await ctx.db.query.projetoTemplateTable.findFirst({
+        where: eq(projetoTemplateTable.disciplinaId, input.disciplinaId),
+        with: {
+          disciplina: {
+            with: {
+              departamento: true,
+            },
+          },
+        },
+      })
+
+      if (!template) {
+        return null
+      }
+
+      return {
+        ...template,
+        atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
+      }
+    }),
+
+  // Professor pode criar/editar template por disciplina
+  upsertTemplateByProfessor: protectedProcedure
+    .input(
+      z.object({
+        disciplinaId: z.number(),
+        tituloDefault: z.string().optional(),
+        descricaoDefault: z.string().optional(),
+        cargaHorariaSemanaDefault: z.number().int().positive().optional(),
+        numeroSemanasDefault: z.number().int().positive().optional(),
+        publicoAlvoDefault: z.string().optional(),
+        atividadesDefault: z.array(z.string()).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check if template already exists for this discipline
+      const existingTemplate = await ctx.db.query.projetoTemplateTable.findFirst({
+        where: eq(projetoTemplateTable.disciplinaId, input.disciplinaId),
+      })
+
+      const { disciplinaId, atividadesDefault, ...templateData } = input
+
+      if (existingTemplate) {
+        // Update existing template
+        const [updated] = await ctx.db
+          .update(projetoTemplateTable)
+          .set({
+            ...templateData,
+            atividadesDefault: atividadesDefault ? JSON.stringify(atividadesDefault) : null,
+            ultimaAtualizacaoUserId: ctx.user.id,
+          })
+          .where(eq(projetoTemplateTable.id, existingTemplate.id))
+          .returning()
+
+        return { ...updated, isNew: false }
+      }
+
+      // Create new template
+      const [template] = await ctx.db
+        .insert(projetoTemplateTable)
+        .values({
+          disciplinaId,
+          ...templateData,
+          atividadesDefault: atividadesDefault ? JSON.stringify(atividadesDefault) : null,
+          criadoPorUserId: ctx.user.id,
+        })
+        .returning()
+
+      return { ...template, isNew: true }
+    }),
 })

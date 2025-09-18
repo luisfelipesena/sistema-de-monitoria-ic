@@ -1,17 +1,16 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { alunoTable, disciplinaProfessorResponsavelTable, professorTable } from '@/server/db/schema'
+import { alunoTable, professorTable } from '@/server/db/schema'
 import { generoSchema, onboardingStatusResponseSchema, regimeSchema } from '@/types'
 import { logger } from '@/utils/logger'
-import { getCurrentSemester } from '@/utils/utils'
 import { TRPCError } from '@trpc/server'
-import { and, eq } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 const log = logger.child({ context: 'OnboardingRouter' })
 
 export const REQUIRED_DOCUMENTS = {
   student: ['comprovante_matricula'], // Apenas comprovante de matrícula é obrigatório
-  professor: ['curriculum_vitae', 'comprovante_vinculo'],
+  professor: [], // Nenhum documento obrigatório
 } as const
 
 export interface OnboardingStatusResponse {
@@ -25,7 +24,7 @@ export interface OnboardingStatusResponse {
     uploaded: string[]
     missing: string[]
   }
-  disciplinas?: { configured: boolean }
+  signature?: { configured: boolean }
 }
 
 export const onboardingRouter = createTRPCRouter({
@@ -58,7 +57,7 @@ export const onboardingRouter = createTRPCRouter({
         // Verificar se existe perfil
         let hasProfile = false
         let profileData: any = null
-        let hasDisciplinas = false
+        let hasSignature = false
 
         if (userRole === 'student') {
           profileData = await ctx.db.query.alunoTable.findFirst({
@@ -72,15 +71,7 @@ export const onboardingRouter = createTRPCRouter({
           hasProfile = !!profileData
 
           if (hasProfile) {
-            const { year, semester } = getCurrentSemester()
-            const result = await ctx.db.query.disciplinaProfessorResponsavelTable.findFirst({
-              where: and(
-                eq(disciplinaProfessorResponsavelTable.professorId, profileData.id),
-                eq(disciplinaProfessorResponsavelTable.ano, year),
-                eq(disciplinaProfessorResponsavelTable.semestre, semester)
-              ),
-            })
-            hasDisciplinas = !!result
+            hasSignature = !!profileData.assinaturaDefault
           }
         }
 
@@ -121,7 +112,7 @@ export const onboardingRouter = createTRPCRouter({
         // Onboarding está pendente se não tem perfil OU se faltam documentos obrigatórios
         let pending = !hasProfile || missingDocs.length > 0
         if (userRole === 'professor') {
-          pending = pending || !hasDisciplinas
+          pending = pending || !hasSignature
         }
 
         const result = {
@@ -140,7 +131,7 @@ export const onboardingRouter = createTRPCRouter({
         if (userRole === 'professor') {
           return {
             ...result,
-            disciplinas: { configured: hasDisciplinas },
+            signature: { configured: hasSignature },
           }
         }
 
@@ -248,7 +239,7 @@ export const onboardingRouter = createTRPCRouter({
     .input(
       z.object({
         nomeCompleto: z.string().min(1),
-        matriculaSiape: z.string().optional(),
+        matriculaSiape: z.string().min(1),
         cpf: z.string().min(11),
         telefone: z.string().optional(),
         telefoneInstitucional: z.string().optional(),
@@ -405,92 +396,6 @@ export const onboardingRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Error updating document',
-        })
-      }
-    }),
-
-  linkDisciplinas: protectedProcedure
-    .meta({
-      openapi: {
-        method: 'POST',
-        path: '/onboarding/link-disciplinas',
-        tags: ['onboarding'],
-        summary: 'Link disciplines to professor',
-        description: 'Link selected disciplines to professor during onboarding',
-      },
-    })
-    .input(
-      z.object({
-        disciplinaIds: z.array(z.number()),
-      })
-    )
-    .output(
-      z.object({
-        success: z.boolean(),
-        linkedCount: z.number(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      try {
-        if (ctx.user.role !== 'professor') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Only professors can link disciplines',
-          })
-        }
-
-        const professorProfile = await ctx.db.query.professorTable.findFirst({
-          where: eq(professorTable.userId, ctx.user.id),
-        })
-
-        if (!professorProfile) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Professor profile not found',
-          })
-        }
-
-        const { year, semester } = getCurrentSemester()
-
-        // Remove existing links for current semester
-        await ctx.db
-          .delete(disciplinaProfessorResponsavelTable)
-          .where(
-            and(
-              eq(disciplinaProfessorResponsavelTable.professorId, professorProfile.id),
-              eq(disciplinaProfessorResponsavelTable.ano, year),
-              eq(disciplinaProfessorResponsavelTable.semestre, semester)
-            )
-          )
-
-        // Add new links
-        if (input.disciplinaIds.length > 0) {
-          const links = input.disciplinaIds.map((disciplinaId) => ({
-            professorId: professorProfile.id,
-            disciplinaId,
-            ano: year,
-            semestre: semester,
-          }))
-
-          await ctx.db.insert(disciplinaProfessorResponsavelTable).values(links)
-        }
-
-        log.info(
-          {
-            userId: ctx.user.id,
-            professorId: professorProfile.id,
-            disciplinaIds: input.disciplinaIds,
-          },
-          'Disciplines linked successfully'
-        )
-
-        return { success: true, linkedCount: input.disciplinaIds.length }
-      } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Error linking disciplines')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Error linking disciplines',
         })
       }
     }),

@@ -176,6 +176,13 @@
       "when": 1756298886491,
       "tag": "0024_classy_photon",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1758206305539,
+      "tag": "0025_sharp_the_captain",
+      "breakpoints": true
     }
   ]
 }

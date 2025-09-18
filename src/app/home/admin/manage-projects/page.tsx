@@ -275,7 +275,6 @@ export default function ManageProjectsPage() {
       return {
         draft: 0,
         submitted: 0,
-        pendingAdminSignature: 0,
         approved: 0,
         rejected: 0,
       }
@@ -289,9 +288,6 @@ export default function ManageProjectsPage() {
           case "SUBMITTED":
             acc.submitted++
             break
-          case "PENDING_ADMIN_SIGNATURE":
-            acc.pendingAdminSignature++
-            break
           case "APPROVED":
             acc.approved++
             break
@@ -301,7 +297,7 @@ export default function ManageProjectsPage() {
         }
         return acc
       },
-      { draft: 0, submitted: 0, pendingAdminSignature: 0, approved: 0, rejected: 0 }
+      { draft: 0, submitted: 0, approved: 0, rejected: 0 }
     )
   }, [filteredProjetos])
 
@@ -354,12 +350,6 @@ export default function ManageProjectsPage() {
           )
         } else if (status === "DRAFT") {
           return <Badge variant="outline">Rascunho</Badge>
-        } else if (status === "PENDING_ADMIN_SIGNATURE") {
-          return (
-            <Badge className="bg-[hsl(var(--pending))] text-[hsl(var(--pending-foreground))]">
-              Pendente de assinatura
-            </Badge>
-          )
         }
         return <Badge variant="outline">{status}</Badge>
       },
@@ -423,23 +413,11 @@ export default function ManageProjectsPage() {
               </Button>
             )}
 
-            {status === "PENDING_ADMIN_SIGNATURE" && (
-              <Button
-                variant="secondary"
-                size="sm"
-                className="rounded-full flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white"
-                onClick={() => handleSignSpecificProject(projeto.id)}
-              >
-                <FileSignature className="h-4 w-4" />
-                Assinar
-              </Button>
-            )}
 
             {(status === "APPROVED" ||
               status === "REJECTED" ||
               status === "DRAFT" ||
-              status === "SUBMITTED" ||
-              status === "PENDING_ADMIN_SIGNATURE") && (
+              status === "SUBMITTED") && (
               <Button
                 variant="outline"
                 size="sm"
@@ -547,7 +525,6 @@ export default function ManageProjectsPage() {
                 <FileSignature className="h-4 w-4 text-purple-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-purple-600">{statusCounts.pendingAdminSignature}</div>
                 <p className="text-xs text-muted-foreground">Aguardando assinatura</p>
               </CardContent>
             </Card>
