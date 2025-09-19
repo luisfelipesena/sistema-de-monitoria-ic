@@ -27,12 +27,12 @@
 **TAREFA** - Remover "Minhas API Keys" do sistema
 **DESCRIÇÃO** - Remover completamente a funcionalidade de API Keys do sidebar e sistema
 **CONTEXTO** - Funcionalidade não é necessária para o fluxo principal do sistema de monitoria
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Remover "Minhas Disciplinas" e "Gerenciar Disciplinas" do sidebar professor
 **DESCRIÇÃO** - Remover menu items de disciplinas do sidebar do professor
 **CONTEXTO** - Disciplinas serão gerenciadas apenas na criação de projetos e pelo admin
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 ### 3. FLUXO DE ASSINATURA - SIMPLIFICAÇÃO
 **TAREFA** - Remover assinatura do admin no fluxo de projetos

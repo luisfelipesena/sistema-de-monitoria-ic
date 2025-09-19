@@ -129,7 +129,7 @@ export default function AdminFilesPage() {
   }
 
   const handleUploadComplete = (uploadData: UploadCompletionData) => {
-    log.info('Admin Upload Complete:', uploadData)
+    log.info(`Admin Upload Complete: ${JSON.stringify(uploadData)}`)
     toast({
       title: 'Upload Concluído',
       description: `Arquivo ${uploadData.fileName} enviado.`,
