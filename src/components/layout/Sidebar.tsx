@@ -312,18 +312,6 @@ const menuConfig: MenuConfig[] = [
     roles: ["professor"],
     items: [
       {
-        label: "Minhas Disciplinas",
-        href: "/home/professor/disciplinas",
-        icon: BookOpen,
-        roles: ["professor"],
-      },
-      {
-        label: "Gerenciar Disciplinas",
-        href: "/home/professor/manage-disciplinas",
-        icon: Settings,
-        roles: ["professor"],
-      },
-      {
         label: "Gerenciar Voluntários",
         href: "/home/professor/volunteer-management",
         icon: Users,
