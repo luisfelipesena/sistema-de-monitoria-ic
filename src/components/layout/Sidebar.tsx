@@ -25,7 +25,6 @@ import {
   FileSpreadsheet,
   FileText,
   GraduationCap,
-  Key,
   LayoutDashboard,
   Settings,
   TrendingUp,
@@ -34,7 +33,7 @@ import {
   UserCog,
   UserPlus,
   Users,
-  type LucideIcon,
+  type LucideIcon
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -376,12 +375,6 @@ const menuConfig: MenuConfig[] = [
         label: "Meu Perfil",
         href: "/home/common/profile",
         icon: User,
-        roles: ["admin", "professor", "student"],
-      },
-      {
-        label: "Minhas API Keys",
-        href: "/home/profile/api-keys",
-        icon: Key,
         roles: ["admin", "professor", "student"],
       },
     ],
