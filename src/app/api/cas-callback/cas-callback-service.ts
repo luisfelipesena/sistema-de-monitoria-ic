@@ -46,7 +46,7 @@ export class CasCallbackService {
 
       return this.parseValidationResponse(response.data)
     } catch (error) {
-      log.error('CAS validation failed:', error)
+      log.error(error instanceof Error ? error : new Error(String(error)), 'CAS validation failed:')
       return this.redirectToError('CAS_NETWORK_ERROR')
     }
   }

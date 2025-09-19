@@ -29,7 +29,7 @@ export async function ensureBucketExists(bucket: string = bucketName): Promise<v
       log.info(`Bucket ${bucket} já existe.`)
     }
   } catch (error) {
-    log.error('Erro ao verificar ou criar bucket:', error)
+    log.error(error instanceof Error ? error : new Error(String(error)), 'Erro ao verificar ou criar bucket:')
     throw error
   }
 }

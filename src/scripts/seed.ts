@@ -584,7 +584,7 @@ async function seedDatabase() {
     log.info('  Professor: carlos.silva@ufba.br / 123456')
     log.info('  Aluno: aluno1@ufba.br / 123456')
   } catch (error) {
-    log.error('❌ Erro durante o seed:', error)
+    log.error(error instanceof Error ? error : new Error(String(error)), '❌ Erro durante o seed:')
     throw error
   }
 }
