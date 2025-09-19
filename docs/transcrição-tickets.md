@@ -174,15 +174,7 @@ Este guia fornece os passos exatos para testar cada etapa do processo de monitor
    - Revise todas as informações do projeto
    - Clique em "Aprovar Projeto"
    - Adicione comentários se necessário
-   - Status muda para: PENDING_ADMIN_SIGNATURE
-
-3. **Assinar Projeto Aprovado**
-   - Navegue: `Admin > Documentos > Assinatura de Documentos`
-   - Encontre projeto com status PENDING_ADMIN_SIGNATURE
-   - Clique em "Assinar Projeto"
-   - Assine digitalmente o projeto
    - Status muda para: APPROVED
-   - **IMPORTANTE:** Aparecerá toast com próximos passos
 
 ### **PASSO 4: Configuração para Disponibilizar Vagas aos Alunos**
 

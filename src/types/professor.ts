@@ -96,7 +96,7 @@ export interface ProfessorProjetoListItem {
   ano: number
   semestre: Semestre
   tipoProposicao: 'NOVO' | 'CONTINUACAO'
-  status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'PENDING_ADMIN_SIGNATURE' | 'PENDING_PROFESSOR_SIGNATURE'
+  status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'PENDING_PROFESSOR_SIGNATURE'
   bolsasSolicitadas: number
   voluntariosSolicitados: number
   inscricoes: number
