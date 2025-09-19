@@ -74,7 +74,7 @@ describe('onboardingRouter', () => {
       const mockProfile = {
         id: 1,
         assinaturaDefault: 'base64signature',
-        dataAssinaturaDefault: new Date()
+        dataAssinaturaDefault: new Date(),
       }
       vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfile as any)
 
