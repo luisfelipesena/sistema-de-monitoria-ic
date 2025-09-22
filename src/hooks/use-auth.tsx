@@ -29,7 +29,6 @@ const useMeQuery = () => {
   return api.me.getMe.useQuery()
 }
 
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const useLogoutMutation = () => {
     return useMutation({
@@ -39,19 +38,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           //window.location.href = "/"
         } catch (error) {
           log.error({ error }, "Erro ao fazer logout")
-  
         }
       },
       onSuccess: async () => {
-          await utils.me.getMe.reset() // or utils.invalidate()
-          // window.location.replace("/login") // or router.replace("/login")
+        await utils.me.getMe.reset() // or utils.invalidate()
+        // window.location.replace("/login") // or router.replace("/login")
       },
     })
   }
   const router = useRouter()
   const { data: userQuery, isLoading: isLoadingUser } = useMeQuery()
   const logoutMutation = useLogoutMutation()
-  const utils = api.useUtils();
+  const utils = api.useUtils()
 
   const user = useMemo(() => (userQuery?.id ? userQuery : null), [userQuery])
 
@@ -60,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const signOut = useCallback(async () => {
-    window.location.href = "/api/cas-logout";
+    window.location.href = "/api/cas-logout"
   }, [])
 
   const value = useMemo(
