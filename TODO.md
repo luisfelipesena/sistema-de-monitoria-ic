@@ -107,7 +107,7 @@
 **TAREFA** - Remover cookie UFBA no logout
 **DESCRIÇÃO** - Limpar cookies de sessão UFBA no processo de logout
 **CONTEXTO** - Garantir logout completo do sistema CAS
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Remover "Ver Projetos" e deixar apenas dashboard professor
 **DESCRIÇÃO** - Consolidar informações de projetos apenas no dashboard, removendo página separada
