@@ -12,28 +12,59 @@ export const GET = async (req: NextRequest) => {
   const { searchParams } = url
   const ticket = searchParams.get('ticket')
 
+  log.info('CAS callback initiated', {
+    url: req.url,
+    hasTicket: !!ticket,
+    userAgent: req.headers.get('user-agent'),
+    referer: req.headers.get('referer')
+  })
+
   if (!ticket) {
     log.error('CAS Callback: No ticket provided')
-    return NextResponse.json({ error: 'No ticket provided' }, { status: 500, statusText: 'No ticket provided' })
+    return NextResponse.json({ error: 'No ticket provided' }, { status: 400, statusText: 'No ticket provided' })
   }
 
-  const serviceResponse = await casCallbackService.validateTicket(ticket)
-  if (serviceResponse?.['cas:authenticationSuccess']) {
-    const authSuccess = serviceResponse['cas:authenticationSuccess']
-    const username = authSuccess['cas:user']
-    const attributes = authSuccess['cas:attributes'] || {}
-    return await casCallbackService.handleAuthSuccess(username, attributes)
-  }
+  try {
+    const serviceResponse = await casCallbackService.validateTicket(ticket)
 
-  if (serviceResponse?.['cas:authenticationFailure']) {
-    const failure = serviceResponse['cas:authenticationFailure']
-    log.error('CAS Authentication failed:', failure)
-    return NextResponse.json(failure, { status: 500, statusText: failure })
-  }
+    // Se validateTicket retornou um NextResponse (erro), retorna diretamente
+    if (serviceResponse instanceof NextResponse) {
+      return serviceResponse
+    }
 
-  log.error('Unexpected CAS response format:', serviceResponse)
-  return NextResponse.json(
-    { error: 'Unexpected CAS response format' },
-    { status: 500, statusText: 'Unexpected CAS response format' }
-  )
+    if (serviceResponse?.['cas:authenticationSuccess']) {
+      const authSuccess = serviceResponse['cas:authenticationSuccess']
+      const username = authSuccess['cas:user']
+      const attributes = authSuccess['cas:attributes'] || {}
+
+      log.info('CAS authentication successful', {
+        username,
+        hasAttributes: Object.keys(attributes).length > 0
+      })
+
+      return await casCallbackService.handleAuthSuccess(username, attributes)
+    }
+
+    if (serviceResponse?.['cas:authenticationFailure']) {
+      const failure = serviceResponse['cas:authenticationFailure']
+      log.error('CAS Authentication failed:', failure)
+      return NextResponse.json(
+        { error: 'Authentication failed', details: failure },
+        { status: 401, statusText: 'Authentication failed' }
+      )
+    }
+
+    log.error('Unexpected CAS response format:', serviceResponse)
+    return NextResponse.json(
+      { error: 'Unexpected CAS response format', response: serviceResponse },
+      { status: 500, statusText: 'Unexpected CAS response format' }
+    )
+
+  } catch (error) {
+    log.error(error instanceof Error ? error : new Error(String(error)), 'CAS callback processing failed')
+    return NextResponse.json(
+      { error: 'CAS callback processing failed', details: error instanceof Error ? error.message : String(error) },
+      { status: 500, statusText: 'Internal server error' }
+    )
+  }
 }

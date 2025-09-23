@@ -36,28 +36,109 @@ export class CasCallbackService {
 
     log.info(`Validating CAS ticket: ${ticket} at ${validationUrl}`)
 
-    try {
-      const response = await axios.get(validationUrl)
-
-      if (response.status !== 200) {
-        log.error(`CAS validation request failed with status ${response.status}:`, response.data)
-        return this.redirectToError('CAS_HTTP_ERROR', `Status ${response.status}`)
+    // Configuração robusta para produção
+    const axiosConfig = {
+      timeout: 15000, // 15 segundos
+      maxRedirects: 3,
+      validateStatus: (status: number) => status < 500, // Aceita códigos 2xx, 3xx, 4xx
+      headers: {
+        'User-Agent': 'Sistema-Monitoria-UFBA/1.0',
+        'Accept': 'application/xml, text/xml, */*',
+        'Connection': 'keep-alive'
       }
-
-      return this.parseValidationResponse(response.data)
-    } catch (error) {
-      log.error(error instanceof Error ? error : new Error(String(error)), 'CAS validation failed:')
-      return this.redirectToError('CAS_NETWORK_ERROR')
     }
+
+    // Implementar retry logic para problemas de rede
+    const maxRetries = 3
+    let lastError: Error | unknown
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        log.info(`CAS validation attempt ${attempt}/${maxRetries}`)
+
+        const response = await axios.get(validationUrl, axiosConfig)
+
+        log.info(`CAS validation response: status=${response.status}, length=${response.data?.length || 0}`)
+
+        if (response.status !== 200) {
+          log.error(`CAS validation request failed with status ${response.status}:`, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: response.headers,
+            data: response.data
+          })
+          return this.redirectToError('CAS_HTTP_ERROR', `Status ${response.status}`)
+        }
+
+        return this.parseValidationResponse(response.data)
+
+      } catch (error) {
+        lastError = error
+
+        // Log detalhado do erro
+        if (error instanceof Error) {
+          log.error({
+            attempt,
+            maxRetries,
+            errorName: error.name,
+            errorMessage: error.message,
+            errorCode: (error as Error & { code?: string })?.code,
+            validationUrl,
+            timeout: axiosConfig.timeout
+          }, `CAS validation attempt ${attempt} failed`)
+        }
+
+        // Se não é a última tentativa, aguarda antes de tentar novamente
+        if (attempt < maxRetries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000) // Exponential backoff, max 5s
+          log.info(`Retrying CAS validation in ${delay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      }
+    }
+
+    // Se chegou até aqui, todas as tentativas falharam
+    log.error(lastError instanceof Error ? lastError : new Error(String(lastError)),
+      `CAS validation failed after ${maxRetries} attempts`)
+
+    return this.redirectToError('CAS_NETWORK_ERROR', `Failed after ${maxRetries} attempts`)
   }
 
   parseValidationResponse(data: string) {
-    const parser = new XMLParser({
-      ignoreAttributes: false,
-      attributeNamePrefix: '',
-    })
-    const result = parser.parse(data)
-    return result['cas:serviceResponse']
+    try {
+      // Log da resposta recebida para debug
+      log.info(`Parsing CAS response: ${data.substring(0, 500)}${data.length > 500 ? '...' : ''}`)
+
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: '',
+        parseTagValue: true,
+        trimValues: true
+      })
+
+      const result = parser.parse(data)
+      const serviceResponse = result['cas:serviceResponse']
+
+      if (!serviceResponse) {
+        log.error('No cas:serviceResponse found in parsed XML', { result })
+        throw new Error('Invalid CAS response format: missing cas:serviceResponse')
+      }
+
+      log.info('CAS response parsed successfully:', {
+        hasAuthSuccess: !!serviceResponse['cas:authenticationSuccess'],
+        hasAuthFailure: !!serviceResponse['cas:authenticationFailure']
+      })
+
+      return serviceResponse
+
+    } catch (error) {
+      log.error(error instanceof Error ? error : new Error(String(error)),
+        'Failed to parse CAS validation response', {
+        dataLength: data?.length,
+        dataPreview: data?.substring(0, 200)
+      })
+      throw error
+    }
   }
 
   async handleAuthSuccess(username: string, attributes: Record<string, string>) {
