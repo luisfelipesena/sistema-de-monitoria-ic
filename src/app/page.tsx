@@ -18,7 +18,7 @@ export default function LandingPageComponent() {
           <div className="w-full sm:w-auto flex justify-center sm:justify-end mt-4 sm:mt-0">
             <div className="flex gap-2 w-full sm:w-auto">
               <Button className="w-full sm:w-auto" onClick={signInCas}>
-                Entrar com CAS
+                Entrar com e-mail UFBA
               </Button>
               <Button asChild variant="outline" className="w-full sm:w-auto">
                 <Link href="/auth/login">Entrar com e-mail</Link>
@@ -38,7 +38,7 @@ export default function LandingPageComponent() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button size="lg" onClick={signInCas}>
-                Entrar com CAS
+                Entrar com e-mail UFBA
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link href="/auth/register">Criar conta com e-mail</Link>

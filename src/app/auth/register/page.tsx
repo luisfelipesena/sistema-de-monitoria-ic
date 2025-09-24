@@ -140,14 +140,14 @@ export default function RegisterPage() {
 
       <aside className="h-full w-full rounded-xl bg-gradient-to-br from-sky-500 via-sky-600 to-sky-700 text-white p-8 shadow-xl">
         <div className="space-y-6">
-          <h2 className="text-2xl font-semibold">Preferência por CAS?</h2>
+          <h2 className="text-2xl font-semibold">Preferência por e-mail UFBA?</h2>
           <p className="text-sky-100 text-sm leading-relaxed">
-            Deseja utilizar suas credenciais UFBA? Você pode fazer login via CAS a qualquer momento. Após criar uma
-            conta local, enviamos um e-mail de verificação para ativar o acesso.
+            Deseja utilizar suas credenciais UFBA? Você pode fazer login via e-mail UFBA a qualquer momento. Após criar
+            uma conta local, enviamos um e-mail de verificação para ativar o acesso.
           </p>
 
           <Button variant="secondary" className="w-full" onClick={signInCas}>
-            Entrar com CAS
+            Entrar com em e-mail UFBA
           </Button>
 
           <div className="text-xs text-sky-50 space-y-2">
