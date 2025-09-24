@@ -1,14 +1,14 @@
 "use client"
 
+import { PlanilhaPROGRADDocument } from "@/components/features/prograd/PlanilhaPROGRAD"
 import { PagesLayout } from "@/components/layout/PagesLayout"
-import { PlanilhaPROGRAD } from "@/components/features/prograd/PlanilhaPROGRAD"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/utils/api"
 import { PDFViewer } from "@react-pdf/renderer"
@@ -23,7 +23,11 @@ export default function PlanilhaPROGRADPage() {
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [progradEmail, setProgradEmail] = useState("prograd@ufba.br")
 
-  const { data: planilhaData, isLoading, refetch } = api.analytics.getProjetosAprovadosPROGRAD.useQuery(
+  const {
+    data: planilhaData,
+    isLoading,
+    refetch,
+  } = api.analytics.getProjetosAprovadosPROGRAD.useQuery(
     {
       ano: selectedYear,
       semestre: selectedSemester,
@@ -123,7 +127,10 @@ export default function PlanilhaPROGRADPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="semestre">Semestre</Label>
-                <Select value={selectedSemester} onValueChange={(value) => setSelectedSemester(value as "SEMESTRE_1" | "SEMESTRE_2")}>
+                <Select
+                  value={selectedSemester}
+                  onValueChange={(value) => setSelectedSemester(value as "SEMESTRE_1" | "SEMESTRE_2")}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o semestre" />
                   </SelectTrigger>
@@ -148,7 +155,9 @@ export default function PlanilhaPROGRADPage() {
         {planilhaData && (
           <Card>
             <CardHeader>
-              <CardTitle>Resumo dos Projetos - {selectedYear}.{semestreDisplay}</CardTitle>
+              <CardTitle>
+                Resumo dos Projetos - {selectedYear}.{semestreDisplay}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {totalProjetos > 0 ? (
@@ -160,13 +169,13 @@ export default function PlanilhaPROGRADPage() {
                     </div>
                     <div className="text-center p-4 bg-blue-50 rounded-lg">
                       <div className="text-2xl font-bold text-blue-600">
-                        {[...new Set(planilhaData.projetos.map(p => p.departamentoNome))].length}
+                        {[...new Set(planilhaData.projetos.map((p) => p.departamentoNome))].length}
                       </div>
                       <div className="text-sm text-blue-700">Departamentos</div>
                     </div>
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600">
-                        {planilhaData.projetos.filter(p => p.tipoProposicao === 'COLETIVA').length}
+                        {planilhaData.projetos.filter((p) => p.tipoProposicao === "COLETIVA").length}
                       </div>
                       <div className="text-sm text-purple-700">Projetos Coletivos</div>
                     </div>
@@ -199,12 +208,14 @@ export default function PlanilhaPROGRADPage() {
         <Dialog open={showPreview} onOpenChange={setShowPreview}>
           <DialogContent className="max-w-6xl max-h-[90vh]">
             <DialogHeader>
-              <DialogTitle>Planilha PROGRAD - {selectedYear}.{semestreDisplay}</DialogTitle>
+              <DialogTitle>
+                Planilha PROGRAD - {selectedYear}.{semestreDisplay}
+              </DialogTitle>
             </DialogHeader>
             <div className="h-[80vh] w-full">
               {planilhaData && (
                 <PDFViewer width="100%" height="100%">
-                  <PlanilhaPROGRAD data={planilhaData} />
+                  <PlanilhaPROGRADDocument data={planilhaData} />
                 </PDFViewer>
               )}
             </div>
@@ -231,8 +242,8 @@ export default function PlanilhaPROGRADPage() {
 
               <div className="p-4 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  A planilha será enviada com {totalProjetos} projeto(s) aprovado(s)
-                  para o período {selectedYear}.{semestreDisplay}
+                  A planilha será enviada com {totalProjetos} projeto(s) aprovado(s) para o período {selectedYear}.
+                  {semestreDisplay}
                 </p>
               </div>
 

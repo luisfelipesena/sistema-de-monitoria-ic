@@ -1,13 +1,14 @@
 import { db } from '@/server/db'
-import { apiKeyTable, sessionTable, User, userTable } from '@/server/db/schema'
+import { apiKeyTable, User, userTable } from '@/server/db/schema'
+import { lucia } from '@/server/lib/lucia'
 import { LUCIA_SESSION_COOKIE_NAME } from '@/utils/utils'
 import { initTRPC, TRPCError } from '@trpc/server'
+import { createHash } from 'crypto'
 import { and, eq } from 'drizzle-orm'
 import { cookies, headers } from 'next/headers'
 import superjson from 'superjson'
 import { type OpenApiMeta } from 'trpc-to-openapi'
 import { ZodError } from 'zod'
-import { createHash } from 'crypto'
 
 export interface TRPCContext {
   user: User | null
@@ -63,31 +64,28 @@ export const createTRPCContext = async (): Promise<TRPCContext> => {
     }
   }
 
-  const session = await db.query.sessionTable.findFirst({
-    where: and(eq(sessionTable.id, sessionId)),
-  })
+  try {
+    const { user: sessionUser } = await lucia.validateSession(sessionId)
+    if (!sessionUser) {
+      return {
+        user: null,
+        db,
+      }
+    }
 
-  if (!session) {
+    const fullUser = await db.query.userTable.findFirst({
+      where: eq(userTable.id, sessionUser.id),
+    })
+
+    return {
+      user: fullUser ?? null,
+      db,
+    }
+  } catch (_error) {
     return {
       user: null,
       db,
     }
-  }
-
-  const user = await db.query.userTable.findFirst({
-    where: and(eq(userTable.id, session?.userId)),
-  })
-
-  if (!user) {
-    return {
-      user: null,
-      db,
-    }
-  }
-
-  return {
-    user,
-    db,
   }
 }
 

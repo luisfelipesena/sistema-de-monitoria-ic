@@ -1,9 +1,9 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { notificacaoHistoricoTable, userTable, projetoTable, inscricaoTable, vagaTable } from '@/server/db/schema'
-import { z } from 'zod'
-import { eq, and, desc, sql } from 'drizzle-orm'
-import { TRPCError } from '@trpc/server'
+import { inscricaoTable, notificacaoHistoricoTable, projetoTable, userTable, vagaTable } from '@/server/db/schema'
 import { emailService } from '@/server/lib/email-service'
+import { TRPCError } from '@trpc/server'
+import { and, desc, eq, sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 export const notificacoesRouter = createTRPCRouter({
   // Enviar lembretes automáticos
@@ -256,12 +256,12 @@ Sistema de Monitoria IC
         offset: input.offset,
       })
 
-      return notificacoes.map((notif: any) => ({
+      const notifications = notificacoes.map((notif) => ({
         id: notif.id,
         tipo: notif.tipoNotificacao,
         titulo: notif.assunto,
         conteudo: notif.statusEnvio === 'ENVIADO' ? 'Enviado com sucesso' : notif.mensagemErro || 'Falha no envio',
-        lida: true, // Histórico sempre considerado como lido
+        lida: true,
         createdAt: notif.dataEnvio,
         readAt: notif.dataEnvio,
         remetente: notif.remetente,
@@ -272,6 +272,8 @@ Sistema de Monitoria IC
           alunoId: notif.alunoId,
         },
       }))
+
+      return notifications
     }),
 
   // Marcar notificação como lida (mantendo compatibilidade)
@@ -338,25 +340,24 @@ Sistema de Monitoria IC
 
         // Enviar emails se solicitado
         if (input.enviarEmail) {
-          const emailPromises = destinatarios.map(async (destinatario: any) => {
+          const emailPromises = destinatarios.map(async (destinatario) => {
             await emailService.sendGenericEmail({
               to: destinatario.email,
               subject: `[Sistema de Monitoria] ${input.titulo}`,
               html: `
-Olá ${destinatario.username},<br><br>
-
-${input.conteudo}<br><br>
-
-Esta é uma notificação do Sistema de Monitoria IC.<br><br>
-
-Atenciosamente,<br>
-${user.username}
-              `,
+<!DOCTYPE html>
+<html lang="pt-br">
+  <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <h2 style="color: #1d4ed8;">${input.titulo}</h2>
+    <p>${input.conteudo}</p>
+    <p style="margin-top: 24px;">Esta é uma notificação do Sistema de Monitoria IC.</p>
+    <p>Atenciosamente,<br />${user.username}</p>
+  </body>
+</html>`,
               tipoNotificacao: 'NOTIFICACAO_PERSONALIZADA',
               remetenteUserId: user.id,
             })
 
-            // Registrar no histórico
             await ctx.db.insert(notificacaoHistoricoTable).values({
               destinatarioEmail: destinatario.email,
               assunto: input.titulo,

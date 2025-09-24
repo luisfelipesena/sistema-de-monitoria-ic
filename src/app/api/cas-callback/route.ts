@@ -16,7 +16,7 @@ export const GET = async (req: NextRequest) => {
     url: req.url,
     hasTicket: !!ticket,
     userAgent: req.headers.get('user-agent'),
-    referer: req.headers.get('referer')
+    referer: req.headers.get('referer'),
   })
 
   if (!ticket) {
@@ -39,7 +39,7 @@ export const GET = async (req: NextRequest) => {
 
       log.info('CAS authentication successful', {
         username,
-        hasAttributes: Object.keys(attributes).length > 0
+        hasAttributes: Object.keys(attributes).length > 0,
       })
 
       return await casCallbackService.handleAuthSuccess(username, attributes)
@@ -59,7 +59,6 @@ export const GET = async (req: NextRequest) => {
       { error: 'Unexpected CAS response format', response: serviceResponse },
       { status: 500, statusText: 'Unexpected CAS response format' }
     )
-
   } catch (error) {
     log.error(error instanceof Error ? error : new Error(String(error)), 'CAS callback processing failed')
     return NextResponse.json(

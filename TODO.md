@@ -23,6 +23,11 @@
 **CONTEXTO** - SIAPE é identificador essencial do professor na universidade, deve ser obrigatório
 **FEITA** - [x] ✅ COMPLETO
 
+**TAREFA** - Permitir login com e-mail
+**DESCRIÇÃO** - Permitir login com e-mail para usuários que não possuem UFBA Login
+**CONTEXTO** - Alguns usuários não possuem UFBA Login, devem ser permitidos acessar o sistema com e-mail
+**FEITA** - [X] ✅ COMPLETO
+
 ### 2. REMOÇÃO DE FUNCIONALIDADES DESNECESSÁRIAS
 **TAREFA** - Remover "Minhas API Keys" do sistema
 **DESCRIÇÃO** - Remover completamente a funcionalidade de API Keys do sidebar e sistema

@@ -1,5 +1,7 @@
 import { analyticsRouter } from '@/server/api/routers/analytics/analytics'
 import { apiKeyRouter } from '@/server/api/routers/api-key/api-key'
+import { authRouter } from '@/server/api/routers/auth/auth'
+import { meRouter } from '@/server/api/routers/auth/me/me'
 import { courseRouter } from '@/server/api/routers/course/course'
 import { departamentoRouter } from '@/server/api/routers/departamento/departamento'
 import { disciplineRouter } from '@/server/api/routers/discipline/discipline'
@@ -19,11 +21,10 @@ import { signatureRouter } from '@/server/api/routers/signature/signature'
 import { termosRouter } from '@/server/api/routers/termos/termos'
 import { userRouter } from '@/server/api/routers/user/user'
 import { vagasRouter } from '@/server/api/routers/vagas/vagas'
-
-import { meRouter } from './routers/auth/me/me'
 import { createTRPCRouter } from './trpc'
 
 export const appRouter = createTRPCRouter({
+  auth: authRouter,
   me: meRouter,
   course: courseRouter,
   discipline: disciplineRouter,

@@ -35,6 +35,16 @@ export const userTable = pgTable('user', {
     withTimezone: true,
     mode: 'date',
   }),
+  passwordHash: text('password_hash'),
+  emailVerifiedAt: timestamp('email_verified_at', {
+    withTimezone: true,
+    mode: 'date',
+  }),
+  verificationToken: text('verification_token'),
+  verificationTokenExpiresAt: timestamp('verification_token_expires_at', {
+    withTimezone: true,
+    mode: 'date',
+  })
 })
 
 export const sessionTable = pgTable('session', {

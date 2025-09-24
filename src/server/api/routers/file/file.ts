@@ -1,16 +1,23 @@
-import { adminProtectedProcedure, protectedProcedure } from '@/server/api/trpc'
-import { createTRPCRouter } from '@/server/api/trpc'
-import { alunoTable, projetoDocumentoTable, professorTable, projetoTable } from '@/server/db/schema'
-import { logger } from '@/utils/logger'
-import { eq, or } from 'drizzle-orm'
-import { z } from 'zod'
-import { TRPCError } from '@trpc/server'
-import { env } from '@/utils/env'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { alunoTable, professorTable, projetoDocumentoTable, projetoTable } from '@/server/db/schema'
 import minioClient, { bucketName, ensureBucketExists } from '@/server/lib/minio'
+import { env } from '@/utils/env'
+import { logger } from '@/utils/logger'
+import { TRPCError } from '@trpc/server'
+import { eq, or } from 'drizzle-orm'
 import * as Minio from 'minio'
-import { v4 as uuidv4 } from 'uuid'
 import path from 'path'
 import { Readable } from 'stream'
+import { v4 as uuidv4 } from 'uuid'
+import { z } from 'zod'
+
+const getMinioErrorCode = (error: unknown): string | undefined => {
+  if (error && typeof error === 'object' && 'code' in error) {
+    const { code } = error as { code?: unknown }
+    return typeof code === 'string' ? code : undefined
+  }
+  return undefined
+}
 
 export const fileListItemSchema = z.object({
   objectName: z.string(),
@@ -51,21 +58,22 @@ export const fileRouter = createTRPCRouter({
 
       return new Promise<FileListItem[]>((resolve) => {
         objectsStream.on('data', (obj: Minio.BucketItem) => {
-          if (obj.name) {
+          const objectName = obj.name
+          if (objectName) {
             statPromises.push(
               (async () => {
                 try {
-                  const stat = await minioClient.statObject(bucketName, obj.name!)
+                  const stat = await minioClient.statObject(bucketName, objectName)
                   return {
-                    objectName: obj.name!,
+                    objectName,
                     size: stat.size,
                     lastModified: stat.lastModified,
                     metaData: stat.metaData,
-                    originalFilename: stat.metaData['original-filename'] || obj.name!,
+                    originalFilename: stat.metaData['original-filename'] || objectName,
                     mimeType: stat.metaData['content-type'] || 'application/octet-stream',
                   }
                 } catch (statError) {
-                  log.error({ objectName: obj.name, error: statError }, 'Erro ao obter metadados do objeto MinIO')
+                  log.error({ objectName, error: statError }, 'Erro ao obter metadados do objeto MinIO')
                   return null
                 }
               })()
@@ -113,9 +121,12 @@ export const fileRouter = createTRPCRouter({
 
         return { message: 'Arquivo excluído com sucesso' }
       } catch (error) {
-        if (error instanceof Error && error.message.includes('NoSuchKey')) {
-          log.warn({ error }, 'Tentativa de excluir arquivo não encontrado')
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Arquivo não encontrado no bucket' })
+        if (error instanceof Error) {
+          const code = getMinioErrorCode(error)
+          if (error.message.includes('NoSuchKey') || code === 'NoSuchKey') {
+            log.warn({ error }, 'Tentativa de excluir arquivo não encontrado')
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Arquivo não encontrado no bucket' })
+          }
         }
         log.error(error, 'Erro ao excluir arquivo do MinIO')
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro interno do servidor ao excluir o arquivo' })
@@ -140,8 +151,11 @@ export const fileRouter = createTRPCRouter({
 
         return { url: presignedUrl }
       } catch (error) {
-        if (error instanceof Error && (error.message.includes('NoSuchKey') || (error as any).code === 'NoSuchKey')) {
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Arquivo não encontrado' })
+        if (error instanceof Error) {
+          const code = getMinioErrorCode(error)
+          if (error.message.includes('NoSuchKey') || code === 'NoSuchKey') {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Arquivo não encontrado' })
+          }
         }
         log.error(error, `Error generating presigned URL`)
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao acessar o arquivo' })
@@ -391,13 +405,12 @@ export const fileRouter = createTRPCRouter({
 
         return presignedUrl
       } catch (error) {
-        // Tratamento específico para arquivo não encontrado no MinIO
-        if (error instanceof Error && (error.message.includes('NoSuchKey') || (error as any).code === 'NoSuchKey')) {
-          log.warn(
-            { fileId: (error as any).fileId, userId: (error as any).userId, error },
-            'Arquivo não encontrado no MinIO'
-          )
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Arquivo não encontrado' })
+        if (error instanceof Error) {
+          const code = getMinioErrorCode(error)
+          if (error.message.includes('NoSuchKey') || code === 'NoSuchKey') {
+            log.warn({ error }, 'Arquivo não encontrado no MinIO')
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Arquivo não encontrado' })
+          }
         }
 
         if (error instanceof z.ZodError) {
@@ -446,9 +459,12 @@ export const fileRouter = createTRPCRouter({
         }
 
         // Handle specific MinIO errors if needed (e.g., file not found)
-        if (error instanceof Error && error.message.includes('NoSuchKey')) {
-          log.warn({ error }, 'Tentativa de excluir arquivo não encontrado')
-          throw new TRPCError({ code: 'NOT_FOUND', message: 'Arquivo não encontrado no bucket' })
+        if (error instanceof Error) {
+          const code = getMinioErrorCode(error)
+          if (error.message.includes('NoSuchKey') || code === 'NoSuchKey') {
+            log.warn({ error }, 'Tentativa de excluir arquivo não encontrado')
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Arquivo não encontrado no bucket' })
+          }
         }
         log.error(error, 'Erro ao excluir arquivo do MinIO')
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro interno do servidor ao excluir o arquivo' })
@@ -547,21 +563,22 @@ export const fileRouter = createTRPCRouter({
 
         return new Promise<FileListItem[]>((resolve, reject) => {
           objectsStream.on('data', (obj: Minio.BucketItem) => {
-            if (obj.name) {
+            const objectName = obj.name
+            if (objectName) {
               statPromises.push(
                 (async () => {
                   try {
-                    const stat = await minioClient.statObject(bucketName, obj.name!)
+                    const stat = await minioClient.statObject(bucketName, objectName)
                     return {
-                      objectName: obj.name!,
+                      objectName,
                       size: stat.size,
                       lastModified: stat.lastModified,
                       metaData: stat.metaData,
-                      originalFilename: stat.metaData['original-filename'] || obj.name!,
+                      originalFilename: stat.metaData['original-filename'] || objectName,
                       mimeType: stat.metaData['content-type'] || 'application/octet-stream',
                     }
                   } catch (statError) {
-                    log.error({ objectName: obj.name, error: statError }, 'Erro ao obter metadados do objeto MinIO')
+                    log.error({ objectName, error: statError }, 'Erro ao obter metadados do objeto MinIO')
                     return null
                   }
                 })()

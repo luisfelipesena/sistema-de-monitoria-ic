@@ -1,23 +1,22 @@
 import { env } from '@/utils/env'
 import nodemailer from 'nodemailer'
 
-import { logger } from '@/utils/logger'
-import { SELECTED_BOLSISTA, SELECTED_VOLUNTARIO, REJECTED_BY_PROFESSOR } from '@/types'
 import { db } from '@/server/db'
+import { notificacaoHistoricoTable, statusEnvioEnum } from '@/server/db/schema'
+import { getNotificacaoGeralAdminsHTML } from '@/server/email-templates/admin-notifications'
 import { getProfessorInvitationEmailHTML } from '@/server/email-templates/professor-invitation'
 import {
   getProjetoStatusChangeHTML,
   type ProjetoStatusChangeData,
 } from '@/server/email-templates/project-status-change'
-import { getNotificacaoGeralAdminsHTML } from '@/server/email-templates/admin-notifications'
 import {
-  getLembreteSubmissaoProjetoHTML,
   getLembreteSelecaoMonitoresHTML,
-  type LembreteSubmissaoData,
+  getLembreteSubmissaoProjetoHTML,
   type LembreteSelecaoData,
+  type LembreteSubmissaoData,
 } from '@/server/email-templates/reminder-templates'
-import { notificacaoHistoricoTable } from '@/server/db/schema'
-import { statusEnvioEnum } from '@/server/db/schema'
+import { REJECTED_BY_PROFESSOR, SELECTED_BOLSISTA, SELECTED_VOLUNTARIO } from '@/types'
+import { logger } from '@/utils/logger'
 
 const log = logger.child({ context: 'EmailService' })
 
@@ -420,6 +419,24 @@ export async function sendPlanilhaPROGRADEmail(data: {
   )
 }
 
+const sendEmailVerification = async (data: { to: string; verificationLink: string }) => {
+  const html = `
+    <p>Olá,</p>
+    <p>Recebemos uma solicitação de criação de conta no Sistema de Monitoria IC.</p>
+    <p>Para confirmar seu e-mail e concluir o cadastro, clique no link abaixo:</p>
+    <p><a href="${data.verificationLink}">Confirmar e-mail</a></p>
+    <p>Se você não solicitou esta conta, pode ignorar este e-mail.</p>
+    <p>Atenciosamente,<br/>Equipe Sistema de Monitoria IC</p>
+  `
+
+  await sendGenericEmail({
+    to: data.to,
+    subject: '[Monitoria IC] Confirme seu e-mail',
+    html,
+    tipoNotificacao: 'EMAIL_VERIFICATION',
+  })
+}
+
 export const emailService = {
   sendGenericEmail,
   sendProjetoStatusChangeNotification,
@@ -432,4 +449,5 @@ export const emailService = {
   sendLembreteSelecaoMonitoresPendente,
   sendProfessorInvitationEmail,
   sendPlanilhaPROGRADEmail,
+  sendEmailVerification,
 }

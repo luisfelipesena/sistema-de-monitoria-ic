@@ -1,6 +1,6 @@
 import { UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
-import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
-import React from "react"
+import { Document, Image, Page, StyleSheet, Text, View, type DocumentProps } from "@react-pdf/renderer"
+import React, { type ReactElement } from "react"
 
 const styles = StyleSheet.create({
   page: {
@@ -122,7 +122,11 @@ export interface PlanilhaPROGRADData {
   }>
 }
 
-const PlanilhaPROGRADComponent = ({ data }: { data: PlanilhaPROGRADData }) => {
+export interface PlanilhaPROGRADProps extends DocumentProps {
+  data: PlanilhaPROGRADData
+}
+
+export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps): ReactElement<DocumentProps> {
   // Group projects by department
   const projetosPorDepartamento = data.projetos.reduce((acc, projeto) => {
     if (!acc[projeto.departamentoNome]) {
@@ -133,7 +137,7 @@ const PlanilhaPROGRADComponent = ({ data }: { data: PlanilhaPROGRADData }) => {
   }, {} as Record<string, typeof data.projetos>)
 
   return (
-    <Document>
+    <Document {...rest}>
       <Page size="A4" style={styles.page} orientation="landscape">
         {/* Header */}
         <View style={styles.header}>
@@ -147,7 +151,8 @@ const PlanilhaPROGRADComponent = ({ data }: { data: PlanilhaPROGRADData }) => {
 
         {/* Title */}
         <Text style={styles.title}>
-          PLANILHA DE DETALHAMENTO DOS PROJETOS APROVADOS NA CONGREGAÇÃO DO IC - {data.ano}.{data.semestre === "SEMESTRE_1" ? "1" : "2"}
+          PLANILHA DE DETALHAMENTO DOS PROJETOS APROVADOS NA CONGREGAÇÃO DO IC - {data.ano}.
+          {data.semestre === "SEMESTRE_1" ? "1" : "2"}
         </Text>
 
         {/* Table */}
@@ -219,10 +224,7 @@ const PlanilhaPROGRADComponent = ({ data }: { data: PlanilhaPROGRADData }) => {
                   </View>
                   <View style={styles.tableCol6}>
                     <Text style={styles.tableCellText}>
-                      {projeto.tipoProposicao === "COLETIVA"
-                        ? (projeto.professoresParticipantes || "Não informado")
-                        : ""
-                      }
+                      {projeto.tipoProposicao === "COLETIVA" ? projeto.professoresParticipantes || "Não informado" : ""}
                     </Text>
                   </View>
                 </View>
@@ -234,5 +236,3 @@ const PlanilhaPROGRADComponent = ({ data }: { data: PlanilhaPROGRADData }) => {
     </Document>
   )
 }
-
-export const PlanilhaPROGRAD = React.memo(PlanilhaPROGRADComponent) as React.FC<{ data: PlanilhaPROGRADData }>

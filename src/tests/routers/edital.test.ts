@@ -10,6 +10,10 @@ const mockAdminUser: User = {
   role: 'admin',
   assinaturaDefault: null,
   dataAssinaturaDefault: null,
+  passwordHash: null,
+  emailVerifiedAt: null,
+  verificationToken: null,
+  verificationTokenExpiresAt: null,
 }
 
 const mockProfessorUser: User = {
@@ -19,6 +23,10 @@ const mockProfessorUser: User = {
   role: 'professor',
   assinaturaDefault: null,
   dataAssinaturaDefault: null,
+  passwordHash: null,
+  emailVerifiedAt: null,
+  verificationToken: null,
+  verificationTokenExpiresAt: null,
 }
 
 const createMockContext = (user: User | null): TRPCContext => ({

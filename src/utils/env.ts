@@ -37,6 +37,7 @@ export const env = createEnv({
     // Email
     EMAIL_USER: z.string().email().optional(),
     EMAIL_PASS: z.string().optional(),
+    EMAIL_VERIFICATION_URL: z.string().url().optional(),
 
     // API Auth
     JWT_SECRET: z.string().min(32).optional(),
@@ -64,6 +65,7 @@ export const env = createEnv({
     MINIO_BUCKET_NAME: process.env.MINIO_BUCKET_NAME,
     EMAIL_USER: process.env.EMAIL_USER,
     EMAIL_PASS: process.env.EMAIL_PASS,
+    EMAIL_VERIFICATION_URL: process.env.EMAIL_VERIFICATION_URL,
     JWT_SECRET: process.env.JWT_SECRET,
   },
 

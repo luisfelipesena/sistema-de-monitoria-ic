@@ -11,6 +11,10 @@ describe('API Key Router', () => {
     role: 'admin',
     assinaturaDefault: null,
     dataAssinaturaDefault: null,
+    passwordHash: null,
+    emailVerifiedAt: null,
+    verificationToken: null,
+    verificationTokenExpiresAt: null,
   }
 
   const mockApiKeys: ApiKey[] = [

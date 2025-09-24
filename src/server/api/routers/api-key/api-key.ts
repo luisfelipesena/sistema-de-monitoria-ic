@@ -64,16 +64,10 @@ export const apiKeyRouter = createTRPCRouter({
 
   // Listar API keys do usuário (admins podem ver de todos)
   list: protectedProcedure.input(listApiKeysSchema).query(async ({ ctx, input }) => {
-    let whereCondition
+    const whereCondition = input.userId ? eq(apiKeyTable.userId, input.userId) : eq(apiKeyTable.userId, ctx.user.id)
 
-    if (input.userId) {
-      // Apenas admins podem listar chaves de outros usuários
-      if (ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Permissão negada' })
-      }
-      whereCondition = eq(apiKeyTable.userId, input.userId)
-    } else {
-      whereCondition = eq(apiKeyTable.userId, ctx.user.id)
+    if (input.userId && ctx.user.role !== 'admin') {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'Permissão negada' })
     }
 
     const apiKeys = await ctx.db.query.apiKeyTable.findMany({

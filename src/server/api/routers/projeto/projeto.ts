@@ -17,17 +17,17 @@ import {
 import { emailService } from '@/server/lib/email-service'
 import { PDFService } from '@/server/lib/pdf-service'
 import {
+  ACCEPTED_VOLUNTARIO,
   anoSchema,
   idSchema,
   nameSchema,
   projectDetailSchema,
   projectFormSchema,
   projectListItemSchema,
-  semestreSchema,
+  REJECTED_BY_PROFESSOR,
   SELECTED_BOLSISTA,
   SELECTED_VOLUNTARIO,
-  REJECTED_BY_PROFESSOR,
-  ACCEPTED_VOLUNTARIO,
+  semestreSchema,
 } from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
@@ -53,7 +53,7 @@ export const projetoRouter = createTRPCRouter({
       try {
         const userRole = ctx.user.role
 
-        let whereCondition
+        let whereCondition = eq(projetoTable.id, projetoTable.id)
         if (userRole === 'professor') {
           const professor = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, ctx.user.id),
@@ -422,8 +422,15 @@ export const projetoRouter = createTRPCRouter({
           }),
         ])
 
+        if (!projetoCompleto) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Falha ao recuperar projeto recém criado',
+          })
+        }
+
         return {
-          ...projetoCompleto!,
+          ...projetoCompleto,
           disciplinas,
           professoresParticipantes: [], // Campo será preenchido via formulário
           atividades: atividadesResult,
@@ -528,8 +535,15 @@ export const projetoRouter = createTRPCRouter({
         }),
       ])
 
+      if (!projetoCompleto) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao recuperar projeto atualizado',
+        })
+      }
+
       return {
-        ...projetoCompleto!,
+        ...projetoCompleto,
         disciplinas,
         professoresParticipantes: [], // Campo será preenchido via formulário
         atividades: atividadesResult,

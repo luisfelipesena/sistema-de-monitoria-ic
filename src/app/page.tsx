@@ -2,9 +2,10 @@
 import { Footer } from "@/components/layout/Footer"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/hooks/use-auth"
+import Link from "next/link"
 
 export default function LandingPageComponent() {
-  const { signIn } = useAuth()
+  const { signInCas } = useAuth()
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -15,9 +16,14 @@ export default function LandingPageComponent() {
             <span className="text-xl font-bold text-[hsl(195,71%,40%)]">Sistema de Monitoria IC</span>
           </div>
           <div className="w-full sm:w-auto flex justify-center sm:justify-end mt-4 sm:mt-0">
-            <Button className="w-full sm:w-auto" onClick={signIn}>
-              Login
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button className="w-full sm:w-auto" onClick={signInCas}>
+                Entrar com CAS
+              </Button>
+              <Button asChild variant="outline" className="w-full sm:w-auto">
+                <Link href="/auth/login">Entrar com e-mail</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -30,9 +36,14 @@ export default function LandingPageComponent() {
               Simplifique o processo de inscrição, seleção e gerenciamento de monitores para projetos acadêmicos da
               UFBA.
             </p>
-            <Button size="lg" onClick={signIn}>
-              Login
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button size="lg" onClick={signInCas}>
+                Entrar com CAS
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href="/auth/register">Criar conta com e-mail</Link>
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
 import { departamentoRouter } from '@/server/api/routers/departamento/departamento'
 import { type TRPCContext } from '@/server/api/trpc'
 import { type User } from '@/server/db/schema'
+import { describe, expect, it, vi } from 'vitest'
 
 const mockUserAdmin: User = {
   id: 1,
@@ -10,6 +10,10 @@ const mockUserAdmin: User = {
   role: 'admin',
   assinaturaDefault: null,
   dataAssinaturaDefault: null,
+  passwordHash: null,
+  emailVerifiedAt: null,
+  verificationToken: null,
+  verificationTokenExpiresAt: null,
 }
 const mockUserProfessor: User = {
   id: 2,
@@ -18,6 +22,10 @@ const mockUserProfessor: User = {
   role: 'professor',
   assinaturaDefault: null,
   dataAssinaturaDefault: null,
+  passwordHash: null,
+  emailVerifiedAt: null,
+  verificationToken: null,
+  verificationTokenExpiresAt: null,
 }
 
 // Mock the context

@@ -1,14 +1,18 @@
 import { MonitoriaFormTemplate } from '@/components/features/projects/MonitoriaFormTemplate'
 import minioClient, { bucketName } from '@/server/lib/minio'
+import { AtaSelecaoTemplate } from '@/server/lib/pdfTemplates/ata-selecao'
+import { EditalInternoTemplate } from '@/server/lib/pdfTemplates/edital-interno'
 import { AtaSelecaoData, MonitoriaFormData } from '@/types'
 import { logger } from '@/utils/logger'
-import { renderToBuffer } from '@react-pdf/renderer'
+import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import { PDFDocument } from 'pdf-lib'
-import React from 'react'
-import { AtaSelecaoTemplate } from './pdfTemplates/ata-selecao'
-import { EditalInternoData, EditalInternoTemplate } from './pdfTemplates/edital-interno'
+import React, { type ReactElement } from 'react'
 
 const log = logger.child({ context: 'PDFService' })
+
+const toDocumentElement = (element: ReactElement): ReactElement<DocumentProps> => {
+  return element as ReactElement<DocumentProps>
+}
 
 // biome-ignore lint/complexity/noStaticOnlyClass: <explanation>
 export class PDFService {
@@ -20,7 +24,8 @@ export class PDFService {
       log.info({ projetoId: data.projetoId }, 'Generating PDF from template')
 
       // Create the PDF using @react-pdf/renderer
-      const pdfBuffer = await renderToBuffer(React.createElement(MonitoriaFormTemplate, { data }) as any)
+      const pdfElement = toDocumentElement(React.createElement(MonitoriaFormTemplate, { data }))
+      const pdfBuffer = await renderToBuffer(pdfElement)
 
       log.info({ projetoId: data.projetoId, size: pdfBuffer.length }, 'PDF generated successfully')
       return pdfBuffer
@@ -147,18 +152,17 @@ export class PDFService {
       const signatureWidth = 150
       const signatureHeight = 60
       const pageWidth = firstPage.getWidth()
-      const _pageHeight = firstPage.getHeight()
 
       // Position signatures in designated areas within the document
       let x: number, y: number
       if (signatureType === 'professor') {
         // Professor signature goes in section 5 (professor declaration area)
         x = pageWidth - signatureWidth - 50
-        y = 180 // Adjusted to align with professor signature area
+        y = 180
       } else {
         // Admin signature goes in section 6 (admin approval area)
         x = pageWidth - signatureWidth - 50
-        y = 80 // Adjusted to align with admin signature area
+        y = 80
       }
 
       // Draw the signature
@@ -192,7 +196,6 @@ export class PDFService {
     try {
       log.info({ projetoId: data.projetoId }, 'Generating signed project PDF')
 
-      // Create the complete data with signatures included
       const pdfData: MonitoriaFormData = {
         ...data,
         assinaturaProfessor: professorSignature,
@@ -202,8 +205,11 @@ export class PDFService {
       // Generate the complete PDF with signatures included in the template
       const pdfBuffer = await PDFService.generateProjetoPDF(pdfData)
 
-      // Save the final PDF
-      const objectName = await PDFService.saveProjetoPDF(data.projetoId!, pdfBuffer)
+      if (!data.projetoId) {
+        throw new Error('Projeto ID inválido para salvar PDF assinado')
+      }
+
+      const objectName = await PDFService.saveProjetoPDF(data.projetoId, pdfBuffer)
 
       log.info({ projetoId: data.projetoId, objectName }, 'Signed project PDF generated and saved')
       return objectName
@@ -216,12 +222,12 @@ export class PDFService {
   /**
    * Generates a PDF for internal edital
    */
-  static async generateEditalInternoPDF(data: EditalInternoData): Promise<Buffer> {
+  static async generateEditalInternoPDF(data: any): Promise<Buffer> {
     try {
       log.info({ numeroEdital: data.numeroEdital }, 'Generating internal edital PDF')
 
-      // Create the PDF using @react-pdf/renderer
-      const pdfBuffer = await renderToBuffer(React.createElement(EditalInternoTemplate, { data }) as any)
+      const pdfElement = toDocumentElement(React.createElement(EditalInternoTemplate, { data }))
+      const pdfBuffer = await renderToBuffer(pdfElement)
 
       log.info(
         { numeroEdital: data.numeroEdital, size: pdfBuffer.length },
@@ -267,8 +273,8 @@ export class PDFService {
     try {
       log.info({ projetoId: data.projeto.id }, 'Generating ata de seleção PDF')
 
-      // Create the PDF using @react-pdf/renderer
-      const pdfBuffer = await renderToBuffer(React.createElement(AtaSelecaoTemplate, { data }) as any)
+      const pdfElement = toDocumentElement(React.createElement(AtaSelecaoTemplate, { data }))
+      const pdfBuffer = await renderToBuffer(pdfElement)
 
       log.info({ projetoId: data.projeto.id, size: pdfBuffer.length }, 'Ata de seleção PDF generated successfully')
       return pdfBuffer
@@ -309,7 +315,7 @@ export class PDFService {
    * Generates and saves an internal edital PDF with signature
    */
   static async generateAndSaveSignedEditalInternoPDF(
-    data: EditalInternoData,
+    data: any,
     editalId: number,
     chefeSignature?: string
   ): Promise<string> {

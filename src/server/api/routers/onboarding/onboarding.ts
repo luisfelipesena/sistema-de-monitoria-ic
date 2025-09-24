@@ -6,6 +6,17 @@ import { TRPCError } from '@trpc/server'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
+type StudentProfile = typeof alunoTable.$inferSelect
+type ProfessorProfile = typeof professorTable.$inferSelect
+
+const isStudentProfile = (profile: StudentProfile | ProfessorProfile | null): profile is StudentProfile => {
+  return profile != null && 'comprovanteMatriculaFileId' in profile
+}
+
+const isProfessorProfile = (profile: StudentProfile | ProfessorProfile | null): profile is ProfessorProfile => {
+  return profile != null && 'curriculumVitaeFileId' in profile
+}
+
 const log = logger.child({ context: 'OnboardingRouter' })
 
 export const REQUIRED_DOCUMENTS = {
@@ -56,22 +67,24 @@ export const onboardingRouter = createTRPCRouter({
 
         // Verificar se existe perfil
         let hasProfile = false
-        let profileData: any = null
+        let profileData: StudentProfile | ProfessorProfile | null = null
         let hasSignature = false
 
         if (userRole === 'student') {
-          profileData = await ctx.db.query.alunoTable.findFirst({
+          const alunoProfile = await ctx.db.query.alunoTable.findFirst({
             where: eq(alunoTable.userId, userId),
           })
-          hasProfile = !!profileData
+          profileData = alunoProfile ?? null
+          hasProfile = alunoProfile != null
         } else if (userRole === 'professor') {
-          profileData = await ctx.db.query.professorTable.findFirst({
+          const professorProfile = await ctx.db.query.professorTable.findFirst({
             where: eq(professorTable.userId, userId),
           })
-          hasProfile = !!profileData
+          profileData = professorProfile ?? null
+          hasProfile = professorProfile != null
 
-          if (hasProfile) {
-            hasSignature = !!profileData.assinaturaDefault
+          if (professorProfile) {
+            hasSignature = !!professorProfile.assinaturaDefault
           }
         }
 
@@ -87,7 +100,7 @@ export const onboardingRouter = createTRPCRouter({
         const uploadedDocTypes: string[] = []
 
         // Para estudantes, verificar se tem documentos obrigatórios no perfil
-        if (userRole === 'student' && profileData) {
+        if (userRole === 'student' && isStudentProfile(profileData)) {
           if (profileData.comprovanteMatriculaFileId) {
             uploadedDocTypes.push('comprovante_matricula')
           }
@@ -97,7 +110,7 @@ export const onboardingRouter = createTRPCRouter({
         }
 
         // Para professores, verificar documentos no perfil
-        if (userRole === 'professor' && profileData) {
+        if (userRole === 'professor' && isProfessorProfile(profileData)) {
           if (profileData.curriculumVitaeFileId) {
             uploadedDocTypes.push('curriculum_vitae')
           }
@@ -343,7 +356,7 @@ export const onboardingRouter = createTRPCRouter({
             })
           }
 
-          const updateData: any = {}
+          const updateData: Partial<typeof alunoTable.$inferInsert> = {}
           if (documentType === 'comprovante_matricula') {
             updateData.comprovanteMatriculaFileId = fileId
           } else if (documentType === 'historico_escolar') {
@@ -368,7 +381,7 @@ export const onboardingRouter = createTRPCRouter({
             })
           }
 
-          const updateData: any = {}
+          const updateData: Partial<typeof professorTable.$inferInsert> = {}
           if (documentType === 'curriculum_vitae') {
             updateData.curriculumVitaeFileId = fileId
           } else if (documentType === 'comprovante_vinculo') {

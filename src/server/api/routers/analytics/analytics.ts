@@ -1,3 +1,4 @@
+import { PlanilhaPROGRADDocument, type PlanilhaPROGRADProps } from '@/components/features/prograd/PlanilhaPROGRAD'
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
   alunoTable,
@@ -10,15 +11,14 @@ import {
   projetoTable,
   vagaTable,
 } from '@/server/db/schema'
+import { sendPlanilhaPROGRADEmail } from '@/server/lib/email-service'
 import { DashboardMetrics, dashboardMetricsSchema } from '@/types'
 import { logger } from '@/utils/logger'
-import { sendPlanilhaPROGRADEmail } from '@/server/lib/email-service'
+import { DocumentProps, renderToBuffer } from '@react-pdf/renderer'
 import { TRPCError } from '@trpc/server'
 import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm'
+import React, { type ReactElement } from 'react'
 import { z } from 'zod'
-import React from 'react'
-import { renderToBuffer } from '@react-pdf/renderer'
-import { PlanilhaPROGRAD } from '@/components/features/prograd/PlanilhaPROGRAD'
 
 const log = logger.child({ context: 'AnalyticsRouter' })
 
@@ -476,7 +476,10 @@ export const analyticsRouter = createTRPCRouter({
         }
 
         // Generate PDF buffer
-        const pdfBuffer = await renderToBuffer(React.createElement(PlanilhaPROGRAD, { data: planilhaData }) as any)
+        const pdfElement: ReactElement<DocumentProps> = React.createElement(PlanilhaPROGRADDocument, {
+          data: planilhaData,
+        } satisfies PlanilhaPROGRADProps)
+        const pdfBuffer = await renderToBuffer(pdfElement)
 
         // Send email with PDF attachment
         await sendPlanilhaPROGRADEmail({

@@ -21,6 +21,14 @@ export const usernameSchema = z
   .min(3, 'Username deve ter pelo menos 3 caracteres')
   .max(50, 'Username deve ter no máximo 50 caracteres')
 
+export const passwordSchema = z
+  .string()
+  .min(8, 'Senha deve ter pelo menos 8 caracteres')
+  .regex(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/,
+    'Senha deve conter letras maiúsculas, minúsculas, números e um caractere especial'
+  )
+
 // Signature validation
 export const signatureDataSchema = z.string().min(1, 'Assinatura é obrigatória')
 export const optionalSignatureDataSchema = z.string().min(1).optional()

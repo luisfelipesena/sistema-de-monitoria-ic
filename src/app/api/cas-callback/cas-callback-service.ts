@@ -43,9 +43,9 @@ export class CasCallbackService {
       validateStatus: (status: number) => status < 500, // Aceita códigos 2xx, 3xx, 4xx
       headers: {
         'User-Agent': 'Sistema-Monitoria-UFBA/1.0',
-        'Accept': 'application/xml, text/xml, */*',
-        'Connection': 'keep-alive'
-      }
+        Accept: 'application/xml, text/xml, */*',
+        Connection: 'keep-alive',
+      },
     }
 
     // Implementar retry logic para problemas de rede
@@ -65,41 +65,45 @@ export class CasCallbackService {
             status: response.status,
             statusText: response.statusText,
             headers: response.headers,
-            data: response.data
+            data: response.data,
           })
           return this.redirectToError('CAS_HTTP_ERROR', `Status ${response.status}`)
         }
 
         return this.parseValidationResponse(response.data)
-
       } catch (error) {
         lastError = error
 
         // Log detalhado do erro
         if (error instanceof Error) {
-          log.error({
-            attempt,
-            maxRetries,
-            errorName: error.name,
-            errorMessage: error.message,
-            errorCode: (error as Error & { code?: string })?.code,
-            validationUrl,
-            timeout: axiosConfig.timeout
-          }, `CAS validation attempt ${attempt} failed`)
+          log.error(
+            {
+              attempt,
+              maxRetries,
+              errorName: error.name,
+              errorMessage: error.message,
+              errorCode: (error as Error & { code?: string })?.code,
+              validationUrl,
+              timeout: axiosConfig.timeout,
+            },
+            `CAS validation attempt ${attempt} failed`
+          )
         }
 
         // Se não é a última tentativa, aguarda antes de tentar novamente
         if (attempt < maxRetries) {
           const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000) // Exponential backoff, max 5s
           log.info(`Retrying CAS validation in ${delay}ms...`)
-          await new Promise(resolve => setTimeout(resolve, delay))
+          await new Promise((resolve) => setTimeout(resolve, delay))
         }
       }
     }
 
     // Se chegou até aqui, todas as tentativas falharam
-    log.error(lastError instanceof Error ? lastError : new Error(String(lastError)),
-      `CAS validation failed after ${maxRetries} attempts`)
+    log.error(
+      lastError instanceof Error ? lastError : new Error(String(lastError)),
+      `CAS validation failed after ${maxRetries} attempts`
+    )
 
     return this.redirectToError('CAS_NETWORK_ERROR', `Failed after ${maxRetries} attempts`)
   }
@@ -113,7 +117,7 @@ export class CasCallbackService {
         ignoreAttributes: false,
         attributeNamePrefix: '',
         parseTagValue: true,
-        trimValues: true
+        trimValues: true,
       })
 
       const result = parser.parse(data)
@@ -126,16 +130,14 @@ export class CasCallbackService {
 
       log.info('CAS response parsed successfully:', {
         hasAuthSuccess: !!serviceResponse['cas:authenticationSuccess'],
-        hasAuthFailure: !!serviceResponse['cas:authenticationFailure']
+        hasAuthFailure: !!serviceResponse['cas:authenticationFailure'],
       })
 
       return serviceResponse
-
     } catch (error) {
-      log.error(error instanceof Error ? error : new Error(String(error)),
-        'Failed to parse CAS validation response', {
+      log.error(error instanceof Error ? error : new Error(String(error)), 'Failed to parse CAS validation response', {
         dataLength: data?.length,
-        dataPreview: data?.substring(0, 200)
+        dataPreview: data?.substring(0, 200),
       })
       throw error
     }
@@ -173,6 +175,7 @@ export class CasCallbackService {
         'rubisleypl@ufba.br',
         'dcc@ufba.br',
         'caiomp@ufba.br',
+        'luisfelipesena@gmail.com'
       ]
 
       if (ADMIN_EMAILS.includes(existingUser.email)) {

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { regimeSchema, UserRole, userRoleSchema } from './enums'
-import { crSchema, emailSchema, idSchema, nameSchema, usernameSchema } from './schemas'
+import { crSchema, emailSchema, idSchema, nameSchema, passwordSchema, usernameSchema } from './schemas'
 
 // ========================================
 // AUTH TYPES
@@ -26,6 +26,10 @@ export type AppUser = {
   role: UserRole
   assinaturaDefault: string | null
   dataAssinaturaDefault: Date | null
+  passwordHash: string | null
+  emailVerifiedAt: Date | null
+  verificationToken: string | null
+  verificationTokenExpiresAt: Date | null
   professor?: {
     id: number
     departamentoId: number
@@ -41,8 +45,6 @@ export interface UserListItem {
   username: string
   email: string
   role: UserRole
-  assinaturaDefault?: string | null
-  dataAssinaturaDefault?: Date | null
   professorProfile?: {
     id: number
     nomeCompleto: string
@@ -179,6 +181,37 @@ export const listApiKeysSchema = z.object({
 export const deleteApiKeySchema = z.object({
   id: z.number().int().positive(),
 })
+
+// ========================================
+// LOCAL AUTHENTICATION SCHEMAS
+// ========================================
+
+export const registrationRoleSchema = z.enum(['professor', 'student'])
+
+export const registerUserSchema = z.object({
+  name: nameSchema,
+  email: emailSchema,
+  password: passwordSchema,
+  role: registrationRoleSchema,
+})
+
+export const loginUserSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+})
+
+export const verifyEmailSchema = z.object({
+  token: z.string().min(1),
+})
+
+export const resendVerificationSchema = z.object({
+  email: emailSchema,
+})
+
+export type RegisterUserInput = z.infer<typeof registerUserSchema>
+export type LoginUserInput = z.infer<typeof loginUserSchema>
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>
 
 export type CreateUserData = z.infer<typeof createUserSchema>
 export type UpdateUserData = z.infer<typeof updateUserSchema>
