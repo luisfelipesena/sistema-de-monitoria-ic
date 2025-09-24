@@ -25,8 +25,9 @@ const handler = async () => {
   const serializedBlankCookie =
     typeof (blank as { serialize?: () => string }).serialize === 'function'
       ? blank.serialize()
-      : `${blank.name}=${blank.value}; Path=${blank.attributes.path ?? '/'}; Max-Age=0; HttpOnly; SameSite=${blank.attributes.sameSite ?? 'Lax'}${blank.attributes.secure ? '; Secure' : ''
-      }`
+      : `${blank.name}=${blank.value}; Path=${blank.attributes.path ?? '/'}; Max-Age=0; HttpOnly; SameSite=${blank.attributes.sameSite ?? 'Lax'}${
+          blank.attributes.secure ? '; Secure' : ''
+        }`
 
   const redirectUrl = !user?.passwordHash
     ? `${process.env.CAS_SERVER_URL_PREFIX}/logout?url=${encodeURIComponent(process.env.CLIENT_URL ?? 'http://localhost:3000/')}`

@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/hooks/use-auth"
 import { LoginUserInput, loginUserSchema } from "@/types"
+import { toast } from "sonner"
 
 export default function LoginPage() {
   const { signInLocal, signInCas, errors, clearErrors } = useAuth()
@@ -30,6 +31,9 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginUserInput) => {
     await signInLocal(data)
+    toast.success("Login realizado", {
+      description: "Bem-vindo ao Sistema de Monitoria IC",
+    })
   }
 
   return (

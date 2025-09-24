@@ -1,6 +1,7 @@
 import { db } from '@/server/db'
 import { userTable } from '@/server/db/schema'
 import { lucia } from '@/server/lib/lucia'
+import { ADMIN_EMAILS } from '@/utils/admins'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import axios from 'axios'
@@ -161,22 +162,6 @@ export class CasCallbackService {
 
     if (existingUser) {
       log.info(`Found existing user: ${username}, ID: ${existingUser.id}`)
-
-      const ADMIN_EMAILS = [
-        'luis.sena@ufba.br',
-        'joao.leahy@ufba.br',
-        'antoniels@ufba.br',
-        'caioviana@ufba.br',
-        'felipecg@ufba.br',
-        'paulovo@ufba.br',
-        'matheus.passos@ufba.br',
-        'imoreira@ufba.br',
-        'icaro.baliza@ufba.br',
-        'rubisleypl@ufba.br',
-        'dcc@ufba.br',
-        'caiomp@ufba.br',
-        'luisfelipesena@gmail.com'
-      ]
 
       if (ADMIN_EMAILS.includes(existingUser.email)) {
         const [updatedUser] = await db

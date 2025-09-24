@@ -44,7 +44,7 @@ export const userTable = pgTable('user', {
   verificationTokenExpiresAt: timestamp('verification_token_expires_at', {
     withTimezone: true,
     mode: 'date',
-  })
+  }),
 })
 
 export const sessionTable = pgTable('session', {

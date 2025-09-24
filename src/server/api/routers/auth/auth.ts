@@ -13,6 +13,7 @@ import {
   resendVerificationSchema,
   verifyEmailSchema,
 } from '@/types'
+import { ADMIN_EMAILS } from '@/utils/admins'
 import { env } from '@/utils/env'
 import { TRPCError } from '@trpc/server'
 import { compare, hash } from 'bcryptjs'
@@ -157,6 +158,15 @@ export const authRouter = createTRPCRouter({
 
     if (!user.emailVerifiedAt) {
       throw new TRPCError({ code: 'FORBIDDEN', message: 'Verifique seu e-mail antes de entrar.' })
+    }
+
+    if (!user.passwordHash && ADMIN_EMAILS.includes(user.email)) {
+      await db
+        .update(userTable)
+        .set({
+          role: 'admin',
+        })
+        .where(eq(userTable.id, user.id))
     }
 
     const session = await lucia.createSession(user.id, {})

@@ -3,7 +3,6 @@
 import { AppUser, LoginUserInput, RegisterUserInput, ResendVerificationInput } from "@/types"
 import { api } from "@/utils/api"
 import { logger } from "@/utils/logger"
-import { useRouter } from "next/navigation"
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 
 const log = logger.child({
@@ -35,7 +34,6 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined)
 const useMeQuery = () => api.me.getMe.useQuery()
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
   const { data: userQuery, isLoading: isLoadingUser } = useMeQuery()
   const utils = api.useUtils()
   const [errors, setErrors] = useState<string | null>(null)
@@ -44,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const localLoginMutation = api.auth.login.useMutation({
     onSuccess: async () => {
       await utils.me.getMe.invalidate()
-      router.push("/home")
+      window.location.href = "/home"
     },
     onError: (error) => {
       const message = error.message || "Falha ao fazer login"
@@ -82,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const localLogoutMutation = api.auth.logout.useMutation({
     onSettled: async () => {
       await utils.me.getMe.reset()
-      router.push("/auth/login")
+      window.location.href = "/auth/login"
     },
     onError: (error) => {
       log.error({ error }, "Erro ao fazer logout local")
