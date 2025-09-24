@@ -209,7 +209,7 @@ export const authRouter = createTRPCRouter({
       where: eq(userTable.email, email),
     })
 
-    if (!user || !user.passwordHash) {
+    if (!user) {
       return {
         success: true,
         message: 'Se o e-mail existir, enviaremos instruções para redefinir a senha.',
