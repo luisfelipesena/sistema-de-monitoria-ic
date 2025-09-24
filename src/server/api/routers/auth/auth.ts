@@ -6,14 +6,20 @@ import { lucia } from '@/server/lib/lucia'
 import {
   LoginUserInput,
   RegisterUserInput,
+  RequestPasswordResetInput,
   ResendVerificationInput,
+  ResetPasswordWithTokenInput,
+  SetPasswordInput,
   VerifyEmailInput,
   loginUserSchema,
   registerUserSchema,
+  requestPasswordResetSchema,
   resendVerificationSchema,
+  resetPasswordWithTokenSchema,
+  setPasswordSchema,
   verifyEmailSchema,
 } from '@/types'
-import { ADMIN_EMAILS } from '@/utils/admins'
+import { ensureAdminRole } from '@/utils/admins'
 import { env } from '@/utils/env'
 import { TRPCError } from '@trpc/server'
 import { compare, hash } from 'bcryptjs'
@@ -23,6 +29,7 @@ import { eq } from 'drizzle-orm'
 const SALT_ROUNDS = 12
 const TOKEN_LENGTH = 48
 const TOKEN_EXPIRATION_HOURS = 24
+const PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES = 60
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase()
 
@@ -62,6 +69,8 @@ export const authRouter = createTRPCRouter({
         passwordHash,
         verificationToken,
         verificationTokenExpiresAt: expires,
+        passwordResetToken: null,
+        passwordResetExpiresAt: null,
       })
       .returning({ id: userTable.id, email: userTable.email })
 
@@ -133,6 +142,8 @@ export const authRouter = createTRPCRouter({
         emailVerifiedAt: new Date(),
         verificationToken: null,
         verificationTokenExpiresAt: null,
+        passwordResetToken: null,
+        passwordResetExpiresAt: null,
       })
       .where(eq(userTable.id, user.id))
 
@@ -160,13 +171,22 @@ export const authRouter = createTRPCRouter({
       throw new TRPCError({ code: 'FORBIDDEN', message: 'Verifique seu e-mail antes de entrar.' })
     }
 
-    if (!user.passwordHash && ADMIN_EMAILS.includes(user.email)) {
-      await db
+    if (!user.passwordHash) {
+      const passwordHash = await hash(data.password, SALT_ROUNDS)
+      const [updatedUser] = await db
         .update(userTable)
         .set({
-          role: 'admin',
+          passwordHash,
+          emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
+          verificationToken: null,
+          verificationTokenExpiresAt: null,
+          passwordResetToken: null,
+          passwordResetExpiresAt: null,
         })
         .where(eq(userTable.id, user.id))
+        .returning({ id: userTable.id, email: userTable.email })
+
+      await ensureAdminRole(updatedUser.id, updatedUser.email)
     }
 
     const session = await lucia.createSession(user.id, {})
@@ -178,6 +198,135 @@ export const authRouter = createTRPCRouter({
     return {
       success: true,
       message: 'Login realizado com sucesso',
+    }
+  }),
+
+  requestPasswordReset: publicProcedure.input(requestPasswordResetSchema).mutation(async ({ input }) => {
+    const data: RequestPasswordResetInput = input
+    const email = normalizeEmail(data.email)
+
+    const user = await db.query.userTable.findFirst({
+      where: eq(userTable.email, email),
+    })
+
+    if (!user || !user.passwordHash) {
+      return {
+        success: true,
+        message: 'Se o e-mail existir, enviaremos instruções para redefinir a senha.',
+      }
+    }
+
+    const token = randomBytes(TOKEN_LENGTH).toString('hex')
+    const expires = new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES * 60 * 1000)
+
+    await db
+      .update(userTable)
+      .set({
+        passwordResetToken: token,
+        passwordResetExpiresAt: expires,
+      })
+      .where(eq(userTable.id, user.id))
+
+    const baseUrl = env.PASSWORD_RESET_URL ?? `${env.CLIENT_URL}/auth/reset`
+    const url = new URL(baseUrl)
+    url.searchParams.set('token', token)
+
+    await emailService.sendPasswordResetEmail({
+      to: email,
+      resetLink: url.toString(),
+    })
+
+    return {
+      success: true,
+      message: 'Se o e-mail existir, enviaremos instruções para redefinir a senha.',
+    }
+  }),
+
+  resetPassword: publicProcedure.input(resetPasswordWithTokenSchema).mutation(async ({ input }) => {
+    const data: ResetPasswordWithTokenInput = input
+
+    const user = await db.query.userTable.findFirst({
+      where: eq(userTable.passwordResetToken, data.token),
+    })
+
+    if (!user || !user.passwordResetExpiresAt) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Token inválido' })
+    }
+
+    if (user.passwordResetExpiresAt < new Date()) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Token expirado. Solicite novamente.' })
+    }
+
+    const passwordHash = await hash(data.password, SALT_ROUNDS)
+
+    await db
+      .update(userTable)
+      .set({
+        passwordHash,
+        emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
+        passwordResetToken: null,
+        passwordResetExpiresAt: null,
+        verificationToken: null,
+        verificationTokenExpiresAt: null,
+      })
+      .where(eq(userTable.id, user.id))
+
+    await ensureAdminRole(user.id, user.email)
+
+    return {
+      success: true,
+      message: 'Senha redefinida com sucesso. Você já pode fazer login.',
+    }
+  }),
+
+  setPassword: protectedProcedure.input(setPasswordSchema).mutation(async ({ ctx, input }) => {
+    const { user } = ctx
+    if (!user) {
+      throw new TRPCError({ code: 'UNAUTHORIZED' })
+    }
+
+    const data: SetPasswordInput = input
+    const dbUser = await db.query.userTable.findFirst({
+      where: eq(userTable.id, user.id),
+    })
+
+    if (!dbUser) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Usuário não encontrado' })
+    }
+
+    if (dbUser.passwordHash) {
+      if (!data.currentPassword) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Informe a senha atual para alterá-la.',
+        })
+      }
+
+      const isCurrentValid = await compare(data.currentPassword, dbUser.passwordHash)
+      if (!isCurrentValid) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Senha atual inválida.' })
+      }
+    }
+
+    const passwordHash = await hash(data.password, SALT_ROUNDS)
+
+    await db
+      .update(userTable)
+      .set({
+        passwordHash,
+        emailVerifiedAt: dbUser.emailVerifiedAt ?? new Date(),
+        passwordResetToken: null,
+        passwordResetExpiresAt: null,
+        verificationToken: null,
+        verificationTokenExpiresAt: null,
+      })
+      .where(eq(userTable.id, dbUser.id))
+
+    await ensureAdminRole(dbUser.id, dbUser.email)
+
+    return {
+      success: true,
+      message: dbUser.passwordHash ? 'Senha atualizada com sucesso.' : 'Senha criada com sucesso.',
     }
   }),
 

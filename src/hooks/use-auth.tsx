@@ -1,6 +1,14 @@
 "use client"
 
-import { AppUser, LoginUserInput, RegisterUserInput, ResendVerificationInput } from "@/types"
+import {
+  AppUser,
+  LoginUserInput,
+  RegisterUserInput,
+  RequestPasswordResetInput,
+  ResendVerificationInput,
+  ResetPasswordWithTokenInput,
+  SetPasswordInput,
+} from "@/types"
 import { api } from "@/utils/api"
 import { logger } from "@/utils/logger"
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
@@ -25,6 +33,9 @@ interface AuthContextProps extends AuthState {
   registerLocal: (input: RegisterUserInput) => Promise<void>
   resendVerification: (input: ResendVerificationInput) => Promise<void>
   confirmEmail: (token: string) => Promise<void>
+  requestPasswordReset: (input: RequestPasswordResetInput) => Promise<{ success: boolean; message: string }>
+  resetPassword: (input: ResetPasswordWithTokenInput) => Promise<{ success: boolean; message: string }>
+  setPassword: (input: SetPasswordInput) => Promise<{ success: boolean; message: string }>
   errors: string | null
   clearErrors: () => void
 }
@@ -74,6 +85,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     onError: (error) => {
       setErrors(error.message || "Token inválido ou expirado")
+    },
+  })
+
+  const requestPasswordResetMutation = api.auth.requestPasswordReset.useMutation({
+    onSuccess: () => {
+      setErrors(null)
+    },
+    onError: (error) => {
+      setErrors(error.message || "Erro ao solicitar redefinição de senha")
+    },
+  })
+
+  const resetPasswordMutation = api.auth.resetPassword.useMutation({
+    onSuccess: () => {
+      setErrors(null)
+    },
+    onError: (error) => {
+      setErrors(error.message || "Erro ao redefinir senha")
+    },
+  })
+
+  const setPasswordMutation = api.auth.setPassword.useMutation({
+    onSuccess: async () => {
+      setErrors(null)
+      await utils.me.getMe.invalidate()
+    },
+    onError: (error) => {
+      setErrors(error.message || "Erro ao atualizar senha")
     },
   })
 
@@ -149,6 +188,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [verifyEmailMutation]
   )
 
+  const requestPasswordReset = useCallback(
+    async (input: RequestPasswordResetInput) => {
+      setErrors(null)
+      const response = await requestPasswordResetMutation.mutateAsync(input)
+      return { success: response.success, message: response.message }
+    },
+    [requestPasswordResetMutation]
+  )
+
+  const resetPassword = useCallback(
+    async (input: ResetPasswordWithTokenInput) => {
+      setErrors(null)
+      const response = await resetPasswordMutation.mutateAsync(input)
+      return { success: response.success, message: response.message }
+    },
+    [resetPasswordMutation]
+  )
+
+  const setPassword = useCallback(
+    async (input: SetPasswordInput) => {
+      setErrors(null)
+      const response = await setPasswordMutation.mutateAsync(input)
+      return { success: response.success, message: response.message }
+    },
+    [setPasswordMutation]
+  )
+
   const clearErrors = useCallback(() => setErrors(null), [])
 
   const value = useMemo(
@@ -160,6 +226,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localRegisterMutation.isPending ||
         resendVerificationMutation.isPending ||
         verifyEmailMutation.isPending ||
+        requestPasswordResetMutation.isPending ||
+        resetPasswordMutation.isPending ||
+        setPasswordMutation.isPending ||
         localLogoutMutation.isPending,
       isAuthenticated: !!user,
       signInCas,
@@ -168,6 +237,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       registerLocal,
       resendVerification,
       confirmEmail,
+      requestPasswordReset,
+      resetPassword,
+      setPassword,
       errors,
       clearErrors,
       provider,
@@ -186,6 +258,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       registerLocal,
       resendVerification,
       confirmEmail,
+      requestPasswordReset,
+      resetPassword,
+      setPassword,
       errors,
       clearErrors,
       provider,

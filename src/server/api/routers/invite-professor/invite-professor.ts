@@ -51,7 +51,7 @@ export const inviteProfessorRouter = createTRPCRouter({
 
     // Send email notification
     const { sendProfessorInvitationEmail } = await import('@/server/lib/email-service')
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+    const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
     const invitationLink = `${clientUrl}/auth/accept-invitation?token=${token}`
 
     await sendProfessorInvitationEmail({

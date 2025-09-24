@@ -79,6 +79,11 @@ export default function LoginPage() {
               <Button type="submit" className="w-full">
                 Entrar com e-mail
               </Button>
+              <div className="flex justify-between text-sm">
+                <Link href="/auth/forgot" className="text-blue-600 hover:text-blue-700">
+                  Esqueci minha senha
+                </Link>
+              </div>
             </form>
           </Form>
 

@@ -45,6 +45,11 @@ export const userTable = pgTable('user', {
     withTimezone: true,
     mode: 'date',
   }),
+  passwordResetToken: text('password_reset_token'),
+  passwordResetExpiresAt: timestamp('password_reset_expires_at', {
+    withTimezone: true,
+    mode: 'date',
+  }),
 })
 
 export const sessionTable = pgTable('session', {

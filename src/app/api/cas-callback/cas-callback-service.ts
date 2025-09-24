@@ -1,7 +1,7 @@
 import { db } from '@/server/db'
 import { userTable } from '@/server/db/schema'
 import { lucia } from '@/server/lib/lucia'
-import { ADMIN_EMAILS } from '@/utils/admins'
+import { ensureAdminRole } from '@/utils/admins'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import axios from 'axios'
@@ -163,16 +163,9 @@ export class CasCallbackService {
     if (existingUser) {
       log.info(`Found existing user: ${username}, ID: ${existingUser.id}`)
 
-      if (ADMIN_EMAILS.includes(existingUser.email)) {
-        const [updatedUser] = await db
-          .update(userTable)
-          .set({
-            role: 'admin',
-          })
-          .where(eq(userTable.id, existingUser.id))
-          .returning({ id: userTable.id, role: userTable.role })
-
-        return { id: updatedUser.id, role: updatedUser.role }
+      const adminUser = await ensureAdminRole(existingUser.id, existingUser.email)
+      if (adminUser) {
+        return { id: adminUser.id, role: adminUser.role }
       }
 
       return { id: existingUser.id, role: existingUser.role }

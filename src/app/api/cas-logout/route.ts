@@ -1,5 +1,6 @@
 import { db } from '@/server/db'
 import { lucia } from '@/server/lib/lucia'
+import { env } from '@/utils/env'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
@@ -30,7 +31,7 @@ const handler = async () => {
         }`
 
   const redirectUrl = !user?.passwordHash
-    ? `${process.env.CAS_SERVER_URL_PREFIX}/logout?url=${encodeURIComponent(process.env.CLIENT_URL ?? 'http://localhost:3000/')}`
+    ? `${env.CAS_SERVER_URL_PREFIX}/logout?url=${encodeURIComponent(env.CLIENT_URL ?? 'http://localhost:3000/')}`
     : '/auth/login'
 
   const response = NextResponse.redirect(redirectUrl, 303)

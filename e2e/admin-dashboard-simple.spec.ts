@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test.describe('Admin Dashboard (Simple)', () => {
   test('should redirect unauthenticated users to login', async ({ page }) => {
@@ -41,7 +41,7 @@ test.describe('Admin Dashboard (Simple)', () => {
 
     // Set API key in headers
     await page.setExtraHTTPHeaders({
-      'x-api-key': apiKey,
+      'x-api-key': apiKey ?? '',
     })
 
     await page.goto('/home/admin/dashboard')

@@ -1,12 +1,13 @@
-import { createTRPCRouter, protectedProcedure, adminProtectedProcedure } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { editalTable, periodoInscricaoTable, projetoTable } from '@/server/db/schema'
-import { logger } from '@/utils/logger'
-import { TRPCError } from '@trpc/server'
-import { eq, and, or, lte, gte, sql } from 'drizzle-orm'
-import { z } from 'zod'
-import { renderToBuffer } from '@react-pdf/renderer'
-import { EditalInternoTemplate, type EditalInternoData } from '@/server/lib/pdfTemplates/edital-interno'
 import minioClient, { bucketName } from '@/server/lib/minio'
+import { EditalInternoTemplate, type EditalInternoData } from '@/server/lib/pdfTemplates/edital-interno'
+import { env } from '@/utils/env'
+import { logger } from '@/utils/logger'
+import { renderToBuffer } from '@react-pdf/renderer'
+import { TRPCError } from '@trpc/server'
+import { and, eq, gte, lte, or, sql } from 'drizzle-orm'
+import { z } from 'zod'
 
 const log = logger.child({ context: 'EditalRouter' })
 
@@ -799,7 +800,7 @@ export const editalRouter = createTRPCRouter({
             dataInicio: edital.periodoInscricao.dataInicio.toISOString(),
             dataFim: edital.periodoInscricao.dataFim.toISOString(),
           },
-          formularioInscricaoUrl: `${process.env.NEXT_PUBLIC_APP_URL}/student/inscricao-monitoria`,
+          formularioInscricaoUrl: `${env.NEXT_PUBLIC_APP_URL}/student/inscricao-monitoria`,
           chefeResponsavel: {
             nome: 'Prof. Dr. [Nome do Chefe]',
             cargo: 'Chefe do Departamento de Ciência da Computação',

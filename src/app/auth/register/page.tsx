@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useAuth } from "@/hooks/use-auth"
 import { RegisterUserInput, registerUserSchema } from "@/types"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export default function RegisterPage() {
   const { registerLocal, resendVerification, signInCas, errors, clearErrors } = useAuth()
@@ -36,6 +37,9 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterUserInput) => {
     await registerLocal(data)
+    toast.success("Cadastro realizado!", {
+      description: "Verifique seu e-mail para ativar sua conta.",
+    })
     router.push("/auth/login")
   }
 

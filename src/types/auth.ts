@@ -30,6 +30,8 @@ export type AppUser = {
   emailVerifiedAt: Date | null
   verificationToken: string | null
   verificationTokenExpiresAt: Date | null
+  passwordResetToken: string | null
+  passwordResetExpiresAt: Date | null
   professor?: {
     id: number
     departamentoId: number
@@ -208,10 +210,27 @@ export const resendVerificationSchema = z.object({
   email: emailSchema,
 })
 
+export const requestPasswordResetSchema = z.object({
+  email: emailSchema,
+})
+
+export const resetPasswordWithTokenSchema = z.object({
+  token: z.string().min(1),
+  password: passwordSchema,
+})
+
+export const setPasswordSchema = z.object({
+  password: passwordSchema,
+  currentPassword: passwordSchema.optional(),
+})
+
 export type RegisterUserInput = z.infer<typeof registerUserSchema>
 export type LoginUserInput = z.infer<typeof loginUserSchema>
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>
 export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>
+export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetSchema>
+export type ResetPasswordWithTokenInput = z.infer<typeof resetPasswordWithTokenSchema>
+export type SetPasswordInput = z.infer<typeof setPasswordSchema>
 
 export type CreateUserData = z.infer<typeof createUserSchema>
 export type UpdateUserData = z.infer<typeof updateUserSchema>

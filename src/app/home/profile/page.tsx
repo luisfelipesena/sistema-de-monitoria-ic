@@ -1,27 +1,22 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { UserSignatureManager } from '@/components/features/profile/UserSignatureManager'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Spinner } from '@/components/ui/spinner'
-import { useAuth } from '@/hooks/use-auth'
-import { useToast } from '@/hooks/use-toast'
-import { useState, useEffect } from 'react'
-import { api } from '@/utils/api'
-import { FileText, Upload, AlertTriangle, Eye } from 'lucide-react'
-import { FileUploadField } from '@/components/ui/FileUploadField'
-import { formatUsernameToProperName } from '@/utils/username-formatter'
+import { PasswordManager } from "@/components/features/profile/PasswordManager"
+import { UserSignatureManager } from "@/components/features/profile/UserSignatureManager"
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { FileUploadField } from "@/components/ui/FileUploadField"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Spinner } from "@/components/ui/spinner"
+import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
+import { api } from "@/utils/api"
+import { formatUsernameToProperName } from "@/utils/username-formatter"
+import { Eye, FileText, Upload } from "lucide-react"
+import { useEffect, useState } from "react"
 
 export default function ProfilePage() {
   const { user } = useAuth()
@@ -37,9 +32,9 @@ export default function ProfilePage() {
     )
   }
 
-  if (user.role === 'student') {
+  if (user.role === "student") {
     return <StudentProfile />
-  } else if (user.role === 'professor') {
+  } else if (user.role === "professor") {
     return <ProfessorProfile />
   } else {
     return <AdminProfile />
@@ -60,11 +55,11 @@ function AdminProfile() {
             <div className="space-y-4">
               <div>
                 <Label>Nome</Label>
-                <Input value={formatUsernameToProperName(user?.username || '')} disabled className="bg-gray-50" />
+                <Input value={formatUsernameToProperName(user?.username || "")} disabled className="bg-gray-50" />
               </div>
               <div>
                 <Label>Email</Label>
-                <Input value={user?.email || ''} disabled className="bg-gray-50" />
+                <Input value={user?.email || ""} disabled className="bg-gray-50" />
               </div>
               <div>
                 <Label>Função</Label>
@@ -75,6 +70,7 @@ function AdminProfile() {
         </Card>
 
         <UserSignatureManager />
+        <PasswordManager />
       </div>
     </PagesLayout>
   )
@@ -85,35 +81,35 @@ function StudentProfile() {
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    nomeCompleto: '',
-    matricula: '',
-    cpf: '',
+    nomeCompleto: "",
+    matricula: "",
+    cpf: "",
     cursoId: 0,
     cr: 0,
-    banco: '',
-    agencia: '',
-    conta: '',
-    digitoConta: '',
+    banco: "",
+    agencia: "",
+    conta: "",
+    digitoConta: "",
   })
 
   const { data: userProfile, isLoading } = api.user.getProfile.useQuery()
   const { data: cursos } = api.course.getCourses.useQuery({ includeStats: false })
   const updateProfileMutation = api.user.updateProfile.useMutation()
-  
+
   const aluno = userProfile?.studentProfile
 
   useEffect(() => {
     if (aluno) {
       setFormData({
-        nomeCompleto: aluno.nomeCompleto || '',
-        matricula: aluno.matricula || '',
-        cpf: aluno.cpf || '',
+        nomeCompleto: aluno.nomeCompleto || "",
+        matricula: aluno.matricula || "",
+        cpf: aluno.cpf || "",
         cursoId: aluno.cursoId || 0,
         cr: aluno.cr || 0,
-        banco: (aluno).banco || '',
-        agencia: (aluno).agencia || '',
-        conta: (aluno).conta || '',
-        digitoConta: (aluno).digitoConta || '',
+        banco: aluno.banco || "",
+        agencia: aluno.agencia || "",
+        conta: aluno.conta || "",
+        digitoConta: aluno.digitoConta || "",
       })
     }
   }, [aluno])
@@ -131,20 +127,20 @@ function StudentProfile() {
           agencia: formData.agencia,
           conta: formData.conta,
           digitoConta: formData.digitoConta,
-        }
+        },
       })
 
       toast({
-        title: 'Perfil atualizado',
-        description: 'Suas informações foram atualizadas com sucesso',
+        title: "Perfil atualizado",
+        description: "Suas informações foram atualizadas com sucesso",
       })
 
       setIsEditing(false)
     } catch (error: any) {
       toast({
-        title: 'Erro ao atualizar',
-        description: error.message || 'Não foi possível atualizar o perfil',
-        variant: 'destructive',
+        title: "Erro ao atualizar",
+        description: error.message || "Não foi possível atualizar o perfil",
+        variant: "destructive",
       })
     }
   }
@@ -152,15 +148,15 @@ function StudentProfile() {
   const handleCancel = () => {
     if (aluno) {
       setFormData({
-        nomeCompleto: aluno.nomeCompleto || '',
-        matricula: aluno.matricula || '',
-        cpf: aluno.cpf || '',
+        nomeCompleto: aluno.nomeCompleto || "",
+        matricula: aluno.matricula || "",
+        cpf: aluno.cpf || "",
         cursoId: aluno.cursoId || 0,
         cr: aluno.cr || 0,
-        banco: (aluno).banco || '',
-        agencia: (aluno).agencia || '',
-        conta: (aluno).conta || '',
-        digitoConta: (aluno).digitoConta || '',
+        banco: aluno.banco || "",
+        agencia: aluno.agencia || "",
+        conta: aluno.conta || "",
+        digitoConta: aluno.digitoConta || "",
       })
     }
     setIsEditing(false)
@@ -177,10 +173,7 @@ function StudentProfile() {
   }
 
   return (
-    <PagesLayout
-      title="Meu Perfil"
-      subtitle="Gerencie suas informações pessoais"
-    >
+    <PagesLayout title="Meu Perfil" subtitle="Gerencie suas informações pessoais">
       <div className="space-y-8">
         <Card>
           <CardHeader>
@@ -193,9 +186,7 @@ function StudentProfile() {
                   <Button variant="outline" onClick={handleCancel}>
                     Cancelar
                   </Button>
-                  <Button onClick={handleSave}>
-                    Salvar
-                  </Button>
+                  <Button onClick={handleSave}>Salvar</Button>
                 </div>
               )}
             </div>
@@ -207,9 +198,7 @@ function StudentProfile() {
                 <Input
                   id="nomeCompleto"
                   value={formData.nomeCompleto}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nomeCompleto: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
                   disabled={!isEditing}
                 />
               </div>
@@ -219,9 +208,7 @@ function StudentProfile() {
                 <Input
                   id="matricula"
                   value={formData.matricula}
-                  onChange={(e) =>
-                    setFormData({ ...formData, matricula: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, matricula: e.target.value })}
                   disabled={!isEditing}
                 />
               </div>
@@ -231,30 +218,21 @@ function StudentProfile() {
                 <Input
                   id="cpf"
                   value={formData.cpf}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cpf: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
                   disabled={!isEditing}
                 />
               </div>
 
               <div>
                 <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  value={user?.email || ''}
-                  disabled
-                  className="bg-gray-50"
-                />
+                <Input id="email" value={user?.email || ""} disabled className="bg-gray-50" />
               </div>
 
               <div>
                 <Label htmlFor="curso">Curso</Label>
                 <Select
                   value={formData.cursoId.toString()}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, cursoId: parseInt(value) })
-                  }
+                  onValueChange={(value) => setFormData({ ...formData, cursoId: parseInt(value) })}
                 >
                   <SelectTrigger disabled={!isEditing}>
                     <SelectValue placeholder="Selecione seu curso" />
@@ -278,9 +256,7 @@ function StudentProfile() {
                   min="0"
                   max="10"
                   value={formData.cr}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cr: parseFloat(e.target.value) })
-                  }
+                  onChange={(e) => setFormData({ ...formData, cr: parseFloat(e.target.value) })}
                   disabled={!isEditing}
                 />
               </div>
@@ -299,9 +275,7 @@ function StudentProfile() {
                 <Input
                   id="banco"
                   value={formData.banco}
-                  onChange={(e) =>
-                    setFormData({ ...formData, banco: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, banco: e.target.value })}
                   disabled={!isEditing}
                   placeholder="Ex: Banco do Brasil"
                 />
@@ -311,9 +285,7 @@ function StudentProfile() {
                 <Input
                   id="agencia"
                   value={formData.agencia}
-                  onChange={(e) =>
-                    setFormData({ ...formData, agencia: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, agencia: e.target.value })}
                   disabled={!isEditing}
                   placeholder="Ex: 1234-5"
                 />
@@ -323,9 +295,7 @@ function StudentProfile() {
                 <Input
                   id="conta"
                   value={formData.conta}
-                  onChange={(e) =>
-                    setFormData({ ...formData, conta: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, conta: e.target.value })}
                   disabled={!isEditing}
                   placeholder="Ex: 12345-6"
                 />
@@ -335,9 +305,7 @@ function StudentProfile() {
                 <Input
                   id="digitoConta"
                   value={formData.digitoConta}
-                  onChange={(e) =>
-                    setFormData({ ...formData, digitoConta: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, digitoConta: e.target.value })}
                   disabled={!isEditing}
                   maxLength={2}
                   placeholder="Ex: 7"
@@ -349,6 +317,7 @@ function StudentProfile() {
 
         <DocumentsSection />
         <UserSignatureManager />
+        <PasswordManager />
       </div>
     </PagesLayout>
   )
@@ -359,28 +328,28 @@ function ProfessorProfile() {
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
-    nomeCompleto: '',
-    matriculaSiape: '',
-    cpf: '',
-    telefone: '',
-    telefoneInstitucional: '',
-    regime: '' as '20H' | '40H' | 'DE' | '',
+    nomeCompleto: "",
+    matriculaSiape: "",
+    cpf: "",
+    telefone: "",
+    telefoneInstitucional: "",
+    regime: "" as "20H" | "40H" | "DE" | "",
   })
 
   const { data: userProfile, isLoading } = api.user.getProfile.useQuery()
   const updateProfileMutation = api.user.updateProfile.useMutation()
-  
+
   const professor = userProfile?.professorProfile
 
   useEffect(() => {
     if (professor) {
       setFormData({
-        nomeCompleto: professor.nomeCompleto || '',
-        matriculaSiape: professor.matriculaSiape || '',
-        cpf: professor.cpf || '',
-        telefone: professor.telefone || '',
-        telefoneInstitucional: professor.telefoneInstitucional || '',
-        regime: professor.regime || '',
+        nomeCompleto: professor.nomeCompleto || "",
+        matriculaSiape: professor.matriculaSiape || "",
+        cpf: professor.cpf || "",
+        telefone: professor.telefone || "",
+        telefoneInstitucional: professor.telefoneInstitucional || "",
+        regime: professor.regime || "",
       })
     }
   }, [professor])
@@ -389,9 +358,9 @@ function ProfessorProfile() {
     try {
       if (!formData.regime) {
         toast({
-          title: 'Campo obrigatório',
-          description: 'Por favor, selecione um regime de trabalho',
-          variant: 'destructive',
+          title: "Campo obrigatório",
+          description: "Por favor, selecione um regime de trabalho",
+          variant: "destructive",
         })
         return
       }
@@ -402,21 +371,21 @@ function ProfessorProfile() {
           cpf: formData.cpf,
           telefone: formData.telefone,
           telefoneInstitucional: formData.telefoneInstitucional,
-          regime: formData.regime as '20H' | '40H' | 'DE',
-        }
+          regime: formData.regime as "20H" | "40H" | "DE",
+        },
       })
 
       toast({
-        title: 'Perfil atualizado',
-        description: 'Suas informações foram atualizadas com sucesso',
+        title: "Perfil atualizado",
+        description: "Suas informações foram atualizadas com sucesso",
       })
 
       setIsEditing(false)
     } catch (error: any) {
       toast({
-        title: 'Erro ao atualizar',
-        description: error.message || 'Não foi possível atualizar o perfil',
-        variant: 'destructive',
+        title: "Erro ao atualizar",
+        description: error.message || "Não foi possível atualizar o perfil",
+        variant: "destructive",
       })
     }
   }
@@ -424,12 +393,12 @@ function ProfessorProfile() {
   const handleCancel = () => {
     if (professor) {
       setFormData({
-        nomeCompleto: professor.nomeCompleto || '',
-        matriculaSiape: professor.matriculaSiape || '',
-        cpf: professor.cpf || '',
-        telefone: professor.telefone || '',
-        telefoneInstitucional: professor.telefoneInstitucional || '',
-        regime: professor.regime || '',
+        nomeCompleto: professor.nomeCompleto || "",
+        matriculaSiape: professor.matriculaSiape || "",
+        cpf: professor.cpf || "",
+        telefone: professor.telefone || "",
+        telefoneInstitucional: professor.telefoneInstitucional || "",
+        regime: professor.regime || "",
       })
     }
     setIsEditing(false)
@@ -446,10 +415,7 @@ function ProfessorProfile() {
   }
 
   return (
-    <PagesLayout
-      title="Meu Perfil"
-      subtitle="Gerencie suas informações pessoais"
-    >
+    <PagesLayout title="Meu Perfil" subtitle="Gerencie suas informações pessoais">
       <div className="space-y-8">
         <Card>
           <CardHeader>
@@ -462,9 +428,7 @@ function ProfessorProfile() {
                   <Button variant="outline" onClick={handleCancel}>
                     Cancelar
                   </Button>
-                  <Button onClick={handleSave}>
-                    Salvar
-                  </Button>
+                  <Button onClick={handleSave}>Salvar</Button>
                 </div>
               )}
             </div>
@@ -476,9 +440,7 @@ function ProfessorProfile() {
                 <Input
                   id="nomeCompleto"
                   value={formData.nomeCompleto}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nomeCompleto: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
                   disabled={!isEditing}
                 />
               </div>
@@ -488,9 +450,7 @@ function ProfessorProfile() {
                 <Input
                   id="matriculaSiape"
                   value={formData.matriculaSiape}
-                  onChange={(e) =>
-                    setFormData({ ...formData, matriculaSiape: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, matriculaSiape: e.target.value })}
                   disabled={!isEditing}
                 />
               </div>
@@ -500,21 +460,14 @@ function ProfessorProfile() {
                 <Input
                   id="cpf"
                   value={formData.cpf}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cpf: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
                   disabled={!isEditing}
                 />
               </div>
 
               <div>
                 <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  value={user?.email || ''}
-                  disabled
-                  className="bg-gray-50"
-                />
+                <Input id="email" value={user?.email || ""} disabled className="bg-gray-50" />
               </div>
 
               <div>
@@ -522,9 +475,7 @@ function ProfessorProfile() {
                 <Input
                   id="telefone"
                   value={formData.telefone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, telefone: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
                   disabled={!isEditing}
                   placeholder="(xx) xxxxx-xxxx"
                 />
@@ -535,9 +486,7 @@ function ProfessorProfile() {
                 <Input
                   id="telefoneInstitucional"
                   value={formData.telefoneInstitucional}
-                  onChange={(e) =>
-                    setFormData({ ...formData, telefoneInstitucional: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, telefoneInstitucional: e.target.value })}
                   disabled={!isEditing}
                   placeholder="(xx) xxxx-xxxx"
                 />
@@ -547,9 +496,7 @@ function ProfessorProfile() {
                 <Label htmlFor="regime">Regime de Trabalho</Label>
                 <Select
                   value={formData.regime}
-                  onValueChange={(value: '20H' | '40H' | 'DE') =>
-                    setFormData({ ...formData, regime: value })
-                  }
+                  onValueChange={(value: "20H" | "40H" | "DE") => setFormData({ ...formData, regime: value })}
                 >
                   <SelectTrigger disabled={!isEditing}>
                     <SelectValue placeholder="Selecione o regime" />
@@ -567,6 +514,7 @@ function ProfessorProfile() {
 
         <DocumentsSection />
         <UserSignatureManager />
+        <PasswordManager />
       </div>
     </PagesLayout>
   )
@@ -575,10 +523,10 @@ function ProfessorProfile() {
 function DocumentsSection() {
   const { user } = useAuth()
   const { toast } = useToast()
-  
-  const isStudent = user?.role === 'student'
-  const isProfessor = user?.role === 'professor'
-  const isAdmin = user?.role === 'admin'
+
+  const isStudent = user?.role === "student"
+  const isProfessor = user?.role === "professor"
+  const isAdmin = user?.role === "admin"
 
   const { data: userProfile, refetch: refetchProfile } = api.user.getProfile.useQuery()
   const updateDocumentMutation = api.onboarding.updateDocument.useMutation()
@@ -591,21 +539,25 @@ function DocumentsSection() {
   const handleDocumentUpload = async (docType: string, fileId: string, fileName: string) => {
     try {
       await updateDocumentMutation.mutateAsync({
-        documentType: docType as 'comprovante_matricula' | 'historico_escolar' | 'curriculum_vitae' | 'comprovante_vinculo',
+        documentType: docType as
+          | "comprovante_matricula"
+          | "historico_escolar"
+          | "curriculum_vitae"
+          | "comprovante_vinculo",
         fileId,
       })
 
       toast({
-        title: 'Documento atualizado',
+        title: "Documento atualizado",
         description: `${fileName} foi enviado com sucesso.`,
       })
 
       await refetchProfile()
     } catch (error: any) {
       toast({
-        title: 'Erro ao enviar documento',
-        description: error.message || 'Não foi possível enviar o documento.',
-        variant: 'destructive',
+        title: "Erro ao enviar documento",
+        description: error.message || "Não foi possível enviar o documento.",
+        variant: "destructive",
       })
     }
   }
@@ -613,36 +565,36 @@ function DocumentsSection() {
   const handleViewDocument = async (fileId: string, docName: string) => {
     try {
       toast({
-        title: 'Preparando visualização...',
+        title: "Preparando visualização...",
         description: `Abrindo ${docName}`,
       })
 
       const url = await getPresignedUrlMutation.mutateAsync({
         fileId: fileId,
-        action: 'view',
+        action: "view",
       })
 
-      const newWindow = window.open(url, '_blank', 'noopener,noreferrer')
+      const newWindow = window.open(url, "_blank", "noopener,noreferrer")
       if (!newWindow) {
         toast({
-          title: 'Popup bloqueado',
-          description: 'Permita popups para visualizar o documento em nova aba.',
-          variant: 'destructive',
+          title: "Popup bloqueado",
+          description: "Permita popups para visualizar o documento em nova aba.",
+          variant: "destructive",
         })
         return
       }
-    
+
       toast({
-        title: 'Documento aberto',
-        description: 'O documento foi aberto em nova aba.',
+        title: "Documento aberto",
+        description: "O documento foi aberto em nova aba.",
       })
     } catch (error: any) {
       toast({
-        title: 'Erro ao abrir documento',
-        description: 'Não foi possível abrir o documento para visualização.',
-        variant: 'destructive',
+        title: "Erro ao abrir documento",
+        description: "Não foi possível abrir o documento para visualização.",
+        variant: "destructive",
       })
-      console.error('View document error:', error)
+      console.error("View document error:", error)
     }
   }
 
@@ -650,33 +602,32 @@ function DocumentsSection() {
     if (isStudent) {
       return [
         {
-          id: 'historico_escolar',
-          name: 'Histórico Escolar',
-          description: 'Histórico escolar atualizado',
+          id: "historico_escolar",
+          name: "Histórico Escolar",
+          description: "Histórico escolar atualizado",
           required: true,
         },
         {
-          id: 'comprovante_matricula',
-          name: 'Comprovante de Matrícula',
-          description: 'Comprovante de matrícula atual',
+          id: "comprovante_matricula",
+          name: "Comprovante de Matrícula",
+          description: "Comprovante de matrícula atual",
           required: true,
         },
-
       ]
     }
 
     if (isProfessor) {
       return [
         {
-          id: 'curriculum_vitae',
-          name: 'Curriculum Vitae',
-          description: 'CV atualizado',
+          id: "curriculum_vitae",
+          name: "Curriculum Vitae",
+          description: "CV atualizado",
           required: true,
         },
         {
-          id: 'comprovante_vinculo',
-          name: 'Comprovante de Vínculo',
-          description: 'Comprovante de vínculo institucional',
+          id: "comprovante_vinculo",
+          name: "Comprovante de Vínculo",
+          description: "Comprovante de vínculo institucional",
           required: true,
         },
       ]
@@ -690,26 +641,26 @@ function DocumentsSection() {
   const getCurrentFileId = (docId: string) => {
     if (isStudent && userProfile?.studentProfile) {
       switch (docId) {
-        case 'historico_escolar':
+        case "historico_escolar":
           return userProfile.studentProfile.historicoEscolarFileId
-        case 'comprovante_matricula':
+        case "comprovante_matricula":
           return userProfile.studentProfile.comprovanteMatriculaFileId
         default:
           return null
       }
     }
-    
+
     if (isProfessor && userProfile?.professorProfile) {
       switch (docId) {
-        case 'curriculum_vitae':
+        case "curriculum_vitae":
           return userProfile.professorProfile.curriculumVitaeFileId
-        case 'comprovante_vinculo':
+        case "comprovante_vinculo":
           return userProfile.professorProfile.comprovanteVinculoFileId
         default:
           return null
       }
     }
-    
+
     return null
   }
 
@@ -724,9 +675,9 @@ function DocumentsSection() {
           {documents.length > 0 && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <span>
-                {documents.filter(doc => getCurrentFileId(doc.id)).length} de {documents.length} enviados
+                {documents.filter((doc) => getCurrentFileId(doc.id)).length} de {documents.length} enviados
               </span>
-              {documents.filter(doc => getCurrentFileId(doc.id)).length === documents.length && (
+              {documents.filter((doc) => getCurrentFileId(doc.id)).length === documents.length && (
                 <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
                   Completo
                 </Badge>
@@ -740,7 +691,7 @@ function DocumentsSection() {
           <div className="grid grid-cols-1 gap-4">
             {documents.map((doc) => {
               const currentFileId = getCurrentFileId(doc.id)
-              
+
               return (
                 <div key={doc.id} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -757,7 +708,7 @@ function DocumentsSection() {
                         </Badge>
                       )}
                     </div>
-                    
+
                     {currentFileId && (
                       <Button
                         variant="outline"
@@ -767,11 +718,11 @@ function DocumentsSection() {
                         className="flex items-center gap-2"
                       >
                         <Eye className="h-4 w-4" />
-                        {getPresignedUrlMutation.isPending ? 'Carregando...' : 'Visualizar PDF'}
+                        {getPresignedUrlMutation.isPending ? "Carregando..." : "Visualizar PDF"}
                       </Button>
                     )}
                   </div>
-                  
+
                   {currentFileId && (
                     <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                       <div className="flex items-center gap-2 text-green-800">
@@ -783,7 +734,7 @@ function DocumentsSection() {
                       </p>
                     </div>
                   )}
-                  
+
                   <FileUploadField
                     label={currentFileId ? "Substituir documento" : ""}
                     description={doc.description}
