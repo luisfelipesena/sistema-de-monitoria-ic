@@ -359,9 +359,13 @@ export async function sendPlanilhaPROGRADEmail(data: {
   semestre: string
   ano: number
   remetenteUserId?: number
+  isExcel?: boolean
 }) {
   const semestreDisplay = data.semestre === 'SEMESTRE_1' ? '1' : '2'
-  const filename = `Planilha_PROGRAD_${data.ano}_${semestreDisplay}.pdf`
+  const fileExtension = data.isExcel ? 'xlsx' : 'pdf'
+  const filename = `Planilha_PROGRAD_${data.ano}_${semestreDisplay}.${fileExtension}`
+  const contentType = data.isExcel ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'application/pdf'
+  const formatoTexto = data.isExcel ? 'Excel' : 'PDF'
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -369,15 +373,19 @@ export async function sendPlanilhaPROGRADEmail(data: {
 
       <p>Prezados,</p>
 
-      <p>Segue em anexo a planilha de detalhamento dos projetos de monitoria aprovados na Congregação do Instituto de Computação para o período ${data.ano}.${semestreDisplay}.</p>
+      <p>Segue em anexo a planilha de consolidação dos monitores aprovados no Instituto de Computação para o período ${data.ano}.${semestreDisplay} em formato ${formatoTexto}.</p>
 
-      <p>Esta planilha contém informações detalhadas sobre:</p>
+      <p>Esta planilha contém informações completas sobre:</p>
       <ul>
-        <li>Projetos aprovados por departamento</li>
-        <li>Códigos das disciplinas</li>
-        <li>Professores responsáveis e participantes</li>
-        <li>Componentes curriculares envolvidos</li>
+        <li>Monitores bolsistas e voluntários selecionados</li>
+        <li>Dados pessoais e acadêmicos dos monitores</li>
+        <li>Informações bancárias (quando aplicável)</li>
+        <li>Projetos e disciplinas vinculadas</li>
+        <li>Professores responsáveis e carga horária</li>
+        <li>Departamentos e códigos das disciplinas</li>
       </ul>
+
+      <p>Os dados foram validados e estão prontos para processamento pela PROGRAD.</p>
 
       <p>Para dúvidas ou esclarecimentos, entrar em contato através do Sistema de Monitoria IC.</p>
 
@@ -390,20 +398,20 @@ export async function sendPlanilhaPROGRADEmail(data: {
   await transporter.sendMail({
     from: `"Sistema de Monitoria IC - UFBA" <${env.EMAIL_USER}>`,
     to: data.progradEmail,
-    subject: `[Monitoria IC] Planilha PROGRAD - ${data.ano}.${semestreDisplay}`,
+    subject: `[Monitoria IC] Consolidação PROGRAD - ${data.ano}.${semestreDisplay}`,
     html,
     attachments: [
       {
         filename,
         content: data.planilhaPDFBuffer,
-        contentType: 'application/pdf',
+        contentType,
       },
     ],
   })
 
   await db.insert(notificacaoHistoricoTable).values({
     destinatarioEmail: data.progradEmail,
-    assunto: `[Monitoria IC] Planilha PROGRAD - ${data.ano}.${semestreDisplay}`,
+    assunto: `[Monitoria IC] Consolidação PROGRAD - ${data.ano}.${semestreDisplay}`,
     tipoNotificacao: 'PLANILHA_PROGRAD_ENVIADA',
     statusEnvio: statusEnvioEnum.enumValues[0],
     remetenteUserId: data.remetenteUserId,
@@ -414,6 +422,7 @@ export async function sendPlanilhaPROGRADEmail(data: {
       email: data.progradEmail,
       semestre: data.semestre,
       ano: data.ano,
+      formato: formatoTexto,
     },
     'Planilha PROGRAD enviada com sucesso.'
   )

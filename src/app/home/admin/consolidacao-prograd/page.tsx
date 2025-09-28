@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useConsolidatedMonitoringData, useExportConsolidated, useValidateCompleteData } from "@/hooks/use-relatorios"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -20,7 +22,7 @@ import {
   getStatusMonitorLabel,
   getTipoVagaLabel,
 } from "@/types"
-import { AlertTriangle, Award, Calendar, CheckCircle, Download, FileSpreadsheet, Filter, Users } from "lucide-react"
+import { AlertTriangle, Award, Calendar, CheckCircle, Download, FileSpreadsheet, Filter, Mail, Users } from "lucide-react"
 import { useState } from "react"
 
 export default function ConsolidacaoPROGRADPage() {
@@ -30,6 +32,8 @@ export default function ConsolidacaoPROGRADPage() {
   const [incluirBolsistas, setIncluirBolsistas] = useState(true)
   const [incluirVoluntarios, setIncluirVoluntarios] = useState(true)
   const [showValidation, setShowValidation] = useState(false)
+  const [progradEmail, setProgradEmail] = useState("")
+  const [showEmailDialog, setShowEmailDialog] = useState(false)
 
   const { data: consolidationData, isLoading, refetch } = useConsolidatedMonitoringData(selectedYear, selectedSemester)
 
@@ -44,22 +48,34 @@ export default function ConsolidacaoPROGRADPage() {
   // Mutation para exportar consolidação final
   const exportConsolidatedMutation = useExportConsolidated()
 
-  const handleGenerateExcel = async () => {
+  const handleSendEmail = async () => {
+    if (!progradEmail || !progradEmail.includes('@')) {
+      toast({
+        title: "Email Inválido",
+        description: "Por favor, insira um email válido da PROGRAD.",
+        variant: "destructive",
+      })
+      return
+    }
+
     try {
       const result = await exportConsolidatedMutation.mutateAsync({
         ano: selectedYear,
         semestre: selectedSemester,
         incluirBolsistas,
         incluirVoluntarios,
+        progradEmail,
       })
       toast({
-        title: "Exportação Iniciada",
-        description: `${result.message} O arquivo ${result.fileName} será gerado.`,
+        title: "Email Enviado com Sucesso",
+        description: result.message,
       })
+      setShowEmailDialog(false)
+      setProgradEmail("")
     } catch (error: any) {
       toast({
-        title: "Erro na Exportação",
-        description: error.message || "Ocorreu um erro ao tentar exportar a planilha.",
+        title: "Erro no Envio",
+        description: error.message || "Ocorreu um erro ao tentar enviar a planilha por email.",
         variant: "destructive",
       })
     }
@@ -371,19 +387,61 @@ export default function ConsolidacaoPROGRADPage() {
           <div className="space-y-4">
             {/* Exportação Excel (PROGRAD) */}
             <div className="space-y-2">
-              <h4 className="font-medium">Exportação Oficial (Excel)</h4>
+              <h4 className="font-medium">Envio por Email (Excel)</h4>
               <p className="text-sm text-muted-foreground">
-                Formato oficial para envio à PROGRAD com validação completa de dados
+                Envie a planilha oficial diretamente para a PROGRAD via email com validação completa de dados
               </p>
               <div className="flex gap-2">
-                <Button
-                  onClick={handleGenerateExcel}
-                  disabled={exportConsolidatedMutation.isPending || !data || data.length === 0}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <FileSpreadsheet className="h-4 w-4 mr-2" />
-                  {exportConsolidatedMutation.isPending ? "Gerando..." : "Baixar Excel Oficial"}
-                </Button>
+                <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      disabled={!data || data.length === 0}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Enviar por Email
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Enviar Planilha PROGRAD</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="email">Email da PROGRAD</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="exemplo@prograd.ufba.br"
+                          value={progradEmail}
+                          onChange={(e) => setProgradEmail(e.target.value)}
+                        />
+                      </div>
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <h5 className="font-medium mb-2">Informações que serão enviadas:</h5>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          <li>• Período: {selectedYear}.{selectedSemester === "SEMESTRE_1" ? "1" : "2"}</li>
+                          <li>• Total de monitores: {data?.length || 0}</li>
+                          <li>• Incluir bolsistas: {incluirBolsistas ? "Sim" : "Não"}</li>
+                          <li>• Incluir voluntários: {incluirVoluntarios ? "Sim" : "Não"}</li>
+                          <li>• Formato: Excel (.xlsx)</li>
+                        </ul>
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setShowEmailDialog(false)}>
+                          Cancelar
+                        </Button>
+                        <Button
+                          onClick={handleSendEmail}
+                          disabled={exportConsolidatedMutation.isPending || !progradEmail}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {exportConsolidatedMutation.isPending ? "Enviando..." : "Enviar Email"}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
 

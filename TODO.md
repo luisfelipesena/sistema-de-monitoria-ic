@@ -43,18 +43,18 @@
 **TAREFA** - Remover assinatura do admin no fluxo de projetos
 **DESCRIÇÃO** - Eliminar totalmente o status PENDING_ADMIN_SIGNATURE e fluxo de assinatura admin
 **CONTEXTO** - Admin apenas aprova projetos, não precisa assinar. Apenas o professor assina o projeto
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Remover página de assinatura documentos admin
 **DESCRIÇÃO** - Deletar /src/app/home/admin/assinatura-documentos/ e referências
 **CONTEXTO** - Com a remoção do fluxo de assinatura admin, esta página não é mais necessária
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 ### 4. NOVO FLUXO DE CRIAÇÃO DE PROJETOS
 **TAREFA** - Vincular professor a disciplina apenas na criação do projeto
 **DESCRIÇÃO** - Implementar lógica para associar professor à disciplina no momento de criar projeto por semestre
 **CONTEXTO** - O vínculo disciplina-professor deve ser dinâmico por semestre/projeto, não fixo no onboarding
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Implementar sistema de templates de projeto por disciplina
 **DESCRIÇÃO** - Criar fluxo para templates padrão obrigatórios por disciplina antes de gerar projeto específico
@@ -64,7 +64,7 @@
 **TAREFA** - Adicionar seleção de projetos existentes no novo projeto
 **DESCRIÇÃO** - Mostrar botão "Projetos Existentes" com template da disciplina selecionada
 **CONTEXTO** - Reaproveitar templates e facilitar criação de projetos recorrentes
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Implementar campo de professores participantes em projetos coletivos
 **DESCRIÇÃO** - Adicionar campo textual para nomes dos professores quando tipo COLETIVA for selecionado
@@ -79,34 +79,34 @@
 **TAREFA** - Adicionar ação de editar antes de assinar projeto
 **DESCRIÇÃO** - Incluir botão "Editar" na página de projetos do professor antes da assinatura
 **CONTEXTO** - Professor deve poder revisar e editar projeto antes de assinar definitivamente
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 ### 5. GESTÃO ADMIN MELHORADA
 **TAREFA** - Separar projetos por semestre no painel admin
 **DESCRIÇÃO** - Implementar seleção de semestre antes de exibir dashboard de projetos no admin
 **CONTEXTO** - Admin precisa filtrar projetos por semestre para melhor organização
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Admin gerenciar disciplinas (CRUD completo)
 **DESCRIÇÃO** - Criar página admin para CRUD completo de disciplinas do departamento
 **CONTEXTO** - Admin deve poder criar/editar todas as disciplinas, deixando apenas código e nome
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Implementar fluxo de planilha PROGRAD via email
 **DESCRIÇÃO** - Alterar download de planilha para envio por email com preview antes do envio
 **CONTEXTO** - Ao invés de download, enviar planilha por email para PROGRAD com dados dos projetos aprovados
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 ### 6. SISTEMA DE EDITAIS MELHORADO
 **TAREFA** - Associar editais a semestres específicos
 **DESCRIÇÃO** - Implementar lógica para editais DCC e PROGRAD por semestre
 **CONTEXTO** - Editais devem ser específicos por semestre. PROGRAD fornece PDF, DCC tem informações complexas
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Implementar Anexo 1 com número do edital
 **DESCRIÇÃO** - No PDF do projeto mostrar apenas número do edital do semestre selecionado
 **CONTEXTO** - Anexo 1 deve referenciar o edital correto do semestre
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 ### 7. MELHORIAS DE UX/UI
 **TAREFA** - Remover cookie UFBA no logout
@@ -117,12 +117,12 @@
 **TAREFA** - Remover "Ver Projetos" e deixar apenas dashboard professor
 **DESCRIÇÃO** - Consolidar informações de projetos apenas no dashboard, removendo página separada
 **CONTEXTO** - Simplificar navegação, concentrando informações no dashboard
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 **TAREFA** - Remover "Novo Projeto" do sidebar
 **DESCRIÇÃO** - Deixar criação de projeto apenas via dashboard
 **CONTEXTO** - Simplificar sidebar e centralizar ações no dashboard
-**FEITA** - [ ]
+**FEITA** - [x] ✅ COMPLETO
 
 ## 🗂️ ARQUIVOS PRINCIPAIS AFETADOS
 
@@ -178,3 +178,15 @@
 - ✅ **Remover vínculo de disciplinas do onboarding professor** - Disciplinas movidas para criação de projetos
 - ✅ **Tornar assinatura digital obrigatória no onboarding professor** - Assinatura integrada ao fluxo obrigatório
 - ✅ **Tornar SIAPE obrigatório no onboarding professor** - Campo matriculaSiape já configurado como obrigatório
+- ✅ **Remover assinatura do admin no fluxo de projetos** - Status PENDING_ADMIN_SIGNATURE eliminado do sistema
+- ✅ **Remover página de assinatura documentos admin** - Página admin/assinatura-documentos removida
+- ✅ **Adicionar ação de editar antes de assinar projeto** - Botão Editar implementado nas páginas de projetos
+- ✅ **Remover "Ver Projetos" e deixar apenas dashboard professor** - Página "Ver Projetos" removida do sidebar
+- ✅ **Remover "Novo Projeto" do sidebar** - Item "Novo Projeto" removido, centralizado no dashboard
+- ✅ **Admin gerenciar disciplinas (CRUD completo)** - Sistema completo de CRUD implementado para disciplinas
+- ✅ **Vincular professor a disciplina apenas na criação do projeto** - Auto-associação professor-disciplina implementada
+- ✅ **Separar projetos por semestre no painel admin** - Filtro de semestre com seleção proeminente implementado
+- ✅ **Adicionar seleção de projetos existentes no novo projeto** - Interface para reaproveitar projetos anteriores implementada
+- ✅ **Implementar fluxo de planilha PROGRAD via email** - Sistema de envio de Excel por email com preview implementado
+- ✅ **Associar editais a semestres específicos** - Lógica para editais DCC e PROGRAD por semestre com tipos e validações
+- ✅ **Implementar Anexo 1 com número do edital** - PDF do projeto inclui número do edital correto do semestre

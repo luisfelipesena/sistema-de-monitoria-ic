@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { FilterModal, type FilterValues } from "@/components/ui/FilterModal"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { ManageProjectItem } from "@/types"
 import { api } from "@/utils/api"
@@ -49,7 +50,14 @@ export default function ManageProjectsPage() {
   const { data: projetos, isLoading: loadingProjetos } = api.projeto.getProjetos.useQuery()
 
   const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [filters, setFilters] = useState<FilterValues>({})
+  // Inicializar com semestre atual
+  const getCurrentSemester = () => {
+    const now = new Date()
+    const currentYear = now.getFullYear().toString()
+    const currentSemester = now.getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2'
+    return { ano: currentYear, semestre: currentSemester }
+  }
+  const [filters, setFilters] = useState<FilterValues>(getCurrentSemester())
   const [groupedView, setGroupedView] = useState(false)
   const [selectedProject, setSelectedProject] = useState<ManageProjectItem | null>(null)
   const [showPreviewDialog, setShowPreviewDialog] = useState(false)
@@ -456,8 +464,36 @@ export default function ManageProjectsPage() {
     },
   ]
 
+  const getCurrentSemesterLabel = () => {
+    const ano = filters.ano || new Date().getFullYear().toString()
+    const semestre = filters.semestre === 'SEMESTRE_1' ? '1' : '2'
+    return `${ano}.${semestre}`
+  }
+
+  const handleSemesterChange = (value: string) => {
+    const [ano, semestreNum] = value.split('.')
+    const semestre = semestreNum === '1' ? 'SEMESTRE_1' : 'SEMESTRE_2'
+    setFilters(prev => ({ ...prev, ano, semestre }))
+  }
+
   const dashboardActions = (
     <>
+      <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+        <span className="text-sm font-medium text-blue-800">Semestre:</span>
+        <Select value={getCurrentSemesterLabel()} onValueChange={handleSemesterChange}>
+          <SelectTrigger className="w-28 h-8 bg-white border-blue-300">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="2024.1">2024.1</SelectItem>
+            <SelectItem value="2024.2">2024.2</SelectItem>
+            <SelectItem value="2025.1">2025.1</SelectItem>
+            <SelectItem value="2025.2">2025.2</SelectItem>
+            <SelectItem value="2026.1">2026.1</SelectItem>
+            <SelectItem value="2026.2">2026.2</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <Button variant="secondary" onClick={handleGoToDocumentSigning} className="flex items-center gap-2">
         <FileSignature className="h-4 w-4" />
         Assinatura de Documentos

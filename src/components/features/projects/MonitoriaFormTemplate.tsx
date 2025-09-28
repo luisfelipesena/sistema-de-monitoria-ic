@@ -259,7 +259,10 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
         </View>
 
         {/* Title - Centered on page */}
-        <Text style={styles.formTitle}>ANEXO I - FORMULÁRIO PARA PROJETO DE MONITORIA</Text>
+        <Text style={styles.formTitle}>
+          ANEXO I - FORMULÁRIO PARA PROJETO DE MONITORIA
+          {data.numeroEdital && ` (Edital ${data.numeroEdital})`}
+        </Text>
 
         {/* Content with asymmetric margins */}
         <View style={styles.contentContainer}>

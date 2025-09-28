@@ -2,6 +2,15 @@ import { z } from 'zod'
 import { Semestre, semestreSchema } from './enums'
 
 // ========================================
+// EDITAL TYPES
+// ========================================
+
+export const TIPO_EDITAL_ENUM = ['DCC', 'PROGRAD'] as const
+export type TipoEdital = (typeof TIPO_EDITAL_ENUM)[number]
+
+export const tipoEditalSchema = z.enum(TIPO_EDITAL_ENUM)
+
+// ========================================
 // PERIODO INSCRICAO & EDITAL TYPES
 // ========================================
 
@@ -25,12 +34,15 @@ export interface CreatePeriodoInscricaoInput {
 export interface Edital {
   id: number
   periodoInscricaoId: number
+  tipo: TipoEdital
   numeroEdital: string
   titulo: string
   descricaoHtml?: string
   fileIdAssinado?: string
+  fileIdProgradOriginal?: string
   dataPublicacao?: Date
   publicado: boolean
+  valorBolsa: string
   criadoPorUserId: number
   createdAt: Date
   updatedAt?: Date
@@ -38,12 +50,15 @@ export interface Edital {
 
 export interface CreateEditalInput {
   periodoInscricaoId: number
+  tipo: TipoEdital
   numeroEdital: string
   titulo: string
   descricaoHtml?: string
   fileIdAssinado?: string
+  fileIdProgradOriginal?: string
   dataPublicacao?: Date
   publicado?: boolean
+  valorBolsa?: string
   criadoPorUserId: number
 }
 
@@ -86,20 +101,25 @@ export const createPeriodoInscricaoSchema = z.object({
 
 export const createEditalSchema = z.object({
   periodoInscricaoId: z.number().int().positive(),
+  tipo: tipoEditalSchema.default('DCC'),
   numeroEdital: z.string().min(1),
   titulo: z.string().min(1),
   descricaoHtml: z.string().optional(),
   fileIdAssinado: z.string().optional(),
+  fileIdProgradOriginal: z.string().optional(),
   dataPublicacao: z.date().optional(),
   publicado: z.boolean().default(false),
+  valorBolsa: z.string().default('400.00'),
   criadoPorUserId: z.number().int().positive(),
 })
 
 export const editalFormSchema = z
   .object({
+    tipo: tipoEditalSchema.default('DCC'),
     numeroEdital: z.string().min(1),
     titulo: z.string().min(1),
     descricaoHtml: z.string().optional(),
+    valorBolsa: z.string().default('400.00'),
     ano: z.number().int().min(2000).max(2100),
     semestre: semestreSchema,
     dataInicio: z.date(),

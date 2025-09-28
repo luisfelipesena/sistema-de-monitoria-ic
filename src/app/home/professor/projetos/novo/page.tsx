@@ -2,6 +2,7 @@
 
 import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
 import { PagesLayout } from "@/components/layout/PagesLayout"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -65,7 +66,7 @@ const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) =
 
 type ProjetoFormData = z.infer<typeof projectFormSchema>
 
-type WorkflowMode = "select" | "edit_template" | "create_project"
+type WorkflowMode = "select" | "edit_template" | "create_project" | "existing_projects"
 
 export default function NovoProjetoPage() {
   const { toast } = useToast()
@@ -85,9 +86,10 @@ export default function NovoProjetoPage() {
     "Colaborar na revisão de códigos e debugging",
     "Ajudar na preparação de material didático complementar",
   ])
+  const [selectedExistingProject, setSelectedExistingProject] = useState<any>(null)
 
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
-  const { data: disciplinas } = api.discipline.getDisciplines.useQuery()
+  const { data: disciplinas } = api.discipline.getDepartmentDisciplines.useQuery()
   const createProjeto = api.projeto.createProjeto.useMutation()
   const upsertTemplate = api.projetoTemplates.upsertTemplateByProfessor.useMutation()
   const apiUtils = api.useUtils()
@@ -97,6 +99,11 @@ export default function NovoProjetoPage() {
     { disciplinaId: selectedDisciplinaId! },
     { enabled: !!selectedDisciplinaId }
   )
+
+  // Query para projetos existentes da disciplina selecionada
+  const { data: existingProjects } = api.projeto.getProjetos.useQuery(undefined, {
+    enabled: workflowMode === "existing_projects" && !!selectedDisciplinaId,
+  })
 
   const form = useForm<ProjetoFormData>({
     resolver: zodResolver(projectFormSchema),
@@ -195,7 +202,7 @@ export default function NovoProjetoPage() {
     setShowPreview(false)
   }
 
-  const handleModeSelect = (mode: "edit_template" | "create_project") => {
+  const handleModeSelect = (mode: "edit_template" | "create_project" | "existing_projects") => {
     setWorkflowMode(mode)
     setShowPreview(false)
 
@@ -507,7 +514,7 @@ export default function NovoProjetoPage() {
                     <SelectContent>
                       {disciplinas?.map((disciplina) => (
                         <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
-                          {disciplina.codigo} ({disciplina.turma}) - {disciplina.nome}
+                          {disciplina.codigo} - {disciplina.nome}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -537,7 +544,7 @@ export default function NovoProjetoPage() {
         }
       >
         <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="border-2 border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer"
                   onClick={() => handleModeSelect("edit_template")}>
               <CardHeader>
@@ -591,6 +598,35 @@ export default function NovoProjetoPage() {
                     <li>• Baseado no template padrão</li>
                     <li>• Personalizável para necessidades específicas</li>
                     <li>• Será enviado para aprovação</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 border-green-200 bg-green-50 hover:bg-green-100 transition-colors cursor-pointer"
+                  onClick={() => handleModeSelect("existing_projects")}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-800">
+                  <RefreshCw className="h-5 w-5" />
+                  Projetos Existentes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <p className="text-sm text-green-700">
+                    Reutilize um projeto existente desta disciplina como base para um novo projeto.
+                    Ideal para projetos recorrentes.
+                  </p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <FileText className="h-4 w-4" />
+                    <span className="font-medium">
+                      Copiar projeto existente
+                    </span>
+                  </div>
+                  <ul className="text-xs text-green-600 space-y-1 ml-6">
+                    <li>• Baseado em projetos anteriores</li>
+                    <li>• Mantém estrutura comprovada</li>
+                    <li>• Acelera criação de projetos</li>
                   </ul>
                 </div>
               </CardContent>
@@ -1437,6 +1473,120 @@ export default function NovoProjetoPage() {
               )}
             </div>
           </div>
+        </div>
+      </PagesLayout>
+    )
+  }
+
+  // Interface para seleção de projetos existentes
+  if (workflowMode === "existing_projects") {
+    const selectedDisciplina = disciplinas?.find(d => d.id === selectedDisciplinaId)
+    const filteredProjects = existingProjects?.filter(projeto =>
+      projeto.disciplinas?.some(d => d.id === selectedDisciplinaId)
+    ) || []
+
+    const handleSelectExistingProject = (projeto: any) => {
+      setSelectedExistingProject(projeto)
+
+      // Aplicar dados do projeto ao formulário
+      form.reset({
+        titulo: `${projeto.titulo} - ${new Date().getFullYear()}`,
+        descricao: projeto.descricao,
+        departamentoId: projeto.departamentoId,
+        ano: new Date().getFullYear(),
+        semestre: new Date().getMonth() < 6 ? "SEMESTRE_1" : "SEMESTRE_2",
+        tipoProposicao: projeto.tipoProposicao,
+        bolsasSolicitadas: projeto.bolsasSolicitadas,
+        voluntariosSolicitados: projeto.voluntariosSolicitados,
+        cargaHorariaSemana: projeto.cargaHorariaSemana,
+        numeroSemanas: projeto.numeroSemanas,
+        publicoAlvo: projeto.publicoAlvo,
+        estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas,
+        disciplinaIds: [selectedDisciplinaId!],
+        atividades: projeto.atividades || atividades,
+      })
+
+      // Configurar atividades
+      if (projeto.atividades?.length) {
+        setAtividades(projeto.atividades)
+      }
+
+      // Mudar para modo de criação de projeto
+      setWorkflowMode("create_project")
+
+      toast({
+        title: "Projeto carregado!",
+        description: "Os dados do projeto foram aplicados. Você pode editá-los antes de salvar.",
+      })
+    }
+
+    return (
+      <PagesLayout
+        title="Projetos Existentes"
+        subtitle={`Disciplina: ${selectedDisciplina?.codigo} - ${selectedDisciplina?.nome}`}
+        actions={
+          <Button variant="outline" onClick={handleBackToSelect}>
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+        }
+      >
+        <div className="max-w-6xl mx-auto">
+          {filteredProjects.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProjects.map((projeto) => (
+                <Card
+                  key={projeto.id}
+                  className="border-2 border-gray-200 hover:border-green-300 hover:shadow-lg transition-all cursor-pointer"
+                  onClick={() => handleSelectExistingProject(projeto)}
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-900 line-clamp-2">
+                        {projeto.titulo}
+                      </CardTitle>
+                      <Badge variant={
+                        projeto.status === 'APPROVED' ? 'default' :
+                        projeto.status === 'REJECTED' ? 'destructive' : 'secondary'
+                      }>
+                        {projeto.status === 'APPROVED' ? 'Aprovado' :
+                         projeto.status === 'REJECTED' ? 'Rejeitado' :
+                         projeto.status === 'SUBMITTED' ? 'Em análise' : 'Rascunho'}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Período:</strong> {projeto.ano}.{projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}</p>
+                      <p><strong>Tipo:</strong> {projeto.tipoProposicao}</p>
+                      <p><strong>Bolsas:</strong> {projeto.bolsasSolicitadas}</p>
+                      <p><strong>Voluntários:</strong> {projeto.voluntariosSolicitados}</p>
+                      <p><strong>Carga Horária:</strong> {projeto.cargaHorariaSemana}h/semana</p>
+                      <div className="mt-3 pt-3 border-t">
+                        <p className="text-xs text-gray-600 line-clamp-3">
+                          {projeto.descricao}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Nenhum projeto encontrado
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Não há projetos anteriores para esta disciplina. Que tal criar um template primeiro?
+              </p>
+              <Button onClick={() => setWorkflowMode("edit_template")}>
+                <Settings className="h-4 w-4 mr-2" />
+                Criar Template
+              </Button>
+            </div>
+          )}
         </div>
       </PagesLayout>
     )

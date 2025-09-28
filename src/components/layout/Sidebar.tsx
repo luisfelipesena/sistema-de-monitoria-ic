@@ -236,18 +236,6 @@ const menuConfig: MenuConfig[] = [
         icon: LayoutDashboard,
         roles: ["professor"],
       },
-      {
-        label: "Ver Projetos",
-        href: "/home/professor/projetos",
-        icon: FileText,
-        roles: ["professor"],
-      },
-      {
-        label: "Novo Projeto",
-        href: "/home/professor/projetos/novo",
-        icon: FilePlus,
-        roles: ["professor"],
-      },
     ],
   },
 

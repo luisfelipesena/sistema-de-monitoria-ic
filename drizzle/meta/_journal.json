@@ -204,6 +204,13 @@
       "when": 1758745019178,
       "tag": "0028_luxuriant_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1759061392658,
+      "tag": "0029_great_obadiah_stane",
+      "breakpoints": true
     }
   ]
 }

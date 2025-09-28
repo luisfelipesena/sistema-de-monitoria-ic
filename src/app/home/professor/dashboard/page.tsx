@@ -22,7 +22,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
 import { useMemo, useState } from "react"
 
-import { Download, Eye, FileSignature, Filter, Hand, List, Loader, Plus, Trash2, Users } from "lucide-react"
+import { Download, Edit, Eye, FileSignature, Filter, Hand, List, Loader, Plus, Trash2, Users } from "lucide-react"
 
 export default function DashboardProfessor() {
   const { toast } = useToast()
@@ -235,6 +235,12 @@ export default function DashboardProfessor() {
           <div className="flex gap-2">
             {(projeto.status === "DRAFT" || projeto.status === "PENDING_PROFESSOR_SIGNATURE") && (
               <>
+                <Link href={`/home/professor/projetos/${projeto.id}/edit`}>
+                  <Button variant="outline" size="sm" className="rounded-full flex items-center gap-1">
+                    <Edit className="h-4 w-4" />
+                    Editar
+                  </Button>
+                </Link>
                 <Link href={`/home/professor/assinatura-documentos?projetoId=${projeto.id}`}>
                   <Button variant="outline" size="sm" className="rounded-full flex items-center gap-1">
                     <FileSignature className="h-4 w-4" />
@@ -252,6 +258,15 @@ export default function DashboardProfessor() {
                   Excluir
                 </Button>
               </>
+            )}
+
+            {(projeto.status === "SUBMITTED") && (
+              <Link href={`/home/professor/projetos/${projeto.id}/edit`}>
+                <Button variant="outline" size="sm" className="rounded-full flex items-center gap-1">
+                  <Edit className="h-4 w-4" />
+                  Editar
+                </Button>
+              </Link>
             )}
 
             {(projeto.status === "SUBMITTED" ||

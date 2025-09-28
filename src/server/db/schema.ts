@@ -92,6 +92,8 @@ export const tipoProposicaoEnum = pgEnum('tipo_proposicao_enum', ['INDIVIDUAL', 
 
 export const tipoVagaEnum = pgEnum('tipo_vaga_enum', ['BOLSISTA', 'VOLUNTARIO'])
 
+export const tipoEditalEnum = pgEnum('tipo_edital_enum', ['DCC', 'PROGRAD'])
+
 export const projetoStatusEnum = pgEnum('projeto_status_enum', [
   'DRAFT', // Professor creating the project
   'SUBMITTED', // Professor submitted for admin approval
@@ -876,10 +878,12 @@ export const editalTable = pgTable('edital', {
     .references(() => periodoInscricaoTable.id)
     .notNull()
     .unique(),
+  tipo: tipoEditalEnum('tipo').notNull().default('DCC'), // Tipo do edital: DCC (interno) ou PROGRAD
   numeroEdital: varchar('numero_edital', { length: 50 }).notNull().unique(),
   titulo: varchar('titulo', { length: 255 }).notNull().default('Edital Interno de Seleção de Monitores'),
   descricaoHtml: text('descricao_html'),
   fileIdAssinado: text('file_id_assinado'), // PDF do edital assinado
+  fileIdProgradOriginal: text('file_id_prograd_original'), // PDF original da PROGRAD (quando tipo = PROGRAD)
   dataPublicacao: date('data_publicacao', { mode: 'date' }),
   publicado: boolean('publicado').default(false).notNull(),
   valorBolsa: numeric('valor_bolsa', { precision: 10, scale: 2 }).default('400.00').notNull(), // Valor da bolsa para este edital

@@ -188,6 +188,17 @@ export default function ProfessorProjetosPage() {
       )
     }
 
+    if (projeto.status === "SUBMITTED" || projeto.status === "PENDING_PROFESSOR_SIGNATURE") {
+      buttons.push(
+        <Link key="edit-before-sign" href={`/home/professor/projetos/${projeto.id}/edit`}>
+          <Button variant="outline" size="sm">
+            <Edit className="h-4 w-4 mr-1" />
+            Editar
+          </Button>
+        </Link>
+      )
+    }
+
     if (projeto.status === "DRAFT" || projeto.status === "PENDING_PROFESSOR_SIGNATURE") {
       buttons.push(
         <Link key="sign" href={`/home/professor/assinatura-documentos?projetoId=${projeto.id}`}>

@@ -6,6 +6,8 @@ import {
   atividadeProjetoTable,
   departamentoTable,
   disciplinaTable,
+  disciplinaProfessorResponsavelTable,
+  editalTable,
   inscricaoTable,
   periodoInscricaoTable,
   professorTable,
@@ -375,6 +377,39 @@ export const projetoRouter = createTRPCRouter({
           }))
 
           await ctx.db.insert(projetoDisciplinaTable).values(disciplinaValues)
+
+          // Auto-associar professor à disciplina para o semestre/ano do projeto
+          for (const disciplinaId of disciplinaIds) {
+            // Verificar se a associação já existe
+            const existingAssociation = await ctx.db.query.disciplinaProfessorResponsavelTable.findFirst({
+              where: and(
+                eq(disciplinaProfessorResponsavelTable.disciplinaId, disciplinaId),
+                eq(disciplinaProfessorResponsavelTable.professorId, professorResponsavelId),
+                eq(disciplinaProfessorResponsavelTable.ano, rest.ano),
+                eq(disciplinaProfessorResponsavelTable.semestre, rest.semestre)
+              ),
+            })
+
+            // Se não existe, criar a associação
+            if (!existingAssociation) {
+              await ctx.db.insert(disciplinaProfessorResponsavelTable).values({
+                disciplinaId,
+                professorId: professorResponsavelId,
+                ano: rest.ano,
+                semestre: rest.semestre,
+              })
+
+              log.info(
+                {
+                  disciplinaId,
+                  professorId: professorResponsavelId,
+                  ano: rest.ano,
+                  semestre: rest.semestre
+                },
+                'Professor auto-associado à disciplina durante criação do projeto'
+              )
+            }
+          }
         }
 
         // Professores participantes são agora armazenados como string no campo de descrição/observações
@@ -850,6 +885,24 @@ export const projetoRouter = createTRPCRouter({
           }),
         ])
 
+        // Fetch the edital number for this project's semester
+        const edital = await db.query.periodoInscricaoTable.findFirst({
+          where: and(
+            eq(periodoInscricaoTable.ano, projeto.ano),
+            eq(periodoInscricaoTable.semestre, projeto.semestre)
+          ),
+          with: {
+            edital: {
+              where: eq(editalTable.publicado, true),
+              columns: {
+                numeroEdital: true,
+              }
+            }
+          }
+        })
+
+        const numeroEdital = edital?.edital?.numeroEdital
+
         const pdfData = {
           titulo: projeto.titulo,
           descricao: projeto.descricao,
@@ -863,6 +916,7 @@ export const projetoRouter = createTRPCRouter({
           },
           ano: projeto.ano,
           semestre: projeto.semestre,
+          numeroEdital,
           tipoProposicao: projeto.tipoProposicao,
           bolsasSolicitadas: projeto.bolsasSolicitadas,
           voluntariosSolicitados: projeto.voluntariosSolicitados,

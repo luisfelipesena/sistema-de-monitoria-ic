@@ -6,7 +6,7 @@ import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { TRPCError } from '@trpc/server'
-import { and, eq, gte, lte, or, sql } from 'drizzle-orm'
+import { and, eq, gte, lte, or, sql, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 
 const log = logger.child({ context: 'EditalRouter' })
@@ -15,12 +15,15 @@ const log = logger.child({ context: 'EditalRouter' })
 export const editalSchema = z.object({
   id: z.number(),
   periodoInscricaoId: z.number(),
+  tipo: z.enum(['DCC', 'PROGRAD']).default('DCC'),
   numeroEdital: z.string(),
   titulo: z.string().default('Edital Interno de Seleção de Monitores'),
   descricaoHtml: z.string().nullable(),
   fileIdAssinado: z.string().nullable(),
+  fileIdProgradOriginal: z.string().nullable(),
   dataPublicacao: z.date().nullable(),
   publicado: z.boolean(),
+  valorBolsa: z.string().default('400.00'),
   criadoPorUserId: z.number(),
   createdAt: z.date(),
   updatedAt: z.date().nullable(),
@@ -28,17 +31,29 @@ export const editalSchema = z.object({
 
 export const newEditalSchema = z
   .object({
+    tipo: z.enum(['DCC', 'PROGRAD']).default('DCC'),
     numeroEdital: z.string().min(1, 'Número do edital é obrigatório'),
     titulo: z.string().min(1, 'Título é obrigatório'),
     descricaoHtml: z.string().optional(),
+    valorBolsa: z.string().default('400.00'),
     ano: z.number().min(2000).max(2050),
     semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
     dataInicio: z.date(),
     dataFim: z.date(),
+    fileIdProgradOriginal: z.string().optional(), // Para editais PROGRAD
   })
   .refine((data) => data.dataFim > data.dataInicio, {
     message: 'Data de fim deve ser posterior à data de início',
     path: ['dataFim'],
+  })
+  .refine((data) => {
+    if (data.tipo === 'PROGRAD' && !data.fileIdProgradOriginal) {
+      return false
+    }
+    return true
+  }, {
+    message: 'PDF da PROGRAD é obrigatório para editais do tipo PROGRAD',
+    path: ['fileIdProgradOriginal'],
   })
 
 export const updateEditalSchema = z
@@ -313,7 +328,7 @@ export const editalRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       try {
         const adminUserId = ctx.user.id
-        const { ano, semestre, dataInicio, dataFim, numeroEdital, titulo, descricaoHtml } = input
+        const { ano, semestre, dataInicio, dataFim, numeroEdital, titulo, descricaoHtml, tipo, valorBolsa, fileIdProgradOriginal } = input
 
         const numeroEditalExistente = await ctx.db.query.editalTable.findFirst({
           where: eq(editalTable.numeroEdital, numeroEdital),
@@ -358,9 +373,12 @@ export const editalRouter = createTRPCRouter({
           .insert(editalTable)
           .values({
             periodoInscricaoId: novoPeriodo.id,
+            tipo,
             numeroEdital,
             titulo,
             descricaoHtml: descricaoHtml || null,
+            valorBolsa,
+            fileIdProgradOriginal: fileIdProgradOriginal || null,
             criadoPorUserId: adminUserId,
             publicado: false,
           })
@@ -841,5 +859,99 @@ export const editalRouter = createTRPCRouter({
           message: 'Erro ao gerar PDF do edital',
         })
       }
+    }),
+
+  // Get editais by semester and type
+  getEditaisBySemestre: protectedProcedure
+    .input(z.object({
+      ano: z.number().int().min(2000).max(2100),
+      semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+      tipo: z.enum(['DCC', 'PROGRAD']).optional(),
+      publicadoApenas: z.boolean().default(false),
+    }))
+    .query(async ({ input, ctx }) => {
+      const { ano, semestre, tipo, publicadoApenas } = input
+
+      // First get periodo inscricao for the semester
+      const periodos = await ctx.db.query.periodoInscricaoTable.findMany({
+        where: and(
+          eq(periodoInscricaoTable.ano, ano),
+          eq(periodoInscricaoTable.semestre, semestre)
+        )
+      })
+
+      if (periodos.length === 0) {
+        return []
+      }
+
+      const periodoIds = periodos.map(p => p.id)
+
+      // Then get editais for those periods
+      const editais = await ctx.db.query.editalTable.findMany({
+        where: and(
+          inArray(editalTable.periodoInscricaoId, periodoIds),
+          tipo ? eq(editalTable.tipo, tipo) : undefined,
+          publicadoApenas ? eq(editalTable.publicado, true) : undefined
+        ),
+        with: {
+          periodoInscricao: true,
+          criadoPor: {
+            columns: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: (table, { desc }) => [desc(table.createdAt)],
+      })
+
+      return editais.map((edital) => ({
+        ...edital,
+        periodoInscricao: edital.periodoInscricao
+          ? {
+              ...edital.periodoInscricao,
+              status: 'ATIVO' as const, // Simplified for now
+              totalProjetos: 0,
+              totalInscricoes: 0,
+            }
+          : null,
+      }))
+    }),
+
+  // Get current active edital for a semester
+  getCurrentEditalForSemestre: protectedProcedure
+    .input(z.object({
+      ano: z.number().int().min(2000).max(2100),
+      semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+    }))
+    .query(async ({ input, ctx }) => {
+      const { ano, semestre } = input
+
+      // First get periodo inscricao for the semester
+      const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
+        where: and(
+          eq(periodoInscricaoTable.ano, ano),
+          eq(periodoInscricaoTable.semestre, semestre)
+        )
+      })
+
+      if (!periodo) {
+        return null
+      }
+
+      // Then get the latest published edital for that period
+      const edital = await ctx.db.query.editalTable.findFirst({
+        where: and(
+          eq(editalTable.periodoInscricaoId, periodo.id),
+          eq(editalTable.publicado, true)
+        ),
+        with: {
+          periodoInscricao: true,
+        },
+        orderBy: (table, { desc }) => [desc(table.dataPublicacao)],
+      })
+
+      return edital || null
     }),
 })

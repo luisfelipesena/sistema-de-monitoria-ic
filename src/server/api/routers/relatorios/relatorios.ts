@@ -44,6 +44,8 @@ import {
 import { TRPCError } from '@trpc/server'
 import { and, count, desc, eq, sql, sum } from 'drizzle-orm'
 import { z } from 'zod'
+import * as XLSX from 'xlsx'
+import { sendPlanilhaPROGRADEmail } from '@/server/lib/email-service'
 
 async function checkDadosFaltantesPrograd(
   dbInstance: typeof db,
@@ -1199,6 +1201,7 @@ export const relatoriosRouter = createTRPCRouter({
         incluirBolsistas: z.boolean().default(true),
         incluirVoluntarios: z.boolean().default(true),
         departamentoId: z.string().optional(),
+        progradEmail: z.string().email(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -1221,11 +1224,135 @@ export const relatoriosRouter = createTRPCRouter({
         })
       }
 
+      // Buscar dados consolidados
+      const { ano, semestre } = input
+      const vagas = await ctx.db.query.vagaTable.findMany({
+        with: {
+          aluno: {
+            with: {
+              user: true,
+            },
+          },
+          projeto: {
+            with: {
+              departamento: true,
+              professorResponsavel: true,
+            },
+          },
+          inscricao: {
+            with: {
+              aluno: true,
+              projeto: true,
+            },
+          },
+        },
+      })
+
+      const filteredVagas = vagas.filter((vaga) => {
+        const matchSemestre = vaga.projeto.ano === ano && vaga.projeto.semestre === semestre
+        const matchDepartamento = input.departamentoId ? vaga.projeto.departamentoId === parseInt(input.departamentoId) : true
+        const matchTipo =
+          (input.incluirBolsistas && vaga.tipo === BOLSISTA) ||
+          (input.incluirVoluntarios && vaga.tipo === VOLUNTARIO)
+        return matchSemestre && matchDepartamento && matchTipo
+      })
+
+      // Preparar dados para Excel
+      const dadosExcel = await Promise.all(
+        filteredVagas.map(async (vaga) => {
+          const disciplinas = await ctx.db
+            .select({
+              codigo: disciplinaTable.codigo,
+              nome: disciplinaTable.nome,
+            })
+            .from(disciplinaTable)
+            .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
+            .where(eq(projetoDisciplinaTable.projetoId, vaga.projetoId))
+
+          const disciplinasTexto = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
+
+          return {
+            'Matrícula Monitor': vaga.aluno.matricula,
+            'Nome Monitor': vaga.aluno.nomeCompleto,
+            'Email Monitor': vaga.aluno.user.email,
+            'CR': vaga.aluno.cr?.toFixed(2) || '0.00',
+            'Tipo Monitoria': vaga.tipo === BOLSISTA ? 'Bolsista' : 'Voluntário',
+            'Valor Bolsa': vaga.tipo === BOLSISTA ? 'R$ 400,00' : 'N/A',
+            'Projeto': vaga.projeto.titulo,
+            'Disciplinas': disciplinasTexto,
+            'Professor Responsável': vaga.projeto.professorResponsavel.nomeCompleto,
+            'SIAPE Professor': vaga.projeto.professorResponsavel.matriculaSiape || 'N/A',
+            'Departamento': vaga.projeto.departamento.nome,
+            'Carga Horária Semanal': vaga.projeto.cargaHorariaSemana || 12,
+            'Total Horas': (vaga.projeto.cargaHorariaSemana || 12) * (vaga.projeto.numeroSemanas || 17),
+            'Data Início': vaga.dataInicio?.toLocaleDateString('pt-BR') || 'N/A',
+            'Data Fim': vaga.dataFim?.toLocaleDateString('pt-BR') || 'N/A',
+            'Status': 'Ativo',
+            'Período': `${ano}.${semestre === 'SEMESTRE_1' ? '1' : '2'}`,
+            'Banco': vaga.aluno.banco || 'N/A',
+            'Agência': vaga.aluno.agencia || 'N/A',
+            'Conta': vaga.aluno.conta || 'N/A',
+            'Dígito': vaga.aluno.digitoConta || 'N/A',
+          }
+        })
+      )
+
+      if (dadosExcel.length === 0) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Nenhum dado encontrado para os filtros aplicados.',
+        })
+      }
+
+      // Gerar Excel
+      const worksheet = XLSX.utils.json_to_sheet(dadosExcel)
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Consolidação PROGRAD')
+
+      // Configurar larguras das colunas
+      const colWidths = [
+        { wch: 15 }, // Matrícula Monitor
+        { wch: 30 }, // Nome Monitor
+        { wch: 30 }, // Email Monitor
+        { wch: 8 },  // CR
+        { wch: 15 }, // Tipo Monitoria
+        { wch: 12 }, // Valor Bolsa
+        { wch: 40 }, // Projeto
+        { wch: 50 }, // Disciplinas
+        { wch: 30 }, // Professor Responsável
+        { wch: 15 }, // SIAPE Professor
+        { wch: 25 }, // Departamento
+        { wch: 15 }, // Carga Horária Semanal
+        { wch: 12 }, // Total Horas
+        { wch: 12 }, // Data Início
+        { wch: 12 }, // Data Fim
+        { wch: 10 }, // Status
+        { wch: 10 }, // Período
+        { wch: 15 }, // Banco
+        { wch: 10 }, // Agência
+        { wch: 15 }, // Conta
+        { wch: 8 },  // Dígito
+      ]
+      worksheet['!cols'] = colWidths
+
+      // Converter para buffer
+      const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+
+      // Enviar por email
+      await sendPlanilhaPROGRADEmail({
+        progradEmail: input.progradEmail,
+        planilhaPDFBuffer: excelBuffer,
+        semestre: input.semestre,
+        ano: input.ano,
+        remetenteUserId: ctx.user.id,
+        isExcel: true,
+      })
+
       const nomeArquivo = `consolidacao-prograd-${input.ano}-${input.semestre.replace('_', '')}-${Date.now()}.xlsx`
       return {
         success: true,
         fileName: nomeArquivo,
-        message: 'A exportação será gerada em segundo plano.',
+        message: `Planilha Excel enviada com sucesso para ${input.progradEmail}`,
       }
     }),
 })

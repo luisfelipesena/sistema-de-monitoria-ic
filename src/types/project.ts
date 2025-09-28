@@ -151,6 +151,7 @@ export interface MonitoriaFormData {
   }
   ano: number
   semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
+  numeroEdital?: string
   tipoProposicao: 'INDIVIDUAL' | 'COLETIVA'
   professoresParticipantes?: string
   numeroMonitroresSolicitados?: number
