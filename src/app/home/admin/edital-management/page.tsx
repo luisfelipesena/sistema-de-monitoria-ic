@@ -11,9 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useEditalPdf } from "@/hooks/use-files"
-import { editalFormSchema, EditalListItem } from "@/types"
+import { EditalListItem } from "@/types"
 import { api } from "@/utils/api"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { ColumnDef } from "@tanstack/react-table"
 import { AlertCircle, CheckCircle, Clock, Edit, Eye, FileText, Plus, Trash2, Upload } from "lucide-react"
 import { useState } from "react"
@@ -21,7 +20,19 @@ import { useForm } from "react-hook-form"
 import { useToast } from "@/hooks/use-toast"
 import { z } from "zod"
 
-type EditalFormData = z.infer<typeof editalFormSchema>
+const localEditalFormSchema = z.object({
+  tipo: z.enum(["DCC", "PROGRAD"]).default("DCC"),
+  numeroEdital: z.string().min(1),
+  titulo: z.string().min(1),
+  descricaoHtml: z.string().optional(),
+  valorBolsa: z.string().default("400.00"),
+  ano: z.number().int().min(2000).max(2100),
+  semestre: z.enum(["SEMESTRE_1", "SEMESTRE_2"]),
+  dataInicio: z.date(),
+  dataFim: z.date(),
+})
+
+type EditalFormData = z.infer<typeof localEditalFormSchema>
 
 export default function EditalManagementPage() {
   const { toast } = useToast()
@@ -127,11 +138,12 @@ export default function EditalManagementPage() {
   const generatePdfMutation = useEditalPdf()
 
   const createForm = useForm<EditalFormData>({
-    resolver: zodResolver(editalFormSchema),
     defaultValues: {
+      tipo: "DCC",
       numeroEdital: "",
       titulo: "Edital Interno de Seleção de Monitores",
       descricaoHtml: "",
+      valorBolsa: "400.00",
       ano: new Date().getFullYear(),
       semestre: "SEMESTRE_1",
       dataInicio: new Date(),
@@ -140,7 +152,17 @@ export default function EditalManagementPage() {
   })
 
   const editForm = useForm<EditalFormData>({
-    resolver: zodResolver(editalFormSchema),
+    defaultValues: {
+      tipo: "DCC",
+      numeroEdital: "",
+      titulo: "",
+      descricaoHtml: "",
+      valorBolsa: "400.00",
+      ano: new Date().getFullYear(),
+      semestre: "SEMESTRE_1",
+      dataInicio: new Date(),
+      dataFim: new Date(new Date().setDate(new Date().getDate() + 30)),
+    },
   })
 
   const handleCreate = (data: EditalFormData) => {
@@ -528,6 +550,43 @@ export default function EditalManagementPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={createForm.control}
+                          name="tipo"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Tipo de Edital</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione o tipo" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="DCC">DCC (Interno)</SelectItem>
+                                  <SelectItem value="PROGRAD">PROGRAD</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={createForm.control}
+                          name="valorBolsa"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Valor da Bolsa</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Ex: 400.00" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={createForm.control}
                           name="ano"
                           render={({ field }) => (
                             <FormItem>
@@ -679,6 +738,43 @@ export default function EditalManagementPage() {
                         <FormLabel>Título</FormLabel>
                         <FormControl>
                           <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="tipo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Edital</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="DCC">DCC (Interno)</SelectItem>
+                            <SelectItem value="PROGRAD">PROGRAD</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="valorBolsa"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valor da Bolsa</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex: 400.00" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

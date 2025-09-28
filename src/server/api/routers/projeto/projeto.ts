@@ -5,9 +5,8 @@ import {
   ataSelecaoTable,
   atividadeProjetoTable,
   departamentoTable,
-  disciplinaTable,
   disciplinaProfessorResponsavelTable,
-  editalTable,
+  disciplinaTable,
   inscricaoTable,
   periodoInscricaoTable,
   professorTable,
@@ -404,7 +403,7 @@ export const projetoRouter = createTRPCRouter({
                   disciplinaId,
                   professorId: professorResponsavelId,
                   ano: rest.ano,
-                  semestre: rest.semestre
+                  semestre: rest.semestre,
                 },
                 'Professor auto-associado à disciplina durante criação do projeto'
               )
@@ -887,18 +886,15 @@ export const projetoRouter = createTRPCRouter({
 
         // Fetch the edital number for this project's semester
         const edital = await db.query.periodoInscricaoTable.findFirst({
-          where: and(
-            eq(periodoInscricaoTable.ano, projeto.ano),
-            eq(periodoInscricaoTable.semestre, projeto.semestre)
-          ),
+          where: and(eq(periodoInscricaoTable.ano, projeto.ano), eq(periodoInscricaoTable.semestre, projeto.semestre)),
           with: {
             edital: {
-              where: eq(editalTable.publicado, true),
               columns: {
                 numeroEdital: true,
-              }
-            }
-          }
+                publicado: true,
+              },
+            },
+          },
         })
 
         const numeroEdital = edital?.edital?.numeroEdital

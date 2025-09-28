@@ -1250,10 +1250,11 @@ export const relatoriosRouter = createTRPCRouter({
 
       const filteredVagas = vagas.filter((vaga) => {
         const matchSemestre = vaga.projeto.ano === ano && vaga.projeto.semestre === semestre
-        const matchDepartamento = input.departamentoId ? vaga.projeto.departamentoId === parseInt(input.departamentoId) : true
+        const matchDepartamento = input.departamentoId
+          ? vaga.projeto.departamentoId === parseInt(input.departamentoId)
+          : true
         const matchTipo =
-          (input.incluirBolsistas && vaga.tipo === BOLSISTA) ||
-          (input.incluirVoluntarios && vaga.tipo === VOLUNTARIO)
+          (input.incluirBolsistas && vaga.tipo === BOLSISTA) || (input.incluirVoluntarios && vaga.tipo === VOLUNTARIO)
         return matchSemestre && matchDepartamento && matchTipo
       })
 
@@ -1275,24 +1276,24 @@ export const relatoriosRouter = createTRPCRouter({
             'Matrícula Monitor': vaga.aluno.matricula,
             'Nome Monitor': vaga.aluno.nomeCompleto,
             'Email Monitor': vaga.aluno.user.email,
-            'CR': vaga.aluno.cr?.toFixed(2) || '0.00',
+            CR: vaga.aluno.cr?.toFixed(2) || '0.00',
             'Tipo Monitoria': vaga.tipo === BOLSISTA ? 'Bolsista' : 'Voluntário',
             'Valor Bolsa': vaga.tipo === BOLSISTA ? 'R$ 400,00' : 'N/A',
-            'Projeto': vaga.projeto.titulo,
-            'Disciplinas': disciplinasTexto,
+            Projeto: vaga.projeto.titulo,
+            Disciplinas: disciplinasTexto,
             'Professor Responsável': vaga.projeto.professorResponsavel.nomeCompleto,
             'SIAPE Professor': vaga.projeto.professorResponsavel.matriculaSiape || 'N/A',
-            'Departamento': vaga.projeto.departamento.nome,
+            Departamento: vaga.projeto.departamento.nome,
             'Carga Horária Semanal': vaga.projeto.cargaHorariaSemana || 12,
             'Total Horas': (vaga.projeto.cargaHorariaSemana || 12) * (vaga.projeto.numeroSemanas || 17),
             'Data Início': vaga.dataInicio?.toLocaleDateString('pt-BR') || 'N/A',
             'Data Fim': vaga.dataFim?.toLocaleDateString('pt-BR') || 'N/A',
-            'Status': 'Ativo',
-            'Período': `${ano}.${semestre === 'SEMESTRE_1' ? '1' : '2'}`,
-            'Banco': vaga.aluno.banco || 'N/A',
-            'Agência': vaga.aluno.agencia || 'N/A',
-            'Conta': vaga.aluno.conta || 'N/A',
-            'Dígito': vaga.aluno.digitoConta || 'N/A',
+            Status: 'Ativo',
+            Período: `${ano}.${semestre === 'SEMESTRE_1' ? '1' : '2'}`,
+            Banco: vaga.aluno.banco || 'N/A',
+            Agência: vaga.aluno.agencia || 'N/A',
+            Conta: vaga.aluno.conta || 'N/A',
+            Dígito: vaga.aluno.digitoConta || 'N/A',
           }
         })
       )
@@ -1314,7 +1315,7 @@ export const relatoriosRouter = createTRPCRouter({
         { wch: 15 }, // Matrícula Monitor
         { wch: 30 }, // Nome Monitor
         { wch: 30 }, // Email Monitor
-        { wch: 8 },  // CR
+        { wch: 8 }, // CR
         { wch: 15 }, // Tipo Monitoria
         { wch: 12 }, // Valor Bolsa
         { wch: 40 }, // Projeto
@@ -1331,7 +1332,7 @@ export const relatoriosRouter = createTRPCRouter({
         { wch: 15 }, // Banco
         { wch: 10 }, // Agência
         { wch: 15 }, // Conta
-        { wch: 8 },  // Dígito
+        { wch: 8 }, // Dígito
       ]
       worksheet['!cols'] = colWidths
 

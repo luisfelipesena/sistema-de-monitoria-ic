@@ -364,7 +364,9 @@ export async function sendPlanilhaPROGRADEmail(data: {
   const semestreDisplay = data.semestre === 'SEMESTRE_1' ? '1' : '2'
   const fileExtension = data.isExcel ? 'xlsx' : 'pdf'
   const filename = `Planilha_PROGRAD_${data.ano}_${semestreDisplay}.${fileExtension}`
-  const contentType = data.isExcel ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'application/pdf'
+  const contentType = data.isExcel
+    ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    : 'application/pdf'
   const formatoTexto = data.isExcel ? 'Excel' : 'PDF'
 
   const html = `

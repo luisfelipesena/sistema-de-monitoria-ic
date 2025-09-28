@@ -46,15 +46,18 @@ export const newEditalSchema = z
     message: 'Data de fim deve ser posterior à data de início',
     path: ['dataFim'],
   })
-  .refine((data) => {
-    if (data.tipo === 'PROGRAD' && !data.fileIdProgradOriginal) {
-      return false
+  .refine(
+    (data) => {
+      if (data.tipo === 'PROGRAD' && !data.fileIdProgradOriginal) {
+        return false
+      }
+      return true
+    },
+    {
+      message: 'PDF da PROGRAD é obrigatório para editais do tipo PROGRAD',
+      path: ['fileIdProgradOriginal'],
     }
-    return true
-  }, {
-    message: 'PDF da PROGRAD é obrigatório para editais do tipo PROGRAD',
-    path: ['fileIdProgradOriginal'],
-  })
+  )
 
 export const updateEditalSchema = z
   .object({
@@ -328,7 +331,18 @@ export const editalRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       try {
         const adminUserId = ctx.user.id
-        const { ano, semestre, dataInicio, dataFim, numeroEdital, titulo, descricaoHtml, tipo, valorBolsa, fileIdProgradOriginal } = input
+        const {
+          ano,
+          semestre,
+          dataInicio,
+          dataFim,
+          numeroEdital,
+          titulo,
+          descricaoHtml,
+          tipo,
+          valorBolsa,
+          fileIdProgradOriginal,
+        } = input
 
         const numeroEditalExistente = await ctx.db.query.editalTable.findFirst({
           where: eq(editalTable.numeroEdital, numeroEdital),
@@ -863,28 +877,27 @@ export const editalRouter = createTRPCRouter({
 
   // Get editais by semester and type
   getEditaisBySemestre: protectedProcedure
-    .input(z.object({
-      ano: z.number().int().min(2000).max(2100),
-      semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-      tipo: z.enum(['DCC', 'PROGRAD']).optional(),
-      publicadoApenas: z.boolean().default(false),
-    }))
+    .input(
+      z.object({
+        ano: z.number().int().min(2000).max(2100),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        tipo: z.enum(['DCC', 'PROGRAD']).optional(),
+        publicadoApenas: z.boolean().default(false),
+      })
+    )
     .query(async ({ input, ctx }) => {
       const { ano, semestre, tipo, publicadoApenas } = input
 
       // First get periodo inscricao for the semester
       const periodos = await ctx.db.query.periodoInscricaoTable.findMany({
-        where: and(
-          eq(periodoInscricaoTable.ano, ano),
-          eq(periodoInscricaoTable.semestre, semestre)
-        )
+        where: and(eq(periodoInscricaoTable.ano, ano), eq(periodoInscricaoTable.semestre, semestre)),
       })
 
       if (periodos.length === 0) {
         return []
       }
 
-      const periodoIds = periodos.map(p => p.id)
+      const periodoIds = periodos.map((p) => p.id)
 
       // Then get editais for those periods
       const editais = await ctx.db.query.editalTable.findMany({
@@ -921,19 +934,18 @@ export const editalRouter = createTRPCRouter({
 
   // Get current active edital for a semester
   getCurrentEditalForSemestre: protectedProcedure
-    .input(z.object({
-      ano: z.number().int().min(2000).max(2100),
-      semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-    }))
+    .input(
+      z.object({
+        ano: z.number().int().min(2000).max(2100),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+      })
+    )
     .query(async ({ input, ctx }) => {
       const { ano, semestre } = input
 
       // First get periodo inscricao for the semester
       const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
-        where: and(
-          eq(periodoInscricaoTable.ano, ano),
-          eq(periodoInscricaoTable.semestre, semestre)
-        )
+        where: and(eq(periodoInscricaoTable.ano, ano), eq(periodoInscricaoTable.semestre, semestre)),
       })
 
       if (!periodo) {
@@ -942,10 +954,7 @@ export const editalRouter = createTRPCRouter({
 
       // Then get the latest published edital for that period
       const edital = await ctx.db.query.editalTable.findFirst({
-        where: and(
-          eq(editalTable.periodoInscricaoId, periodo.id),
-          eq(editalTable.publicado, true)
-        ),
+        where: and(eq(editalTable.periodoInscricaoId, periodo.id), eq(editalTable.publicado, true)),
         with: {
           periodoInscricao: true,
         },
