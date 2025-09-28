@@ -10,7 +10,8 @@ import {
   professorTable,
   projetoDisciplinaTable,
   projetoTable,
-  userTable,
+  sessionTable,
+  userTable
 } from '@/server/db/schema'
 import { logger } from '@/utils/logger'
 
@@ -28,6 +29,7 @@ async function seedDatabase() {
     await db.delete(periodoInscricaoTable)
     await db.delete(alunoTable)
     await db.delete(professorTable)
+    await db.delete(sessionTable)
     await db.delete(userTable)
     await db.delete(disciplinaTable)
     await db.delete(cursoTable)
@@ -603,3 +605,4 @@ if (require.main === module) {
 }
 
 export { seedDatabase }
+
