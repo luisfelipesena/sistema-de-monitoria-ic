@@ -1,0 +1,1 @@
+ALTER TABLE "periodo_inscricao" ADD COLUMN "total_bolsas_prograd" integer DEFAULT 0;

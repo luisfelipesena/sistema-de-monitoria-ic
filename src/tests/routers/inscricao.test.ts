@@ -1,7 +1,7 @@
 import { inscricaoRouter } from '@/server/api/routers/inscricao/inscricao'
 import { type TRPCContext } from '@/server/api/trpc'
 import { type User } from '@/server/db/schema'
-import { SELECTED_BOLSISTA, ACCEPTED_BOLSISTA } from '@/types'
+import { ACCEPTED_BOLSISTA, SELECTED_BOLSISTA } from '@/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockStudentUser: User = {
@@ -11,6 +11,12 @@ const mockStudentUser: User = {
   role: 'student',
   assinaturaDefault: null,
   dataAssinaturaDefault: null,
+  passwordHash: null,
+  emailVerifiedAt: null,
+  verificationToken: null,
+  verificationTokenExpiresAt: null,
+  passwordResetToken: null,
+  passwordResetExpiresAt: null,
 }
 
 const createMockContext = (user: User | null): TRPCContext => ({
