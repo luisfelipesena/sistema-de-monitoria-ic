@@ -4,14 +4,19 @@ import {
   departamentoTable,
   disciplinaTable,
   inscricaoTable,
+  periodoInscricaoTable,
   professorTable,
   projetoDisciplinaTable,
   projetoTable,
   vagaTable,
 } from '@/server/db/schema'
+import { sendScholarshipAllocationNotification } from '@/server/lib/email-service'
 import { SELECTED_BOLSISTA, SELECTED_VOLUNTARIO } from '@/types'
+import { logger } from '@/utils/logger'
 import { and, count, desc, eq, isNull, sum } from 'drizzle-orm'
 import { z } from 'zod'
+
+const log = logger.child({ context: 'ScholarshipAllocationRouter' })
 
 export const scholarshipAllocationRouter = createTRPCRouter({
   getApprovedProjects: adminProtectedProcedure
@@ -260,5 +265,151 @@ export const scholarshipAllocationRouter = createTRPCRouter({
       })
 
       return { success: true }
+    }),
+
+  /**
+   * Define o total de bolsas disponibilizadas pela PROGRAD para um período
+   */
+  setTotalScholarshipsFromPrograd: adminProtectedProcedure
+    .input(
+      z.object({
+        ano: z.number().int().min(2000).max(2100),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+        totalBolsas: z.number().int().min(0),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Buscar ou criar período de inscrição
+      const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
+        where: and(eq(periodoInscricaoTable.ano, input.ano), eq(periodoInscricaoTable.semestre, input.semestre)),
+      })
+
+      if (periodo) {
+        // Atualizar total de bolsas
+        await ctx.db
+          .update(periodoInscricaoTable)
+          .set({ totalBolsasPrograd: input.totalBolsas })
+          .where(eq(periodoInscricaoTable.id, periodo.id))
+
+        log.info({ periodoId: periodo.id, totalBolsas: input.totalBolsas }, 'Total de bolsas PROGRAD atualizado')
+      } else {
+        log.warn(
+          { ano: input.ano, semestre: input.semestre },
+          'Período de inscrição não encontrado para definir bolsas PROGRAD'
+        )
+        throw new Error('Período de inscrição não encontrado. Crie o período primeiro.')
+      }
+
+      return { success: true, totalBolsas: input.totalBolsas }
+    }),
+
+  /**
+   * Busca o total de bolsas PROGRAD configurado para um período
+   */
+  getTotalProgradScholarships: adminProtectedProcedure
+    .input(
+      z.object({
+        ano: z.number().int().min(2000).max(2100),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
+        where: and(eq(periodoInscricaoTable.ano, input.ano), eq(periodoInscricaoTable.semestre, input.semestre)),
+      })
+
+      return {
+        totalBolsasPrograd: periodo?.totalBolsasPrograd || 0,
+        periodoExists: !!periodo,
+      }
+    }),
+
+  /**
+   * Envia emails para professores após alocação de bolsas
+   */
+  notifyProfessorsAfterAllocation: adminProtectedProcedure
+    .input(
+      z.object({
+        ano: z.number().int().min(2000).max(2100),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Buscar projetos aprovados com bolsas alocadas
+      const projetos = await ctx.db
+        .select({
+          id: projetoTable.id,
+          titulo: projetoTable.titulo,
+          bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
+          professorId: professorTable.id,
+          professorNome: professorTable.nomeCompleto,
+          professorEmail: professorTable.emailInstitucional,
+        })
+        .from(projetoTable)
+        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .where(
+          and(
+            eq(projetoTable.status, 'APPROVED'),
+            eq(projetoTable.ano, input.ano),
+            eq(projetoTable.semestre, input.semestre),
+            isNull(projetoTable.deletedAt)
+          )
+        )
+
+      // Filtrar apenas projetos com bolsas alocadas
+      const projetosComBolsas = projetos.filter((p) => (p.bolsasDisponibilizadas || 0) > 0)
+
+      let emailsEnviados = 0
+      const erros: string[] = []
+
+      // Agrupar por professor para evitar emails duplicados
+      const professoresMap = new Map<
+        number,
+        { nome: string; email: string; projetos: { titulo: string; bolsas: number }[] }
+      >()
+
+      for (const projeto of projetosComBolsas) {
+        const profId = projeto.professorId
+        if (!professoresMap.has(profId)) {
+          professoresMap.set(profId, {
+            nome: projeto.professorNome,
+            email: projeto.professorEmail,
+            projetos: [],
+          })
+        }
+
+        professoresMap.get(profId)?.projetos.push({
+          titulo: projeto.titulo,
+          bolsas: projeto.bolsasDisponibilizadas || 0,
+        })
+      }
+
+      // Enviar emails
+      for (const [profId, data] of professoresMap.entries()) {
+        try {
+          await sendScholarshipAllocationNotification({
+            to: data.email,
+            professorName: data.nome,
+            ano: input.ano,
+            semestre: input.semestre,
+            projetos: data.projetos,
+          })
+
+          emailsEnviados++
+          log.info({ professorId: profId, email: data.email }, 'Email de alocação enviado')
+        } catch (error) {
+          log.error(error, 'Erro ao enviar email de alocação')
+          erros.push(`Erro ao enviar email para ${data.email}`)
+        }
+      }
+
+      log.info({ totalEmails: emailsEnviados, erros: erros.length }, 'Notificação de alocação de bolsas finalizada')
+
+      return {
+        success: true,
+        emailsEnviados,
+        professoresNotificados: professoresMap.size,
+        erros,
+      }
     }),
 })

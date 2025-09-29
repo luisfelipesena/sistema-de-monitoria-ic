@@ -13,6 +13,7 @@ import {
 } from '@/server/db/schema'
 import { sendPlanilhaPROGRADEmail } from '@/server/lib/email-service'
 import { DashboardMetrics, dashboardMetricsSchema } from '@/types'
+import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import { DocumentProps, renderToBuffer } from '@react-pdf/renderer'
 import { TRPCError } from '@trpc/server'
@@ -331,6 +332,7 @@ export const analyticsRouter = createTRPCRouter({
             professoresParticipantes: z.string(),
             departamentoNome: z.string(),
             tipoProposicao: z.string(),
+            linkPDF: z.string(),
           })
         ),
       })
@@ -383,6 +385,7 @@ export const analyticsRouter = createTRPCRouter({
             professoresParticipantes: p.professoresParticipantes || '',
             departamentoNome: p.departamentoNome || '',
             tipoProposicao: p.tipoProposicao || 'INDIVIDUAL',
+            linkPDF: `${env.CLIENT_URL}/api/projeto/${p.id}/pdf`,
           })),
         }
       } catch (error) {

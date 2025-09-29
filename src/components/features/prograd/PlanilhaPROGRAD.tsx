@@ -93,8 +93,15 @@ const styles = StyleSheet.create({
   },
   tableCol6: {
     width: "16%",
+    borderRight: "1pt solid #000",
     padding: 4,
     fontSize: 7,
+    textAlign: "left",
+  },
+  tableCol7: {
+    width: "20%",
+    padding: 4,
+    fontSize: 6,
     textAlign: "left",
   },
   tableCellText: {
@@ -119,6 +126,7 @@ export interface PlanilhaPROGRADData {
     professoresParticipantes?: string
     departamentoNome: string
     tipoProposicao: string
+    linkPDF?: string
   }>
 }
 
@@ -177,6 +185,9 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
             <View style={styles.tableCol6}>
               <Text style={styles.tableCellText}>Professores participantes (Projetos coletivos)</Text>
             </View>
+            <View style={styles.tableCol7}>
+              <Text style={styles.tableCellText}>Link do PDF do Projeto</Text>
+            </View>
           </View>
 
           {/* Table Rows */}
@@ -200,6 +211,9 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
                   <Text style={styles.tableCellText}></Text>
                 </View>
                 <View style={styles.tableCol6}>
+                  <Text style={styles.tableCellText}></Text>
+                </View>
+                <View style={styles.tableCol7}>
                   <Text style={styles.tableCellText}></Text>
                 </View>
               </View>
@@ -226,6 +240,9 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
                     <Text style={styles.tableCellText}>
                       {projeto.tipoProposicao === "COLETIVA" ? projeto.professoresParticipantes || "Não informado" : ""}
                     </Text>
+                  </View>
+                  <View style={styles.tableCol7}>
+                    <Text style={styles.tableCellText}>{projeto.linkPDF || ""}</Text>
                   </View>
                 </View>
               ))}

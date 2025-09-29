@@ -11,7 +11,7 @@ import {
   projetoDisciplinaTable,
   projetoTable,
   sessionTable,
-  userTable
+  userTable,
 } from '@/server/db/schema'
 import { logger } from '@/utils/logger'
 
@@ -605,4 +605,3 @@ if (require.main === module) {
 }
 
 export { seedDatabase }
-

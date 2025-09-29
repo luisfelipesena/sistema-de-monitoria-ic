@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
 import { importFormSchema, ImportHistoryItem } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -16,7 +17,6 @@ import { ColumnDef } from "@tanstack/react-table"
 import { AlertCircle, CheckCircle, Eye, FileSpreadsheet, Trash2, Upload, XCircle } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { useToast } from "@/hooks/use-toast"
 import { z } from "zod"
 
 type ImportFormData = z.infer<typeof importFormSchema>
@@ -36,10 +36,33 @@ export default function ImportProjectsPage() {
 
   const uploadFileMutation = api.file.uploadFile.useMutation()
   const importProjectsMutation = api.importProjects.uploadFile.useMutation({
-    onSuccess: () => {
+    onSuccess: async (importacao) => {
       toast({
-        title: "Sucesso!",
-        description: "Arquivo enviado com sucesso! Processamento iniciado.",
+        title: "Arquivo enviado!",
+        description: "Processando planilha...",
+      })
+
+      // Iniciar processamento automaticamente
+      try {
+        await processImportMutation.mutateAsync({ importacaoId: importacao.id })
+      } catch (error) {
+        // Erro já tratado no processImportMutation
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: `Erro ao importar: ${error.message}`,
+        variant: "destructive",
+      })
+    },
+  })
+
+  const processImportMutation = api.importProjects.processImportedFileDCC.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: "Importação concluída!",
+        description: `${result.projetosCriados} projetos criados. ${result.emailsEnviados} professores notificados.`,
       })
       setIsDialogOpen(false)
       setSelectedFile(null)
@@ -48,10 +71,11 @@ export default function ImportProjectsPage() {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: `Erro ao importar: ${error.message}`,
+        title: "Erro no processamento",
+        description: `Erro ao processar: ${error.message}`,
         variant: "destructive",
       })
+      refetch() // Atualizar lista mesmo com erro
     },
   })
 
@@ -83,10 +107,10 @@ export default function ImportProjectsPage() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls")) {
+      if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls") && !file.name.endsWith(".csv")) {
         toast({
           title: "Erro",
-          description: "Por favor, selecione um arquivo Excel (.xlsx ou .xls).",
+          description: "Por favor, selecione um arquivo Excel (.xlsx, .xls) ou CSV (.csv).",
           variant: "destructive",
         })
         return
@@ -300,8 +324,8 @@ export default function ImportProjectsPage() {
                         )}
                       />
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Arquivo Excel</label>
-                        <Input type="file" accept=".xlsx,.xls" onChange={handleFileSelect} required />
+                        <label className="text-sm font-medium">Arquivo Excel/CSV</label>
+                        <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileSelect} required />
                         {selectedFile && (
                           <p className="text-sm text-muted-foreground">Arquivo selecionado: {selectedFile.name}</p>
                         )}
@@ -320,13 +344,54 @@ export default function ImportProjectsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8">
-              <FileSpreadsheet className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Importação de Projetos</h3>
-              <p className="text-muted-foreground mb-4">
-                Faça upload de uma planilha Excel com os dados dos projetos para importação automática.
-              </p>
-              <p className="text-sm text-muted-foreground">Formatos aceitos: .xlsx, .xls</p>
+            <div className="space-y-4">
+              <div className="text-center py-4">
+                <FileSpreadsheet className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">Importação de Projetos</h3>
+                <p className="text-muted-foreground mb-2">
+                  Faça upload de uma planilha Excel com o planejamento de monitoria.
+                </p>
+                <p className="text-sm text-muted-foreground">Formatos aceitos: .xlsx, .xls</p>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-sm mb-2">📋 Formato Planilha DCC (Planejamento):</h4>
+                <div className="bg-muted/50 p-3 rounded-md text-sm space-y-2">
+                  <p>
+                    <strong>Colunas necessárias:</strong>
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-2">
+                    <li>
+                      <code>DISCIPLINA</code> - Código da disciplina (ex: MATA37)
+                    </li>
+                    <li>
+                      <code>TURMA</code> - Número da turma (1, 2, 3...)
+                    </li>
+                    <li>
+                      <code>NOME DISCIPLINA</code> - Nome completo da disciplina
+                    </li>
+                    <li>
+                      <code>DOCENTE</code> - Nome do professor (última coluna)
+                    </li>
+                    <li>
+                      <code>CH</code> (opcional) - Carga horária
+                    </li>
+                  </ul>
+                  <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-xs text-blue-700">
+                      💡 <strong>Formato DCC:</strong> O sistema ignora automaticamente professores substitutos (SUB 01,
+                      SUB 02) e "docente a contratar". Busca professores por nome no sistema. Linhas vazias em
+                      DISCIPLINA são tratadas como continuação.
+                    </p>
+                  </div>
+                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-xs text-yellow-700">
+                      ⚠️ <strong>Importante:</strong> Certifique-se de que os professores estejam cadastrados no sistema
+                      com nomes que correspondam aos da planilha.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -408,13 +473,26 @@ export default function ImportProjectsPage() {
                   </div>
                 </div>
 
-                {importDetails.erros && importDetails.erros.length > 0 && (
+                {importDetails.erros?.erros && importDetails.erros.erros.length > 0 && (
                   <div>
                     <p className="text-sm font-medium mb-2">Erros Encontrados</p>
                     <div className="max-h-40 overflow-y-auto bg-red-50 border border-red-200 rounded p-3">
-                      {importDetails.erros.map((erro: string, index: number) => (
+                      {importDetails.erros.erros.map((erro: string, index: number) => (
                         <p key={index} className="text-sm text-red-700 mb-1">
                           • {erro}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {importDetails.erros?.warnings && importDetails.erros.warnings.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2">Avisos</p>
+                    <div className="max-h-40 overflow-y-auto bg-yellow-50 border border-yellow-200 rounded p-3">
+                      {importDetails.erros.warnings.map((warning: string, index: number) => (
+                        <p key={index} className="text-sm text-yellow-700 mb-1">
+                          • {warning}
                         </p>
                       ))}
                     </div>

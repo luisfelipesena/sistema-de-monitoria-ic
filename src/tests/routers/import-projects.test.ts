@@ -1,7 +1,13 @@
 import { importProjectsRouter } from '@/server/api/routers/import-projects/import-projects'
+import * as processDCC from '@/server/api/routers/import-projects/process-dcc'
 import { type TRPCContext } from '@/server/api/trpc'
 import { type User } from '@/server/db/schema'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+// Mock do process-dcc inteiro
+vi.mock('@/server/api/routers/import-projects/process-dcc', () => ({
+  processImportedFileDCC: vi.fn(),
+}))
 
 const mockAdminUser: User = {
   id: 1,
@@ -18,25 +24,7 @@ const mockAdminUser: User = {
 
 const createMockContext = (user: User | null): TRPCContext => ({
   user,
-  db: {
-    query: {
-      professorTable: {
-        findFirst: vi.fn(),
-      },
-      disciplinaTable: {
-        findFirst: vi.fn(),
-      },
-      importacaoPlanejamentoTable: {
-        findFirst: vi.fn(),
-      },
-    },
-    insert: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    values: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
-    returning: vi.fn(),
-  } as any,
+  db: {} as any,
 })
 
 describe('importProjectsRouter', () => {
@@ -44,89 +32,77 @@ describe('importProjectsRouter', () => {
     vi.clearAllMocks()
   })
 
-  describe('processImportedFile', () => {
-    it('should successfully import valid projects', async () => {
+  describe('processImportedFileDCC', () => {
+    it('should successfully import valid DCC projects', async () => {
       const mockContext = createMockContext(mockAdminUser)
       const caller = importProjectsRouter.createCaller(mockContext)
 
-      const mockProfessor = { id: 1, departamentoId: 1 }
-      const mockDisciplina = { id: 1 }
-      const mockImportacao = { id: 1, ano: 2024, semestre: 'SEMESTRE_1' as const, status: 'PROCESSANDO' }
+      // Mock successful processing
+      vi.spyOn(processDCC, 'processImportedFileDCC').mockResolvedValue({
+        success: true,
+        projetosCriados: 1,
+        projetosComErro: 0,
+        totalProjetos: 1,
+        erros: [],
+        warnings: [],
+      })
 
-      vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfessor as any)
-      vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue(mockDisciplina as any)
-      vi.spyOn(mockContext.db.query.importacaoPlanejamentoTable, 'findFirst').mockResolvedValue(mockImportacao as any)
+      const result = await caller.processImportedFileDCC({ importacaoId: 1 })
 
-      const insertReturningMock = { returning: vi.fn().mockResolvedValue([{ id: 1 }]) }
-      const valuesMock = { values: vi.fn().mockReturnValue(insertReturningMock) }
-      vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as any)
-
-      const input = {
-        importacaoId: 1,
-        projetos: [
-          {
-            titulo: 'Projeto Válido',
-            descricao: 'Descrição',
-            professorSiape: '123456',
-            disciplinaCodigo: 'MATA01',
-            cargaHorariaSemana: 12,
-            numeroSemanas: 16,
-            publicoAlvo: 'Alunos',
-          },
-        ],
-      }
-
-      const result = await caller.processImportedFile(input)
+      expect(result.success).toBe(true)
       expect(result.projetosCriados).toBe(1)
       expect(result.projetosComErro).toBe(0)
+      expect(result.erros).toHaveLength(0)
+      expect(processDCC.processImportedFileDCC).toHaveBeenCalledWith(1, mockContext)
     })
 
-    it('should handle partial imports with invalid data', async () => {
+    it('should handle professor not found in DCC format', async () => {
       const mockContext = createMockContext(mockAdminUser)
       const caller = importProjectsRouter.createCaller(mockContext)
 
-      const mockProfessor = { id: 1, departamentoId: 1 }
-      const mockImportacao = { id: 1, ano: 2024, semestre: 'SEMESTRE_1' as const, status: 'PROCESSANDO' }
+      // Mock processing with errors
+      vi.spyOn(processDCC, 'processImportedFileDCC').mockResolvedValue({
+        success: true,
+        projetosCriados: 0,
+        projetosComErro: 1,
+        totalProjetos: 1,
+        erros: ['Professor(es) Professor Desconhecido não encontrado(s) para a disciplina MATA01. Projeto não criado.'],
+        warnings: [],
+      })
 
-      vi.spyOn(mockContext.db.query.professorTable, 'findFirst')
-        .mockResolvedValueOnce(mockProfessor as any) // For the valid project
-        .mockResolvedValueOnce(undefined) // For the invalid project
+      const result = await caller.processImportedFileDCC({ importacaoId: 1 })
 
-      vi.spyOn(mockContext.db.query.disciplinaTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
-      vi.spyOn(mockContext.db.query.importacaoPlanejamentoTable, 'findFirst').mockResolvedValue(mockImportacao as any)
-
-      const insertReturningMock = { returning: vi.fn().mockResolvedValue([{ id: 1 }]) }
-      const valuesMock = { values: vi.fn().mockReturnValue(insertReturningMock) }
-      vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as any)
-
-      const input = {
-        importacaoId: 1,
-        projetos: [
-          {
-            titulo: 'Projeto Válido',
-            descricao: 'Descrição',
-            professorSiape: '123456',
-            disciplinaCodigo: 'MATA01',
-            cargaHorariaSemana: 12,
-            numeroSemanas: 16,
-            publicoAlvo: 'Alunos',
-          },
-          {
-            titulo: 'Projeto Inválido',
-            descricao: 'Descrição',
-            professorSiape: '999999', // Invalid SIAPE
-            disciplinaCodigo: 'MATA02',
-            cargaHorariaSemana: 12,
-            numeroSemanas: 16,
-            publicoAlvo: 'Alunos',
-          },
-        ],
-      }
-
-      const result = await caller.processImportedFile(input)
-      expect(result.projetosCriados).toBe(1)
+      expect(result.success).toBe(true)
+      expect(result.projetosCriados).toBe(0)
       expect(result.projetosComErro).toBe(1)
-      expect(result.erros).toContain('Professor com SIAPE 999999 não encontrado')
+      expect(result.erros.length).toBeGreaterThan(0)
+      expect(result.erros.some((e) => e.includes('não encontrado'))).toBe(true)
+      expect(processDCC.processImportedFileDCC).toHaveBeenCalledWith(1, mockContext)
+    })
+
+    it('should handle partial imports with some valid and some invalid projects', async () => {
+      const mockContext = createMockContext(mockAdminUser)
+      const caller = importProjectsRouter.createCaller(mockContext)
+
+      // Mock processing with partial success
+      vi.spyOn(processDCC, 'processImportedFileDCC').mockResolvedValue({
+        success: true,
+        projetosCriados: 2,
+        projetosComErro: 1,
+        totalProjetos: 3,
+        erros: ['Disciplina MATA99 (Disciplina Inexistente) não encontrada no sistema. Projeto não criado.'],
+        warnings: ['Linha 5: Carga horária não informada. Será usado 0 como padrão.'],
+      })
+
+      const result = await caller.processImportedFileDCC({ importacaoId: 1 })
+
+      expect(result.success).toBe(true)
+      expect(result.projetosCriados).toBe(2)
+      expect(result.projetosComErro).toBe(1)
+      expect(result.totalProjetos).toBe(3)
+      expect(result.erros).toHaveLength(1)
+      expect(result.warnings).toHaveLength(1)
+      expect(processDCC.processImportedFileDCC).toHaveBeenCalledWith(1, mockContext)
     })
   })
 })
