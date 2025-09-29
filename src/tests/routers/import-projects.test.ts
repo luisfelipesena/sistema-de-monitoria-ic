@@ -20,11 +20,13 @@ const mockAdminUser: User = {
   emailVerifiedAt: null,
   verificationToken: null,
   verificationTokenExpiresAt: null,
+  passwordResetToken: null,
+  passwordResetExpiresAt: null,
 }
 
 const createMockContext = (user: User | null): TRPCContext => ({
   user,
-  db: {} as any,
+  db: {} as TRPCContext['db'],
 })
 
 describe('importProjectsRouter', () => {
@@ -39,17 +41,15 @@ describe('importProjectsRouter', () => {
 
       // Mock successful processing
       vi.spyOn(processDCC, 'processImportedFileDCC').mockResolvedValue({
-        success: true,
         projetosCriados: 1,
         projetosComErro: 0,
-        totalProjetos: 1,
         erros: [],
         warnings: [],
+        emailsEnviados: 0,
       })
 
       const result = await caller.processImportedFileDCC({ importacaoId: 1 })
 
-      expect(result.success).toBe(true)
       expect(result.projetosCriados).toBe(1)
       expect(result.projetosComErro).toBe(0)
       expect(result.erros).toHaveLength(0)
@@ -62,17 +62,15 @@ describe('importProjectsRouter', () => {
 
       // Mock processing with errors
       vi.spyOn(processDCC, 'processImportedFileDCC').mockResolvedValue({
-        success: true,
         projetosCriados: 0,
         projetosComErro: 1,
-        totalProjetos: 1,
         erros: ['Professor(es) Professor Desconhecido não encontrado(s) para a disciplina MATA01. Projeto não criado.'],
         warnings: [],
+        emailsEnviados: 0,
       })
 
       const result = await caller.processImportedFileDCC({ importacaoId: 1 })
 
-      expect(result.success).toBe(true)
       expect(result.projetosCriados).toBe(0)
       expect(result.projetosComErro).toBe(1)
       expect(result.erros.length).toBeGreaterThan(0)
@@ -86,22 +84,20 @@ describe('importProjectsRouter', () => {
 
       // Mock processing with partial success
       vi.spyOn(processDCC, 'processImportedFileDCC').mockResolvedValue({
-        success: true,
         projetosCriados: 2,
         projetosComErro: 1,
-        totalProjetos: 3,
         erros: ['Disciplina MATA99 (Disciplina Inexistente) não encontrada no sistema. Projeto não criado.'],
         warnings: ['Linha 5: Carga horária não informada. Será usado 0 como padrão.'],
+        emailsEnviados: 2,
       })
 
       const result = await caller.processImportedFileDCC({ importacaoId: 1 })
 
-      expect(result.success).toBe(true)
       expect(result.projetosCriados).toBe(2)
       expect(result.projetosComErro).toBe(1)
-      expect(result.totalProjetos).toBe(3)
       expect(result.erros).toHaveLength(1)
       expect(result.warnings).toHaveLength(1)
+      expect(result.emailsEnviados).toBe(2)
       expect(processDCC.processImportedFileDCC).toHaveBeenCalledWith(1, mockContext)
     })
   })
