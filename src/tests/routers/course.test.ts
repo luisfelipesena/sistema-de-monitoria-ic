@@ -11,6 +11,12 @@ describe('Course Router', () => {
     role: 'admin',
     assinaturaDefault: null,
     dataAssinaturaDefault: null,
+    passwordHash: null,
+    emailVerifiedAt: null,
+    verificationToken: null,
+    verificationTokenExpiresAt: null,
+    passwordResetToken: null,
+    passwordResetExpiresAt: null,
   }
 
   const mockCourse: Curso = {

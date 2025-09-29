@@ -14,6 +14,8 @@ const mockAdminUser: User = {
   emailVerifiedAt: null,
   verificationToken: null,
   verificationTokenExpiresAt: null,
+  passwordResetToken: null,
+  passwordResetExpiresAt: null,
 }
 
 const mockStudentUser: User = {
@@ -27,6 +29,8 @@ const mockStudentUser: User = {
   emailVerifiedAt: null,
   verificationToken: null,
   verificationTokenExpiresAt: null,
+  passwordResetToken: null,
+  passwordResetExpiresAt: null,
 }
 
 const createMockContext = (user: User | null): TRPCContext => ({

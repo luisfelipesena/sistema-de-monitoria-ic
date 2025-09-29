@@ -14,6 +14,8 @@ const mockUserAdmin: User = {
   emailVerifiedAt: null,
   verificationToken: null,
   verificationTokenExpiresAt: null,
+  passwordResetToken: null,
+  passwordResetExpiresAt: null,
 }
 const mockUserProfessor: User = {
   id: 2,
@@ -26,6 +28,8 @@ const mockUserProfessor: User = {
   emailVerifiedAt: null,
   verificationToken: null,
   verificationTokenExpiresAt: null,
+  passwordResetToken: null,
+  passwordResetExpiresAt: null,
 }
 
 // Mock the context

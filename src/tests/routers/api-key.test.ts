@@ -15,6 +15,8 @@ describe('API Key Router', () => {
     emailVerifiedAt: null,
     verificationToken: null,
     verificationTokenExpiresAt: null,
+    passwordResetToken: null,
+    passwordResetExpiresAt: null,
   }
 
   const mockApiKeys: ApiKey[] = [
