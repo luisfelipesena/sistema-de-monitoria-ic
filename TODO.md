@@ -330,6 +330,28 @@
 - Dashboard em tempo real (total, alocadas, restantes)
 - Controle de permissões (admin aloca, professor visualiza)
 
+**Fluxo Correto** (conforme orientação do cliente):
+```
+FASE 1: Envio para PROGRAD
+1. Importação do planejamento (✅ completo)
+2. Professores assinam projetos
+3. Admin aprova projetos
+4. Admin gera planilha PROGRAD com links PDF
+5. Admin envia planilha para PROGRAD por email
+6. PROGRAD analisa e responde com total de bolsas
+
+FASE 2: Alocação de Bolsas
+7. Admin define total de bolsas PROGRAD no sistema (✅ completo)
+8. Admin aloca bolsas por projeto aprovado (✅ completo)
+   └── Sistema valida: não pode exceder total PROGRAD
+9. Admin clica em "Notificar Professores" (✅ completo)
+10. Sistema envia emails automáticos (✅ completo)
+    └── Professor recebe resumo de suas bolsas
+11. Professor acessa dashboard
+    └── Vê bolsas alocadas (read-only)
+    └── Define vagas voluntárias adicionais
+```
+
 **Impacto**: Workflow completo de gestão de bolsas com transparência e auditoria
 
 ---
