@@ -269,18 +269,17 @@ export const professorTable = pgTable('professor', {
     .notNull()
     .unique(), // Link to auth user
   departamentoId: integer('departamento_id')
-    .references(() => departamentoTable.id)
-    .notNull(),
+    .references(() => departamentoTable.id),
   nomeCompleto: varchar('nome_completo').notNull(),
   nomeSocial: varchar('nome_social'),
-  matriculaSiape: varchar('matricula_siape').notNull(),
-  genero: generoEnum('genero').notNull(),
-  regime: regimeEnum('regime').notNull(),
+  matriculaSiape: varchar('matricula_siape'),
+  genero: generoEnum('genero'),
+  regime: regimeEnum('regime'),
   especificacaoGenero: varchar('especificacao_genero'),
-  cpf: varchar('cpf').notNull(), // Unique?
+  cpf: varchar('cpf'), // Unique?
   telefone: varchar('telefone'),
   telefoneInstitucional: varchar('telefone_institucional'),
-  emailInstitucional: varchar('email_institucional').notNull(),
+  emailInstitucional: varchar('email_institucional'),
   // Document file IDs for professor documents
   curriculumVitaeFileId: text('curriculum_vitae_file_id'),
   comprovanteVinculoFileId: text('comprovante_vinculo_file_id'),
@@ -346,13 +345,13 @@ export const alunoTable = pgTable('aluno', {
     .unique(), // Link to auth user
   nomeCompleto: varchar('nome_completo').notNull(),
   nomeSocial: varchar('nome_social'),
-  genero: generoEnum('genero').notNull(),
+  genero: generoEnum('genero'),
   especificacaoGenero: varchar('especificacao_genero'),
-  emailInstitucional: varchar('email_institucional').notNull(),
-  matricula: varchar('matricula').notNull().unique(), // Make unique
+  emailInstitucional: varchar('email_institucional'),
+  matricula: varchar('matricula').unique(), // Make unique
   rg: varchar('rg'), // Nullable?
-  cpf: varchar('cpf').notNull().unique(), // Make unique
-  cr: real('CR').notNull(),
+  cpf: varchar('cpf').unique(), // Make unique
+  cr: real('CR'),
   telefone: varchar('telefone'),
   // Dados Bancários para Bolsistas
   banco: varchar('banco', { length: 100 }),
@@ -361,8 +360,7 @@ export const alunoTable = pgTable('aluno', {
   digitoConta: varchar('digito_conta', { length: 2 }),
   enderecoId: integer('endereco_id').references(() => enderecoTable.id), // Nullable
   cursoId: integer('curso_id')
-    .references(() => cursoTable.id)
-    .notNull(),
+    .references(() => cursoTable.id),
   // Document file IDs for student documents
   historicoEscolarFileId: text('historico_escolar_file_id'),
   comprovanteMatriculaFileId: text('comprovante_matricula_file_id'),

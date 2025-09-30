@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { regimeSchema, UserRole, userRoleSchema } from './enums'
-import { crSchema, emailSchema, idSchema, nameSchema, passwordSchema, usernameSchema } from './schemas'
+import { crSchema, emailSchema, idSchema, loginPasswordSchema, nameSchema, passwordSchema, usernameSchema } from './schemas'
 
 // ========================================
 // AUTH TYPES
@@ -199,7 +199,7 @@ export const registerUserSchema = z.object({
 
 export const loginUserSchema = z.object({
   email: emailSchema,
-  password: passwordSchema,
+  password: loginPasswordSchema,
 })
 
 export const verifyEmailSchema = z.object({

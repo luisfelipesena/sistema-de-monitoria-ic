@@ -201,6 +201,43 @@
 **CONTEXTO** - Alguns usuários não possuem UFBA Login, devem ser permitidos acessar o sistema com e-mail
 **STATUS** - [X] ✅ COMPLETO
 
+**TAREFA** – Criar aluno/professor junto com user no cadastro
+**DESCRIÇÃO** – Ao registrar, além de user, criar registro em aluno ou professor com user_id e nome_completo.
+
+**ARQUIVOS AFETADOS:**
+src/server/api/routers/auth/auth.ts – criação de aluno/professor após inserir user
+**STATUS** – [x] ✅ COMPLETO
+**IMPLEMENTADO:**
+
+✅ Inserção condicional em aluno quando role === "student"
+✅ Inserção condicional em professor quando role === "professor"
+✅ nome_completo preenchido corretamente no perfil
+
+**TAREFA** – Tornar opcionais campos não presentes no form inicial (aluno/professor)
+**DESCRIÇÃO** – Remover NOT NULL de colunas em aluno e professor que não são preenchidas no cadastro inicial.
+**ARQUIVOS AFETADOS:**
+
+src/server/db/schema.ts – remoção de .notNull() nas colunas opcionais
+
+drizzle/0031_make_profile_fields_nullable.sql – ALTER TABLE ... DROP NOT NULL
+**STATUS** – [x] ✅ COMPLETO
+**IMPLEMENTADO:**
+
+✅ aluno: genero, email_institucional, matricula, cpf, CR, curso_id agora aceitam NULL
+✅ professor: departamento_id, matricula_siape, genero, regime, cpf, email_institucional agora aceitam NULL
+✅ Mantidos obrigatórios: id, user_id, nome_completo
+
+**TAREFA** – Ajustes no fluxo de login e recuperação de senha
+**DESCRIÇÃO** – (a) Login valida apenas presença da senha (sem regras de complexidade); (b) Exibir mensagem de sucesso em “Recuperar senha”.
+**ARQUIVOS AFETADOS:**
+
+`src/app/auth/forgot-password/page.tsx` (ou componente equivalente) – onSuccess exibindo mensagem
+**STATUS** – [x] ✅ COMPLETO
+
+**IMPLEMENTADO:**
+✅ Mensagem ao enviar reset: “Se o e-mail existir, enviaremos instruções para redefinir a senha.”
+✅ Erro genérico no login para credenciais inválidas (sem vazar política de senha)
+
 ### 4. REMOÇÃO DE FUNCIONALIDADES DESNECESSÁRIAS ✅
 **TAREFA** - Remover "Minhas API Keys" do sistema
 **DESCRIÇÃO** - Remover completamente a funcionalidade de API Keys do sidebar e sistema

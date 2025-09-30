@@ -1,6 +1,6 @@
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc'
 import { db } from '@/server/db'
-import { userTable } from '@/server/db/schema'
+import { alunoTable, professorTable, userTable } from '@/server/db/schema'
 import { emailService } from '@/server/lib/email-service'
 import { lucia } from '@/server/lib/lucia'
 import {
@@ -21,6 +21,7 @@ import {
 } from '@/types'
 import { ensureAdminRole } from '@/utils/admins'
 import { env } from '@/utils/env'
+import { emailToUsername } from '@/utils/username-formatter'
 import { TRPCError } from '@trpc/server'
 import { compare, hash } from 'bcryptjs'
 import { randomBytes } from 'crypto'
@@ -63,7 +64,7 @@ export const authRouter = createTRPCRouter({
     const [newUser] = await db
       .insert(userTable)
       .values({
-        username: data.name,
+        username: emailToUsername(email),
         email,
         role: data.role,
         passwordHash,
@@ -73,6 +74,20 @@ export const authRouter = createTRPCRouter({
         passwordResetExpiresAt: null,
       })
       .returning({ id: userTable.id, email: userTable.email })
+    
+    if (data.role === "student") {
+      await db.insert(alunoTable).values({
+        userId: newUser.id,       
+        nomeCompleto: data.name,  
+        
+      } as typeof alunoTable.$inferInsert);
+    } else if (data.role === "professor") {
+      await db.insert(professorTable).values({
+        userId: newUser.id,       
+        nomeCompleto: data.name, 
+      } as typeof professorTable.$inferInsert)
+    }
+
 
     await emailService.sendEmailVerification({
       to: newUser.email,

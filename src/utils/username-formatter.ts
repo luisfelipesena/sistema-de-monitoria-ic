@@ -89,3 +89,9 @@ export function getUserInitials(username: string): string {
     .map((part) => part.charAt(0).toUpperCase())
     .join('')
 }
+
+export const emailToUsername = (email: string): string => {
+  const at = email.indexOf("@");
+  return email.slice(0, at);
+};
+
