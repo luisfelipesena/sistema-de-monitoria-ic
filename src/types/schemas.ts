@@ -29,6 +29,10 @@ export const passwordSchema = z
     'Senha deve conter letras maiúsculas, minúsculas, números e um caractere especial'
   )
 
+export const loginPasswordSchema = z
+  .string()
+  .min(1, 'Informe a senha')
+
 // Signature validation
 export const signatureDataSchema = z.string().min(1, 'Assinatura é obrigatória')
 export const optionalSignatureDataSchema = z.string().min(1).optional()

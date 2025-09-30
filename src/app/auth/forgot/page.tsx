@@ -19,7 +19,7 @@ const requestPasswordResetSchema = z.object({
 })
 
 export default function ForgotPasswordPage() {
-  const { requestPasswordReset, errors, clearErrors } = useAuth()
+  const { requestPasswordReset, errors, clearErrors, successMsg } = useAuth()
 
   const form = useForm<RequestPasswordResetInput>({
     resolver: zodResolver(requestPasswordResetSchema),
@@ -67,6 +67,7 @@ export default function ForgotPasswordPage() {
               )}
             />
 
+            {successMsg && <p className="text-green-600">{successMsg}</p>}
             {errors ? <p className="text-sm text-red-600">{errors}</p> : null}
 
             <Button type="submit" className="w-full">

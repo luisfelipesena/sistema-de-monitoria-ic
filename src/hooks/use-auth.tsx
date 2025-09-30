@@ -38,6 +38,7 @@ interface AuthContextProps extends AuthState {
   setPassword: (input: SetPasswordInput) => Promise<{ success: boolean; message: string }>
   errors: string | null
   clearErrors: () => void
+  successMsg: string | null
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined)
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const utils = api.useUtils()
   const [errors, setErrors] = useState<string | null>(null)
   const [provider, setProvider] = useState<AuthProviders | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const localLoginMutation = api.auth.login.useMutation({
     onSuccess: async () => {
@@ -89,8 +91,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })
 
   const requestPasswordResetMutation = api.auth.requestPasswordReset.useMutation({
-    onSuccess: () => {
+    onSuccess: (res) => {
       setErrors(null)
+      setSuccessMsg(res?.message ?? "Se o e-mail existir, enviaremos instruções.");
     },
     onError: (error) => {
       setErrors(error.message || "Erro ao solicitar redefinição de senha")
@@ -243,6 +246,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       errors,
       clearErrors,
       provider,
+      successMsg,
+      setSuccessMsg,
     }),
     [
       user,
@@ -264,6 +269,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       errors,
       clearErrors,
       provider,
+      successMsg,
+      setSuccessMsg,
     ]
   )
 
