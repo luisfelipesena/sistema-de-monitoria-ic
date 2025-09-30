@@ -373,7 +373,7 @@ export const scholarshipAllocationRouter = createTRPCRouter({
         if (!professoresMap.has(profId)) {
           professoresMap.set(profId, {
             nome: projeto.professorNome,
-            email: projeto.professorEmail,
+            email: projeto.professorEmail || '',
             projetos: [],
           })
         }

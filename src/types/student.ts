@@ -54,13 +54,13 @@ export interface CreateStudentInput {
 export interface AlunoListItem {
   id: number
   nomeCompleto: string
-  matricula: string
-  emailInstitucional: string
-  cpf: string
+  matricula: string | null
+  emailInstitucional: string | null
+  cpf: string | null
   telefone?: string
-  cr: number
+  cr: number | null
   curso: {
-    id: number
+    id: number | null
     nome: string
     departamento: string
   }

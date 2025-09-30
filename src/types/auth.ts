@@ -34,11 +34,11 @@ export type AppUser = {
   passwordResetExpiresAt: Date | null
   professor?: {
     id: number
-    departamentoId: number
+    departamentoId: number | null
   } | null
   aluno?: {
     id: number
-    cursoId: number
+    cursoId: number | null
   } | null
 }
 
@@ -50,13 +50,13 @@ export interface UserListItem {
   professorProfile?: {
     id: number
     nomeCompleto: string
-    cpf: string
+    cpf: string | null
     telefone?: string | null
     telefoneInstitucional?: string | null
-    emailInstitucional: string
+    emailInstitucional: string | null
     matriculaSiape?: string | null
-    regime: '20H' | '40H' | 'DE'
-    departamentoId: number
+    regime: '20H' | '40H' | 'DE' | null
+    departamentoId: number | null
     curriculumVitaeFileId?: string | null
     comprovanteVinculoFileId?: string | null
     assinaturaDefault?: string | null
@@ -67,12 +67,12 @@ export interface UserListItem {
   studentProfile?: {
     id: number
     nomeCompleto: string
-    matricula: string
-    cpf: string
-    cr: number
-    cursoId: number
+    matricula: string | null
+    cpf: string | null
+    cr: number | null
+    cursoId: number | null
     telefone?: string | null
-    emailInstitucional: string
+    emailInstitucional: string | null
     historicoEscolarFileId?: string | null
     comprovanteMatriculaFileId?: string | null
     banco?: string | null
@@ -104,13 +104,13 @@ export const userListItemSchema = z.object({
     .object({
       id: idSchema,
       nomeCompleto: nameSchema,
-      cpf: z.string(),
+      cpf: z.string().nullable(),
       telefone: z.string().nullable().optional(),
       telefoneInstitucional: z.string().nullable().optional(),
-      emailInstitucional: emailSchema,
+      emailInstitucional: emailSchema.nullable(),
       matriculaSiape: z.string().nullable().optional(),
-      regime: regimeSchema,
-      departamentoId: idSchema,
+      regime: regimeSchema.nullable(),
+      departamentoId: idSchema.nullable(),
       curriculumVitaeFileId: z.string().nullable().optional(),
       comprovanteVinculoFileId: z.string().nullable().optional(),
       assinaturaDefault: z.string().nullable().optional(),
@@ -124,12 +124,12 @@ export const userListItemSchema = z.object({
     .object({
       id: idSchema,
       nomeCompleto: nameSchema,
-      matricula: z.string(),
-      cpf: z.string(),
-      cr: crSchema,
-      cursoId: idSchema,
+      matricula: z.string().nullable(),
+      cpf: z.string().nullable(),
+      cr: crSchema.nullable(),
+      cursoId: idSchema.nullable(),
       telefone: z.string().nullable().optional(),
-      emailInstitucional: emailSchema,
+      emailInstitucional: emailSchema.nullable(),
       historicoEscolarFileId: z.string().nullable().optional(),
       comprovanteMatriculaFileId: z.string().nullable().optional(),
       banco: z.string().nullable().optional(),

@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useConsolidatedMonitoringData, useExportConsolidated, useValidateCompleteData } from "@/hooks/use-relatorios"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -22,7 +22,17 @@ import {
   getStatusMonitorLabel,
   getTipoVagaLabel,
 } from "@/types"
-import { AlertTriangle, Award, Calendar, CheckCircle, Download, FileSpreadsheet, Filter, Mail, Users } from "lucide-react"
+import {
+  AlertTriangle,
+  Award,
+  Calendar,
+  CheckCircle,
+  Download,
+  FileSpreadsheet,
+  Filter,
+  Mail,
+  Users,
+} from "lucide-react"
 import { useState } from "react"
 
 export default function ConsolidacaoPROGRADPage() {
@@ -49,7 +59,7 @@ export default function ConsolidacaoPROGRADPage() {
   const exportConsolidatedMutation = useExportConsolidated()
 
   const handleSendEmail = async () => {
-    if (!progradEmail || !progradEmail.includes('@')) {
+    if (!progradEmail || !progradEmail.includes("@")) {
       toast({
         title: "Email Inválido",
         description: "Por favor, insira um email válido da PROGRAD.",
@@ -129,10 +139,10 @@ export default function ConsolidacaoPROGRADPage() {
     ]
 
     const csvData = (consolidationData || []).map((item) => [
-      item.monitor.matricula,
+      item.monitor.matricula || "N/A",
       item.monitor.nome,
       item.monitor.email,
-      item.monitor.cr.toFixed(2),
+      item.monitor.cr?.toFixed(2) || "N/A",
       getTipoVagaLabel(item.monitoria.tipo as TipoVaga),
       item.monitoria.valorBolsa ? `R$ ${item.monitoria.valorBolsa.toFixed(2)}` : "N/A",
       item.projeto.titulo,
@@ -394,10 +404,7 @@ export default function ConsolidacaoPROGRADPage() {
               <div className="flex gap-2">
                 <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
                   <DialogTrigger asChild>
-                    <Button
-                      disabled={!data || data.length === 0}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
+                    <Button disabled={!data || data.length === 0} className="bg-green-600 hover:bg-green-700">
                       <Mail className="h-4 w-4 mr-2" />
                       Enviar por Email
                     </Button>
@@ -420,7 +427,9 @@ export default function ConsolidacaoPROGRADPage() {
                       <div className="bg-blue-50 p-4 rounded-lg">
                         <h5 className="font-medium mb-2">Informações que serão enviadas:</h5>
                         <ul className="text-sm text-muted-foreground space-y-1">
-                          <li>• Período: {selectedYear}.{selectedSemester === "SEMESTRE_1" ? "1" : "2"}</li>
+                          <li>
+                            • Período: {selectedYear}.{selectedSemester === "SEMESTRE_1" ? "1" : "2"}
+                          </li>
                           <li>• Total de monitores: {data?.length || 0}</li>
                           <li>• Incluir bolsistas: {incluirBolsistas ? "Sim" : "Não"}</li>
                           <li>• Incluir voluntários: {incluirVoluntarios ? "Sim" : "Não"}</li>
@@ -495,8 +504,8 @@ export default function ConsolidacaoPROGRADPage() {
                           <h3 className="font-semibold text-lg">{item.monitor.nome}</h3>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-sm text-muted-foreground mb-3">
-                          <p>Matrícula: {item.monitor.matricula}</p>
-                          <p>CR: {item.monitor.cr.toFixed(2)}</p>
+                          <p>Matrícula: {item.monitor.matricula || "N/A"}</p>
+                          <p>CR: {item.monitor.cr?.toFixed(2) || "N/A"}</p>
                           <p>E-mail: {item.monitor.email}</p>
                           <p>Professor: {item.professor.nome}</p>
                           <p>Projeto: {item.projeto.titulo}</p>

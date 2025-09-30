@@ -16,29 +16,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/utils/api"
-import {
-  Award,
-  Check,
-  FileCheck,
-  GraduationCap,
-  Mail,
-  Search,
-  Star,
-  User,
-  Users,
-  X,
-} from "lucide-react"
+import { Award, Check, FileCheck, GraduationCap, Mail, Search, Star, User, Users } from "lucide-react"
 import { useState } from "react"
 
 interface Candidato {
@@ -51,8 +33,8 @@ interface Candidato {
   aluno: {
     id: number
     nomeCompleto: string
-    matricula: string
-    cr: number
+    matricula: string | null
+    cr: number | null
     user: {
       email: string
     }
@@ -139,12 +121,10 @@ export default function SelectMonitorsPage() {
   })
 
   // Filter projects based on search term
-  const filteredProjetos = projetos.filter((projeto) =>
-    projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredProjetos = projetos.filter((projeto) => projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()))
 
   const handleSelectCandidate = (inscricaoId: number, tipo: "bolsista" | "voluntario") => {
-    setSelectedCandidates(prev => {
+    setSelectedCandidates((prev) => {
       if (tipo === "bolsista") {
         const isSelected = prev.bolsistas.includes(inscricaoId)
         const maxBolsistas = selectedProject?.bolsasDisponibilizadas || 0
@@ -152,12 +132,12 @@ export default function SelectMonitorsPage() {
         if (isSelected) {
           return {
             ...prev,
-            bolsistas: prev.bolsistas.filter(id => id !== inscricaoId)
+            bolsistas: prev.bolsistas.filter((id) => id !== inscricaoId),
           }
         } else if (prev.bolsistas.length < maxBolsistas) {
           return {
             ...prev,
-            bolsistas: [...prev.bolsistas, inscricaoId]
+            bolsistas: [...prev.bolsistas, inscricaoId],
           }
         }
         return prev
@@ -168,12 +148,12 @@ export default function SelectMonitorsPage() {
         if (isSelected) {
           return {
             ...prev,
-            voluntarios: prev.voluntarios.filter(id => id !== inscricaoId)
+            voluntarios: prev.voluntarios.filter((id) => id !== inscricaoId),
           }
         } else if (prev.voluntarios.length < maxVoluntarios) {
           return {
             ...prev,
-            voluntarios: [...prev.voluntarios, inscricaoId]
+            voluntarios: [...prev.voluntarios, inscricaoId],
           }
         }
         return prev
@@ -187,7 +167,7 @@ export default function SelectMonitorsPage() {
     selectMonitorsMutation.mutate({
       projetoId: selectedProject.id,
       bolsistas: selectedCandidates.bolsistas,
-      voluntarios: selectedCandidates.voluntarios
+      voluntarios: selectedCandidates.voluntarios,
     })
   }
 
@@ -195,7 +175,7 @@ export default function SelectMonitorsPage() {
     publishResultsMutation.mutate({
       projetoId: projeto.id.toString(),
       notifyStudents: true,
-      mensagemPersonalizada: feedback || undefined
+      mensagemPersonalizada: feedback || undefined,
     })
   }
 
@@ -211,13 +191,29 @@ export default function SelectMonitorsPage() {
       case "SUBMITTED":
         return <Badge variant="secondary">Inscrito</Badge>
       case "SELECTED_BOLSISTA":
-        return <Badge variant="default" className="bg-yellow-500">Selecionado - Bolsista</Badge>
+        return (
+          <Badge variant="default" className="bg-yellow-500">
+            Selecionado - Bolsista
+          </Badge>
+        )
       case "SELECTED_VOLUNTARIO":
-        return <Badge variant="default" className="bg-blue-500">Selecionado - Voluntário</Badge>
+        return (
+          <Badge variant="default" className="bg-blue-500">
+            Selecionado - Voluntário
+          </Badge>
+        )
       case "ACCEPTED_BOLSISTA":
-        return <Badge variant="default" className="bg-green-500">Aceito - Bolsista</Badge>
+        return (
+          <Badge variant="default" className="bg-green-500">
+            Aceito - Bolsista
+          </Badge>
+        )
       case "ACCEPTED_VOLUNTARIO":
-        return <Badge variant="default" className="bg-green-600">Aceito - Voluntário</Badge>
+        return (
+          <Badge variant="default" className="bg-green-600">
+            Aceito - Voluntário
+          </Badge>
+        )
       case "REJECTED_BY_PROFESSOR":
         return <Badge variant="destructive">Rejeitado</Badge>
       default:
@@ -234,10 +230,7 @@ export default function SelectMonitorsPage() {
   }
 
   return (
-    <PagesLayout
-      title="Seleção de Monitores"
-      subtitle="Selecione bolsistas e voluntários para seus projetos"
-    >
+    <PagesLayout title="Seleção de Monitores" subtitle="Selecione bolsistas e voluntários para seus projetos">
       <div className="space-y-6">
         {/* Search */}
         <Card>
@@ -264,9 +257,7 @@ export default function SelectMonitorsPage() {
               <div className="flex items-center gap-2">
                 <GraduationCap className="h-8 w-8 text-blue-500" />
                 <div>
-                  <div className="text-2xl font-bold">
-                    {filteredProjetos.length}
-                  </div>
+                  <div className="text-2xl font-bold">{filteredProjetos.length}</div>
                   <p className="text-sm text-muted-foreground">Projetos</p>
                 </div>
               </div>
@@ -366,9 +357,7 @@ export default function SelectMonitorsPage() {
                                   <TableCell>
                                     <div>
                                       <div className="font-medium">{inscricao.aluno.nomeCompleto}</div>
-                                      <div className="text-sm text-muted-foreground">
-                                        {inscricao.aluno.matricula}
-                                      </div>
+                                      <div className="text-sm text-muted-foreground">{inscricao.aluno.matricula}</div>
                                     </div>
                                   </TableCell>
                                   <TableCell>
@@ -377,12 +366,8 @@ export default function SelectMonitorsPage() {
                                       {inscricao.aluno.cr?.toFixed(2) || "N/A"}
                                     </div>
                                   </TableCell>
-                                  <TableCell>
-                                    {Number(inscricao.notaDisciplina)?.toFixed(1) || "N/A"}
-                                  </TableCell>
-                                  <TableCell>
-                                    {Number(inscricao.notaSelecao)?.toFixed(1) || "N/A"}
-                                  </TableCell>
+                                  <TableCell>{Number(inscricao.notaDisciplina)?.toFixed(1) || "N/A"}</TableCell>
+                                  <TableCell>{Number(inscricao.notaSelecao)?.toFixed(1) || "N/A"}</TableCell>
                                   <TableCell className="font-medium">
                                     {Number(inscricao.notaFinal)?.toFixed(1) || "N/A"}
                                   </TableCell>
@@ -391,9 +376,7 @@ export default function SelectMonitorsPage() {
                                       {(inscricao.tipoVagaPretendida || "") === "BOLSISTA" ? "Bolsista" : "Voluntário"}
                                     </Badge>
                                   </TableCell>
-                                  <TableCell>
-                                    {getStatusBadge(inscricao.status)}
-                                  </TableCell>
+                                  <TableCell>{getStatusBadge(inscricao.status)}</TableCell>
                                 </TableRow>
                               ))}
                           </TableBody>
@@ -414,9 +397,7 @@ export default function SelectMonitorsPage() {
                   ) : (
                     <div className="text-center py-8">
                       <Users className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Nenhum inscricao inscrito neste projeto
-                      </p>
+                      <p className="text-sm text-muted-foreground">Nenhum inscricao inscrito neste projeto</p>
                     </div>
                   )}
                 </CardContent>
@@ -430,9 +411,7 @@ export default function SelectMonitorsPage() {
           <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Selecionar Monitores</DialogTitle>
-              <DialogDescription>
-                {selectedProject?.titulo}
-              </DialogDescription>
+              <DialogDescription>{selectedProject?.titulo}</DialogDescription>
             </DialogHeader>
 
             {selectedProject && (
@@ -447,7 +426,7 @@ export default function SelectMonitorsPage() {
                           <span className="font-medium">Bolsistas</span>
                         </div>
                         <span className="text-sm text-muted-foreground">
-                          {selectedCandidates.bolsistas.length} / {(selectedProject.bolsasDisponibilizadas || 0)}
+                          {selectedCandidates.bolsistas.length} / {selectedProject.bolsasDisponibilizadas || 0}
                         </span>
                       </div>
                     </CardContent>
@@ -460,7 +439,7 @@ export default function SelectMonitorsPage() {
                           <span className="font-medium">Voluntários</span>
                         </div>
                         <span className="text-sm text-muted-foreground">
-                          {selectedCandidates.voluntarios.length} / {(selectedProject.voluntariosSolicitados || 0)}
+                          {selectedCandidates.voluntarios.length} / {selectedProject.voluntariosSolicitados || 0}
                         </span>
                       </div>
                     </CardContent>
@@ -470,7 +449,7 @@ export default function SelectMonitorsPage() {
                 {/* Candidates Selection */}
                 <div className="space-y-4">
                   {/* Bolsistas Section */}
-                  {((selectedProject.bolsasDisponibilizadas || 0) || 0) > 0 && (
+                  {(selectedProject.bolsasDisponibilizadas || 0 || 0) > 0 && (
                     <div>
                       <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
                         <Award className="h-4 w-4 text-yellow-500" />
@@ -478,15 +457,13 @@ export default function SelectMonitorsPage() {
                       </h4>
                       <div className="space-y-2">
                         {selectedProject.inscricoes
-                          .filter(c => (c.tipoVagaPretendida || "") === "BOLSISTA")
+                          .filter((c) => (c.tipoVagaPretendida || "") === "BOLSISTA")
                           .sort((a, b) => (Number(b.notaFinal) || 0) - (Number(a.notaFinal) || 0))
                           .map((inscricao, index) => (
                             <div
                               key={inscricao.id}
                               className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 ${
-                                selectedCandidates.bolsistas.includes(inscricao.id)
-                                  ? "border-primary bg-primary/5"
-                                  : ""
+                                selectedCandidates.bolsistas.includes(inscricao.id) ? "border-primary bg-primary/5" : ""
                               }`}
                               onClick={() => handleSelectCandidate(inscricao.id, "bolsista")}
                             >
@@ -497,8 +474,8 @@ export default function SelectMonitorsPage() {
                                 <div>
                                   <div className="font-medium">{inscricao.aluno.nomeCompleto}</div>
                                   <div className="text-sm text-muted-foreground">
-                                    {inscricao.aluno.matricula} • CR: {inscricao.aluno.cr?.toFixed(2)} •
-                                    Final: {Number(inscricao.notaFinal)?.toFixed(1)}
+                                    {inscricao.aluno.matricula} • CR: {inscricao.aluno.cr?.toFixed(2)} • Final:{" "}
+                                    {Number(inscricao.notaFinal)?.toFixed(1)}
                                   </div>
                                 </div>
                               </div>
@@ -526,7 +503,7 @@ export default function SelectMonitorsPage() {
                       </h4>
                       <div className="space-y-2">
                         {selectedProject.inscricoes
-                          .filter(c => (c.tipoVagaPretendida || "") === "VOLUNTARIO")
+                          .filter((c) => (c.tipoVagaPretendida || "") === "VOLUNTARIO")
                           .sort((a, b) => (Number(b.notaFinal) || 0) - (Number(a.notaFinal) || 0))
                           .map((inscricao, index) => (
                             <div
@@ -545,8 +522,8 @@ export default function SelectMonitorsPage() {
                                 <div>
                                   <div className="font-medium">{inscricao.aluno.nomeCompleto}</div>
                                   <div className="text-sm text-muted-foreground">
-                                    {inscricao.aluno.matricula} • CR: {inscricao.aluno.cr?.toFixed(2)} •
-                                    Final: {Number(inscricao.notaFinal)?.toFixed(1)}
+                                    {inscricao.aluno.matricula} • CR: {inscricao.aluno.cr?.toFixed(2)} • Final:{" "}
+                                    {Number(inscricao.notaFinal)?.toFixed(1)}
                                   </div>
                                 </div>
                               </div>

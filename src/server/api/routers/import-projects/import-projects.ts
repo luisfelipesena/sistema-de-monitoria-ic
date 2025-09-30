@@ -208,6 +208,14 @@ export const importProjectsRouter = createTRPCRouter({
             // Professor responsável (primeiro da lista)
             const professorResponsavel = professores[0]
 
+            if (!professorResponsavel.departamentoId) {
+              erros.push(
+                `Disciplina ${row.disciplinaCodigo}: Professor ${professorResponsavel.nomeCompleto} não possui departamento associado`
+              )
+              projetosComErro++
+              continue
+            }
+
             // Buscar template da disciplina
             const template = await ctx.db.query.projetoTemplateTable.findFirst({
               where: eq(projetoTemplateTable.disciplinaId, disciplina.id),

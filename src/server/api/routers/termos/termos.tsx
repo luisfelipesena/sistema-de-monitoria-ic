@@ -77,9 +77,9 @@ export const termosRouter = createTRPCRouter({
               name: vagaData.aluno.user.username,
               email: vagaData.aluno.user.email,
             },
-            matricula: vagaData.aluno.matricula,
+            matricula: vagaData.aluno.matricula ?? undefined,
             rg: vagaData.aluno.rg ?? undefined,
-            cpf: vagaData.aluno.cpf,
+            cpf: vagaData.aluno.cpf ?? undefined,
           },
           projeto: {
             disciplina: {

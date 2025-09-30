@@ -1,16 +1,16 @@
 import { z } from 'zod'
 import {
-  StatusInscricao,
-  statusInscricaoSchema,
-  TipoInscricao,
-  tipoInscricaoSchema,
-  SELECTED_BOLSISTA,
-  SELECTED_VOLUNTARIO,
   ACCEPTED_BOLSISTA,
   ACCEPTED_VOLUNTARIO,
   REJECTED_BY_PROFESSOR,
-  SUBMITTED,
   REJECTED_BY_STUDENT,
+  SELECTED_BOLSISTA,
+  SELECTED_VOLUNTARIO,
+  StatusInscricao,
+  statusInscricaoSchema,
+  SUBMITTED,
+  TipoInscricao,
+  tipoInscricaoSchema,
   WAITING_LIST,
 } from './enums'
 import { idSchema } from './schemas'
@@ -55,14 +55,14 @@ export interface SelecaoCandidato {
   alunoId: number
   tipoVagaPretendida: 'BOLSISTA' | 'VOLUNTARIO' | 'ANY' | null
   status:
-    | typeof SUBMITTED
-    | typeof SELECTED_BOLSISTA
-    | typeof SELECTED_VOLUNTARIO
-    | typeof ACCEPTED_BOLSISTA
-    | typeof ACCEPTED_VOLUNTARIO
-    | typeof REJECTED_BY_PROFESSOR
-    | typeof REJECTED_BY_STUDENT
-    | typeof WAITING_LIST
+  | typeof SUBMITTED
+  | typeof SELECTED_BOLSISTA
+  | typeof SELECTED_VOLUNTARIO
+  | typeof ACCEPTED_BOLSISTA
+  | typeof ACCEPTED_VOLUNTARIO
+  | typeof REJECTED_BY_PROFESSOR
+  | typeof REJECTED_BY_STUDENT
+  | typeof WAITING_LIST
   notaDisciplina: string | null
   notaSelecao: string | null
   coeficienteRendimento: string | null
@@ -75,20 +75,20 @@ export interface SelecaoCandidato {
     userId: number
     nomeCompleto: string
     nomeSocial: string | null
-    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO'
+    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO' | null
     especificacaoGenero: string | null
-    emailInstitucional: string
-    matricula: string
+    emailInstitucional: string | null
+    matricula: string | null
     rg: string | null
-    cpf: string
-    cr: number
+    cpf: string | null
+    cr: number | null
     telefone: string | null
     banco: string | null
     agencia: string | null
     conta: string | null
     digitoConta: string | null
     enderecoId: number | null
-    cursoId: number
+    cursoId: number | null
     historicoEscolarFileId: string | null
     comprovanteMatriculaFileId: string | null
     createdAt: Date
@@ -123,7 +123,7 @@ export interface AtaSelecaoData {
     id: number
     aluno: {
       nomeCompleto: string
-      matricula: string
+      matricula: string | null
       cr: number | null
     }
     tipoVagaPretendida: string | null
@@ -227,7 +227,7 @@ export const inscriptionDetailSchema = z.object({
     professorResponsavel: z.object({
       id: idSchema,
       nomeCompleto: z.string(),
-      emailInstitucional: z.string().email(),
+      emailInstitucional: z.string().email().nullable(),
     }),
     departamento: z.object({
       id: idSchema,
@@ -245,8 +245,8 @@ export const inscriptionDetailSchema = z.object({
   aluno: z.object({
     id: idSchema,
     nomeCompleto: z.string(),
-    matricula: z.string(),
-    cr: z.number(),
+    matricula: z.string().nullable(),
+    cr: z.number().nullable(),
     user: z.object({
       id: idSchema,
       email: z.string().email(),

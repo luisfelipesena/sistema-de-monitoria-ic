@@ -39,7 +39,7 @@ export interface ProfessorRelatorio {
   professor: {
     id: number
     nomeCompleto: string
-    emailInstitucional: string
+    emailInstitucional: string | null
   }
   departamento: {
     nome: string
@@ -55,9 +55,9 @@ export interface AlunoRelatorio {
   aluno: {
     id: number
     nomeCompleto: string
-    emailInstitucional: string
-    matricula: string
-    cr: number
+    emailInstitucional: string | null
+    matricula: string | null
+    cr: number | null
   }
   inscricoes: number
   statusInscricao: StatusInscricao
@@ -217,7 +217,7 @@ export const professorRelatorioSchema = z.object({
   professor: z.object({
     id: idSchema,
     nomeCompleto: nameSchema,
-    emailInstitucional: z.string().email(),
+    emailInstitucional: z.string().email().nullable(),
   }),
   departamento: z.object({
     nome: nameSchema,
@@ -233,9 +233,9 @@ export const alunoRelatorioSchema = z.object({
   aluno: z.object({
     id: idSchema,
     nomeCompleto: nameSchema,
-    emailInstitucional: z.string().email(),
-    matricula: z.string(),
-    cr: z.number(),
+    emailInstitucional: z.string().email().nullable(),
+    matricula: z.string().nullable(),
+    cr: z.number().nullable(),
   }),
   inscricoes: z.number(),
   statusInscricao: statusInscricaoSchema,
@@ -331,9 +331,9 @@ export const monitorConsolidadoSchema = z.object({
   id: idSchema,
   monitor: z.object({
     nome: nameSchema,
-    matricula: z.string(),
+    matricula: z.string().nullable(),
     email: z.string().email(),
-    cr: z.number(),
+    cr: z.number().nullable(),
     banco: z.string().nullable().optional(),
     agencia: z.string().nullable().optional(),
     conta: z.string().nullable().optional(),
@@ -342,7 +342,7 @@ export const monitorConsolidadoSchema = z.object({
   professor: z.object({
     nome: nameSchema,
     matriculaSiape: z.string().nullable().optional(),
-    email: z.string().email(),
+    email: z.string().email().nullable(),
     departamento: nameSchema,
   }),
   projeto: z.object({
@@ -372,11 +372,11 @@ export const monitoresFinalFiltersSchema = z.object({
 export const monitorFinalBolsistaSchema = z.object({
   id: idSchema,
   nomeCompleto: nameSchema,
-  matricula: z.string(),
-  emailInstitucional: z.string().email(),
-  cr: z.number(),
+  matricula: z.string().nullable(),
+  emailInstitucional: z.string().email().nullable(),
+  cr: z.number().nullable(),
   rg: z.string().optional(),
-  cpf: z.string(),
+  cpf: z.string().nullable(),
   banco: z.string().optional(),
   agencia: z.string().optional(),
   conta: z.string().optional(),

@@ -1,12 +1,5 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
-  SELECTED_BOLSISTA,
-  SELECTED_VOLUNTARIO,
-  ACCEPTED_BOLSISTA,
-  ACCEPTED_VOLUNTARIO,
-  REJECTED_BY_PROFESSOR,
-} from '@/types'
-import {
   alunoTable,
   departamentoTable,
   disciplinaTable,
@@ -19,12 +12,17 @@ import {
   userTable,
 } from '@/server/db/schema'
 import {
+  ACCEPTED_BOLSISTA,
+  ACCEPTED_VOLUNTARIO,
   acceptInscriptionSchema,
   candidateEvaluationSchema,
   idSchema,
   inscriptionDetailSchema,
   inscriptionFormSchema,
+  REJECTED_BY_PROFESSOR,
   rejectInscriptionSchema,
+  SELECTED_BOLSISTA,
+  SELECTED_VOLUNTARIO,
   tipoVagaSchema,
 } from '@/types'
 import { logger } from '@/utils/logger'
@@ -181,11 +179,10 @@ export const inscricaoRouter = createTRPCRouter({
               inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
                 ? 'APROVACAO'
                 : 'INSCRICAO',
-            descricao: `${
-              inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
+            descricao: `${inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
                 ? 'Aprovado em'
                 : 'Inscrito em'
-            } ${inscricao.projeto.titulo}`,
+              } ${inscricao.projeto.titulo}`,
             data: inscricao.updatedAt || inscricao.createdAt,
           }))
 
@@ -345,7 +342,7 @@ export const inscricaoRouter = createTRPCRouter({
             alunoId: aluno.id,
             tipoVagaPretendida: input.tipo,
             status: 'SUBMITTED',
-            coeficienteRendimento: aluno.cr.toString(),
+            coeficienteRendimento: aluno.cr?.toString() || null,
           })
           .returning()
 
@@ -713,7 +710,7 @@ export const inscricaoRouter = createTRPCRouter({
             projetoId: input.projetoId,
             periodoInscricaoId: periodoAtivo.id,
             tipoVagaPretendida: input.tipoVagaPretendida,
-            coeficienteRendimento: aluno.cr.toString(),
+            coeficienteRendimento: aluno.cr?.toString() || null,
             status: 'SUBMITTED',
           })
           .returning()
@@ -1441,15 +1438,15 @@ export const inscricaoRouter = createTRPCRouter({
       z.object({
         monitor: z.object({
           nome: z.string(),
-          matricula: z.string(),
+          matricula: z.string().nullable(),
           email: z.string(),
           telefone: z.string().optional(),
-          cr: z.number(),
+          cr: z.number().nullable(),
         }),
         professor: z.object({
           nome: z.string(),
           matriculaSiape: z.string().optional(),
-          email: z.string(),
+          email: z.string().nullable(),
           departamento: z.string(),
         }),
         projeto: z.object({

@@ -1405,7 +1405,7 @@ export const projetoRouter = createTRPCRouter({
             id: idSchema,
             aluno: z.object({
               nomeCompleto: nameSchema,
-              matricula: z.string(),
+              matricula: z.string().nullable(),
               cr: z.number().nullable(),
             }),
             tipoVagaPretendida: z.string().nullable(),

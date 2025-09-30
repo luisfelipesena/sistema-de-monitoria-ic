@@ -132,6 +132,14 @@ export async function processImportedFileDCC(importacaoId: number, ctx: TRPCCont
         const tipoProposicao = professores.length > 1 ? 'COLETIVA' : 'INDIVIDUAL'
         const professorResponsavel = professores[0]
 
+        if (!professorResponsavel.departamentoId) {
+          erros.push(
+            `Disciplina ${firstEntry.disciplinaCodigo}: Professor ${professorResponsavel.nomeCompleto} não possui departamento associado`
+          )
+          projetosComErro++
+          continue
+        }
+
         // Buscar template
         const template = await ctx.db.query.projetoTemplateTable.findFirst({
           where: eq(projetoTemplateTable.disciplinaId, disciplina.id),

@@ -141,13 +141,13 @@ export interface MonitoriaFormData {
     id: number
     nomeCompleto: string
     nomeSocial?: string
-    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO'
-    cpf: string
+    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO' | null
+    cpf: string | null
     matriculaSiape?: string
-    regime: '20H' | '40H' | 'DE'
+    regime: '20H' | '40H' | 'DE' | null
     telefone?: string
     telefoneInstitucional?: string
-    emailInstitucional: string
+    emailInstitucional: string | null
   }
   ano: number
   semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
@@ -375,7 +375,7 @@ export const projectDetailSchema = z.object({
     .object({
       id: z.number().int().positive(),
       nomeCompleto: z.string(),
-      emailInstitucional: z.string().email(),
+      emailInstitucional: z.string().email().nullable(),
     })
     .optional(),
   disciplinas: z

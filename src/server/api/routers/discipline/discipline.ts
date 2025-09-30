@@ -40,13 +40,13 @@ export const disciplineRouter = createTRPCRouter({
             id: z.number(),
             nomeCompleto: z.string(),
             nomeSocial: z.string().nullable(),
-            genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']),
-            cpf: z.string(),
+            genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']).nullable(),
+            cpf: z.string().nullable(),
             matriculaSiape: z.string().nullable(),
-            regime: z.enum(['20H', '40H', 'DE']),
+            regime: z.enum(['20H', '40H', 'DE']).nullable(),
             telefone: z.string().nullable(),
             telefoneInstitucional: z.string().nullable(),
-            emailInstitucional: z.string(),
+            emailInstitucional: z.string().nullable(),
           })
           .nullable(),
       })
@@ -428,6 +428,13 @@ export const disciplineRouter = createTRPCRouter({
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Perfil de professor não encontrado',
+          })
+        }
+
+        if (!professor.departamentoId) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Professor não possui departamento associado',
           })
         }
 
