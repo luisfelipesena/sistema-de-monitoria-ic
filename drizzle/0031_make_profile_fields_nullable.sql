@@ -1,4 +1,4 @@
-LTER TABLE "aluno" ALTER COLUMN "genero" DROP NOT NULL;--> statement-breakpoint
+ALTER TABLE "aluno" ALTER COLUMN "genero" DROP NOT NULL;--> statement-breakpoint
 ALTER TABLE "aluno" ALTER COLUMN "email_institucional" DROP NOT NULL;--> statement-breakpoint
 ALTER TABLE "aluno" ALTER COLUMN "matricula" DROP NOT NULL;--> statement-breakpoint
 ALTER TABLE "aluno" ALTER COLUMN "cpf" DROP NOT NULL;--> statement-breakpoint
