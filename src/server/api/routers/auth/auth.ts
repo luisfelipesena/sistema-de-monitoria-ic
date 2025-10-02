@@ -74,20 +74,18 @@ export const authRouter = createTRPCRouter({
         passwordResetExpiresAt: null,
       })
       .returning({ id: userTable.id, email: userTable.email })
-    
-    if (data.role === "student") {
+
+    if (data.role === 'student') {
       await db.insert(alunoTable).values({
-        userId: newUser.id,       
-        nomeCompleto: data.name,  
-        
-      } as typeof alunoTable.$inferInsert);
-    } else if (data.role === "professor") {
+        userId: newUser.id,
+        nomeCompleto: data.name,
+      } as typeof alunoTable.$inferInsert)
+    } else if (data.role === 'professor') {
       await db.insert(professorTable).values({
-        userId: newUser.id,       
-        nomeCompleto: data.name, 
+        userId: newUser.id,
+        nomeCompleto: data.name,
       } as typeof professorTable.$inferInsert)
     }
-
 
     await emailService.sendEmailVerification({
       to: newUser.email,

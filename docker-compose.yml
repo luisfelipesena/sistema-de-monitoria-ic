@@ -1,15 +1,42 @@
-version: "3.8"
+version: '3.9'
 
 services:
-  postgres:
-    image: postgres:16.3-alpine
+  db:
+    image: postgres:16
+    container_name: sistema-de-monitoria-ic-db
+    restart: unless-stopped
     environment:
-      - POSTGRES_DB=sistema-de-monitoria-ic
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    volumes:
-      - ./data/postgres:/var/lib/postgresql/data
-      - ./data/backup:/backup
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sistema_de_monitoria_ic
     ports:
-      - "5432:5432"
-    container_name: sistema-de-monitoria-ic_postgres
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./data/backup:/backup
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  db_test:
+    image: postgres:16
+    container_name: sistema-de-monitoria-ic-db-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sistema_de_monitoria_ic_test
+    ports:
+      - '5433:5432'
+    tmpfs:
+      - /var/lib/postgresql/data:rw
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:

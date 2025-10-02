@@ -268,8 +268,7 @@ export const professorTable = pgTable('professor', {
     .references(() => userTable.id, { onDelete: 'cascade' })
     .notNull()
     .unique(), // Link to auth user
-  departamentoId: integer('departamento_id')
-    .references(() => departamentoTable.id),
+  departamentoId: integer('departamento_id').references(() => departamentoTable.id),
   nomeCompleto: varchar('nome_completo').notNull(),
   nomeSocial: varchar('nome_social'),
   matriculaSiape: varchar('matricula_siape'),
@@ -359,8 +358,7 @@ export const alunoTable = pgTable('aluno', {
   conta: varchar('conta', { length: 30 }),
   digitoConta: varchar('digito_conta', { length: 2 }),
   enderecoId: integer('endereco_id').references(() => enderecoTable.id), // Nullable
-  cursoId: integer('curso_id')
-    .references(() => cursoTable.id),
+  cursoId: integer('curso_id').references(() => cursoTable.id),
   // Document file IDs for student documents
   historicoEscolarFileId: text('historico_escolar_file_id'),
   comprovanteMatriculaFileId: text('comprovante_matricula_file_id'),

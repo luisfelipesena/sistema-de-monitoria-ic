@@ -91,7 +91,6 @@ export function getUserInitials(username: string): string {
 }
 
 export const emailToUsername = (email: string): string => {
-  const at = email.indexOf("@");
-  return email.slice(0, at);
-};
-
+  const at = email.indexOf('@')
+  return email.slice(0, at)
+}

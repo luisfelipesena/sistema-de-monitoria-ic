@@ -55,14 +55,14 @@ export interface SelecaoCandidato {
   alunoId: number
   tipoVagaPretendida: 'BOLSISTA' | 'VOLUNTARIO' | 'ANY' | null
   status:
-  | typeof SUBMITTED
-  | typeof SELECTED_BOLSISTA
-  | typeof SELECTED_VOLUNTARIO
-  | typeof ACCEPTED_BOLSISTA
-  | typeof ACCEPTED_VOLUNTARIO
-  | typeof REJECTED_BY_PROFESSOR
-  | typeof REJECTED_BY_STUDENT
-  | typeof WAITING_LIST
+    | typeof SUBMITTED
+    | typeof SELECTED_BOLSISTA
+    | typeof SELECTED_VOLUNTARIO
+    | typeof ACCEPTED_BOLSISTA
+    | typeof ACCEPTED_VOLUNTARIO
+    | typeof REJECTED_BY_PROFESSOR
+    | typeof REJECTED_BY_STUDENT
+    | typeof WAITING_LIST
   notaDisciplina: string | null
   notaSelecao: string | null
   coeficienteRendimento: string | null
