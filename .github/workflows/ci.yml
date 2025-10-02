@@ -12,6 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     name: Lint, TypeCheck, Unit Tests & Build
 
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+      NEXTAUTH_SECRET: build-test-secret-32-character-key-here-change-this
+      NEXTAUTH_URL: http://localhost:3000
+      CLIENT_URL: http://localhost:3000
+      SERVER_URL: http://localhost:3000/api
+      NODE_ENV: test
+      SKIP_ENV_VALIDATION: "true"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
