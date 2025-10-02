@@ -108,7 +108,7 @@ jobs:
 
       - name: Setup database
         run: |
-          npm run drizzle:push
+          npx drizzle-kit push --force
           npm run seed:test-user || npm run seed:test-user:js
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sistema_de_monitoria_ic_test
