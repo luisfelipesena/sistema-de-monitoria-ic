@@ -14,11 +14,18 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-      NEXTAUTH_SECRET: build-test-secret-32-character-key-here-change-this
-      NEXTAUTH_URL: http://localhost:3000
-      CLIENT_URL: http://localhost:3000
+      CAS_SERVER_URL_PREFIX: https://autenticacao.ufba.br/ca
       SERVER_URL: http://localhost:3000/api
+      CLIENT_URL: http://localhost:3000
       NODE_ENV: test
+      PORT: "3000"
+      MINIO_ENDPOINT: localhost
+      MINIO_PORT: "9000"
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET_NAME: sistema-de-monitoria-test
+      JWT_SECRET: build-test-jwt-secret-32-char-minimum-length-required-here
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
       SKIP_ENV_VALIDATION: "true"
 
     steps:
