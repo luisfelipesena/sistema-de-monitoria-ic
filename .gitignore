@@ -1,10 +1,11 @@
 node_modules
-package-lock.json
 yarn.lock
 
 .DS_Store
 .cache
 .env
+.env.local
+.env.e2e
 .vercel
 .output
 .vinxi
