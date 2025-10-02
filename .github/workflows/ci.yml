@@ -76,11 +76,18 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sistema_de_monitoria_ic_test
-      NEXTAUTH_SECRET: e2e-test-secret-32-character-key-here-change-this
-      NEXTAUTH_URL: http://localhost:3000
-      CLIENT_URL: http://localhost:3000
+      CAS_SERVER_URL_PREFIX: https://autenticacao.ufba.br/ca
       SERVER_URL: http://localhost:3000/api
+      CLIENT_URL: http://localhost:3000
       NODE_ENV: test
+      PORT: "3000"
+      MINIO_ENDPOINT: localhost
+      MINIO_PORT: "9000"
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET_NAME: sistema-de-monitoria-e2e-test
+      JWT_SECRET: e2e-test-jwt-secret-32-char-minimum-length-required-here
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
       SKIP_ENV_VALIDATION: "true"
 
     steps:
@@ -118,13 +125,19 @@ jobs:
           npm run start &
           echo $! > app.pid
         env:
-          PORT: 3000
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/sistema_de_monitoria_ic_test
-          NEXTAUTH_SECRET: e2e-test-secret-32-character-key-here-change-this
-          NEXTAUTH_URL: http://localhost:3000
-          CLIENT_URL: http://localhost:3000
+          CAS_SERVER_URL_PREFIX: https://autenticacao.ufba.br/ca
           SERVER_URL: http://localhost:3000/api
+          CLIENT_URL: http://localhost:3000
           NODE_ENV: production
+          PORT: "3000"
+          MINIO_ENDPOINT: localhost
+          MINIO_PORT: "9000"
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin
+          MINIO_BUCKET_NAME: sistema-de-monitoria-e2e-test
+          JWT_SECRET: e2e-test-jwt-secret-32-char-minimum-length-required-here
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
           SKIP_ENV_VALIDATION: "true"
 
       - name: Wait for application to be ready
