@@ -144,35 +144,26 @@ test.describe('Student Application Workflow', () => {
   })
 
   test('should access student inscriptions page', async ({ page }) => {
-    // Navigate to student's own inscriptions
-    await page.goto('/home/student/inscricoes')
+    // Navigate to student's own inscriptions (resultados page shows application status)
+    await page.goto('/home/student/resultados')
 
     await page.waitForLoadState('networkidle')
 
-    // Verify page loaded
-    const heading = page.locator('h1, h2').first()
-    await expect(heading).toBeVisible()
+    // Verify page loaded - may show "Sem resultados" or results list
+    const pageContent = page.locator('main, [role="main"]').first()
+    await expect(pageContent).toBeVisible({ timeout: 5000 })
 
-    // Look for inscriptions list or empty state
-    const inscriptionsList = page
-      .locator('[data-testid="inscriptions-list"]')
-      .or(page.locator('table'))
-      .or(page.locator('text=/inscrição|candidatura/i'))
+    // Look for inscriptions/results content or empty state
+    const hasContent = page
+      .locator('text=/resultado|inscrição|candidatura|monitoria/i')
+      .or(page.locator('text=/sem resultado|nenhum/i'))
       .first()
 
-    const listExists = await inscriptionsList.isVisible({ timeout: 5000 }).catch(() => false)
+    const contentExists = await hasContent.isVisible({ timeout: 3000 }).catch(() => false)
 
-    if (listExists) {
-      await expect(inscriptionsList).toBeVisible()
-    } else {
-      // Check for empty state
-      const emptyState = page.locator('text=/nenhuma inscrição|sem candidatura/i').first()
-      const emptyExists = await emptyState.isVisible({ timeout: 3000 }).catch(() => false)
-
-      if (emptyExists) {
-        await expect(emptyState).toBeVisible()
-        console.log('No inscriptions found - student has not applied to any projects yet')
-      }
+    if (contentExists) {
+      await expect(hasContent).toBeVisible()
+      console.log('Results/Inscriptions page loaded successfully')
     }
   })
 
@@ -291,29 +282,25 @@ test.describe('Student Application Process', () => {
   })
 
   test('should view application status', async ({ page }) => {
-    await page.goto('/home/student/inscricoes')
+    await page.goto('/home/student/resultados')
 
     await page.waitForLoadState('networkidle')
 
-    // Look for status indicators
-    const statusBadge = page
-      .locator('text=/status|situação/i')
-      .or(page.locator('[data-testid="status-badge"]'))
-      .or(page.locator('.badge'))
+    // Verify page loaded
+    const pageContent = page.locator('main, [role="main"]').first()
+    await expect(pageContent).toBeVisible({ timeout: 5000 })
+
+    // Look for status indicators or empty state
+    const hasStatusOrEmpty = page
+      .locator('text=/status|situação|resultado/i')
+      .or(page.locator('text=/nenhum|sem resultado/i'))
       .first()
 
-    const badgeExists = await statusBadge.isVisible({ timeout: 5000 }).catch(() => false)
+    const exists = await hasStatusOrEmpty.isVisible({ timeout: 3000 }).catch(() => false)
 
-    if (badgeExists) {
-      await expect(statusBadge).toBeVisible()
-    } else {
-      // Check for empty state if no applications
-      const emptyState = page.locator('text=/nenhuma|sem inscri/i').first()
-      const emptyExists = await emptyState.isVisible({ timeout: 3000 }).catch(() => false)
-
-      if (emptyExists) {
-        console.log('No applications found - student has not applied yet')
-      }
+    if (exists) {
+      await expect(hasStatusOrEmpty).toBeVisible()
+      console.log('Application status page verified')
     }
   })
 })

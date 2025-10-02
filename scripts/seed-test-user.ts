@@ -115,7 +115,7 @@ async function createTestUser() {
         })
         .returning()
 
-      // Create professor profile
+      // Create professor profile with signature (to bypass onboarding)
       await db.insert(professorTable).values({
         userId: newProfessorUser.id,
         nomeCompleto: 'João Silva Professor',
@@ -123,6 +123,10 @@ async function createTestUser() {
         matriculaSiape: '1234567',
         regime: 'DE',
         emailInstitucional: 'professor@ufba.br',
+        cpf: '12345678901',
+        genero: 'MASCULINO',
+        assinaturaDefault:
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
       })
 
       console.log('✅ Professor user created successfully!')
@@ -151,7 +155,7 @@ async function createTestUser() {
         })
         .returning()
 
-      // Create student profile
+      // Create student profile with required documents (to bypass onboarding)
       await db.insert(alunoTable).values({
         userId: newStudentUser.id,
         nomeCompleto: 'Maria Santos Estudante',
@@ -159,6 +163,9 @@ async function createTestUser() {
         cr: 8.5,
         cursoId: curso[0].id,
         emailInstitucional: 'student@ufba.br',
+        cpf: '98765432109',
+        genero: 'FEMININO',
+        comprovanteMatriculaFileId: 'test-comprovante-file-id',
       })
 
       console.log('✅ Student user created successfully!')
