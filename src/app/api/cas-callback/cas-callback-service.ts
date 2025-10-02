@@ -62,12 +62,15 @@ export class CasCallbackService {
         log.info(`CAS validation response: status=${response.status}, length=${response.data?.length || 0}`)
 
         if (response.status !== 200) {
-          log.error({
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers,
-            data: response.data,
-          }, `CAS validation request failed with status ${response.status}`)
+          log.error(
+            {
+              status: response.status,
+              statusText: response.statusText,
+              headers: response.headers,
+              data: response.data,
+            },
+            `CAS validation request failed with status ${response.status}`
+          )
           return this.redirectToError('CAS_HTTP_ERROR', `Status ${response.status}`)
         }
 
@@ -129,10 +132,13 @@ export class CasCallbackService {
         throw new Error('Invalid CAS response format: missing cas:serviceResponse')
       }
 
-      log.info({
-        hasAuthSuccess: !!serviceResponse['cas:authenticationSuccess'],
-        hasAuthFailure: !!serviceResponse['cas:authenticationFailure'],
-      }, 'CAS response parsed successfully')
+      log.info(
+        {
+          hasAuthSuccess: !!serviceResponse['cas:authenticationSuccess'],
+          hasAuthFailure: !!serviceResponse['cas:authenticationFailure'],
+        },
+        'CAS response parsed successfully'
+      )
 
       return serviceResponse
     } catch (error) {

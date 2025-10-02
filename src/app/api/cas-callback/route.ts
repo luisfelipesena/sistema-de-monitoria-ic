@@ -12,12 +12,15 @@ export const GET = async (req: NextRequest) => {
   const { searchParams } = url
   const ticket = searchParams.get('ticket')
 
-  log.info({
-    url: req.url,
-    hasTicket: !!ticket,
-    userAgent: req.headers.get('user-agent'),
-    referer: req.headers.get('referer'),
-  }, 'CAS callback initiated')
+  log.info(
+    {
+      url: req.url,
+      hasTicket: !!ticket,
+      userAgent: req.headers.get('user-agent'),
+      referer: req.headers.get('referer'),
+    },
+    'CAS callback initiated'
+  )
 
   if (!ticket) {
     log.error('CAS Callback: No ticket provided')
@@ -37,10 +40,13 @@ export const GET = async (req: NextRequest) => {
       const username = authSuccess['cas:user']
       const attributes = authSuccess['cas:attributes'] || {}
 
-      log.info({
-        username,
-        hasAttributes: Object.keys(attributes).length > 0,
-      }, 'CAS authentication successful')
+      log.info(
+        {
+          username,
+          hasAttributes: Object.keys(attributes).length > 0,
+        },
+        'CAS authentication successful'
+      )
 
       return await casCallbackService.handleAuthSuccess(username, attributes)
     }
