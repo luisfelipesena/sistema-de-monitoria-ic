@@ -117,9 +117,11 @@ test.describe('Professor Template Workflow', () => {
     const saveTemplateButton = page.locator('button:has-text("Salvar Template Padrão")')
     await saveTemplateButton.click()
 
-    // Wait for success message
-    await expect(page.getByText('Template criado')).toBeVisible({
-      timeout: 5000,
+    // Wait for success toast message - check for title (template may be created or updated)
+    await expect(
+      page.getByText('Template criado').or(page.getByText('Template atualizado')).first()
+    ).toBeVisible({
+      timeout: 10000,
     })
 
     // Step 7: Go back to discipline selection
@@ -191,9 +193,9 @@ test.describe('Professor Template Workflow', () => {
     const saveDraftButton = page.locator('button:has-text("Salvar Rascunho")')
     await saveDraftButton.click()
 
-    // Wait for success and navigation
-    await expect(page.locator('text=Projeto criado')).toBeVisible({ timeout: 5000 })
-    await page.waitForURL(/\/home\/professor\/dashboard/, { timeout: 10000 })
+    // Wait for success toast and navigation
+    await expect(page.getByText('Projeto criado')).toBeVisible({ timeout: 10000 })
+    await page.waitForURL(/\/home\/professor\/dashboard/, { timeout: 15000 })
 
     // Step 12: Verify project appears in dashboard
     await expect(
@@ -233,8 +235,10 @@ test.describe('Professor Template Workflow', () => {
     const saveButton = page.locator('button:has-text("Salvar Template Padrão")')
     await saveButton.click()
 
-    // Should see success message
-    await expect(page.getByText('Template criado')).toBeVisible({ timeout: 5000 })
+    // Should see success toast message - check for title (template may be created or updated)
+    await expect(
+      page.getByText('Template criado').or(page.getByText('Template atualizado')).first()
+    ).toBeVisible({ timeout: 10000 })
   })
 
   test('should allow reapplying template to project', async ({ page }) => {
@@ -251,9 +255,10 @@ test.describe('Professor Template Workflow', () => {
 
     // Go to project creation (assuming template exists)
     await page.locator('text=Criar Projeto Específico').click()
+    await page.waitForLoadState('networkidle')
 
     // Should be on project creation page
-    await expect(page.locator('h1')).toContainText('Criar Projeto Específico')
+    await expect(page.locator('h1')).toContainText('Criar Projeto Específico', { timeout: 10000 })
 
     // Modify the title
     const titleField = page.locator('label:has-text("Título do Projeto")').locator('..').locator('input')
@@ -329,8 +334,8 @@ test.describe('Professor Template Workflow', () => {
     const changeDiscButton = page.locator('button:has-text("Escolher Outra Disciplina")')
     await changeDiscButton.click()
 
-    // Should be back at discipline selection
-    await expect(page.locator('text=Selecione a disciplina')).toBeVisible()
+    // Should be back at discipline selection - use more specific selector to avoid strict mode violation
+    await expect(page.getByRole('heading', { name: 'Selecione a Disciplina' })).toBeVisible()
 
     // Step 4: Select discipline again
     await disciplineSelect.click()

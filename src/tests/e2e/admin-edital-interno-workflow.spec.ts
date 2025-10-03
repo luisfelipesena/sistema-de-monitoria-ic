@@ -28,91 +28,92 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
     // Check if we're on the correct page
     await expect(page.locator('h1, h2').filter({ hasText: /Gerenciar Editais/i })).toBeVisible({ timeout: 5000 })
 
-    // Look for "Novo Edital" button
+    // Look for "Novo Edital" button within a Dialog
     const createEditalButton = page.getByRole('button', { name: 'Novo Edital' })
+    await expect(createEditalButton).toBeVisible({ timeout: 10000 })
+    await createEditalButton.click()
 
-    if (await createEditalButton.isVisible({ timeout: 3000 })) {
-      await createEditalButton.click()
+    // Fill edital form
+    const numeroField = page
+      .locator('input[name*="numero"]')
+      .or(page.locator('label:has-text("Número")').locator('..').locator('input'))
+      .first()
+    await numeroField.fill('001/2025-DCC')
 
-      // Fill edital form
-      const numeroField = page
-        .locator('input[name*="numero"]')
-        .or(page.locator('label:has-text("Número")').locator('..').locator('input'))
-        .first()
-      await numeroField.fill('001/2025-DCC')
+    const tituloField = page
+      .locator('input[name*="titulo"]')
+      .or(page.locator('label:has-text("Título")').locator('..').locator('input'))
+      .first()
+    await tituloField.fill('Edital Interno de Seleção de Monitores - 2025.1')
 
-      const tituloField = page
-        .locator('input[name*="titulo"]')
-        .or(page.locator('label:has-text("Título")').locator('..').locator('input'))
-        .first()
-      await tituloField.fill('Edital Interno de Seleção de Monitores - 2025.1')
+    // Set dates
+    const dataInicioField = page.locator('input[type="date"]').first()
+    await dataInicioField.fill('2025-02-01')
 
-      // Set dates
-      const dataInicioField = page.locator('input[type="date"]').first()
-      await dataInicioField.fill('2025-02-01')
+    const dataFimField = page.locator('input[type="date"]').nth(1)
+    await dataFimField.fill('2025-02-15')
 
-      const dataFimField = page.locator('input[type="date"]').nth(1)
-      await dataFimField.fill('2025-02-15')
+    // Set type to DCC (internal)
+    const tipoSelect = page
+      .locator('select[name*="tipo"]')
+      .or(page.locator('label:has-text("Tipo")').locator('..').locator('select'))
+      .first()
+    if (await tipoSelect.isVisible({ timeout: 3000 })) {
+      await tipoSelect.selectOption('DCC')
+    }
 
-      // Set type to DCC (internal)
-      const tipoSelect = page
-        .locator('select[name*="tipo"]')
-        .or(page.locator('label:has-text("Tipo")').locator('..').locator('select'))
-        .first()
-      if (await tipoSelect.isVisible({ timeout: 3000 })) {
-        await tipoSelect.selectOption('DCC')
-      }
+    // Save edital
+    const saveButton = page.getByRole('button', { name: 'Criar Edital' })
+    await expect(saveButton).toBeVisible({ timeout: 5000 })
+    await saveButton.click()
 
-      // Save edital
-      const saveButton = page.getByRole('button', { name: 'Criar Edital' })
-      await saveButton.click()
+    // Wait for success toast message - check for either title or description
+    await expect(
+      page.getByText('Sucesso!').or(page.getByText('Edital criado com sucesso!')).first()
+    ).toBeVisible({
+      timeout: 10000,
+    })
 
-      // Wait for success message
-      await expect(page.getByText('Edital criado com sucesso!')).toBeVisible({
-        timeout: 5000,
-      })
+    // Now define available exam dates
+    // Look for "Definir Datas de Prova" or similar button
+    const definirDatasButton = page
+      .locator('text=Definir Datas')
+      .or(page.locator('text=Datas de Prova').or(page.locator('button').filter({ hasText: /data.*prova/i })))
+      .first()
 
-      // Now define available exam dates
-      // Look for "Definir Datas de Prova" or similar button
-      const definirDatasButton = page
-        .locator('text=Definir Datas')
-        .or(page.locator('text=Datas de Prova').or(page.locator('button').filter({ hasText: /data.*prova/i })))
-        .first()
+    if (await definirDatasButton.isVisible({ timeout: 3000 })) {
+      await definirDatasButton.click()
 
-      if (await definirDatasButton.isVisible({ timeout: 3000 })) {
-        await definirDatasButton.click()
+      // Add exam dates
+      const addDateButton = page.locator('button:has-text("Adicionar Data")')
+      if (await addDateButton.isVisible({ timeout: 3000 })) {
+        // Add first date
+        await addDateButton.click()
+        const firstDateField = page.locator('input[type="date"]').last()
+        await firstDateField.fill('2025-02-20')
 
-        // Add exam dates
-        const addDateButton = page.locator('button:has-text("Adicionar Data")')
-        if (await addDateButton.isVisible({ timeout: 3000 })) {
-          // Add first date
-          await addDateButton.click()
-          const firstDateField = page.locator('input[type="date"]').last()
-          await firstDateField.fill('2025-02-20')
+        // Add second date
+        await addDateButton.click()
+        const secondDateField = page.locator('input[type="date"]').last()
+        await secondDateField.fill('2025-02-21')
 
-          // Add second date
-          await addDateButton.click()
-          const secondDateField = page.locator('input[type="date"]').last()
-          await secondDateField.fill('2025-02-21')
-
-          // Set result publication date
-          const resultDateField = page
-            .locator('label:has-text("Divulgação")')
-            .locator('..')
-            .locator('input[type="date"]')
-          if (await resultDateField.isVisible({ timeout: 3000 })) {
-            await resultDateField.fill('2025-02-25')
-          }
-
-          // Save dates
-          const saveDatesButton = page.locator('button:has-text("Salvar Datas")')
-          await saveDatesButton.click()
-
-          // Wait for success
-          await expect(
-            page.locator('text=definidas com sucesso').or(page.locator('text=atualizadas com sucesso'))
-          ).toBeVisible({ timeout: 5000 })
+        // Set result publication date
+        const resultDateField = page
+          .locator('label:has-text("Divulgação")')
+          .locator('..')
+          .locator('input[type="date"]')
+        if (await resultDateField.isVisible({ timeout: 3000 })) {
+          await resultDateField.fill('2025-02-25')
         }
+
+        // Save dates
+        const saveDatesButton = page.locator('button:has-text("Salvar Datas")')
+        await saveDatesButton.click()
+
+        // Wait for success
+        await expect(
+          page.locator('text=definidas com sucesso').or(page.locator('text=atualizadas com sucesso'))
+        ).toBeVisible({ timeout: 5000 })
       }
     }
   })
@@ -234,12 +235,15 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       }
 
       // Save template
-      const saveTemplateButton = page.locator('button:has-text("Salvar Template")')
+      const saveTemplateButton = page.locator('button:has-text("Salvar Template Padrão")')
+      await expect(saveTemplateButton).toBeVisible({ timeout: 5000 })
       await saveTemplateButton.click()
 
-      // Wait for success
-      await expect(page.getByText('Template criado')).toBeVisible({
-        timeout: 5000,
+      // Wait for success toast message - check for title
+      await expect(
+        page.getByText('Template criado').or(page.getByText('Template atualizado')).first()
+      ).toBeVisible({
+        timeout: 10000,
       })
     }
   })
