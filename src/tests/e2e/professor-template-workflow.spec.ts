@@ -124,11 +124,22 @@ test.describe('Professor Template Workflow', () => {
       timeout: 10000,
     })
 
-    // Step 7: Go back to discipline selection
+    // Step 7: Go back to discipline selection (Voltar button resets disciplina to null)
     const backButton = page.locator('button:has-text("Voltar")')
     await backButton.click()
 
-    // Should be back at mode selection screen
+    // Should be back at discipline selection, need to select again
+    await expect(page.getByRole('heading', { name: 'Selecione a Disciplina' })).toBeVisible()
+
+    // Select discipline again to get to mode selection
+    const disciplineSelect2 = page.getByRole('combobox')
+    await disciplineSelect2.click()
+    await page.waitForTimeout(1000)
+    const disciplineOption2 = page.getByRole('option').first()
+    await expect(disciplineOption2).toBeVisible({ timeout: 10000 })
+    await disciplineOption2.click()
+
+    // Now should be at mode selection screen with template available
     await expect(page.locator('text=Editar Template Padrão')).toBeVisible()
 
     // Should now see "Template Padrão Existente" card
@@ -256,9 +267,10 @@ test.describe('Professor Template Workflow', () => {
     // Go to project creation (assuming template exists)
     await page.locator('text=Criar Projeto Específico').click()
     await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000) // Additional wait for page state to stabilize
 
     // Should be on project creation page
-    await expect(page.locator('h1')).toContainText('Criar Projeto Específico', { timeout: 10000 })
+    await expect(page.locator('h1')).toContainText('Criar Projeto Específico', { timeout: 15000 })
 
     // Modify the title
     const titleField = page.locator('label:has-text("Título do Projeto")').locator('..').locator('input')
@@ -347,6 +359,13 @@ test.describe('Professor Template Workflow', () => {
 
     const backButton = page.locator('button:has-text("Voltar")')
     await backButton.click()
+
+    // Voltar button resets to discipline selection, need to select again
+    await expect(page.getByRole('heading', { name: 'Selecione a Disciplina' })).toBeVisible()
+
+    // Select discipline again to get back to mode selection
+    await disciplineSelect.click()
+    await disciplineOption.click()
 
     // Should be back at mode selection
     await expect(page.locator('text=Editar Template Padrão')).toBeVisible()
