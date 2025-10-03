@@ -483,7 +483,16 @@ export const editalRouter = createTRPCRouter({
     .input(updateEditalSchema)
     .output(editalSchema)
     .mutation(async ({ input, ctx }) => {
-      const { id, ano, semestre, dataInicio, dataFim, datasProvasDisponiveis, dataDivulgacaoResultado, ...editalUpdateData } = input
+      const {
+        id,
+        ano,
+        semestre,
+        dataInicio,
+        dataFim,
+        datasProvasDisponiveis,
+        dataDivulgacaoResultado,
+        ...editalUpdateData
+      } = input
 
       const edital = await ctx.db.query.editalTable.findFirst({
         where: eq(editalTable.id, id),

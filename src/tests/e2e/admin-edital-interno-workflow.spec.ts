@@ -35,14 +35,16 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await createEditalButton.click()
 
       // Fill edital form
-      const numeroField = page.locator('input[name*="numero"]').or(
-        page.locator('label:has-text("Número")').locator('..').locator('input')
-      ).first()
+      const numeroField = page
+        .locator('input[name*="numero"]')
+        .or(page.locator('label:has-text("Número")').locator('..').locator('input'))
+        .first()
       await numeroField.fill('001/2025-DCC')
 
-      const tituloField = page.locator('input[name*="titulo"]').or(
-        page.locator('label:has-text("Título")').locator('..').locator('input')
-      ).first()
+      const tituloField = page
+        .locator('input[name*="titulo"]')
+        .or(page.locator('label:has-text("Título")').locator('..').locator('input'))
+        .first()
       await tituloField.fill('Edital Interno de Seleção de Monitores - 2025.1')
 
       // Set dates
@@ -53,31 +55,29 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await dataFimField.fill('2025-02-15')
 
       // Set type to DCC (internal)
-      const tipoSelect = page.locator('select[name*="tipo"]').or(
-        page.locator('label:has-text("Tipo")').locator('..').locator('select')
-      ).first()
+      const tipoSelect = page
+        .locator('select[name*="tipo"]')
+        .or(page.locator('label:has-text("Tipo")').locator('..').locator('select'))
+        .first()
       if (await tipoSelect.isVisible({ timeout: 3000 })) {
         await tipoSelect.selectOption('DCC')
       }
 
       // Save edital
-      const saveButton = page.locator('button:has-text("Salvar")').or(
-        page.locator('button:has-text("Criar")')
-      ).first()
+      const saveButton = page.locator('button:has-text("Salvar")').or(page.locator('button:has-text("Criar")')).first()
       await saveButton.click()
 
       // Wait for success message
-      await expect(page.locator('text=criado com sucesso').or(
-        page.locator('text=salvo com sucesso')
-      )).toBeVisible({ timeout: 5000 })
+      await expect(page.locator('text=criado com sucesso').or(page.locator('text=salvo com sucesso'))).toBeVisible({
+        timeout: 5000,
+      })
 
       // Now define available exam dates
       // Look for "Definir Datas de Prova" or similar button
-      const definirDatasButton = page.locator('text=Definir Datas').or(
-        page.locator('text=Datas de Prova').or(
-          page.locator('button').filter({ hasText: /data.*prova/i })
-        )
-      ).first()
+      const definirDatasButton = page
+        .locator('text=Definir Datas')
+        .or(page.locator('text=Datas de Prova').or(page.locator('button').filter({ hasText: /data.*prova/i })))
+        .first()
 
       if (await definirDatasButton.isVisible({ timeout: 3000 })) {
         await definirDatasButton.click()
@@ -96,7 +96,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
           await secondDateField.fill('2025-02-21')
 
           // Set result publication date
-          const resultDateField = page.locator('label:has-text("Divulgação")').locator('..').locator('input[type="date"]')
+          const resultDateField = page
+            .locator('label:has-text("Divulgação")')
+            .locator('..')
+            .locator('input[type="date"]')
           if (await resultDateField.isVisible({ timeout: 3000 })) {
             await resultDateField.fill('2025-02-25')
           }
@@ -106,9 +109,9 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
           await saveDatesButton.click()
 
           // Wait for success
-          await expect(page.locator('text=definidas com sucesso').or(
-            page.locator('text=atualizadas com sucesso')
-          )).toBeVisible({ timeout: 5000 })
+          await expect(
+            page.locator('text=definidas com sucesso').or(page.locator('text=atualizadas com sucesso'))
+          ).toBeVisible({ timeout: 5000 })
         }
       }
     }
@@ -145,9 +148,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await page.locator('text=Criar Projeto Específico').click()
 
       // Look for internal edital fields
-      const examDateSelect = page.locator('select[name*="data"]').or(
-        page.locator('label:has-text("Data da Seleção")').locator('..').locator('select')
-      ).first()
+      const examDateSelect = page
+        .locator('select[name*="data"]')
+        .or(page.locator('label:has-text("Data da Seleção")').locator('..').locator('select'))
+        .first()
 
       if (await examDateSelect.isVisible({ timeout: 3000 })) {
         // Should have available dates from admin
@@ -156,9 +160,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       }
 
       // Look for time selection
-      const timeField = page.locator('input[name*="horario"]').or(
-        page.locator('label:has-text("Horário")').locator('..').locator('input')
-      ).first()
+      const timeField = page
+        .locator('input[name*="horario"]')
+        .or(page.locator('label:has-text("Horário")').locator('..').locator('input'))
+        .first()
 
       if (await timeField.isVisible({ timeout: 3000 })) {
         await timeField.fill('14:00-16:00')
@@ -201,21 +206,27 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await titleField.fill('Template com Pontos de Prova')
 
       // Look for exam points field
-      const examPointsField = page.locator('textarea[name*="pontos"]').or(
-        page.locator('label:has-text("Pontos da Prova")').locator('..').locator('textarea')
-      ).first()
+      const examPointsField = page
+        .locator('textarea[name*="pontos"]')
+        .or(page.locator('label:has-text("Pontos da Prova")').locator('..').locator('textarea'))
+        .first()
 
       if (await examPointsField.isVisible({ timeout: 3000 })) {
-        await examPointsField.fill('1. Conceitos fundamentais de estruturas de dados\n2. Implementação de listas e árvores\n3. Algoritmos de ordenação e busca')
+        await examPointsField.fill(
+          '1. Conceitos fundamentais de estruturas de dados\n2. Implementação de listas e árvores\n3. Algoritmos de ordenação e busca'
+        )
       }
 
       // Look for bibliography field
-      const bibliographyField = page.locator('textarea[name*="bibliografia"]').or(
-        page.locator('label:has-text("Bibliografia")').locator('..').locator('textarea')
-      ).first()
+      const bibliographyField = page
+        .locator('textarea[name*="bibliografia"]')
+        .or(page.locator('label:has-text("Bibliografia")').locator('..').locator('textarea'))
+        .first()
 
       if (await bibliographyField.isVisible({ timeout: 3000 })) {
-        await bibliographyField.fill('1. Cormen, T. H. - Introduction to Algorithms\n2. Sedgewick, R. - Algorithms in C++\n3. Tanenbaum, A. S. - Data Structures Using C and C++')
+        await bibliographyField.fill(
+          '1. Cormen, T. H. - Introduction to Algorithms\n2. Sedgewick, R. - Algorithms in C++\n3. Tanenbaum, A. S. - Data Structures Using C and C++'
+        )
       }
 
       // Save template
@@ -223,9 +234,9 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await saveTemplateButton.click()
 
       // Wait for success
-      await expect(page.locator('text=Template criado').or(
-        page.locator('text=Template atualizado')
-      )).toBeVisible({ timeout: 5000 })
+      await expect(page.locator('text=Template criado').or(page.locator('text=Template atualizado'))).toBeVisible({
+        timeout: 5000,
+      })
     }
   })
 
@@ -260,9 +271,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await page.locator('text=Criar Projeto Específico').click()
 
       // Check if exam-related fields are pre-filled from template but editable
-      const examPointsField = page.locator('textarea[name*="pontos"]').or(
-        page.locator('label:has-text("Pontos")').locator('..').locator('textarea')
-      ).first()
+      const examPointsField = page
+        .locator('textarea[name*="pontos"]')
+        .or(page.locator('label:has-text("Pontos")').locator('..').locator('textarea'))
+        .first()
 
       if (await examPointsField.isVisible({ timeout: 3000 })) {
         // Should have default content from template
@@ -278,9 +290,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
         expect(newContent).toContain('customizados')
       }
 
-      const bibliographyField = page.locator('textarea[name*="bibliografia"]').or(
-        page.locator('label:has-text("Bibliografia")').locator('..').locator('textarea')
-      ).first()
+      const bibliographyField = page
+        .locator('textarea[name*="bibliografia"]')
+        .or(page.locator('label:has-text("Bibliografia")').locator('..').locator('textarea'))
+        .first()
 
       if (await bibliographyField.isVisible({ timeout: 3000 })) {
         // Should be editable

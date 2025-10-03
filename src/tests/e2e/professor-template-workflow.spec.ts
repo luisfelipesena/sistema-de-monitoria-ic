@@ -20,7 +20,9 @@ test.describe('Professor Template Workflow', () => {
     await loginAsProfessor(page)
   })
 
-  test('should complete full template workflow - select discipline, create template, and use it for project', async ({ page }) => {
+  test('should complete full template workflow - select discipline, create template, and use it for project', async ({
+    page,
+  }) => {
     // Navigate to new project page
     await page.goto('/home/professor/projetos/novo')
     await page.waitForLoadState('networkidle')
@@ -38,7 +40,7 @@ test.describe('Professor Template Workflow', () => {
     await expect(firstOption).toBeVisible({ timeout: 5000 })
 
     // Get the discipline name for later verification
-    const disciplineName = await firstOption.textContent()
+    const _disciplineName = await firstOption.textContent()
     await firstOption.click()
 
     // Step 2: After selecting discipline, should see mode selection screen
@@ -51,9 +53,9 @@ test.describe('Professor Template Workflow', () => {
     await expect(page.locator('text=Projetos Existentes')).toBeVisible()
 
     // Step 3: Click on "Editar Template Padrão" to create/edit template
-    const templateCard = page.locator('[data-testid="template-card"]').or(
-      page.locator('text=Editar Template Padrão').locator('..').locator('..')
-    )
+    const _templateCard = page
+      .locator('[data-testid="template-card"]')
+      .or(page.locator('text=Editar Template Padrão').locator('..').locator('..'))
 
     // Use a more reliable selector
     await page.locator('text=Editar Template Padrão').click()
@@ -63,14 +65,16 @@ test.describe('Professor Template Workflow', () => {
     await expect(page.locator('text=Configurações do Template')).toBeVisible()
 
     // Fill template form
-    const titleField = page.locator('input[placeholder*="Monitoria"]').or(
-      page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
-    ).first()
+    const titleField = page
+      .locator('input[placeholder*="Monitoria"]')
+      .or(page.locator('label:has-text("Título Padrão")').locator('..').locator('input'))
+      .first()
     await titleField.fill('Template de Monitoria - Estruturas de Dados')
 
-    const descriptionField = page.locator('textarea[placeholder*="Descrição"]').or(
-      page.locator('label:has-text("Descrição Padrão")').locator('..').locator('textarea')
-    ).first()
+    const descriptionField = page
+      .locator('textarea[placeholder*="Descrição"]')
+      .or(page.locator('label:has-text("Descrição Padrão")').locator('..').locator('textarea'))
+      .first()
     await descriptionField.fill('Template padrão para monitoria de estruturas de dados e algoritmos')
 
     // Fill workload hours
@@ -84,9 +88,9 @@ test.describe('Professor Template Workflow', () => {
     await weeksField.fill('16')
 
     // Set target audience (should default to "Estudantes de graduação")
-    const graduationRadio = page.locator('input[value="estudantes_graduacao"]').or(
-      page.locator('text=Estudantes de graduação').locator('..').locator('input[type="radio"]')
-    )
+    const graduationRadio = page
+      .locator('input[value="estudantes_graduacao"]')
+      .or(page.locator('text=Estudantes de graduação').locator('..').locator('input[type="radio"]'))
     await graduationRadio.check()
 
     // Add custom activities
@@ -113,7 +117,9 @@ test.describe('Professor Template Workflow', () => {
     await saveTemplateButton.click()
 
     // Wait for success message
-    await expect(page.locator('text=Template criado').or(page.locator('text=Template atualizado'))).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text=Template criado').or(page.locator('text=Template atualizado'))).toBeVisible({
+      timeout: 5000,
+    })
 
     // Step 7: Go back to discipline selection
     const backButton = page.locator('button:has-text("Voltar")')
@@ -133,18 +139,21 @@ test.describe('Professor Template Workflow', () => {
     await expect(page.locator('h1')).toContainText('Criar Projeto Específico')
 
     // Verify template data was applied
-    const projectTitleField = page.locator('input[placeholder*="título"]').or(
-      page.locator('label:has-text("Título do Projeto")').locator('..').locator('input')
-    )
+    const projectTitleField = page
+      .locator('input[placeholder*="título"]')
+      .or(page.locator('label:has-text("Título do Projeto")').locator('..').locator('input'))
     await expect(projectTitleField).toHaveValue(/Template de Monitoria|Monitoria de/)
 
-    const projectDescField = page.locator('textarea[placeholder*="objetivo"]').or(
-      page.locator('label:has-text("Descrição")').locator('..').locator('textarea')
-    )
+    const projectDescField = page
+      .locator('textarea[placeholder*="objetivo"]')
+      .or(page.locator('label:has-text("Descrição")').locator('..').locator('textarea'))
     await expect(projectDescField).toHaveValue(/Template padrão|estruturas de dados/)
 
     // Verify workload was applied
-    const projectHoursField = page.locator('label:has-text("Carga Horária Semanal")').locator('..').locator('input[type="number"]')
+    const projectHoursField = page
+      .locator('label:has-text("Carga Horária Semanal")')
+      .locator('..')
+      .locator('input[type="number"]')
     await expect(projectHoursField).toHaveValue('12')
 
     // Step 9: Modify project details (customize from template)
@@ -155,12 +164,18 @@ test.describe('Professor Template Workflow', () => {
     await projectDescField.fill('Projeto específico para monitoria de estruturas de dados do semestre 2025.1')
 
     // Set number of scholarship positions
-    const scholarshipField = page.locator('label:has-text("Bolsistas Solicitados")').locator('..').locator('input[type="number"]')
+    const scholarshipField = page
+      .locator('label:has-text("Bolsistas Solicitados")')
+      .locator('..')
+      .locator('input[type="number"]')
     await scholarshipField.clear()
     await scholarshipField.fill('2')
 
     // Set number of volunteers
-    const volunteerField = page.locator('label:has-text("Voluntários Solicitados")').locator('..').locator('input[type="number"]')
+    const volunteerField = page
+      .locator('label:has-text("Voluntários Solicitados")')
+      .locator('..')
+      .locator('input[type="number"]')
     await volunteerField.clear()
     await volunteerField.fill('3')
 
@@ -180,11 +195,15 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForURL(/\/home\/professor\/dashboard/, { timeout: 10000 })
 
     // Step 12: Verify project appears in dashboard
-    await expect(page.locator('text=Monitoria de Estruturas de Dados - 2025.1').or(
-      page.locator('text=Template de Monitoria').or(
-        page.locator('td, div').filter({ hasText: /Estruturas de Dados|Template de Monitoria/ })
-      )
-    )).toBeVisible({ timeout: 5000 })
+    await expect(
+      page
+        .locator('text=Monitoria de Estruturas de Dados - 2025.1')
+        .or(
+          page
+            .locator('text=Template de Monitoria')
+            .or(page.locator('td, div').filter({ hasText: /Estruturas de Dados|Template de Monitoria/ }))
+        )
+    ).toBeVisible({ timeout: 5000 })
   })
 
   test('should handle template creation for discipline without existing template', async ({ page }) => {
@@ -268,7 +287,10 @@ test.describe('Professor Template Workflow', () => {
     await expect(page.locator('h1')).toContainText('Projetos Existentes')
 
     // Either should show projects or empty state
-    const hasProjects = await page.locator('div[class*="grid"]').filter({ has: page.locator('[class*="card"]') }).isVisible({ timeout: 3000 })
+    const hasProjects = await page
+      .locator('div[class*="grid"]')
+      .filter({ has: page.locator('[class*="card"]') })
+      .isVisible({ timeout: 3000 })
 
     if (hasProjects) {
       // Should show project cards
