@@ -118,11 +118,8 @@ test.describe('Professor Template Workflow', () => {
     await saveTemplateButton.click()
 
     // Wait for success toast message - check for title (template may be created or updated)
-    await expect(
-      page.getByText('Template criado').or(page.getByText('Template atualizado')).first()
-    ).toBeVisible({
-      timeout: 10000,
-    })
+    const templateToast = page.locator('[data-state="open"]').getByText(/Template (criado|atualizado)/)
+    await expect(templateToast).toBeVisible({ timeout: 10000 })
 
     // Step 7: Go back to discipline selection (Voltar button resets disciplina to null)
     const backButton = page.locator('button:has-text("Voltar")')
@@ -205,7 +202,8 @@ test.describe('Professor Template Workflow', () => {
     await saveDraftButton.click()
 
     // Wait for success toast and navigation
-    await expect(page.getByText('Projeto criado')).toBeVisible({ timeout: 10000 })
+    const projectToast = page.locator('[data-state="open"]').getByText('Projeto criado')
+    await expect(projectToast).toBeVisible({ timeout: 10000 })
     await page.waitForURL(/\/home\/professor\/dashboard/, { timeout: 15000 })
 
     // Step 12: Verify project appears in dashboard
@@ -247,9 +245,8 @@ test.describe('Professor Template Workflow', () => {
     await saveButton.click()
 
     // Should see success toast message - check for title (template may be created or updated)
-    await expect(
-      page.getByText('Template criado').or(page.getByText('Template atualizado')).first()
-    ).toBeVisible({ timeout: 10000 })
+    const templateToast = page.locator('[data-state="open"]').getByText(/Template (criado|atualizado)/)
+    await expect(templateToast).toBeVisible({ timeout: 10000 })
   })
 
   test('should allow reapplying template to project', async ({ page }) => {

@@ -72,15 +72,17 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
 
     // Click the button and wait for network
     await saveButton.click()
-    await page.waitForLoadState('networkidle')
 
-    // Wait for success toast message or error message
-    const successToast = page.getByText('Sucesso!').or(page.getByText('Edital criado com sucesso!')).first()
-    const errorToast = page.getByText('Erro').first()
-    const validationErrors = page.locator('[role="alert"], .text-destructive, .text-red-500')
+    // Wait for success toast - check for title AND/OR description
+    // The toast has: title="Sucesso!" description="Edital criado com sucesso!"
+    const successToastTitle = page.locator('[data-state="open"]').getByText('Sucesso!')
+    const successToastDescription = page.locator('[data-state="open"]').getByText('Edital criado com sucesso!')
 
-    // Wait for success toast - simplified approach
-    await expect(successToast).toBeVisible({ timeout: 15000 })
+    // Wait for either the title or description to be visible
+    await expect(successToastTitle.or(successToastDescription).first()).toBeVisible({ timeout: 15000 })
+
+    // Wait for dialog to close
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
 
     // Edital creation successful!
     // Note: Exam dates functionality can be tested separately if needed
@@ -207,12 +209,9 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await expect(saveTemplateButton).toBeVisible({ timeout: 5000 })
       await saveTemplateButton.click()
 
-      // Wait for success toast message - check for title
-      await expect(
-        page.getByText('Template criado').or(page.getByText('Template atualizado')).first()
-      ).toBeVisible({
-        timeout: 10000,
-      })
+      // Wait for success toast message - check for title or description
+      const templateToast = page.locator('[data-state="open"]').getByText(/Template (criado|atualizado)/)
+      await expect(templateToast).toBeVisible({ timeout: 10000 })
     }
   })
 
