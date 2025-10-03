@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import bcrypt from 'bcryptjs'
-import { userTable, professorTable, alunoTable, departamentoTable, cursoTable } from '@/server/db/schema'
+import { userTable, professorTable, alunoTable, departamentoTable, cursoTable, disciplinaTable } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 
 async function createTestUser() {
@@ -214,11 +214,41 @@ async function createTestUser() {
       console.log('✅ Legacy E2E test user exists (e2e-test@example.com)')
     }
 
-    console.log('\n✨ All test users created successfully!')
+    // Create test disciplines
+    console.log('📚 Creating test disciplines...')
+    const testDisciplines = [
+      { nome: 'Estruturas de Dados', codigo: 'MATA40', turma: 'T01' },
+      { nome: 'Algoritmos e Programação', codigo: 'MATA37', turma: 'T01' },
+      { nome: 'Banco de Dados', codigo: 'MATA60', turma: 'T01' },
+      { nome: 'Programação Orientada a Objetos', codigo: 'MATA55', turma: 'T01' },
+      { nome: 'Sistemas Operacionais', codigo: 'MATA58', turma: 'T01' },
+      { nome: 'Redes de Computadores', codigo: 'MATA59', turma: 'T01' },
+      { nome: 'Engenharia de Software', codigo: 'MATA62', turma: 'T01' },
+      { nome: 'Inteligência Artificial', codigo: 'MATA63', turma: 'T01' },
+    ]
+
+    for (const disciplineData of testDisciplines) {
+      const existing = await db
+        .select()
+        .from(disciplinaTable)
+        .where(eq(disciplinaTable.codigo, disciplineData.codigo))
+        .limit(1)
+
+      if (existing.length === 0) {
+        await db.insert(disciplinaTable).values({
+          ...disciplineData,
+          departamentoId: departamento[0]!.id,
+        })
+      }
+    }
+    console.log('✅ Test disciplines created')
+
+    console.log('\n✨ All test users and data created successfully!')
     console.log('\n📋 Summary:')
     console.log('  Admin: admin@ufba.br / password123')
     console.log('  Professor: professor@ufba.br / password123')
     console.log('  Student: student@ufba.br / password123')
+    console.log('  Test disciplines: 8 disciplines created in DCC department')
   } catch (error: unknown) {
     const err = error as { code?: string; message?: string }
     if (err.code === 'ECONNREFUSED') {

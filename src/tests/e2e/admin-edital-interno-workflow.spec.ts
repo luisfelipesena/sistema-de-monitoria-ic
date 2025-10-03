@@ -26,10 +26,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check if we're on the correct page
-    await expect(page.locator('h1, h2').filter({ hasText: /edital|gestão/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciar Editais/i })).toBeVisible({ timeout: 5000 })
 
-    // Look for "Novo Edital" or "Criar Edital" button
-    const createEditalButton = page.locator('text=Novo Edital').or(page.locator('text=Criar Edital')).first()
+    // Look for "Novo Edital" button
+    const createEditalButton = page.getByRole('button', { name: 'Novo Edital' })
 
     if (await createEditalButton.isVisible({ timeout: 3000 })) {
       await createEditalButton.click()
@@ -64,11 +64,11 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       }
 
       // Save edital
-      const saveButton = page.locator('button:has-text("Salvar")').or(page.locator('button:has-text("Criar")')).first()
+      const saveButton = page.getByRole('button', { name: 'Criar Edital' })
       await saveButton.click()
 
       // Wait for success message
-      await expect(page.locator('text=criado com sucesso').or(page.locator('text=salvo com sucesso'))).toBeVisible({
+      await expect(page.getByText('Edital criado com sucesso!')).toBeVisible({
         timeout: 5000,
       })
 
@@ -138,10 +138,12 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Select a discipline
-    const disciplineSelect = page.locator('button[role="combobox"]').first()
+    const disciplineSelect = page.getByRole('combobox')
     if (await disciplineSelect.isVisible({ timeout: 3000 })) {
       await disciplineSelect.click()
-      const disciplineOption = page.locator('[role="option"]').first()
+      await page.waitForTimeout(1000) // Give dropdown time to populate
+      const disciplineOption = page.getByRole('option').first()
+      await expect(disciplineOption).toBeVisible({ timeout: 10000 })
       await disciplineOption.click()
 
       // Go to project creation
@@ -192,10 +194,12 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Select discipline and go to template editing
-    const disciplineSelect = page.locator('button[role="combobox"]').first()
+    const disciplineSelect = page.getByRole('combobox')
     if (await disciplineSelect.isVisible({ timeout: 3000 })) {
       await disciplineSelect.click()
-      const disciplineOption = page.locator('[role="option"]').first()
+      await page.waitForTimeout(1000) // Give dropdown time to populate
+      const disciplineOption = page.getByRole('option').first()
+      await expect(disciplineOption).toBeVisible({ timeout: 10000 })
       await disciplineOption.click()
 
       // Go to template editing
@@ -234,7 +238,7 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await saveTemplateButton.click()
 
       // Wait for success
-      await expect(page.locator('text=Template criado').or(page.locator('text=Template atualizado'))).toBeVisible({
+      await expect(page.getByText('Template criado')).toBeVisible({
         timeout: 5000,
       })
     }

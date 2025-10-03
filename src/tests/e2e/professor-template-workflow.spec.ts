@@ -29,15 +29,16 @@ test.describe('Professor Template Workflow', () => {
 
     // Step 1: Select a discipline first
     await expect(page.locator('h1')).toContainText('Novo projeto de monitoria')
-    await expect(page.locator('h1')).toContainText('Selecione a disciplina')
+    await expect(page.getByText('Selecione a disciplina para continuar')).toBeVisible()
 
     // Select a discipline from the dropdown
-    const disciplineSelect = page.locator('button[role="combobox"]').first()
+    const disciplineSelect = page.getByRole('combobox')
     await disciplineSelect.click()
 
     // Wait for options to load and select the first available discipline
-    const firstOption = page.locator('[role="option"]').first()
-    await expect(firstOption).toBeVisible({ timeout: 5000 })
+    await page.waitForTimeout(1000) // Give dropdown time to populate
+    const firstOption = page.getByRole('option').first()
+    await expect(firstOption).toBeVisible({ timeout: 10000 })
 
     // Get the discipline name for later verification
     const _disciplineName = await firstOption.textContent()
@@ -45,7 +46,7 @@ test.describe('Professor Template Workflow', () => {
 
     // Step 2: After selecting discipline, should see mode selection screen
     await expect(page.locator('h1')).toContainText('Novo projeto de monitoria')
-    await expect(page.locator('h2, h3').filter({ hasText: /Disciplina:/ })).toBeVisible()
+    await expect(page.getByText(/Disciplina:/)).toBeVisible()
 
     // Should see three cards: Edit Template, Create Project, Existing Projects
     await expect(page.locator('text=Editar Template Padrão')).toBeVisible()
@@ -117,7 +118,7 @@ test.describe('Professor Template Workflow', () => {
     await saveTemplateButton.click()
 
     // Wait for success message
-    await expect(page.locator('text=Template criado').or(page.locator('text=Template atualizado'))).toBeVisible({
+    await expect(page.getByText('Template criado')).toBeVisible({
       timeout: 5000,
     })
 
@@ -233,7 +234,7 @@ test.describe('Professor Template Workflow', () => {
     await saveButton.click()
 
     // Should see success message
-    await expect(page.locator('text=Template criado')).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText('Template criado')).toBeVisible({ timeout: 5000 })
   })
 
   test('should allow reapplying template to project', async ({ page }) => {
@@ -241,9 +242,11 @@ test.describe('Professor Template Workflow', () => {
     await page.goto('/home/professor/projetos/novo')
     await page.waitForLoadState('networkidle')
 
-    const disciplineSelect = page.locator('button[role="combobox"]').first()
+    const disciplineSelect = page.getByRole('combobox')
     await disciplineSelect.click()
-    const disciplineOption = page.locator('[role="option"]').first()
+    await page.waitForTimeout(1000) // Give dropdown time to populate
+    const disciplineOption = page.getByRole('option').first()
+    await expect(disciplineOption).toBeVisible({ timeout: 10000 })
     await disciplineOption.click()
 
     // Go to project creation (assuming template exists)
@@ -275,9 +278,11 @@ test.describe('Professor Template Workflow', () => {
     await page.goto('/home/professor/projetos/novo')
     await page.waitForLoadState('networkidle')
 
-    const disciplineSelect = page.locator('button[role="combobox"]').first()
+    const disciplineSelect = page.getByRole('combobox')
     await disciplineSelect.click()
-    const disciplineOption = page.locator('[role="option"]').first()
+    await page.waitForTimeout(1000) // Give dropdown time to populate
+    const disciplineOption = page.getByRole('option').first()
+    await expect(disciplineOption).toBeVisible({ timeout: 10000 })
     await disciplineOption.click()
 
     // Click on existing projects
@@ -308,9 +313,11 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Step 1: Select discipline
-    const disciplineSelect = page.locator('button[role="combobox"]').first()
+    const disciplineSelect = page.getByRole('combobox')
     await disciplineSelect.click()
-    const disciplineOption = page.locator('[role="option"]').first()
+    await page.waitForTimeout(1000) // Give dropdown time to populate
+    const disciplineOption = page.getByRole('option').first()
+    await expect(disciplineOption).toBeVisible({ timeout: 10000 })
     await disciplineOption.click()
 
     // Step 2: Should see mode selection

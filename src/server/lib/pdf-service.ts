@@ -222,7 +222,9 @@ export class PDFService {
   /**
    * Generates a PDF for internal edital
    */
-  static async generateEditalInternoPDF(data: any): Promise<Buffer> {
+  static async generateEditalInternoPDF(
+    data: import('@/server/lib/pdfTemplates/edital-interno').EditalInternoData
+  ): Promise<Buffer> {
     try {
       log.info({ numeroEdital: data.numeroEdital }, 'Generating internal edital PDF')
 
@@ -315,7 +317,7 @@ export class PDFService {
    * Generates and saves an internal edital PDF with signature
    */
   static async generateAndSaveSignedEditalInternoPDF(
-    data: any,
+    data: import('@/server/lib/pdfTemplates/edital-interno').EditalInternoData,
     editalId: number,
     chefeSignature?: string
   ): Promise<string> {
