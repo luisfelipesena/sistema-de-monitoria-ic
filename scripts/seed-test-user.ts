@@ -1,7 +1,14 @@
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import bcrypt from 'bcryptjs'
-import { userTable, professorTable, alunoTable, departamentoTable, cursoTable, disciplinaTable } from '@/server/db/schema'
+import {
+  userTable,
+  professorTable,
+  alunoTable,
+  departamentoTable,
+  cursoTable,
+  disciplinaTable,
+} from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 
 async function createTestUser() {
@@ -237,7 +244,7 @@ async function createTestUser() {
       if (existing.length === 0) {
         await db.insert(disciplinaTable).values({
           ...disciplineData,
-          departamentoId: departamento[0]!.id,
+          departamentoId: departamento[0]?.id,
         })
       }
     }
