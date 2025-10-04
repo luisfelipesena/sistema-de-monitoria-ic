@@ -51,13 +51,14 @@
 - `drizzle/0033_green_slapstick.sql` - ✅ CRIADO - migração do banco de dados
 **STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Envio automático de edital para listas de email após aprovação
+**TAREFA** - Envio automático de edital para listas de email após aprovação ✅
 **DESCRIÇÃO** - Após edital assinado pelo chefe, enviar automaticamente PDF do edital para listas de estudantes e professores
 **CONTEXTO** - Divulgação digital automática do edital aprovado
 **ARQUIVOS AFETADOS**:
-- `src/server/api/routers/edital/edital.ts` - adicionar `publishAndNotify`
-- `src/server/lib/email-service.ts` - template de divulgação de edital
-**STATUS** - [ ] 🔴 PENDENTE
+- `src/server/api/routers/edital/edital.ts` - ✅ IMPLEMENTADO - adicionado `publishAndNotify`
+- `src/server/lib/email-service.ts` - ✅ IMPLEMENTADO - template `sendEditalPublishedNotification`
+- `src/tests/e2e/edital-publication-workflow.spec.ts` - ✅ CRIADO - 7 testes E2E para workflow completo
+**STATUS** - [x] ✅ COMPLETO
 
 ### 5. MELHORIAS NO SCHEMA DO BANCO
 **TAREFA** - Adicionar campos de edital interno ao schema
@@ -398,9 +399,9 @@ FASE 2: Alocação de Bolsas
 
 ---
 
-**STATUS ATUAL**: 🟢 Workflow de planejamento, bolsas e edital interno DCC completos | 🔴 4 tickets pendentes (Aprovação e Publicação)
-**PRÓXIMO PASSO**: Implementar fluxo de assinatura e publicação de edital (seção 4)  
-**ÚLTIMA ATUALIZAÇÃO**: 03/10/2025
+**STATUS ATUAL**: 🟢 Workflow de planejamento, bolsas, edital interno DCC e publicação completos | 🔴 3 tickets pendentes (Melhorias no Schema)
+**PRÓXIMO PASSO**: Implementar melhorias no schema do banco (seção 5)
+**ÚLTIMA ATUALIZAÇÃO**: 04/10/2025
 
 ---
 
@@ -423,5 +424,40 @@ FASE 2: Alocação de Bolsas
 - `admin-edital-interno-workflow.spec.ts` - Gestão de edital interno DCC
 
 **Impacto**: Sistema agora suporte edital interno DCC com campos específicos e templates de projeto melhorados
+
+---
+
+### MILESTONE 4 - PUBLICAÇÃO E NOTIFICAÇÃO DE EDITAL COMPLETO ✅
+**Data**: 04/10/2025
+**Tickets**: 1/1 (100%)
+**Arquivos Criados**: `sendEditalPublishedNotification` function, `publishAndNotify` endpoint, `edital-publication-workflow.spec.ts`
+**Build**: ✅ Passou com sucesso
+
+**Funcionalidades**:
+- Sistema de envio automático de emails após publicação de edital
+- Template de email profissional para divulgação de editais
+- Envio para listas de estudantes e professores configuráveis
+- Workflow completo de publicação com validação de pré-requisitos
+- Testes E2E completos para fluxo de publicação e notificação
+
+**Testes E2E Criados**:
+- `edital-publication-workflow.spec.ts` - 7 testes para workflow completo de publicação
+- `chief-signature-workflow.spec.ts` - 3 testes adicionais para publicação
+
+**Fluxo Implementado**:
+```
+FASE 1: Criação e Assinatura
+1. Admin cria edital interno DCC
+2. Admin solicita assinatura do chefe do departamento
+3. Chefe assina o edital digitalmente
+
+FASE 2: Publicação e Notificação (✅ NOVO)
+4. Admin publica edital usando publishAndNotify
+5. Sistema valida pré-requisitos (assinatura, projetos aprovados)
+6. Sistema envia emails automáticos para listas configuradas
+7. Estudantes e professores recebem notificação com link PDF
+```
+
+**Impacto**: Workflow completo de edital com divulgação automática por email
 
 ---

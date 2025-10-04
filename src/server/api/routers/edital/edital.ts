@@ -1,5 +1,6 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { editalTable, periodoInscricaoTable, projetoTable, professorTable } from '@/server/db/schema'
+import { sendEditalPublishedNotification } from '@/server/lib/email-service'
 import minioClient, { bucketName } from '@/server/lib/minio'
 import { EditalInternoTemplate, type EditalInternoData } from '@/server/lib/pdfTemplates/edital-interno'
 import { env } from '@/utils/env'
@@ -690,6 +691,128 @@ export const editalRouter = createTRPCRouter({
       log.info({ editalId: input.id, adminUserId: ctx.user.id }, 'Edital publicado com sucesso')
 
       return updated
+    }),
+
+  publishAndNotify: adminProtectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/editais/{id}/publish-and-notify',
+        tags: ['editais'],
+        summary: 'Publish edital and send notification emails',
+        description: 'Publish an edital and automatically send notification emails to students and professors',
+      },
+    })
+    .input(
+      z.object({
+        id: z.number(),
+        emailLists: z.array(z.string().email()).optional().default([
+          'estudantes.ic@ufba.br',  // Lista de estudantes
+          'professores.ic@ufba.br', // Lista de professores
+        ]),
+      })
+    )
+    .output(z.object({
+      edital: editalSchema,
+      emailsSent: z.number(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      // Primeiro publica o edital usando a lógica existente
+      const edital = await ctx.db.query.editalTable.findFirst({
+        where: eq(editalTable.id, input.id),
+        with: {
+          periodoInscricao: true,
+        },
+      })
+
+      if (!edital) {
+        throw new TRPCError({ code: 'NOT_FOUND' })
+      }
+
+      // Validar se o edital está completo antes de publicar
+      if (!edital.titulo || edital.titulo.trim() === '') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'O edital precisa ter um título antes de ser publicado.',
+        })
+      }
+
+      if (!edital.descricaoHtml || edital.descricaoHtml.trim() === '') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'O edital precisa ter uma descrição antes de ser publicado.',
+        })
+      }
+
+      if (!edital.fileIdAssinado) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'O edital precisa estar assinado antes de ser publicado.',
+        })
+      }
+
+      // Verificar se existem projetos aprovados para este período
+      if (edital.periodoInscricao) {
+        const projetosAprovados = await ctx.db.query.projetoTable.findMany({
+          where: and(
+            eq(projetoTable.ano, edital.periodoInscricao.ano),
+            eq(projetoTable.semestre, edital.periodoInscricao.semestre),
+            eq(projetoTable.status, 'APPROVED')
+          ),
+          limit: 1, // Apenas verificar se existe pelo menos um
+        })
+
+        if (projetosAprovados.length === 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Não é possível publicar um edital sem projetos aprovados.',
+          })
+        }
+      }
+
+      // Publicar o edital
+      const [updatedEdital] = await ctx.db
+        .update(editalTable)
+        .set({
+          publicado: true,
+          dataPublicacao: new Date(),
+        })
+        .where(eq(editalTable.id, input.id))
+        .returning()
+
+      // Enviar notificações por email
+      const semestreFormatado = edital.periodoInscricao?.semestre === 'SEMESTRE_1' ? '1º Semestre' : '2º Semestre'
+      const linkPDF = `${env.CLIENT_URL}/api/editais/${input.id}/pdf`
+
+      try {
+        await sendEditalPublishedNotification({
+          editalNumero: edital.numeroEdital,
+          editalTitulo: edital.titulo,
+          semestreFormatado,
+          ano: edital.periodoInscricao?.ano || new Date().getFullYear(),
+          linkPDF,
+          to: input.emailLists,
+        })
+
+        log.info({
+          editalId: input.id,
+          adminUserId: ctx.user.id,
+          emailsSent: input.emailLists.length
+        }, 'Edital publicado e emails enviados com sucesso')
+
+        return {
+          edital: updatedEdital,
+          emailsSent: input.emailLists.length,
+        }
+      } catch (emailError) {
+        log.error({ error: emailError, editalId: input.id }, 'Erro ao enviar emails de notificação')
+
+        // Mesmo com erro nos emails, retorna sucesso da publicação
+        return {
+          edital: updatedEdital,
+          emailsSent: 0,
+        }
+      }
     }),
 
   uploadSignedEdital: adminProtectedProcedure
