@@ -1,4 +1,4 @@
-CREATE TABLE "api_key" (
+CREATE TABLE IF NOT EXISTS "api_key" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"key_value" varchar(64) NOT NULL,
 	"name" varchar(255) NOT NULL,
@@ -12,4 +12,10 @@ CREATE TABLE "api_key" (
 	CONSTRAINT "api_key_key_value_unique" UNIQUE("key_value")
 );
 --> statement-breakpoint
-ALTER TABLE "api_key" ADD CONSTRAINT "api_key_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;
+-- Add constraint if not exists
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'api_key_user_id_user_id_fk') THEN
+        ALTER TABLE "api_key" ADD CONSTRAINT "api_key_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;
+    END IF;
+END $$;
