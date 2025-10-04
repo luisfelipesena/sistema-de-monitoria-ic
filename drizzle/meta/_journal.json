@@ -232,6 +232,13 @@
       "when": 1759526669900,
       "tag": "0032_slow_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1759584748678,
+      "tag": "0033_green_slapstick",
+      "breakpoints": true
     }
   ]
 }

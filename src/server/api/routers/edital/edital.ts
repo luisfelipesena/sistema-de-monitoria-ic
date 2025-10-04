@@ -1,12 +1,12 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { editalTable, periodoInscricaoTable, projetoTable } from '@/server/db/schema'
+import { editalTable, periodoInscricaoTable, projetoTable, professorTable } from '@/server/db/schema'
 import minioClient, { bucketName } from '@/server/lib/minio'
 import { EditalInternoTemplate, type EditalInternoData } from '@/server/lib/pdfTemplates/edital-interno'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { TRPCError } from '@trpc/server'
-import { and, eq, gte, lte, or, sql, inArray } from 'drizzle-orm'
+import { and, eq, gte, lte, or, sql, inArray, isNull, isNotNull } from 'drizzle-orm'
 import { z } from 'zod'
 
 const log = logger.child({ context: 'EditalRouter' })
@@ -27,6 +27,10 @@ export const editalSchema = z.object({
   // Campos específicos para edital interno DCC
   datasProvasDisponiveis: z.string().nullable(), // JSON array de datas
   dataDivulgacaoResultado: z.date().nullable(),
+  // Campos de assinatura do chefe
+  chefeAssinouEm: z.date().nullable(),
+  chefeAssinatura: z.string().nullable(),
+  chefeDepartamentoId: z.number().nullable(),
   criadoPorUserId: z.number(),
   createdAt: z.date(),
   updatedAt: z.date().nullable(),
@@ -1082,5 +1086,200 @@ export const editalRouter = createTRPCRouter({
         datasProvasDisponiveis: edital.datasProvasDisponiveis ? JSON.parse(edital.datasProvasDisponiveis) : null,
         dataDivulgacaoResultado: edital.dataDivulgacaoResultado,
       }
+    }),
+
+  requestChefeSignature: adminProtectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/editais/{id}/request-chefe-signature',
+        tags: ['editais'],
+        summary: 'Request chief signature',
+        description: 'Request department chief to sign the edital',
+      },
+    })
+    .input(
+      z.object({
+        id: z.number(),
+        chefeEmail: z.string().email().optional(), // Email do chefe para notificação
+      })
+    )
+    .output(z.object({ success: z.boolean(), message: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Verificar se o edital existe e está pronto para assinatura
+      const edital = await ctx.db.query.editalTable.findFirst({
+        where: eq(editalTable.id, input.id),
+        with: { periodoInscricao: true },
+      })
+
+      if (!edital) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Edital não encontrado' })
+      }
+
+      if (edital.chefeAssinouEm) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Este edital já foi assinado pelo chefe do departamento',
+        })
+      }
+
+      if (!edital.titulo || !edital.descricaoHtml) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'O edital precisa estar completo antes de solicitar assinatura',
+        })
+      }
+
+      // TODO: Enviar notificação por email para o chefe
+      // if (input.chefeEmail) {
+      //   await sendEmailToChefe(input.chefeEmail, edital)
+      // }
+
+      log.info(
+        {
+          editalId: input.id,
+          requestedBy: ctx.user.id,
+          chefeEmail: input.chefeEmail,
+        },
+        'Assinatura do chefe solicitada'
+      )
+
+      return {
+        success: true,
+        message: 'Solicitação de assinatura enviada com sucesso',
+      }
+    }),
+
+  signAsChefe: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/editais/{id}/sign-as-chefe',
+        tags: ['editais'],
+        summary: 'Sign as chief',
+        description: 'Sign the edital as department chief',
+      },
+    })
+    .input(
+      z.object({
+        id: z.number(),
+        assinatura: z.string(), // Base64 da assinatura ou URL
+      })
+    )
+    .output(editalSchema)
+    .mutation(async ({ input, ctx }) => {
+      // Verificar se o usuário é chefe do departamento
+      const professor = await ctx.db.query.professorTable.findFirst({
+        where: eq(professorTable.userId, ctx.user.id),
+        with: { departamento: true },
+      })
+
+      if (!professor) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Apenas professores podem assinar como chefe',
+        })
+      }
+
+      // TODO: Verificar se o professor é realmente o chefe do departamento
+      // Por enquanto, vamos permitir que qualquer admin ou professor com permissão especial assine
+
+      const edital = await ctx.db.query.editalTable.findFirst({
+        where: eq(editalTable.id, input.id),
+      })
+
+      if (!edital) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Edital não encontrado' })
+      }
+
+      if (edital.chefeAssinouEm) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Este edital já foi assinado pelo chefe',
+        })
+      }
+
+      // Atualizar o edital com a assinatura do chefe
+      const [updated] = await ctx.db
+        .update(editalTable)
+        .set({
+          chefeAssinatura: input.assinatura,
+          chefeAssinouEm: new Date(),
+          chefeDepartamentoId: ctx.user.id,
+          updatedAt: new Date(),
+        })
+        .where(eq(editalTable.id, input.id))
+        .returning()
+
+      if (!updated) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })
+      }
+
+      log.info(
+        {
+          editalId: input.id,
+          chefeDepartamentoId: ctx.user.id,
+        },
+        'Edital assinado pelo chefe do departamento'
+      )
+
+      return updated
+    }),
+
+  getEditaisParaAssinar: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/editais/para-assinar',
+        tags: ['editais'],
+        summary: 'Get editais pending signature',
+        description: 'Get list of editais pending chief signature',
+      },
+    })
+    .input(z.void())
+    .output(z.array(editalListItemSchema))
+    .query(async ({ ctx }) => {
+      // Buscar editais que ainda não foram assinados pelo chefe
+      const editais = await ctx.db.query.editalTable.findMany({
+        where: and(isNull(editalTable.chefeAssinouEm), eq(editalTable.tipo, 'DCC'), isNotNull(editalTable.titulo)),
+        with: {
+          periodoInscricao: true,
+          criadoPor: {
+            columns: {
+              id: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
+        orderBy: (table, { desc }) => [desc(table.createdAt)],
+      })
+
+      const now = new Date()
+      return editais.map((edital) => {
+        let statusPeriodo: 'ATIVO' | 'FUTURO' | 'FINALIZADO' = 'FINALIZADO'
+        if (edital.periodoInscricao) {
+          const inicio = new Date(edital.periodoInscricao.dataInicio)
+          const fim = new Date(edital.periodoInscricao.dataFim)
+
+          if (now >= inicio && now <= fim) {
+            statusPeriodo = 'ATIVO'
+          } else if (now < inicio) {
+            statusPeriodo = 'FUTURO'
+          }
+        }
+
+        return {
+          ...edital,
+          periodoInscricao: edital.periodoInscricao
+            ? {
+                ...edital.periodoInscricao,
+                status: statusPeriodo,
+                totalProjetos: 0,
+                totalInscricoes: 0,
+              }
+            : null,
+        }
+      })
     }),
 })

@@ -890,6 +890,10 @@ export const editalTable = pgTable('edital', {
   // Campos específicos para edital interno DCC
   datasProvasDisponiveis: text('datas_provas_disponiveis'), // JSON array de datas disponíveis para provas
   dataDivulgacaoResultado: date('data_divulgacao_resultado', { mode: 'date' }), // Data limite para divulgação
+  // Campos de assinatura do chefe do departamento
+  chefeAssinouEm: timestamp('chefe_assinou_em', { withTimezone: true, mode: 'date' }), // Data/hora da assinatura do chefe
+  chefeAssinatura: text('chefe_assinatura'), // Assinatura digital do chefe (base64 ou URL)
+  chefeDepartamentoId: integer('chefe_departamento_id').references(() => userTable.id), // ID do usuário que assinou como chefe
   criadoPorUserId: integer('criado_por_user_id')
     .references(() => userTable.id)
     .notNull(),
@@ -904,6 +908,10 @@ export const editalRelations = relations(editalTable, ({ one }) => ({
   }),
   criadoPor: one(userTable, {
     fields: [editalTable.criadoPorUserId],
+    references: [userTable.id],
+  }),
+  chefeDepartamento: one(userTable, {
+    fields: [editalTable.chefeDepartamentoId],
     references: [userTable.id],
   }),
 }))

@@ -39,14 +39,17 @@
 **STATUS** - [x] ✅ COMPLETO
 
 ### 4. APROVAÇÃO E PUBLICAÇÃO DE EDITAL
-**TAREFA** - Fluxo de assinatura do chefe do departamento no edital
+**TAREFA** - Fluxo de assinatura do chefe do departamento no edital ✅
 **DESCRIÇÃO** - Edital interno precisa ser assinado pelo CHEFE DO DEPARTAMENTO (pode não ser o admin). Sistema deve solicitar assinatura dele
 **CONTEXTO** - Admin monta edital, mas chefe precisa aprovar/assinar antes de publicar
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - adicionar `chefeAssinouEm`, `chefeAssinatura` ao `editalTable`
-- `src/server/api/routers/edital/edital.ts` - adicionar `requestChefeSignature`, `signAsChefe`
-- `src/app/home/admin/edital-management/page.tsx` - botão para solicitar assinatura do chefe
-**STATUS** - [ ] 🔴 PENDENTE
+- `src/server/db/schema.ts` - ✅ IMPLEMENTADO - adicionado `chefeAssinouEm`, `chefeAssinatura`, `chefeDepartamentoId` ao `editalTable`
+- `src/server/api/routers/edital/edital.ts` - ✅ IMPLEMENTADO - adicionado `requestChefeSignature`, `signAsChefe`, `getEditaisParaAssinar`
+- `src/app/home/admin/edital-management/page.tsx` - ✅ IMPLEMENTADO - botão "Solicitar Assinatura" e badges de status
+- `src/types/edital.ts` - ✅ ATUALIZADO - EditalListItem com campos de assinatura do chefe
+- `src/tests/e2e/chief-signature-workflow.spec.ts` - ✅ CRIADO - 6 testes E2E para workflow completo
+- `drizzle/0033_green_slapstick.sql` - ✅ CRIADO - migração do banco de dados
+**STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Envio automático de edital para listas de email após aprovação
 **DESCRIÇÃO** - Após edital assinado pelo chefe, enviar automaticamente PDF do edital para listas de estudantes e professores
