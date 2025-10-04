@@ -34,9 +34,9 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
     await createEditalButton.click()
 
     // Fill edital form with unique number to avoid conflicts
-    const timestamp = Date.now()
+    const randomNum = Math.floor(Math.random() * 1000)
     const numeroField = page.locator('label:has-text("Número do Edital")').locator('..').locator('input')
-    await numeroField.fill(`${timestamp}/2025-DCC`)
+    await numeroField.fill(`${randomNum}/2025-DCC`)
 
     const tituloField = page.locator('label:has-text("Título")').locator('..').locator('input')
     await tituloField.fill('Edital Interno de Seleção de Monitores - 2025.1')

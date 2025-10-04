@@ -73,7 +73,7 @@ describe('API Key Router', () => {
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([newApiKey]),
         }),
-      })
+      } as any)
 
       const caller = apiKeyRouter.createCaller(mockContext)
       const result = await caller.create({
@@ -108,7 +108,7 @@ describe('API Key Router', () => {
       vi.mocked(mockContext.db.query.apiKeyTable.findFirst).mockResolvedValue(mockApiKeys[0])
       vi.mocked(mockContext.db.delete).mockReturnValue({
         where: vi.fn().mockResolvedValue(undefined),
-      })
+      } as any)
 
       const caller = apiKeyRouter.createCaller(mockContext)
       const result = await caller.delete({ id: 1 })
