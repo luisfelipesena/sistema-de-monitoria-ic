@@ -25,6 +25,6 @@ yarn.lock
 .turbo
 data
 
-CLAUDE.md
+CLAUDE.local.md
 .claude/
 .next/

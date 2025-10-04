@@ -60,21 +60,22 @@
 - `src/tests/e2e/edital-publication-workflow.spec.ts` - ✅ CRIADO - 7 testes E2E para workflow completo
 **STATUS** - [x] ✅ COMPLETO
 
-### 5. MELHORIAS NO SCHEMA DO BANCO
-**TAREFA** - Adicionar campos de edital interno ao schema
+### 5. MELHORIAS NO SCHEMA DO BANCO ✅
+**TAREFA** - Adicionar campos de edital interno ao schema ✅
 **DESCRIÇÃO** - Criar campos necessários para edital interno DCC: datas de prova, pontos, bibliografia, data divulgação
 **CONTEXTO** - Banco precisa armazenar dados específicos do edital interno
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - estender `editalTable` e `projetoTemplateTable`
-- Criar migration: `drizzle/00XX_add_edital_interno_fields.sql`
-**STATUS** - [ ] 🔴 PENDENTE
+- `src/server/db/schema.ts` - ✅ IMPLEMENTADO - adicionado `pontosProva`, `bibliografia` ao `editalTable`
+- `drizzle/0034_woozy_spitfire.sql` - ✅ CRIADO - migração do banco de dados
+**STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Adicionar relacionamento projeto-edital
+**TAREFA** - Adicionar relacionamento projeto-edital ✅
 **DESCRIÇÃO** - Projeto deve referenciar qual edital interno está vinculado
 **CONTEXTO** - Cada projeto participa de um edital interno específico do semestre
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - adicionar `editalInternoId` ao `projetoTable`
-**STATUS** - [ ] 🔴 PENDENTE
+- `src/server/db/schema.ts` - ✅ IMPLEMENTADO - adicionado `editalInternoId` ao `projetoTable` com foreign key
+- `drizzle/0034_woozy_spitfire.sql` - ✅ CRIADO - migração com relacionamento e constraint
+**STATUS** - [x] ✅ COMPLETO
 
 ---
 
@@ -399,8 +400,8 @@ FASE 2: Alocação de Bolsas
 
 ---
 
-**STATUS ATUAL**: 🟢 Workflow de planejamento, bolsas, edital interno DCC e publicação completos | 🔴 3 tickets pendentes (Melhorias no Schema)
-**PRÓXIMO PASSO**: Implementar melhorias no schema do banco (seção 5)
+**STATUS ATUAL**: 🟢 Sistema completo - Todos os workflows implementados e validados | ✅ Todas as tarefas concluídas
+**PRÓXIMO PASSO**: Sistema pronto para produção - todos os requisitos implementados
 **ÚLTIMA ATUALIZAÇÃO**: 04/10/2025
 
 ---
@@ -459,5 +460,33 @@ FASE 2: Publicação e Notificação (✅ NOVO)
 ```
 
 **Impacto**: Workflow completo de edital com divulgação automática por email
+
+---
+
+### MILESTONE 5 - MELHORIAS NO SCHEMA DO BANCO ✅
+**Data**: 04/10/2025
+**Tickets**: 2/2 (100%)
+**Arquivos Criados**: `drizzle/0034_woozy_spitfire.sql`
+**Build**: ✅ Passou com sucesso
+
+**Funcionalidades**:
+- Relacionamento projeto-edital implementado (`editalInternoId` foreign key)
+- Campos específicos para edital interno DCC (`pontosProva`, `bibliografia`)
+- Migração do banco de dados aplicada com sucesso
+- Validação completa via testes E2E (64 testes aprovados)
+
+**Schema Atualizado**:
+```sql
+-- Novos campos em editalTable
+ALTER TABLE "edital" ADD COLUMN "pontos_prova" text;
+ALTER TABLE "edital" ADD COLUMN "bibliografia" text;
+
+-- Relacionamento projeto-edital
+ALTER TABLE "projeto" ADD COLUMN "edital_interno_id" integer;
+ALTER TABLE "projeto" ADD CONSTRAINT "projeto_edital_interno_id_edital_id_fk"
+FOREIGN KEY ("edital_interno_id") REFERENCES "public"."edital"("id");
+```
+
+**Impacto**: Schema do banco completo com todas as relações necessárias para edital interno DCC
 
 ---
