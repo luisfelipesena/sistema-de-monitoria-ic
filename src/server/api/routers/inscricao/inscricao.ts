@@ -792,7 +792,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        if (![SELECTED_BOLSISTA, SELECTED_VOLUNTARIO].includes(inscricao.status as any)) {
+        if (inscricao.status !== SELECTED_BOLSISTA && inscricao.status !== SELECTED_VOLUNTARIO) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Inscrição não está selecionada',
@@ -891,7 +891,7 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
-        if (![SELECTED_BOLSISTA, SELECTED_VOLUNTARIO].includes(inscricao.status as any)) {
+        if (inscricao.status !== SELECTED_BOLSISTA && inscricao.status !== SELECTED_VOLUNTARIO) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Inscrição não está selecionada',

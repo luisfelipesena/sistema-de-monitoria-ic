@@ -184,6 +184,9 @@ export const projetoTable = pgTable('projeto', {
   disciplinaNome: varchar('disciplina_nome'), // Main disciplina name for PROGRAD spreadsheet
   descricao: text('descricao').notNull(), // Objectives/Justification
   professoresParticipantes: text('professores_participantes'), // Names of participating professors for collective projects
+  // Campos específicos para edital interno DCC
+  dataSelecaoEscolhida: date('data_selecao_escolhida', { mode: 'date' }), // Data escolhida pelo professor dentre as disponíveis
+  horarioSelecao: varchar('horario_selecao', { length: 20 }), // Horário da seleção (ex: "14:00-16:00")
   status: projetoStatusEnum('status').notNull().default('DRAFT'),
   assinaturaProfessor: text('assinatura_professor'), // base64 data URL
   // analiseSubmissao: text('analise_submissao'), // Renamed/Repurposed
@@ -884,6 +887,9 @@ export const editalTable = pgTable('edital', {
   dataPublicacao: date('data_publicacao', { mode: 'date' }),
   publicado: boolean('publicado').default(false).notNull(),
   valorBolsa: numeric('valor_bolsa', { precision: 10, scale: 2 }).default('400.00').notNull(), // Valor da bolsa para este edital
+  // Campos específicos para edital interno DCC
+  datasProvasDisponiveis: text('datas_provas_disponiveis'), // JSON array de datas disponíveis para provas
+  dataDivulgacaoResultado: date('data_divulgacao_resultado', { mode: 'date' }), // Data limite para divulgação
   criadoPorUserId: integer('criado_por_user_id')
     .references(() => userTable.id)
     .notNull(),
@@ -986,6 +992,9 @@ export const projetoTemplateTable = pgTable('projeto_template', {
   numeroSemanasDefault: integer('numero_semanas_default'),
   publicoAlvoDefault: text('publico_alvo_default'),
   atividadesDefault: text('atividades_default'), // e.g., JSON array de strings ou ;-separadas
+  // Campos específicos para edital interno DCC
+  pontosProvaDefault: text('pontos_prova_default'), // Pontos da prova padrão para a disciplina
+  bibliografiaDefault: text('bibliografia_default'), // Bibliografia padrão para a disciplina
   criadoPorUserId: integer('criado_por_user_id')
     .references(() => userTable.id)
     .notNull(),

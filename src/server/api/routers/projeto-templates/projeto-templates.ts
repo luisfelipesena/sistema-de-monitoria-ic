@@ -45,6 +45,8 @@ export const projetoTemplatesRouter = createTRPCRouter({
       numeroSemanasDefault: template.numeroSemanasDefault,
       publicoAlvoDefault: template.publicoAlvoDefault,
       atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
+      pontosProvaDefault: template.pontosProvaDefault,
+      bibliografiaDefault: template.bibliografiaDefault,
       createdAt: template.createdAt,
       updatedAt: template.updatedAt,
       disciplina: {
@@ -86,6 +88,8 @@ export const projetoTemplatesRouter = createTRPCRouter({
       numeroSemanasDefault: template.numeroSemanasDefault,
       publicoAlvoDefault: template.publicoAlvoDefault,
       atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
+      pontosProvaDefault: template.pontosProvaDefault,
+      bibliografiaDefault: template.bibliografiaDefault,
       disciplina: {
         id: template.disciplina.id,
         nome: template.disciplina.nome,
@@ -129,6 +133,8 @@ export const projetoTemplatesRouter = createTRPCRouter({
         numeroSemanasDefault: z.number().int().positive().optional(),
         publicoAlvoDefault: z.string().optional(),
         atividadesDefault: z.array(z.string()).optional(),
+        pontosProvaDefault: z.string().optional(),
+        bibliografiaDefault: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -141,13 +147,15 @@ export const projetoTemplatesRouter = createTRPCRouter({
         throw new Error('Já existe um template para esta disciplina')
       }
 
-      const { atividadesDefault, ...templateData } = input
+      const { atividadesDefault, pontosProvaDefault, bibliografiaDefault, ...templateData } = input
 
       const [template] = await ctx.db
         .insert(projetoTemplateTable)
         .values({
           ...templateData,
           atividadesDefault: atividadesDefault ? JSON.stringify(atividadesDefault) : null,
+          pontosProvaDefault: pontosProvaDefault || null,
+          bibliografiaDefault: bibliografiaDefault || null,
           criadoPorUserId: ctx.user.id,
         })
         .returning()
@@ -165,10 +173,12 @@ export const projetoTemplatesRouter = createTRPCRouter({
         numeroSemanasDefault: z.number().int().positive().optional(),
         publicoAlvoDefault: z.string().optional(),
         atividadesDefault: z.array(z.string()).optional(),
+        pontosProvaDefault: z.string().optional(),
+        bibliografiaDefault: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, atividadesDefault, ...updateData } = input
+      const { id, atividadesDefault, pontosProvaDefault, bibliografiaDefault, ...updateData } = input
 
       const template = await ctx.db.query.projetoTemplateTable.findFirst({
         where: eq(projetoTemplateTable.id, id),
@@ -183,6 +193,8 @@ export const projetoTemplatesRouter = createTRPCRouter({
         .set({
           ...updateData,
           atividadesDefault: atividadesDefault ? JSON.stringify(atividadesDefault) : null,
+          pontosProvaDefault: pontosProvaDefault,
+          bibliografiaDefault: bibliografiaDefault,
           ultimaAtualizacaoUserId: ctx.user.id,
         })
         .where(eq(projetoTemplateTable.id, id))
@@ -344,6 +356,8 @@ export const projetoTemplatesRouter = createTRPCRouter({
         numeroSemanasDefault: z.number().int().positive().optional(),
         publicoAlvoDefault: z.string().optional(),
         atividadesDefault: z.array(z.string()).optional(),
+        pontosProvaDefault: z.string().optional(),
+        bibliografiaDefault: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -352,7 +366,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
         where: eq(projetoTemplateTable.disciplinaId, input.disciplinaId),
       })
 
-      const { disciplinaId, atividadesDefault, ...templateData } = input
+      const { disciplinaId, atividadesDefault, pontosProvaDefault, bibliografiaDefault, ...templateData } = input
 
       if (existingTemplate) {
         // Update existing template
@@ -361,6 +375,8 @@ export const projetoTemplatesRouter = createTRPCRouter({
           .set({
             ...templateData,
             atividadesDefault: atividadesDefault ? JSON.stringify(atividadesDefault) : null,
+            pontosProvaDefault: pontosProvaDefault,
+            bibliografiaDefault: bibliografiaDefault,
             ultimaAtualizacaoUserId: ctx.user.id,
           })
           .where(eq(projetoTemplateTable.id, existingTemplate.id))
@@ -376,6 +392,8 @@ export const projetoTemplatesRouter = createTRPCRouter({
           disciplinaId,
           ...templateData,
           atividadesDefault: atividadesDefault ? JSON.stringify(atividadesDefault) : null,
+          pontosProvaDefault: pontosProvaDefault || null,
+          bibliografiaDefault: bibliografiaDefault || null,
           criadoPorUserId: ctx.user.id,
         })
         .returning()

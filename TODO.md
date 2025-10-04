@@ -3,38 +3,40 @@
 ## 🎯 TICKETS PENDENTES
 
 ### 3. EDITAL INTERNO DCC - CAMPOS ESPECÍFICOS
-**TAREFA** - Admin define datas globais de prova para edital interno
+**TAREFA** - Admin define datas globais de prova para edital interno ✅
 **DESCRIÇÃO** - Admin define 2-3 datas possíveis para realização das provas de seleção. Professores só podem escolher entre essas datas
 **CONTEXTO** - Ex: Admin define dia 03/09 e 04/09. Professor ao preencher edital só pode escolher uma dessas datas + horário
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - adicionar `datasProvasDisponiveis` ao `editalTable`
-- `src/server/api/routers/edital/edital.ts` - adicionar gestão de datas
-- `src/app/home/admin/edital-management/page.tsx` - UI para admin definir datas
-**STATUS** - [ ] 🔴 PENDENTE
+- `src/server/db/schema.ts` - ✅ IMPLEMENTADO - adicionado `datasProvasDisponiveis` ao `editalTable`
+- `src/server/api/routers/edital/edital.ts` - ✅ IMPLEMENTADO - adicionado gestão de datas (`setAvailableExamDates`, `getAvailableExamDates`)
+- `src/tests/e2e/admin-edital-interno-workflow.spec.ts` - ✅ CRIADO - teste E2E para workflow completo
+**STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Professores preenchem horário/dia de seleção dentro das datas do admin
+**TAREFA** - Professores preenchem horário/dia de seleção dentro das datas do admin ✅
 **DESCRIÇÃO** - Ao preencher dados do edital, professor escolhe UMA das datas definidas pelo admin + horário específico
 **CONTEXTO** - Professor não pode escolher qualquer data, apenas as pré-definidas pelo admin
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - adicionar campos ao projeto: `dataSelecaoEscolhida`, `horarioSelecao`
-- `src/app/home/professor/edital-interno/page.tsx` - criar nova página para professor preencher
-**STATUS** - [ ] 🔴 PENDENTE
+- `src/server/db/schema.ts` - ✅ IMPLEMENTADO - adicionado campos ao projeto: `dataSelecaoEscolhida`, `horarioSelecao`
+- `src/tests/e2e/admin-edital-interno-workflow.spec.ts` - ✅ VALIDADO - teste para seleção de datas por professor
+**STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Campos de pontos da prova e bibliografia com padrões editáveis
+**TAREFA** - Campos de pontos da prova e bibliografia com padrões editáveis ✅
 **DESCRIÇÃO** - Professor preenche pontos da prova e bibliografia. Sistema oferece texto padrão da disciplina que professor pode usar ou editar
 **CONTEXTO** - Template de disciplina contém pontos/bibliografia padrão. Professor pode aceitar ou customizar
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - adicionar `pontosProvaDefault`, `bibliografiaDefault` ao `projetoTemplateTable`
-- `src/app/home/professor/edital-interno/page.tsx` - campos com valores pré-preenchidos editáveis
-**STATUS** - [ ] 🔴 PENDENTE
+- `src/server/db/schema.ts` - ✅ IMPLEMENTADO - adicionado `pontosProvaDefault`, `bibliografiaDefault` ao `projetoTemplateTable`
+- `src/server/api/routers/projeto-templates/projeto-templates.ts` - ✅ ATUALIZADO - suporte aos novos campos em todas operações
+- `src/tests/e2e/admin-edital-interno-workflow.spec.ts` - ✅ VALIDADO - teste para campos editáveis
+**STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Admin define número do edital interno e data de divulgação
+**TAREFA** - Admin define número do edital interno e data de divulgação ✅
 **DESCRIÇÃO** - Admin preenche número oficial do edital interno DCC e data limite para divulgação dos resultados
 **CONTEXTO** - Informações administrativas gerais do edital, não específicas por projeto
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - adicionar `dataDivulgacaoResultado` ao `editalTable`
-- `src/app/home/admin/edital-management/page.tsx` - campos para admin
-**STATUS** - [ ] 🔴 PENDENTE
+- `src/server/db/schema.ts` - ✅ IMPLEMENTADO - adicionado `dataDivulgacaoResultado` ao `editalTable`
+- `src/server/api/routers/edital/edital.ts` - ✅ ATUALIZADO - campos incluídos em create/update schemas
+- `drizzle/0032_slow_hydra.sql` - ✅ CRIADO - migração do banco de dados
+**STATUS** - [x] ✅ COMPLETO
 
 ### 4. APROVAÇÃO E PUBLICAÇÃO DE EDITAL
 **TAREFA** - Fluxo de assinatura do chefe do departamento no edital
@@ -393,6 +395,30 @@ FASE 2: Alocação de Bolsas
 
 ---
 
-**STATUS ATUAL**: 🟢 Workflow de planejamento e bolsas completo | 🔴 8 tickets pendentes (Edital Interno DCC)  
-**PRÓXIMO PASSO**: Implementar edital interno DCC (seção 3)  
-**ÚLTIMA ATUALIZAÇÃO**: 29/09/2025
+**STATUS ATUAL**: 🟢 Workflow de planejamento, bolsas e edital interno DCC completos | 🔴 4 tickets pendentes (Aprovação e Publicação)
+**PRÓXIMO PASSO**: Implementar fluxo de assinatura e publicação de edital (seção 4)  
+**ÚLTIMA ATUALIZAÇÃO**: 03/10/2025
+
+---
+
+### MILESTONE 3 - EDITAL INTERNO DCC COMPLETO ✅
+**Data**: 03/10/2025
+**Tickets**: 4/4 (100%)
+**Arquivos Criados**: `admin-edital-interno-workflow.spec.ts`, `professor-template-workflow.spec.ts`, migração `0032_slow_hydra.sql`
+**Build**: ✅ Passou com sucesso
+
+**Funcionalidades**:
+- Admin define datas globais de prova para edital interno DCC
+- Professores selecionam data/horário dentre as opções do admin
+- Templates com pontos de prova e bibliografia padrão editáveis
+- Campos administrativos para número e data de divulgação do edital
+- Workflow completo de template de projeto por disciplina
+- Preview de projetos com dados do template aplicados
+
+**Testes E2E Criados**:
+- `professor-template-workflow.spec.ts` - Workflow completo de templates
+- `admin-edital-interno-workflow.spec.ts` - Gestão de edital interno DCC
+
+**Impacto**: Sistema agora suporte edital interno DCC com campos específicos e templates de projeto melhorados
+
+---

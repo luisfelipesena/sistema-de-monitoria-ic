@@ -24,6 +24,9 @@ export const editalSchema = z.object({
   dataPublicacao: z.date().nullable(),
   publicado: z.boolean(),
   valorBolsa: z.string().default('400.00'),
+  // Campos específicos para edital interno DCC
+  datasProvasDisponiveis: z.string().nullable(), // JSON array de datas
+  dataDivulgacaoResultado: z.date().nullable(),
   criadoPorUserId: z.number(),
   createdAt: z.date(),
   updatedAt: z.date().nullable(),
@@ -41,6 +44,9 @@ export const newEditalSchema = z
     dataInicio: z.date(),
     dataFim: z.date(),
     fileIdProgradOriginal: z.string().optional(), // Para editais PROGRAD
+    // Campos específicos para edital interno DCC
+    datasProvasDisponiveis: z.array(z.string()).optional(), // Array de datas em formato ISO
+    dataDivulgacaoResultado: z.date().optional(),
   })
   .refine((data) => data.dataFim > data.dataInicio, {
     message: 'Data de fim deve ser posterior à data de início',
@@ -69,6 +75,9 @@ export const updateEditalSchema = z
     semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']).optional(),
     dataInicio: z.date().optional(),
     dataFim: z.date().optional(),
+    // Campos específicos para edital interno DCC
+    datasProvasDisponiveis: z.array(z.string()).optional(),
+    dataDivulgacaoResultado: z.date().optional(),
   })
   .refine(
     (data) => {
@@ -342,6 +351,8 @@ export const editalRouter = createTRPCRouter({
           tipo,
           valorBolsa,
           fileIdProgradOriginal,
+          datasProvasDisponiveis,
+          dataDivulgacaoResultado,
         } = input
 
         const numeroEditalExistente = await ctx.db.query.editalTable.findFirst({
@@ -393,6 +404,8 @@ export const editalRouter = createTRPCRouter({
             descricaoHtml: descricaoHtml || null,
             valorBolsa,
             fileIdProgradOriginal: fileIdProgradOriginal || null,
+            datasProvasDisponiveis: datasProvasDisponiveis ? JSON.stringify(datasProvasDisponiveis) : null,
+            dataDivulgacaoResultado: dataDivulgacaoResultado || null,
             criadoPorUserId: adminUserId,
             publicado: false,
           })
@@ -470,7 +483,16 @@ export const editalRouter = createTRPCRouter({
     .input(updateEditalSchema)
     .output(editalSchema)
     .mutation(async ({ input, ctx }) => {
-      const { id, ano, semestre, dataInicio, dataFim, ...editalUpdateData } = input
+      const {
+        id,
+        ano,
+        semestre,
+        dataInicio,
+        dataFim,
+        datasProvasDisponiveis,
+        dataDivulgacaoResultado,
+        ...editalUpdateData
+      } = input
 
       const edital = await ctx.db.query.editalTable.findFirst({
         where: eq(editalTable.id, id),
@@ -529,6 +551,13 @@ export const editalRouter = createTRPCRouter({
         .update(editalTable)
         .set({
           ...editalUpdateData,
+          datasProvasDisponiveis:
+            datasProvasDisponiveis !== undefined
+              ? datasProvasDisponiveis
+                ? JSON.stringify(datasProvasDisponiveis)
+                : null
+              : undefined,
+          dataDivulgacaoResultado: dataDivulgacaoResultado !== undefined ? dataDivulgacaoResultado || null : undefined,
           updatedAt: new Date(),
         })
         .where(eq(editalTable.id, id))
@@ -962,5 +991,96 @@ export const editalRouter = createTRPCRouter({
       })
 
       return edital || null
+    }),
+
+  // Specific endpoints for internal DCC announcement management
+  setAvailableExamDates: adminProtectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/editais/{id}/exam-dates',
+        tags: ['editais'],
+        summary: 'Set available exam dates',
+        description: 'Admin defines available exam dates for internal DCC announcement',
+      },
+    })
+    .input(
+      z.object({
+        id: z.number(),
+        datasProvasDisponiveis: z.array(z.string()).min(1, 'Pelo menos uma data deve ser definida'),
+        dataDivulgacaoResultado: z.date().optional(),
+      })
+    )
+    .output(editalSchema)
+    .mutation(async ({ input, ctx }) => {
+      const { id, datasProvasDisponiveis, dataDivulgacaoResultado } = input
+
+      const edital = await ctx.db.query.editalTable.findFirst({
+        where: eq(editalTable.id, id),
+      })
+
+      if (!edital) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Edital não encontrado' })
+      }
+
+      if (edital.tipo !== 'DCC') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Datas de prova só podem ser definidas para editais internos DCC',
+        })
+      }
+
+      const [updated] = await ctx.db
+        .update(editalTable)
+        .set({
+          datasProvasDisponiveis: JSON.stringify(datasProvasDisponiveis),
+          dataDivulgacaoResultado: dataDivulgacaoResultado || null,
+          updatedAt: new Date(),
+        })
+        .where(eq(editalTable.id, id))
+        .returning()
+
+      log.info(
+        { editalId: id, datasCount: datasProvasDisponiveis.length, adminUserId: ctx.user.id },
+        'Datas de prova definidas para edital interno'
+      )
+
+      return updated
+    }),
+
+  getAvailableExamDates: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/editais/{id}/exam-dates',
+        tags: ['editais'],
+        summary: 'Get available exam dates',
+        description: 'Get available exam dates for internal DCC announcement',
+      },
+    })
+    .input(z.object({ id: z.number() }))
+    .output(
+      z.object({
+        datasProvasDisponiveis: z.array(z.string()).nullable(),
+        dataDivulgacaoResultado: z.date().nullable(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const edital = await ctx.db.query.editalTable.findFirst({
+        where: eq(editalTable.id, input.id),
+        columns: {
+          datasProvasDisponiveis: true,
+          dataDivulgacaoResultado: true,
+        },
+      })
+
+      if (!edital) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Edital não encontrado' })
+      }
+
+      return {
+        datasProvasDisponiveis: edital.datasProvasDisponiveis ? JSON.parse(edital.datasProvasDisponiveis) : null,
+        dataDivulgacaoResultado: edital.dataDivulgacaoResultado,
+      }
     }),
 })

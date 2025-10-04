@@ -139,6 +139,8 @@ describe('editalRouter', () => {
         updatedAt: null,
         dataPublicacao: null,
         periodoInscricaoId: 1,
+        datasProvasDisponiveis: null,
+        dataDivulgacaoResultado: null,
       }
 
       vi.spyOn(mockContext.db.query.editalTable, 'findFirst')
