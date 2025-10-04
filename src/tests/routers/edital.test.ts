@@ -156,7 +156,17 @@ describe('editalRouter', () => {
       vi.spyOn(mockContext.db, 'update').mockReturnValue({
         set: vi.fn().mockReturnThis(),
         where: vi.fn().mockReturnThis(),
-        returning: vi.fn().mockResolvedValue([{ ...signedEdital, publicado: true, chefeAssinouEm: null, chefeAssinatura: null, chefeDepartamentoId: null }]),
+        returning: vi
+          .fn()
+          .mockResolvedValue([
+            {
+              ...signedEdital,
+              publicado: true,
+              chefeAssinouEm: null,
+              chefeAssinatura: null,
+              chefeDepartamentoId: null,
+            },
+          ]),
       } as any)
 
       const result = await caller.publishEdital({ id: 1 })

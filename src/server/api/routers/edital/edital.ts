@@ -707,15 +707,17 @@ export const editalRouter = createTRPCRouter({
       z.object({
         id: z.number(),
         emailLists: z.array(z.string().email()).optional().default([
-          'estudantes.ic@ufba.br',  // Lista de estudantes
+          'estudantes.ic@ufba.br', // Lista de estudantes
           'professores.ic@ufba.br', // Lista de professores
         ]),
       })
     )
-    .output(z.object({
-      edital: editalSchema,
-      emailsSent: z.number(),
-    }))
+    .output(
+      z.object({
+        edital: editalSchema,
+        emailsSent: z.number(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       // Primeiro publica o edital usando a lógica existente
       const edital = await ctx.db.query.editalTable.findFirst({
@@ -794,11 +796,14 @@ export const editalRouter = createTRPCRouter({
           to: input.emailLists,
         })
 
-        log.info({
-          editalId: input.id,
-          adminUserId: ctx.user.id,
-          emailsSent: input.emailLists.length
-        }, 'Edital publicado e emails enviados com sucesso')
+        log.info(
+          {
+            editalId: input.id,
+            adminUserId: ctx.user.id,
+            emailsSent: input.emailLists.length,
+          },
+          'Edital publicado e emails enviados com sucesso'
+        )
 
         return {
           edital: updatedEdital,

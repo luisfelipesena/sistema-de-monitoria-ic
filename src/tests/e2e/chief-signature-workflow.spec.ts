@@ -298,7 +298,7 @@ test.describe('Chief Signature Workflow', () => {
       page.locator('button:has-text("Novo Edital")'),
       page.locator('button:has-text("Solicitar Assinatura")'),
       page.locator('button:has-text("Publicar")'),
-      page.locator('text=/Rascunho|Assinado|Publicado/i')
+      page.locator('text=/Rascunho|Assinado|Publicado/i'),
     ]
 
     // At least some workflow elements should be present

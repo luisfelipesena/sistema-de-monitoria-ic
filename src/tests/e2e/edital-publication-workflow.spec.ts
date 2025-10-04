@@ -124,12 +124,7 @@ test.describe('Edital Publication and Notification Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check for different status badges
-    const statusBadges = [
-      'Rascunho',
-      'Assinado pelo Chefe',
-      'PDF Assinado',
-      'Publicado'
-    ]
+    const statusBadges = ['Rascunho', 'Assinado pelo Chefe', 'PDF Assinado', 'Publicado']
 
     let badgesFound = 0
     for (const badgeText of statusBadges) {
@@ -165,7 +160,7 @@ test.describe('Edital Publication and Notification Workflow', () => {
     const workflowButtons = [
       page.locator('button:has-text("Solicitar Assinatura")'),
       page.locator('button:has-text("Publicar")'),
-      page.locator('button:has-text("Novo Edital")')
+      page.locator('button:has-text("Novo Edital")'),
     ]
 
     let buttonCount = 0
