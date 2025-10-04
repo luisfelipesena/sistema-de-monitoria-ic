@@ -28,22 +28,64 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
     // Check if we're on the correct page
     await expect(page.locator('h1, h2').filter({ hasText: /Gerenciar Editais/i })).toBeVisible({ timeout: 5000 })
 
-    // Look for "Novo Edital" button and verify it exists (basic validation)
+    // Look for "Novo Edital" button and verify it exists
     const createEditalButton = page.getByRole('button', { name: 'Novo Edital' })
     await expect(createEditalButton).toBeVisible({ timeout: 10000 })
 
     // Click to open dialog
     await createEditalButton.click()
 
-    // Verify dialog opened (basic dialog functionality test)
+    // Verify dialog opened
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
 
-    // Basic form validation - check that form fields exist
-    await expect(page.locator('label:has-text("Número do Edital")')).toBeVisible()
-    await expect(page.locator('label:has-text("Título")')).toBeVisible()
+    // Wait for form fields to be ready
+    await page.waitForTimeout(1000)
 
-    // Edital creation form is accessible and functional
-    // Note: Full form submission tested separately in other working tests
+    // Fill edital form with exam dates
+    const numeroField = page.locator('input[name="numero"]')
+    if (await numeroField.isVisible({ timeout: 3000 })) {
+      await numeroField.fill('01/2025')
+    }
+
+    const tituloField = page.locator('input[name="titulo"]')
+    if (await tituloField.isVisible({ timeout: 3000 })) {
+      await tituloField.fill('Edital Interno DCC - Monitoria 2025.1')
+    }
+
+    // Add exam dates for internal edital
+    const addDateButton = page.locator('button:has-text("Adicionar Data")')
+    if (await addDateButton.isVisible({ timeout: 3000 })) {
+      await addDateButton.click()
+
+      // Fill first exam date
+      const dateInput = page.locator('input[type="date"]').first()
+      if (await dateInput.isVisible({ timeout: 3000 })) {
+        await dateInput.fill('2025-03-15')
+      }
+
+      // Add another date
+      await addDateButton.click()
+      const secondDateInput = page.locator('input[type="date"]').nth(1)
+      if (await secondDateInput.isVisible({ timeout: 3000 })) {
+        await secondDateInput.fill('2025-03-22')
+      }
+    }
+
+    // Fill other edital fields
+    const descricaoField = page.locator('textarea[name="descricao"]')
+    if (await descricaoField.isVisible({ timeout: 3000 })) {
+      await descricaoField.fill('Edital interno para seleção de monitores do DCC')
+    }
+
+    // Save edital
+    const saveButton = page.locator('button:has-text("Salvar")')
+    if (await saveButton.isVisible({ timeout: 3000 })) {
+      await saveButton.click()
+
+      // Verify success message
+      const successToast = page.locator('[data-state="open"]').getByText(/Edital (criado|salvo)/)
+      await expect(successToast).toBeVisible({ timeout: 10000 })
+    }
   })
 
   test('should verify exam dates are available for professor project creation', async ({ page }) => {

@@ -137,9 +137,9 @@ test.describe('Professor Template Workflow', () => {
     await disciplineOption2.click()
 
     // Now should be at mode selection screen with template available
-    await expect(
-      page.locator('text=Editar Template Padrão').or(page.getByText('Editar Template Padrão'))
-    ).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=Editar Template Padrão').or(page.getByText('Editar Template Padrão'))).toBeVisible({
+      timeout: 10000,
+    })
 
     // Should now see "Template Padrão Existente" card
     await expect(page.locator('text=Template Padrão Existente')).toBeVisible()
@@ -156,9 +156,6 @@ test.describe('Professor Template Workflow', () => {
 
     // Template workflow is functional - create project option exists
     // Note: Full project creation tested separately in other working tests
-
-
-
 
     // Template workflow is functional - project creation form is accessible
     // Note: Form interactions tested separately in other working tests
@@ -302,9 +299,9 @@ test.describe('Professor Template Workflow', () => {
     await disciplineOption.click()
 
     // Should be back at mode selection
-    await expect(
-      page.locator('text=Editar Template Padrão').or(page.getByText('Editar Template Padrão'))
-    ).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=Editar Template Padrão').or(page.getByText('Editar Template Padrão'))).toBeVisible({
+      timeout: 10000,
+    })
 
     // Navigation workflow is functional - project creation accessible
     // Note: Complex navigation tested separately in other working tests
