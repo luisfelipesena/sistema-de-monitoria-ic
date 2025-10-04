@@ -604,6 +604,68 @@ export const sendScholarshipAllocationNotification = async (data: {
   log.info({ to: data.to }, 'Email de alocação de bolsas enviado')
 }
 
+export const sendEditalPublishedNotification = async (data: {
+  editalNumero: string
+  editalTitulo: string
+  semestreFormatado: string
+  ano: number
+  linkPDF: string
+  to: string[]
+}) => {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color: #333; border-bottom: 2px solid #0066cc; padding-bottom: 10px;">
+        📢 Edital Publicado - ${data.semestreFormatado}/${data.ano}
+      </h2>
+
+      <p>Prezados estudantes e professores,</p>
+
+      <p>Foi publicado o <strong>${data.editalTitulo}</strong> para o período de <strong>${data.semestreFormatado}/${data.ano}</strong>.</p>
+
+      <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+        <p><strong>📋 Edital:</strong> ${data.editalNumero}</p>
+        <p><strong>📝 Título:</strong> ${data.editalTitulo}</p>
+        <p><strong>📅 Período:</strong> ${data.semestreFormatado}/${data.ano}</p>
+      </div>
+
+      <p>Acesse o edital completo através do link abaixo:</p>
+
+      <p style="margin-top: 20px;">
+        <a href="${data.linkPDF}"
+           style="background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+          📄 Visualizar Edital (PDF)
+        </a>
+      </p>
+
+      <p style="margin-top: 30px; color: #666; font-size: 14px;">
+        <strong>📌 Para estudantes:</strong> Consulte o edital para informações sobre prazos de inscrição e requisitos.
+      </p>
+
+      <p style="color: #666; font-size: 14px;">
+        <strong>👨‍🏫 Para professores:</strong> Consulte o edital para informações sobre o processo seletivo de monitores.
+      </p>
+
+      <p style="margin-top: 20px;">Atenciosamente,<br/>
+      <strong>Sistema de Monitoria IC - UFBA</strong></p>
+    </div>
+  `
+
+  // Enviar para todas as listas de email (estudantes e professores)
+  for (const email of data.to) {
+    try {
+      await sendGenericEmail({
+        to: email,
+        subject: `[Monitoria IC] ${data.editalTitulo} - ${data.semestreFormatado}/${data.ano}`,
+        html,
+        tipoNotificacao: 'EDITAL_PUBLISHED_NOTIFICATION',
+      })
+      log.info({ to: email }, 'Email de publicação de edital enviado')
+    } catch (error) {
+      log.error({ error, to: email }, 'Erro ao enviar email de publicação de edital')
+    }
+  }
+}
+
 export const emailService = {
   sendGenericEmail,
   sendProjetoStatusChangeNotification,

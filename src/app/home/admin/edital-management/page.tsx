@@ -134,6 +134,23 @@ export default function EditalManagementPage() {
     },
   })
 
+  const requestChefeSignatureMutation = api.edital.requestChefeSignature.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Sucesso!",
+        description: "Solicitação de assinatura enviada ao chefe do departamento!",
+      })
+      refetch()
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      })
+    },
+  })
+
   const uploadFileMutation = api.file.uploadFile.useMutation()
   const generatePdfMutation = useEditalPdf()
 
@@ -242,6 +259,14 @@ export default function EditalManagementPage() {
     }
   }
 
+  const handleRequestChefeSignature = async (editalId: number) => {
+    try {
+      await requestChefeSignatureMutation.mutateAsync({ id: editalId })
+    } catch (error) {
+      console.error("Error requesting chief signature:", error)
+    }
+  }
+
   const openEditDialog = (edital: EditalListItem) => {
     setSelectedEdital(edital)
     editForm.reset({
@@ -266,11 +291,20 @@ export default function EditalManagementPage() {
       )
     }
 
+    if (edital.chefeAssinouEm) {
+      return (
+        <Badge variant="outline" className="border-purple-500 text-purple-700">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Assinado pelo Chefe
+        </Badge>
+      )
+    }
+
     if (edital.fileIdAssinado) {
       return (
         <Badge variant="outline" className="border-blue-500 text-blue-700">
           <Clock className="h-3 w-3 mr-1" />
-          Assinado
+          PDF Assinado
         </Badge>
       )
     }
@@ -405,6 +439,18 @@ export default function EditalManagementPage() {
                   <Upload className="h-4 w-4" />
                 </Button>
               </div>
+            )}
+
+            {edital.tipo === 'DCC' && !edital.chefeAssinouEm && edital.titulo && edital.descricaoHtml && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleRequestChefeSignature(edital.id)}
+                disabled={requestChefeSignatureMutation.isPending}
+                title="Solicitar assinatura do chefe do departamento"
+              >
+                Solicitar Assinatura
+              </Button>
             )}
 
             {canPublish && (

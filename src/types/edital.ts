@@ -70,6 +70,10 @@ export interface EditalListItem {
   fileIdAssinado: string | null
   dataPublicacao: Date | null
   publicado: boolean
+  tipo?: TipoEdital
+  chefeAssinouEm?: Date | null
+  chefeAssinatura?: string | null
+  chefeDepartamentoId?: number | null
   createdAt: Date
   periodoInscricao: {
     id: number

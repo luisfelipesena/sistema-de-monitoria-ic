@@ -185,6 +185,7 @@ export const projetoTable = pgTable('projeto', {
   descricao: text('descricao').notNull(), // Objectives/Justification
   professoresParticipantes: text('professores_participantes'), // Names of participating professors for collective projects
   // Campos específicos para edital interno DCC
+  editalInternoId: integer('edital_interno_id').references(() => editalTable.id), // Optional reference to internal DCC edital
   dataSelecaoEscolhida: date('data_selecao_escolhida', { mode: 'date' }), // Data escolhida pelo professor dentre as disponíveis
   horarioSelecao: varchar('horario_selecao', { length: 20 }), // Horário da seleção (ex: "14:00-16:00")
   status: projetoStatusEnum('status').notNull().default('DRAFT'),
@@ -620,6 +621,10 @@ export const projetoRelations = relations(projetoTable, ({ one, many }) => ({
     fields: [projetoTable.professorResponsavelId],
     references: [professorTable.id],
   }),
+  editalInterno: one(editalTable, {
+    fields: [projetoTable.editalInternoId],
+    references: [editalTable.id],
+  }),
   disciplinas: many(projetoDisciplinaTable),
   professoresParticipantes: many(projetoProfessorParticipanteTable),
   atividades: many(atividadeProjetoTable),
@@ -890,6 +895,12 @@ export const editalTable = pgTable('edital', {
   // Campos específicos para edital interno DCC
   datasProvasDisponiveis: text('datas_provas_disponiveis'), // JSON array de datas disponíveis para provas
   dataDivulgacaoResultado: date('data_divulgacao_resultado', { mode: 'date' }), // Data limite para divulgação
+  pontosProva: text('pontos_prova'), // Pontos/tópicos específicos da prova para este edital
+  bibliografia: text('bibliografia'), // Bibliografia específica para este edital
+  // Campos de assinatura do chefe do departamento
+  chefeAssinouEm: timestamp('chefe_assinou_em', { withTimezone: true, mode: 'date' }), // Data/hora da assinatura do chefe
+  chefeAssinatura: text('chefe_assinatura'), // Assinatura digital do chefe (base64 ou URL)
+  chefeDepartamentoId: integer('chefe_departamento_id').references(() => userTable.id), // ID do usuário que assinou como chefe
   criadoPorUserId: integer('criado_por_user_id')
     .references(() => userTable.id)
     .notNull(),
@@ -897,13 +908,18 @@ export const editalTable = pgTable('edital', {
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
 })
 
-export const editalRelations = relations(editalTable, ({ one }) => ({
+export const editalRelations = relations(editalTable, ({ one, many }) => ({
   periodoInscricao: one(periodoInscricaoTable, {
     fields: [editalTable.periodoInscricaoId],
     references: [periodoInscricaoTable.id],
   }),
   criadoPor: one(userTable, {
     fields: [editalTable.criadoPorUserId],
+    references: [userTable.id],
+  }),
+  projetos: many(projetoTable), // Projetos vinculados a este edital interno
+  chefeDepartamento: one(userTable, {
+    fields: [editalTable.chefeDepartamentoId],
     references: [userTable.id],
   }),
 }))
