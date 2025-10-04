@@ -551,12 +551,13 @@ export const editalRouter = createTRPCRouter({
         .update(editalTable)
         .set({
           ...editalUpdateData,
-          datasProvasDisponiveis: datasProvasDisponiveis !== undefined
-            ? (datasProvasDisponiveis ? JSON.stringify(datasProvasDisponiveis) : null)
-            : undefined,
-          dataDivulgacaoResultado: dataDivulgacaoResultado !== undefined
-            ? (dataDivulgacaoResultado || null)
-            : undefined,
+          datasProvasDisponiveis:
+            datasProvasDisponiveis !== undefined
+              ? datasProvasDisponiveis
+                ? JSON.stringify(datasProvasDisponiveis)
+                : null
+              : undefined,
+          dataDivulgacaoResultado: dataDivulgacaoResultado !== undefined ? dataDivulgacaoResultado || null : undefined,
           updatedAt: new Date(),
         })
         .where(eq(editalTable.id, id))
