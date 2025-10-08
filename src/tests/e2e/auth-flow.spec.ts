@@ -14,8 +14,8 @@ test.describe('Authentication Flow', () => {
   test('should load login page correctly', async ({ page }) => {
     // Check that login page elements are present
     await expect(page.locator('h1')).toContainText('Bem-vindo de volta')
-    await expect(page.getByPlaceholder('nome@ufba.br')).toBeVisible()
-    await expect(page.getByPlaceholder('••••••••')).toBeVisible()
+    await expect(page.getByPlaceholder('seu.email@exemplo.com')).toBeVisible()
+    await expect(page.getByPlaceholder('••••••••••')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible()
   })
 
@@ -33,8 +33,8 @@ test.describe('Authentication Flow', () => {
 
   test('should show validation error for invalid email', async ({ page }) => {
     // Fill invalid email
-    await page.getByPlaceholder('nome@ufba.br').fill('invalid-email')
-    await page.getByPlaceholder('••••••••').fill('password123')
+    await page.getByPlaceholder('seu.email@exemplo.com').fill('invalid-email')
+    await page.getByPlaceholder('••••••••••').fill('password123')
     await page.getByRole('button', { name: 'Entrar' }).click()
 
     // Check for form validation or browser built-in validation
@@ -52,14 +52,14 @@ test.describe('Authentication Flow', () => {
     // Wait and skip the actual login test for now as we need to set up test data properly
     // This test validates that the form structure is correct for authentication
     await page.goto('/auth/login')
-    await expect(page.getByPlaceholder('nome@ufba.br')).toBeVisible()
-    await expect(page.getByPlaceholder('••••••••')).toBeVisible()
+    await expect(page.getByPlaceholder('seu.email@exemplo.com')).toBeVisible()
+    await expect(page.getByPlaceholder('••••••••••')).toBeVisible()
   })
 
   test('should show error for invalid credentials', async ({ page }) => {
     // Fill login form with invalid credentials
-    await page.getByPlaceholder('nome@ufba.br').fill('invalid@example.com')
-    await page.getByPlaceholder('••••••••').fill('wrongpassword')
+    await page.getByPlaceholder('seu.email@exemplo.com').fill('invalid@example.com')
+    await page.getByPlaceholder('••••••••••').fill('wrongpassword')
 
     // Submit form
     await page.getByRole('button', { name: 'Entrar' }).click()
@@ -104,7 +104,7 @@ test.describe('Navigation and UI', () => {
 
     // Navigate back to login
     await page.goto('/auth/login')
-    await expect(page.getByPlaceholder('nome@ufba.br')).toBeVisible()
+    await expect(page.getByPlaceholder('seu.email@exemplo.com')).toBeVisible()
   })
 })
 

@@ -7,9 +7,9 @@ const ADMIN_USER = {
 
 async function loginAsAdmin(page: Page) {
   await page.goto('/auth/login')
-  await page.getByPlaceholder('nome@ufba.br').fill(ADMIN_USER.email)
-  await page.getByPlaceholder('••••••••').fill(ADMIN_USER.password)
-  await page.getByRole('button', { name: 'Entrar com e-mail' }).first().click()
+  await page.getByPlaceholder('seu.email@exemplo.com').fill(ADMIN_USER.email)
+  await page.getByPlaceholder('••••••••••').fill(ADMIN_USER.password)
+  await page.getByRole('button', { name: 'Entrar' }).click()
 
   // Wait for navigation to dashboard or home
   await page.waitForURL(/\/(home|dashboard)/, { timeout: 10000 })
@@ -98,9 +98,9 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       password: 'password123',
     }
 
-    await page.getByPlaceholder('nome@ufba.br').fill(PROFESSOR_USER.email)
-    await page.getByPlaceholder('••••••••').fill(PROFESSOR_USER.password)
-    await page.getByRole('button', { name: 'Entrar com e-mail' }).first().click()
+    await page.getByPlaceholder('seu.email@exemplo.com').fill(PROFESSOR_USER.email)
+    await page.getByPlaceholder('••••••••••').fill(PROFESSOR_USER.password)
+    await page.getByRole('button', { name: 'Entrar' }).click()
 
     await page.waitForURL(/\/(home|dashboard)/, { timeout: 10000 })
 
@@ -154,9 +154,9 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       password: 'password123',
     }
 
-    await page.getByPlaceholder('nome@ufba.br').fill(PROFESSOR_USER.email)
-    await page.getByPlaceholder('••••••••').fill(PROFESSOR_USER.password)
-    await page.getByRole('button', { name: 'Entrar com e-mail' }).first().click()
+    await page.getByPlaceholder('seu.email@exemplo.com').fill(PROFESSOR_USER.email)
+    await page.getByPlaceholder('••••••••••').fill(PROFESSOR_USER.password)
+    await page.getByRole('button', { name: 'Entrar' }).click()
 
     await page.waitForURL(/\/(home|dashboard)/, { timeout: 10000 })
 
@@ -225,9 +225,9 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       password: 'password123',
     }
 
-    await page.getByPlaceholder('nome@ufba.br').fill(PROFESSOR_USER.email)
-    await page.getByPlaceholder('••••••••').fill(PROFESSOR_USER.password)
-    await page.getByRole('button', { name: 'Entrar com e-mail' }).first().click()
+    await page.getByPlaceholder('seu.email@exemplo.com').fill(PROFESSOR_USER.email)
+    await page.getByPlaceholder('••••••••••').fill(PROFESSOR_USER.password)
+    await page.getByRole('button', { name: 'Entrar' }).click()
 
     await page.waitForURL(/\/(home|dashboard)/, { timeout: 10000 })
 

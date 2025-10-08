@@ -7,9 +7,9 @@ const STUDENT_USER = {
 
 async function loginAsStudent(page: Page) {
   await page.goto('/auth/login')
-  await page.getByPlaceholder('nome@ufba.br').fill(STUDENT_USER.email)
-  await page.getByPlaceholder('••••••••').fill(STUDENT_USER.password)
-  await page.getByRole('button', { name: 'Entrar com e-mail' }).first().click()
+  await page.getByPlaceholder('seu.email@exemplo.com').fill(STUDENT_USER.email)
+  await page.getByPlaceholder('••••••••••').fill(STUDENT_USER.password)
+  await page.getByRole('button', { name: 'Entrar' }).click()
 
   // Wait for navigation to dashboard or home
   await page.waitForURL(/\/(home|dashboard)/, { timeout: 10000 })
