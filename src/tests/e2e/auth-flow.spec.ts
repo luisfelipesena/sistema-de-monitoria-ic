@@ -16,13 +16,12 @@ test.describe('Authentication Flow', () => {
     await expect(page.locator('h1')).toContainText('Bem-vindo de volta')
     await expect(page.getByPlaceholder('nome@ufba.br')).toBeVisible()
     await expect(page.getByPlaceholder('••••••••')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Entrar com e-mail' }).first()).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Entrar com e-mail UFBA' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible()
   })
 
   test('should show validation errors for empty form', async ({ page }) => {
     // Click login button without filling form
-    await page.getByRole('button', { name: 'Entrar com e-mail' }).first().click()
+    await page.getByRole('button', { name: 'Entrar' }).click()
 
     // Check for form validation - may show up after submission or be built-in browser validation
     const hasFormValidation = page
@@ -36,7 +35,7 @@ test.describe('Authentication Flow', () => {
     // Fill invalid email
     await page.getByPlaceholder('nome@ufba.br').fill('invalid-email')
     await page.getByPlaceholder('••••••••').fill('password123')
-    await page.getByRole('button', { name: 'Entrar com e-mail' }).first().click()
+    await page.getByRole('button', { name: 'Entrar' }).click()
 
     // Check for form validation or browser built-in validation
     const hasEmailValidation = page
@@ -63,7 +62,7 @@ test.describe('Authentication Flow', () => {
     await page.getByPlaceholder('••••••••').fill('wrongpassword')
 
     // Submit form
-    await page.getByRole('button', { name: 'Entrar com e-mail' }).first().click()
+    await page.getByRole('button', { name: 'Entrar' }).click()
 
     // Check for error message (could be in various formats)
     await expect(
@@ -88,22 +87,6 @@ test.describe('Authentication Flow', () => {
 
     // Verify navigation to forgot password page
     await expect(page).toHaveURL('/auth/forgot')
-  })
-
-  test('should handle CAS login button click', async ({ page }) => {
-    // Mock CAS login to prevent actual external redirect
-    await page.route('**/api/auth/cas/**', (route) => {
-      route.fulfill({
-        status: 200,
-        body: JSON.stringify({ success: true }),
-      })
-    })
-
-    // Click CAS login button
-    await page.getByRole('button', { name: 'Entrar com e-mail UFBA' }).click()
-
-    // Since this is mocked, we just verify the click worked
-    // In a real scenario, this would redirect to CAS
   })
 })
 
