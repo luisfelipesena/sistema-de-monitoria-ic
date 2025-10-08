@@ -88,7 +88,6 @@ test.describe('Authentication Flow', () => {
     // Verify navigation to forgot password page
     await expect(page).toHaveURL('/auth/forgot')
   })
-
 })
 
 test.describe('Navigation and UI', () => {
