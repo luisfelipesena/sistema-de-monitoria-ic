@@ -13,7 +13,7 @@ import { LoginUserInput, loginUserSchema } from "@/types"
 import { toast } from "sonner"
 
 export default function LoginPage() {
-  const { signInLocal, signInCas, errors, clearErrors } = useAuth()
+  const { signInLocal, errors, clearErrors } = useAuth()
 
   const form = useForm<LoginUserInput>({
     resolver: zodResolver(loginUserSchema),
@@ -37,12 +37,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="grid gap-8 md:grid-cols-[1.2fr_1fr]">
-      <div className="space-y-6">
+    <div className="flex justify-center">
+      <div className="space-y-6 w-full max-w-md">
         <h1 className="text-3xl font-bold text-slate-900">Bem-vindo de volta</h1>
         <p className="text-slate-600 text-sm leading-relaxed">
-          Faça login com seu e-mail institucional para acessar o Sistema de Monitoria IC. Caso possua acesso via UFBA,
-          você também pode utilizar o login UFBA.
+          Faça login com seu e-mail institucional para acessar o Sistema de Monitoria IC.
         </p>
 
         <div className="rounded-lg border border-slate-200 p-6 bg-white shadow-sm">
@@ -95,26 +94,6 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-
-      <aside className="h-full w-full rounded-xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white p-8 shadow-xl">
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold">Prefere o acesso institucional via e-mail UFBA?</h2>
-          <p className="text-blue-100 text-sm leading-relaxed">
-            Utilize o login via e-mail UFBA para aproveitar autenticação automática com sua conta UFBA. Ideal para
-            professores e estudantes que já possuem credenciais institucionais ativas.
-          </p>
-
-          <Button variant="secondary" className="w-full" onClick={signInCas}>
-            Entrar com e-mail UFBA
-          </Button>
-
-          <div className="text-xs text-blue-50 space-y-2">
-            <p>• Professores e alunos podem optar por qualquer método de autenticação.</p>
-            <p>• Após criar sua conta por e-mail, confirme o endereço informado para ativar o acesso.</p>
-            <p>• Caso tenha dificuldades com a autenticação via e-mail UFBA, utilize o login local como alternativa.</p>
-          </div>
-        </div>
-      </aside>
     </div>
   )
 }
