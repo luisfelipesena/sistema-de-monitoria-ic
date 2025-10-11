@@ -43,6 +43,15 @@ export type AppUser = {
   professor?: {
     id: number
     departamentoId: number | null
+    nomeCompleto: string
+    nomeSocial: string | null
+    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO' | null
+    cpf: string | null
+    matriculaSiape: string | null
+    regime: '20H' | '40H' | 'DE' | null
+    telefone: string | null
+    telefoneInstitucional: string | null
+    emailInstitucional: string | null
   } | null
   aluno?: {
     id: number

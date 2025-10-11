@@ -49,11 +49,6 @@ type ProjetoFormData = z.infer<typeof projectFormSchema>
 const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) => {
   return (
     <div className="border rounded-lg bg-white">
-      <div className="bg-green-50 border-b px-4 py-2">
-        <p className="text-sm text-green-800 font-medium">
-          ✅ Preview gerado - Clique em "Atualizar Preview" para ver alterações
-        </p>
-      </div>
       <div style={{ width: "100%", height: "800px" }}>
         <PDFViewer width="100%" height="100%" showToolbar={false}>
           <MonitoriaFormTemplate data={data} />
@@ -78,7 +73,6 @@ export default function NovoProjetoPage() {
   const [publicoAlvoTipo, setPublicoAlvoTipo] = useState<"estudantes_graduacao" | "outro">("estudantes_graduacao")
   const [publicoAlvoCustom, setPublicoAlvoCustom] = useState("")
   const [currentPdfData, setCurrentPdfData] = useState<MonitoriaFormData | null>(null)
-  const [hasChanges, setHasChanges] = useState(false)
   const [atividades, setAtividades] = useState<string[]>([
     "Auxiliar na elaboração de exercícios práticos de programação",
     "Apoiar estudantes em horários de plantão para esclarecimento de dúvidas",
@@ -93,11 +87,7 @@ export default function NovoProjetoPage() {
     { disciplinaId: selectedDisciplinaId! },
     { enabled: !!selectedDisciplinaId }
   )
-  const { data: disciplinaWithProfessor, isLoading: isLoadingProfessor } =
-    api.discipline.getDisciplineWithProfessor.useQuery(
-      { id: selectedDisciplinaId! },
-      { enabled: !!selectedDisciplinaId && selectedDisciplinaId !== 0 }
-    )
+  const { data: currentUser, isLoading: isLoadingUser } = api.me.getMe.useQuery()
 
   // Mutations
   const createProjeto = api.projeto.createProjeto.useMutation()
@@ -222,16 +212,6 @@ export default function NovoProjetoPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [publicoAlvoTipo, publicoAlvoCustom, isEditingTemplate])
 
-  // Track changes when form values change
-  useEffect(() => {
-    const subscription = form.watch(() => {
-      if (showPreview) {
-        setHasChanges(true)
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [form, showPreview])
-
   // Callbacks e handlers
   const generatePdfData = useCallback(
     (formValues: ProjetoFormData | TemplateFormData, isTemplate = false): MonitoriaFormData | null => {
@@ -242,7 +222,8 @@ export default function NovoProjetoPage() {
 
       if (!disciplina || !departamento) return null
 
-      const professor = disciplinaWithProfessor?.professor
+      // Use dados do professor logado ao invés do professor associado à disciplina
+      const professor = currentUser?.professor
 
       if (isTemplate) {
         const templateValues = formValues as TemplateFormData
@@ -326,7 +307,7 @@ export default function NovoProjetoPage() {
         }
       }
     },
-    [departamentos, disciplinas, selectedDisciplinaId, disciplinaWithProfessor?.professor, atividades]
+    [departamentos, disciplinas, selectedDisciplinaId, currentUser?.professor, atividades]
   )
 
   const handleDisciplinaSelect = (disciplinaId: string) => {
@@ -464,7 +445,6 @@ export default function NovoProjetoPage() {
 
       setCurrentPdfData(pdfData)
       setShowPreview(true)
-      setHasChanges(false)
       setPdfKey((prev) => prev + 1)
     } catch (error) {
       toast({
@@ -497,7 +477,6 @@ export default function NovoProjetoPage() {
       await new Promise((resolve) => setTimeout(resolve, 500))
 
       setCurrentPdfData(pdfData)
-      setHasChanges(false)
       setPdfKey((prev) => prev + 1)
     } catch (error) {
       toast({
@@ -1252,27 +1231,26 @@ export default function NovoProjetoPage() {
                       Editar Template
                     </Button>
                   )}
-                  {showPreview && hasChanges && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleUpdatePreview}
-                      disabled={isGeneratingPreview}
-                      className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
-                    >
-                      {isGeneratingPreview ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Atualizando...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                          Atualizar Preview
-                        </>
-                      )}
-                    </Button>
-                  )}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleUpdatePreview}
+                    disabled={isGeneratingPreview}
+                    className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                  >
+                    {isGeneratingPreview ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Atualizando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Atualizar Preview
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
 
@@ -1303,18 +1281,7 @@ export default function NovoProjetoPage() {
                 </div>
               ) : (
                 <>
-                  {hasChanges && !isEditingTemplate && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                      <div className="flex items-center">
-                        <RefreshCw className="w-4 h-4 mr-2 text-amber-600" />
-                        <p className="text-sm text-amber-800 font-medium">
-                          O formulário foi alterado. Clique em "Atualizar Preview" para ver as mudanças.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {isLoadingProfessor && selectedDisciplinaId ? (
+                  {isLoadingUser ? (
                     <div className="flex justify-center items-center py-8">
                       <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600 mb-4" />
                       <p>Carregando dados do professor...</p>
