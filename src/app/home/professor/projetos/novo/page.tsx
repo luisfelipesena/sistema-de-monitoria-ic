@@ -2,7 +2,6 @@
 
 import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
 import { PagesLayout } from "@/components/layout/PagesLayout"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -16,18 +15,17 @@ import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PDFViewer } from "@react-pdf/renderer"
 import {
+  AlertCircle,
+  Edit3,
   Eye,
   FileText,
-  Layout,
   Loader2,
   Plus,
   RefreshCw,
-  Trash2,
-  Settings,
-  Edit3,
-  Save,
   RotateCcw,
-  FileCheck
+  Save,
+  Settings,
+  Trash2,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import React, { useCallback, useEffect, useState } from "react"
@@ -45,16 +43,12 @@ const templateSchema = z.object({
 })
 
 type TemplateFormData = z.infer<typeof templateSchema>
+type ProjetoFormData = z.infer<typeof projectFormSchema>
 
 // Componente memoizado para o PDFViewer
 const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) => {
   return (
     <div className="border rounded-lg bg-white">
-      <div className="bg-green-50 border-b px-4 py-2">
-        <p className="text-sm text-green-800 font-medium">
-          ✅ Preview gerado com sucesso - Use "Atualizar Preview" para ver as alterações
-        </p>
-      </div>
       <div style={{ width: "100%", height: "800px" }}>
         <PDFViewer width="100%" height="100%" showToolbar={false}>
           <MonitoriaFormTemplate data={data} />
@@ -64,47 +58,43 @@ const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) =
   )
 })
 
-type ProjetoFormData = z.infer<typeof projectFormSchema>
-
-type WorkflowMode = "select" | "edit_template" | "create_project" | "existing_projects"
+PDFPreviewComponent.displayName = "PDFPreviewComponent"
 
 export default function NovoProjetoPage() {
   const { toast } = useToast()
   const router = useRouter()
-  const [workflowMode, setWorkflowMode] = useState<WorkflowMode>("select")
+
+  // Estados
   const [selectedDisciplinaId, setSelectedDisciplinaId] = useState<number | null>(null)
+  const [isEditingTemplate, setIsEditingTemplate] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false)
   const [pdfKey, setPdfKey] = useState(0)
   const [publicoAlvoTipo, setPublicoAlvoTipo] = useState<"estudantes_graduacao" | "outro">("estudantes_graduacao")
   const [publicoAlvoCustom, setPublicoAlvoCustom] = useState("")
   const [currentPdfData, setCurrentPdfData] = useState<MonitoriaFormData | null>(null)
-  const [hasChanges, setHasChanges] = useState(false)
   const [atividades, setAtividades] = useState<string[]>([
     "Auxiliar na elaboração de exercícios práticos de programação",
     "Apoiar estudantes em horários de plantão para esclarecimento de dúvidas",
     "Colaborar na revisão de códigos e debugging",
     "Ajudar na preparação de material didático complementar",
   ])
-  const [selectedExistingProject, setSelectedExistingProject] = useState<any>(null)
 
+  // Queries - TODOS NO TOPO
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
   const { data: disciplinas } = api.discipline.getDepartmentDisciplines.useQuery()
-  const createProjeto = api.projeto.createProjeto.useMutation()
-  const upsertTemplate = api.projetoTemplates.upsertTemplateByProfessor.useMutation()
-  const apiUtils = api.useUtils()
-
-  // Query para template da disciplina selecionada
   const { data: currentTemplate } = api.projetoTemplates.getTemplateByDisciplinaForProfessor.useQuery(
     { disciplinaId: selectedDisciplinaId! },
     { enabled: !!selectedDisciplinaId }
   )
+  const { data: currentUser, isLoading: isLoadingUser } = api.me.getMe.useQuery()
 
-  // Query para projetos existentes da disciplina selecionada
-  const { data: existingProjects } = api.projeto.getProjetos.useQuery(undefined, {
-    enabled: workflowMode === "existing_projects" && !!selectedDisciplinaId,
-  })
+  // Mutations
+  const createProjeto = api.projeto.createProjeto.useMutation()
+  const upsertTemplate = api.projetoTemplates.upsertTemplateByProfessor.useMutation()
+  const apiUtils = api.useUtils()
 
+  // Forms - TODOS NO TOPO
   const form = useForm<ProjetoFormData>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
@@ -136,9 +126,10 @@ export default function NovoProjetoPage() {
     },
   })
 
+  // Effects - TODOS NO TOPO
   // Carregar template quando disciplina for selecionada
   useEffect(() => {
-    if (currentTemplate && workflowMode === "edit_template") {
+    if (currentTemplate && isEditingTemplate) {
       templateForm.reset({
         tituloDefault: currentTemplate.tituloDefault || "",
         descricaoDefault: currentTemplate.descricaoDefault || "",
@@ -159,103 +150,80 @@ export default function NovoProjetoPage() {
         setPublicoAlvoCustom(currentTemplate.publicoAlvoDefault)
       }
     }
-  }, [currentTemplate, workflowMode, templateForm])
+  }, [currentTemplate, isEditingTemplate, templateForm])
 
-  // Aplicar template ao formulário de projeto
-  const applyTemplateToProject = () => {
-    if (!currentTemplate) return
-
-    const disciplina = disciplinas?.find(d => d.id === selectedDisciplinaId)
-    if (!disciplina) return
-
-    form.reset({
-      titulo: currentTemplate.tituloDefault || "Monitoria de " + disciplina.nome,
-      descricao: currentTemplate.descricaoDefault || "",
-      departamentoId: disciplina.departamentoId,
-      ano: new Date().getFullYear(),
-      semestre: "SEMESTRE_1",
-      tipoProposicao: "INDIVIDUAL",
-      bolsasSolicitadas: 1,
-      voluntariosSolicitados: 2,
-      cargaHorariaSemana: currentTemplate.cargaHorariaSemanaDefault || 12,
-      numeroSemanas: currentTemplate.numeroSemanasDefault || 16,
-      publicoAlvo: currentTemplate.publicoAlvoDefault || "Estudantes de graduação",
-      estimativaPessoasBenificiadas: 50,
-      disciplinas: [selectedDisciplinaId!],
-    })
-
-    if (currentTemplate.atividadesDefault?.length) {
-      setAtividades(currentTemplate.atividadesDefault)
-    }
-
-    if (currentTemplate.publicoAlvoDefault === "Estudantes de graduação") {
-      setPublicoAlvoTipo("estudantes_graduacao")
-    } else if (currentTemplate.publicoAlvoDefault) {
-      setPublicoAlvoTipo("outro")
-      setPublicoAlvoCustom(currentTemplate.publicoAlvoDefault)
-    }
-  }
-
-  const handleDisciplinaSelect = (disciplinaId: string) => {
-    setSelectedDisciplinaId(parseInt(disciplinaId))
-    setWorkflowMode("select")
-    setShowPreview(false)
-  }
-
-  const handleModeSelect = (mode: "edit_template" | "create_project" | "existing_projects") => {
-    setWorkflowMode(mode)
-    setShowPreview(false)
-
-    if (mode === "create_project") {
-      applyTemplateToProject()
-    }
-  }
-
-  const handleBackToSelect = () => {
-    setWorkflowMode("select")
-    setSelectedDisciplinaId(null)
-    setShowPreview(false)
-  }
-
-  // Atualiza o publicoAlvo baseado no tipo selecionado (template)
+  // Aplicar template ao projeto quando disciplina for selecionada
   useEffect(() => {
-    if (workflowMode === "edit_template") {
+    if (selectedDisciplinaId && currentTemplate && !isEditingTemplate) {
+      const disciplina = disciplinas?.find((d) => d.id === selectedDisciplinaId)
+      if (!disciplina) return
+
+      form.reset({
+        titulo: currentTemplate.tituloDefault || "Monitoria de " + disciplina.nome,
+        descricao: currentTemplate.descricaoDefault || "",
+        departamentoId: disciplina.departamentoId,
+        ano: new Date().getFullYear(),
+        semestre: "SEMESTRE_1",
+        tipoProposicao: "INDIVIDUAL",
+        bolsasSolicitadas: 1,
+        voluntariosSolicitados: 2,
+        cargaHorariaSemana: currentTemplate.cargaHorariaSemanaDefault || 12,
+        numeroSemanas: currentTemplate.numeroSemanasDefault || 16,
+        publicoAlvo: currentTemplate.publicoAlvoDefault || "Estudantes de graduação",
+        estimativaPessoasBenificiadas: 50,
+        disciplinas: [selectedDisciplinaId],
+      })
+
+      if (currentTemplate.atividadesDefault?.length) {
+        setAtividades(currentTemplate.atividadesDefault)
+      }
+
+      if (currentTemplate.publicoAlvoDefault === "Estudantes de graduação") {
+        setPublicoAlvoTipo("estudantes_graduacao")
+      } else if (currentTemplate.publicoAlvoDefault) {
+        setPublicoAlvoTipo("outro")
+        setPublicoAlvoCustom(currentTemplate.publicoAlvoDefault)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDisciplinaId, currentTemplate, disciplinas, isEditingTemplate])
+
+  // Atualiza publicoAlvo baseado no tipo (template)
+  useEffect(() => {
+    if (isEditingTemplate) {
       if (publicoAlvoTipo === "estudantes_graduacao") {
         templateForm.setValue("publicoAlvoDefault", "Estudantes de graduação")
       } else if (publicoAlvoTipo === "outro" && publicoAlvoCustom.trim()) {
         templateForm.setValue("publicoAlvoDefault", publicoAlvoCustom)
       }
     }
-  }, [publicoAlvoTipo, publicoAlvoCustom, templateForm, workflowMode])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [publicoAlvoTipo, publicoAlvoCustom, isEditingTemplate])
 
-  // Atualiza o publicoAlvo baseado no tipo selecionado (projeto)
+  // Atualiza publicoAlvo baseado no tipo (projeto)
   useEffect(() => {
-    if (workflowMode === "create_project") {
+    if (!isEditingTemplate) {
       if (publicoAlvoTipo === "estudantes_graduacao") {
         form.setValue("publicoAlvo", "Estudantes de graduação")
       } else if (publicoAlvoTipo === "outro" && publicoAlvoCustom.trim()) {
         form.setValue("publicoAlvo", publicoAlvoCustom)
       }
     }
-  }, [publicoAlvoTipo, publicoAlvoCustom, form, workflowMode])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [publicoAlvoTipo, publicoAlvoCustom, isEditingTemplate])
 
-  const firstDisciplinaId = currentPdfData?.disciplinas?.[0]?.id
-  const { data: disciplinaWithProfessor, isLoading: isLoadingProfessor } =
-    api.discipline.getDisciplineWithProfessor.useQuery(
-      { id: firstDisciplinaId! },
-      { enabled: !!firstDisciplinaId && firstDisciplinaId !== 0 && showPreview }
-    )
-
+  // Callbacks e handlers
   const generatePdfData = useCallback(
     (formValues: ProjetoFormData | TemplateFormData, isTemplate = false): MonitoriaFormData | null => {
       if (!departamentos || !disciplinas || !selectedDisciplinaId) return null
 
-      const disciplina = disciplinas.find(d => d.id === selectedDisciplinaId)
+      const disciplina = disciplinas.find((d) => d.id === selectedDisciplinaId)
       const departamento = departamentos.find((d) => d.id === disciplina?.departamentoId)
 
       if (!disciplina || !departamento) return null
 
-      const professor = disciplinaWithProfessor?.professor
+      // Use dados do professor logado ao invés do professor associado à disciplina
+      const professor = currentUser?.professor
 
       if (isTemplate) {
         const templateValues = formValues as TemplateFormData
@@ -264,18 +232,20 @@ export default function NovoProjetoPage() {
           descricao: templateValues.descricaoDefault || "",
           departamento: { id: departamento.id, nome: departamento.nome },
           coordenadorResponsavel: "Coordenador Responsável",
-          professorResponsavel: professor ? {
-            id: professor.id,
-            nomeCompleto: professor.nomeCompleto,
-            nomeSocial: professor.nomeSocial || undefined,
-            genero: professor.genero,
-            cpf: professor.cpf,
-            matriculaSiape: professor.matriculaSiape || undefined,
-            regime: professor.regime,
-            telefone: professor.telefone || undefined,
-            telefoneInstitucional: professor.telefoneInstitucional || undefined,
-            emailInstitucional: professor.emailInstitucional,
-          } : undefined,
+          professorResponsavel: professor
+            ? {
+                id: professor.id,
+                nomeCompleto: professor.nomeCompleto,
+                nomeSocial: professor.nomeSocial || undefined,
+                genero: professor.genero,
+                cpf: professor.cpf,
+                matriculaSiape: professor.matriculaSiape || undefined,
+                regime: professor.regime,
+                telefone: professor.telefone || undefined,
+                telefoneInstitucional: professor.telefoneInstitucional || undefined,
+                emailInstitucional: professor.emailInstitucional,
+              }
+            : undefined,
           ano: new Date().getFullYear(),
           semestre: "SEMESTRE_1",
           tipoProposicao: "INDIVIDUAL",
@@ -301,18 +271,20 @@ export default function NovoProjetoPage() {
           descricao: projectValues.descricao,
           departamento: { id: departamento.id, nome: departamento.nome },
           coordenadorResponsavel: "Coordenador Responsável",
-          professorResponsavel: professor ? {
-            id: professor.id,
-            nomeCompleto: professor.nomeCompleto,
-            nomeSocial: professor.nomeSocial || undefined,
-            genero: professor.genero,
-            cpf: professor.cpf,
-            matriculaSiape: professor.matriculaSiape || undefined,
-            regime: professor.regime,
-            telefone: professor.telefone || undefined,
-            telefoneInstitucional: professor.telefoneInstitucional || undefined,
-            emailInstitucional: professor.emailInstitucional,
-          } : undefined,
+          professorResponsavel: professor
+            ? {
+                id: professor.id,
+                nomeCompleto: professor.nomeCompleto,
+                nomeSocial: professor.nomeSocial || undefined,
+                genero: professor.genero,
+                cpf: professor.cpf,
+                matriculaSiape: professor.matriculaSiape || undefined,
+                regime: professor.regime,
+                telefone: professor.telefone || undefined,
+                telefoneInstitucional: professor.telefoneInstitucional || undefined,
+                emailInstitucional: professor.emailInstitucional,
+              }
+            : undefined,
           ano: projectValues.ano,
           semestre: projectValues.semestre,
           tipoProposicao: projectValues.tipoProposicao,
@@ -335,8 +307,20 @@ export default function NovoProjetoPage() {
         }
       }
     },
-    [departamentos, disciplinas, selectedDisciplinaId, disciplinaWithProfessor?.professor, atividades]
+    [departamentos, disciplinas, selectedDisciplinaId, currentUser?.professor, atividades]
   )
+
+  const handleDisciplinaSelect = (disciplinaId: string) => {
+    setSelectedDisciplinaId(parseInt(disciplinaId))
+    setIsEditingTemplate(false)
+    setShowPreview(false)
+  }
+
+  const handleBackToSelect = () => {
+    setSelectedDisciplinaId(null)
+    setIsEditingTemplate(false)
+    setShowPreview(false)
+  }
 
   const handleAddAtividade = () => {
     setAtividades([...atividades, ""])
@@ -346,8 +330,7 @@ export default function NovoProjetoPage() {
     const newAtividades = atividades.filter((_, i) => i !== index)
     setAtividades(newAtividades)
 
-    // Atualizar template form se estiver no modo template
-    if (workflowMode === "edit_template") {
+    if (isEditingTemplate) {
       templateForm.setValue("atividadesDefault", newAtividades)
     }
   }
@@ -357,13 +340,11 @@ export default function NovoProjetoPage() {
     newAtividades[index] = value
     setAtividades(newAtividades)
 
-    // Atualizar template form se estiver no modo template
-    if (workflowMode === "edit_template") {
+    if (isEditingTemplate) {
       templateForm.setValue("atividadesDefault", newAtividades)
     }
   }
 
-  // Salvar template
   const onSubmitTemplate = async (data: TemplateFormData) => {
     if (!selectedDisciplinaId) return
 
@@ -371,7 +352,7 @@ export default function NovoProjetoPage() {
       const templateData = {
         disciplinaId: selectedDisciplinaId,
         ...data,
-        atividadesDefault: atividades.filter(a => a.trim() !== ""),
+        atividadesDefault: atividades.filter((a) => a.trim() !== ""),
       }
 
       const result = await upsertTemplate.mutateAsync(templateData)
@@ -384,9 +365,10 @@ export default function NovoProjetoPage() {
       })
 
       await apiUtils.projetoTemplates.getTemplateByDisciplinaForProfessor.invalidate({
-        disciplinaId: selectedDisciplinaId
+        disciplinaId: selectedDisciplinaId,
       })
 
+      setIsEditingTemplate(false)
     } catch (error: any) {
       toast({
         title: "Erro ao salvar template",
@@ -396,8 +378,17 @@ export default function NovoProjetoPage() {
     }
   }
 
-  // Salvar projeto
   const onSubmitProject = async (data: ProjetoFormData) => {
+    // Validação: Template é obrigatório
+    if (!currentTemplate) {
+      toast({
+        title: "Template obrigatório",
+        description: "Você precisa criar um template padrão antes de criar projetos para esta disciplina.",
+        variant: "destructive",
+      })
+      return
+    }
+
     try {
       const atividadesFiltradas = atividades.filter((atividade) => atividade.trim() !== "")
 
@@ -405,10 +396,10 @@ export default function NovoProjetoPage() {
         ...data,
         disciplinaIds: data.disciplinas,
         atividades: atividadesFiltradas,
-        status: 'DRAFT' as const,
+        status: "DRAFT" as const,
       }
 
-      const result = await createProjeto.mutateAsync(projetoData)
+      await createProjeto.mutateAsync(projetoData)
 
       toast({
         title: "Projeto criado",
@@ -417,7 +408,6 @@ export default function NovoProjetoPage() {
 
       await apiUtils.projeto.getProjetos.invalidate()
       router.push("/home/professor/dashboard")
-
     } catch (error: any) {
       toast({
         title: "Erro ao criar projeto",
@@ -433,10 +423,10 @@ export default function NovoProjetoPage() {
     try {
       let pdfData: MonitoriaFormData | null = null
 
-      if (workflowMode === "edit_template") {
+      if (isEditingTemplate) {
         const templateValues = templateForm.getValues()
         pdfData = generatePdfData(templateValues, true)
-      } else if (workflowMode === "create_project") {
+      } else {
         const formValues = form.getValues()
         pdfData = generatePdfData(formValues, false)
       }
@@ -455,13 +445,43 @@ export default function NovoProjetoPage() {
 
       setCurrentPdfData(pdfData)
       setShowPreview(true)
-      setHasChanges(false)
       setPdfKey((prev) => prev + 1)
-
     } catch (error) {
       toast({
         title: "Erro ao gerar preview",
         description: "Ocorreu um erro ao gerar o preview",
+        variant: "destructive",
+      })
+    } finally {
+      setIsGeneratingPreview(false)
+    }
+  }
+
+  const handleUpdatePreview = async () => {
+    setIsGeneratingPreview(true)
+
+    try {
+      const formValues = form.getValues()
+      const pdfData = generatePdfData(formValues, false)
+
+      if (!pdfData) {
+        toast({
+          title: "Erro ao atualizar preview",
+          description: "Não foi possível atualizar o preview com os dados fornecidos",
+          variant: "destructive",
+        })
+        setIsGeneratingPreview(false)
+        return
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      setCurrentPdfData(pdfData)
+      setPdfKey((prev) => prev + 1)
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar preview",
+        description: "Ocorreu um erro ao atualizar o preview",
         variant: "destructive",
       })
     } finally {
@@ -485,13 +505,10 @@ export default function NovoProjetoPage() {
   }
 
   // Tela de seleção inicial
-  if (workflowMode === "select" && !selectedDisciplinaId) {
+  if (!selectedDisciplinaId) {
     return (
-      <PagesLayout
-        title="Novo projeto de monitoria"
-        subtitle="Selecione a disciplina para continuar"
-      >
-        <div className="max-w-2xl mx-auto">
+      <PagesLayout title="Novo projeto de monitoria" subtitle="Selecione a disciplina para continuar">
+        <div>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -501,7 +518,7 @@ export default function NovoProjetoPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                Primeiro, escolha a disciplina para a qual você deseja trabalhar com templates ou criar um projeto.
+                Escolha a disciplina para a qual você deseja criar um projeto de monitoria.
               </p>
 
               <div className="space-y-4">
@@ -528,161 +545,62 @@ export default function NovoProjetoPage() {
     )
   }
 
-  // Tela de seleção de modo após disciplina escolhida
-  if (workflowMode === "select" && selectedDisciplinaId) {
-    const selectedDisciplina = disciplinas?.find(d => d.id === selectedDisciplinaId)
+  const selectedDisciplina = disciplinas?.find((d) => d.id === selectedDisciplinaId)
 
-    return (
-      <PagesLayout
-        title="Novo projeto de monitoria"
-        subtitle={`Disciplina: ${selectedDisciplina?.codigo} - ${selectedDisciplina?.nome}`}
-        actions={
+  // Tela principal de edição (template ou projeto)
+  return (
+    <PagesLayout
+      title={isEditingTemplate ? "Editar Template Padrão" : "Criar Projeto de Monitoria"}
+      subtitle={`Disciplina: ${selectedDisciplina?.codigo} - ${selectedDisciplina?.nome}`}
+      actions={
+        <div className="flex gap-2">
           <Button variant="outline" onClick={handleBackToSelect}>
             <RotateCcw className="h-4 w-4 mr-2" />
             Escolher Outra Disciplina
           </Button>
-        }
-      >
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="border-2 border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors cursor-pointer"
-                  onClick={() => handleModeSelect("edit_template")}>
+        </div>
+      }
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Formulário (Esquerda) */}
+        <div className="space-y-6">
+          {!currentTemplate && !isEditingTemplate ? (
+            /* SEM TEMPLATE - BLOQUEIO */
+            <Card className="border-amber-300 bg-amber-50">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-amber-800">
-                  <Settings className="h-5 w-5" />
-                  Editar Template Padrão
+                  <AlertCircle className="h-5 w-5" />
+                  Criar Template Padrão Primeiro
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <p className="text-sm text-amber-700">
-                    Configure o template padrão para esta disciplina. Os dados do template serão utilizados
-                    como base para novos projetos.
-                  </p>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Edit3 className="h-4 w-4" />
-                    <span className="font-medium">
-                      {currentTemplate ? "Template já existe" : "Criar novo template"}
-                    </span>
-                  </div>
-                  <ul className="text-xs text-amber-600 space-y-1 ml-6">
-                    <li>• Define valores padrão para projetos</li>
-                    <li>• Reutilizável para múltiplos projetos</li>
-                    <li>• Facilita criação futura de projetos</li>
+              <CardContent className="space-y-4">
+                <p className="text-amber-700 font-medium">Esta disciplina não possui um template padrão.</p>
+                <p className="text-sm text-amber-600">
+                  Antes de criar projetos para esta disciplina, você precisa definir um template padrão. O template
+                  define valores que serão reutilizados em todos os projetos futuros, facilitando a criação e mantendo
+                  consistência.
+                </p>
+                <div className="bg-white border border-amber-200 rounded-lg p-4 mt-4">
+                  <h4 className="font-semibold text-amber-900 mb-2">O que é o template?</h4>
+                  <ul className="text-sm text-amber-700 space-y-1 list-disc list-inside">
+                    <li>Título padrão para projetos desta disciplina</li>
+                    <li>Descrição e objetivos padrão</li>
+                    <li>Carga horária padrão</li>
+                    <li>Público alvo padrão</li>
+                    <li>Atividades típicas da monitoria</li>
                   </ul>
                 </div>
               </CardContent>
             </Card>
-
-            <Card className="border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer"
-                  onClick={() => handleModeSelect("create_project")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-blue-800">
-                  <FileCheck className="h-5 w-5" />
-                  Criar Projeto Específico
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <p className="text-sm text-blue-700">
-                    Crie um projeto específico para esta disciplina. O projeto será inicializado
-                    com os dados do template padrão (se existir).
-                  </p>
-                  <div className="flex items-center gap-2 text-sm">
-                    <FileText className="h-4 w-4" />
-                    <span className="font-medium">
-                      Projeto para submissão
-                    </span>
-                  </div>
-                  <ul className="text-xs text-blue-600 space-y-1 ml-6">
-                    <li>• Baseado no template padrão</li>
-                    <li>• Personalizável para necessidades específicas</li>
-                    <li>• Será enviado para aprovação</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-green-200 bg-green-50 hover:bg-green-100 transition-colors cursor-pointer"
-                  onClick={() => handleModeSelect("existing_projects")}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-800">
-                  <RefreshCw className="h-5 w-5" />
-                  Projetos Existentes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <p className="text-sm text-green-700">
-                    Reutilize um projeto existente desta disciplina como base para um novo projeto.
-                    Ideal para projetos recorrentes.
-                  </p>
-                  <div className="flex items-center gap-2 text-sm">
-                    <FileText className="h-4 w-4" />
-                    <span className="font-medium">
-                      Copiar projeto existente
-                    </span>
-                  </div>
-                  <ul className="text-xs text-green-600 space-y-1 ml-6">
-                    <li>• Baseado em projetos anteriores</li>
-                    <li>• Mantém estrutura comprovada</li>
-                    <li>• Acelera criação de projetos</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {currentTemplate && (
-            <Card className="mt-6 border-green-200 bg-green-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-800 text-sm">
-                  <FileCheck className="h-4 w-4" />
-                  Template Padrão Existente
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm text-green-700">
-                  <p><strong>Título:</strong> {currentTemplate.tituloDefault || "Não definido"}</p>
-                  <p><strong>Carga Horária:</strong> {currentTemplate.cargaHorariaSemanaDefault || "Não definida"}h/semana</p>
-                  <p><strong>Público Alvo:</strong> {currentTemplate.publicoAlvoDefault || "Não definido"}</p>
-                  <p><strong>Atividades:</strong> {currentTemplate.atividadesDefault?.length || 0} definidas</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </PagesLayout>
-    )
-  }
-
-  const selectedDisciplina = disciplinas?.find(d => d.id === selectedDisciplinaId)
-
-  // Interface para edição de template
-  if (workflowMode === "edit_template") {
-    return (
-      <PagesLayout
-        title="Editar Template Padrão"
-        subtitle={`Disciplina: ${selectedDisciplina?.codigo} - ${selectedDisciplina?.nome}`}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleBackToSelect}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Voltar
-            </Button>
-          </div>
-        }
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Formulário do Template */}
-          <div className="space-y-6">
+          ) : isEditingTemplate ? (
+            /* FORMULÁRIO DE TEMPLATE */
             <Form {...templateForm}>
               <form onSubmit={templateForm.handleSubmit(onSubmitTemplate)} className="space-y-6">
                 <Card className="border-amber-200">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-amber-800">
                       <Settings className="h-5 w-5" />
-                      Configurações do Template
+                      Configurações do Template Padrão
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -695,7 +613,10 @@ export default function NovoProjetoPage() {
                           <FormControl>
                             <Input
                               placeholder="Ex: Monitoria de Programação I"
-                              {...field}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -713,7 +634,10 @@ export default function NovoProjetoPage() {
                             <Textarea
                               placeholder="Descrição padrão para projetos desta disciplina..."
                               rows={4}
-                              {...field}
+                              value={field.value || ""}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -727,13 +651,15 @@ export default function NovoProjetoPage() {
                         name="cargaHorariaSemanaDefault"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Carga Horária Semanal Padrão</FormLabel>
+                            <FormLabel>Carga Horária Semanal</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
                                 min={1}
-                                {...field}
+                                value={field.value || ""}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -746,13 +672,15 @@ export default function NovoProjetoPage() {
                         name="numeroSemanasDefault"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Número de Semanas Padrão</FormLabel>
+                            <FormLabel>Número de Semanas</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
                                 min={1}
-                                {...field}
+                                value={field.value || ""}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -844,12 +772,7 @@ export default function NovoProjetoPage() {
                         </Button>
                       </div>
                     ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleAddAtividade}
-                      className="w-full"
-                    >
+                    <Button type="button" variant="outline" onClick={handleAddAtividade} className="w-full">
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar Atividade
                     </Button>
@@ -858,167 +781,27 @@ export default function NovoProjetoPage() {
 
                 {/* Ações do Template */}
                 <div className="flex justify-end space-x-4">
-                  <Button
-                    type="submit"
-                    disabled={upsertTemplate.isPending}
-                    className="bg-amber-600 hover:bg-amber-700"
-                  >
+                  <Button type="button" variant="outline" onClick={() => setIsEditingTemplate(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={upsertTemplate.isPending} className="bg-amber-600 hover:bg-amber-700">
                     {upsertTemplate.isPending ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Salvando Template...
+                        Salvando...
                       </>
                     ) : (
                       <>
                         <Save className="w-4 h-4 mr-2" />
-                        Salvar Template Padrão
+                        Salvar Template
                       </>
                     )}
                   </Button>
                 </div>
               </form>
             </Form>
-          </div>
-
-          {/* Preview do Template */}
-          <div className="space-y-4">
-            <div className="bg-gray-50 border rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Preview do Template</h3>
-                <Button
-                  onClick={handleGeneratePreview}
-                  disabled={isGeneratingPreview}
-                  size="sm"
-                  className="bg-amber-600 hover:bg-amber-700"
-                >
-                  {isGeneratingPreview ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Gerando...
-                    </>
-                  ) : (
-                    <>
-                      <Eye className="w-4 h-4 mr-2" />
-                      Gerar Preview
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              {!showPreview ? (
-                <div className="text-center py-12">
-                  <Layout className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">Preview do Template</h4>
-                  <p className="text-gray-600 mb-4">
-                    Visualize como ficará o template padrão para esta disciplina
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {isLoadingProfessor && selectedDisciplinaId ? (
-                    <div className="flex justify-center items-center py-8">
-                      <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600 mb-4" />
-                      <p>Carregando dados do professor...</p>
-                    </div>
-                  ) : currentPdfData ? (
-                    <PDFPreviewComponent key={pdfKey} data={currentPdfData} />
-                  ) : (
-                    <div className="text-center py-8 text-red-500">
-                      <p>Erro ao gerar preview do template.</p>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </PagesLayout>
-    )
-  }
-
-  // Interface para criação de projeto (resto do código original adaptado)
-  if (workflowMode === "create_project") {
-    // Track changes when form values change
-    React.useEffect(() => {
-      const subscription = form.watch(() => {
-        if (showPreview) {
-          setHasChanges(true)
-        }
-      })
-      return () => subscription.unsubscribe()
-    }, [form, showPreview])
-
-    // Track changes when atividades change
-    React.useEffect(() => {
-      if (showPreview) {
-        setHasChanges(true)
-      }
-    }, [atividades, showPreview])
-
-    const handleUpdatePreview = async () => {
-      setIsGeneratingPreview(true)
-
-      try {
-        const formValues = form.getValues()
-        const pdfData = generatePdfData(formValues, false)
-
-        if (!pdfData) {
-          toast({
-            title: "Erro ao atualizar preview",
-            description: "Não foi possível atualizar o preview com os dados fornecidos",
-            variant: "destructive",
-          })
-          setIsGeneratingPreview(false)
-          return
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 500))
-
-        setCurrentPdfData(pdfData)
-        setHasChanges(false)
-        setPdfKey((prev) => prev + 1)
-      } catch (error) {
-        toast({
-          title: "Erro ao atualizar preview",
-          description: "Ocorreu um erro ao atualizar o preview",
-          variant: "destructive",
-        })
-      } finally {
-        setIsGeneratingPreview(false)
-      }
-    }
-
-    return (
-      <PagesLayout
-        title="Criar Projeto Específico"
-        subtitle={`Disciplina: ${selectedDisciplina?.codigo} - ${selectedDisciplina?.nome}`}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleBackToSelect}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Voltar
-            </Button>
-            {currentTemplate && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  applyTemplateToProject()
-                  toast({
-                    title: "Template aplicado",
-                    description: "Os dados do template foram aplicados ao projeto.",
-                  })
-                }}
-              >
-                <Layout className="h-4 w-4 mr-2" />
-                Reaplicar Template
-              </Button>
-            )}
-          </div>
-        }
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Formulário do Projeto */}
-          <div className="space-y-6">
+          ) : (
+            /* FORMULÁRIO DE PROJETO */
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmitProject)} className="space-y-6">
                 {/* Identificação do Projeto */}
@@ -1034,7 +817,13 @@ export default function NovoProjetoPage() {
                         <FormItem>
                           <FormLabel>Título do Projeto</FormLabel>
                           <FormControl>
-                            <Input placeholder="Digite o título do projeto" {...field} />
+                            <Input
+                              placeholder="Digite o título do projeto"
+                              value={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1051,7 +840,10 @@ export default function NovoProjetoPage() {
                             <Textarea
                               placeholder="Descreva os objetivos e justificativa do projeto"
                               rows={4}
-                              {...field}
+                              value={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1071,8 +863,10 @@ export default function NovoProjetoPage() {
                                 type="number"
                                 min={2024}
                                 max={2030}
-                                {...field}
+                                value={field.value}
                                 onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1107,7 +901,7 @@ export default function NovoProjetoPage() {
                         name="tipoProposicao"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Tipo de Proposição</FormLabel>
+                            <FormLabel>Tipo</FormLabel>
                             <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger>
@@ -1139,12 +933,15 @@ export default function NovoProjetoPage() {
                                 <Textarea
                                   placeholder="Ex: 2 - Professor João Silva e Professora Maria Santos"
                                   rows={2}
-                                  {...field}
+                                  value={field.value || ""}
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
                                 />
                               </FormControl>
                               <FormMessage />
                               <p className="text-sm text-blue-600">
-                                Informe o número e nome dos professores participantes do projeto coletivo
+                                Informe o número e nome dos professores participantes
                               </p>
                             </FormItem>
                           )}
@@ -1171,8 +968,10 @@ export default function NovoProjetoPage() {
                               <Input
                                 type="number"
                                 min={1}
-                                {...field}
+                                value={field.value}
                                 onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1190,8 +989,10 @@ export default function NovoProjetoPage() {
                               <Input
                                 type="number"
                                 min={1}
-                                {...field}
+                                value={field.value}
                                 onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1266,8 +1067,10 @@ export default function NovoProjetoPage() {
                             <Input
                               type="number"
                               min={0}
-                              {...field}
+                              value={field.value || 0}
                               onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1294,8 +1097,10 @@ export default function NovoProjetoPage() {
                               <Input
                                 type="number"
                                 min={0}
-                                {...field}
+                                value={field.value || 0}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1313,8 +1118,10 @@ export default function NovoProjetoPage() {
                               <Input
                                 type="number"
                                 min={0}
-                                {...field}
+                                value={field.value || 0}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1376,50 +1183,82 @@ export default function NovoProjetoPage() {
                 </div>
               </form>
             </Form>
-          </div>
+          )}
+        </div>
 
-          {/* PDF Preview */}
-          <div className="space-y-4">
+        {/* Preview ou Template Info (Direita) */}
+        <div className="space-y-4">
+          {!currentTemplate && !isEditingTemplate ? (
+            /* TEMPLATE NÃO EXISTE - Obrigar a criar */
+            <Card className="border-amber-300 bg-amber-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-amber-800">
+                  <AlertCircle className="h-5 w-5" />
+                  Template Padrão Necessário
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-amber-700">
+                  Esta disciplina ainda não possui um template padrão. É necessário criar um template antes de criar
+                  projetos.
+                </p>
+                <p className="text-sm text-amber-600">
+                  O template define valores padrão que serão reutilizados em todos os projetos futuros desta disciplina,
+                  facilitando a criação.
+                </p>
+                <Button onClick={() => setIsEditingTemplate(true)} className="w-full bg-amber-600 hover:bg-amber-700">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Criar Template Padrão
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            /* PREVIEW DO DOCUMENTO */
             <div className="bg-gray-50 border rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Preview do Documento</h3>
+                <h3 className="text-lg font-semibold">
+                  {isEditingTemplate ? "Preview do Template" : "Preview do Documento"}
+                </h3>
                 <div className="flex gap-2">
-                  {showPreview && hasChanges && (
+                  {!isEditingTemplate && currentTemplate && (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={handleUpdatePreview}
-                      disabled={isGeneratingPreview}
+                      onClick={() => setIsEditingTemplate(true)}
                       className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
                     >
-                      {isGeneratingPreview ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Atualizando...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                          Atualizar Preview
-                        </>
-                      )}
+                      <Edit3 className="w-4 h-4 mr-2" />
+                      Editar Template
                     </Button>
                   )}
-                  {showPreview && (
-                    <Button variant="outline" size="sm" onClick={() => setShowPreview(false)}>
-                      Ocultar Preview
-                    </Button>
-                  )}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleUpdatePreview}
+                    disabled={isGeneratingPreview}
+                    className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                  >
+                    {isGeneratingPreview ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Atualizando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Atualizar Preview
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
 
               {!showPreview ? (
                 <div className="text-center py-12">
                   <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">Gere o Preview do Documento</h4>
-                  <p className="text-gray-600 mb-4">
-                    Visualize como ficará o formulário oficial de monitoria antes de salvar
-                  </p>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">Gere o Preview</h4>
+                  <p className="text-gray-600 mb-4">Visualize como ficará o documento antes de salvar</p>
 
                   <Button
                     onClick={handleGeneratePreview}
@@ -1435,29 +1274,14 @@ export default function NovoProjetoPage() {
                     ) : (
                       <>
                         <Eye className="w-4 h-4 mr-2" />
-                        Gerar Preview do Documento
+                        Gerar Preview
                       </>
                     )}
                   </Button>
-
-                  <p className="text-xs text-gray-500 mt-3">
-                    O preview será gerado com base nos dados preenchidos no formulário
-                  </p>
                 </div>
               ) : (
                 <>
-                  {hasChanges && (
-                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                      <div className="flex items-center">
-                        <RefreshCw className="w-4 h-4 mr-2 text-amber-600" />
-                        <p className="text-sm text-amber-800 font-medium">
-                          O formulário foi alterado. Clique em "Atualizar Preview" para ver as mudanças.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {isLoadingProfessor && firstDisciplinaId && firstDisciplinaId !== 0 ? (
+                  {isLoadingUser ? (
                     <div className="flex justify-center items-center py-8">
                       <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600 mb-4" />
                       <p>Carregando dados do professor...</p>
@@ -1466,131 +1290,15 @@ export default function NovoProjetoPage() {
                     <PDFPreviewComponent key={pdfKey} data={currentPdfData} />
                   ) : (
                     <div className="text-center py-8 text-red-500">
-                      <p>Erro ao gerar preview. Verifique se todos os campos obrigatórios estão preenchidos.</p>
+                      <p>Erro ao gerar preview. Verifique os campos obrigatórios.</p>
                     </div>
                   )}
                 </>
               )}
             </div>
-          </div>
-        </div>
-      </PagesLayout>
-    )
-  }
-
-  // Interface para seleção de projetos existentes
-  if (workflowMode === "existing_projects") {
-    const selectedDisciplina = disciplinas?.find(d => d.id === selectedDisciplinaId)
-    const filteredProjects = existingProjects?.filter(projeto =>
-      projeto.disciplinas?.some(d => d.id === selectedDisciplinaId)
-    ) || []
-
-    const handleSelectExistingProject = (projeto: any) => {
-      setSelectedExistingProject(projeto)
-
-      // Aplicar dados do projeto ao formulário
-      form.reset({
-        titulo: `${projeto.titulo} - ${new Date().getFullYear()}`,
-        descricao: projeto.descricao,
-        departamentoId: projeto.departamentoId,
-        ano: new Date().getFullYear(),
-        semestre: new Date().getMonth() < 6 ? "SEMESTRE_1" : "SEMESTRE_2",
-        tipoProposicao: projeto.tipoProposicao,
-        bolsasSolicitadas: projeto.bolsasSolicitadas,
-        voluntariosSolicitados: projeto.voluntariosSolicitados,
-        cargaHorariaSemana: projeto.cargaHorariaSemana,
-        numeroSemanas: projeto.numeroSemanas,
-        publicoAlvo: projeto.publicoAlvo,
-        estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas,
-        disciplinaIds: [selectedDisciplinaId!],
-        atividades: projeto.atividades || atividades,
-      })
-
-      // Configurar atividades
-      if (projeto.atividades?.length) {
-        setAtividades(projeto.atividades)
-      }
-
-      // Mudar para modo de criação de projeto
-      setWorkflowMode("create_project")
-
-      toast({
-        title: "Projeto carregado!",
-        description: "Os dados do projeto foram aplicados. Você pode editá-los antes de salvar.",
-      })
-    }
-
-    return (
-      <PagesLayout
-        title="Projetos Existentes"
-        subtitle={`Disciplina: ${selectedDisciplina?.codigo} - ${selectedDisciplina?.nome}`}
-        actions={
-          <Button variant="outline" onClick={handleBackToSelect}>
-            <RotateCcw className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-        }
-      >
-        <div className="max-w-6xl mx-auto">
-          {filteredProjects.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProjects.map((projeto) => (
-                <Card
-                  key={projeto.id}
-                  className="border-2 border-gray-200 hover:border-green-300 hover:shadow-lg transition-all cursor-pointer"
-                  onClick={() => handleSelectExistingProject(projeto)}
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <CardTitle className="text-sm font-medium text-gray-900 line-clamp-2">
-                        {projeto.titulo}
-                      </CardTitle>
-                      <Badge variant={
-                        projeto.status === 'APPROVED' ? 'default' :
-                        projeto.status === 'REJECTED' ? 'destructive' : 'secondary'
-                      }>
-                        {projeto.status === 'APPROVED' ? 'Aprovado' :
-                         projeto.status === 'REJECTED' ? 'Rejeitado' :
-                         projeto.status === 'SUBMITTED' ? 'Em análise' : 'Rascunho'}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <p><strong>Período:</strong> {projeto.ano}.{projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}</p>
-                      <p><strong>Tipo:</strong> {projeto.tipoProposicao}</p>
-                      <p><strong>Bolsas:</strong> {projeto.bolsasSolicitadas}</p>
-                      <p><strong>Voluntários:</strong> {projeto.voluntariosSolicitados}</p>
-                      <p><strong>Carga Horária:</strong> {projeto.cargaHorariaSemana}h/semana</p>
-                      <div className="mt-3 pt-3 border-t">
-                        <p className="text-xs text-gray-600 line-clamp-3">
-                          {projeto.descricao}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Nenhum projeto encontrado
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Não há projetos anteriores para esta disciplina. Que tal criar um template primeiro?
-              </p>
-              <Button onClick={() => setWorkflowMode("edit_template")}>
-                <Settings className="h-4 w-4 mr-2" />
-                Criar Template
-              </Button>
-            </div>
           )}
         </div>
-      </PagesLayout>
-    )
-  }
-
-  return null
+      </div>
+    </PagesLayout>
+  )
 }

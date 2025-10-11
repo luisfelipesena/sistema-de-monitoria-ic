@@ -1,9 +1,9 @@
-'use client'
+"use client"
 
-import { Spinner } from '@/components/ui/spinner'
-import { useAuth } from '@/hooks/use-auth'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { Spinner } from "@/components/ui/spinner"
+import { useAuth } from "@/hooks/use-auth"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function HomePage() {
   const { user, isLoading } = useAuth()
@@ -17,13 +17,9 @@ export default function HomePage() {
   }, [user, isLoading, router])
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <Spinner />
-        <p className="mt-4 text-sm text-muted-foreground">
-          Redirecionando para o dashboard...
-        </p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+      <Spinner />
+      <span className="text-sm text-center text-muted-foreground">Redirecionando para o dashboard...</span>
     </div>
   )
-} 
+}

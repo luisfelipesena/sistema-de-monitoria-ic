@@ -50,18 +50,11 @@ export function PdfViewerWithSignature({
   }, [pdfUrl])
 
   const handleViewPdf = () => {
-    if (pdfContent) {
-      const newWindow = window.open("", "_blank")
-      if (newWindow) {
-        newWindow.document.write(pdfContent)
-        newWindow.document.close()
-      } else {
-        toast({
-          title: "Erro",
-          description: "Popup bloqueado. Permita popups para visualizar o PDF.",
-          variant: "destructive",
-        })
-      }
+    if (!pdfContent) return
+    const newWindow = window.open("", "_blank")
+    if (newWindow) {
+      newWindow.document.write(pdfContent)
+      newWindow.document.close()
     }
   }
 

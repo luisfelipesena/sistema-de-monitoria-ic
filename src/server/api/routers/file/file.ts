@@ -46,6 +46,23 @@ export interface FileListItem {
 }
 
 const log = logger.child({ context: 'FileRouter' })
+
+/**
+ * Decode filename from base64 to handle special characters
+ * Falls back to original value if decoding fails
+ */
+function decodeFilename(encodedFilename: string | undefined): string {
+  if (!encodedFilename) return ''
+
+  try {
+    // Try to decode from base64
+    return Buffer.from(encodedFilename, 'base64').toString('utf-8')
+  } catch {
+    // If decoding fails, return original value (backwards compatibility)
+    return encodedFilename
+  }
+}
+
 export const fileRouter = createTRPCRouter({
   // Admin file management procedures
   getAdminFileList: adminProtectedProcedure.query(async ({ ctx }) => {
@@ -69,7 +86,7 @@ export const fileRouter = createTRPCRouter({
                     size: stat.size,
                     lastModified: stat.lastModified,
                     metaData: stat.metaData,
-                    originalFilename: stat.metaData['original-filename'] || objectName,
+                    originalFilename: decodeFilename(stat.metaData['original-filename']) || objectName,
                     mimeType: stat.metaData['content-type'] || 'application/octet-stream',
                   }
                 } catch (statError) {
@@ -200,12 +217,15 @@ export const fileRouter = createTRPCRouter({
         const extension = path.extname(fileName)
         const finalEntityId = entityId || userId.toString()
 
+        // Encode filename to base64 to avoid issues with special characters in HTTP headers
+        const encodedFileName = Buffer.from(fileName, 'utf-8').toString('base64')
+
         const metaData = {
           'Content-Type': mimeType || 'application/octet-stream',
           'X-Amz-Meta-Entity-Type': entityType,
           'X-Amz-Meta-Entity-Id': finalEntityId,
           'X-Amz-Meta-User-Id': String(userId),
-          'X-Amz-Meta-Original-Filename': fileName,
+          'X-Amz-Meta-Original-Filename': encodedFileName,
         }
 
         // Caminho no MinIO: entityType/entityId/fileId-originalFilename
@@ -267,12 +287,16 @@ export const fileRouter = createTRPCRouter({
 
         const fileId = uuidv4()
         const extension = path.extname(fileName)
+
+        // Encode filename to base64 to avoid issues with special characters in HTTP headers
+        const encodedFileName = Buffer.from(fileName, 'utf-8').toString('base64')
+
         const metaData = {
           'Content-Type': mimeType || 'application/octet-stream',
           'X-Amz-Meta-Entity-Type': entityType,
           'X-Amz-Meta-Entity-Id': entityId,
           'X-Amz-Meta-User-Id': String(userId),
-          'X-Amz-Meta-Original-Filename': fileName,
+          'X-Amz-Meta-Original-Filename': encodedFileName,
         }
 
         // Caminho no MinIO: entityType/entityId/fileId-originalFilename
@@ -499,7 +523,7 @@ export const fileRouter = createTRPCRouter({
         size: stat.size,
         lastModified: stat.lastModified,
         metaData: stat.metaData,
-        originalFilename: stat.metaData['original-filename'],
+        originalFilename: decodeFilename(stat.metaData['original-filename']),
         mimeType: stat.metaData['content-type'],
       }
     }),
@@ -574,7 +598,7 @@ export const fileRouter = createTRPCRouter({
                       size: stat.size,
                       lastModified: stat.lastModified,
                       metaData: stat.metaData,
-                      originalFilename: stat.metaData['original-filename'] || objectName,
+                      originalFilename: decodeFilename(stat.metaData['original-filename']) || objectName,
                       mimeType: stat.metaData['content-type'] || 'application/octet-stream',
                     }
                   } catch (statError) {
@@ -641,7 +665,12 @@ export const fileRouter = createTRPCRouter({
           const projectFiles: Array<{ name: string; lastModified: Date }> = []
 
           objectsStream.on('data', (obj: Minio.BucketItem) => {
-            if (obj.name?.includes('propostas_assinadas') && obj.name.endsWith('.pdf')) {
+            // Validar se é PDF assinado E se pertence ao projetoId correto
+            if (
+              obj.name?.includes('propostas_assinadas') &&
+              obj.name.endsWith('.pdf') &&
+              obj.name.includes(`proposta_${projetoId}_`)
+            ) {
               projectFiles.push({
                 name: obj.name,
                 lastModified: obj.lastModified || new Date(),
@@ -655,9 +684,16 @@ export const fileRouter = createTRPCRouter({
           })
 
           objectsStream.on('end', async () => {
+            log.info({ projetoId, filesFound: projectFiles.length }, 'Arquivos encontrados para o projeto')
+
             if (projectFiles.length === 0) {
-              log.warn({ projetoId }, 'Nenhum PDF encontrado para o projeto')
-              reject(new TRPCError({ code: 'NOT_FOUND', message: 'PDF do projeto não encontrado' }))
+              log.warn({ projetoId, prefix }, 'Nenhum PDF encontrado para o projeto')
+              reject(
+                new TRPCError({
+                  code: 'NOT_FOUND',
+                  message: `PDF do projeto ${projetoId} não encontrado. O projeto precisa estar assinado pelo professor.`,
+                })
+              )
               return
             }
 
@@ -669,9 +705,10 @@ export const fileRouter = createTRPCRouter({
               return
             }
 
+            log.info({ projetoId, fileName: latestFile.name }, 'PDF mais recente selecionado')
+
             try {
               // Verificar autorização baseada no projeto
-              const _db = ctx.db
               const projeto = await ctx.db.query.projetoTable.findFirst({
                 where: eq(projetoTable.id, projetoId),
                 with: {

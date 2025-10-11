@@ -9,11 +9,11 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
 import { inscriptionDetailSchema } from "@/types"
 import { api } from "@/utils/api"
 import { Calculator, ClipboardCheck, Save, Users } from "lucide-react"
 import { useState } from "react"
-import { useToast } from "@/hooks/use-toast"
 import { z } from "zod"
 
 type InscricaoComDetalhes = z.infer<typeof inscriptionDetailSchema>
@@ -103,10 +103,7 @@ export default function GradeApplicationsPage() {
       <div className="space-y-6">
         <div className="flex items-center gap-3">
           <ClipboardCheck className="h-8 w-8 text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold">Avaliar Candidatos</h1>
-            <p className="text-gray-600">Insira as notas dos candidatos que participaram do processo seletivo</p>
-          </div>
+          <p className="text-gray-600">Insira as notas dos candidatos que participaram do processo seletivo</p>
         </div>
 
         {/* Seleção de Projeto */}

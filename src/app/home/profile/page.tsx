@@ -574,16 +574,6 @@ function DocumentsSection() {
         action: "view",
       })
 
-      const newWindow = window.open(url, "_blank", "noopener,noreferrer")
-      if (!newWindow) {
-        toast({
-          title: "Popup bloqueado",
-          description: "Permita popups para visualizar o documento em nova aba.",
-          variant: "destructive",
-        })
-        return
-      }
-
       toast({
         title: "Documento aberto",
         description: "O documento foi aberto em nova aba.",
@@ -622,13 +612,13 @@ function DocumentsSection() {
           id: "curriculum_vitae",
           name: "Curriculum Vitae",
           description: "CV atualizado",
-          required: true,
+          required: false,
         },
         {
           id: "comprovante_vinculo",
           name: "Comprovante de Vínculo",
           description: "Comprovante de vínculo institucional",
-          required: true,
+          required: false,
         },
       ]
     }

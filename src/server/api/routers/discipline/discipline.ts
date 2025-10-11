@@ -394,7 +394,7 @@ export const disciplineRouter = createTRPCRouter({
         path: '/disciplines/department',
         tags: ['disciplines'],
         summary: 'Get department disciplines',
-        description: "Get all disciplines from professor's department",
+        description: "Get all disciplines from professor's department (or all disciplines if no department associated)",
       },
     })
     .input(z.void())
@@ -431,20 +431,16 @@ export const disciplineRouter = createTRPCRouter({
           })
         }
 
-        if (!professor.departamentoId) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Professor não possui departamento associado',
-          })
-        }
-
         const now = new Date()
         const currentYear = now.getFullYear()
         const currentSemester = now.getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2'
 
-        const disciplinas = await ctx.db.query.disciplinaTable.findMany({
-          where: eq(disciplinaTable.departamentoId, professor.departamentoId),
-        })
+        // If professor has no department, return all disciplines
+        const disciplinas = professor.departamentoId
+          ? await ctx.db.query.disciplinaTable.findMany({
+              where: eq(disciplinaTable.departamentoId, professor.departamentoId),
+            })
+          : await ctx.db.query.disciplinaTable.findMany()
 
         const associacoes = await ctx.db
           .select({
@@ -534,7 +530,8 @@ export const disciplineRouter = createTRPCRouter({
           })
         }
 
-        if (disciplina.departamentoId !== professor.departamentoId) {
+        // Only validate department match if professor has a department associated
+        if (professor.departamentoId && disciplina.departamentoId !== professor.departamentoId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Você só pode se associar a disciplinas do seu departamento',
