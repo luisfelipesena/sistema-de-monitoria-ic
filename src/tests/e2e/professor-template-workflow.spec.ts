@@ -136,7 +136,7 @@ test.describe('Professor Template Workflow', () => {
 
     // Check if template exists
     const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
-    const editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
+    const _editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
 
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 

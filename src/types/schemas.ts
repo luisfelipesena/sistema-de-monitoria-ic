@@ -12,7 +12,7 @@ export const descriptionSchema = z.string().max(1000).optional()
 export const emailSchema = z.string().email('Email inválido')
 export const phoneSchema = z
   .string()
-  .regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, 'Telefone inválido')
+  .refine((val) => !val || /^\(\d{2}\) \d{4,5}-\d{4}$/.test(val), 'Telefone inválido')
   .optional()
 
 // Username validation

@@ -146,9 +146,9 @@ const styles = StyleSheet.create({
   activeSignatureBox: {
     width: 130, // Reduced from 150
     height: 38, // Reduced from 45
-    borderWidth: 2,
-    borderColor: "#0066cc",
-    backgroundColor: "#f0f8ff",
+    borderWidth: 1,
+    borderColor: "white",
+    backgroundColor: "white",
     alignSelf: "flex-end",
     marginRight: 116.5, // Adjust to align with signature space
     marginTop: -3,
@@ -205,9 +205,9 @@ const styles = StyleSheet.create({
   activeAdminSignatureBox: {
     width: 130, // Reduced from 150
     height: 38, // Reduced from 45
-    borderWidth: 2,
-    borderColor: "#0066cc",
-    backgroundColor: "#f0f8ff",
+    borderWidth: 1,
+    borderColor: "white",
+    backgroundColor: "white",
   },
 })
 
