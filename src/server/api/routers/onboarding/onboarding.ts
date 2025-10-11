@@ -83,9 +83,8 @@ export const onboardingRouter = createTRPCRouter({
           profileData = professorProfile ?? null
           hasProfile = professorProfile != null
 
-          if (professorProfile) {
-            hasSignature = !!professorProfile.assinaturaDefault
-          }
+          // Check signature in user table (saved via saveDefaultSignature)
+          hasSignature = !!ctx.user.assinaturaDefault
         }
 
         // Verificar documentos obrigatórios
