@@ -1,10 +1,10 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
+import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
-import { ArrowLeft } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
@@ -39,16 +39,6 @@ export default function LoginPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span className="text-sm">Voltar ao início</span>
-        </Link>
-      </div>
-
       <div className="flex justify-center">
         <div className="space-y-8 w-full max-w-md">
           <div className="text-center space-y-3">
@@ -89,13 +79,7 @@ export default function LoginPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="••••••••••"
-                          label="Senha"
-                          className="h-12"
-                          {...field}
-                        />
+                        <Input type="password" placeholder="••••••••••" label="Senha" className="h-12" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -123,6 +107,15 @@ export default function LoginPage() {
                   Cadastre-se
                 </Link>
               </div>
+            </div>
+            <div className="flex items-center justify-center mt-5">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                <span className="text-sm">Voltar ao início</span>
+              </Link>
             </div>
           </div>
         </div>

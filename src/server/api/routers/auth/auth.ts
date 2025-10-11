@@ -218,40 +218,52 @@ export const authRouter = createTRPCRouter({
     const data: RequestPasswordResetInput = input
     const email = normalizeEmail(data.email)
 
-    const user = await db.query.userTable.findFirst({
-      where: eq(userTable.email, email),
-    })
+    try {
+      const user = await db.query.userTable.findFirst({
+        where: eq(userTable.email, email),
+      })
 
-    if (!user) {
+      if (!user) {
+        // Retorna sucesso mesmo sem user (padrão de segurança)
+        return {
+          success: true,
+          message: 'Se o e-mail existir, enviaremos instruções para redefinir a senha.',
+        }
+      }
+
+      const token = randomBytes(TOKEN_LENGTH).toString('hex')
+      const expires = new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES * 60 * 1000)
+
+      await db
+        .update(userTable)
+        .set({
+          passwordResetToken: token,
+          passwordResetExpiresAt: expires,
+        })
+        .where(eq(userTable.id, user.id))
+
+      const baseUrl = env.PASSWORD_RESET_URL ?? `${env.CLIENT_URL}/auth/reset`
+      const url = new URL(baseUrl)
+      url.searchParams.set('token', token)
+
+      await emailService.sendPasswordResetEmail({
+        to: email,
+        resetLink: url.toString(),
+      })
+
       return {
         success: true,
         message: 'Se o e-mail existir, enviaremos instruções para redefinir a senha.',
       }
-    }
+    } catch (error) {
+      console.error('❌ [requestPasswordReset] Erro ao processar reset de senha:', error)
 
-    const token = randomBytes(TOKEN_LENGTH).toString('hex')
-    const expires = new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES * 60 * 1000)
-
-    await db
-      .update(userTable)
-      .set({
-        passwordResetToken: token,
-        passwordResetExpiresAt: expires,
-      })
-      .where(eq(userTable.id, user.id))
-
-    const baseUrl = env.PASSWORD_RESET_URL ?? `${env.CLIENT_URL}/auth/reset`
-    const url = new URL(baseUrl)
-    url.searchParams.set('token', token)
-
-    await emailService.sendPasswordResetEmail({
-      to: email,
-      resetLink: url.toString(),
-    })
-
-    return {
-      success: true,
-      message: 'Se o e-mail existir, enviaremos instruções para redefinir a senha.',
+      // Retorna sucesso genérico para não revelar informações
+      // O erro já foi logado com detalhes pelo email-service
+      return {
+        success: true,
+        message: 'Se o e-mail existir, enviaremos instruções para redefinir a senha.',
+      }
     }
   }),
 
