@@ -15,17 +15,17 @@ import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PDFViewer } from "@react-pdf/renderer"
 import {
+  AlertCircle,
+  Edit3,
   Eye,
   FileText,
   Loader2,
   Plus,
   RefreshCw,
-  Trash2,
-  Settings,
-  Edit3,
-  Save,
   RotateCcw,
-  AlertCircle
+  Save,
+  Settings,
+  Trash2,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import React, { useCallback, useEffect, useState } from "react"
@@ -165,7 +165,7 @@ export default function NovoProjetoPage() {
   // Aplicar template ao projeto quando disciplina for selecionada
   useEffect(() => {
     if (selectedDisciplinaId && currentTemplate && !isEditingTemplate) {
-      const disciplina = disciplinas?.find(d => d.id === selectedDisciplinaId)
+      const disciplina = disciplinas?.find((d) => d.id === selectedDisciplinaId)
       if (!disciplina) return
 
       form.reset({
@@ -229,19 +229,12 @@ export default function NovoProjetoPage() {
     return () => subscription.unsubscribe()
   }, [form, showPreview])
 
-  // Track changes when atividades change
-  useEffect(() => {
-    if (showPreview) {
-      setHasChanges(true)
-    }
-  }, [atividades, showPreview])
-
   // Callbacks e handlers
   const generatePdfData = useCallback(
     (formValues: ProjetoFormData | TemplateFormData, isTemplate = false): MonitoriaFormData | null => {
       if (!departamentos || !disciplinas || !selectedDisciplinaId) return null
 
-      const disciplina = disciplinas.find(d => d.id === selectedDisciplinaId)
+      const disciplina = disciplinas.find((d) => d.id === selectedDisciplinaId)
       const departamento = departamentos.find((d) => d.id === disciplina?.departamentoId)
 
       if (!disciplina || !departamento) return null
@@ -255,18 +248,20 @@ export default function NovoProjetoPage() {
           descricao: templateValues.descricaoDefault || "",
           departamento: { id: departamento.id, nome: departamento.nome },
           coordenadorResponsavel: "Coordenador Responsável",
-          professorResponsavel: professor ? {
-            id: professor.id,
-            nomeCompleto: professor.nomeCompleto,
-            nomeSocial: professor.nomeSocial || undefined,
-            genero: professor.genero,
-            cpf: professor.cpf,
-            matriculaSiape: professor.matriculaSiape || undefined,
-            regime: professor.regime,
-            telefone: professor.telefone || undefined,
-            telefoneInstitucional: professor.telefoneInstitucional || undefined,
-            emailInstitucional: professor.emailInstitucional,
-          } : undefined,
+          professorResponsavel: professor
+            ? {
+                id: professor.id,
+                nomeCompleto: professor.nomeCompleto,
+                nomeSocial: professor.nomeSocial || undefined,
+                genero: professor.genero,
+                cpf: professor.cpf,
+                matriculaSiape: professor.matriculaSiape || undefined,
+                regime: professor.regime,
+                telefone: professor.telefone || undefined,
+                telefoneInstitucional: professor.telefoneInstitucional || undefined,
+                emailInstitucional: professor.emailInstitucional,
+              }
+            : undefined,
           ano: new Date().getFullYear(),
           semestre: "SEMESTRE_1",
           tipoProposicao: "INDIVIDUAL",
@@ -292,18 +287,20 @@ export default function NovoProjetoPage() {
           descricao: projectValues.descricao,
           departamento: { id: departamento.id, nome: departamento.nome },
           coordenadorResponsavel: "Coordenador Responsável",
-          professorResponsavel: professor ? {
-            id: professor.id,
-            nomeCompleto: professor.nomeCompleto,
-            nomeSocial: professor.nomeSocial || undefined,
-            genero: professor.genero,
-            cpf: professor.cpf,
-            matriculaSiape: professor.matriculaSiape || undefined,
-            regime: professor.regime,
-            telefone: professor.telefone || undefined,
-            telefoneInstitucional: professor.telefoneInstitucional || undefined,
-            emailInstitucional: professor.emailInstitucional,
-          } : undefined,
+          professorResponsavel: professor
+            ? {
+                id: professor.id,
+                nomeCompleto: professor.nomeCompleto,
+                nomeSocial: professor.nomeSocial || undefined,
+                genero: professor.genero,
+                cpf: professor.cpf,
+                matriculaSiape: professor.matriculaSiape || undefined,
+                regime: professor.regime,
+                telefone: professor.telefone || undefined,
+                telefoneInstitucional: professor.telefoneInstitucional || undefined,
+                emailInstitucional: professor.emailInstitucional,
+              }
+            : undefined,
           ano: projectValues.ano,
           semestre: projectValues.semestre,
           tipoProposicao: projectValues.tipoProposicao,
@@ -371,7 +368,7 @@ export default function NovoProjetoPage() {
       const templateData = {
         disciplinaId: selectedDisciplinaId,
         ...data,
-        atividadesDefault: atividades.filter(a => a.trim() !== ""),
+        atividadesDefault: atividades.filter((a) => a.trim() !== ""),
       }
 
       const result = await upsertTemplate.mutateAsync(templateData)
@@ -384,11 +381,10 @@ export default function NovoProjetoPage() {
       })
 
       await apiUtils.projetoTemplates.getTemplateByDisciplinaForProfessor.invalidate({
-        disciplinaId: selectedDisciplinaId
+        disciplinaId: selectedDisciplinaId,
       })
 
       setIsEditingTemplate(false)
-
     } catch (error: any) {
       toast({
         title: "Erro ao salvar template",
@@ -416,7 +412,7 @@ export default function NovoProjetoPage() {
         ...data,
         disciplinaIds: data.disciplinas,
         atividades: atividadesFiltradas,
-        status: 'DRAFT' as const,
+        status: "DRAFT" as const,
       }
 
       await createProjeto.mutateAsync(projetoData)
@@ -428,7 +424,6 @@ export default function NovoProjetoPage() {
 
       await apiUtils.projeto.getProjetos.invalidate()
       router.push("/home/professor/dashboard")
-
     } catch (error: any) {
       toast({
         title: "Erro ao criar projeto",
@@ -468,7 +463,6 @@ export default function NovoProjetoPage() {
       setShowPreview(true)
       setHasChanges(false)
       setPdfKey((prev) => prev + 1)
-
     } catch (error) {
       toast({
         title: "Erro ao gerar preview",
@@ -531,11 +525,8 @@ export default function NovoProjetoPage() {
   // Tela de seleção inicial
   if (!selectedDisciplinaId) {
     return (
-      <PagesLayout
-        title="Novo projeto de monitoria"
-        subtitle="Selecione a disciplina para continuar"
-      >
-        <div className="max-w-2xl mx-auto">
+      <PagesLayout title="Novo projeto de monitoria" subtitle="Selecione a disciplina para continuar">
+        <div>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -572,7 +563,7 @@ export default function NovoProjetoPage() {
     )
   }
 
-  const selectedDisciplina = disciplinas?.find(d => d.id === selectedDisciplinaId)
+  const selectedDisciplina = disciplinas?.find((d) => d.id === selectedDisciplinaId)
 
   // Tela principal de edição (template ou projeto)
   return (
@@ -601,11 +592,11 @@ export default function NovoProjetoPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-amber-700 font-medium">
-                  Esta disciplina não possui um template padrão.
-                </p>
+                <p className="text-amber-700 font-medium">Esta disciplina não possui um template padrão.</p>
                 <p className="text-sm text-amber-600">
-                  Antes de criar projetos para esta disciplina, você precisa definir um template padrão. O template define valores que serão reutilizados em todos os projetos futuros, facilitando a criação e mantendo consistência.
+                  Antes de criar projetos para esta disciplina, você precisa definir um template padrão. O template
+                  define valores que serão reutilizados em todos os projetos futuros, facilitando a criação e mantendo
+                  consistência.
                 </p>
                 <div className="bg-white border border-amber-200 rounded-lg p-4 mt-4">
                   <h4 className="font-semibold text-amber-900 mb-2">O que é o template?</h4>
@@ -799,12 +790,7 @@ export default function NovoProjetoPage() {
                         </Button>
                       </div>
                     ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleAddAtividade}
-                      className="w-full"
-                    >
+                    <Button type="button" variant="outline" onClick={handleAddAtividade} className="w-full">
                       <Plus className="h-4 w-4 mr-2" />
                       Adicionar Atividade
                     </Button>
@@ -813,18 +799,10 @@ export default function NovoProjetoPage() {
 
                 {/* Ações do Template */}
                 <div className="flex justify-end space-x-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsEditingTemplate(false)}
-                  >
+                  <Button type="button" variant="outline" onClick={() => setIsEditingTemplate(false)}>
                     Cancelar
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={upsertTemplate.isPending}
-                    className="bg-amber-600 hover:bg-amber-700"
-                  >
+                  <Button type="submit" disabled={upsertTemplate.isPending} className="bg-amber-600 hover:bg-amber-700">
                     {upsertTemplate.isPending ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -1239,15 +1217,14 @@ export default function NovoProjetoPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-amber-700">
-                  Esta disciplina ainda não possui um template padrão. É necessário criar um template antes de criar projetos.
+                  Esta disciplina ainda não possui um template padrão. É necessário criar um template antes de criar
+                  projetos.
                 </p>
                 <p className="text-sm text-amber-600">
-                  O template define valores padrão que serão reutilizados em todos os projetos futuros desta disciplina, facilitando a criação.
+                  O template define valores padrão que serão reutilizados em todos os projetos futuros desta disciplina,
+                  facilitando a criação.
                 </p>
-                <Button
-                  onClick={() => setIsEditingTemplate(true)}
-                  className="w-full bg-amber-600 hover:bg-amber-700"
-                >
+                <Button onClick={() => setIsEditingTemplate(true)} className="w-full bg-amber-600 hover:bg-amber-700">
                   <Settings className="h-4 w-4 mr-2" />
                   Criar Template Padrão
                 </Button>
@@ -1300,9 +1277,7 @@ export default function NovoProjetoPage() {
                 <div className="text-center py-12">
                   <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                   <h4 className="text-lg font-medium text-gray-900 mb-2">Gere o Preview</h4>
-                  <p className="text-gray-600 mb-4">
-                    Visualize como ficará o documento antes de salvar
-                  </p>
+                  <p className="text-gray-600 mb-4">Visualize como ficará o documento antes de salvar</p>
 
                   <Button
                     onClick={handleGeneratePreview}

@@ -296,7 +296,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
           
           <View style={styles.formRow}>
             <Text>
-              1.6 Proposição²: Individual ( {data.tipoProposicao === "INDIVIDUAL" ? "X" : ""} ) Coletiva ( {data.tipoProposicao === "COLETIVA" ? "X" : ""} ){data.tipoProposicao === "COLETIVA" && data.numeroMonitroresSolicitados ? ` - Nesse caso, informar quantos professores: ${data.numeroMonitroresSolicitados}` : ""}
+              1.6 Proposição²: Individual ( {data.tipoProposicao === "INDIVIDUAL" ? "X" : ""} ) Coletiva ( {data.tipoProposicao === "COLETIVA" ? "X" : ""} ){data.tipoProposicao === "COLETIVA" && data.professoresParticipantes ? ` - Professores participantes: ${data.professoresParticipantes}` : ""}
             </Text>
           </View>
 

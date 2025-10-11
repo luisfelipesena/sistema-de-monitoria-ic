@@ -622,13 +622,13 @@ function DocumentsSection() {
           id: "curriculum_vitae",
           name: "Curriculum Vitae",
           description: "CV atualizado",
-          required: true,
+          required: false,
         },
         {
           id: "comprovante_vinculo",
           name: "Comprovante de Vínculo",
           description: "Comprovante de vínculo institucional",
-          required: true,
+          required: false,
         },
       ]
     }
