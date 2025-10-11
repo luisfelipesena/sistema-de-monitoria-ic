@@ -58,7 +58,6 @@ export const createImportSchema = z.object({
 })
 
 export const importFormSchema = z.object({
-  file: z.instanceof(File),
   ano: anoSchema,
   semestre: semestreSchema,
 })
