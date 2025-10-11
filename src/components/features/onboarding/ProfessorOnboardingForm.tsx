@@ -9,10 +9,12 @@ import type { OnboardingStatusResponse } from "@/server/api/routers/onboarding/o
 import { api } from "@/utils/api"
 import { ArrowRight, CheckCircle, FileSignature, Info, UserCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/hooks/use-auth"
 import SignatureCanvas from "react-signature-canvas"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { formatUsernameToProperName } from "@/utils/username-formatter"
 
 interface ProfessorOnboardingFormProps {
   onboardingStatus: OnboardingStatusResponse
@@ -21,6 +23,7 @@ interface ProfessorOnboardingFormProps {
 export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardingFormProps) {
   const { toast } = useToast()
   const router = useRouter()
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     nomeCompleto: "",
     matriculaSiape: "",
@@ -44,6 +47,16 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const { data: userProfile } = api.user.getProfile.useQuery()
   const saveSignatureMutation = api.signature.saveDefaultSignature.useMutation()
   const { refetch: refetchOnboardingStatus } = api.onboarding.getStatus.useQuery()
+
+  // Pre-populate name from user data
+  useEffect(() => {
+    if (user?.username && !formData.nomeCompleto) {
+      setFormData(prev => ({
+        ...prev,
+        nomeCompleto: formatUsernameToProperName(user.username)
+      }))
+    }
+  }, [user, formData.nomeCompleto])
 
   const hasProfile = onboardingStatus.profile.exists
   const hasSignature = onboardingStatus.signature?.configured || false
@@ -174,10 +187,21 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     <Input
                       id="nomeCompleto"
                       value={formData.nomeCompleto}
-                      onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
-                      required
-                      className="mt-1"
+                      disabled
+                      className="mt-1 bg-gray-50"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">Pré-preenchido com base no seu usuário</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="email">E-mail *</Label>
+                    <Input
+                      id="email"
+                      value={user?.email || ""}
+                      disabled
+                      className="mt-1 bg-gray-50"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">E-mail cadastrado no sistema</p>
                   </div>
 
                   <div>
