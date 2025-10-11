@@ -57,7 +57,7 @@ function decodeFilename(encodedFilename: string | undefined): string {
   try {
     // Try to decode from base64
     return Buffer.from(encodedFilename, 'base64').toString('utf-8')
-  } catch (error) {
+  } catch {
     // If decoding fails, return original value (backwards compatibility)
     return encodedFilename
   }
@@ -665,7 +665,12 @@ export const fileRouter = createTRPCRouter({
           const projectFiles: Array<{ name: string; lastModified: Date }> = []
 
           objectsStream.on('data', (obj: Minio.BucketItem) => {
-            if (obj.name?.includes('propostas_assinadas') && obj.name.endsWith('.pdf')) {
+            // Validar se é PDF assinado E se pertence ao projetoId correto
+            if (
+              obj.name?.includes('propostas_assinadas') &&
+              obj.name.endsWith('.pdf') &&
+              obj.name.includes(`proposta_${projetoId}_`)
+            ) {
               projectFiles.push({
                 name: obj.name,
                 lastModified: obj.lastModified || new Date(),
@@ -679,9 +684,16 @@ export const fileRouter = createTRPCRouter({
           })
 
           objectsStream.on('end', async () => {
+            log.info({ projetoId, filesFound: projectFiles.length }, 'Arquivos encontrados para o projeto')
+
             if (projectFiles.length === 0) {
-              log.warn({ projetoId }, 'Nenhum PDF encontrado para o projeto')
-              reject(new TRPCError({ code: 'NOT_FOUND', message: 'PDF do projeto não encontrado' }))
+              log.warn({ projetoId, prefix }, 'Nenhum PDF encontrado para o projeto')
+              reject(
+                new TRPCError({
+                  code: 'NOT_FOUND',
+                  message: `PDF do projeto ${projetoId} não encontrado. O projeto precisa estar assinado pelo professor.`,
+                })
+              )
               return
             }
 
@@ -693,9 +705,10 @@ export const fileRouter = createTRPCRouter({
               return
             }
 
+            log.info({ projetoId, fileName: latestFile.name }, 'PDF mais recente selecionado')
+
             try {
               // Verificar autorização baseada no projeto
-              const _db = ctx.db
               const projeto = await ctx.db.query.projetoTable.findFirst({
                 where: eq(projetoTable.id, projetoId),
                 with: {
