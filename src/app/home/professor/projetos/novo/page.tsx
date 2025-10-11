@@ -195,7 +195,8 @@ export default function NovoProjetoPage() {
         setPublicoAlvoCustom(currentTemplate.publicoAlvoDefault)
       }
     }
-  }, [selectedDisciplinaId, currentTemplate, disciplinas, isEditingTemplate, form])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDisciplinaId, currentTemplate, disciplinas, isEditingTemplate])
 
   // Atualiza publicoAlvo baseado no tipo (template)
   useEffect(() => {
@@ -206,7 +207,8 @@ export default function NovoProjetoPage() {
         templateForm.setValue("publicoAlvoDefault", publicoAlvoCustom)
       }
     }
-  }, [publicoAlvoTipo, publicoAlvoCustom, templateForm, isEditingTemplate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [publicoAlvoTipo, publicoAlvoCustom, isEditingTemplate])
 
   // Atualiza publicoAlvo baseado no tipo (projeto)
   useEffect(() => {
@@ -217,7 +219,8 @@ export default function NovoProjetoPage() {
         form.setValue("publicoAlvo", publicoAlvoCustom)
       }
     }
-  }, [publicoAlvoTipo, publicoAlvoCustom, form, isEditingTemplate])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [publicoAlvoTipo, publicoAlvoCustom, isEditingTemplate])
 
   // Track changes when form values change
   useEffect(() => {
