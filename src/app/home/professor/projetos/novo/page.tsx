@@ -857,7 +857,13 @@ export default function NovoProjetoPage() {
                         <FormItem>
                           <FormLabel>Título do Projeto</FormLabel>
                           <FormControl>
-                            <Input placeholder="Digite o título do projeto" {...field} />
+                            <Input
+                              placeholder="Digite o título do projeto"
+                              value={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -874,7 +880,10 @@ export default function NovoProjetoPage() {
                             <Textarea
                               placeholder="Descreva os objetivos e justificativa do projeto"
                               rows={4}
-                              {...field}
+                              value={field.value}
+                              onChange={field.onChange}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -894,8 +903,10 @@ export default function NovoProjetoPage() {
                                 type="number"
                                 min={2024}
                                 max={2030}
-                                {...field}
+                                value={field.value}
                                 onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -962,7 +973,10 @@ export default function NovoProjetoPage() {
                                 <Textarea
                                   placeholder="Ex: 2 - Professor João Silva e Professora Maria Santos"
                                   rows={2}
-                                  {...field}
+                                  value={field.value || ""}
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -994,8 +1008,10 @@ export default function NovoProjetoPage() {
                               <Input
                                 type="number"
                                 min={1}
-                                {...field}
+                                value={field.value}
                                 onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1013,8 +1029,10 @@ export default function NovoProjetoPage() {
                               <Input
                                 type="number"
                                 min={1}
-                                {...field}
+                                value={field.value}
                                 onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1089,8 +1107,10 @@ export default function NovoProjetoPage() {
                             <Input
                               type="number"
                               min={0}
-                              {...field}
+                              value={field.value || 0}
                               onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                              onBlur={field.onBlur}
+                              name={field.name}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1117,8 +1137,10 @@ export default function NovoProjetoPage() {
                               <Input
                                 type="number"
                                 min={0}
-                                {...field}
+                                value={field.value || 0}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1136,8 +1158,10 @@ export default function NovoProjetoPage() {
                               <Input
                                 type="number"
                                 min={0}
-                                {...field}
+                                value={field.value || 0}
                                 onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                onBlur={field.onBlur}
+                                name={field.name}
                               />
                             </FormControl>
                             <FormMessage />
