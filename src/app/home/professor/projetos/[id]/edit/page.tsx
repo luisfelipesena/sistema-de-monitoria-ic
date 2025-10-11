@@ -74,6 +74,9 @@ export default function EditProjetoPage() {
   })
 
   useEffect(() => {
+    if (projeto?.status !== "DRAFT") {
+      router.back()
+    }
     if (projeto) {
       // Transform professoresParticipantes from array to string if needed
       let professoresParticipantesStr: string | undefined = undefined

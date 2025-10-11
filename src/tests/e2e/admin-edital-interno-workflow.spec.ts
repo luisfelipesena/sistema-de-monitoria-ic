@@ -131,7 +131,12 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
         await titleField.fill('Template DCC')
 
         await page.locator('button:has-text("Salvar Template")').click()
-        await expect(page.locator('[data-state="open"]').getByText(/Template/).first()).toBeVisible({ timeout: 10000 })
+        await expect(
+          page
+            .locator('[data-state="open"]')
+            .getByText(/Template/)
+            .first()
+        ).toBeVisible({ timeout: 10000 })
         await page.waitForTimeout(2000)
       }
 
@@ -240,7 +245,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await saveTemplateButton.click()
 
       // Wait for success toast message
-      const templateToast = page.locator('[data-state="open"]').getByText(/Template (criado|atualizado)/).first()
+      const templateToast = page
+        .locator('[data-state="open"]')
+        .getByText(/Template (criado|atualizado)/)
+        .first()
       await expect(templateToast).toBeVisible({ timeout: 10000 })
     }
   })
@@ -285,7 +293,12 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
         await titleField.fill('Template Edital')
 
         await page.locator('button:has-text("Salvar Template")').click()
-        await expect(page.locator('[data-state="open"]').getByText(/Template/).first()).toBeVisible({ timeout: 10000 })
+        await expect(
+          page
+            .locator('[data-state="open"]')
+            .getByText(/Template/)
+            .first()
+        ).toBeVisible({ timeout: 10000 })
         await page.waitForTimeout(2000)
       }
 

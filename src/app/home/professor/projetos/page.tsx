@@ -88,6 +88,9 @@ export default function ProfessorProjetosPage() {
         projetoId: projetoId,
       })
 
+      // Open PDF in new tab
+      window.open(result.url, "_blank")
+
       toast({
         title: "PDF aberto em nova aba",
       })

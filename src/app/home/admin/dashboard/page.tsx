@@ -64,6 +64,9 @@ export default function DashboardAdmin() {
         projetoId: projetoId,
       })
 
+      // Open PDF in new tab
+      window.open(result.url, "_blank")
+
       toast({
         title: "Sucesso!",
         description: "PDF aberto em nova aba",
