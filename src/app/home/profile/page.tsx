@@ -574,16 +574,6 @@ function DocumentsSection() {
         action: "view",
       })
 
-      const newWindow = window.open(url, "_blank", "noopener,noreferrer")
-      if (!newWindow) {
-        toast({
-          title: "Popup bloqueado",
-          description: "Permita popups para visualizar o documento em nova aba.",
-          variant: "destructive",
-        })
-        return
-      }
-
       toast({
         title: "Documento aberto",
         description: "O documento foi aberto em nova aba.",

@@ -17,9 +17,9 @@ export default function HomePage() {
   }, [user, isLoading, router])
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center flex-col gap-4">
       <Spinner />
-      <p className="mt-4 text-sm  text-center text-muted-foreground">Redirecionando para o dashboard...</p>
+      <span className="text-sm text-center text-muted-foreground">Redirecionando para o dashboard...</span>
     </div>
   )
 }

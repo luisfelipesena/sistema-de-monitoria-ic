@@ -16,6 +16,7 @@ import {
 import { FilterModal, type FilterValues } from "@/components/ui/FilterModal"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
 import { ManageProjectItem } from "@/types"
 import { api } from "@/utils/api"
 import { useQueryClient } from "@tanstack/react-query"
@@ -39,7 +40,6 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
-import { useToast } from "@/hooks/use-toast"
 
 export default function ManageProjectsPage() {
   const { toast } = useToast()
@@ -54,7 +54,7 @@ export default function ManageProjectsPage() {
   const getCurrentSemester = () => {
     const now = new Date()
     const currentYear = now.getFullYear().toString()
-    const currentSemester = now.getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2'
+    const currentSemester = now.getMonth() < 6 ? "SEMESTRE_1" : "SEMESTRE_2"
     return { ano: currentYear, semestre: currentSemester }
   }
   const [filters, setFilters] = useState<FilterValues>(getCurrentSemester())
@@ -179,16 +179,6 @@ export default function ManageProjectsPage() {
       const result = await getProjetoPdfMutation.mutateAsync({
         projetoId: projetoId,
       })
-
-      const newWindow = window.open(result.url, "_blank", "noopener,noreferrer")
-      if (!newWindow) {
-        toast({
-        title: "Erro",
-        description: "Permita popups para visualizar o PDF em nova aba.",
-        variant: "destructive",
-      })
-        return
-      }
 
       toast({
         title: "Sucesso!",
@@ -421,11 +411,7 @@ export default function ManageProjectsPage() {
               </Button>
             )}
 
-
-            {(status === "APPROVED" ||
-              status === "REJECTED" ||
-              status === "DRAFT" ||
-              status === "SUBMITTED") && (
+            {(status === "APPROVED" || status === "REJECTED" || status === "DRAFT" || status === "SUBMITTED") && (
               <Button
                 variant="outline"
                 size="sm"
@@ -466,14 +452,14 @@ export default function ManageProjectsPage() {
 
   const getCurrentSemesterLabel = () => {
     const ano = filters.ano || new Date().getFullYear().toString()
-    const semestre = filters.semestre === 'SEMESTRE_1' ? '1' : '2'
+    const semestre = filters.semestre === "SEMESTRE_1" ? "1" : "2"
     return `${ano}.${semestre}`
   }
 
   const handleSemesterChange = (value: string) => {
-    const [ano, semestreNum] = value.split('.')
-    const semestre = semestreNum === '1' ? 'SEMESTRE_1' : 'SEMESTRE_2'
-    setFilters(prev => ({ ...prev, ano, semestre }))
+    const [ano, semestreNum] = value.split(".")
+    const semestre = semestreNum === "1" ? "SEMESTRE_1" : "SEMESTRE_2"
+    setFilters((prev) => ({ ...prev, ano, semestre }))
   }
 
   const dashboardActions = (
