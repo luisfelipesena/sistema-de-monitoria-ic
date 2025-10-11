@@ -44,26 +44,24 @@ test.describe('Professor Template Workflow', () => {
     // Step 2: After selecting discipline, should see either template creation or project form
     await page.waitForLoadState('networkidle')
 
-    // Check if template exists by looking for either the "create template" card or project form
-    const hasNoTemplate = await page.locator('text=Criar Template Padrão Primeiro').isVisible({ timeout: 3000 })
+    // Check if template exists by looking for the create button or edit button
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
 
-    if (hasNoTemplate) {
-      // No template - should see button to create one
-      await expect(page.locator('text=Esta disciplina não possui um template padrão')).toBeVisible()
+    const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
+    const hasEditButton = await editTemplateBtn.isVisible({ timeout: 3000 })
 
-      // Wait a bit for React to finish rendering, then click button
-      await page.waitForTimeout(500)
-      await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
+    if (hasCreateButton) {
+      // No template - click button to create one
+      await createTemplateBtn.click({ timeout: 5000 })
+      await page.waitForLoadState('networkidle')
+    } else if (hasEditButton) {
+      // Template exists - click edit template button
+      await expect(page.locator('h1')).toContainText('Criar Projeto de Monitoria')
+      await editTemplateBtn.click({ timeout: 5000 })
       await page.waitForLoadState('networkidle')
     } else {
-      // Template exists - should see project form with edit template button
-      await expect(page.locator('h1')).toContainText('Criar Projeto de Monitoria')
-
-      // Click edit template button
-      const editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
-      await expect(editTemplateBtn).toBeVisible({ timeout: 5000 })
-      await editTemplateBtn.click()
-      await page.waitForLoadState('networkidle')
+      throw new Error('Neither create nor edit template button found')
     }
 
     // Step 3: Should now be on template editing view
@@ -87,16 +85,19 @@ test.describe('Professor Template Workflow', () => {
     await disciplineOption.click()
     await page.waitForLoadState('networkidle')
 
-    // Check if we need to create template
-    const hasNoTemplate = await page.locator('text=Criar Template Padrão Primeiro').isVisible({ timeout: 3000 })
+    // Check if we need to create or edit template
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
 
-    if (hasNoTemplate) {
-      // Click create template button
-      await page.waitForTimeout(500)
-      await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
+    const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
+    const hasEditButton = await editTemplateBtn.isVisible({ timeout: 3000 })
+
+    if (hasCreateButton) {
+      await createTemplateBtn.click({ timeout: 5000 })
+    } else if (hasEditButton) {
+      await editTemplateBtn.click({ timeout: 5000 })
     } else {
-      // Click edit template button
-      await page.getByRole('button', { name: /Editar Template/i }).click()
+      throw new Error('Neither create nor edit template button found')
     }
 
     await page.waitForLoadState('networkidle')
@@ -134,12 +135,14 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check if template exists
-    const hasNoTemplate = await page.locator('text=Criar Template Padrão Primeiro').isVisible({ timeout: 3000 })
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
 
-    if (hasNoTemplate) {
+    const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
+
+    if (hasCreateButton) {
       // Create template first
-      await page.waitForTimeout(500)
-      await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
+      await createTemplateBtn.click({ timeout: 5000 })
       await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
@@ -176,11 +179,11 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Create template if needed
-    const hasNoTemplate = await page.locator('text=Criar Template Padrão Primeiro').isVisible({ timeout: 3000 })
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
-    if (hasNoTemplate) {
-      await page.waitForTimeout(500)
-      await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
+    if (hasCreateButton) {
+      await createTemplateBtn.click({ timeout: 5000 })
       await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
@@ -216,11 +219,11 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Ensure template exists
-    const hasNoTemplate = await page.locator('text=Criar Template Padrão Primeiro').isVisible({ timeout: 3000 })
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
-    if (hasNoTemplate) {
-      await page.waitForTimeout(500)
-      await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
+    if (hasCreateButton) {
+      await createTemplateBtn.click({ timeout: 5000 })
       await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')

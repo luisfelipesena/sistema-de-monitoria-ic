@@ -260,6 +260,8 @@ export default function ProjetoTemplatesPage() {
 
   const columns: ColumnDef<ProjectTemplateItem>[] = [
     {
+      id: "disciplina.codigo",
+      accessorFn: (row) => row.disciplina.codigo,
       header: "Disciplina",
       cell: ({ row }) => (
         <div>

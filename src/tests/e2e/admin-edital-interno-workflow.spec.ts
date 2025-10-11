@@ -198,15 +198,18 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await page.waitForLoadState('networkidle')
 
       // Check if template exists
-      const hasNoTemplate = await page.locator('text=Criar Template Padrão Primeiro').isVisible({ timeout: 3000 })
+      const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+      const editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
 
-      if (hasNoTemplate) {
-        // Create template
-        await page.waitForTimeout(500)
-        await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
+      const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
+      const hasEditButton = await editTemplateBtn.isVisible({ timeout: 3000 })
+
+      if (hasCreateButton) {
+        await createTemplateBtn.click({ timeout: 5000 })
+      } else if (hasEditButton) {
+        await editTemplateBtn.click({ timeout: 5000 })
       } else {
-        // Edit template
-        await page.getByRole('button', { name: /Editar Template/i }).click()
+        throw new Error('Neither create nor edit template button found')
       }
 
       await page.waitForLoadState('networkidle')
@@ -282,11 +285,11 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await page.waitForLoadState('networkidle')
 
       // Ensure template exists
-      const hasNoTemplate = await page.locator('text=Criar Template Padrão Primeiro').isVisible({ timeout: 3000 })
+      const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+      const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
-      if (hasNoTemplate) {
-        await page.waitForTimeout(500)
-        await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
+      if (hasCreateButton) {
+        await createTemplateBtn.click({ timeout: 5000 })
         await page.waitForLoadState('networkidle')
 
         const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
