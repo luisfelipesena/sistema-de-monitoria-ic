@@ -186,7 +186,7 @@ export const authRouter = createTRPCRouter({
 
     if (!user.passwordHash) {
       const passwordHash = await hash(data.password, SALT_ROUNDS)
-      const [updatedUser] = await db
+      await db
         .update(userTable)
         .set({
           passwordHash,
@@ -198,10 +198,9 @@ export const authRouter = createTRPCRouter({
         })
         .where(eq(userTable.id, user.id))
         .returning({ id: userTable.id, email: userTable.email })
-
-      await ensureAdminRole(updatedUser.id, updatedUser.email)
     }
 
+    await ensureAdminRole(user.id, user.email)
     const session = await lucia.createSession(user.id, {})
     const sessionCookie = lucia.createSessionCookie(session.id)
     const { cookies: getCookies } = await import('next/headers')
