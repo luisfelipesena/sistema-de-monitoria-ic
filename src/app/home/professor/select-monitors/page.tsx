@@ -3,7 +3,7 @@
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
@@ -312,22 +312,20 @@ export default function SelectMonitorsPage() {
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
                       <CardTitle className="text-xl">{projeto.titulo}</CardTitle>
-                      <CardDescription>
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="flex items-center gap-1">
-                            <Award className="h-4 w-4 text-yellow-600" />
-                            {projeto.bolsasDisponibilizadas || 0} bolsas
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4 text-blue-600" />
-                            {projeto.voluntariosSolicitados || 0} voluntários
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            {projeto.inscricoes.length} inscricaos
-                          </div>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Award className="h-4 w-4 text-yellow-600" />
+                          {projeto.bolsasDisponibilizadas || 0} bolsas
                         </div>
-                      </CardDescription>
+                        <div className="flex items-center gap-1">
+                          <Users className="h-4 w-4 text-blue-600" />
+                          {projeto.voluntariosSolicitados || 0} voluntários
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          {projeto.inscricoes.length} inscricaos
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>

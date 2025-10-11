@@ -88,15 +88,8 @@ export default function ProfessorProjetosPage() {
         projetoId: projetoId,
       })
 
-      const newWindow = window.open(result.url, "_blank", "noopener,noreferrer")
-      if (!newWindow) {
-        toast({
-          title: "Popup bloqueado",
-          description: "Permita popups para visualizar o PDF em nova aba.",
-          variant: "destructive",
-        })
-        return
-      }
+      // Open PDF in new tab
+      window.open(result.url, "_blank")
 
       toast({
         title: "PDF aberto em nova aba",
@@ -527,7 +520,6 @@ export default function ProfessorProjetosPage() {
                         )}
                       </div>
                     </div>
-
                   </div>
                 </div>
 

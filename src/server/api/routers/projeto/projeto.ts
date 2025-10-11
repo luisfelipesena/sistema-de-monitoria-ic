@@ -925,6 +925,7 @@ export const projetoRouter = createTRPCRouter({
           atividades: atividades.map((a) => a.descricao),
           assinaturaProfessor: input.signatureImage,
           dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
+          signingMode: 'professor' as const,
           projetoId: projeto.id,
         }
 

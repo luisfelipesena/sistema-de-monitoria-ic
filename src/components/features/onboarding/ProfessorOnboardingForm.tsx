@@ -9,10 +9,12 @@ import type { OnboardingStatusResponse } from "@/server/api/routers/onboarding/o
 import { api } from "@/utils/api"
 import { ArrowRight, CheckCircle, FileSignature, Info, UserCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/hooks/use-auth"
 import SignatureCanvas from "react-signature-canvas"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { formatUsernameToProperName } from "@/utils/username-formatter"
 
 interface ProfessorOnboardingFormProps {
   onboardingStatus: OnboardingStatusResponse
@@ -21,6 +23,7 @@ interface ProfessorOnboardingFormProps {
 export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardingFormProps) {
   const { toast } = useToast()
   const router = useRouter()
+  const { user } = useAuth()
   const [formData, setFormData] = useState({
     nomeCompleto: "",
     matriculaSiape: "",
@@ -45,8 +48,19 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const saveSignatureMutation = api.signature.saveDefaultSignature.useMutation()
   const { refetch: refetchOnboardingStatus } = api.onboarding.getStatus.useQuery()
 
+  // Pre-populate name from user data
+  useEffect(() => {
+    if (user?.username && !formData.nomeCompleto) {
+      setFormData(prev => ({
+        ...prev,
+        nomeCompleto: formatUsernameToProperName(user.username)
+      }))
+    }
+  }, [user, formData.nomeCompleto])
+
   const hasProfile = onboardingStatus.profile.exists
   const hasSignature = onboardingStatus.signature?.configured || false
+  const [signatureDataURL, setSignatureDataURL] = useState<string | null>(null)
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,16 +74,33 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
       return
     }
 
+    // Validar assinatura
+    if (!signatureDataURL) {
+      toast({
+        title: "Assinatura obrigatória",
+        description: "Por favor, desenhe ou faça upload da sua assinatura antes de continuar",
+        variant: "destructive",
+      })
+      return
+    }
+
     setIsSubmitting(true)
     try {
+      // 1. Criar perfil
       await createProfileMutation.mutateAsync({
         ...formData,
         regime: formData.regime as "20H" | "40H" | "DE",
         genero: formData.genero as "MASCULINO" | "FEMININO" | "OUTRO",
       })
+
+      // 2. Salvar assinatura
+      await saveSignatureMutation.mutateAsync({
+        signatureData: signatureDataURL,
+      })
+
       toast({
         title: "Sucesso!",
-        description: "Perfil criado com sucesso!",
+        description: "Perfil e assinatura criados com sucesso!",
       })
       await refetchOnboardingStatus()
     } catch (error: any) {
@@ -83,35 +114,20 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
     }
   }
 
-  const handleSaveSignature = async (signatureData: string) => {
-    setIsSubmitting(true)
-    try {
-      await saveSignatureMutation.mutateAsync({
-        signatureData,
-      })
-
-      setShowSignatureDialog(false)
-      setSignatureMode('draw')
-      toast({
-        title: "Sucesso!",
-        description: "Assinatura salva com sucesso!",
-      })
-      await refetchOnboardingStatus()
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Erro ao salvar assinatura",
-        variant: "destructive",
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+  const handleSaveSignatureLocally = (signatureData: string) => {
+    setSignatureDataURL(signatureData)
+    setShowSignatureDialog(false)
+    setSignatureMode('draw')
+    toast({
+      title: "Assinatura configurada!",
+      description: "Assinatura salva localmente. Complete o formulário para finalizar.",
+    })
   }
 
   const handleSaveFromDraw = () => {
     if (signatureRef.current && !signatureRef.current.isEmpty()) {
       const signatureDataURL = signatureRef.current.toDataURL()
-      handleSaveSignature(signatureDataURL)
+      handleSaveSignatureLocally(signatureDataURL)
     } else {
       toast({
         title: "Erro",
@@ -137,7 +153,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
     const reader = new FileReader()
     reader.onload = (e) => {
       const result = e.target?.result as string
-      handleSaveSignature(result)
+      handleSaveSignatureLocally(result)
     }
     reader.readAsDataURL(file)
   }
@@ -174,10 +190,21 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     <Input
                       id="nomeCompleto"
                       value={formData.nomeCompleto}
-                      onChange={(e) => setFormData({ ...formData, nomeCompleto: e.target.value })}
-                      required
-                      className="mt-1"
+                      disabled
+                      className="mt-1 bg-gray-50"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">Pré-preenchido com base no seu usuário</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="email">E-mail *</Label>
+                    <Input
+                      id="email"
+                      value={user?.email || ""}
+                      disabled
+                      className="mt-1 bg-gray-50"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">E-mail cadastrado no sistema</p>
                   </div>
 
                   <div>
@@ -303,6 +330,65 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                   </div>
                 </div>
 
+                {/* Seção de Assinatura */}
+                <div className="border-t pt-6 mt-6">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <FileSignature className="h-5 w-5" />
+                      Assinatura Digital *
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Configure sua assinatura digital para assinar documentos no sistema
+                    </p>
+                  </div>
+
+                  {signatureDataURL ? (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2 text-green-800">
+                          <CheckCircle className="h-5 w-5" />
+                          <div>
+                            <p className="font-medium">Assinatura configurada</p>
+                            <p className="text-sm text-green-700">Sua assinatura foi salva com sucesso</p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowSignatureDialog(true)}
+                        >
+                          Alterar
+                        </Button>
+                      </div>
+                      <div className="mt-3 bg-white rounded border p-2 max-w-xs">
+                        <img src={signatureDataURL} alt="Assinatura" className="w-full h-auto" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-start gap-3">
+                        <Info className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="font-medium text-amber-800 mb-2">Assinatura obrigatória</p>
+                          <p className="text-sm text-amber-700 mb-3">
+                            A assinatura digital garante a autenticidade e validade legal dos documentos gerados pelo sistema.
+                          </p>
+                          <Button
+                            type="button"
+                            onClick={() => setShowSignatureDialog(true)}
+                            size="sm"
+                            className="bg-amber-600 hover:bg-amber-700"
+                          >
+                            <FileSignature className="h-4 w-4 mr-2" />
+                            Configurar Assinatura
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="pt-4">
                   <Button
                     type="submit"
@@ -314,50 +400,6 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                   </Button>
                 </div>
               </form>
-            </CardContent>
-          </Card>
-        )}
-
-        {hasProfile && !hasSignature && (
-          <Card className="shadow-lg border-amber-200 bg-amber-50">
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-amber-800">
-                <FileSignature className="h-5 w-5" />
-                Assinatura Digital Obrigatória
-              </CardTitle>
-              <p className="text-sm text-amber-700">
-                Configure sua assinatura digital para poder assinar documentos no sistema
-              </p>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="text-center space-y-6">
-                <div className="bg-amber-100 border border-amber-200 rounded-lg p-6">
-                  <FileSignature className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-amber-800 mb-2">Assinatura Digital Necessária</h3>
-                  <p className="text-sm text-amber-700 mb-4">
-                    Para utilizar o sistema, você deve configurar sua assinatura digital padrão.
-                    Esta assinatura será usada para assinar documentos e projetos.
-                  </p>
-                  <div className="bg-amber-50 border border-amber-300 rounded-lg p-4">
-                    <div className="flex items-start gap-2">
-                      <Info className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                      <div className="text-xs text-amber-800 text-left">
-                        <p className="font-medium mb-1">Por que é obrigatória?</p>
-                        <p>A assinatura digital garante a autenticidade e validade legal dos documentos gerados pelo sistema.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  onClick={() => setShowSignatureDialog(true)}
-                  size="lg"
-                  className="bg-amber-600 hover:bg-amber-700 px-8"
-                >
-                  <FileSignature className="h-4 w-4 mr-2" />
-                  Configurar Assinatura Digital
-                </Button>
-              </div>
             </CardContent>
           </Card>
         )}

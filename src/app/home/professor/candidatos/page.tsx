@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { QuickEvaluation, SelecaoCandidato, DashboardProjectItem, InscriptionDetailData } from "@/types"
+import { InscriptionDetailData, QuickEvaluation } from "@/types"
 import { api } from "@/utils/api"
 import { CheckCircle, Clock, GraduationCap, Star, Users } from "lucide-react"
 import { useSearchParams } from "next/navigation"
@@ -241,7 +241,7 @@ function ProjectApplicationsContent() {
         {selectedProject && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
-              <CardContent className="p-0">
+              <CardContent className="p-6">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-blue-500" />
                   <div>
@@ -253,7 +253,7 @@ function ProjectApplicationsContent() {
             </Card>
 
             <Card>
-              <CardContent className="p-0">
+              <CardContent className="p-6">
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-5 w-5 text-green-500" />
                   <div>
@@ -265,7 +265,7 @@ function ProjectApplicationsContent() {
             </Card>
 
             <Card>
-              <CardContent className="p-0">
+              <CardContent className="p-6">
                 <div className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-purple-500" />
                   <div>
@@ -277,7 +277,7 @@ function ProjectApplicationsContent() {
             </Card>
 
             <Card>
-              <CardContent className="p-0">
+              <CardContent className="p-6">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-orange-500" />
                   <div>

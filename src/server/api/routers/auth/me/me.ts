@@ -31,10 +31,6 @@ export const meRouter = createTRPCRouter({
       if (user.role === 'professor') {
         professorProfile = await ctx.db.query.professorTable.findFirst({
           where: (table, { eq }) => eq(table.userId, user.id),
-          columns: {
-            id: true,
-            departamentoId: true,
-          },
         })
       }
 

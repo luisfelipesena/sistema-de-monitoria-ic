@@ -89,15 +89,8 @@ export default function DashboardProfessor() {
         projetoId: projetoId,
       })
 
-      const newWindow = window.open(result.url, "_blank", "noopener,noreferrer")
-      if (!newWindow) {
-        toast({
-          title: "Popup bloqueado",
-          description: "Permita popups para visualizar o PDF em nova aba.",
-          variant: "destructive",
-        })
-        return
-      }
+      // Open PDF in new tab
+      window.open(result.url, "_blank")
 
       toast({
         title: "PDF aberto em nova aba",
@@ -260,18 +253,7 @@ export default function DashboardProfessor() {
               </>
             )}
 
-            {(projeto.status === "SUBMITTED") && (
-              <Link href={`/home/professor/projetos/${projeto.id}/edit`}>
-                <Button variant="outline" size="sm" className="rounded-full flex items-center gap-1">
-                  <Edit className="h-4 w-4" />
-                  Editar
-                </Button>
-              </Link>
-            )}
-
-            {(projeto.status === "SUBMITTED" ||
-              projeto.status === "APPROVED" ||
-              projeto.status === "REJECTED") && (
+            {(projeto.status === "SUBMITTED" || projeto.status === "APPROVED" || projeto.status === "REJECTED") && (
               <Button
                 variant="outline"
                 size="sm"

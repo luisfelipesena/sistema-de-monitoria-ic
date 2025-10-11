@@ -116,9 +116,32 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       const disciplineOption = page.getByRole('option').first()
       await expect(disciplineOption).toBeVisible({ timeout: 10000 })
       await disciplineOption.click()
+      await page.waitForLoadState('networkidle')
 
-      // Go to project creation
-      await page.locator('text=Criar Projeto Específico').click()
+      // Check if template exists, create if needed
+      const hasNoTemplate = await page.locator('text=Criar Template Padrão Primeiro').isVisible({ timeout: 3000 })
+
+      if (hasNoTemplate) {
+        // Create template first
+        await page.waitForTimeout(500)
+        await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
+        await page.waitForLoadState('networkidle')
+
+        const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
+        await titleField.fill('Template DCC')
+
+        await page.locator('button:has-text("Salvar Template")').click()
+        await expect(
+          page
+            .locator('[data-state="open"]')
+            .getByText(/Template/)
+            .first()
+        ).toBeVisible({ timeout: 10000 })
+        await page.waitForTimeout(2000)
+      }
+
+      // Should now be on project creation form
+      await expect(page.locator('h1')).toContainText('Criar Projeto de Monitoria')
 
       // Look for internal edital fields
       const examDateSelect = page
@@ -172,9 +195,24 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       const disciplineOption = page.getByRole('option').first()
       await expect(disciplineOption).toBeVisible({ timeout: 10000 })
       await disciplineOption.click()
+      await page.waitForLoadState('networkidle')
 
-      // Go to template editing
-      await page.locator('text=Editar Template Padrão').click()
+      // Check if template exists
+      const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+      const editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
+
+      const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
+      const hasEditButton = await editTemplateBtn.isVisible({ timeout: 3000 })
+
+      if (hasCreateButton) {
+        await createTemplateBtn.click({ timeout: 5000 })
+      } else if (hasEditButton) {
+        await editTemplateBtn.click({ timeout: 5000 })
+      } else {
+        throw new Error('Neither create nor edit template button found')
+      }
+
+      await page.waitForLoadState('networkidle')
 
       // Fill template with exam-specific fields
       const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
@@ -205,12 +243,15 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       }
 
       // Save template
-      const saveTemplateButton = page.locator('button:has-text("Salvar Template Padrão")')
+      const saveTemplateButton = page.locator('button:has-text("Salvar Template")')
       await expect(saveTemplateButton).toBeVisible({ timeout: 5000 })
       await saveTemplateButton.click()
 
-      // Wait for success toast message - check for title or description
-      const templateToast = page.locator('[data-state="open"]').getByText(/Template (criado|atualizado)/)
+      // Wait for success toast message
+      const templateToast = page
+        .locator('[data-state="open"]')
+        .getByText(/Template (criado|atualizado)/)
+        .first()
       await expect(templateToast).toBeVisible({ timeout: 10000 })
     }
   })
@@ -241,9 +282,31 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await disciplineSelect.click()
       const disciplineOption = page.locator('[role="option"]').first()
       await disciplineOption.click()
+      await page.waitForLoadState('networkidle')
 
-      // Go to project creation
-      await page.locator('text=Criar Projeto Específico').click()
+      // Ensure template exists
+      const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+      const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
+
+      if (hasCreateButton) {
+        await createTemplateBtn.click({ timeout: 5000 })
+        await page.waitForLoadState('networkidle')
+
+        const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
+        await titleField.fill('Template Edital')
+
+        await page.locator('button:has-text("Salvar Template")').click()
+        await expect(
+          page
+            .locator('[data-state="open"]')
+            .getByText(/Template/)
+            .first()
+        ).toBeVisible({ timeout: 10000 })
+        await page.waitForTimeout(2000)
+      }
+
+      // Should be on project creation
+      await expect(page.locator('h1')).toContainText('Criar Projeto de Monitoria')
 
       // Check if exam-related fields are pre-filled from template but editable
       const examPointsField = page
