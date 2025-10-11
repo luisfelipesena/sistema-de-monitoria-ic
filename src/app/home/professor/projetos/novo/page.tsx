@@ -1252,7 +1252,7 @@ export default function NovoProjetoPage() {
                       Editar Template
                     </Button>
                   )}
-                  {showPreview && hasChanges && !isEditingTemplate && (
+                  {showPreview && hasChanges && (
                     <Button
                       variant="outline"
                       size="sm"

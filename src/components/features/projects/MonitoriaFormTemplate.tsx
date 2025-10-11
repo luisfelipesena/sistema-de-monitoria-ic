@@ -239,11 +239,6 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
     descricaoLines.push(currentLine.trim())
   }
 
-  // Ensure we have 9 lines for description
-  while (descricaoLines.length < 9) {
-    descricaoLines.push("")
-  }
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -473,8 +468,8 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                         <Text>{atividade}</Text>
                       </View>
                     ))}
-                    {/* Add empty rows to maintain consistent layout (minimum 6 rows) */}
-                    {Array.from({ length: Math.max(0, 6 - data.atividades.length) }).map((_, index) => (
+                    {/* Add empty rows to maintain consistent layout (minimum 2 rows) */}
+                    {Array.from({ length: Math.max(0, 2 - data.atividades.length) }).map((_, index) => (
                       <View key={`empty-${index}`} style={styles.formRow}>
                         <Text></Text>
                       </View>
