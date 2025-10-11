@@ -35,7 +35,9 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSignatureDialog, setShowSignatureDialog] = useState(false)
+  const [signatureMode, setSignatureMode] = useState<'draw' | 'upload'>('draw')
   const signatureRef = useRef<SignatureCanvas>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
   const createProfileMutation = api.onboarding.createProfessorProfile.useMutation()
@@ -81,38 +83,63 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
     }
   }
 
-  const handleSaveSignature = async () => {
+  const handleSaveSignature = async (signatureData: string) => {
+    setIsSubmitting(true)
+    try {
+      await saveSignatureMutation.mutateAsync({
+        signatureData,
+      })
+
+      setShowSignatureDialog(false)
+      setSignatureMode('draw')
+      toast({
+        title: "Sucesso!",
+        description: "Assinatura salva com sucesso!",
+      })
+      await refetchOnboardingStatus()
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao salvar assinatura",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSaveFromDraw = () => {
     if (signatureRef.current && !signatureRef.current.isEmpty()) {
-      setIsSubmitting(true)
-      try {
-        const signatureDataURL = signatureRef.current.toDataURL()
-
-        await saveSignatureMutation.mutateAsync({
-          signatureData: signatureDataURL,
-        })
-
-        setShowSignatureDialog(false)
-        toast({
-          title: "Sucesso!",
-          description: "Assinatura salva com sucesso!",
-        })
-        await refetchOnboardingStatus()
-      } catch (error: any) {
-        toast({
-          title: "Erro",
-          description: error.message || "Erro ao salvar assinatura",
-          variant: "destructive",
-        })
-      } finally {
-        setIsSubmitting(false)
-      }
+      const signatureDataURL = signatureRef.current.toDataURL()
+      handleSaveSignature(signatureDataURL)
     } else {
       toast({
         title: "Erro",
-        description: "Por favor, faça a assinatura antes de salvar",
+        description: "Por favor, desenhe a assinatura antes de salvar",
         variant: "destructive",
       })
     }
+  }
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Formato inválido",
+        description: "Por favor, selecione uma imagem",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const result = e.target?.result as string
+      handleSaveSignature(result)
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleClearSignature = () => {
@@ -362,42 +389,102 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
             <DialogTitle>Configure sua Assinatura Digital</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="text-sm text-muted-foreground">Desenhe sua assinatura no espaço abaixo:</div>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
-              <SignatureCanvas
-                ref={signatureRef}
-                canvasProps={{
-                  width: 600,
-                  height: 200,
-                  className: "signature-canvas bg-white rounded border",
-                }}
-                backgroundColor="white"
-              />
+            <div className="flex gap-2 border-b pb-2">
+              <Button
+                variant={signatureMode === 'draw' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSignatureMode('draw')}
+              >
+                Desenhar
+              </Button>
+              <Button
+                variant={signatureMode === 'upload' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSignatureMode('upload')}
+              >
+                Fazer Upload
+              </Button>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-blue-800">
-                  <p className="font-medium mb-1">Dica:</p>
-                  <p>Desenhe sua assinatura de forma clara e legível. Esta será sua assinatura padrão para todos os documentos.</p>
+
+            {signatureMode === 'draw' ? (
+              <>
+                <div className="text-sm text-muted-foreground">Desenhe sua assinatura no espaço abaixo:</div>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                  <SignatureCanvas
+                    ref={signatureRef}
+                    canvasProps={{
+                      width: 600,
+                      height: 200,
+                      className: "signature-canvas bg-white rounded border",
+                    }}
+                    backgroundColor="white"
+                  />
                 </div>
-              </div>
-            </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-blue-800">
+                      <p className="font-medium mb-1">Dica:</p>
+                      <p>Desenhe sua assinatura de forma clara e legível. Esta será sua assinatura padrão para todos os documentos.</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-sm text-muted-foreground">Selecione uma imagem da sua assinatura:</div>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50 text-center">
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="signature-upload"
+                  />
+                  <Label htmlFor="signature-upload" className="cursor-pointer">
+                    <div className="flex flex-col items-center gap-2">
+                      <FileSignature className="h-12 w-12 text-gray-400" />
+                      <span className="text-sm font-medium">Clique para selecionar uma imagem</span>
+                      <span className="text-xs text-muted-foreground">PNG, JPG ou JPEG</span>
+                    </div>
+                  </Label>
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-blue-800">
+                      <p className="font-medium mb-1">Dica:</p>
+                      <p>Selecione uma imagem clara da sua assinatura em fundo branco para melhor resultado.</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           <div className="flex justify-between">
-            <Button variant="outline" onClick={handleClearSignature}>
-              Limpar
-            </Button>
+            {signatureMode === 'draw' ? (
+              <Button variant="outline" onClick={handleClearSignature}>
+                Limpar
+              </Button>
+            ) : (
+              <div />
+            )}
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={() => setShowSignatureDialog(false)}
+                onClick={() => {
+                  setShowSignatureDialog(false)
+                  setSignatureMode('draw')
+                }}
               >
                 Cancelar
               </Button>
-              <Button onClick={handleSaveSignature} disabled={isSubmitting}>
-                {isSubmitting ? "Salvando..." : "Salvar Assinatura"}
-              </Button>
+              {signatureMode === 'draw' && (
+                <Button onClick={handleSaveFromDraw} disabled={isSubmitting}>
+                  {isSubmitting ? "Salvando..." : "Salvar Assinatura"}
+                </Button>
+              )}
             </div>
           </div>
         </DialogContent>

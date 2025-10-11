@@ -119,10 +119,13 @@ async function createTestUser() {
           passwordHash,
           role: 'professor',
           emailVerifiedAt: new Date(),
+          assinaturaDefault:
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          dataAssinaturaDefault: new Date(),
         })
         .returning()
 
-      // Create professor profile with signature (to bypass onboarding)
+      // Create professor profile (to bypass onboarding)
       await db.insert(professorTable).values({
         userId: newProfessorUser.id,
         nomeCompleto: 'João Silva Professor',
@@ -132,8 +135,6 @@ async function createTestUser() {
         emailInstitucional: 'professor@ufba.br',
         cpf: '12345678901',
         genero: 'MASCULINO',
-        assinaturaDefault:
-          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
       })
 
       console.log('✅ Professor user created successfully!')

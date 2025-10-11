@@ -80,13 +80,19 @@ describe('onboardingRouter', () => {
     })
 
     it('should return pending: false for a professor with a complete profile', async () => {
-      const mockContext = createMockContext(mockProfessorUser)
+      // Mock user with signature
+      const userWithSignature = {
+        ...mockProfessorUser,
+        assinaturaDefault: 'base64signature',
+        dataAssinaturaDefault: new Date(),
+      }
+      const mockContext = createMockContext(userWithSignature)
       const caller = onboardingRouter.createCaller(mockContext)
 
       const mockProfile = {
         id: 1,
-        assinaturaDefault: 'base64signature',
-        dataAssinaturaDefault: new Date(),
+        assinaturaDefault: null,
+        dataAssinaturaDefault: null,
       }
       vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfile as any)
 
