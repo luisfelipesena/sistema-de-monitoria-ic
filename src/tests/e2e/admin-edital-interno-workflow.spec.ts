@@ -123,14 +123,15 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
 
       if (hasNoTemplate) {
         // Create template first
-        await page.getByRole('button', { name: /Criar Template Padrão/i }).click()
+        await page.waitForTimeout(500)
+        await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
         await page.waitForLoadState('networkidle')
 
         const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
         await titleField.fill('Template DCC')
 
         await page.locator('button:has-text("Salvar Template")').click()
-        await expect(page.locator('[data-state="open"]').getByText(/Template/)).toBeVisible({ timeout: 10000 })
+        await expect(page.locator('[data-state="open"]').getByText(/Template/).first()).toBeVisible({ timeout: 10000 })
         await page.waitForTimeout(2000)
       }
 
@@ -196,7 +197,8 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
 
       if (hasNoTemplate) {
         // Create template
-        await page.getByRole('button', { name: /Criar Template Padrão/i }).click()
+        await page.waitForTimeout(500)
+        await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
       } else {
         // Edit template
         await page.getByRole('button', { name: /Editar Template/i }).click()
@@ -238,7 +240,7 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await saveTemplateButton.click()
 
       // Wait for success toast message
-      const templateToast = page.locator('[data-state="open"]').getByText(/Template (criado|atualizado)/)
+      const templateToast = page.locator('[data-state="open"]').getByText(/Template (criado|atualizado)/).first()
       await expect(templateToast).toBeVisible({ timeout: 10000 })
     }
   })
@@ -275,14 +277,15 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       const hasNoTemplate = await page.locator('text=Criar Template Padrão Primeiro').isVisible({ timeout: 3000 })
 
       if (hasNoTemplate) {
-        await page.getByRole('button', { name: /Criar Template Padrão/i }).click()
+        await page.waitForTimeout(500)
+        await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
         await page.waitForLoadState('networkidle')
 
         const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
         await titleField.fill('Template Edital')
 
         await page.locator('button:has-text("Salvar Template")').click()
-        await expect(page.locator('[data-state="open"]').getByText(/Template/)).toBeVisible({ timeout: 10000 })
+        await expect(page.locator('[data-state="open"]').getByText(/Template/).first()).toBeVisible({ timeout: 10000 })
         await page.waitForTimeout(2000)
       }
 

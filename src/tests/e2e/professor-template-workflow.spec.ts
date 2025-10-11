@@ -50,11 +50,10 @@ test.describe('Professor Template Workflow', () => {
     if (hasNoTemplate) {
       // No template - should see button to create one
       await expect(page.locator('text=Esta disciplina não possui um template padrão')).toBeVisible()
-      const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
-      await expect(createTemplateBtn).toBeVisible()
 
-      // Click to create template
-      await createTemplateBtn.click()
+      // Wait a bit for React to finish rendering, then click button
+      await page.waitForTimeout(500)
+      await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
       await page.waitForLoadState('networkidle')
     } else {
       // Template exists - should see project form with edit template button
@@ -93,7 +92,8 @@ test.describe('Professor Template Workflow', () => {
 
     if (hasNoTemplate) {
       // Click create template button
-      await page.getByRole('button', { name: /Criar Template Padrão/i }).click()
+      await page.waitForTimeout(500)
+      await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
     } else {
       // Click edit template button
       await page.getByRole('button', { name: /Editar Template/i }).click()
@@ -113,7 +113,7 @@ test.describe('Professor Template Workflow', () => {
     await saveButton.click()
 
     // Should see success toast message
-    const templateToast = page.locator('[data-state="open"]').getByText(/Template (criado|atualizado)/)
+    const templateToast = page.locator('[data-state="open"]').getByText(/Template (criado|atualizado)/).first()
     await expect(templateToast).toBeVisible({ timeout: 10000 })
   })
 
@@ -135,14 +135,15 @@ test.describe('Professor Template Workflow', () => {
 
     if (hasNoTemplate) {
       // Create template first
-      await page.getByRole('button', { name: /Criar Template Padrão/i }).click()
+      await page.waitForTimeout(500)
+      await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
       await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
       await titleField.fill('Template para Teste')
 
       await page.locator('button:has-text("Salvar Template")').click()
-      await expect(page.locator('[data-state="open"]').getByText(/Template/)).toBeVisible({ timeout: 10000 })
+      await expect(page.locator('[data-state="open"]').getByText(/Template/).first()).toBeVisible({ timeout: 10000 })
 
       // Wait for redirect or click back to project
       await page.waitForTimeout(2000)
@@ -170,14 +171,15 @@ test.describe('Professor Template Workflow', () => {
     const hasNoTemplate = await page.locator('text=Criar Template Padrão Primeiro').isVisible({ timeout: 3000 })
 
     if (hasNoTemplate) {
-      await page.getByRole('button', { name: /Criar Template Padrão/i }).click()
+      await page.waitForTimeout(500)
+      await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
       await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
       await titleField.fill('Template Padrão')
 
       await page.locator('button:has-text("Salvar Template")').click()
-      await expect(page.locator('[data-state="open"]').getByText(/Template/)).toBeVisible({ timeout: 10000 })
+      await expect(page.locator('[data-state="open"]').getByText(/Template/).first()).toBeVisible({ timeout: 10000 })
       await page.waitForTimeout(2000)
     }
 
@@ -211,7 +213,7 @@ test.describe('Professor Template Workflow', () => {
       await titleField.fill('Template Navegação')
 
       await page.locator('button:has-text("Salvar Template")').click()
-      await expect(page.locator('[data-state="open"]').getByText(/Template/)).toBeVisible({ timeout: 10000 })
+      await expect(page.locator('[data-state="open"]').getByText(/Template/).first()).toBeVisible({ timeout: 10000 })
       await page.waitForTimeout(2000)
     }
 
