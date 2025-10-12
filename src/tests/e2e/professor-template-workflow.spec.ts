@@ -197,7 +197,7 @@ test.describe('Professor Template Workflow', () => {
     if (hasCreateButton) {
       // Create template first
       console.log('Creating template...')
-      await createTemplateBtn.click({ force: true })
+      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
       await page.waitForTimeout(1500) // Wait for form to fully render
       await page.waitForLoadState('networkidle')
 
@@ -286,15 +286,14 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Ensure template exists
-    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
-    const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
+    await page.waitForTimeout(1000) // Wait for page to stabilize
+    const createTemplateBtn = page.locator('button:has-text("Criar Template Padrão")').first()
+    const hasCreateButton = (await createTemplateBtn.count()) > 0
 
     if (hasCreateButton) {
       // Click create template button with proper wait
       console.log('Creating template...')
-      const btn = page.locator('button:has-text("Criar Template Padrão")').first()
-      await btn.waitFor({ state: 'visible', timeout: 5000 })
-      await btn.click({ force: true })
+      await createTemplateBtn.click({ force: true })
       await page.waitForTimeout(1500) // Wait for form to fully render
       await page.waitForLoadState('networkidle')
 
