@@ -45,7 +45,7 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check if template exists by looking for the create button or edit button
-    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
     const editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
 
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
@@ -86,7 +86,7 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check if we need to create or edit template
-    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
     const editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
 
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
@@ -135,7 +135,7 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check if template exists
-    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
     const _editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
 
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
@@ -179,7 +179,7 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Create template if needed
-    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
@@ -219,7 +219,7 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Ensure template exists
-    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {

@@ -29,7 +29,7 @@ interface TemplateDialogProps {
     id: number
     codigo: string
     nome: string
-    departamento: { sigla: string }
+    departamento: { sigla: string | null }
   }>
   showDisciplinaField?: boolean
   atividades: string[]
@@ -84,7 +84,7 @@ export const TemplateDialog: React.FC<TemplateDialogProps> = ({
                       <SelectContent>
                         {disciplinas.map((disciplina) => (
                           <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
-                            {disciplina.codigo} - {disciplina.nome} ({disciplina.departamento.sigla})
+                            {disciplina.codigo} - {disciplina.nome} ({disciplina.departamento.sigla || 'N/A'})
                           </SelectItem>
                         ))}
                       </SelectContent>

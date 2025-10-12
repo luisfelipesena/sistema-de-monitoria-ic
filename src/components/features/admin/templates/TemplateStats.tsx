@@ -6,7 +6,8 @@ import { BookOpen, Clock, FileText, Target } from "lucide-react"
 interface TemplateStatsProps {
   stats: {
     totalTemplates: number
-    totalProfessores: number
+    totalProfessores?: number
+    totalDisciplinas?: number
     cobertura: number
     disciplinasSemTemplate: number
   }
@@ -31,8 +32,8 @@ export const TemplateStats: React.FC<TemplateStatsProps> = ({ stats }) => {
           <div className="flex items-start gap-2">
             <BookOpen className="h-5 w-5 text-green-600" />
             <div>
-              <p className="text-sm text-muted-foreground">Professores</p>
-              <p className="text-2xl font-semibold">{stats.totalProfessores}</p>
+              <p className="text-sm text-muted-foreground">{stats.totalProfessores !== undefined ? 'Professores' : 'Disciplinas'}</p>
+              <p className="text-2xl font-semibold">{stats.totalProfessores ?? stats.totalDisciplinas ?? 0}</p>
             </div>
           </div>
         </CardContent>

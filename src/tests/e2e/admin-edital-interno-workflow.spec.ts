@@ -124,7 +124,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       if (hasNoTemplate) {
         // Create template first
         await page.waitForTimeout(500)
-        await page.getByRole('button', { name: /Criar Template Padrão/i }).click({ timeout: 15000 })
+        await page
+          .getByRole('button', { name: /Criar Template Padrão/i })
+          .first()
+          .click({ timeout: 15000 })
         await page.waitForLoadState('networkidle')
 
         const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
@@ -198,7 +201,7 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await page.waitForLoadState('networkidle')
 
       // Check if template exists
-      const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+      const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
       const editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
 
       const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
@@ -285,7 +288,7 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await page.waitForLoadState('networkidle')
 
       // Ensure template exists
-      const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+      const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
       const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
       if (hasCreateButton) {
