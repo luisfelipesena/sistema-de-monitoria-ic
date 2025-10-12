@@ -1,32 +1,19 @@
 "use client"
 
+import { DisciplineSelector } from "@/components/features/projects/DisciplineSelector"
 import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
+import { PreviewSection } from "@/components/features/projects/PreviewSection"
+import { ProjectForm } from "@/components/features/projects/ProjectForm"
+import { TemplateForm } from "@/components/features/projects/TemplateForm"
+import { TemplateRequiredAlert } from "@/components/features/projects/TemplateRequiredAlert"
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { MonitoriaFormData, projectFormSchema } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PDFViewer } from "@react-pdf/renderer"
-import {
-  AlertCircle,
-  Edit3,
-  Eye,
-  FileText,
-  Loader2,
-  Plus,
-  RefreshCw,
-  RotateCcw,
-  Save,
-  Settings,
-  Trash2,
-} from "lucide-react"
+import { Edit3, Loader2, RotateCcw } from "lucide-react"
 import { useRouter } from "next/navigation"
 import React, { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -80,7 +67,7 @@ export default function NovoProjetoPage() {
     "Ajudar na preparação de material didático complementar",
   ])
 
-  // Queries - TODOS NO TOPO
+  // Queries
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
   const { data: disciplinas } = api.discipline.getDepartmentDisciplines.useQuery()
   const { data: currentTemplate } = api.projetoTemplates.getTemplateByDisciplinaForProfessor.useQuery(
@@ -94,7 +81,7 @@ export default function NovoProjetoPage() {
   const upsertTemplate = api.projetoTemplates.upsertTemplateByProfessor.useMutation()
   const apiUtils = api.useUtils()
 
-  // Forms - TODOS NO TOPO
+  // Forms
   const form = useForm<ProjetoFormData>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
@@ -126,8 +113,7 @@ export default function NovoProjetoPage() {
     },
   })
 
-  // Effects - TODOS NO TOPO
-  // Carregar template quando disciplina for selecionada
+  // Effects
   useEffect(() => {
     if (currentTemplate && isEditingTemplate) {
       templateForm.reset({
@@ -152,7 +138,6 @@ export default function NovoProjetoPage() {
     }
   }, [currentTemplate, isEditingTemplate, templateForm])
 
-  // Aplicar template ao projeto quando disciplina for selecionada
   useEffect(() => {
     if (selectedDisciplinaId && currentTemplate && !isEditingTemplate) {
       const disciplina = disciplinas?.find((d) => d.id === selectedDisciplinaId)
@@ -188,7 +173,6 @@ export default function NovoProjetoPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDisciplinaId, currentTemplate, disciplinas, isEditingTemplate])
 
-  // Atualiza publicoAlvo baseado no tipo (template)
   useEffect(() => {
     if (isEditingTemplate) {
       if (publicoAlvoTipo === "estudantes_graduacao") {
@@ -200,7 +184,6 @@ export default function NovoProjetoPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [publicoAlvoTipo, publicoAlvoCustom, isEditingTemplate])
 
-  // Atualiza publicoAlvo baseado no tipo (projeto)
   useEffect(() => {
     if (!isEditingTemplate) {
       if (publicoAlvoTipo === "estudantes_graduacao") {
@@ -222,7 +205,6 @@ export default function NovoProjetoPage() {
 
       if (!disciplina || !departamento) return null
 
-      // Use dados do professor logado ao invés do professor associado à disciplina
       const professor = currentUser?.professor
 
       if (isTemplate) {
@@ -379,7 +361,6 @@ export default function NovoProjetoPage() {
   }
 
   const onSubmitProject = async (data: ProjetoFormData) => {
-    // Validação: Template é obrigatório
     if (!currentTemplate) {
       toast({
         title: "Template obrigatório",
@@ -509,37 +490,7 @@ export default function NovoProjetoPage() {
     return (
       <PagesLayout title="Novo projeto de monitoria" subtitle="Selecione a disciplina para continuar">
         <div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Selecione a Disciplina
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
-                Escolha a disciplina para a qual você deseja criar um projeto de monitoria.
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Disciplina</label>
-                  <Select onValueChange={handleDisciplinaSelect}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma disciplina" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {disciplinas?.map((disciplina) => (
-                        <SelectItem key={disciplina.id} value={disciplina.id.toString()}>
-                          {disciplina.codigo} - {disciplina.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <DisciplineSelector disciplines={disciplinas} onSelect={handleDisciplinaSelect} />
         </div>
       </PagesLayout>
     )
@@ -547,7 +498,7 @@ export default function NovoProjetoPage() {
 
   const selectedDisciplina = disciplinas?.find((d) => d.id === selectedDisciplinaId)
 
-  // Tela principal de edição (template ou projeto)
+  // Tela principal de edição
   return (
     <PagesLayout
       title={isEditingTemplate ? "Editar Template Padrão" : "Criar Projeto de Monitoria"}
@@ -565,655 +516,44 @@ export default function NovoProjetoPage() {
         {/* Formulário (Esquerda) */}
         <div className="space-y-6">
           {!currentTemplate && !isEditingTemplate ? (
-            /* SEM TEMPLATE - BLOQUEIO */
-            <Card className="border-amber-300 bg-amber-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-amber-800">
-                  <AlertCircle className="h-5 w-5" />
-                  Criar Template Padrão Primeiro
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-amber-700 font-medium">Esta disciplina não possui um template padrão.</p>
-                <p className="text-sm text-amber-600">
-                  Antes de criar projetos para esta disciplina, você precisa definir um template padrão. O template
-                  define valores que serão reutilizados em todos os projetos futuros, facilitando a criação e mantendo
-                  consistência.
-                </p>
-                <div className="bg-white border border-amber-200 rounded-lg p-4 mt-4">
-                  <h4 className="font-semibold text-amber-900 mb-2">O que é o template?</h4>
-                  <ul className="text-sm text-amber-700 space-y-1 list-disc list-inside">
-                    <li>Título padrão para projetos desta disciplina</li>
-                    <li>Descrição e objetivos padrão</li>
-                    <li>Carga horária padrão</li>
-                    <li>Público alvo padrão</li>
-                    <li>Atividades típicas da monitoria</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
+            <TemplateRequiredAlert onCreateTemplate={() => setIsEditingTemplate(true)} variant="form" />
           ) : isEditingTemplate ? (
-            /* FORMULÁRIO DE TEMPLATE */
-            <Form {...templateForm}>
-              <form onSubmit={templateForm.handleSubmit(onSubmitTemplate)} className="space-y-6">
-                <Card className="border-amber-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-amber-800">
-                      <Settings className="h-5 w-5" />
-                      Configurações do Template Padrão
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <FormField
-                      control={templateForm.control}
-                      name="tituloDefault"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Título Padrão</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Ex: Monitoria de Programação I"
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={templateForm.control}
-                      name="descricaoDefault"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Descrição Padrão</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Descrição padrão para projetos desta disciplina..."
-                              rows={4}
-                              value={field.value || ""}
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={templateForm.control}
-                        name="cargaHorariaSemanaDefault"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Carga Horária Semanal</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={1}
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={templateForm.control}
-                        name="numeroSemanasDefault"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Número de Semanas</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={1}
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={templateForm.control}
-                      name="publicoAlvoDefault"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Público Alvo Padrão</FormLabel>
-                          <FormControl>
-                            <div className="space-y-4">
-                              <RadioGroup
-                                value={publicoAlvoTipo}
-                                onValueChange={(value: "estudantes_graduacao" | "outro") => {
-                                  setPublicoAlvoTipo(value)
-                                  if (value === "estudantes_graduacao") {
-                                    field.onChange("Estudantes de graduação")
-                                  }
-                                }}
-                                className="flex flex-col space-y-2"
-                              >
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="estudantes_graduacao" id="estudantes_graduacao_template" />
-                                  <label
-                                    htmlFor="estudantes_graduacao_template"
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                  >
-                                    Estudantes de graduação
-                                  </label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="outro" id="outro_template" />
-                                  <label
-                                    htmlFor="outro_template"
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                  >
-                                    Outro
-                                  </label>
-                                </div>
-                              </RadioGroup>
-                              {publicoAlvoTipo === "outro" && (
-                                <div className="mt-3">
-                                  <Input
-                                    placeholder="Descreva o público alvo específico"
-                                    value={publicoAlvoCustom}
-                                    onChange={(e) => {
-                                      setPublicoAlvoCustom(e.target.value)
-                                      field.onChange(e.target.value)
-                                    }}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Atividades Padrão */}
-                <Card className="border-amber-200">
-                  <CardHeader>
-                    <CardTitle className="text-amber-800">Atividades Padrão</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {atividades.map((atividade, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input
-                          placeholder={`Atividade padrão ${index + 1}`}
-                          value={atividade}
-                          onChange={(e) => handleAtividadeChange(index, e.target.value)}
-                          className="flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRemoveAtividade(index)}
-                          disabled={atividades.length <= 1}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button type="button" variant="outline" onClick={handleAddAtividade} className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Adicionar Atividade
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Ações do Template */}
-                <div className="flex justify-end space-x-4">
-                  <Button type="button" variant="outline" onClick={() => setIsEditingTemplate(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={upsertTemplate.isPending} className="bg-amber-600 hover:bg-amber-700">
-                    {upsertTemplate.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Salvando...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Salvar Template
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+            <TemplateForm
+              form={templateForm}
+              onSubmit={onSubmitTemplate}
+              onCancel={() => setIsEditingTemplate(false)}
+              isSubmitting={upsertTemplate.isPending}
+              atividades={atividades}
+              onAtividadeChange={handleAtividadeChange}
+              onAddAtividade={handleAddAtividade}
+              onRemoveAtividade={handleRemoveAtividade}
+              publicoAlvoTipo={publicoAlvoTipo}
+              setPublicoAlvoTipo={setPublicoAlvoTipo}
+              publicoAlvoCustom={publicoAlvoCustom}
+              setPublicoAlvoCustom={setPublicoAlvoCustom}
+            />
           ) : (
-            /* FORMULÁRIO DE PROJETO */
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmitProject)} className="space-y-6">
-                {/* Identificação do Projeto */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Identificação do Projeto</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="titulo"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Título do Projeto</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Digite o título do projeto"
-                              value={field.value}
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="descricao"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Descrição/Objetivos</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Descreva os objetivos e justificativa do projeto"
-                              rows={4}
-                              value={field.value}
-                              onChange={field.onChange}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="ano"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Ano</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={2024}
-                                max={2030}
-                                value={field.value}
-                                onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="semestre"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Semestre</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
-                                <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="tipoProposicao"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Tipo</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="INDIVIDUAL">Individual</SelectItem>
-                                <SelectItem value="COLETIVA">Coletiva</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Campo condicional para professores participantes */}
-                    {form.watch("tipoProposicao") === "COLETIVA" && (
-                      <div className="space-y-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <h4 className="font-semibold text-blue-800">Projeto Coletivo</h4>
-                        <FormField
-                          control={form.control}
-                          name="professoresParticipantes"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Professores Participantes</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Ex: 2 - Professor João Silva e Professora Maria Santos"
-                                  rows={2}
-                                  value={field.value || ""}
-                                  onChange={field.onChange}
-                                  onBlur={field.onBlur}
-                                  name={field.name}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                              <p className="text-sm text-blue-600">
-                                Informe o número e nome dos professores participantes
-                              </p>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Detalhes do Projeto */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Detalhes do Projeto</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="cargaHorariaSemana"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Carga Horária Semanal (horas)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={1}
-                                value={field.value}
-                                onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="numeroSemanas"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Número de Semanas</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={1}
-                                value={field.value}
-                                onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="publicoAlvo"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Público Alvo</FormLabel>
-                          <FormControl>
-                            <div className="space-y-4">
-                              <RadioGroup
-                                value={publicoAlvoTipo}
-                                onValueChange={(value: "estudantes_graduacao" | "outro") => {
-                                  setPublicoAlvoTipo(value)
-                                  if (value === "estudantes_graduacao") {
-                                    field.onChange("Estudantes de graduação")
-                                  }
-                                }}
-                                className="flex flex-col space-y-2"
-                              >
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="estudantes_graduacao" id="estudantes_graduacao_project" />
-                                  <label
-                                    htmlFor="estudantes_graduacao_project"
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                  >
-                                    Estudantes de graduação
-                                  </label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="outro" id="outro_project" />
-                                  <label
-                                    htmlFor="outro_project"
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                  >
-                                    Outro
-                                  </label>
-                                </div>
-                              </RadioGroup>
-                              {publicoAlvoTipo === "outro" && (
-                                <div className="mt-3">
-                                  <Input
-                                    placeholder="Descreva o público alvo específico"
-                                    value={publicoAlvoCustom}
-                                    onChange={(e) => {
-                                      setPublicoAlvoCustom(e.target.value)
-                                      field.onChange(e.target.value)
-                                    }}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="estimativaPessoasBenificiadas"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Estimativa de Pessoas Beneficiadas</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              min={0}
-                              value={field.value || 0}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                              onBlur={field.onBlur}
-                              name={field.name}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-
-                {/* Vagas */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Vagas Solicitadas</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="bolsasSolicitadas"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Bolsistas Solicitados</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={0}
-                                value={field.value || 0}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="voluntariosSolicitados"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Voluntários Solicitados</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min={0}
-                                value={field.value || 0}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                onBlur={field.onBlur}
-                                name={field.name}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Atividades */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Atividades do Projeto</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {atividades.map((atividade, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input
-                          placeholder={`Atividade ${index + 1}`}
-                          value={atividade}
-                          onChange={(e) => handleAtividadeChange(index, e.target.value)}
-                          className="flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRemoveAtividade(index)}
-                          disabled={atividades.length <= 1}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button type="button" variant="outline" onClick={handleAddAtividade} className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Adicionar Atividade
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Ações */}
-                <div className="flex justify-end space-x-4">
-                  <Button
-                    type="submit"
-                    disabled={createProjeto.isPending}
-                    className="bg-[#1B2A50] text-white hover:bg-[#24376c]"
-                  >
-                    {createProjeto.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Salvando...
-                      </>
-                    ) : (
-                      "Salvar Rascunho"
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+            <ProjectForm
+              form={form}
+              onSubmit={onSubmitProject}
+              isSubmitting={createProjeto.isPending}
+              atividades={atividades}
+              onAtividadeChange={handleAtividadeChange}
+              onAddAtividade={handleAddAtividade}
+              onRemoveAtividade={handleRemoveAtividade}
+              publicoAlvoTipo={publicoAlvoTipo}
+              setPublicoAlvoTipo={setPublicoAlvoTipo}
+              publicoAlvoCustom={publicoAlvoCustom}
+              setPublicoAlvoCustom={setPublicoAlvoCustom}
+            />
           )}
         </div>
 
-        {/* Preview ou Template Info (Direita) */}
+        {/* Preview (Direita) */}
         <div className="space-y-4">
           {!currentTemplate && !isEditingTemplate ? (
-            /* TEMPLATE NÃO EXISTE - Obrigar a criar */
-            <Card className="border-amber-300 bg-amber-50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-amber-800">
-                  <AlertCircle className="h-5 w-5" />
-                  Template Padrão Necessário
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-amber-700">
-                  Esta disciplina ainda não possui um template padrão. É necessário criar um template antes de criar
-                  projetos.
-                </p>
-                <p className="text-sm text-amber-600">
-                  O template define valores padrão que serão reutilizados em todos os projetos futuros desta disciplina,
-                  facilitando a criação.
-                </p>
-                <Button onClick={() => setIsEditingTemplate(true)} className="w-full bg-amber-600 hover:bg-amber-700">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Criar Template Padrão
-                </Button>
-              </CardContent>
-            </Card>
+            <TemplateRequiredAlert onCreateTemplate={() => setIsEditingTemplate(true)} variant="sidebar" />
           ) : (
-            /* PREVIEW DO DOCUMENTO */
             <div className="bg-gray-50 border rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">
@@ -1231,70 +571,18 @@ export default function NovoProjetoPage() {
                       Editar Template
                     </Button>
                   )}
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleUpdatePreview}
-                    disabled={isGeneratingPreview}
-                    className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
-                  >
-                    {isGeneratingPreview ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Atualizando...
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="w-4 h-4 mr-2" />
-                        Atualizar Preview
-                      </>
-                    )}
-                  </Button>
                 </div>
               </div>
 
-              {!showPreview ? (
-                <div className="text-center py-12">
-                  <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">Gere o Preview</h4>
-                  <p className="text-gray-600 mb-4">Visualize como ficará o documento antes de salvar</p>
-
-                  <Button
-                    onClick={handleGeneratePreview}
-                    disabled={isGeneratingPreview}
-                    size="lg"
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    {isGeneratingPreview ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Gerando Preview...
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="w-4 h-4 mr-2" />
-                        Gerar Preview
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  {isLoadingUser ? (
-                    <div className="flex justify-center items-center py-8">
-                      <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-600 mb-4" />
-                      <p>Carregando dados do professor...</p>
-                    </div>
-                  ) : currentPdfData ? (
-                    <PDFPreviewComponent key={pdfKey} data={currentPdfData} />
-                  ) : (
-                    <div className="text-center py-8 text-red-500">
-                      <p>Erro ao gerar preview. Verifique os campos obrigatórios.</p>
-                    </div>
-                  )}
-                </>
-              )}
+              <PreviewSection
+                showPreview={showPreview}
+                isGenerating={isGeneratingPreview}
+                isLoadingUser={isLoadingUser}
+                onGeneratePreview={handleGeneratePreview}
+                onUpdatePreview={showPreview ? handleUpdatePreview : undefined}
+              >
+                {currentPdfData && <PDFPreviewComponent key={pdfKey} data={currentPdfData} />}
+              </PreviewSection>
             </div>
           )}
         </div>

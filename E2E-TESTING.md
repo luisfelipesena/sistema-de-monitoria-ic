@@ -6,8 +6,7 @@ Complete guide for running end-to-end tests in the Sistema de Monitoria IC.
 
 ### 1. Setup Environment
 ```bash
-# Copy test environment template
-cp .env.test.sample .env.test
+mkdir -p .env.test
 
 # Edit .env.test and set your test database URL
 # IMPORTANT: Database name MUST contain '_test' for safety

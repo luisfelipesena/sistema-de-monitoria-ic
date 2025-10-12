@@ -76,6 +76,10 @@ function DocumentSigningContent() {
         nomeCompleto: user?.username,
         role: user?.role,
       },
+      assinaturaProfessor: selectedProject.assinaturaProfessor || undefined,
+      dataAssinaturaProfessor: selectedProject.assinaturaProfessor
+        ? new Date().toLocaleDateString("pt-BR")
+        : undefined,
       projetoId: selectedProject.id,
       signingMode: "professor",
     }
