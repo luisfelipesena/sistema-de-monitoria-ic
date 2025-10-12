@@ -15,6 +15,24 @@ async function loginAsProfessor(page: Page) {
   await page.waitForURL(/\/(home|dashboard)/, { timeout: 10000 })
 }
 
+// Helper function to click with retry on DOM detachment
+async function clickWithRetry(page: Page, selector: string, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const element = page.locator(selector).first()
+      await element.waitFor({ state: 'visible', timeout: 5000 })
+      await page.waitForTimeout(500) // Small delay to let DOM stabilize
+      await element.click({ force: true, timeout: 5000 })
+      return true
+    } catch (error) {
+      if (i === maxRetries - 1) throw error
+      console.log(`Retry ${i + 1} clicking ${selector}`)
+      await page.waitForTimeout(1000)
+    }
+  }
+  return false
+}
+
 test.describe('Professor Template Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsProfessor(page)
@@ -53,10 +71,7 @@ test.describe('Professor Template Workflow', () => {
 
     if (hasCreateButton) {
       // No template - click button to create one
-      await page.waitForTimeout(500)
-
-      // Use force:true to handle DOM re-rendering issues
-      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
+      await clickWithRetry(page, 'button:has-text("Criar Template Padrão")')
 
       // Wait for template form to appear
       await page.waitForTimeout(1000)
@@ -65,8 +80,7 @@ test.describe('Professor Template Workflow', () => {
       // Template exists - click edit template button
       await expect(page.locator('h1')).toContainText('Criar Projeto de Monitoria')
       await page.waitForTimeout(500)
-      // Use force:true to handle DOM re-rendering issues
-      await page.locator('button:has-text("Editar Template")').first().click({ force: true })
+      await clickWithRetry(page, 'button:has-text("Editar Template")')
       await page.waitForLoadState('networkidle')
     } else {
       throw new Error('Neither create nor edit template button found')
@@ -119,11 +133,9 @@ test.describe('Professor Template Workflow', () => {
     const editBtn = page.locator('button:has-text("Editar Template")').first()
 
     if (await createBtn.isVisible({ timeout: 3000 })) {
-      await createBtn.click({ force: true })
-      await page.waitForTimeout(500)
+      await clickWithRetry(page, 'button:has-text("Criar Template Padrão")')
     } else if (await editBtn.isVisible({ timeout: 3000 })) {
-      await editBtn.click({ force: true })
-      await page.waitForTimeout(500)
+      await clickWithRetry(page, 'button:has-text("Editar Template")')
     } else {
       // Check if we're already on the template form
       const templateFormIndicator = page.locator('text=/Configurações do Template|Template Padrão/i')
@@ -146,8 +158,8 @@ test.describe('Professor Template Workflow', () => {
     await page.waitForTimeout(1000) // Wait for form to fully render
     const titleField = page
       .locator('input[name="tituloDefault"]')
-      .or(page.locator('label:has-text("Título Padrão")').locator('..').locator('input'))
-    await titleField.waitFor({ state: 'visible', timeout: 5000 })
+      .or(page.locator('input[placeholder*="Monitoria"]').first())
+    await titleField.waitFor({ state: 'visible', timeout: 10000 })
     await titleField.fill('Template Básico')
 
     // Save template
@@ -186,14 +198,18 @@ test.describe('Professor Template Workflow', () => {
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
-      // Create template first - use force:true to handle DOM re-rendering
-      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
+      // Create template first - use retry mechanism
+      await clickWithRetry(page, 'button:has-text("Criar Template Padrão")')
       await page.waitForTimeout(1000) // Wait for form to fully render
       await page.waitForLoadState('networkidle')
 
-      const titleField = page.locator('input[name="tituloDefault"]').first()
-      await titleField.waitFor({ state: 'visible', timeout: 5000 })
-      await titleField.fill('Template para Teste')
+      // Wait for the form to be ready and fill the title field
+      await page.waitForTimeout(500) // Extra wait for form stability
+      const titleField = page
+        .locator('input[name="tituloDefault"]')
+        .or(page.locator('input[placeholder*="Monitoria"]').first())
+      await titleField.waitFor({ state: 'visible', timeout: 10000 })
+      await titleField.fill('Template para Teste', { timeout: 10000 })
 
       await page.locator('button:has-text("Salvar Template")').click()
       await expect(
@@ -230,13 +246,15 @@ test.describe('Professor Template Workflow', () => {
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
-      // Use force:true to handle DOM re-rendering issues
-      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
+      // Use retry mechanism to handle DOM re-rendering issues
+      await clickWithRetry(page, 'button:has-text("Criar Template Padrão")')
       await page.waitForTimeout(1000) // Wait for form to fully render
       await page.waitForLoadState('networkidle')
 
-      const titleField = page.locator('input[name="tituloDefault"]').first()
-      await titleField.waitFor({ state: 'visible', timeout: 5000 })
+      const titleField = page
+        .locator('input[name="tituloDefault"]')
+        .or(page.locator('input[placeholder*="Monitoria"]').first())
+      await titleField.waitFor({ state: 'visible', timeout: 10000 })
       await titleField.fill('Template Padrão')
 
       await page.locator('button:has-text("Salvar Template")').click()
@@ -273,13 +291,15 @@ test.describe('Professor Template Workflow', () => {
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
-      // Use force:true to handle DOM re-rendering issues
-      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
+      // Use retry mechanism to handle DOM re-rendering issues
+      await clickWithRetry(page, 'button:has-text("Criar Template Padrão")')
       await page.waitForTimeout(1000) // Wait for form to fully render
       await page.waitForLoadState('networkidle')
 
-      const titleField = page.locator('input[name="tituloDefault"]').first()
-      await titleField.waitFor({ state: 'visible', timeout: 5000 })
+      const titleField = page
+        .locator('input[name="tituloDefault"]')
+        .or(page.locator('input[placeholder*="Monitoria"]').first())
+      await titleField.waitFor({ state: 'visible', timeout: 10000 })
       await titleField.fill('Template Navegação')
 
       await page.locator('button:has-text("Salvar Template")').click()
@@ -295,8 +315,8 @@ test.describe('Professor Template Workflow', () => {
     // Should be on project creation
     await expect(page.locator('h1')).toContainText('Criar Projeto de Monitoria')
 
-    // Click edit template - use force:true to handle DOM re-rendering
-    await page.locator('button:has-text("Editar Template")').first().click({ force: true })
+    // Click edit template - use retry mechanism to handle DOM re-rendering
+    await clickWithRetry(page, 'button:has-text("Editar Template")')
     await page.waitForTimeout(500)
     await page.waitForLoadState('networkidle')
 
