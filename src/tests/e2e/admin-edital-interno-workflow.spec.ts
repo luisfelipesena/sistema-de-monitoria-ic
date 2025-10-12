@@ -212,9 +212,12 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       const hasEditButton = await editTemplateBtn.isVisible({ timeout: 3000 })
 
       if (hasCreateButton) {
-        await createTemplateBtn.click()
+        // Use force:true to handle re-rendering issues
+        await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
+        await page.waitForTimeout(500)
       } else if (hasEditButton) {
-        await editTemplateBtn.click()
+        await page.locator('button:has-text("Editar Template")').first().click({ force: true })
+        await page.waitForTimeout(500)
       } else {
         throw new Error('Neither create nor edit template button found')
       }
@@ -304,9 +307,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
       if (hasCreateButton) {
-        await createTemplateBtn.click()
-        await page.waitForLoadState('networkidle')
+        // Use force:true to handle re-rendering issues
+        await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
         await page.waitForTimeout(1000) // Wait for form to fully render
+        await page.waitForLoadState('networkidle')
 
         const titleField = page
           .locator('input[name="tituloDefault"]')

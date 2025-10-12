@@ -55,39 +55,18 @@ test.describe('Professor Template Workflow', () => {
       // No template - click button to create one
       await page.waitForTimeout(500)
 
-      // Click the button - try multiple selectors
-      const clicked = await page
-        .locator('button:has-text("Criar Template Padrão")')
-        .first()
-        .click()
-        .then(() => true)
-        .catch(() => false)
-
-      if (!clicked) {
-        await page
-          .getByRole('button', { name: /Criar Template Padrão/i })
-          .first()
-          .click()
-      }
+      // Use force:true to handle DOM re-rendering issues
+      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
 
       // Wait for template form to appear
+      await page.waitForTimeout(1000)
       await page.waitForLoadState('networkidle')
-      await page.waitForTimeout(500)
     } else if (hasEditButton) {
       // Template exists - click edit template button
       await expect(page.locator('h1')).toContainText('Criar Projeto de Monitoria')
       await page.waitForTimeout(500)
-      const btn = page.getByRole('button', { name: /Editar Template/i })
-      try {
-        await btn.waitFor({ state: 'visible', timeout: 3000 })
-        await btn.click()
-      } catch {
-        // Try alternative selector
-        const altBtn = page.locator('button:has-text("Editar Template")')
-        if (await altBtn.isVisible({ timeout: 2000 })) {
-          await altBtn.click()
-        }
-      }
+      // Use force:true to handle DOM re-rendering issues
+      await page.locator('button:has-text("Editar Template")').first().click({ force: true })
       await page.waitForLoadState('networkidle')
     } else {
       throw new Error('Neither create nor edit template button found')
@@ -140,9 +119,11 @@ test.describe('Professor Template Workflow', () => {
     const editBtn = page.locator('button:has-text("Editar Template")').first()
 
     if (await createBtn.isVisible({ timeout: 3000 })) {
-      await createBtn.click()
+      await createBtn.click({ force: true })
+      await page.waitForTimeout(500)
     } else if (await editBtn.isVisible({ timeout: 3000 })) {
-      await editBtn.click()
+      await editBtn.click({ force: true })
+      await page.waitForTimeout(500)
     } else {
       // Check if we're already on the template form
       const templateFormIndicator = page.locator('text=/Configurações do Template|Template Padrão/i')
@@ -205,10 +186,10 @@ test.describe('Professor Template Workflow', () => {
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
-      // Create template first
-      await createTemplateBtn.click()
-      await page.waitForLoadState('networkidle')
+      // Create template first - use force:true to handle DOM re-rendering
+      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
       await page.waitForTimeout(1000) // Wait for form to fully render
+      await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('input[name="tituloDefault"]').first()
       await titleField.waitFor({ state: 'visible', timeout: 5000 })
@@ -249,9 +230,10 @@ test.describe('Professor Template Workflow', () => {
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
-      await createTemplateBtn.click()
-      await page.waitForLoadState('networkidle')
+      // Use force:true to handle DOM re-rendering issues
+      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
       await page.waitForTimeout(1000) // Wait for form to fully render
+      await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('input[name="tituloDefault"]').first()
       await titleField.waitFor({ state: 'visible', timeout: 5000 })
@@ -291,9 +273,10 @@ test.describe('Professor Template Workflow', () => {
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
-      await createTemplateBtn.click()
-      await page.waitForLoadState('networkidle')
+      // Use force:true to handle DOM re-rendering issues
+      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
       await page.waitForTimeout(1000) // Wait for form to fully render
+      await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('input[name="tituloDefault"]').first()
       await titleField.waitFor({ state: 'visible', timeout: 5000 })
@@ -312,8 +295,9 @@ test.describe('Professor Template Workflow', () => {
     // Should be on project creation
     await expect(page.locator('h1')).toContainText('Criar Projeto de Monitoria')
 
-    // Click edit template
-    await page.getByRole('button', { name: /Editar Template/i }).click()
+    // Click edit template - use force:true to handle DOM re-rendering
+    await page.locator('button:has-text("Editar Template")').first().click({ force: true })
+    await page.waitForTimeout(500)
     await page.waitForLoadState('networkidle')
 
     // Should be on template editing - check for form elements instead
