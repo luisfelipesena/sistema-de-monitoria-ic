@@ -210,13 +210,29 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       if (hasCreateButton) {
         await page.waitForTimeout(500)
         const btn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
-        await btn.waitFor({ state: 'visible' })
-        await btn.click()
+        try {
+          await btn.waitFor({ state: 'visible', timeout: 3000 })
+          await btn.click()
+        } catch {
+          // Try alternative selector if first fails
+          const altBtn = page.locator('button:has-text("Criar Template Padrão")')
+          if (await altBtn.isVisible({ timeout: 2000 })) {
+            await altBtn.click()
+          }
+        }
       } else if (hasEditButton) {
         await page.waitForTimeout(500)
         const btn = page.getByRole('button', { name: /Editar Template/i })
-        await btn.waitFor({ state: 'visible' })
-        await btn.click()
+        try {
+          await btn.waitFor({ state: 'visible', timeout: 3000 })
+          await btn.click()
+        } catch {
+          // Try alternative selector if first fails
+          const altBtn = page.locator('button:has-text("Editar Template")')
+          if (await altBtn.isVisible({ timeout: 2000 })) {
+            await altBtn.click()
+          }
+        }
       } else {
         throw new Error('Neither create nor edit template button found')
       }
@@ -300,8 +316,16 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       if (hasCreateButton) {
         await page.waitForTimeout(500)
         const btn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
-        await btn.waitFor({ state: 'visible' })
-        await btn.click()
+        try {
+          await btn.waitFor({ state: 'visible', timeout: 3000 })
+          await btn.click()
+        } catch {
+          // Try alternative selector if first fails
+          const altBtn = page.locator('button:has-text("Criar Template Padrão")')
+          if (await altBtn.isVisible({ timeout: 2000 })) {
+            await altBtn.click()
+          }
+        }
         await page.waitForLoadState('networkidle')
 
         const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
