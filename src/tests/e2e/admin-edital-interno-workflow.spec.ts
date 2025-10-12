@@ -212,39 +212,21 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       const hasEditButton = await editTemplateBtn.isVisible({ timeout: 3000 })
 
       if (hasCreateButton) {
-        await page.waitForTimeout(500)
-        const btn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
-        try {
-          await btn.waitFor({ state: 'visible', timeout: 3000 })
-          await btn.click()
-        } catch {
-          // Try alternative selector if first fails
-          const altBtn = page.locator('button:has-text("Criar Template Padrão")')
-          if (await altBtn.isVisible({ timeout: 2000 })) {
-            await altBtn.click()
-          }
-        }
+        await createTemplateBtn.click()
       } else if (hasEditButton) {
-        await page.waitForTimeout(500)
-        const btn = page.getByRole('button', { name: /Editar Template/i })
-        try {
-          await btn.waitFor({ state: 'visible', timeout: 3000 })
-          await btn.click()
-        } catch {
-          // Try alternative selector if first fails
-          const altBtn = page.locator('button:has-text("Editar Template")')
-          if (await altBtn.isVisible({ timeout: 2000 })) {
-            await altBtn.click()
-          }
-        }
+        await editTemplateBtn.click()
       } else {
         throw new Error('Neither create nor edit template button found')
       }
 
       await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(1000) // Wait for form to fully render
 
-      // Fill template with exam-specific fields
-      const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
+      // Fill template with exam-specific fields - use more specific selector
+      const titleField = page.locator('input[name="tituloDefault"]').or(
+        page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
+      )
+      await titleField.waitFor({ state: 'visible', timeout: 5000 })
       await titleField.fill('Template com Pontos de Prova')
 
       // Look for exam points field
@@ -322,21 +304,14 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
       if (hasCreateButton) {
-        await page.waitForTimeout(500)
-        const btn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
-        try {
-          await btn.waitFor({ state: 'visible', timeout: 3000 })
-          await btn.click()
-        } catch {
-          // Try alternative selector if first fails
-          const altBtn = page.locator('button:has-text("Criar Template Padrão")')
-          if (await altBtn.isVisible({ timeout: 2000 })) {
-            await altBtn.click()
-          }
-        }
+        await createTemplateBtn.click()
         await page.waitForLoadState('networkidle')
+        await page.waitForTimeout(1000) // Wait for form to fully render
 
-        const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
+        const titleField = page.locator('input[name="tituloDefault"]').or(
+          page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
+        )
+        await titleField.waitFor({ state: 'visible', timeout: 5000 })
         await titleField.fill('Template Edital')
 
         await page.locator('button:has-text("Salvar Template")').click()
