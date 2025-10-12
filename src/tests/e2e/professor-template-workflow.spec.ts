@@ -56,10 +56,18 @@ test.describe('Professor Template Workflow', () => {
       await page.waitForTimeout(500)
 
       // Click the button - try multiple selectors
-      const clicked = await page.locator('button:has-text("Criar Template Padrão")').first().click().then(() => true).catch(() => false)
+      const clicked = await page
+        .locator('button:has-text("Criar Template Padrão")')
+        .first()
+        .click()
+        .then(() => true)
+        .catch(() => false)
 
       if (!clicked) {
-        await page.getByRole('button', { name: /Criar Template Padrão/i }).first().click()
+        await page
+          .getByRole('button', { name: /Criar Template Padrão/i })
+          .first()
+          .click()
       }
 
       // Wait for template form to appear
@@ -94,7 +102,7 @@ test.describe('Professor Template Workflow', () => {
     const templateFormElements = [
       page.locator('text=Configurações do Template'),
       page.locator('button:has-text("Salvar Template")'),
-      page.locator('label:has-text("Título Padrão")')
+      page.locator('label:has-text("Título Padrão")'),
     ]
 
     // At least one template form element should be visible
@@ -155,9 +163,9 @@ test.describe('Professor Template Workflow', () => {
 
     // Fill minimal template data - use more specific selector
     await page.waitForTimeout(1000) // Wait for form to fully render
-    const titleField = page.locator('input[name="tituloDefault"]').or(
-      page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
-    )
+    const titleField = page
+      .locator('input[name="tituloDefault"]')
+      .or(page.locator('label:has-text("Título Padrão")').locator('..').locator('input'))
     await titleField.waitFor({ state: 'visible', timeout: 5000 })
     await titleField.fill('Template Básico')
 

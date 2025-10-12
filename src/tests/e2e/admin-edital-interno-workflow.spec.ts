@@ -223,9 +223,9 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
       await page.waitForTimeout(1000) // Wait for form to fully render
 
       // Fill template with exam-specific fields - use more specific selector
-      const titleField = page.locator('input[name="tituloDefault"]').or(
-        page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
-      )
+      const titleField = page
+        .locator('input[name="tituloDefault"]')
+        .or(page.locator('label:has-text("Título Padrão")').locator('..').locator('input'))
       await titleField.waitFor({ state: 'visible', timeout: 5000 })
       await titleField.fill('Template com Pontos de Prova')
 
@@ -308,9 +308,9 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
         await page.waitForLoadState('networkidle')
         await page.waitForTimeout(1000) // Wait for form to fully render
 
-        const titleField = page.locator('input[name="tituloDefault"]').or(
-          page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
-        )
+        const titleField = page
+          .locator('input[name="tituloDefault"]')
+          .or(page.locator('label:has-text("Título Padrão")').locator('..').locator('input'))
         await titleField.waitFor({ state: 'visible', timeout: 5000 })
         await titleField.fill('Template Edital')
 
