@@ -36,7 +36,7 @@ test.describe('Chief Signature Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check if we're on the correct page
-    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciar Editais/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciamento de Editais/i })).toBeVisible({ timeout: 5000 })
 
     // Look for an existing DCC edital or create one
     const editais = await page.locator('tr[data-state]').count()
@@ -187,7 +187,7 @@ test.describe('Chief Signature Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check that the page loads without errors
-    await expect(page.locator('text=Editais e Períodos de Inscrição')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h1').filter({ hasText: /Gerenciamento de Editais/i })).toBeVisible({ timeout: 5000 })
 
     // Verify the table has the expected columns
     const table = page.locator('table').first()
@@ -287,7 +287,7 @@ test.describe('Chief Signature Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check the overall workflow functionality
-    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciar Editais/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciamento de Editais/i })).toBeVisible({ timeout: 5000 })
 
     // Verify the page has the expected table structure
     const table = page.locator('table').first()

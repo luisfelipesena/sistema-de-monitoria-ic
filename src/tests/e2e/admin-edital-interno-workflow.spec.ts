@@ -26,7 +26,7 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check if we're on the correct page
-    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciar Editais/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciamento de Editais/i })).toBeVisible({ timeout: 5000 })
 
     // Look for "Novo Edital" button and verify it exists
     const createEditalButton = page.getByRole('button', { name: 'Novo Edital' })

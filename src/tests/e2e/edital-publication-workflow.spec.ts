@@ -23,7 +23,7 @@ test.describe('Edital Publication and Notification Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check if we're on the correct page
-    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciar Editais/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciamento de Editais/i })).toBeVisible({ timeout: 5000 })
 
     // Check for "Novo Edital" button
     const createButton = page.getByRole('button', { name: 'Novo Edital' })
@@ -150,7 +150,7 @@ test.describe('Edital Publication and Notification Workflow', () => {
     await page.waitForLoadState('networkidle')
 
     // Check that the page structure supports the publication workflow
-    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciar Editais/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h1, h2').filter({ hasText: /Gerenciamento de Editais/i })).toBeVisible({ timeout: 5000 })
 
     // Verify table structure exists for managing editais
     const table = page.locator('table').first()
