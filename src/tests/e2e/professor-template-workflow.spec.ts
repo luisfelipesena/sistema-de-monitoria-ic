@@ -15,7 +15,6 @@ async function loginAsProfessor(page: Page) {
   await page.waitForURL(/\/(home|dashboard)/, { timeout: 10000 })
 }
 
-
 test.describe('Professor Template Workflow', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsProfessor(page)

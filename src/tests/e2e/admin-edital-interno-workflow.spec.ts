@@ -141,7 +141,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
         await page.locator('button:has-text("Salvar Template")').click()
 
         // Check for success toast but don't fail if not visible
-        const templateToast = page.locator('[data-state="open"]').getByText(/Template/).first()
+        const templateToast = page
+          .locator('[data-state="open"]')
+          .getByText(/Template/)
+          .first()
         const toastAppeared = await templateToast.isVisible({ timeout: 3000 }).catch(() => false)
         if (!toastAppeared) {
           console.log('Template toast not found, but template save may have succeeded')
@@ -359,7 +362,10 @@ test.describe('Admin Edital Interno DCC Workflow', () => {
           await page.locator('button:has-text("Salvar Template")').click()
 
           // Check for success toast but don't fail if not visible
-          const templateToast = page.locator('[data-state="open"]').getByText(/Template/).first()
+          const templateToast = page
+            .locator('[data-state="open"]')
+            .getByText(/Template/)
+            .first()
           const toastAppeared = await templateToast.isVisible({ timeout: 3000 }).catch(() => false)
           if (!toastAppeared) {
             console.log('Template toast not found, but template save may have succeeded')
