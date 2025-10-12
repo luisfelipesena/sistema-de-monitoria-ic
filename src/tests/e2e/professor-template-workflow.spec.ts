@@ -53,12 +53,19 @@ test.describe('Professor Template Workflow', () => {
 
     if (hasCreateButton) {
       // No template - click button to create one
-      await createTemplateBtn.click({ timeout: 5000 })
+      // Wait for button to be stable before clicking
+      await page.waitForTimeout(500)
+      const btn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
+      await btn.waitFor({ state: 'visible' })
+      await btn.click()
       await page.waitForLoadState('networkidle')
     } else if (hasEditButton) {
       // Template exists - click edit template button
       await expect(page.locator('h1')).toContainText('Criar Projeto de Monitoria')
-      await editTemplateBtn.click({ timeout: 5000 })
+      await page.waitForTimeout(500)
+      const btn = page.getByRole('button', { name: /Editar Template/i })
+      await btn.waitFor({ state: 'visible' })
+      await btn.click()
       await page.waitForLoadState('networkidle')
     } else {
       throw new Error('Neither create nor edit template button found')
@@ -93,9 +100,15 @@ test.describe('Professor Template Workflow', () => {
     const hasEditButton = await editTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
-      await createTemplateBtn.click({ timeout: 5000 })
+      await page.waitForTimeout(500)
+      const btn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
+      await btn.waitFor({ state: 'visible' })
+      await btn.click()
     } else if (hasEditButton) {
-      await editTemplateBtn.click({ timeout: 5000 })
+      await page.waitForTimeout(500)
+      const btn = page.getByRole('button', { name: /Editar Template/i })
+      await btn.waitFor({ state: 'visible' })
+      await btn.click()
     } else {
       throw new Error('Neither create nor edit template button found')
     }
@@ -142,7 +155,10 @@ test.describe('Professor Template Workflow', () => {
 
     if (hasCreateButton) {
       // Create template first
-      await createTemplateBtn.click({ timeout: 5000 })
+      await page.waitForTimeout(500)
+      const btn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
+      await btn.waitFor({ state: 'visible' })
+      await btn.click()
       await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
@@ -183,7 +199,10 @@ test.describe('Professor Template Workflow', () => {
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
-      await createTemplateBtn.click({ timeout: 5000 })
+      await page.waitForTimeout(500)
+      const btn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
+      await btn.waitFor({ state: 'visible' })
+      await btn.click()
       await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
@@ -223,7 +242,10 @@ test.describe('Professor Template Workflow', () => {
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
-      await createTemplateBtn.click({ timeout: 5000 })
+      await page.waitForTimeout(500)
+      const btn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
+      await btn.waitFor({ state: 'visible' })
+      await btn.click()
       await page.waitForLoadState('networkidle')
 
       const titleField = page.locator('label:has-text("Título Padrão")').locator('..').locator('input')
