@@ -290,9 +290,11 @@ test.describe('Professor Template Workflow', () => {
     const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
 
     if (hasCreateButton) {
-      // Click create template button directly
+      // Click create template button with proper wait
       console.log('Creating template...')
-      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
+      const btn = page.locator('button:has-text("Criar Template Padrão")').first()
+      await btn.waitFor({ state: 'visible', timeout: 5000 })
+      await btn.click({ force: true })
       await page.waitForTimeout(1500) // Wait for form to fully render
       await page.waitForLoadState('networkidle')
 
