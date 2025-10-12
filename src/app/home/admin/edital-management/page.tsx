@@ -1,160 +1,158 @@
-"use client"
+"use client";
 
-import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { useEditalPdf } from "@/hooks/use-files"
-import { EditalListItem } from "@/types"
-import { api } from "@/utils/api"
-import { ColumnDef } from "@tanstack/react-table"
-import { AlertCircle, CheckCircle, Clock, Edit, Eye, FileText, Plus, Trash2, Upload } from "lucide-react"
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { useToast } from "@/hooks/use-toast"
-import { z } from "zod"
+import {
+  EditalFormData,
+  EditalFormDialog,
+} from "@/components/features/edital/EditalFormDialog";
+import { EditalStatsCards } from "@/components/features/edital/EditalStatsCards";
+import { createEditalTableColumns } from "@/components/features/edital/EditalTableColumns";
+import { PagesLayout } from "@/components/layout/PagesLayout";
+import { TableComponent } from "@/components/layout/TableComponent";
+import { Button } from "@/components/ui/button";
+import { useEditalPdf } from "@/hooks/use-files";
+import { useToast } from "@/hooks/use-toast";
+import { EditalListItem } from "@/types";
+import { api } from "@/utils/api";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-const localEditalFormSchema = z.object({
-  tipo: z.enum(["DCC", "PROGRAD"]).default("DCC"),
-  numeroEdital: z.string().min(1),
-  titulo: z.string().min(1),
+const editalFormSchema = z.object({
+  tipo: z.enum(["DCC", "PROGRAD"]),
+  numeroEdital: z.string().min(1, "Número do edital é obrigatório"),
+  titulo: z.string().min(1, "Título é obrigatório"),
   descricaoHtml: z.string().optional(),
-  valorBolsa: z.string().default("400.00"),
+  valorBolsa: z.string(),
   ano: z.number().int().min(2000).max(2100),
   semestre: z.enum(["SEMESTRE_1", "SEMESTRE_2"]),
   dataInicio: z.date(),
   dataFim: z.date(),
-})
-
-type EditalFormData = z.infer<typeof localEditalFormSchema>
+});
 
 export default function EditalManagementPage() {
-  const { toast } = useToast()
+  const { toast } = useToast();
 
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
-  const [selectedEdital, setSelectedEdital] = useState<EditalListItem | null>(null)
-  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedEdital, setSelectedEdital] = useState<EditalListItem | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
 
-  const { data: editais, isLoading, refetch } = api.edital.getEditais.useQuery()
+  const { data: editais, isLoading, refetch } = api.edital.getEditais.useQuery();
 
   const createEditalMutation = api.edital.createEdital.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
         description: "Edital criado com sucesso!",
-      })
-      setIsCreateDialogOpen(false)
-      refetch()
-      createForm.reset()
+      });
+      setIsCreateDialogOpen(false);
+      refetch();
+      createForm.reset();
     },
     onError: (error) => {
       toast({
         title: "Erro",
         description: `Erro: ${error.message}`,
         variant: "destructive",
-      })
+      });
     },
-  })
+  });
 
   const updateEditalMutation = api.edital.updateEdital.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
         description: "Edital atualizado com sucesso!",
-      })
-      setIsEditDialogOpen(false)
-      setSelectedEdital(null)
-      refetch()
+      });
+      setIsEditDialogOpen(false);
+      setSelectedEdital(null);
+      refetch();
     },
     onError: (error) => {
       toast({
         title: "Erro",
         description: `Erro: ${error.message}`,
         variant: "destructive",
-      })
+      });
     },
-  })
+  });
 
   const deleteEditalMutation = api.edital.deleteEdital.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
         description: "Edital excluído com sucesso!",
-      })
-      refetch()
+      });
+      refetch();
     },
     onError: (error) => {
       toast({
         title: "Erro",
         description: `Erro: ${error.message}`,
         variant: "destructive",
-      })
+      });
     },
-  })
+  });
 
   const publishEditalMutation = api.edital.publishEdital.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
         description: "Edital publicado com sucesso!",
-      })
-      refetch()
+      });
+      refetch();
     },
     onError: (error) => {
       toast({
         title: "Erro",
         description: `Erro: ${error.message}`,
         variant: "destructive",
-      })
+      });
     },
-  })
+  });
 
   const uploadSignedMutation = api.edital.uploadSignedEdital.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
         description: "Edital assinado carregado com sucesso!",
-      })
-      setUploadFile(null)
-      refetch()
+      });
+      setUploadFile(null);
+      refetch();
     },
     onError: (error) => {
       toast({
         title: "Erro",
         description: `Erro: ${error.message}`,
         variant: "destructive",
-      })
+      });
     },
-  })
+  });
 
   const requestChefeSignatureMutation = api.edital.requestChefeSignature.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
         description: "Solicitação de assinatura enviada ao chefe do departamento!",
-      })
-      refetch()
+      });
+      refetch();
     },
     onError: (error) => {
       toast({
         title: "Erro",
         description: `Erro: ${error.message}`,
         variant: "destructive",
-      })
+      });
     },
-  })
+  });
 
-  const uploadFileMutation = api.file.uploadFile.useMutation()
-  const generatePdfMutation = useEditalPdf()
+  const uploadFileMutation = api.file.uploadFile.useMutation();
+  const generatePdfMutation = useEditalPdf();
 
   const createForm = useForm<EditalFormData>({
+    resolver: zodResolver(editalFormSchema),
     defaultValues: {
       tipo: "DCC",
       numeroEdital: "",
@@ -166,9 +164,10 @@ export default function EditalManagementPage() {
       dataInicio: new Date(),
       dataFim: new Date(new Date().setDate(new Date().getDate() + 30)),
     },
-  })
+  });
 
   const editForm = useForm<EditalFormData>({
+    resolver: zodResolver(editalFormSchema),
     defaultValues: {
       tipo: "DCC",
       numeroEdital: "",
@@ -180,749 +179,186 @@ export default function EditalManagementPage() {
       dataInicio: new Date(),
       dataFim: new Date(new Date().setDate(new Date().getDate() + 30)),
     },
-  })
+  });
 
   const handleCreate = (data: EditalFormData) => {
-    createEditalMutation.mutate(data)
-  }
+    createEditalMutation.mutate(data);
+  };
 
   const handleEdit = (data: EditalFormData) => {
-    if (!selectedEdital) return
-    updateEditalMutation.mutate({ id: selectedEdital.id, ...data })
-  }
+    if (!selectedEdital) return;
+    updateEditalMutation.mutate({ id: selectedEdital.id, ...data });
+  };
 
   const handleDelete = (id: number) => {
     if (
-      confirm("Tem certeza que deseja excluir este edital? Esta ação excluirá também o período de inscrição associado.")
+      confirm(
+        "Tem certeza que deseja excluir este edital? Esta ação excluirá também o período de inscrição associado."
+      )
     ) {
-      deleteEditalMutation.mutate({ id })
+      deleteEditalMutation.mutate({ id });
     }
-  }
+  };
 
   const handlePublish = (id: number) => {
-    publishEditalMutation.mutate({ id })
-  }
+    publishEditalMutation.mutate({ id });
+  };
 
   const handleUploadSigned = async (editalId: number) => {
-    if (!uploadFile) {
-      toast({
-        title: "Erro",
-        description: "Selecione um arquivo PDF assinado",
-        variant: "destructive",
-      })
-      return
-    }
+    // This would open a file picker dialog in a real implementation
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "application/pdf";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
 
-    try {
-      const fileData = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = () => {
-          const base64 = reader.result as string
-          resolve(base64.split(",")[1])
-        }
-        reader.onerror = reject
-        reader.readAsDataURL(uploadFile)
-      })
+      try {
+        const fileData = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const base64 = reader.result as string;
+            resolve(base64.split(",")[1]);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
 
-      const uploadResult = await uploadFileMutation.mutateAsync({
-        fileName: uploadFile.name,
-        fileData,
-        mimeType: uploadFile.type,
-        entityType: "edital",
-        entityId: editalId.toString(),
-      })
+        const uploadResult = await uploadFileMutation.mutateAsync({
+          fileName: file.name,
+          fileData,
+          mimeType: file.type,
+          entityType: "edital",
+          entityId: editalId.toString(),
+        });
 
-      await uploadSignedMutation.mutateAsync({
-        id: editalId,
-        fileId: uploadResult.fileId,
-      })
-    } catch (error) {
-      console.error("Error uploading signed edital:", error)
-    }
-  }
+        await uploadSignedMutation.mutateAsync({
+          id: editalId,
+          fileId: uploadResult.fileId,
+        });
+      } catch (error) {
+        console.error("Error uploading signed edital:", error);
+      }
+    };
+    input.click();
+  };
 
   const handleViewPdf = async (editalId: number) => {
     try {
-      const result = await generatePdfMutation.mutateAsync({ id: editalId })
-      window.open(result.url, "_blank", "noopener,noreferrer")
+      const result = await generatePdfMutation.mutateAsync({ id: editalId });
+      window.open(result.url, "_blank", "noopener,noreferrer");
       toast({
         title: "Sucesso!",
         description: "PDF do edital aberto em nova aba",
-      })
+      });
     } catch (error) {
       toast({
         title: "Erro",
         description: "Erro ao gerar PDF do edital",
         variant: "destructive",
-      })
-      console.error("Error generating PDF:", error)
+      });
+      console.error("Error generating PDF:", error);
     }
-  }
+  };
 
   const handleRequestChefeSignature = async (editalId: number) => {
     try {
-      await requestChefeSignatureMutation.mutateAsync({ id: editalId })
+      await requestChefeSignatureMutation.mutateAsync({ id: editalId });
     } catch (error) {
-      console.error("Error requesting chief signature:", error)
+      console.error("Error requesting chief signature:", error);
     }
-  }
+  };
 
   const openEditDialog = (edital: EditalListItem) => {
-    setSelectedEdital(edital)
+    setSelectedEdital(edital);
     editForm.reset({
+      tipo: (edital.tipo as "DCC" | "PROGRAD") || "DCC",
       numeroEdital: edital.numeroEdital,
       titulo: edital.titulo,
       descricaoHtml: edital.descricaoHtml || "",
+      valorBolsa: "400.00", // Default value since EditalListItem doesn't have valorBolsa
       ano: edital.periodoInscricao?.ano || new Date().getFullYear(),
       semestre: edital.periodoInscricao?.semestre || "SEMESTRE_1",
-      dataInicio: edital.periodoInscricao?.dataInicio ? new Date(edital.periodoInscricao.dataInicio) : new Date(),
-      dataFim: edital.periodoInscricao?.dataFim ? new Date(edital.periodoInscricao.dataFim) : new Date(),
-    })
-    setIsEditDialogOpen(true)
-  }
+      dataInicio: edital.periodoInscricao?.dataInicio
+        ? new Date(edital.periodoInscricao.dataInicio)
+        : new Date(),
+      dataFim: edital.periodoInscricao?.dataFim
+        ? new Date(edital.periodoInscricao.dataFim)
+        : new Date(),
+    });
+    setIsEditDialogOpen(true);
+  };
 
-  const getStatusBadge = (edital: EditalListItem) => {
-    if (edital.publicado) {
-      return (
-        <Badge variant="default" className="bg-green-500">
-          <CheckCircle className="h-3 w-3 mr-1" />
-          Publicado
-        </Badge>
-      )
-    }
+  const columns = createEditalTableColumns({
+    onEdit: openEditDialog,
+    onDelete: handleDelete,
+    onViewPdf: handleViewPdf,
+    onPublish: handlePublish,
+    onRequestSignature: handleRequestChefeSignature,
+    onUploadSigned: handleUploadSigned,
+  });
 
-    if (edital.chefeAssinouEm) {
-      return (
-        <Badge variant="outline" className="border-purple-500 text-purple-700">
-          <CheckCircle className="h-3 w-3 mr-1" />
-          Assinado pelo Chefe
-        </Badge>
-      )
-    }
-
-    if (edital.fileIdAssinado) {
-      return (
-        <Badge variant="outline" className="border-blue-500 text-blue-700">
-          <Clock className="h-3 w-3 mr-1" />
-          PDF Assinado
-        </Badge>
-      )
-    }
-
-    return (
-      <Badge variant="outline" className="border-yellow-500 text-yellow-700">
-        <AlertCircle className="h-3 w-3 mr-1" />
-        Rascunho
-      </Badge>
-    )
-  }
-
-  const getPeriodStatusBadge = (status: string) => {
-    switch (status) {
-      case "ATIVO":
-        return (
-          <Badge variant="default" className="bg-green-500">
-            Ativo
-          </Badge>
-        )
-      case "FUTURO":
-        return (
-          <Badge variant="outline" className="border-blue-500 text-blue-700">
-            Futuro
-          </Badge>
-        )
-      case "FINALIZADO":
-        return <Badge variant="outline">Finalizado</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
-
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("pt-BR")
-  }
-
-  const getDurationDays = (start: Date, end: Date) => {
-    const startDate = new Date(start)
-    const endDate = new Date(end)
-    const diffTime = Math.abs(endDate.getTime() - startDate.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays
-  }
-
-  const columns: ColumnDef<EditalListItem>[] = [
-    {
-      header: "Edital",
-      accessorKey: "numeroEdital",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.numeroEdital}</div>
-          <div className="text-sm text-muted-foreground truncate max-w-xs">{row.original.titulo}</div>
-        </div>
-      ),
-    },
-    {
-      header: "Período de Inscrição",
-      cell: ({ row }) => {
-        const periodo = row.original.periodoInscricao
-        if (!periodo) return "-"
-
-        const durationDays = getDurationDays(periodo.dataInicio, periodo.dataFim)
-
-        return (
-          <div>
-            <div className="font-medium">
-              {periodo.ano}/{periodo.semestre === "SEMESTRE_1" ? "1" : "2"}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {formatDate(periodo.dataInicio)} - {formatDate(periodo.dataFim)}
-            </div>
-            <div className="text-xs text-muted-foreground">{durationDays} dias de duração</div>
-            <div className="text-sm mt-1">{getPeriodStatusBadge(periodo.status)}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {periodo.totalProjetos} projetos • {periodo.totalInscricoes} inscrições
-            </div>
-          </div>
-        )
-      },
-    },
-    {
-      header: "Status",
-      cell: ({ row }) => getStatusBadge(row.original),
-    },
-    {
-      header: "Data de Criação",
-      accessorKey: "createdAt",
-      cell: ({ row }) => formatDate(row.original.createdAt),
-    },
-    {
-      header: "Criado por",
-      cell: ({ row }) => row.original.criadoPor?.username || "-",
-    },
-    {
-      header: "Ações",
-      id: "actions",
-      cell: ({ row }) => {
-        const edital = row.original
-        const canPublish = edital.fileIdAssinado && !edital.publicado
-
-        return (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleViewPdf(edital.id)}
-              disabled={generatePdfMutation.isPending}
-              title="Visualizar PDF"
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-
-            <Button variant="outline" size="sm" onClick={() => openEditDialog(edital)}>
-              <Edit className="h-4 w-4" />
-            </Button>
-
-            {!edital.fileIdAssinado && (
-              <div className="flex items-center gap-1">
-                <Input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                  className="w-32 text-xs"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleUploadSigned(edital.id)}
-                  disabled={!uploadFile || uploadSignedMutation.isPending}
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-
-            {edital.tipo === 'DCC' && !edital.chefeAssinouEm && edital.titulo && edital.descricaoHtml && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleRequestChefeSignature(edital.id)}
-                disabled={requestChefeSignatureMutation.isPending}
-                title="Solicitar assinatura do chefe do departamento"
-              >
-                Solicitar Assinatura
-              </Button>
-            )}
-
-            {canPublish && (
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handlePublish(edital.id)}
-                disabled={publishEditalMutation.isPending}
-              >
-                Publicar
-              </Button>
-            )}
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleDelete(edital.id)}
-              disabled={deleteEditalMutation.isPending}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        )
-      },
-    },
-  ]
+  const editaisList = editais || [];
+  const totalEditais = editaisList.length;
+  const editaisAtivos = editaisList.filter(
+    (e) => e.periodoInscricao?.status === "ATIVO"
+  ).length;
+  const editaisPublicados = editaisList.filter((e) => e.publicado).length;
+  const editaisAssinados = editaisList.filter((e) => e.chefeAssinouEm).length;
 
   return (
     <PagesLayout
-      title="Gerenciar Editais"
-      subtitle="Crie, edite e publique editais de seleção de monitores. Cada edital inclui automaticamente seu período de inscrição."
+      title="Gerenciamento de Editais"
+      subtitle="Gerencie os editais de monitoria do departamento"
     >
       <div className="space-y-6">
-        {/* Cards de estatísticas dos períodos */}
-        {editais && editais.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Períodos Ativos</CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {editais.filter((e) => e.periodoInscricao?.status === "ATIVO").length}
-                </div>
-                <p className="text-xs text-muted-foreground">Períodos abertos para inscrições</p>
-              </CardContent>
-            </Card>
+        <EditalStatsCards
+          totalEditais={totalEditais}
+          editaisAtivos={editaisAtivos}
+          editaisPublicados={editaisPublicados}
+          editaisAssinados={editaisAssinados}
+        />
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Períodos Futuros</CardTitle>
-                <Clock className="h-4 w-4 text-blue-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
-                  {editais.filter((e) => e.periodoInscricao?.status === "FUTURO").length}
-                </div>
-                <p className="text-xs text-muted-foreground">Períodos agendados</p>
-              </CardContent>
-            </Card>
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Lista de Editais</h2>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Edital
+          </Button>
+        </div>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Editais Publicados</CardTitle>
-                <FileText className="h-4 w-4 text-purple-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-purple-600">{editais.filter((e) => e.publicado).length}</div>
-                <p className="text-xs text-muted-foreground">Editais disponíveis publicamente</p>
-              </CardContent>
-            </Card>
+        <TableComponent
+          columns={columns}
+          data={editaisList}
+          isLoading={isLoading}
+          searchPlaceholder="Buscar editais..."
+        />
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total de Projetos</CardTitle>
-                <AlertCircle className="h-4 w-4 text-gray-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-600">
-                  {editais.reduce((sum, e) => sum + (e.periodoInscricao?.totalProjetos || 0), 0)}
-                </div>
-                <p className="text-xs text-muted-foreground">Projetos em todos os editais</p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        <EditalFormDialog
+          isOpen={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          form={createForm}
+          onSubmit={handleCreate}
+          isLoading={createEditalMutation.isPending}
+          title="Criar Novo Edital"
+          description="Preencha as informações para criar um novo edital"
+          submitLabel="Criar Edital"
+        />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Editais e Períodos de Inscrição
-                {editais && (
-                  <Badge variant="outline" className="ml-2">
-                    {editais.length} edital(is)
-                  </Badge>
-                )}
-              </div>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Novo Edital
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Criar Novo Edital</DialogTitle>
-                  </DialogHeader>
-                  <Form {...createForm}>
-                    <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={createForm.control}
-                          name="numeroEdital"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Número do Edital</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ex: 001/2024" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={createForm.control}
-                          name="titulo"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Título</FormLabel>
-                              <FormControl>
-                                <Input {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={createForm.control}
-                          name="tipo"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Tipo de Edital</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o tipo" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="DCC">DCC (Interno)</SelectItem>
-                                  <SelectItem value="PROGRAD">PROGRAD</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={createForm.control}
-                          name="valorBolsa"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Valor da Bolsa</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Ex: 400.00" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={createForm.control}
-                          name="ano"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Ano</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseInt(e.target.value))}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={createForm.control}
-                          name="semestre"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Semestre</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Selecione o semestre" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
-                                  <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={createForm.control}
-                          name="dataInicio"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Data de Início</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="date"
-                                  value={field.value ? field.value.toISOString().split("T")[0] : ""}
-                                  onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={createForm.control}
-                          name="dataFim"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Data de Fim</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="date"
-                                  value={field.value ? field.value.toISOString().split("T")[0] : ""}
-                                  onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={createForm.control}
-                        name="descricaoHtml"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Descrição (HTML)</FormLabel>
-                            <FormControl>
-                              <Textarea rows={6} placeholder="Descrição detalhada do edital..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button type="submit" className="w-full" disabled={createEditalMutation.isPending}>
-                        {createEditalMutation.isPending ? "Criando..." : "Criar Edital"}
-                      </Button>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex justify-center items-center py-8">
-                <div className="text-center">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                  <p className="mt-2">Carregando editais...</p>
-                </div>
-              </div>
-            ) : editais && editais.length > 0 ? (
-              <TableComponent
-                columns={columns}
-                data={editais}
-                searchableColumn="numeroEdital"
-                searchPlaceholder="Buscar por número do edital..."
-              />
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <FileText className="mx-auto h-12 w-12 mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhum edital encontrado</h3>
-                <p>Crie o primeiro edital para começar o processo de seleção de monitores.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Editar Edital</DialogTitle>
-            </DialogHeader>
-            <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(handleEdit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="numeroEdital"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Número do Edital</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="titulo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Título</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="tipo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo de Edital</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o tipo" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="DCC">DCC (Interno)</SelectItem>
-                            <SelectItem value="PROGRAD">PROGRAD</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="valorBolsa"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Valor da Bolsa</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: 400.00" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="ano"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ano</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} onChange={(e) => field.onChange(parseInt(e.target.value))} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="semestre"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Semestre</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione o semestre" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
-                            <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={editForm.control}
-                    name="dataInicio"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Data de Início</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            value={field.value ? field.value.toISOString().split("T")[0] : ""}
-                            onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={editForm.control}
-                    name="dataFim"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Data de Fim</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            value={field.value ? field.value.toISOString().split("T")[0] : ""}
-                            onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={editForm.control}
-                  name="descricaoHtml"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descrição (HTML)</FormLabel>
-                      <FormControl>
-                        <Textarea rows={6} {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={updateEditalMutation.isPending}>
-                  {updateEditalMutation.isPending ? "Atualizando..." : "Atualizar Edital"}
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+        <EditalFormDialog
+          isOpen={isEditDialogOpen}
+          onOpenChange={(open) => {
+            setIsEditDialogOpen(open);
+            if (!open) setSelectedEdital(null);
+          }}
+          form={editForm}
+          onSubmit={handleEdit}
+          isLoading={updateEditalMutation.isPending}
+          title="Editar Edital"
+          description="Atualize as informações do edital"
+          submitLabel="Salvar Alterações"
+        />
       </div>
     </PagesLayout>
-  )
+  );
 }
