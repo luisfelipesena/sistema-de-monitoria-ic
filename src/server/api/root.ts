@@ -13,7 +13,7 @@ import { inviteProfessorRouter } from '@/server/api/routers/invite-professor/inv
 import { notificacoesRouter } from '@/server/api/routers/notificacoes/notificacoes'
 import { onboardingRouter } from '@/server/api/routers/onboarding/onboarding'
 import { projetoTemplatesRouter } from '@/server/api/routers/projeto-templates/projeto-templates'
-import { projetoRouter } from '@/server/api/routers/projeto/projeto'
+import { projetoRouter } from '@/server/api/routers/projeto'
 import { relatoriosRouter } from '@/server/api/routers/relatorios/relatorios'
 import { scholarshipAllocationRouter } from '@/server/api/routers/scholarship-allocation/scholarship-allocation'
 import { selecaoRouter } from '@/server/api/routers/selecao/selecao'

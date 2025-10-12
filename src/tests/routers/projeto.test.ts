@@ -1,4 +1,4 @@
-import { projetoRouter } from '@/server/api/routers/projeto/projeto'
+import { projetoRouter } from '@/server/api/routers/projeto'
 import { type TRPCContext } from '@/server/api/trpc'
 import { type User } from '@/server/db/schema'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
