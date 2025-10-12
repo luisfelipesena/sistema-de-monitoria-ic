@@ -55,7 +55,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
     }
 
     loadExistingSignatures()
-  }, [formData.projetoId])
+  }, [formData])
 
   const handleOpenSignature = () => {
     if (hasDefaultSignature && !useCustomSignature) {
