@@ -117,13 +117,13 @@ test.describe('Professor Template Workflow', () => {
     const createButtonSelectors = [
       page.getByRole('button', { name: /Criar Template Padrão/i }),
       page.locator('button:has-text("Criar Template Padrão")'),
-      page.locator('[class*="card"] button:has-text("Criar Template")')
+      page.locator('[class*="card"] button:has-text("Criar Template")'),
     ]
 
     const editButtonSelectors = [
       page.getByRole('button', { name: /Editar Template/i }),
       page.locator('button:has-text("Editar Template")'),
-      page.locator('[class*="card"] button:has-text("Editar")')
+      page.locator('[class*="card"] button:has-text("Editar")'),
     ]
 
     let buttonClicked = false

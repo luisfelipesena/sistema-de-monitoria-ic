@@ -82,7 +82,7 @@ test.describe('Chief Signature Workflow', () => {
       const toastSelectors = [
         page.locator('[data-state="open"]').getByText(/assinatura/i),
         page.locator('[role="status"]').getByText(/sucesso/i),
-        page.locator('.toast, [class*="toast"]').getByText(/assinatura/i)
+        page.locator('.toast, [class*="toast"]').getByText(/assinatura/i),
       ]
 
       let toastFound = false
