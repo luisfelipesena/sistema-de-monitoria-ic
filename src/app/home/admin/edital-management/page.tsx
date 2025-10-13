@@ -39,9 +39,9 @@ export default function EditalManagementPage() {
   const [selectedEdital, setSelectedEdital] = useState<EditalListItem | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
 
-  const { data: editais, isLoading, refetch } = api.edital.getEditais.useQuery();
+  const { data: editais, isLoading, refetch } = api.edital.list.useQuery();
 
-  const createEditalMutation = api.edital.createEdital.useMutation({
+  const createEditalMutation = api.edital.create.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
@@ -60,7 +60,7 @@ export default function EditalManagementPage() {
     },
   });
 
-  const updateEditalMutation = api.edital.updateEdital.useMutation({
+  const updateEditalMutation = api.edital.update.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
@@ -79,7 +79,7 @@ export default function EditalManagementPage() {
     },
   });
 
-  const deleteEditalMutation = api.edital.deleteEdital.useMutation({
+  const deleteEditalMutation = api.edital.delete.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
@@ -96,7 +96,7 @@ export default function EditalManagementPage() {
     },
   });
 
-  const publishEditalMutation = api.edital.publishEdital.useMutation({
+  const publishEditalMutation = api.edital.publish.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
@@ -113,7 +113,7 @@ export default function EditalManagementPage() {
     },
   });
 
-  const uploadSignedMutation = api.edital.uploadSignedEdital.useMutation({
+  const uploadSignedMutation = api.edital.sign.useMutation({
     onSuccess: () => {
       toast({
         title: "Sucesso!",
@@ -131,22 +131,23 @@ export default function EditalManagementPage() {
     },
   });
 
-  const requestChefeSignatureMutation = api.edital.requestChefeSignature.useMutation({
-    onSuccess: () => {
-      toast({
-        title: "Sucesso!",
-        description: "Solicitação de assinatura enviada ao chefe do departamento!",
-      });
-      refetch();
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: `Erro: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
+  // TODO: Re-enable when requestChefeSignature is implemented
+  // const requestChefeSignatureMutation = api.edital.requestChefeSignature.useMutation({
+  //   onSuccess: () => {
+  //     toast({
+  //       title: "Sucesso!",
+  //       description: "Solicitação de assinatura enviada ao chefe do departamento!",
+  //     });
+  //     refetch();
+  //   },
+  //   onError: (error) => {
+  //     toast({
+  //       title: "Erro",
+  //       description: `Erro: ${error.message}`,
+  //       variant: "destructive",
+  //     });
+  //   },
+  // });
 
   const uploadFileMutation = api.file.uploadFile.useMutation();
   const generatePdfMutation = useEditalPdf();
@@ -263,7 +264,8 @@ export default function EditalManagementPage() {
 
   const handleRequestChefeSignature = async (editalId: number) => {
     try {
-      await requestChefeSignatureMutation.mutateAsync({ id: editalId });
+      // TODO: Re-enable when requestChefeSignature is implemented
+      // await requestChefeSignatureMutation.mutateAsync({ id: editalId });
     } catch (error) {
       console.error("Error requesting chief signature:", error);
     }

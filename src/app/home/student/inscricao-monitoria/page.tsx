@@ -71,7 +71,7 @@ export default function InscricaoMonitoria() {
 
   const { data: projetos = [], isLoading: isLoadingProjetos, refetch } = api.projeto.getAvailableProjects.useQuery()
   const { data: departamentos = [] } = api.departamento.getDepartamentos.useQuery({})
-  const { data: activePeriodData, isLoading: isLoadingPeriod } = api.edital.getActivePeriod.useQuery()
+  const { data: activePeriodData, isLoading: isLoadingPeriod } = api.edital.getCurrentPeriodo.useQuery()
 
   const isLoading = isLoadingProjetos || isLoadingPeriod
   const createInscricao = api.inscricao.criarInscricao.useMutation({

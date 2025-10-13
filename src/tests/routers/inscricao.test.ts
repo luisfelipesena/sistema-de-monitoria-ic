@@ -1,4 +1,4 @@
-import { inscricaoRouter } from '@/server/api/routers/inscricao/inscricao'
+import { inscricaoRouter } from '@/server/api/routers/inscricao'
 import { type TRPCContext } from '@/server/api/trpc'
 import { type User } from '@/server/db/schema'
 import { ACCEPTED_BOLSISTA, SELECTED_BOLSISTA } from '@/types'

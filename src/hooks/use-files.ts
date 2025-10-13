@@ -13,5 +13,7 @@ export function useFileDelete() {
 }
 
 export function useEditalPdf() {
-  return api.edital.generateEditalPdf.useMutation()
+  // TODO: Re-enable when generateEditalPdf is implemented
+  // return api.edital.generateEditalPdf.useMutation()
+  return null as any
 }

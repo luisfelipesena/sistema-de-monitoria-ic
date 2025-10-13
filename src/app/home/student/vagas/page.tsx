@@ -48,7 +48,7 @@ export default function VagasPage() {
 
   const { data: projetos = [], isLoading: isLoadingProjetos } = api.projeto.getProjetos.useQuery()
   const { data: departamentos = [] } = api.departamento.getDepartamentos.useQuery({})
-  const { data: activePeriodData, isLoading: isLoadingPeriod } = api.edital.getActivePeriod.useQuery()
+  const { data: activePeriodData, isLoading: isLoadingPeriod } = api.edital.getCurrentPeriodo.useQuery()
 
   const isLoading = isLoadingProjetos || isLoadingPeriod
 
