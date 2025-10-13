@@ -4,7 +4,7 @@ import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { and, eq, gte, lte, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { editalListItemSchema, editalSchema, newEditalSchema, updateEditalSchema } from '../schemas'
+import { editalSchema, newEditalSchema, updateEditalSchema } from '../schemas'
 
 const log = logger.child({ context: 'EditalRouter.CRUD' })
 
@@ -19,7 +19,6 @@ export const createEditalHandler = adminProtectedProcedure
     },
   })
   .input(newEditalSchema)
-  .output(editalListItemSchema)
   .mutation(async ({ input, ctx }) => {
     try {
       const adminUserId = ctx.user.id
@@ -135,6 +134,7 @@ export const createEditalHandler = adminProtectedProcedure
         periodoInscricao: editalCriadoComPeriodo.periodoInscricao
           ? {
               ...editalCriadoComPeriodo.periodoInscricao,
+              editalId: editalCriadoComPeriodo.id,
               status: statusPeriodo,
               totalProjetos: 0,
               totalInscricoes: 0,

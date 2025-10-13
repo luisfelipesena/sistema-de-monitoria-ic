@@ -180,7 +180,7 @@ export const signEditalHandler = protectedProcedure
         )
 
       // Preparar dados para o template PDF
-      const datasProvas = edital.datasProvasDisponiveis ? JSON.parse(edital.datasProvasDisponiveis) : []
+      const _datasProvas = edital.datasProvasDisponiveis ? JSON.parse(edital.datasProvasDisponiveis) : []
 
       const pdfData: EditalInternoData = {
         numeroEdital: edital.numeroEdital,

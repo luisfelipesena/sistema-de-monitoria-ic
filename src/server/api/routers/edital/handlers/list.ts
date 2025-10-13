@@ -4,7 +4,6 @@ import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { and, count, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import { editalListItemSchema, periodoInscricaoComStatusSchema } from '../schemas'
 
 const log = logger.child({ context: 'EditalRouter.List' })
 
@@ -19,7 +18,6 @@ export const listEditaisHandler = protectedProcedure
     },
   })
   .input(z.void())
-  .output(z.array(editalListItemSchema))
   .query(async ({ ctx }) => {
     try {
       const isAdmin = ctx.user.role === 'admin'
@@ -101,6 +99,7 @@ export const listEditaisHandler = protectedProcedure
             periodoInscricao: edital.periodoInscricao
               ? {
                   ...edital.periodoInscricao,
+                  editalId: edital.id,
                   status: statusPeriodo,
                   totalProjetos,
                   totalInscricoes,
@@ -132,7 +131,6 @@ export const getEditalByIdHandler = protectedProcedure
       id: z.number(),
     })
   )
-  .output(editalListItemSchema)
   .query(async ({ input, ctx }) => {
     const edital = await ctx.db.query.editalTable.findFirst({
       where: eq(editalTable.id, input.id),
@@ -170,6 +168,7 @@ export const getEditalByIdHandler = protectedProcedure
       periodoInscricao: edital.periodoInscricao
         ? {
             ...edital.periodoInscricao,
+            editalId: edital.id,
             status: statusPeriodo,
             totalProjetos: 0,
             totalInscricoes: 0,
@@ -189,7 +188,6 @@ export const getCurrentPeriodoHandler = protectedProcedure
     },
   })
   .input(z.void())
-  .output(periodoInscricaoComStatusSchema.nullable())
   .query(async ({ ctx }) => {
     try {
       const now = new Date()

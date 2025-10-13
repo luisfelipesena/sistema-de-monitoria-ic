@@ -81,7 +81,7 @@ export interface EditalListItem {
     ano: number
     dataInicio: Date
     dataFim: Date
-    status: 'ATIVO' | 'FUTURO' | 'FINALIZADO'
+    status: 'ATIVO' | 'FUTURO' | 'FINALIZADO' | 'ENCERRADO'
     totalProjetos: number
     totalInscricoes: number
   } | null
