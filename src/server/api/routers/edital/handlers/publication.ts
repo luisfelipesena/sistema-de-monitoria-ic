@@ -191,16 +191,16 @@ export const signEditalHandler = protectedProcedure
           dataInicio: edital.periodoInscricao?.dataInicio?.toLocaleDateString('pt-BR') || '',
           dataFim: edital.periodoInscricao?.dataFim?.toLocaleDateString('pt-BR') || '',
         },
-        projetos: projetos.map((p) => ({
-          titulo: p.titulo,
-          professor: p.professorResponsavelNome || 'N/A',
-          bolsas: p.bolsasSolicitadas || 0,
-          voluntarios: p.voluntariosSolicitados || 0,
+        disciplinas: projetos.map((p) => ({
+          codigo: `PROJ${p.id}`, // Usando ID como código temporário
+          nome: p.titulo,
+          professor: {
+            nome: p.professorResponsavelNome || 'N/A',
+          },
+          tipoMonitoria: 'INDIVIDUAL' as const,
+          numBolsistas: p.bolsasSolicitadas || 0,
+          numVoluntarios: p.voluntariosSolicitados || 0,
         })),
-        datasProvas,
-        dataDivulgacaoResultado: edital.dataDivulgacaoResultado || undefined,
-        assinaturaChefe: input.signatureImage,
-        dataAssinatura: new Date(),
       }
 
       // Gerar PDF com assinatura
