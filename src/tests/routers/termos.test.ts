@@ -59,7 +59,7 @@ describe('termosRouter', () => {
           semestre: 'SEMESTRE_1',
         },
       }
-      vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as any)
+      vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as never)
       vi.mocked(mockDb.query.assinaturaDocumentoTable.findFirst).mockResolvedValue(undefined)
 
       const input = {
@@ -86,8 +86,8 @@ describe('termosRouter', () => {
       }
       const mockSignature = { tipoAssinatura: 'TERMO_COMPROMISSO_ALUNO' }
 
-      vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as any)
-      vi.mocked(mockDb.query.assinaturaDocumentoTable.findFirst).mockResolvedValue(mockSignature as any)
+      vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as never)
+      vi.mocked(mockDb.query.assinaturaDocumentoTable.findFirst).mockResolvedValue(mockSignature as never)
 
       const input = {
         vagaId: '1',
@@ -112,11 +112,11 @@ describe('termosRouter', () => {
           professorResponsavel: { user: { username: 'professor' } },
         },
       }
-      vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as any)
+      vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as never)
       // Mock that only the professor has signed
       vi.mocked(mockDb.query.assinaturaDocumentoTable.findMany).mockResolvedValue([
         { tipoAssinatura: 'ATA_SELECAO_PROFESSOR' },
-      ] as any)
+      ] as never)
 
       const result = await caller.validateTermoReady({ vagaId: '1' })
       expect(result.termoCompleto).toBe(false)
@@ -136,12 +136,12 @@ describe('termosRouter', () => {
           professorResponsavel: { user: { username: 'professor' } },
         },
       }
-      vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as any)
+      vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as never)
       // Mock that both parties have signed
       vi.mocked(mockDb.query.assinaturaDocumentoTable.findMany).mockResolvedValue([
         { tipoAssinatura: 'ATA_SELECAO_PROFESSOR' },
         { tipoAssinatura: 'TERMO_COMPROMISSO_ALUNO' },
-      ] as any)
+      ] as never)
 
       const result = await caller.validateTermoReady({ vagaId: '1' })
       expect(result.termoCompleto).toBe(true)

@@ -55,7 +55,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
     delete: vi.fn(() => ({
       where: vi.fn().mockReturnThis(),
     })),
-  } as any,
+  } as never,
 })
 
 describe('departamentoRouter', () => {
@@ -89,7 +89,7 @@ describe('departamentoRouter', () => {
       },
     ]
 
-    vi.spyOn(mockContext.db.query.departamentoTable, 'findMany').mockResolvedValue(mockDepartamentos as any)
+    vi.spyOn(mockContext.db.query.departamentoTable, 'findMany').mockResolvedValue(mockDepartamentos as never)
 
     const caller = departamentoRouter.createCaller(mockContext)
     const result = await caller.getDepartamentos({ includeStats: false })
@@ -136,7 +136,7 @@ describe('departamentoRouter', () => {
     vi.spyOn(mockContext.db, 'insert').mockReturnValue({
       values: vi.fn().mockReturnThis(),
       returning: vi.fn().mockResolvedValue([newDept]),
-    } as any)
+    } as never)
 
     const caller = departamentoRouter.createCaller(mockContext)
     const result = await caller.createDepartamento({

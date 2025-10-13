@@ -330,6 +330,6 @@ export function createMockContext(user: User | null = null): TRPCContext {
           limit: vi.fn(),
         }),
       }),
-    } as any,
+    } as never,
   }
 }

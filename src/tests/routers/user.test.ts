@@ -41,7 +41,7 @@ describe('userRouter', () => {
   it('getUsers - non-admin should be forbidden', async () => {
     const mockContext: TRPCContext = {
       user: mockStudentUser,
-      db: {} as any,
+      db: {} as unknown as TRPCContext['db'],
     }
 
     const caller = userRouter.createCaller(mockContext)
@@ -52,7 +52,7 @@ describe('userRouter', () => {
   it('getProfile - unauthenticated user should be forbidden', async () => {
     const mockContext: TRPCContext = {
       user: null,
-      db: {} as any,
+      db: {} as unknown as TRPCContext['db'],
     }
 
     const caller = userRouter.createCaller(mockContext)
@@ -70,7 +70,7 @@ describe('userRouter', () => {
           },
         },
         $count: vi.fn().mockResolvedValue(0),
-      } as any,
+      } as unknown as TRPCContext['db'],
     }
 
     const caller = userRouter.createCaller(mockContext)
@@ -107,7 +107,7 @@ describe('userRouter', () => {
             }),
           },
         },
-      } as any,
+      } as unknown as TRPCContext['db'],
     }
 
     const caller = userRouter.createCaller(mockContext)

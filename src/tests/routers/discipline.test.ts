@@ -61,7 +61,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
     set: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
     returning: vi.fn(),
-  } as any,
+  } as never,
 })
 
 describe('disciplineRouter', () => {
@@ -118,7 +118,7 @@ describe('disciplineRouter', () => {
 
       const insertReturningMock = { returning: vi.fn().mockResolvedValue([{}]) }
       const valuesMock = { values: vi.fn().mockReturnValue(insertReturningMock) }
-      vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as any)
+      vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as never)
 
       const result = await caller.associateDiscipline({ id: 1, ano: 2024, semestre: 'SEMESTRE_1' })
       expect(result.success).toBe(true)

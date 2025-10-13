@@ -43,7 +43,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
     set: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
     returning: vi.fn(),
-  } as any,
+  } as never,
 })
 
 describe('inscricaoRouter', () => {
@@ -62,8 +62,8 @@ describe('inscricaoRouter', () => {
     it('should throw BAD_REQUEST if the application period is not active', async () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = inscricaoRouter.createCaller(mockContext)
-      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
-      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({ id: 1, status: 'APPROVED' } as any)
+      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1 } as never)
+      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({ id: 1, status: 'APPROVED' } as never)
       vi.spyOn(mockContext.db.query.periodoInscricaoTable, 'findFirst').mockResolvedValue(undefined)
 
       await expect(
@@ -74,7 +74,7 @@ describe('inscricaoRouter', () => {
     it('should create an inscription successfully', async () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = inscricaoRouter.createCaller(mockContext)
-      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1, cr: 8.5 } as any)
+      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1, cr: 8.5 } as never)
       vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({
         id: 1,
         status: 'APPROVED',
@@ -82,12 +82,12 @@ describe('inscricaoRouter', () => {
         voluntariosSolicitados: 1,
         ano: 2024,
         semestre: 'SEMESTRE_1',
-      } as any)
-      vi.spyOn(mockContext.db.query.periodoInscricaoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
+      } as never)
+      vi.spyOn(mockContext.db.query.periodoInscricaoTable, 'findFirst').mockResolvedValue({ id: 1 } as never)
       vi.spyOn(mockContext.db.query.inscricaoTable, 'findFirst').mockResolvedValue(undefined)
       const insertMock = { returning: vi.fn().mockResolvedValue([{ id: 123 }]) }
       const valuesMock = { values: vi.fn().mockReturnValue(insertMock) }
-      vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as any)
+      vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as never)
 
       const result = await caller.createInscricao({ projetoId: 1, tipo: 'BOLSISTA', motivacao: 'My valid motivation' })
       expect(result.success).toBe(true)
@@ -101,7 +101,7 @@ describe('inscricaoRouter', () => {
       const caller = inscricaoRouter.createCaller(mockContext)
       const currentSemesterProject = { ano: 2024, semestre: 'SEMESTRE_1' }
 
-      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
+      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1 } as never)
       vi.spyOn(mockContext.db.query.inscricaoTable, 'findFirst')
         // For the inscription being accepted
         .mockResolvedValueOnce({
@@ -109,14 +109,14 @@ describe('inscricaoRouter', () => {
           status: SELECTED_BOLSISTA,
           alunoId: 1,
           projeto: currentSemesterProject,
-        } as any)
+        } as never)
         // For the check of existing scholarships
         .mockResolvedValueOnce({
           id: 2,
           status: ACCEPTED_BOLSISTA,
           alunoId: 1,
           projeto: currentSemesterProject,
-        } as any)
+        } as never)
 
       await expect(caller.acceptPosition({ inscricaoId: 1 })).rejects.toThrowError(
         /Você já possui uma bolsa neste semestr/

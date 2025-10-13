@@ -33,7 +33,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
     insert: vi.fn().mockReturnThis(),
     values: vi.fn().mockReturnThis(),
     returning: vi.fn(),
-  } as any,
+  } as never,
 })
 
 describe('projetoTemplatesRouter', () => {
@@ -46,7 +46,7 @@ describe('projetoTemplatesRouter', () => {
       const mockContext = createMockContext(mockAdminUser)
       const caller = projetoTemplatesRouter.createCaller(mockContext)
 
-      vi.spyOn(mockContext.db.query.projetoTemplateTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
+      vi.spyOn(mockContext.db.query.projetoTemplateTable, 'findFirst').mockResolvedValue({ id: 1 } as never)
 
       const input = {
         disciplinaId: 1,
@@ -67,8 +67,8 @@ describe('projetoTemplatesRouter', () => {
       ]
       const mockTemplates = [{ disciplinaId: 1 }]
 
-      vi.spyOn(mockContext.db.query.disciplinaTable, 'findMany').mockResolvedValue(mockDisciplinas as any)
-      vi.spyOn(mockContext.db.query.projetoTemplateTable, 'findMany').mockResolvedValue(mockTemplates as any)
+      vi.spyOn(mockContext.db.query.disciplinaTable, 'findMany').mockResolvedValue(mockDisciplinas as never)
+      vi.spyOn(mockContext.db.query.projetoTemplateTable, 'findMany').mockResolvedValue(mockTemplates as never)
 
       const result = await caller.getDisciplinasDisponiveis()
       expect(result).toHaveLength(1)

@@ -47,7 +47,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
         findFirst: vi.fn(),
       },
     },
-  } as any,
+  } as never,
 })
 
 describe('fileRouter', () => {
@@ -114,7 +114,7 @@ describe('fileRouter', () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = fileRouter.createCaller(mockContext)
 
-      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ userId: mockStudentUser.id } as any)
+      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ userId: mockStudentUser.id } as never)
 
       const result = await caller.getPresignedUrlMutation({ fileId: 'some-file', action: 'download' })
       expect(result).toBe('https://test-url.com/file')

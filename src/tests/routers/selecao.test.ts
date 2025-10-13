@@ -42,7 +42,7 @@ const createMockContext = (user: User | null): TRPCContext => {
       set: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       transaction: vi.fn(async (callback) => await callback(mockTx)),
-    } as any,
+    } as never,
   }
 }
 
@@ -62,8 +62,8 @@ describe('selecaoRouter', () => {
         { id: 2, notaFinal: 6.0, tipoVagaPretendida: 'VOLUNTARIO', aluno: { user: {} } }, // Reject
       ]
 
-      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue(mockProject as any)
-      vi.spyOn(mockContext.db.query.inscricaoTable, 'findMany').mockResolvedValue(mockInscricoes as any)
+      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue(mockProject as never)
+      vi.spyOn(mockContext.db.query.inscricaoTable, 'findMany').mockResolvedValue(mockInscricoes as never)
 
       await caller.publishResults({ projetoId: '1', notifyStudents: false })
 
@@ -89,8 +89,8 @@ describe('selecaoRouter', () => {
         },
       ]
 
-      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue(mockProject as any)
-      vi.spyOn(mockContext.db.query.inscricaoTable, 'findMany').mockResolvedValue(mockInscricoes as any)
+      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue(mockProject as never)
+      vi.spyOn(mockContext.db.query.inscricaoTable, 'findMany').mockResolvedValue(mockInscricoes as never)
       const emailSpy = vi.spyOn(emailService, 'sendStudentSelectionResultNotification').mockResolvedValue()
 
       await caller.publishResults({ projetoId: '1', notifyStudents: true })

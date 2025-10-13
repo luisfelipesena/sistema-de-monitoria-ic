@@ -47,7 +47,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
         findFirst: vi.fn(),
       },
     },
-  } as any,
+  } as never,
 })
 
 describe('onboardingRouter', () => {
@@ -72,7 +72,7 @@ describe('onboardingRouter', () => {
       const caller = onboardingRouter.createCaller(mockContext)
 
       const mockProfile = { id: 1, curriculumVitaeFileId: null, comprovanteVinculoFileId: null }
-      vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfile as any)
+      vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfile as never)
 
       const result = await caller.getStatus()
       expect(result.pending).toBe(true)
@@ -94,7 +94,7 @@ describe('onboardingRouter', () => {
         assinaturaDefault: null,
         dataAssinaturaDefault: null,
       }
-      vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfile as any)
+      vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(mockProfile as never)
 
       const result = await caller.getStatus()
       expect(result.pending).toBe(false)

@@ -47,7 +47,7 @@ describe('projetoRouter', () => {
             findMany: vi.fn().mockResolvedValue([]),
           },
         },
-      } as any,
+      } as never,
     }
 
     const caller = projetoRouter.createCaller(mockContext)
@@ -71,7 +71,7 @@ describe('projetoRouter', () => {
             findMany: vi.fn().mockResolvedValue([]),
           },
         },
-      } as any,
+      } as never,
     }
 
     const caller = projetoRouter.createCaller(mockContext)
@@ -109,7 +109,7 @@ describe('projetoRouter', () => {
             findMany: vi.fn().mockResolvedValue([]),
           },
         },
-      } as any,
+      } as never,
     }
 
     const caller = projetoRouter.createCaller(mockContext)
@@ -141,7 +141,7 @@ describe('projetoRouter', () => {
             findFirst: vi.fn().mockResolvedValue({ id: 2 }),
           },
         },
-      } as any,
+      } as never,
     }
 
     const caller = projetoRouter.createCaller(mockContext)

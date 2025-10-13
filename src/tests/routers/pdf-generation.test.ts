@@ -65,7 +65,7 @@ describe('PDF Generation Flow - Essential Tests', () => {
 
   describe('PDF Service Tests', () => {
     it('should generate PDF with complete data', async () => {
-      const mockPDFService = PDFService as any
+      const mockPDFService = PDFService as unknown
       mockPDFService.generateAndSaveSignedProjetoPDF.mockResolvedValue('test-file.pdf')
 
       const testData = {
@@ -108,7 +108,7 @@ describe('PDF Generation Flow - Essential Tests', () => {
     })
 
     it('should generate basic PDF without signatures', async () => {
-      const mockPDFService = PDFService as any
+      const mockPDFService = PDFService as unknown
       mockPDFService.generateProjetoPDF.mockResolvedValue(Buffer.from('pdf-content'))
 
       const testData = {
@@ -126,7 +126,7 @@ describe('PDF Generation Flow - Essential Tests', () => {
     })
 
     it('should add signature to PDF', async () => {
-      const mockPDFService = PDFService as any
+      const mockPDFService = PDFService as unknown
       mockPDFService.addSignatureToPDF.mockResolvedValue(Buffer.from('signed-pdf'))
 
       const pdfBuffer = Buffer.from('original-pdf')
@@ -139,7 +139,7 @@ describe('PDF Generation Flow - Essential Tests', () => {
     })
 
     it('should save PDF to storage', async () => {
-      const mockPDFService = PDFService as any
+      const mockPDFService = PDFService as unknown
       mockPDFService.saveProjetoPDF.mockResolvedValue('projetos/1/test.pdf')
 
       const pdfBuffer = Buffer.from('pdf-content')
@@ -150,7 +150,7 @@ describe('PDF Generation Flow - Essential Tests', () => {
     })
 
     it('should retrieve latest PDF from storage', async () => {
-      const mockPDFService = PDFService as any
+      const mockPDFService = PDFService as unknown
       mockPDFService.getLatestProjetoPDF.mockResolvedValue({
         objectName: 'projetos/1/latest.pdf',
         buffer: Buffer.from('pdf-content'),
@@ -168,7 +168,7 @@ describe('PDF Generation Flow - Essential Tests', () => {
 
   describe('Integration Tests', () => {
     it('should handle complete PDF workflow', async () => {
-      const mockPDFService = PDFService as any
+      const mockPDFService = PDFService as unknown
 
       // Mock the complete workflow
       mockPDFService.generateProjetoPDF.mockResolvedValue(Buffer.from('base-pdf'))
@@ -200,7 +200,7 @@ describe('PDF Generation Flow - Essential Tests', () => {
     })
 
     it('should validate PDF generation parameters', () => {
-      const mockPDFService = PDFService as any
+      const mockPDFService = PDFService as unknown
       mockPDFService.generateAndSaveSignedProjetoPDF.mockResolvedValue('success')
 
       const validData = {
@@ -217,7 +217,7 @@ describe('PDF Generation Flow - Essential Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle PDF generation errors gracefully', async () => {
-      const mockPDFService = PDFService as any
+      const mockPDFService = PDFService as unknown
       mockPDFService.generateProjetoPDF.mockRejectedValue(new Error('PDF generation failed'))
 
       const testData = {
@@ -232,7 +232,7 @@ describe('PDF Generation Flow - Essential Tests', () => {
     })
 
     it('should handle signature addition errors', async () => {
-      const mockPDFService = PDFService as any
+      const mockPDFService = PDFService as unknown
       mockPDFService.addSignatureToPDF.mockRejectedValue(new Error('Signature addition failed'))
 
       const pdfBuffer = Buffer.from('pdf-content')

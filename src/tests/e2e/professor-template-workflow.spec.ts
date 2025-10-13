@@ -251,19 +251,23 @@ test.describe('Professor Template Workflow', () => {
       await page.waitForLoadState('domcontentloaded')
 
       // Try multiple selectors for the title field
-      const titleField = await page.waitForSelector(
-        'input[name="tituloDefault"], input[placeholder*="Monitoria"], input[placeholder*="título"], input[placeholder*="Título"]',
-        { timeout: 15000, state: 'visible' }
-      ).catch(() => null)
+      const titleField = await page
+        .waitForSelector(
+          'input[name="tituloDefault"], input[placeholder*="Monitoria"], input[placeholder*="título"], input[placeholder*="Título"]',
+          { timeout: 15000, state: 'visible' }
+        )
+        .catch(() => null)
 
       if (titleField) {
         await titleField.fill('Template Padrão')
 
         // Look for save button with multiple possible texts
-        const saveButton = await page.waitForSelector(
-          'button:has-text("Salvar Template"), button:has-text("Salvar"), button:has-text("Criar")',
-          { timeout: 5000, state: 'visible' }
-        ).catch(() => null)
+        const saveButton = await page
+          .waitForSelector('button:has-text("Salvar Template"), button:has-text("Salvar"), button:has-text("Criar")', {
+            timeout: 5000,
+            state: 'visible',
+          })
+          .catch(() => null)
 
         if (saveButton) {
           await saveButton.click()
