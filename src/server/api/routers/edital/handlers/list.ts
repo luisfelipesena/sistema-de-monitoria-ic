@@ -1,5 +1,6 @@
 import { protectedProcedure } from '@/server/api/trpc'
 import { editalTable, inscricaoTable, periodoInscricaoTable, projetoTable } from '@/server/db/schema'
+import { editalListResponseSchema } from '@/types/edital'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { and, count, eq, inArray, isNull, sql } from 'drizzle-orm'
@@ -18,6 +19,7 @@ export const listEditaisHandler = protectedProcedure
     },
   })
   .input(z.void())
+  .output(editalListResponseSchema)
   .query(async ({ ctx }) => {
     try {
       const isAdmin = ctx.user.role === 'admin'

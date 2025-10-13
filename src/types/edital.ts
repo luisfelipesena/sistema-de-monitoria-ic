@@ -134,6 +134,51 @@ export const editalFormSchema = z
     path: ['dataFim'],
   })
 
+// Output schema for list endpoint
+export const editalListItemSchema = z.object({
+  id: z.number(),
+  numeroEdital: z.string(),
+  titulo: z.string(),
+  descricaoHtml: z.string().nullable(),
+  fileIdAssinado: z.string().nullable(),
+  fileIdProgradOriginal: z.string().nullable().optional(),
+  dataPublicacao: z.date().nullable(),
+  publicado: z.boolean(),
+  tipo: tipoEditalSchema.optional(),
+  chefeAssinouEm: z.date().nullable().optional(),
+  chefeAssinatura: z.string().nullable().optional(),
+  chefeDepartamentoId: z.number().nullable().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date().nullable().optional(),
+  periodoInscricaoId: z.number().nullable(),
+  periodoInscricao: z
+    .object({
+      id: z.number(),
+      semestre: semestreSchema,
+      ano: z.number(),
+      dataInicio: z.date(),
+      dataFim: z.date(),
+      editalId: z.number().optional(),
+      status: z.enum(['ATIVO', 'FUTURO', 'FINALIZADO', 'ENCERRADO']),
+      totalProjetos: z.number(),
+      totalInscricoes: z.number(),
+      createdAt: z.date().optional(),
+      updatedAt: z.date().nullable().optional(),
+    })
+    .nullable(),
+  criadoPor: z
+    .object({
+      id: z.number(),
+      username: z.string(),
+      email: z.string(),
+    })
+    .nullable(),
+  criadoPorUserId: z.number(),
+  valorBolsa: z.string(),
+})
+
+export const editalListResponseSchema = z.array(editalListItemSchema)
+
 export type CreatePeriodoInscricaoData = z.infer<typeof createPeriodoInscricaoSchema>
 export type CreateEditalData = z.infer<typeof createEditalSchema>
 export type EditalFormData = z.infer<typeof editalFormSchema>
