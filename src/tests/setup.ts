@@ -161,15 +161,31 @@ vi.mock('minio', () => ({
   })),
 }))
 
-vi.mock('@/server/lib/minio', () => ({
-  minioClient: {
+vi.mock('@/server/lib/minio', () => {
+  const mockClient = {
     bucketExists: vi.fn().mockResolvedValue(true),
     makeBucket: vi.fn().mockResolvedValue(true),
     putObject: vi.fn().mockResolvedValue('mock-etag'),
     getObject: vi.fn().mockResolvedValue(Buffer.from('mock-data')),
     removeObject: vi.fn().mockResolvedValue(true),
-  },
-}))
+    presignedGetObject: vi.fn().mockResolvedValue('http://mock-presigned-url'),
+    listObjectsV2: vi.fn().mockReturnValue({
+      [Symbol.asyncIterator]: async function* () {
+        yield { name: 'mock-file.pdf', size: 1024, lastModified: new Date() }
+      },
+    }),
+    statObject: vi.fn().mockResolvedValue({ size: 1024, lastModified: new Date() }),
+  }
+
+  return {
+    default: vi.fn(() => mockClient), // getMinioClient function
+    getMinioClient: vi.fn(() => mockClient),
+    minioClient: mockClient, // Keep for backward compatibility
+    bucketName: 'test-bucket',
+    getBucketName: vi.fn(() => 'test-bucket'),
+    ensureBucketExists: vi.fn().mockResolvedValue(undefined),
+  }
+})
 
 vi.mock('@/server/lib/pdf-service', () => ({
   generateAndStorePDF: vi.fn().mockResolvedValue('mock-file-path.pdf'),

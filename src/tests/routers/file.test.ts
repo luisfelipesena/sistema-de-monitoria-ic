@@ -53,14 +53,18 @@ const createMockContext = (user: User | null): TRPCContext => ({
 describe('fileRouter', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mock('@/server/lib/minio', () => ({
-      default: {
+    vi.mock('@/server/lib/minio', () => {
+      const mockClient = {
         putObject: vi.fn().mockResolvedValue({ etag: 'test-etag' }),
         presignedGetObject: vi.fn().mockResolvedValue('https://test-url.com/file'),
-      },
-      bucketName: 'test-bucket',
-      ensureBucketExists: vi.fn().mockResolvedValue(true),
-    }))
+      }
+      return {
+        default: vi.fn(() => mockClient), // getMinioClient function
+        getMinioClient: vi.fn(() => mockClient),
+        bucketName: 'test-bucket',
+        ensureBucketExists: vi.fn().mockResolvedValue(true),
+      }
+    })
   })
 
   describe('uploadFile', () => {

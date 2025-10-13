@@ -13,8 +13,8 @@ vi.mock('@/server/lib/pdf-service', () => ({
 }))
 
 // Mock MinIO client
-vi.mock('@/server/lib/minio', () => ({
-  default: {
+vi.mock('@/server/lib/minio', () => {
+  const mockClient = {
     listObjectsV2: vi.fn().mockReturnValue({
       on: vi.fn((event, callback) => {
         if (event === 'end') callback()
@@ -23,10 +23,14 @@ vi.mock('@/server/lib/minio', () => ({
     presignedGetObject: vi.fn().mockResolvedValue('https://test.com/pdf.pdf'),
     putObject: vi.fn().mockResolvedValue('etag'),
     getObject: vi.fn().mockResolvedValue(Buffer.from('pdf-content')),
-  },
-  bucketName: 'test-bucket',
-  ensureBucketExists: vi.fn(),
-}))
+  }
+  return {
+    default: vi.fn(() => mockClient), // getMinioClient function
+    getMinioClient: vi.fn(() => mockClient),
+    bucketName: 'test-bucket',
+    ensureBucketExists: vi.fn(),
+  }
+})
 
 // Mock email service
 vi.mock('@/server/lib/email-service', () => ({
