@@ -77,7 +77,7 @@ describe('editalRouter', () => {
         dataInicio: new Date('2024-01-01'),
         dataFim: new Date('2024-01-31'),
       }
-      await expect(caller.create({...input, tipo: 'DCC' as const})).rejects.toThrowError('UNAUTHORIZED')
+      await expect(caller.create({ ...input, tipo: 'DCC' as const })).rejects.toThrowError('UNAUTHORIZED')
     })
 
     it('should throw CONFLICT error if edital number already exists', async () => {
@@ -94,7 +94,9 @@ describe('editalRouter', () => {
         dataInicio: new Date('2024-01-01'),
         dataFim: new Date('2024-01-31'),
       }
-      await expect(caller.create({...input, tipo: 'DCC' as const})).rejects.toThrowError('Este número de edital já está em uso.')
+      await expect(caller.create({ ...input, tipo: 'DCC' as const })).rejects.toThrowError(
+        'Este número de edital já está em uso.'
+      )
     })
   })
 

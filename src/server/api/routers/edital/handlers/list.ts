@@ -235,6 +235,7 @@ export const getCurrentPeriodoHandler = protectedProcedure
 
       return {
         ...periodoAtual,
+        editalId: periodoAtual.edital?.id || 0,
         status: 'ATIVO' as const,
         totalProjetosAprovados: projetosCount?.count || 0,
         totalInscricoes: inscricoesCount?.count || 0,

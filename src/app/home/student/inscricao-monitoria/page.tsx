@@ -101,8 +101,8 @@ export default function InscricaoMonitoria() {
   })
 
   // Check if there's an active enrollment period
-  const hasActivePeriod = activePeriodData?.periodo !== null
-  const activePeriod = activePeriodData?.periodo
+  const hasActivePeriod = activePeriodData !== null && activePeriodData !== undefined
+  const activePeriod = activePeriodData
 
   // Filter projects - getAvailableProjects already filters for APPROVED and active period
   const filteredProjetos = projetos.filter((projeto) => {
@@ -168,7 +168,7 @@ export default function InscricaoMonitoria() {
                 <p className="text-sm text-green-700 mt-1">
                   {activePeriod.ano}.{activePeriod.semestre === "SEMESTRE_1" ? "1" : "2"} •
                   Até {activePeriod.dataFim.toLocaleDateString('pt-BR')} •
-                  {activePeriod.totalProjetos} projetos disponíveis
+                  {projetos.length} projetos disponíveis
                 </p>
               </div>
             </div>

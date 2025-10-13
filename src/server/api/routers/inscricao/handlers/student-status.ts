@@ -155,9 +155,7 @@ export const getMyStatus = protectedProcedure
         .filter((inscricao) => inscricao.status !== 'SUBMITTED')
         .map((inscricao) => ({
           tipo:
-            inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
-              ? 'APROVACAO'
-              : 'INSCRICAO',
+            inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED') ? 'APROVACAO' : 'INSCRICAO',
           descricao: `${
             inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
               ? 'Aprovado em'

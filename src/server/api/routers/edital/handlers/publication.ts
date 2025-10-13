@@ -1,6 +1,5 @@
 import { adminProtectedProcedure, protectedProcedure } from '@/server/api/trpc'
 import { editalTable, professorTable, projetoTable } from '@/server/db/schema'
-import { sendEditalPublishedNotification } from '@/server/lib/email-service'
 import minioClient, { bucketName } from '@/server/lib/minio'
 import { EditalInternoTemplate, type EditalInternoData } from '@/server/lib/pdfTemplates/edital-interno'
 import { logger } from '@/utils/logger'
@@ -76,7 +75,7 @@ export const publishEditalHandler = adminProtectedProcedure
           },
         })
 
-        const professorEmails = professors.filter((prof) => prof.user?.email).map((prof) => prof.user?.email)
+        const _professorEmails = professors.filter((prof) => prof.user?.email).map((prof) => prof.user?.email)
 
         // TODO: Fix email notification with correct parameters
         // if (professorEmails.length > 0 && edital.periodoInscricao) {
@@ -186,11 +185,12 @@ export const signEditalHandler = protectedProcedure
       const pdfData: EditalInternoData = {
         numeroEdital: edital.numeroEdital,
         titulo: edital.titulo,
-        ano: edital.periodoInscricao?.ano,
+        ano: edital.periodoInscricao?.ano || new Date().getFullYear(),
         semestre: edital.periodoInscricao?.semestre === 'SEMESTRE_1' ? '1' : '2',
-        dataInicio: edital.periodoInscricao?.dataInicio,
-        dataFim: edital.periodoInscricao?.dataFim,
-        valorBolsa: edital.valorBolsa || '400.00',
+        periodoInscricao: {
+          dataInicio: edital.periodoInscricao?.dataInicio?.toLocaleDateString('pt-BR') || '',
+          dataFim: edital.periodoInscricao?.dataFim?.toLocaleDateString('pt-BR') || '',
+        },
         projetos: projetos.map((p) => ({
           titulo: p.titulo,
           professor: p.professorResponsavelNome || 'N/A',

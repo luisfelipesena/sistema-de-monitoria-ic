@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { boolean, integer, pgTable, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core'
+import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
 import { projetoStatusEnum, semestreEnum, tipoProposicaoEnum } from './enums'
 import { departamentoTable } from './department'
 import { professorTable } from './professor'
@@ -28,9 +28,7 @@ export const projetoTable = pgTable('projeto', {
   estimativaPessoasBenificiadas: integer('estimativa_pessoas_benificiadas'),
   assinaturaProfessor: text('assinatura_professor'),
   feedbackAdmin: text('feedback_admin'),
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }),
   deletedAt: timestamp('deleted_at', { withTimezone: true, mode: 'date' }),
 })

@@ -234,8 +234,8 @@ export default function EditalManagementPage() {
         });
 
         await uploadSignedMutation.mutateAsync({
-          id: editalId,
-          fileId: uploadResult.fileId,
+          editalId: editalId,
+          signatureImage: '', // TODO: Get signature image
         });
       } catch (error) {
         console.error("Error uploading signed edital:", error);

@@ -1,11 +1,5 @@
 import { protectedProcedure } from '@/server/api/trpc'
-import {
-  alunoTable,
-  disciplinaTable,
-  inscricaoTable,
-  professorTable,
-  projetoDisciplinaTable,
-} from '@/server/db/schema'
+import { alunoTable, disciplinaTable, inscricaoTable, professorTable, projetoDisciplinaTable } from '@/server/db/schema'
 import { ACCEPTED_BOLSISTA, idSchema, tipoVagaSchema } from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'

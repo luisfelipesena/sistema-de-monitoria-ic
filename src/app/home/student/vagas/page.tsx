@@ -53,8 +53,8 @@ export default function VagasPage() {
   const isLoading = isLoadingProjetos || isLoadingPeriod
 
   // Check if there's an active enrollment period
-  const hasActivePeriod = activePeriodData?.periodo !== null
-  const activePeriod = activePeriodData?.periodo
+  const hasActivePeriod = activePeriodData !== null && activePeriodData !== undefined
+  const activePeriod = activePeriodData
 
   // Filter projects - only show APPROVED projects
   const filteredProjetos = projetos.filter((projeto) => {

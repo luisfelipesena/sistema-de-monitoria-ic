@@ -16,9 +16,7 @@ export const vagaTable = pgTable('vaga', {
   status: text('status').notNull().default('ATIVA'),
   dataInicio: timestamp('data_inicio', { withTimezone: true, mode: 'date' }),
   dataFim: timestamp('data_fim', { withTimezone: true, mode: 'date' }),
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }),
 })
 

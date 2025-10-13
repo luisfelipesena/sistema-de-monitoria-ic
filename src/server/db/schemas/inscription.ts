@@ -11,9 +11,7 @@ export const periodoInscricaoTable = pgTable('periodo_inscricao', {
   dataInicio: timestamp('data_inicio', { withTimezone: true, mode: 'date' }).notNull(),
   dataFim: timestamp('data_fim', { withTimezone: true, mode: 'date' }).notNull(),
   totalBolsasPrograd: integer('total_bolsas_prograd'),
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }),
 })
 
@@ -35,9 +33,7 @@ export const inscricaoTable = pgTable('inscricao', {
   coeficienteRendimento: decimal('coeficiente_rendimento', { precision: 4, scale: 2 }),
   notaFinal: decimal('nota_final', { precision: 4, scale: 2 }),
   feedbackProfessor: text('feedback_professor'),
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }),
 })
 
