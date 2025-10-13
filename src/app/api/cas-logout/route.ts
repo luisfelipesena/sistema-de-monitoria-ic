@@ -4,6 +4,8 @@ import { env } from '@/utils/env'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 const handler = async () => {
   const cookieStore = await cookies()
   const sessionCookie = cookieStore.get(lucia.sessionCookieName)

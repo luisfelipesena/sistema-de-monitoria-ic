@@ -9,7 +9,7 @@ import { createEditalTableColumns } from "@/components/features/edital/EditalTab
 import { PagesLayout } from "@/components/layout/PagesLayout";
 import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
-import { useEditalPdf } from "@/hooks/use-files";
+// import { useEditalPdf } from "@/hooks/use-files"; // TODO: Re-enable when generateEditalPdf is implemented
 import { useToast } from "@/hooks/use-toast";
 import { EditalListItem } from "@/types";
 import { api } from "@/utils/api";
@@ -150,7 +150,7 @@ export default function EditalManagementPage() {
   // });
 
   const uploadFileMutation = api.file.uploadFile.useMutation();
-  const generatePdfMutation = useEditalPdf();
+  // const generatePdfMutation = useEditalPdf(); // TODO: Re-enable when generateEditalPdf is implemented
 
   const createForm = useForm<EditalFormData>({
     resolver: zodResolver(editalFormSchema),
@@ -245,21 +245,27 @@ export default function EditalManagementPage() {
   };
 
   const handleViewPdf = async (editalId: number) => {
-    try {
-      const result = await generatePdfMutation.mutateAsync({ id: editalId });
-      window.open(result.url, "_blank", "noopener,noreferrer");
-      toast({
-        title: "Sucesso!",
-        description: "PDF do edital aberto em nova aba",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao gerar PDF do edital",
-        variant: "destructive",
-      });
-      console.error("Error generating PDF:", error);
-    }
+    // TODO: Re-enable when generateEditalPdf is implemented
+    console.log("PDF generation not implemented yet for edital:", editalId);
+    toast({
+      title: "Em desenvolvimento",
+      description: "Funcionalidade de geração de PDF será implementada em breve",
+    });
+    // try {
+    //   const result = await generatePdfMutation.mutateAsync({ id: editalId });
+    //   window.open(result.url, "_blank", "noopener,noreferrer");
+    //   toast({
+    //     title: "Sucesso!",
+    //     description: "PDF do edital aberto em nova aba",
+    //   });
+    // } catch (error) {
+    //   toast({
+    //     title: "Erro",
+    //     description: "Erro ao gerar PDF do edital",
+    //     variant: "destructive",
+    //   });
+    //   console.error("Error generating PDF:", error);
+    // }
   };
 
   const handleRequestChefeSignature = async (editalId: number) => {

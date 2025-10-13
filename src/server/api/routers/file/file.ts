@@ -1,6 +1,6 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { alunoTable, professorTable, projetoDocumentoTable, projetoTable } from '@/server/db/schema'
-import minioClient, { bucketName, ensureBucketExists } from '@/server/lib/minio'
+import getMinioClient, { bucketName, ensureBucketExists } from '@/server/lib/minio'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
@@ -70,7 +70,7 @@ export const fileRouter = createTRPCRouter({
       const userId = ctx.user.id
       log.info({ adminUserId: userId }, 'Listando arquivos para admin...')
 
-      const objectsStream = minioClient.listObjectsV2(bucketName, undefined, true)
+      const objectsStream = getMinioClient().listObjectsV2(bucketName, undefined, true)
       const statPromises: Promise<FileListItem | null>[] = []
 
       return new Promise<FileListItem[]>((resolve) => {
@@ -80,7 +80,7 @@ export const fileRouter = createTRPCRouter({
             statPromises.push(
               (async () => {
                 try {
-                  const stat = await minioClient.statObject(bucketName, objectName)
+                  const stat = await getMinioClient().statObject(bucketName, objectName)
                   return {
                     objectName,
                     size: stat.size,
@@ -132,7 +132,7 @@ export const fileRouter = createTRPCRouter({
 
         log.info({ adminUserId: userId, objectName }, 'Excluindo arquivo...')
 
-        await minioClient.removeObject(bucketName, objectName)
+        await getMinioClient().removeObject(bucketName, objectName)
 
         log.info({ adminUserId: userId, objectName }, 'Arquivo excluído com sucesso.')
 
@@ -160,7 +160,7 @@ export const fileRouter = createTRPCRouter({
       try {
         const { objectName } = input
 
-        const presignedUrl = await minioClient.presignedGetObject(
+        const presignedUrl = await getMinioClient().presignedGetObject(
           bucketName,
           objectName,
           60 * 5 // 5 minutes validity
@@ -235,7 +235,7 @@ export const fileRouter = createTRPCRouter({
         const buffer = Buffer.from(fileData, 'base64')
         const fileStream = Readable.from(buffer)
 
-        await minioClient.putObject(bucketName, objectName, fileStream, buffer.length, metaData)
+        await getMinioClient().putObject(bucketName, objectName, fileStream, buffer.length, metaData)
 
         log.info(
           {
@@ -306,7 +306,7 @@ export const fileRouter = createTRPCRouter({
         const buffer = Buffer.from(fileData, 'base64')
         const fileStream = Readable.from(buffer)
 
-        await minioClient.putObject(bucketName, objectName, fileStream, buffer.length, metaData)
+        await getMinioClient().putObject(bucketName, objectName, fileStream, buffer.length, metaData)
 
         log.info(
           {
@@ -420,7 +420,7 @@ export const fileRouter = createTRPCRouter({
           responseHeaders['Content-Type'] = 'application/pdf'
         }
 
-        const presignedUrl = await minioClient.presignedGetObject(
+        const presignedUrl = await getMinioClient().presignedGetObject(
           bucketName,
           fileId,
           60 * 5, // 5 minutes validity
@@ -472,7 +472,7 @@ export const fileRouter = createTRPCRouter({
 
         log.info({ adminUserId: userId, fileId }, 'Excluindo arquivo...')
 
-        await minioClient.removeObject(bucketName, fileId)
+        await getMinioClient().removeObject(bucketName, fileId)
 
         log.info({ adminUserId: userId, fileId }, 'Arquivo excluído com sucesso.')
 
@@ -515,7 +515,7 @@ export const fileRouter = createTRPCRouter({
       const userId = ctx.user.id
       log.info({ adminUserId: userId, fileId }, 'Obtendo metadados do arquivo...')
 
-      const stat = await minioClient.statObject(bucketName, fileId)
+      const stat = await getMinioClient().statObject(bucketName, fileId)
       log.info({ objectName: fileId, size: stat.size, stat }, 'Metadados obtidos.')
 
       return {
@@ -582,7 +582,7 @@ export const fileRouter = createTRPCRouter({
 
         // Listar arquivos do projeto
         const prefix = `projetos/${projetoId}/`
-        const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
+        const objectsStream = getMinioClient().listObjectsV2(bucketName, prefix, true)
         const statPromises: Promise<FileListItem | null>[] = []
 
         return new Promise<FileListItem[]>((resolve, reject) => {
@@ -592,7 +592,7 @@ export const fileRouter = createTRPCRouter({
               statPromises.push(
                 (async () => {
                   try {
-                    const stat = await minioClient.statObject(bucketName, objectName)
+                    const stat = await getMinioClient().statObject(bucketName, objectName)
                     return {
                       objectName,
                       size: stat.size,
@@ -659,7 +659,7 @@ export const fileRouter = createTRPCRouter({
 
         // Listar arquivos do projeto
         const prefix = `projetos/${projetoId}/`
-        const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
+        const objectsStream = getMinioClient().listObjectsV2(bucketName, prefix, true)
 
         return new Promise<{ url: string }>((resolve, reject) => {
           const projectFiles: Array<{ name: string; lastModified: Date }> = []
@@ -740,7 +740,7 @@ export const fileRouter = createTRPCRouter({
               }
 
               // Gerar URL presigned
-              const presignedUrl = await minioClient.presignedGetObject(
+              const presignedUrl = await getMinioClient().presignedGetObject(
                 bucketName,
                 latestFile.name,
                 60 * 5, // 5 minutos

@@ -1,6 +1,6 @@
 import { adminProtectedProcedure, protectedProcedure } from '@/server/api/trpc'
 import { editalTable, professorTable, projetoTable } from '@/server/db/schema'
-import minioClient, { bucketName } from '@/server/lib/minio'
+import getMinioClient, { bucketName } from '@/server/lib/minio'
 import { EditalInternoTemplate, type EditalInternoData } from '@/server/lib/pdfTemplates/edital-interno'
 import { logger } from '@/utils/logger'
 import { renderToBuffer } from '@react-pdf/renderer'
@@ -210,7 +210,7 @@ export const signEditalHandler = protectedProcedure
       const fileName = `edital-${edital.numeroEdital.replace('/', '-')}-assinado.pdf`
       const objectName = `editais/${fileName}`
 
-      await minioClient.putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, {
+      await getMinioClient().putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `inline; filename="${fileName}"`,
       })
@@ -228,7 +228,7 @@ export const signEditalHandler = protectedProcedure
         .where(eq(editalTable.id, input.editalId))
 
       // Gerar URL pré-assinada para download
-      const fileUrl = await minioClient.presignedGetObject(bucketName, objectName, 7 * 24 * 60 * 60) // 7 dias
+      const fileUrl = await getMinioClient().presignedGetObject(bucketName, objectName, 7 * 24 * 60 * 60) // 7 dias
 
       log.info({ editalId: input.editalId, fileName }, 'Edital assinado e PDF gerado com sucesso')
 

@@ -11,7 +11,7 @@ import {
   type NewProjeto,
 } from '@/server/db/schema'
 import { sendProjectCreationNotification } from '@/server/lib/email-service'
-import minioClient, { bucketName as MINIO_BUCKET } from '@/server/lib/minio'
+import getMinioClient, { bucketName as MINIO_BUCKET } from '@/server/lib/minio'
 import { parsePlanejamentoSpreadsheet, validateSpreadsheetStructure } from '@/server/lib/spreadsheet-parser'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
@@ -37,7 +37,7 @@ export const importProjectsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         // Baixar arquivo do MinIO para validar
-        const stream = await minioClient.getObject(MINIO_BUCKET, input.fileId)
+        const stream = await getMinioClient().getObject(MINIO_BUCKET, input.fileId)
         const chunks: Buffer[] = []
 
         await new Promise<void>((resolve, reject) => {
@@ -126,7 +126,7 @@ export const importProjectsRouter = createTRPCRouter({
         }
 
         // Baixar e parsear arquivo
-        const stream = await minioClient.getObject(MINIO_BUCKET, importacao.fileId)
+        const stream = await getMinioClient().getObject(MINIO_BUCKET, importacao.fileId)
         const chunks: Buffer[] = []
 
         await new Promise<void>((resolve, reject) => {

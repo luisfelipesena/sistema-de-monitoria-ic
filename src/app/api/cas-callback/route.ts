@@ -2,6 +2,8 @@ import { logger } from '@/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 import { CasCallbackService } from './cas-callback-service'
 
+export const dynamic = 'force-dynamic'
+
 const log = logger.child({
   module: 'cas-callback',
 })

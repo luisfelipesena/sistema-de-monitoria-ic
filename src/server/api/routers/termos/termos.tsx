@@ -7,7 +7,7 @@ import {
   vagaTable,
 } from "@/server/db/schema"
 import { emailService } from "@/server/lib/email-service"
-import minioClient from "@/server/lib/minio"
+import getMinioClient from "@/server/lib/minio"
 import { TermoCompromissoTemplate, type TermoCompromissoProps } from "@/server/lib/pdfTemplates/termo"
 import { renderToBuffer } from "@react-pdf/renderer"
 import { TRPCError } from "@trpc/server"
@@ -114,7 +114,7 @@ export const termosRouter = createTRPCRouter({
         const fileName = `termos/TC-${vagaData.projeto.ano}-${vagaData.projeto.semestre === "SEMESTRE_1" ? "1" : "2"}-${
           vagaData.id
         }.pdf`
-        await minioClient.putObject("documents", fileName, pdfBuffer, pdfBuffer.length, {
+        await getMinioClient().putObject("documents", fileName, pdfBuffer, pdfBuffer.length, {
           "Content-Type": "application/pdf",
         })
 
@@ -195,10 +195,10 @@ export const termosRouter = createTRPCRouter({
 
       try {
         // Verificar se arquivo existe no MinIO
-        const stat = await minioClient.statObject("documents", fileName)
+        const stat = await getMinioClient().statObject("documents", fileName)
 
         // Gerar URL pré-assinada para download
-        const downloadUrl = await minioClient.presignedGetObject("documents", fileName, 24 * 60 * 60) // 24 horas
+        const downloadUrl = await getMinioClient().presignedGetObject("documents", fileName, 24 * 60 * 60) // 24 horas
 
         return {
           downloadUrl,
@@ -281,7 +281,7 @@ export const termosRouter = createTRPCRouter({
             where: eq(assinaturaDocumentoTable.vagaId, vagaId),
           })
 
-          const pdfStream = await minioClient.getObject("documents", fileName)
+          const pdfStream = await getMinioClient().getObject("documents", fileName)
           const chunks = []
           for await (const chunk of pdfStream) {
             chunks.push(chunk)
@@ -306,7 +306,7 @@ export const termosRouter = createTRPCRouter({
           }
 
           const modifiedPdfBytes = await pdfDoc.save()
-          await minioClient.putObject("documents", fileName, Buffer.from(modifiedPdfBytes), modifiedPdfBytes.length, {
+          await getMinioClient().putObject("documents", fileName, Buffer.from(modifiedPdfBytes), modifiedPdfBytes.length, {
             "Content-Type": "application/pdf",
           })
         })

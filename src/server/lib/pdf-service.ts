@@ -1,5 +1,5 @@
 import { MonitoriaFormTemplate } from '@/components/features/projects/MonitoriaFormTemplate'
-import minioClient, { bucketName } from '@/server/lib/minio'
+import getMinioClient, { bucketName } from '@/server/lib/minio'
 import { AtaSelecaoTemplate } from '@/server/lib/pdfTemplates/ata-selecao'
 import { EditalInternoTemplate } from '@/server/lib/pdfTemplates/edital-interno'
 import { AtaSelecaoData, MonitoriaFormData } from '@/types'
@@ -49,7 +49,7 @@ export class PDFService {
         'X-Amz-Meta-Generated-At': new Date().toISOString(),
       }
 
-      await minioClient.putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, metadata)
+      await getMinioClient().putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, metadata)
 
       log.info({ projetoId, objectName, size: pdfBuffer.length }, 'PDF saved to MinIO successfully')
       return objectName
@@ -65,7 +65,7 @@ export class PDFService {
   static async getLatestProjetoPDF(projetoId: number): Promise<{ objectName: string; buffer: Buffer } | null> {
     try {
       const prefix = `projetos/${projetoId}/propostas_assinadas/`
-      const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
+      const objectsStream = getMinioClient().listObjectsV2(bucketName, prefix, true)
 
       return new Promise((resolve, reject) => {
         const projectFiles: Array<{ name: string; lastModified: Date }> = []
@@ -101,7 +101,7 @@ export class PDFService {
 
           try {
             // Get the file content
-            const stream = await minioClient.getObject(bucketName, latestFile.name)
+            const stream = await getMinioClient().getObject(bucketName, latestFile.name)
             const chunks: Buffer[] = []
 
             stream.on('data', (chunk) => chunks.push(chunk))
@@ -258,7 +258,7 @@ export class PDFService {
         'X-Amz-Meta-Generated-At': new Date().toISOString(),
       }
 
-      await minioClient.putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, metadata)
+      await getMinioClient().putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, metadata)
 
       log.info({ editalId, objectName, size: pdfBuffer.length }, 'Internal edital PDF saved to MinIO successfully')
       return objectName
@@ -303,7 +303,7 @@ export class PDFService {
         'X-Amz-Meta-Document-Type': 'ata-selecao',
       }
 
-      await minioClient.putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, metadata)
+      await getMinioClient().putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, metadata)
 
       log.info({ projetoId, objectName, size: pdfBuffer.length }, 'Ata de seleção PDF saved to MinIO successfully')
       return objectName

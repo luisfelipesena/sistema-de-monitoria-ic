@@ -2,6 +2,8 @@ import { logger } from '@/utils/logger'
 import { NextResponse } from 'next/server'
 import { CasLoginService } from './cas-login-service'
 
+export const dynamic = 'force-dynamic'
+
 const log = logger.child({
   module: 'cas-login',
 })

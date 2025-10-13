@@ -11,7 +11,7 @@ import {
   type NewProjeto,
 } from '@/server/db/schema'
 import { sendProjectCreationNotification } from '@/server/lib/email-service'
-import minioClient, { bucketName as MINIO_BUCKET } from '@/server/lib/minio'
+import getMinioClient, { bucketName as MINIO_BUCKET } from '@/server/lib/minio'
 import { groupByDisciplinaTurma, parsePlanejamentoDCC } from '@/server/lib/planejamento-dcc-parser'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
@@ -43,7 +43,7 @@ export async function processImportedFileDCC(importacaoId: number, ctx: TRPCCont
     }
 
     // Baixar e parsear arquivo
-    const stream = await minioClient.getObject(MINIO_BUCKET, importacao.fileId)
+    const stream = await getMinioClient().getObject(MINIO_BUCKET, importacao.fileId)
     const chunks: Buffer[] = []
 
     await new Promise<void>((resolve, reject) => {

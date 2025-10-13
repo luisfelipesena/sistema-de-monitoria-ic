@@ -1,6 +1,6 @@
 import { protectedProcedure } from '@/server/api/trpc'
 import { editalTable } from '@/server/db/schema'
-import minioClient, { bucketName } from '@/server/lib/minio'
+import getMinioClient, { bucketName } from '@/server/lib/minio'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { eq } from 'drizzle-orm'
@@ -52,7 +52,7 @@ export const getEditalPdfUrlHandler = protectedProcedure
       }
 
       // Gerar URL pré-assinada para download
-      const url = await minioClient.presignedGetObject(bucketName, objectName, 7 * 24 * 60 * 60) // 7 dias
+      const url = await getMinioClient().presignedGetObject(bucketName, objectName, 7 * 24 * 60 * 60) // 7 dias
 
       log.info({ editalId: input.id, objectName }, 'URL de download do edital gerada')
       return { url }
