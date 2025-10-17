@@ -194,7 +194,11 @@ export default function ScholarshipAllocationPage() {
       bolsasDisponibilizadas,
     }))
 
-    bulkUpdateMutation.mutate({ allocations })
+    bulkUpdateMutation.mutate({
+      allocations,
+      ano: filters.ano,
+      semestre: filters.semestre,
+    })
   }
 
   const getAllocationStatus = (project: NonNullable<typeof projects>[number]) => {

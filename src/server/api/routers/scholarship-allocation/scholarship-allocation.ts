@@ -96,6 +96,49 @@ export const scholarshipAllocationRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      // Get project details to find ano/semestre
+      const projeto = await ctx.db.query.projetoTable.findFirst({
+        where: eq(projetoTable.id, input.projetoId),
+      })
+
+      if (!projeto) {
+        throw new Error('Projeto não encontrado')
+      }
+
+      // Get PROGRAD limit for this period
+      const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
+        where: and(eq(periodoInscricaoTable.ano, projeto.ano), eq(periodoInscricaoTable.semestre, projeto.semestre)),
+      })
+
+      const totalBolsasPrograd = periodo?.totalBolsasPrograd || 0
+
+      // Calculate total allocated scholarships (excluding current project)
+      const summary = await ctx.db
+        .select({
+          totalBolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
+        })
+        .from(projetoTable)
+        .where(
+          and(
+            eq(projetoTable.status, 'APPROVED'),
+            eq(projetoTable.ano, projeto.ano),
+            eq(projetoTable.semestre, projeto.semestre),
+            isNull(projetoTable.deletedAt)
+          )
+        )
+
+      const currentTotal = Number(summary[0]?.totalBolsasDisponibilizadas || 0)
+      const currentProjectAllocation = projeto.bolsasDisponibilizadas || 0
+      const newTotal = currentTotal - currentProjectAllocation + input.bolsasDisponibilizadas
+
+      // Validate against PROGRAD limit
+      if (totalBolsasPrograd > 0 && newTotal > totalBolsasPrograd) {
+        throw new Error(
+          `Não é possível alocar ${input.bolsasDisponibilizadas} bolsas. ` +
+            `O total de bolsas alocadas (${newTotal}) excederia o limite da PROGRAD (${totalBolsasPrograd}).`
+        )
+      }
+
       await ctx.db
         .update(projetoTable)
         .set({
@@ -115,9 +158,29 @@ export const scholarshipAllocationRouter = createTRPCRouter({
             bolsasDisponibilizadas: z.number().int().min(0),
           })
         ),
+        ano: z.number().int().min(2000).max(2100),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
       })
     )
     .mutation(async ({ input, ctx }) => {
+      // Get PROGRAD limit for this period
+      const periodo = await ctx.db.query.periodoInscricaoTable.findFirst({
+        where: and(eq(periodoInscricaoTable.ano, input.ano), eq(periodoInscricaoTable.semestre, input.semestre)),
+      })
+
+      const totalBolsasPrograd = periodo?.totalBolsasPrograd || 0
+
+      // Calculate total scholarships from the new allocations
+      const newTotal = input.allocations.reduce((acc, allocation) => acc + allocation.bolsasDisponibilizadas, 0)
+
+      // Validate against PROGRAD limit
+      if (totalBolsasPrograd > 0 && newTotal > totalBolsasPrograd) {
+        throw new Error(
+          `Não é possível alocar ${newTotal} bolsas. ` +
+            `O total excede o limite da PROGRAD (${totalBolsasPrograd}).`
+        )
+      }
+
       await Promise.all(
         input.allocations.map(async (allocation) => {
           await ctx.db
