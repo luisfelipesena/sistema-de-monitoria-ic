@@ -16,7 +16,7 @@ const ADMIN_EMAILS = [
   'dcc@ufba.br',
   'caiomp@ufba.br',
   'ericbisposilva200@gmail.com',
-  'juanreis07@gmail.com'
+  'juanreis07@gmail.com',
 ]
 
 export const isAdminEmail = (email: string | null | undefined) => !!email && ADMIN_EMAILS.includes(email.toLowerCase())
