@@ -13,7 +13,7 @@ import {
 import { sendScholarshipAllocationNotification } from '@/server/lib/email-service'
 import { SELECTED_BOLSISTA, SELECTED_VOLUNTARIO } from '@/types'
 import { logger } from '@/utils/logger'
-import { and, count, desc, eq, isNull, sum } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, isNull, sum } from 'drizzle-orm'
 import { z } from 'zod'
 
 const log = logger.child({ context: 'ScholarshipAllocationRouter' })
@@ -96,14 +96,71 @@ export const scholarshipAllocationRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      await ctx.db
-        .update(projetoTable)
-        .set({
-          bolsasDisponibilizadas: input.bolsasDisponibilizadas,
+      // Use transaction to prevent race conditions
+      return await ctx.db.transaction(async (tx) => {
+        // Get project details to find ano/semestre
+        const projeto = await tx.query.projetoTable.findFirst({
+          where: eq(projetoTable.id, input.projetoId),
         })
-        .where(eq(projetoTable.id, input.projetoId))
 
-      return { success: true }
+        if (!projeto) {
+          throw new Error('Projeto não encontrado')
+        }
+
+        // Get PROGRAD limit for this period
+        const periodo = await tx.query.periodoInscricaoTable.findFirst({
+          where: and(eq(periodoInscricaoTable.ano, projeto.ano), eq(periodoInscricaoTable.semestre, projeto.semestre)),
+        })
+
+        const totalBolsasPrograd = periodo?.totalBolsasPrograd || 0
+
+        // Calculate total allocated scholarships (excluding current project)
+        const summary = await tx
+          .select({
+            totalBolsasDisponibilizadas: sum(projetoTable.bolsasDisponibilizadas),
+          })
+          .from(projetoTable)
+          .where(
+            and(
+              eq(projetoTable.status, 'APPROVED'),
+              eq(projetoTable.ano, projeto.ano),
+              eq(projetoTable.semestre, projeto.semestre),
+              isNull(projetoTable.deletedAt)
+            )
+          )
+
+        const currentTotal = Number(summary[0]?.totalBolsasDisponibilizadas || 0)
+        const currentProjectAllocation = projeto.bolsasDisponibilizadas || 0
+        const newTotal = currentTotal - currentProjectAllocation + input.bolsasDisponibilizadas
+
+        // Validate against PROGRAD limit
+        if (totalBolsasPrograd > 0 && newTotal > totalBolsasPrograd) {
+          throw new Error(
+            `Não é possível alocar ${input.bolsasDisponibilizadas} bolsas. ` +
+              `O total de bolsas alocadas (${newTotal}) excederia o limite da PROGRAD (${totalBolsasPrograd}). ` +
+              `Atualmente há ${currentTotal} bolsas alocadas.`
+          )
+        }
+
+        await tx
+          .update(projetoTable)
+          .set({
+            bolsasDisponibilizadas: input.bolsasDisponibilizadas,
+          })
+          .where(eq(projetoTable.id, input.projetoId))
+
+        log.info(
+          {
+            projetoId: input.projetoId,
+            newAllocation: input.bolsasDisponibilizadas,
+            totalAfter: newTotal,
+            progradLimit: totalBolsasPrograd,
+          },
+          'Scholarship allocation updated'
+        )
+
+        return { success: true }
+      })
     }),
 
   bulkUpdateAllocations: adminProtectedProcedure
@@ -115,21 +172,83 @@ export const scholarshipAllocationRouter = createTRPCRouter({
             bolsasDisponibilizadas: z.number().int().min(0),
           })
         ),
+        ano: z.number().int().min(2000).max(2100),
+        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      await Promise.all(
-        input.allocations.map(async (allocation) => {
-          await ctx.db
-            .update(projetoTable)
-            .set({
-              bolsasDisponibilizadas: allocation.bolsasDisponibilizadas,
-            })
-            .where(eq(projetoTable.id, allocation.projetoId))
+      // Use transaction to prevent race conditions
+      return await ctx.db.transaction(async (tx) => {
+        // Get PROGRAD limit for this period
+        const periodo = await tx.query.periodoInscricaoTable.findFirst({
+          where: and(eq(periodoInscricaoTable.ano, input.ano), eq(periodoInscricaoTable.semestre, input.semestre)),
         })
-      )
 
-      return { success: true }
+        const totalBolsasPrograd = periodo?.totalBolsasPrograd || 0
+
+        // Get current total for all approved projects
+        const currentSummary = await tx
+          .select({ total: sum(projetoTable.bolsasDisponibilizadas) })
+          .from(projetoTable)
+          .where(
+            and(
+              eq(projetoTable.status, 'APPROVED'),
+              eq(projetoTable.ano, input.ano),
+              eq(projetoTable.semestre, input.semestre),
+              isNull(projetoTable.deletedAt)
+            )
+          )
+
+        const currentTotal = Number(currentSummary[0]?.total || 0)
+
+        // Get current allocations for projects being updated
+        const projectsBeingUpdated = input.allocations.map((a) => a.projetoId)
+        const currentAllocations = await tx
+          .select({
+            id: projetoTable.id,
+            bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
+          })
+          .from(projetoTable)
+          .where(inArray(projetoTable.id, projectsBeingUpdated))
+
+        const currentAllocationSum = currentAllocations.reduce((sum, p) => sum + (p.bolsasDisponibilizadas || 0), 0)
+        const newAllocationSum = input.allocations.reduce((sum, a) => sum + a.bolsasDisponibilizadas, 0)
+        const newTotal = currentTotal - currentAllocationSum + newAllocationSum
+
+        // Validate against PROGRAD limit
+        if (totalBolsasPrograd > 0 && newTotal > totalBolsasPrograd) {
+          throw new Error(
+            `Não é possível alocar ${newAllocationSum} bolsas. ` +
+              `O total de bolsas alocadas (${newTotal}) excederia o limite da PROGRAD (${totalBolsasPrograd}). ` +
+              `Atualmente há ${currentTotal} bolsas alocadas.`
+          )
+        }
+
+        // Perform updates
+        await Promise.all(
+          input.allocations.map(async (allocation) => {
+            await tx
+              .update(projetoTable)
+              .set({
+                bolsasDisponibilizadas: allocation.bolsasDisponibilizadas,
+              })
+              .where(eq(projetoTable.id, allocation.projetoId))
+          })
+        )
+
+        log.info(
+          {
+            ano: input.ano,
+            semestre: input.semestre,
+            newTotal,
+            progradLimit: totalBolsasPrograd,
+            projectsUpdated: input.allocations.length,
+          },
+          'Bulk scholarship allocation updated'
+        )
+
+        return { success: true }
+      })
     }),
 
   getAllocationSummary: adminProtectedProcedure
