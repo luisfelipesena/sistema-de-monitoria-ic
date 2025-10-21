@@ -1,0 +1,225 @@
+﻿FASE 1: Planejamento e Criação de Projetos
+
+Admin
+	1.	Importa a planilha de planejamento do DCC com disciplinas e professores (SIAPE).
+	2.	O sistema identifica automaticamente projetos individuais (1 professor) e coletivos (múltiplos professores).
+	3.	O sistema cria projetos automaticamente com base em templates de semestres anteriores.
+	4.	O sistema envia e-mails automáticos para os professores: “Gerar projeto para disciplina X”.
+
+Professor
+	1.	Acessa o dashboard e visualiza suas disciplinas.
+	2.	Para disciplinas sem template: cria um template padrão (título, descrição, atividades, carga horária).
+	3.	Gera o projeto do semestre a partir do template (pode editar se necessário).
+	4.	Assina digitalmente o projeto e o submete para aprovação.
+
+⸻
+
+FASE 2: Aprovação e Envio para PROGRAD
+
+Admin
+	1.	Acessa a lista de projetos submetidos.
+	2.	Aprova ou rejeita projetos.
+	3.	Gera uma planilha Excel automática com links em PDF dos projetos aprovados.
+	4.	Envia a planilha por e-mail ao INSTITUTO (IC) solicitando bolsas.
+
+Instituto (IC)
+	1.	Recebe a planilha do admin.
+	2.	Encaminha para a PROGRAD solicitando bolsas.
+
+PROGRAD
+	1.	Analisa a planilha recebida.
+	2.	Responde via e-mail geral para toda UFBA com total de bolsas por instituto.
+
+⸻
+
+FASE 3: Alocação de Bolsas e Edital Interno DCC
+
+Processo Manual de Distribuição (antes do sistema)
+	1.	PROGRAD publica resultado via e-mail geral para toda UFBA.
+	2.	Diretor do Instituto conversa com chefe do departamento sobre divisão (DCI vs DCC).
+	3.	Chefe do departamento conversa com comissão de monitoria para distribuir entre disciplinas.
+	4.	Comissão define quantas bolsas cada disciplina receberá.
+
+Admin
+	1.	Define no sistema o total de bolsas informado pela PROGRAD.
+	2.	Aloca bolsas por projeto aprovado conforme decisão da comissão (o sistema impede exceder o total).
+	3.	Clica em "Notificar Professores" – o sistema envia e-mails automáticos com a tabela de bolsas.
+
+Professor
+	1.	Recebe o e-mail com suas bolsas alocadas.
+	2.	Acessa o dashboard e visualiza os projetos com bolsas (campo não editável).
+	3.	Pode definir voluntários adicionais (campo editável).
+	4.	Preenche dados do edital interno DCC:
+	•	Escolhe data/horário da seleção (entre 2–3 opções definidas pelo admin).
+	•	Edita/confirma pontos da prova (modelo sugerido pelo sistema).
+	•	Edita/confirma bibliografia (modelo sugerido pelo sistema).
+
+Admin
+	1.	Define o número do edital interno DCC.
+	2.	Escolhe 2–3 datas possíveis para provas.
+	3.	Define a data limite para divulgação dos resultados.
+	4.	Solicita assinatura digital do chefe do departamento.
+
+Chefe do Departamento
+	1.	Acessa o sistema e visualiza editais pendentes de assinatura.
+	2.	Assina digitalmente o edital interno DCC.
+
+Admin
+	1.	Publica o edital assinado.
+	2.	O sistema envia automaticamente o PDF para:
+	•	Todos os estudantes do instituto.
+	•	Todos os professores do instituto.
+
+⸻
+
+FASE 4: Inscrições e Seleção de Monitores
+
+Aluno
+	1.	Recebe o e-mail com o PDF do edital.
+	2.	Acessa o sistema em "Vagas Disponíveis".
+	3.	Visualiza projetos com bolsas e vagas de voluntário.
+	4.	Inscreve-se informando o tipo de vaga (bolsista, voluntário ou ambos).
+	5.	O sistema registra automaticamente a nota da disciplina (do histórico).
+		• Sistema considera disciplinas equivalentes (ex: MATA37 LP = MATE045).
+		• Sistema também captura o CR (Coeficiente de Rendimento) do aluno.
+
+Professor
+	1.	Acessa “Gerenciar Candidatos” e visualiza os inscritos.
+	2.	Em “Avaliar Candidatos”, atribui notas (prova e/ou entrevista).
+	3.	O sistema calcula a nota final automaticamente.
+	4.	Em “Selecionar Monitores”, escolhe:
+	•	Bolsistas (até o limite alocado).
+	•	Voluntários (até o limite definido).
+	5.	Clica em “Publicar Resultados” – o sistema notifica os alunos por e-mail.
+
+Aluno
+	1.	Recebe o e-mail com o resultado da seleção.
+	2.	Acessa “Resultados das Seleções”.
+	3.	Aceita ou rejeita a monitoria.
+	4.	Se for bolsista, preenche dados bancários (banco, agência, conta e dígito).
+
+⸻
+
+FASE 5: Consolidação Final e Relatório PROGRAD
+
+Admin
+	1.	Acessa "Consolidação PROGRAD".
+	2.	Seleciona o período (ano/semestre).
+	3.	Valida os dados (o sistema verifica se todos os alunos têm informações bancárias completas).
+	4.	Gera planilha Excel consolidada com todos os monitores ativos:
+	•	Bolsistas (com dados de pagamento).
+	•	Voluntários (se configurado para incluir).
+	5.	Envia a planilha final por e-mail ao DEPARTAMENTO (DCC).
+
+Chefe do Departamento
+	1.	Recebe a planilha consolidada.
+	2.	Encaminha para a PROGRAD.
+
+PROGRAD
+	1.	Recebe a planilha final.
+	2.	Processa os pagamentos das bolsas.
+
+⸻
+
+FASE 6: Relatórios Finais e Certificados (Semestre Encerrado)
+
+Admin
+	1.	Inicia processo de relatórios finais (normalmente com semestre atual já em andamento).
+	2.	Clica em "Gerar Relatórios" – sistema notifica professores por e-mail.
+
+Professor
+	1.	Recebe notificação para gerar relatórios.
+	2.	Acessa área de "Relatórios Finais".
+	3.	Gera relatório final da disciplina:
+	•	Pode usar template de semestres anteriores.
+	•	Edita conforme necessário.
+	•	Assina digitalmente.
+	4.	Gera relatório individual para cada monitor (bolsista/voluntário):
+	•	Sistema pré-preenche com dados do aluno.
+	•	Professor revisa e assina.
+	5.	Sistema notifica alunos automaticamente.
+
+Aluno
+	1.	Recebe notificação: "Relatório pendente de assinatura".
+	2.	Acessa o sistema e visualiza seu relatório.
+	3.	Assina digitalmente o relatório.
+
+Admin
+	1.	Valida que todos os relatórios estão assinados.
+	2.	Gera texto padrão para ata do departamento:
+	•	"Professor X solicita aprovação do relatório de monitoria do aluno Y, nota Z, semestre W, disciplina V".
+	3.	Copia texto e inclui na ata do departamento.
+	4.	Gera 3 planilhas com links PDF:
+	•	Certificados de monitores bolsistas.
+	•	Certificados de monitores voluntários.
+	•	Relatórios finais das disciplinas.
+	5.	Envia planilhas ao DEPARTAMENTO.
+
+Departamento
+	1.	Recebe planilhas de certificados.
+	2.	Encaminha para NUMOP para emissão oficial dos certificados.
+
+⸻
+
+Resumo por Role
+
+Admin (Coordenador)
+	•	Importa planejamento
+	•	Aprova projetos
+	•	Gera planilha para Instituto
+	•	Recebe resposta de bolsas (via comissão)
+	•	Aloca bolsas conforme decisão da comissão
+	•	Notifica professores
+	•	Cria edital interno
+	•	Solicita assinatura do chefe
+	•	Publica edital
+	•	Valida consolidação final
+	•	Envia relatório ao Departamento
+	•	Inicia processo de relatórios finais
+	•	Gera texto para ata
+	•	Gera planilhas de certificados
+
+Professor
+	•	Cria templates de disciplinas
+	•	Gera e assina projetos
+	•	Recebe bolsas alocadas
+	•	Preenche dados do edital interno
+	•	Avalia candidatos
+	•	Seleciona monitores
+	•	Publica resultados
+	•	Gera relatório final da disciplina
+	•	Gera e assina relatórios dos monitores
+
+Chefe do Departamento
+	•	Assina digitalmente o edital interno DCC antes da publicação.
+	•	Conversa com diretor do Instituto sobre divisão de bolsas.
+	•	Conversa com comissão de monitoria sobre distribuição.
+	•	Encaminha planilhas para PROGRAD.
+	•	Encaminha certificados para NUMOP.
+
+Aluno
+	•	Recebe edital
+	•	Inscreve-se em projetos (sistema captura CR e considera equivalências)
+	•	Participa da seleção
+	•	Recebe resultado
+	•	Aceita ou rejeita
+	•	Preenche dados bancários
+	•	Assina relatório final
+
+Instituto (IC)
+	•	Recebe planilha de projetos do admin
+	•	Encaminha para PROGRAD
+	•	Conversa com departamentos sobre divisão de bolsas
+
+PROGRAD (EXTERNO - NÃO INTERAGE COM O SISTEMA)
+	•	Recebe planilha de projetos (via Instituto) - MANUAL
+	•	Define e publica total de bolsas via e-mail geral - MANUAL
+	•	Recebe consolidação final (via Departamento) - MANUAL
+	•	Processa pagamentos - MANUAL
+	⚠️ IMPORTANTE: PROGRAD não tem acesso ao sistema, toda comunicação é via e-mail/planilhas
+
+NUMOP
+	•	Recebe planilhas de certificados (via Departamento)
+	•	Emite certificados oficiais de monitoria
+
+⸻

@@ -77,6 +77,150 @@
 - `drizzle/0034_woozy_spitfire.sql` - ✅ CRIADO - migração com relacionamento e constraint
 **STATUS** - [x] ✅ COMPLETO
 
+### 6. CR E EQUIVALÊNCIAS DE DISCIPLINAS
+
+**TAREFA** - Capturar automaticamente CR do aluno na inscrição
+**DESCRIÇÃO** - Ao fazer inscrição, sistema deve pegar automaticamente o CR (Coeficiente de Rendimento) do aluno além da nota da disciplina
+**CONTEXTO** - Professor mencionou: "quando ele registrar lá a inscrição, além de pegar a nota da disciplina no histórico dele, pegar o CR"
+**ARQUIVOS AFETADOS**:
+- `src/server/api/routers/inscricao/inscricao.ts` - Adicionar lógica para buscar CR do aluno
+- `src/app/home/student/inscricao-monitoria/page.tsx` - Exibir CR na interface
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Criar tabela de equivalências de disciplinas
+**DESCRIÇÃO** - Criar nova tabela no banco para armazenar equivalências entre disciplinas (ex: MATA37 LP ↔ MATE045)
+**CONTEXTO** - Professor explicou: "temos algumas disciplinas que julgamos como equivalente. MATA37 LP com MATE045. Tanto faz o aluno ter nota numa ou noutra"
+**ARQUIVOS AFETADOS**:
+- `src/server/db/schema.ts` - Criar `disciplinaEquivalenciaTable`
+- `drizzle/migrations/` - Nova migração para tabela
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Interface admin para gerenciar equivalências
+**DESCRIÇÃO** - Criar página no admin para cadastrar/editar/remover equivalências entre disciplinas
+**CONTEXTO** - Admin precisa indicar que disciplinas são equivalentes para o sistema considerar automaticamente
+**ARQUIVOS AFETADOS**:
+- `src/app/home/admin/equivalencias/page.tsx` - Nova página de gestão
+- `src/server/api/routers/discipline/discipline.ts` - Adicionar procedures para CRUD de equivalências
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Ajustar busca de notas considerando equivalências
+**DESCRIÇÃO** - Ao buscar nota de uma disciplina, sistema deve verificar se aluno tem nota em disciplina equivalente
+**CONTEXTO** - Sistema deve aceitar nota de MATA37 ou MATE045 indistintamente quando são equivalentes
+**ARQUIVOS AFETADOS**:
+- `src/server/api/routers/inscricao/inscricao.ts` - Lógica de busca de nota considerando equivalências
+- `src/server/api/routers/selecao/selecao.ts` - Considerar equivalências na seleção
+**STATUS** - [ ] PENDENTE
+
+### 7. FLUXO DE ENVIO CORRETO PARA INSTITUTO/DEPARTAMENTO
+
+**TAREFA** - Ajustar envio de planilha inicial para Instituto (não PROGRAD)
+**DESCRIÇÃO** - Planilha de projetos deve ser enviada para email do INSTITUTO (IC), não direto para PROGRAD
+**CONTEXTO** - Professor esclareceu: "esse envio é feito pelo Instituto, pelo e-mail do IC. Podemos mandar essa planilha para o e-mail do Instituto, e aí o Instituto envia para a PROGRAD"
+**IMPORTANTE** - PROGRAD NÃO interage com o sistema - conforme professor: "A PROGRAD não interage com o nosso sistema. Ela é só para o entendimento de vocês sobre o que acontece com o fluxo"
+**ARQUIVOS AFETADOS**:
+- `src/server/api/routers/analytics/analytics.ts` - Ajustar destinatário do email
+- `src/server/lib/email-service.ts` - Atualizar templates mencionando Instituto
+- `src/app/home/admin/manage-projects/page.tsx` - Atualizar labels/textos
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Configurar emails do Instituto e Departamento
+**DESCRIÇÃO** - Adicionar configuração no sistema para emails do Instituto (IC) e Departamento (DCC)
+**CONTEXTO** - Sistema precisa saber para onde enviar: Instituto para projetos iniciais, Departamento para consolidação final
+**ARQUIVOS AFETADOS**:
+- `src/server/db/schema.ts` - Adicionar campos de email em `departamentoTable`
+- `src/app/home/admin/configuracoes/page.tsx` - Interface para configurar emails
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Ajustar envio de planilha final para Departamento (não PROGRAD)
+**DESCRIÇÃO** - Planilhas de bolsistas/voluntários devem ir para chefe do DEPARTAMENTO (email DCC), não direto PROGRAD
+**CONTEXTO** - Professor explicou: "As planilhas vão para o chefe do departamento. Pode mandar para o e-mail do DCC. O chefe do departamento vai mandar para a PROGRAD"
+**ARQUIVOS AFETADOS**:
+- `src/server/api/routers/relatorios/relatorios.ts` - Ajustar `exportConsolidated` para enviar ao DCC
+- `src/components/features/consolidacao/ConsolidacaoContent.tsx` - Atualizar interface
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Documentar processo manual de distribuição de bolsas
+**DESCRIÇÃO** - Criar documentação clara do processo: PROGRAD → Instituto → Departamento → Comissão → Admin
+**CONTEXTO** - Professor detalhou: "PROGRAD publica resultado → diretor conversa com chefe depto (DCI vs DCC) → chefe conversa com comissão → admin aloca no sistema"
+**ARQUIVOS AFETADOS**:
+- `docs/processo-distribuicao-bolsas.md` - Novo arquivo de documentação
+- `src/app/home/admin/scholarship-allocation/page.tsx` - Adicionar tooltip/help explicativo
+**STATUS** - [ ] PENDENTE
+
+### 8. MÓDULO DE RELATÓRIOS FINAIS - COMPLETO
+
+**TAREFA** - Criar schema para relatórios finais
+**DESCRIÇÃO** - Criar tabelas para armazenar relatórios finais de disciplina e relatórios individuais de monitores
+**CONTEXTO** - Sistema precisa gerar relatórios finais após término do semestre para emissão de certificados
+**ARQUIVOS AFETADOS**:
+- `src/server/db/schema.ts` - Criar `relatorioFinalDisciplinaTable` e `relatorioFinalMonitorTable`
+- `drizzle/migrations/` - Nova migração
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Implementar templates de relatórios finais
+**DESCRIÇÃO** - Criar sistema de templates para relatórios finais que professor pode reutilizar de semestres anteriores
+**CONTEXTO** - Professor mencionou: "tem um padrão, formato que a gente pode simplesmente pegar de semestres anteriores"
+**ARQUIVOS AFETADOS**:
+- `src/server/db/schema.ts` - Criar `relatorioTemplateTable`
+- `src/server/api/routers/relatorios/relatorios.ts` - CRUD de templates
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Criar fluxo de geração de relatórios pelo professor
+**DESCRIÇÃO** - Professor deve poder gerar relatório final da disciplina e relatórios individuais para cada monitor
+**CONTEXTO** - "Professor entra na área dele, tem lá os alunos relacionados ao projeto. Ele fala: gerar relatório pra bolsista tal, voluntário tal"
+**ARQUIVOS AFETADOS**:
+- `src/app/home/professor/relatorios-finais/page.tsx` - Nova página
+- `src/server/api/routers/relatorios/relatorios.ts` - Procedures de geração
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Implementar assinatura digital de relatórios
+**DESCRIÇÃO** - Professor assina relatório da disciplina e relatórios dos alunos. Alunos assinam seus próprios relatórios
+**CONTEXTO** - "Professor assina tanto o relatório final da disciplina quanto os relatórios dos alunos. Os alunos precisam entrar no sistema e assinar também"
+**ARQUIVOS AFETADOS**:
+- `src/server/api/routers/signature/signature.ts` - Adicionar tipo `RELATORIO_FINAL`
+- `src/app/home/student/relatorios/page.tsx` - Interface para aluno assinar
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Sistema de notificações para relatórios
+**DESCRIÇÃO** - Admin notifica professores para gerar relatórios. Sistema notifica alunos quando têm relatório para assinar
+**CONTEXTO** - "Admin notifica, né? Gerar relatórios, aí isso vai à notificação pros professores"
+**ARQUIVOS AFETADOS**:
+- `src/server/lib/email-service.ts` - Templates de email para relatórios
+- `src/server/api/routers/notificacoes/notificacoes.ts` - Disparar notificações
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Gerar texto padrão para ata do departamento
+**DESCRIÇÃO** - Sistema gera texto formatado com todos os relatórios para incluir na ata do departamento
+**CONTEXTO** - "Gera texto padrão: 'Professor tal solicita aprovação, relatório de monitoria do aluno tal, com nota tal, no semestre tal, na disciplina tal'"
+**ARQUIVOS AFETADOS**:
+- `src/server/api/routers/relatorios/relatorios.ts` - Procedure `gerarTextoAta`
+- `src/app/home/admin/relatorios-finais/page.tsx` - Interface para copiar texto
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Gerar planilhas de certificados
+**DESCRIÇÃO** - Gerar 3 planilhas: certificados bolsistas, certificados voluntários, relatórios finais disciplinas (todas com links PDF)
+**CONTEXTO** - "Geram-se duas planilhas: uma para certificado dos monitores bolsistas e uma pros voluntários. Com o link em PDF dos relatórios"
+**ARQUIVOS AFETADOS**:
+- `src/server/api/routers/relatorios/relatorios.ts` - `exportarCertificados`
+- `src/components/features/relatorios/PlanilhaCertificados.tsx` - Componente de geração
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Implementar envio para NUMOP via Departamento
+**DESCRIÇÃO** - Sistema envia planilhas de certificados para departamento, que encaminha para NUMOP
+**CONTEXTO** - "Manda isso pro departamento também. Aí, o departamento vai mandar pro NUMOP"
+**ARQUIVOS AFETADOS**:
+- `src/server/api/routers/relatorios/relatorios.ts` - Procedure de envio
+- `src/server/lib/email-service.ts` - Template de email para NUMOP
+**STATUS** - [ ] PENDENTE
+
+**TAREFA** - Interface admin para validação de relatórios
+**DESCRIÇÃO** - Admin valida que todos os relatórios estão corretos antes de gerar consolidação
+**CONTEXTO** - "Admin vai entrar e confirmar os relatórios que tem ali, estão todos ok em relação às bolsas e voluntários"
+**ARQUIVOS AFETADOS**:
+- `src/app/home/admin/validacao-relatorios/page.tsx` - Nova página
+- `src/server/api/routers/relatorios/relatorios.ts` - Status de validação
+**STATUS** - [ ] PENDENTE
+
 ---
 
 ## ✅ TICKETS COMPLETADOS
