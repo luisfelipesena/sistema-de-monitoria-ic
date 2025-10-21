@@ -21,3 +21,19 @@ Uma vez que o edital esteja pronto, o chefe do departamento o aprova. Então, o 
 Enfim, aí o edital gera o PDF ali prontinho, e aí esse edital é divulgado. Então, automaticamente, uma vez que gerou o edital, a gente pode mandar também automaticamente para as listas de estudantes. Automaticamente, ela envia, divulga digitalmente. Então, a gente manda nas listas dos nossos estudantes, lista de professores.
 
 Aí vem uma nova etapa, aí tem as inscrições e os alunos. Aí os alunos vão entrar para se candidatar às bolsas ou monitoria voluntária. Aí tem um outro processo aí que depois a gente pode discutir, se quiser.
+
+Desculpa, os áudios foram errados ali. Enfim, eu li aqui, acho que é isso mesmo, foi o que eu tinha comentado ali nos áudios, só fiquei com uma pequena dúvida ainda aqui, aí tu me ajude a lembrar.
+
+O sistema, o admin, ele cadastra as disciplinas, não é isso? Porque aí os projetos, eles, digo, cada disciplina ali, ela vai ter um, aquele projeto template, não é isso? Que à medida que os professores vão entrando, eles vão preenchendo esses dados, né, para gerar esses templates, né? Criar esses templates base.
+
+Só me recorda aí como é que é, é por disciplina, né? O admin, ele cria disciplina para gerar o template, é isso?
+
+Eu estou perguntando isso justamente porque ali, aquela questão ali que você colocou da equivalência, né? Para ele verificar a nota do aluno se, né, tipo, um BLP, se ele não tem LP, ele vai olhar PD, se tem PD, ou seja, equivalência.
+
+Eu acho que assim, no momento que o admin for citar essas disciplinas, né, para gerar os templates, já sinalizar que ela é equivalente de alguma outra, né? Poderia ser nesse sentido. E talvez deixar isso como editável, né?
+
+Por exemplo, um campo ali, onde você coloca o código da disciplina equivalente a, aí você pode selecionar ali na lista de disciplinas cadastradas, quem é equivalente a quê. Então, no caso lá, quando eu estiver na disciplina MATA37, eu teria o campo ali, onde já teria preenchido com MATA45. Se eu estiver em MATA45, vai ter o campo sinalizando com a MATA37.
+
+Enfim, né, apareceriam todos, nesse campo, uma relação de todas as disciplinas já cadastradas, eu clico na que for, né? Ou nas que forem, né, que vão permitir mais de uma seleção, né, por exemplo.
+
+Eu acho que é o único ponto aí que ficou, assim, dúvida para mim foi isso, né? Ou como poderia ficar isso da melhor forma, né? Onde é que a gente sinalizaria essa equivalência aí? Porque do jeito que está ali, né, o sistema vê que é equivalente e pega, mas em que momento a gente disse isso, que é equivalente a o quê, né?
