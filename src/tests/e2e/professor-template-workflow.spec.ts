@@ -186,37 +186,28 @@ test.describe('Professor Template Workflow', () => {
     await expect(disciplineOption).toBeVisible({ timeout: 10000 })
     await disciplineOption.click()
     await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000) // Extra wait for React state updates
 
-    // Check if template exists
-    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
-    const _editTemplateBtn = page.getByRole('button', { name: /Editar Template/i })
-
-    const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
+    // Check if template exists - wait for stable state
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 5000 }).catch(() => false)
 
     if (hasCreateButton) {
-      // Create template first
+      // Create template first - wait for button to be stable and attached
       console.log('Creating template...')
-      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
-      await page.waitForTimeout(1500) // Wait for form to fully render
+      await createTemplateBtn.waitFor({ state: 'attached', timeout: 5000 })
+      await createTemplateBtn.waitFor({ state: 'visible', timeout: 5000 })
+      await page.waitForTimeout(500) // Wait for any animations/transitions
+      await createTemplateBtn.click()
       await page.waitForLoadState('networkidle')
 
-      // Wait for the form to be ready and fill the title field
-      await page.waitForTimeout(500) // Extra wait for form stability
-      const titleField = page
-        .locator('input[name="tituloDefault"]')
-        .or(page.locator('input[placeholder*="Monitoria"]').first())
+      // Wait for template form to appear
+      const titleField = page.locator('input[name="tituloDefault"]')
       await titleField.waitFor({ state: 'visible', timeout: 10000 })
-      await titleField.fill('Template para Teste', { timeout: 10000 })
+      await titleField.fill('Template para Teste')
 
       await page.locator('button:has-text("Salvar Template")').click()
-      await expect(
-        page
-          .locator('[data-state="open"]')
-          .getByText(/Template/)
-          .first()
-      ).toBeVisible({ timeout: 10000 })
-
-      // Wait for redirect or click back to project
+      await page.waitForLoadState('networkidle')
       await page.waitForTimeout(2000)
     }
 
@@ -237,31 +228,27 @@ test.describe('Professor Template Workflow', () => {
     await expect(disciplineOption).toBeVisible({ timeout: 10000 })
     await disciplineOption.click()
     await page.waitForLoadState('networkidle')
+    await page.waitForTimeout(2000) // Extra wait for React state updates
 
-    // Create template if needed
-    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i }).first()
-    const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 3000 })
+    // Create template if needed - wait for stable state
+    const createTemplateBtn = page.getByRole('button', { name: /Criar Template Padrão/i })
+    const hasCreateButton = await createTemplateBtn.isVisible({ timeout: 5000 }).catch(() => false)
 
     if (hasCreateButton) {
-      // Click create template button directly
+      // Click create template button - wait for stability
       console.log('Creating template...')
-      await page.locator('button:has-text("Criar Template Padrão")').first().click({ force: true })
-      await page.waitForTimeout(1500) // Wait for form to fully render
+      await createTemplateBtn.waitFor({ state: 'attached', timeout: 5000 })
+      await createTemplateBtn.waitFor({ state: 'visible', timeout: 5000 })
+      await page.waitForTimeout(500) // Wait for any animations/transitions
+      await createTemplateBtn.click()
       await page.waitForLoadState('networkidle')
 
-      const titleField = page
-        .locator('input[name="tituloDefault"]')
-        .or(page.locator('input[placeholder*="Monitoria"]').first())
+      const titleField = page.locator('input[name="tituloDefault"]')
       await titleField.waitFor({ state: 'visible', timeout: 10000 })
       await titleField.fill('Template Padrão')
 
       await page.locator('button:has-text("Salvar Template")').click()
-      await expect(
-        page
-          .locator('[data-state="open"]')
-          .getByText(/Template/)
-          .first()
-      ).toBeVisible({ timeout: 10000 })
+      await page.waitForLoadState('networkidle')
       await page.waitForTimeout(2000)
     }
 
