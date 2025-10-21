@@ -90,16 +90,28 @@
 **TAREFA** - Criar tabela de equivalências de disciplinas
 **DESCRIÇÃO** - Criar nova tabela no banco para armazenar equivalências entre disciplinas (ex: MATA37 LP ↔ MATE045)
 **CONTEXTO** - Professor explicou: "temos algumas disciplinas que julgamos como equivalente. MATA37 LP com MATE045. Tanto faz o aluno ter nota numa ou noutra"
+⚠️ **OBS CRÍTICA**:
+- Equivalências PODEM VARIAR POR EDITAL (professor: "o edital tem esse ponto que pode mudar. Pode variar")
+- Considerar vincular equivalências ao edital específico ou permitir ativar/desativar por período
+- Sistema deve aplicar automaticamente quando aluno se inscrever
+- Precisa ser EDITÁVEL e GERENCIÁVEL pelo admin de forma visual
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - Criar `disciplinaEquivalenciaTable`
+- `src/server/db/schema.ts` - Criar `disciplinaEquivalenciaTable` (considerar campo `editalId` opcional)
 - `drizzle/migrations/` - Nova migração para tabela
 **STATUS** - [ ] PENDENTE
 
 **TAREFA** - Interface admin para gerenciar equivalências
 **DESCRIÇÃO** - Criar página no admin para cadastrar/editar/remover equivalências entre disciplinas
 **CONTEXTO** - Admin precisa indicar que disciplinas são equivalentes para o sistema considerar automaticamente
+⚠️ **OBS CRÍTICA - INTERFACE DEVE SER VISUAL E EDITÁVEL**:
+- Professor enfatizou: "tem que ter um local onde a gente indica isso, ó, isso é equivalente a isso"
+- Interface deve permitir FÁCIL criação/edição/remoção de pares de equivalências
+- Mostrar claramente: "MATA37 LP ↔ MATE045" (relação bidirecional)
+- Considerar filtros por departamento e ativar/desativar por edital
+- Pode incluir campo no próprio formulário de criação/edição do edital
 **ARQUIVOS AFETADOS**:
-- `src/app/home/admin/equivalencias/page.tsx` - Nova página de gestão
+- `src/app/home/admin/equivalencias/page.tsx` - Nova página de gestão standalone
+- `src/app/home/admin/edital-management/` - Adicionar seção de equivalências no formulário de edital
 - `src/server/api/routers/discipline/discipline.ts` - Adicionar procedures para CRUD de equivalências
 **STATUS** - [ ] PENDENTE
 
@@ -110,6 +122,37 @@
 - `src/server/api/routers/inscricao/inscricao.ts` - Lógica de busca de nota considerando equivalências
 - `src/server/api/routers/selecao/selecao.ts` - Considerar equivalências na seleção
 **STATUS** - [ ] PENDENTE
+
+📋 **DESIGN PROPOSTO - TABELA DE EQUIVALÊNCIAS**:
+```typescript
+// src/server/db/schema.ts
+export const disciplinaEquivalenciaTable = pgTable('disciplina_equivalencia', {
+  id: serial('id').primaryKey(),
+  disciplinaId1: integer('disciplina_id_1')
+    .references(() => disciplinaTable.id)
+    .notNull(),
+  disciplinaId2: integer('disciplina_id_2')
+    .references(() => disciplinaTable.id)
+    .notNull(),
+  editalId: integer('edital_id').references(() => editalTable.id), // Opcional: permite vincular ao edital
+  ativa: boolean('ativa').default(true).notNull(), // Permite ativar/desativar sem deletar
+  observacoes: text('observacoes'), // Ex: "MATA37 LP é equivalente a MATE045 para editais 2025+"
+  criadoPorUserId: integer('criado_por_user_id')
+    .references(() => userTable.id)
+    .notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
+})
+
+// Relation: equivalência é BIDIRECIONAL (se A=B então B=A)
+// Lógica deve buscar em AMBAS direções ao verificar equivalências
+```
+
+**Regras de Negócio**:
+- Equivalência é BIDIRECIONAL: se MATA37 = MATE045, então MATE045 = MATA37
+- Ao buscar nota, verificar se aluno tem nota em disciplina original OU em qualquer disciplina equivalente ATIVA
+- Se vinculado a edital, aplicar apenas naquele edital específico
+- Se sem edital, aplicar globalmente (todas as inscrições)
 
 ### 7. FLUXO DE ENVIO CORRETO PARA INSTITUTO/DEPARTAMENTO
 
