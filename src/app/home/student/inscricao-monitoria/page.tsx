@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { TIPO_VAGA_LABELS } from "@/types/enums"
 import { api } from "@/utils/api"
@@ -63,6 +64,7 @@ function LoadingSkeleton() {
 
 export default function InscricaoMonitoria() {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedDepartamento, setSelectedDepartamento] = useState<string>("")
   const [tipoVagaFilter, setTipoVagaFilter] = useState<string>("")
@@ -379,6 +381,18 @@ export default function InscricaoMonitoria() {
                 <p className="text-sm text-red-500 mt-1">{form.formState.errors.tipoVagaPretendida.message}</p>
               )}
             </div>
+
+            {user?.aluno?.cr && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <Label className="text-sm font-medium text-blue-800">Seu CR (Coeficiente de Rendimento)</Label>
+                <p className="text-lg font-semibold text-blue-900 mt-1">
+                  {user.aluno.cr.toFixed(2)}
+                </p>
+                <p className="text-xs text-blue-700 mt-1">
+                  Este valor será automaticamente registrado na sua inscrição
+                </p>
+              </div>
+            )}
 
             <div className="p-3 bg-muted rounded-lg text-sm">
               <p>

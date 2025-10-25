@@ -56,6 +56,7 @@ export type AppUser = {
   aluno?: {
     id: number
     cursoId: number | null
+    cr: number | null
   } | null
 }
 

@@ -41,6 +41,7 @@ export const meRouter = createTRPCRouter({
           columns: {
             id: true,
             cursoId: true,
+            cr: true,
           },
         })
       }

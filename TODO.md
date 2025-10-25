@@ -79,13 +79,15 @@
 
 ### 6. CR E EQUIVALÊNCIAS DE DISCIPLINAS
 
-**TAREFA** - Capturar automaticamente CR do aluno na inscrição
+**TAREFA** - Capturar automaticamente CR do aluno na inscrição ✅
 **DESCRIÇÃO** - Ao fazer inscrição, sistema deve pegar automaticamente o CR (Coeficiente de Rendimento) do aluno além da nota da disciplina
 **CONTEXTO** - Professor mencionou: "quando ele registrar lá a inscrição, além de pegar a nota da disciplina no histórico dele, pegar o CR"
 **ARQUIVOS AFETADOS**:
-- `src/server/api/routers/inscricao/inscricao.ts` - Adicionar lógica para buscar CR do aluno
-- `src/app/home/student/inscricao-monitoria/page.tsx` - Exibir CR na interface
-**STATUS** - [ ] PENDENTE
+- `src/server/api/routers/inscricao/inscricao.ts` - ✅ IMPLEMENTADO - CR já era capturado automaticamente de `aluno.cr` (linhas 346, 714)
+- `src/server/api/routers/auth/me/me.ts` - ✅ IMPLEMENTADO - Adicionado campo `cr` ao retorno do perfil do aluno (linha 44)
+- `src/types/auth.ts` - ✅ IMPLEMENTADO - Adicionado campo `cr` ao tipo `AppUser.aluno` (linha 59)
+- `src/app/home/student/inscricao-monitoria/page.tsx` - ✅ IMPLEMENTADO - CR exibido na interface do dialog de inscrição (linhas 385-395)
+**STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Criar tabela de equivalências de disciplinas
 **DESCRIÇÃO** - Criar nova tabela no banco para armazenar equivalências entre disciplinas (ex: MATA37 LP ↔ MATE045)
