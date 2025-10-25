@@ -1,0 +1,57 @@
+\begin{thebibliography}{}
+
+\bibitem[Brasil, 1996]{Brasil1996}
+Brasil (1996).
+\newblock Lei nº 9.394, de 20 de dezembro de 1996. estabelece as diretrizes e
+  bases da educação nacional.
+
+\bibitem[Dantas, 2014]{Dantas2014}
+Dantas, O.~M. (2014).
+\newblock Monitoria: fonte de saberes à docência superior.
+\newblock {\em Revista Brasileira de Estudos Pedagógicos}, 95(241):567--589.
+
+\bibitem[de~S.Paulo, 2024]{folha2024ruf}
+de~S.Paulo, F. (2024).
+\newblock Ranking universitário folha (ruf) 2024.
+
+\bibitem[Frison, 2016]{Frison2016}
+Frison, L. M.~B. (2016).
+\newblock Monitoria: uma modalidade de ensino que potencializa a aprendizagem
+  colaborativa e autorregulada.
+\newblock {\em Pro-Posições}, 27(1):133--153.
+
+\bibitem[Group, 2024]{PostgreSQL2024}
+Group, P. G.~D. (2024).
+\newblock Postgresql documentation.
+
+\bibitem[Laudon and Laudon, 2011]{Laudon_Laudon_2011}
+Laudon, K.~C. and Laudon, J.~P. (2011).
+\newblock {\em Management Information Systems: Managing the Digital Firm}.
+\newblock Pearson, 12th edition.
+
+\bibitem[Microsoft, 2024]{Microsoft2024}
+Microsoft (2024).
+\newblock Typescript documentation.
+
+\bibitem[Natário and Santos, 2010]{Natario2010}
+Natário, E.~M. and Santos, A. A. A.~d. (2010).
+\newblock Programa de monitores para o ensino superior.
+\newblock {\em Estudos de Psicologia}, 27(3):355--364.
+
+\bibitem[Team, 2024]{Drizzle2024}
+Team, D. (2024).
+\newblock Drizzle orm documentation.
+
+\bibitem[tRPC, 2024]{TRPC2024}
+tRPC (2024).
+\newblock trpc documentation - end-to-end typesafe apis.
+
+\bibitem[UFRN, 2024]{UFRN2024}
+UFRN (2024).
+\newblock Sigaa - sistema integrado de gestão de atividades acadêmicas.
+
+\bibitem[Vercel, 2024]{Vercel2024}
+Vercel (2024).
+\newblock Next.js documentation.
+
+\end{thebibliography}
