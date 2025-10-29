@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  28 OCT 2025 18:18
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  29 OCT 2025 08:52
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -989,14 +989,6 @@ LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <14> not available
 (Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 73.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
 (Font)              scaled to size 14.0pt on input line 73.
-LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <12> not available
-(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 76.
-LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 12.0pt on input line 76.
-LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <12> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 76.
-LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 12.0pt on input line 76.
 LaTeX Font Info:    Trying to load font information for TS1+qtm on input line 78.
 (/usr/local/texlive/2025/texmf-dist/tex/latex/tex-gyre/ts1qtm.fd
 File: ts1qtm.fd 2009/09/25 v1.2 font definition file for TS1/qtm
@@ -1008,20 +1000,38 @@ File: ts1qtm.fd 2009/09/25 v1.2 font definition file for TS1/qtm
 
 
 {/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/tex-gyre/q-ts1.enc}]
+LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <12> not available
+(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 86.
+LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
+(Font)              scaled to size 12.0pt on input line 86.
+LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <12> not available
+(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 86.
+LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
+(Font)              scaled to size 12.0pt on input line 86.
+
 
 
 
 [2]
+
+
+Underfull \hbox (badness 1286) in paragraph at lines 194--195
+[]\T1/qtm/m/n/10 (+20) Em ins-ti-tu-i-ções como \T1/qtm/b/n/10 (+20) Uni-camp\T1/qtm/m/n/10 (+20) , \T1/qtm/b/n/10 (+20) UFMG\T1/qtm/m/n/10 (+20) , \T1/qtm/b/n/10 (+20) UNESP
+ []
+
+
+Underfull \hbox (badness 2277) in paragraph at lines 194--195
+\T1/qtm/m/n/10 (+20) e \T1/qtm/b/n/10 (+20) UFPR\T1/qtm/m/n/10 (+20) , observou-se uso re-cor-rente de e-mail, Go-o-
+ []
+
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <10> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 130.
+(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 214.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 10.0pt on input line 130.
+(Font)              scaled to size 10.0pt on input line 214.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/it' in size <10> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/it' tried instead on input line 130.
+(Font)              Font shape `T1/FiraSans-OsF/bold/it' tried instead on input line 214.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/it' will be
-(Font)              scaled to size 10.0pt on input line 130.
-
-
+(Font)              scaled to size 10.0pt on input line 214.
 
 
 [3]
@@ -1035,39 +1045,15 @@ Package microtype Info: Loading generic protrusion settings for font family
 
 [4{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}]
 
-<images/monitoria/landing.png, id=323, 3181.8875pt x 3503.0875pt>
+<images/monitoria/landing.png, id=293, 3181.8875pt x 3503.0875pt>
 File: images/monitoria/landing.png Graphic file (type png)
 <use images/monitoria/landing.png>
-Package pdftex.def Info: images/monitoria/landing.png  used on input line 345.
+Package pdftex.def Info: images/monitoria/landing.png  used on input line 360.
 (pdftex.def)             Requested size: 240.0pt x 264.2169pt.
-<images/monitoria/admin-dashboard.png, id=324, 4625.28pt x 2266.4675pt>
+<images/monitoria/admin-dashboard.png, id=294, 4625.28pt x 2266.4675pt>
 File: images/monitoria/admin-dashboard.png Graphic file (type png)
 <use images/monitoria/admin-dashboard.png>
-Package pdftex.def Info: images/monitoria/admin-dashboard.png  used on input line 352.
-(pdftex.def)             Requested size: 240.0pt x 117.58377pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-<images/monitoria/admin-manage-projects.png, id=325, 4625.28pt x 2266.4675pt>
-File: images/monitoria/admin-manage-projects.png Graphic file (type png)
-<use images/monitoria/admin-manage-projects.png>
-Package pdftex.def Info: images/monitoria/admin-manage-projects.png  used on input line 359.
-(pdftex.def)             Requested size: 240.0pt x 117.58377pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-<images/monitoria/admin-edital-management.png, id=326, 4625.28pt x 2266.4675pt>
-File: images/monitoria/admin-edital-management.png Graphic file (type png)
-<use images/monitoria/admin-edital-management.png>
-Package pdftex.def Info: images/monitoria/admin-edital-management.png  used on input line 366.
-(pdftex.def)             Requested size: 240.0pt x 117.58377pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-<images/monitoria/admin-scholarship-allocation.png, id=327, 4625.28pt x 2266.4675pt>
-File: images/monitoria/admin-scholarship-allocation.png Graphic file (type png)
-<use images/monitoria/admin-scholarship-allocation.png>
-Package pdftex.def Info: images/monitoria/admin-scholarship-allocation.png  used on input line 373.
+Package pdftex.def Info: images/monitoria/admin-dashboard.png  used on input line 371.
 (pdftex.def)             Requested size: 240.0pt x 117.58377pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
@@ -1075,16 +1061,32 @@ LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 [5 <./images/monitoria/landing.png (PNG copy)>]
+<images/monitoria/admin-manage-projects.png, id=303, 4625.28pt x 2266.4675pt>
+File: images/monitoria/admin-manage-projects.png Graphic file (type png)
+<use images/monitoria/admin-manage-projects.png>
+Package pdftex.def Info: images/monitoria/admin-manage-projects.png  used on input line 382.
+(pdftex.def)             Requested size: 240.0pt x 117.58377pt.
+<images/monitoria/admin-edital-management.png, id=304, 4625.28pt x 2266.4675pt>
+File: images/monitoria/admin-edital-management.png Graphic file (type png)
+<use images/monitoria/admin-edital-management.png>
+Package pdftex.def Info: images/monitoria/admin-edital-management.png  used on input line 391.
+(pdftex.def)             Requested size: 240.0pt x 117.58377pt.
 
+
+<images/monitoria/admin-scholarship-allocation.png, id=305, 4625.28pt x 2266.4675pt>
+File: images/monitoria/admin-scholarship-allocation.png Graphic file (type png)
+<use images/monitoria/admin-scholarship-allocation.png>
+Package pdftex.def Info: images/monitoria/admin-scholarship-allocation.png  used on input line 400.
+(pdftex.def)             Requested size: 240.0pt x 117.58377pt.
 
 
 [6 <./images/monitoria/admin-dashboard.png (PNG copy)> <./images/monitoria/admin-manage-projects.png (PNG copy)> <./images/monitoria/admin-edital-management.png (PNG copy)> <./images/monitoria/admin-scholarship-allocation.png (PNG copy)>]
 
 
 
-[7] (./main.bbl
+[7]
 
-)
+(./main.bbl)
 
 [8] (./main.aux)
  ***********
@@ -1096,21 +1098,21 @@ L3 programming layer <2025-01-18>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 4BF383B6E6503B8AAAE9DC195A8E0B97;8272.
+(rerunfilecheck)             Checksum: 5E01014F55AA422014B2D39802A5B851;6246.
  ) 
 Here is how much of TeX's memory you used:
- 34168 strings out of 473190
- 640844 string characters out of 5715801
- 1066521 words of memory out of 5000000
- 56477 multiletter control sequences out of 15000+600000
- 850978 words of font info for 238 fonts, out of 8000000 for 9000
+ 34143 strings out of 473190
+ 640544 string characters out of 5715801
+ 1067507 words of memory out of 5000000
+ 56457 multiletter control sequences out of 15000+600000
+ 854091 words of font info for 241 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  132i,12n,135p,1640b,885s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Bold.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BoldItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Book.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BookItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmb.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmr.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmri.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb>
-Output written on main.pdf (8 pages, 3338627 bytes).
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Bold.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BoldItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Book.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BookItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmb.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmbi.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmr.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmri.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb>
+Output written on main.pdf (8 pages, 3361349 bytes).
 PDF statistics:
- 426 PDF objects out of 1000 (max. 8388607)
- 377 compressed objects within 4 object streams
- 86 named destinations out of 1000 (max. 500000)
- 82302 words of extra memory for PDF output out of 89155 (max. 10000000)
+ 402 PDF objects out of 1000 (max. 8388607)
+ 351 compressed objects within 4 object streams
+ 76 named destinations out of 1000 (max. 500000)
+ 84294 words of extra memory for PDF output out of 89155 (max. 10000000)
 

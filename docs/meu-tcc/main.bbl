@@ -23,10 +23,6 @@ Frison, L. M.~B. (2016).
 \newblock Monitoria: uma modalidade de ensino que potencializa a aprendizagem colaborativa e autorregulada.
 \newblock {\em Pro-Posições}, 27(1):133--153.
 
-\bibitem[Group, 2024]{PostgreSQL2024}
-Group, P. G.~D. (2024).
-\newblock Postgresql documentation.
-
 \bibitem[Hammer and Champy, 1993]{Hammer1993}
 Hammer, M. and Champy, J. (1993).
 \newblock {\em Reengineering the Corporation: A Manifesto for Business Revolution}.
@@ -37,10 +33,6 @@ Laudon, K.~C. and Laudon, J.~P. (2011).
 \newblock {\em Management Information Systems: Managing the Digital Firm}.
 \newblock Pearson, 12th edition.
 
-\bibitem[Microsoft, 2024]{Microsoft2024}
-Microsoft (2024).
-\newblock Typescript documentation.
-
 \bibitem[Natário and Santos, 2010]{Natario2010}
 Natário, E.~M. and Santos, A. A. A.~d. (2010).
 \newblock Programa de monitores para o ensino superior.
@@ -49,18 +41,6 @@ Natário, E.~M. and Santos, A. A. A.~d. (2010).
 \bibitem[{OECD}, 2020]{OECD2020}
 {OECD} (2020).
 \newblock Digital government and public sector transformation.
-
-\bibitem[Team, 2024]{Drizzle2024}
-Team, D. (2024).
-\newblock Drizzle orm documentation.
-
-\bibitem[tRPC, 2024]{TRPC2024}
-tRPC (2024).
-\newblock trpc documentation - end-to-end typesafe apis.
-
-\bibitem[UFRN, 2024]{UFRN2024}
-UFRN (2024).
-\newblock Sigaa - sistema integrado de gestão de atividades acadêmicas.
 
 \bibitem[{UNESCO}, 2022]{UNESCO2022}
 {UNESCO} (2022).
@@ -85,9 +65,5 @@ UFRN (2024).
 \bibitem[{Universidade Federal do Rio de Janeiro}, 2024]{UFRJ_SIGA}
 {Universidade Federal do Rio de Janeiro} (2024).
 \newblock Siga -- sistema integrado de gest\~{a}o acad\'emica.
-
-\bibitem[Vercel, 2024]{Vercel2024}
-Vercel (2024).
-\newblock Next.js documentation.
 
 \end{thebibliography}

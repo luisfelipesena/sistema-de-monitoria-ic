@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1761686286.1012 "main.aux" "main.bbl" "main" 1761686287.23076 0
+["bibtex main"] 1761738775.48499 "main.aux" "main.bbl" "main" 1761738776.65581 0
   "./apalike-sol.bst" 1761156389.19737 24928 269dedab788b7f84af88c155ecb45872 ""
   "./references.bib" 1761685966.7285 4976 34fb886bf9ffd447336ac28695f2b2c9 ""
-  "main.aux" 1761686286.98478 11302 ee3e8386e65755dfd1f33a813819d602 "pdflatex"
+  "main.aux" 1761738776.39734 11113 dc743f59782081bb6e8d35a5a129aa59 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1761686286.17878 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1761686287.23089 0
-  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1761686284.86903 41308 5a067b81fa59579840865900700a6174 ""
+["pdflatex"] 1761738775.56754 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1761738776.65592 0
+  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1761738773.90858 43870 16c9ce723511064eb205d971f4fd0bc3 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_2mfh3o.enc" 1570828436 3443 c184b8b1bd90c3ec5d4289b992e64d96 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_iln36p.enc" 1570828436 3071 cfa92ee28d698dd9275559d9d1c3a233 ""
@@ -39,6 +39,7 @@
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-BookItalic-osf-t1.tfm" 1558644978 57336 46a2bc2528ccff5544007b8a67a98ad6 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fontawesome/FontAwesome--fontawesometwo.tfm" 1463430686 1360 76c648952c3cfb458d3ca1d9dde7e9bf ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/tex-gyre/ec-qtmb.tfm" 1254269485 11484 431d8013ae6931f9326b9a0f492d2a5e ""
+  "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/tex-gyre/ec-qtmbi.tfm" 1254269485 11472 7e05008b44f271a1f1b65479799a05e5 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/tex-gyre/ec-qtmr.tfm" 1254269485 11504 0b76b46eb90907e684139293e03c466a ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/tex-gyre/ec-qtmri.tfm" 1254269485 11356 da1519f442d8a49b81c86cbaf25ef79f ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/tex-gyre/ts1-qtmr.tfm" 1255129411 1600 20cdf11dab97d5d39e847571f9314407 ""
@@ -49,6 +50,7 @@
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BookItalic.pfb" 1554498137 456800 43d8de481515303ccf304b30539793aa ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb" 1463430686 173219 54847ac27638e1e28852258f5be2fa20 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmb.pfb" 1255129411 131776 4be3e220f990dc716f91bb7965c09237 ""
+  "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmbi.pfb" 1255129411 129616 4b4b9aaa7c59a16507480bec59ef203f ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmr.pfb" 1255129411 133302 8dca243a80ecf4cfe00077d4bd995bd7 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmri.pfb" 1255129411 129669 aaf12ebd0b807d452087fc34bde5bd7d ""
   "/usr/local/texlive/2025/texmf-dist/fonts/vf/public/fira/FiraSans-Bold-osf-sc-t1.vf" 1558644978 1704 5565bfb09ed02d93e9a20a91965adfe1 ""
@@ -248,10 +250,10 @@
   "images/monitoria/admin-manage-projects.png" 1761161283.44401 546809 3ed01ef62b93a1fab8fa6c0b84a1fb1d ""
   "images/monitoria/admin-scholarship-allocation.png" 1761161422.22533 529459 0aeaed5ba096ab16fb31b3cce716bb30 ""
   "images/monitoria/landing.png" 1761162431.1436 941937 1beb90303e395baa9198c5f5bef01323 ""
-  "main.aux" 1761686286.98478 11302 ee3e8386e65755dfd1f33a813819d602 "pdflatex"
-  "main.bbl" 1761686286.1757 3279 7eb0b71cc473e9b9ab7eae496f547b3a "bibtex main"
-  "main.out" 1761686286.98573 8272 4bf383b6e6503b8aaae9dc195a8e0b97 "pdflatex"
-  "main.tex" 1761686284.86903 41308 5a067b81fa59579840865900700a6174 ""
+  "main.aux" 1761738776.39734 11113 dc743f59782081bb6e8d35a5a129aa59 "pdflatex"
+  "main.bbl" 1761738775.56504 2690 de1fe8b71904afa61dfa79bcf036e349 "bibtex main"
+  "main.out" 1761738776.39848 6246 5e01014f55aa422014b2d39802a5b851 "pdflatex"
+  "main.tex" 1761738773.90858 43870 16c9ce723511064eb205d971f4fd0bc3 ""
   "sbc2025.cls" 1761156389.24799 14761 c546ee61221e9a80c8e82e624cbd925e ""
   (generated)
   "main.aux"
