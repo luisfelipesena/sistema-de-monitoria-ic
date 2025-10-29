@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1761738775.48499 "main.aux" "main.bbl" "main" 1761738776.65581 0
+["bibtex main"] 1761746896.60762 "main.aux" "main.bbl" "main" 1761746898.8381 0
   "./apalike-sol.bst" 1761156389.19737 24928 269dedab788b7f84af88c155ecb45872 ""
   "./references.bib" 1761685966.7285 4976 34fb886bf9ffd447336ac28695f2b2c9 ""
-  "main.aux" 1761738776.39734 11113 dc743f59782081bb6e8d35a5a129aa59 "pdflatex"
+  "main.aux" 1761746898.53415 13303 11ab4b16eb56f297b10decf43ff15cd7 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1761738775.56754 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1761738776.65592 0
-  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1761738773.90858 43870 16c9ce723511064eb205d971f4fd0bc3 ""
+["pdflatex"] 1761746896.6925 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1761746898.83824 0
+  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1761746894.30292 47029 91a524f86b2df94a48f5a80502471229 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_2mfh3o.enc" 1570828436 3443 c184b8b1bd90c3ec5d4289b992e64d96 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_iln36p.enc" 1570828436 3071 cfa92ee28d698dd9275559d9d1c3a233 ""
@@ -245,15 +245,27 @@
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1743556498 3345730 b0114b64bb79cd284171e12692394348 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
   "aas_macros.sty" 1761156389.19667 4967 cf45ff75f433e372cec5993ac08f4363 ""
+  "images/monitoria/admin-cursos.png" 1761159931.1708 644064 349cd1e8dd0b3b7734415da47b60d146 ""
   "images/monitoria/admin-dashboard.png" 1761161244.24487 520863 8e2963a8f83a3e47abc3f489d2e79511 ""
+  "images/monitoria/admin-departamentos.png" 1761160047.47763 644064 349cd1e8dd0b3b7734415da47b60d146 ""
   "images/monitoria/admin-edital-management.png" 1761161345.68099 441713 14ee01d294de411d6a845e7eabad0e8a ""
+  "images/monitoria/admin-files.png" 1761161452.53571 529459 0aeaed5ba096ab16fb31b3cce716bb30 ""
+  "images/monitoria/admin-import-projects.png" 1761159400.79481 545800 10bbe2a9727ef33ea11c83ea58130759 ""
   "images/monitoria/admin-manage-projects.png" 1761161283.44401 546809 3ed01ef62b93a1fab8fa6c0b84a1fb1d ""
   "images/monitoria/admin-scholarship-allocation.png" 1761161422.22533 529459 0aeaed5ba096ab16fb31b3cce716bb30 ""
+  "images/monitoria/admin-users.png" 1761159817.89229 782402 74b7758ac93208c5cadaf59a422d0f6c ""
+  "images/monitoria/architecture.png" 1761745491.67272 22307 cfea78606ec3ac59c9d30e5b36ad6abc ""
+  "images/monitoria/data-model.png" 1761745500.60389 26335 3cb81893aadd7fb56733a0749e36c1ca ""
   "images/monitoria/landing.png" 1761162431.1436 941937 1beb90303e395baa9198c5f5bef01323 ""
-  "main.aux" 1761738776.39734 11113 dc743f59782081bb6e8d35a5a129aa59 "pdflatex"
-  "main.bbl" 1761738775.56504 2690 de1fe8b71904afa61dfa79bcf036e349 "bibtex main"
-  "main.out" 1761738776.39848 6246 5e01014f55aa422014b2d39802a5b851 "pdflatex"
-  "main.tex" 1761738773.90858 43870 16c9ce723511064eb205d971f4fd0bc3 ""
+  "images/monitoria/login.png" 1761162493.58885 1936637 59db514085939a0c0a9b0bf515524f28 ""
+  "images/monitoria/process-flow.png" 1761745500.66602 63101 8bf88abec5b193f5ffc7fcfa7b73502a ""
+  "images/monitoria/professor-assinatura-documentos.png" 1761740921.63691 485470 622d3113a75e1ab4f7bcd3561b47eed9 ""
+  "images/monitoria/student-inscricao-monitoria.png" 1761740921.63865 271513 c6a3d78da6a9b2ffb222c0494b982344 ""
+  "images/monitoria/student-resultados.png" 1761741665.58317 235162 acdc159ca71f1bc7994852de8ac6396d ""
+  "main.aux" 1761746898.53415 13303 11ab4b16eb56f297b10decf43ff15cd7 "pdflatex"
+  "main.bbl" 1761746896.68951 2690 de1fe8b71904afa61dfa79bcf036e349 "bibtex main"
+  "main.out" 1761746898.53523 6246 5e01014f55aa422014b2d39802a5b851 "pdflatex"
+  "main.tex" 1761746894.30292 47029 91a524f86b2df94a48f5a80502471229 ""
   "sbc2025.cls" 1761156389.24799 14761 c546ee61221e9a80c8e82e624cbd925e ""
   (generated)
   "main.aux"

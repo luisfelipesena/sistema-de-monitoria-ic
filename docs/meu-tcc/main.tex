@@ -206,7 +206,7 @@ O Sistema de Monitoria-IC foi projetado seguindo uma arquitetura em camadas que 
 
 \begin{figure}[h!]
   \centering
-  \IfFileExists{images/monitoria/architecture.png}{\includegraphics[width=\linewidth]{images/monitoria/architecture.png}}{\fbox{\parbox{0.95\linewidth}{Figura pendente (TODO): architecture.png}}}
+  \IfFileExists{images/monitoria/architecture.png}{\includegraphics[width=0.6\linewidth,keepaspectratio]{images/monitoria/architecture.png}}{\fbox{\parbox{0.95\linewidth}{architecture.png}}}
   \caption{Arquitetura lógica do Sistema de Monitoria-IC}
   \label{fig:architecture}
 \end{figure}
@@ -233,7 +233,7 @@ O modelo de dados foi projetado para capturar todas as entidades e relacionament
 
 \begin{figure}[h!]
   \centering
-  \IfFileExists{images/monitoria/data-model.png}{\includegraphics[width=\linewidth]{images/monitoria/data-model.png}}{\fbox{\parbox{0.95\linewidth}{Figura pendente (TODO): data-model.png}}}
+\IfFileExists{images/monitoria/data-model.png}{\includegraphics[width=0.6\linewidth,keepaspectratio]{images/monitoria/data-model.png}}{\fbox{\parbox{0.95\linewidth}{data-model.png}}}
   \caption{Modelo de dados resumido do domínio de monitoria}
   \label{fig:data-model}
 \end{figure}
@@ -252,7 +252,7 @@ Após a seleção, a etapa de aceite e consolidação final confirma as vagas: e
 
 \begin{figure}[h!]
   \centering
-  \IfFileExists{images/monitoria/process-flow.png}{\includegraphics[width=\linewidth]{images/monitoria/process-flow.png}}{\fbox{\parbox{0.95\linewidth}{Figura pendente (TODO): process-flow.png}}}
+\IfFileExists{images/monitoria/process-flow.png}{\includegraphics[width=0.6\linewidth,keepaspectratio]{images/monitoria/process-flow.png}}{\fbox{\parbox{0.95\linewidth}{process-flow.png}}}
   \caption{Fluxo de processos do semestre de monitoria}
   \label{fig:process-flow}
 \end{figure}
@@ -364,6 +364,15 @@ As figuras a seguir apresentam as principais telas do sistema em produção:
 
 A página inicial apresenta a proposta do sistema, acesso ao login institucional e comunicação de períodos de inscrição quando ativos. Funciona como ponto de entrada para estudantes, professores e administradores.
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/monitoria/login.png}
+  \caption{Tela de login local do sistema}
+  \label{fig:login}
+\end{figure}
+
+A tela de login valida credenciais locais (ou redireciona ao CAS quando habilitado) e estabelece a sessão do usuário. Após autenticação, o roteamento direciona para o \textit{dashboard} do papel correspondente.
+
 Em \textit{Gerenciar Editais}, é possível configurar datas, pontos de prova e bibliografia, solicitar assinatura digital do chefe do departamento e publicar o edital com notificações automáticas.
 
 \begin{figure}[h!]
@@ -376,6 +385,33 @@ Em \textit{Gerenciar Editais}, é possível configurar datas, pontos de prova e 
 O dashboard administrativo consolida indicadores operacionais (projetos por status, períodos de inscrição, volume de candidaturas) e oferece navegação rápida para tarefas críticas do papel \textit{admin}, conforme a estrutura do menu lateral.
 
 A interface de alocação impede excedentes em relação ao total de bolsas concedidas pela PROGRAD e permite comunicar as cotas aos docentes de forma transparente.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/monitoria/professor-assinatura-documentos.png}
+  \caption{Assinatura de projeto pelo professor}
+  \label{fig:professor-assinatura}
+\end{figure}
+
+Na assinatura de projetos, o professor visualiza o PDF gerado e pode usar a assinatura padrão do perfil ou desenhar uma nova assinatura. Ao confirmar, o projeto é submetido para análise administrativa.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/monitoria/student-inscricao-monitoria.png}
+  \caption{Inscrição do aluno em projetos de monitoria}
+  \label{fig:student-inscricao}
+\end{figure}
+
+A tela de inscrição oferece filtros por departamento e tipo de vaga, busca por título/professor e exibe avisos sobre o período ativo. Quando o período está fechado, os componentes permanecem acessíveis para consulta e planejamento.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/monitoria/student-resultados.png}
+  \caption{Resultados das seleções para o aluno}
+  \label{fig:student-resultados}
+\end{figure}
+
+Nos resultados, o aluno acompanha o status de cada inscrição (selecionado bolsista/voluntário, lista de espera, não selecionado) e o resumo agregado por categoria.
 
 \begin{figure}[h!]
   \centering
@@ -403,6 +439,49 @@ Em \textit{Gerenciar Editais}, é possível configurar datas, pontos de prova e 
 \end{figure}
 
 A interface de alocação impede excedentes em relação ao total de bolsas concedidas pela PROGRAD e permite comunicar as cotas aos docentes de forma transparente.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/monitoria/admin-users.png}
+  \caption{Administração de usuários}
+  \label{fig:admin-users}
+\end{figure}
+
+Em \textit{Usuários}, a administração pesquisa, filtra e gerencia contas (ativação, papéis) mantendo coerência com as regras institucionais.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/monitoria/admin-files.png}
+  \caption{Gerenciamento de arquivos}
+  \label{fig:admin-files}
+\end{figure}
+
+O gerenciador de arquivos centraliza documentos (propostas, atas, termos), com versionamento e metadados para auditoria.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/monitoria/admin-import-projects.png}
+  \caption{Importação de planejamento}
+  \label{fig:admin-import}
+\end{figure}
+
+O módulo de importação processa planilhas do planejamento (disciplinas e responsáveis), cria projetos e emite relatório de inconsistências.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/monitoria/admin-cursos.png}
+  \caption{Gestão de cursos}
+  \label{fig:admin-cursos}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/monitoria/admin-departamentos.png}
+  \caption{Gestão de departamentos}
+  \label{fig:admin-departamentos}
+\end{figure}
+
+As telas de \textit{Cursos} e \textit{Departamentos} permitem manter a estrutura acadêmica (hierarquia e atributos), essencial para vínculos de disciplinas e projetos.
 
 \section{Avaliação Experimental}
 \label{sec:evaluation}
