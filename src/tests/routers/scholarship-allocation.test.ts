@@ -146,7 +146,7 @@ describe('scholarshipAllocationRouter - updateScholarshipAllocation', () => {
     await expect(
       caller.updateScholarshipAllocation({
         projetoId: 1,
-        bolsasDisponibilizadas: 10,
+        bolsasDisponibilizadas: 11,
       })
     ).rejects.toThrow(/excederia o limite da PROGRAD/)
   })
@@ -272,8 +272,8 @@ describe('scholarshipAllocationRouter - bulkUpdateAllocations', () => {
 
     // Projects being updated currently have 10+10=20 allocated
     const mockCurrentAllocations = [
-      { id: 1, bolsasDisponibilizadas: 10 },
-      { id: 2, bolsasDisponibilizadas: 10 },
+      { id: 1, bolsasDisponibilizadas: 10, ano: 2025, semestre: 'SEMESTRE_1' },
+      { id: 2, bolsasDisponibilizadas: 10, ano: 2025, semestre: 'SEMESTRE_1' },
     ]
 
     const mockUpdate = vi.fn().mockReturnThis()
@@ -292,7 +292,8 @@ describe('scholarshipAllocationRouter - bulkUpdateAllocations', () => {
             },
             select: vi.fn().mockReturnThis(),
             from: vi.fn().mockReturnThis(),
-            where: vi.fn()
+            where: vi
+              .fn()
               .mockResolvedValueOnce(mockCurrentSummary) // First call for current total
               .mockResolvedValueOnce(mockCurrentAllocations), // Second call for current allocations
             update: mockUpdate.mockReturnValue({
@@ -333,8 +334,8 @@ describe('scholarshipAllocationRouter - bulkUpdateAllocations', () => {
 
     // Projects being updated currently have 10+10=20 allocated
     const mockCurrentAllocations = [
-      { id: 1, bolsasDisponibilizadas: 10 },
-      { id: 2, bolsasDisponibilizadas: 10 },
+      { id: 1, bolsasDisponibilizadas: 10, ano: 2025, semestre: 'SEMESTRE_1' },
+      { id: 2, bolsasDisponibilizadas: 10, ano: 2025, semestre: 'SEMESTRE_1' },
     ]
 
     const mockContext: TRPCContext = {
@@ -349,9 +350,7 @@ describe('scholarshipAllocationRouter - bulkUpdateAllocations', () => {
             },
             select: vi.fn().mockReturnThis(),
             from: vi.fn().mockReturnThis(),
-            where: vi.fn()
-              .mockResolvedValueOnce(mockCurrentSummary)
-              .mockResolvedValueOnce(mockCurrentAllocations),
+            where: vi.fn().mockResolvedValueOnce(mockCurrentSummary).mockResolvedValueOnce(mockCurrentAllocations),
           }
           return await callback(tx)
         }),
@@ -386,9 +385,9 @@ describe('scholarshipAllocationRouter - bulkUpdateAllocations', () => {
 
     // The 3 projects being updated have 10+15+10 = 35 allocated
     const mockCurrentAllocations = [
-      { id: 1, bolsasDisponibilizadas: 10 },
-      { id: 2, bolsasDisponibilizadas: 15 },
-      { id: 3, bolsasDisponibilizadas: 10 },
+      { id: 1, bolsasDisponibilizadas: 10, ano: 2025, semestre: 'SEMESTRE_1' },
+      { id: 2, bolsasDisponibilizadas: 15, ano: 2025, semestre: 'SEMESTRE_1' },
+      { id: 3, bolsasDisponibilizadas: 10, ano: 2025, semestre: 'SEMESTRE_1' },
     ]
 
     const mockUpdate = vi.fn().mockReturnThis()
@@ -407,9 +406,7 @@ describe('scholarshipAllocationRouter - bulkUpdateAllocations', () => {
             },
             select: vi.fn().mockReturnThis(),
             from: vi.fn().mockReturnThis(),
-            where: vi.fn()
-              .mockResolvedValueOnce(mockCurrentSummary)
-              .mockResolvedValueOnce(mockCurrentAllocations),
+            where: vi.fn().mockResolvedValueOnce(mockCurrentSummary).mockResolvedValueOnce(mockCurrentAllocations),
             update: mockUpdate.mockReturnValue({
               set: mockSet.mockReturnValue({
                 where: mockWhere,
@@ -447,7 +444,7 @@ describe('scholarshipAllocationRouter - bulkUpdateAllocations', () => {
     }
 
     const mockCurrentSummary = [{ total: '50' }]
-    const mockCurrentAllocations = [{ id: 1, bolsasDisponibilizadas: 10 }]
+    const mockCurrentAllocations = [{ id: 1, bolsasDisponibilizadas: 10, ano: 2025, semestre: 'SEMESTRE_1' }]
 
     const mockUpdate = vi.fn().mockReturnThis()
     const mockSet = vi.fn().mockReturnThis()
@@ -465,9 +462,7 @@ describe('scholarshipAllocationRouter - bulkUpdateAllocations', () => {
             },
             select: vi.fn().mockReturnThis(),
             from: vi.fn().mockReturnThis(),
-            where: vi.fn()
-              .mockResolvedValueOnce(mockCurrentSummary)
-              .mockResolvedValueOnce(mockCurrentAllocations),
+            where: vi.fn().mockResolvedValueOnce(mockCurrentSummary).mockResolvedValueOnce(mockCurrentAllocations),
             update: mockUpdate.mockReturnValue({
               set: mockSet.mockReturnValue({
                 where: mockWhere,
@@ -504,8 +499,8 @@ describe('scholarshipAllocationRouter - bulkUpdateAllocations', () => {
 
     // Updating 2 projects that currently have 5 each
     const mockCurrentAllocations = [
-      { id: 1, bolsasDisponibilizadas: 5 },
-      { id: 2, bolsasDisponibilizadas: 5 },
+      { id: 1, bolsasDisponibilizadas: 5, ano: 2025, semestre: 'SEMESTRE_1' },
+      { id: 2, bolsasDisponibilizadas: 5, ano: 2025, semestre: 'SEMESTRE_1' },
     ]
 
     const mockContext: TRPCContext = {
@@ -520,9 +515,7 @@ describe('scholarshipAllocationRouter - bulkUpdateAllocations', () => {
             },
             select: vi.fn().mockReturnThis(),
             from: vi.fn().mockReturnThis(),
-            where: vi.fn()
-              .mockResolvedValueOnce(mockCurrentSummary)
-              .mockResolvedValueOnce(mockCurrentAllocations),
+            where: vi.fn().mockResolvedValueOnce(mockCurrentSummary).mockResolvedValueOnce(mockCurrentAllocations),
           }
           return await callback(tx)
         }),
