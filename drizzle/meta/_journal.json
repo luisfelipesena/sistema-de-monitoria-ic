@@ -246,6 +246,20 @@
       "when": 1759589663588,
       "tag": "0034_woozy_spitfire",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1761949319881,
+      "tag": "0035_yummy_roulette",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1761949950123,
+      "tag": "0036_mysterious_prism",
+      "breakpoints": true
     }
   ]
 }

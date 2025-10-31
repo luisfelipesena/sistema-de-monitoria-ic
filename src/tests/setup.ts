@@ -314,6 +314,7 @@ export function createMockContext(user: User | null = null): TRPCContext {
           limit: vi.fn(),
         }),
       }),
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
     } as any,
   }
 }

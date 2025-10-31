@@ -100,7 +100,7 @@
 **ARQUIVOS AFETADOS**:
 - `src/server/db/schema.ts` - Criar `disciplinaEquivalenciaTable` (considerar campo `editalId` opcional)
 - `drizzle/migrations/` - Nova migração para tabela
-**STATUS** - [ ] PENDENTE
+**STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Interface admin para gerenciar equivalências
 **DESCRIÇÃO** - Criar página no admin para cadastrar/editar/remover equivalências entre disciplinas
