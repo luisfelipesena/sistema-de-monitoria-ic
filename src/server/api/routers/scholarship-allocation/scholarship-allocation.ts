@@ -213,17 +213,12 @@ export const scholarshipAllocationRouter = createTRPCRouter({
           .from(projetoTable)
           .where(inArray(projetoTable.id, projectsBeingUpdated))
 
-        // ================== INÍCIO DA CORREÇÃO ==================
-        // Validar se todos os projetos da input foram encontrados no banco
         if (currentAllocations.length !== projectsBeingUpdated.length) {
           const foundIds = new Set(currentAllocations.map((p) => p.id))
           const missingIds = projectsBeingUpdated.filter((id) => !foundIds.has(id))
-          // Usamos 'new Error' para ser consistente com o resto do arquivo
           throw new Error(`Um ou mais projetos não foram encontrados. IDs ausentes: ${missingIds.join(', ')}`)
         }
-        // =================== FIM DA CORREÇÃO ====================
 
-        // ============== INÍCIO DA NOVA CORREÇÃO (REVISOR) ==============
         const projectsInWrongPeriod = currentAllocations.filter(
           (p) => p.ano !== input.ano || p.semestre !== input.semestre
         )
@@ -234,7 +229,6 @@ export const scholarshipAllocationRouter = createTRPCRouter({
             `Os seguintes projetos não pertencem ao período ${input.ano}/${input.semestre}: ${wrongProjectIds}`
           )
         }
-        // =============== FIM DA NOVA CORREÇÃO (REVISOR) ===============
 
         const currentAllocationSum = currentAllocations.reduce((sum, p) => sum + (p.bolsasDisponibilizadas || 0), 0)
         const newAllocationSum = input.allocations.reduce((sum, a) => sum + a.bolsasDisponibilizadas, 0)
