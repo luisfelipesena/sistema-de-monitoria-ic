@@ -55,6 +55,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
     delete: vi.fn(() => ({
       where: vi.fn().mockReturnThis(),
     })),
+    // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
   } as any,
 })
 
@@ -136,6 +137,7 @@ describe('departamentoRouter', () => {
     vi.spyOn(mockContext.db, 'insert').mockReturnValue({
       values: vi.fn().mockReturnThis(),
       returning: vi.fn().mockResolvedValue([newDept]),
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
     } as any)
 
     const caller = departamentoRouter.createCaller(mockContext)

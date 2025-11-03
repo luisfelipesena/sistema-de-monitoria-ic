@@ -42,6 +42,7 @@ const createMockContext = (user: User | null): TRPCContext => {
       set: vi.fn().mockReturnThis(),
       where: vi.fn().mockReturnThis(),
       transaction: vi.fn(async (callback) => await callback(mockTx)),
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
     } as any,
   }
 }

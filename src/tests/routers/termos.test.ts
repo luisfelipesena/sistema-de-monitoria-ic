@@ -116,6 +116,7 @@ describe('termosRouter', () => {
       // Mock that only the professor has signed
       vi.mocked(mockDb.query.assinaturaDocumentoTable.findMany).mockResolvedValue([
         { tipoAssinatura: 'ATA_SELECAO_PROFESSOR' },
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       ] as any)
 
       const result = await caller.validateTermoReady({ vagaId: '1' })
@@ -141,6 +142,7 @@ describe('termosRouter', () => {
       vi.mocked(mockDb.query.assinaturaDocumentoTable.findMany).mockResolvedValue([
         { tipoAssinatura: 'ATA_SELECAO_PROFESSOR' },
         { tipoAssinatura: 'TERMO_COMPROMISSO_ALUNO' },
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       ] as any)
 
       const result = await caller.validateTermoReady({ vagaId: '1' })

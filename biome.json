@@ -115,7 +115,7 @@
         "useValidTypeof": "error"
       }
     },
-    "ignore": ["dist"]
+    "ignore": ["dist", "src/tests/**/*.test.ts"]
   },
   "javascript": {
     "formatter": {

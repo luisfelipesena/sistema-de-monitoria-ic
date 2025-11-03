@@ -144,6 +144,8 @@ export const departamentoTable = pgTable('departamento', {
   unidadeUniversitaria: varchar('unidade_universitaria').notNull(),
   nome: varchar('nome').notNull(),
   sigla: varchar('sigla'),
+  emailInstituto: text('email_instituto'),
+  emailChefeDepartamento: text('email_chefe_departamento'),
   coordenador: varchar('coordenador'),
   email: varchar('email'),
   telefone: varchar('telefone'),
@@ -230,6 +232,34 @@ export const projetoDisciplinaTable = pgTable('projeto_disciplina', {
   //   mode: 'date',
   // }), // Usually handled by removing the row
 })
+
+// --- Tabela de Equivalência de Disciplinas ---
+export const equivalenciaDisciplinasTable = pgTable('equivalencia_disciplinas', {
+  id: serial('id').primaryKey(),
+
+  disciplinaOrigemId: integer('disciplina_origem_id')
+    .notNull()
+    .references(() => disciplinaTable.id, { onDelete: 'cascade' }),
+
+  disciplinaEquivalenteId: integer('disciplina_equivalente_id')
+    .notNull()
+    .references(() => disciplinaTable.id, { onDelete: 'cascade' }),
+
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+})
+
+export const equivalenciaDisciplinasRelations = relations(equivalenciaDisciplinasTable, ({ one }) => ({
+  disciplinaOrigem: one(disciplinaTable, {
+    fields: [equivalenciaDisciplinasTable.disciplinaOrigemId],
+    references: [disciplinaTable.id],
+    relationName: 'equivalenciasOrigem',
+  }),
+  disciplinaEquivalente: one(disciplinaTable, {
+    fields: [equivalenciaDisciplinasTable.disciplinaEquivalenteId],
+    references: [disciplinaTable.id],
+    relationName: 'equivalenciasEquivalente',
+  }),
+}))
 
 // Participating professors (excluding the main responsible one)
 export const projetoProfessorParticipanteTable = pgTable('projeto_professor_participante', {
@@ -686,6 +716,12 @@ export const disciplinaRelations = relations(disciplinaTable, ({ many, one }) =>
   }),
   notasAlunos: many(notaAlunoTable),
   professoresResponsaveis: many(disciplinaProfessorResponsavelTable),
+  equivalenciasOrigem: many(equivalenciaDisciplinasTable, {
+    relationName: 'equivalenciasOrigem',
+  }),
+  equivalenciasEquivalente: many(equivalenciaDisciplinasTable, {
+    relationName: 'equivalenciasEquivalente',
+  }),
 }))
 
 export const alunoRelations = relations(alunoTable, ({ one, many }) => ({

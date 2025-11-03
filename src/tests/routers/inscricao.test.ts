@@ -43,6 +43,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
     set: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
     returning: vi.fn(),
+    // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
   } as any,
 })
 
@@ -62,7 +63,9 @@ describe('inscricaoRouter', () => {
     it('should throw BAD_REQUEST if the application period is not active', async () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = inscricaoRouter.createCaller(mockContext)
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({ id: 1, status: 'APPROVED' } as any)
       vi.spyOn(mockContext.db.query.periodoInscricaoTable, 'findFirst').mockResolvedValue(undefined)
 
@@ -74,6 +77,7 @@ describe('inscricaoRouter', () => {
     it('should create an inscription successfully', async () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = inscricaoRouter.createCaller(mockContext)
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1, cr: 8.5 } as any)
       vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({
         id: 1,
@@ -82,7 +86,9 @@ describe('inscricaoRouter', () => {
         voluntariosSolicitados: 1,
         ano: 2024,
         semestre: 'SEMESTRE_1',
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       } as any)
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.periodoInscricaoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
       vi.spyOn(mockContext.db.query.inscricaoTable, 'findFirst').mockResolvedValue(undefined)
       const insertMock = { returning: vi.fn().mockResolvedValue([{ id: 123 }]) }
@@ -101,6 +107,7 @@ describe('inscricaoRouter', () => {
       const caller = inscricaoRouter.createCaller(mockContext)
       const currentSemesterProject = { ano: 2024, semestre: 'SEMESTRE_1' }
 
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
       vi.spyOn(mockContext.db.query.inscricaoTable, 'findFirst')
         // For the inscription being accepted
@@ -109,6 +116,7 @@ describe('inscricaoRouter', () => {
           status: SELECTED_BOLSISTA,
           alunoId: 1,
           projeto: currentSemesterProject,
+          // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
         } as any)
         // For the check of existing scholarships
         .mockResolvedValueOnce({
@@ -116,6 +124,7 @@ describe('inscricaoRouter', () => {
           status: ACCEPTED_BOLSISTA,
           alunoId: 1,
           projeto: currentSemesterProject,
+          // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
         } as any)
 
       await expect(caller.acceptPosition({ inscricaoId: 1 })).rejects.toThrowError(

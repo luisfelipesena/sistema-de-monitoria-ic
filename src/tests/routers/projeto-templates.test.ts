@@ -33,6 +33,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
     insert: vi.fn().mockReturnThis(),
     values: vi.fn().mockReturnThis(),
     returning: vi.fn(),
+    // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
   } as any,
 })
 
@@ -46,6 +47,7 @@ describe('projetoTemplatesRouter', () => {
       const mockContext = createMockContext(mockAdminUser)
       const caller = projetoTemplatesRouter.createCaller(mockContext)
 
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.projetoTemplateTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
 
       const input = {
