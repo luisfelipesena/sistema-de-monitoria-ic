@@ -47,6 +47,7 @@ describe('projetoRouter', () => {
             findMany: vi.fn().mockResolvedValue([]),
           },
         },
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       } as any,
     }
 
@@ -71,6 +72,7 @@ describe('projetoRouter', () => {
             findMany: vi.fn().mockResolvedValue([]),
           },
         },
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       } as any,
     }
 
@@ -109,6 +111,7 @@ describe('projetoRouter', () => {
             findMany: vi.fn().mockResolvedValue([]),
           },
         },
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       } as any,
     }
 
@@ -141,6 +144,7 @@ describe('projetoRouter', () => {
             findFirst: vi.fn().mockResolvedValue({ id: 2 }),
           },
         },
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       } as any,
     }
 

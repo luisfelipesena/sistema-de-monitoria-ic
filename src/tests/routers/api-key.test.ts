@@ -73,6 +73,7 @@ describe('API Key Router', () => {
         values: vi.fn().mockReturnValue({
           returning: vi.fn().mockResolvedValue([newApiKey]),
         }),
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       } as any)
 
       const caller = apiKeyRouter.createCaller(mockContext)
@@ -108,6 +109,7 @@ describe('API Key Router', () => {
       vi.mocked(mockContext.db.query.apiKeyTable.findFirst).mockResolvedValue(mockApiKeys[0])
       vi.mocked(mockContext.db.delete).mockReturnValue({
         where: vi.fn().mockResolvedValue(undefined),
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       } as any)
 
       const caller = apiKeyRouter.createCaller(mockContext)

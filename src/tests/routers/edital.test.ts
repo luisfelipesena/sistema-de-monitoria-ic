@@ -56,6 +56,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
     set: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
     returning: vi.fn().mockResolvedValue([]),
+    // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
   } as any,
 })
 
@@ -84,6 +85,7 @@ describe('editalRouter', () => {
       const mockContext = createMockContext(mockAdminUser)
       const caller = editalRouter.createCaller(mockContext)
 
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.editalTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
 
       const input = {
@@ -115,6 +117,7 @@ describe('editalRouter', () => {
         updatedAt: null,
         dataPublicacao: null,
         periodoInscricaoId: 1,
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       } as any)
 
       await expect(caller.publishEdital({ id: 1 })).rejects.toThrowError(/O edital precisa estar assinado/)
@@ -148,9 +151,11 @@ describe('editalRouter', () => {
 
       vi.spyOn(mockContext.db.query.editalTable, 'findFirst')
         .mockResolvedValueOnce(signedEdital as any)
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
         .mockResolvedValueOnce({ ...signedEdital, periodoInscricao: { id: 1 } } as any)
 
       // Mock para verificar projetos aprovados
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.projetoTable, 'findMany').mockResolvedValue([{ id: 1 }] as any)
 
       vi.spyOn(mockContext.db, 'update').mockReturnValue({
@@ -165,6 +170,7 @@ describe('editalRouter', () => {
             chefeDepartamentoId: null,
           },
         ]),
+        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       } as any)
 
       const result = await caller.publishEdital({ id: 1 })

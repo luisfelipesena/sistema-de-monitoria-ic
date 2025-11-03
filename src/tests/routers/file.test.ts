@@ -47,6 +47,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
         findFirst: vi.fn(),
       },
     },
+    // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
   } as any,
 })
 
@@ -110,6 +111,7 @@ describe('fileRouter', () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = fileRouter.createCaller(mockContext)
 
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ userId: mockStudentUser.id } as any)
 
       const result = await caller.getPresignedUrlMutation({ fileId: 'some-file', action: 'download' })

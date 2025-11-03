@@ -236,19 +236,17 @@ export const projetoDisciplinaTable = pgTable('projeto_disciplina', {
 // --- Tabela de Equivalência de Disciplinas ---
 export const equivalenciaDisciplinasTable = pgTable('equivalencia_disciplinas', {
   id: serial('id').primaryKey(),
-  
+
   disciplinaOrigemId: integer('disciplina_origem_id')
     .notNull()
     .references(() => disciplinaTable.id, { onDelete: 'cascade' }),
-    
+
   disciplinaEquivalenteId: integer('disciplina_equivalente_id')
     .notNull()
     .references(() => disciplinaTable.id, { onDelete: 'cascade' }),
 
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' })
-    .defaultNow()
-    .notNull(),
-});
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+})
 
 export const equivalenciaDisciplinasRelations = relations(equivalenciaDisciplinasTable, ({ one }) => ({
   disciplinaOrigem: one(disciplinaTable, {
@@ -261,7 +259,7 @@ export const equivalenciaDisciplinasRelations = relations(equivalenciaDisciplina
     references: [disciplinaTable.id],
     relationName: 'equivalenciasEquivalente',
   }),
-})); 
+}))
 
 // Participating professors (excluding the main responsible one)
 export const projetoProfessorParticipanteTable = pgTable('projeto_professor_participante', {

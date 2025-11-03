@@ -47,6 +47,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
         findFirst: vi.fn(),
       },
     },
+    // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
   } as any,
 })
 
