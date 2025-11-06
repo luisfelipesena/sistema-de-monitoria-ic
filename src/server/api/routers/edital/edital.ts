@@ -1002,7 +1002,7 @@ export const editalRouter = createTRPCRouter({
             codigo: projeto.disciplinas[0]?.disciplina.codigo || 'MON',
             nome: projeto.titulo,
             professor: {
-              nome: projeto.professorResponsavel.user.username,
+              nome: projeto.professorResponsavel.nomeCompleto,
               email: projeto.professorResponsavel.user.email,
             },
             tipoMonitoria: 'INDIVIDUAL' as const,
