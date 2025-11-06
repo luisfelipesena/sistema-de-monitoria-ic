@@ -234,14 +234,14 @@ export const projetoDisciplinaTable = pgTable('projeto_disciplina', {
 })
 
 // --- Tabela de Equivalência de Disciplinas ---
-export const equivalenciaDisciplinasTable = pgTable('equivalencia_disciplinas', {
+export const equivalenciaDisciplinasTable = pgTable('disc_equiv', {
   id: serial('id').primaryKey(),
 
-  disciplinaOrigemId: integer('disciplina_origem_id')
+  disciplinaOrigemId: integer('disc_origem_id')
     .notNull()
     .references(() => disciplinaTable.id, { onDelete: 'cascade' }),
 
-  disciplinaEquivalenteId: integer('disciplina_equivalente_id')
+  disciplinaEquivalenteId: integer('disc_equiv_id')
     .notNull()
     .references(() => disciplinaTable.id, { onDelete: 'cascade' }),
 

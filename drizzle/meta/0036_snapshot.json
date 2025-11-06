@@ -1,6 +1,6 @@
 {
-  "id": "beb575cf-9c83-4192-ac2c-ec6de022e011",
-  "prevId": "6e255eff-915d-43ab-a945-5824ad73920a",
+  "id": "69c09b5b-0d5c-4373-8bbd-7a2b73171169",
+  "prevId": "beb575cf-9c83-4192-ac2c-ec6de022e011",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1235,8 +1235,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.equivalencia_disciplinas": {
-      "name": "equivalencia_disciplinas",
+    "public.disc_equiv": {
+      "name": "disc_equiv",
       "schema": "",
       "columns": {
         "id": {
@@ -1245,14 +1245,14 @@
           "primaryKey": true,
           "notNull": true
         },
-        "disciplina_origem_id": {
-          "name": "disciplina_origem_id",
+        "disc_origem_id": {
+          "name": "disc_origem_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "disciplina_equivalente_id": {
-          "name": "disciplina_equivalente_id",
+        "disc_equiv_id": {
+          "name": "disc_equiv_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -1267,12 +1267,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "equivalencia_disciplinas_disciplina_origem_id_disciplina_id_fk": {
-          "name": "equivalencia_disciplinas_disciplina_origem_id_disciplina_id_fk",
-          "tableFrom": "equivalencia_disciplinas",
+        "disc_equiv_disc_origem_id_disciplina_id_fk": {
+          "name": "disc_equiv_disc_origem_id_disciplina_id_fk",
+          "tableFrom": "disc_equiv",
           "tableTo": "disciplina",
           "columnsFrom": [
-            "disciplina_origem_id"
+            "disc_origem_id"
           ],
           "columnsTo": [
             "id"
@@ -1280,12 +1280,12 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "equivalencia_disciplinas_disciplina_equivalente_id_disciplina_id_fk": {
-          "name": "equivalencia_disciplinas_disciplina_equivalente_id_disciplina_id_fk",
-          "tableFrom": "equivalencia_disciplinas",
+        "disc_equiv_disc_equiv_id_disciplina_id_fk": {
+          "name": "disc_equiv_disc_equiv_id_disciplina_id_fk",
+          "tableFrom": "disc_equiv",
           "tableTo": "disciplina",
           "columnsFrom": [
-            "disciplina_equivalente_id"
+            "disc_equiv_id"
           ],
           "columnsTo": [
             "id"
