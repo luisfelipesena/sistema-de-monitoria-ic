@@ -28,7 +28,7 @@ test.describe('Discipline Equivalence Workflow', () => {
 
   test('admin can access equivalence management page', async ({ page }) => {
     // Navigate to equivalences page via sidebar
-    await page.getByRole('button', { name: 'Configurações' }).click()
+    await page.getByRole('button', { name: 'Configurações' }).first().click()
     await page.getByRole('link', { name: 'Equivalências de Disciplinas' }).click()
 
     // Verify page loaded
@@ -38,7 +38,7 @@ test.describe('Discipline Equivalence Workflow', () => {
 
   test('admin can create a new equivalence', async ({ page }) => {
     // Navigate to equivalences page
-    await page.getByRole('button', { name: 'Configurações' }).click()
+    await page.getByRole('button', { name: 'Configurações' }).first().click()
     await page.getByRole('link', { name: 'Equivalências de Disciplinas' }).click()
 
     // Click "Nova Equivalência" button
@@ -69,7 +69,7 @@ test.describe('Discipline Equivalence Workflow', () => {
 
   test('admin cannot create duplicate equivalence', async ({ page }) => {
     // Navigate to equivalences page
-    await page.getByRole('button', { name: 'Configurações' }).click()
+    await page.getByRole('button', { name: 'Configurações' }).first().click()
     await page.getByRole('link', { name: 'Equivalências de Disciplinas' }).click()
 
     // Try to create equivalence that already exists (from previous test or seed)
@@ -94,7 +94,7 @@ test.describe('Discipline Equivalence Workflow', () => {
 
   test('admin can delete an equivalence', async ({ page }) => {
     // Navigate to equivalences page
-    await page.getByRole('button', { name: 'Configurações' }).click()
+    await page.getByRole('button', { name: 'Configurações' }).first().click()
     await page.getByRole('link', { name: 'Equivalências de Disciplinas' }).click()
 
     // Wait for table to load
@@ -121,7 +121,7 @@ test.describe('Discipline Equivalence Workflow', () => {
 
   test('equivalence system prevents self-equivalence', async ({ page }) => {
     // Navigate to equivalences page
-    await page.getByRole('button', { name: 'Configurações' }).click()
+    await page.getByRole('button', { name: 'Configurações' }).first().click()
     await page.getByRole('link', { name: 'Equivalências de Disciplinas' }).click()
 
     // Open creation dialog
