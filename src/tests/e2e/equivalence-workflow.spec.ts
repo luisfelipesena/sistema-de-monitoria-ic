@@ -65,19 +65,31 @@ test.describe('Discipline Equivalence Workflow', () => {
     // Submit form
     await dialog.getByRole('button', { name: 'Criar Equivalência' }).click()
 
-    // Verify success message or table update
+    // Wait for the operation to complete - dialog should close if successful
+    await page.waitForTimeout(2000)
+
+    // Check if dialog closed (indicates successful creation)
+    const dialogClosed = await dialog
+      .isVisible({ timeout: 1000 })
+      .then(() => false)
+      .catch(() => true)
+
+    // Also check for success indicators
     const successVisible = await page
       .getByText('Equivalência criada com sucesso')
-      .isVisible({ timeout: 3000 })
-      .catch(() => false)
-    const tableHasContent = await page
-      .locator('table tbody tr')
-      .count()
-      .then((count) => count > 0)
+      .isVisible({ timeout: 2000 })
       .catch(() => false)
 
-    // At least one should be true
-    expect(successVisible || tableHasContent).toBeTruthy()
+    const errorVisible = await page
+      .getByText(/erro|falha/i)
+      .isVisible({ timeout: 1000 })
+      .catch(() => false)
+
+    // Test passes if:
+    // 1. Dialog closed (operation completed) AND no error message
+    // 2. OR success message appeared
+    expect(dialogClosed || successVisible).toBeTruthy()
+    expect(errorVisible).toBeFalsy()
   })
 
   test('admin cannot create duplicate equivalence', async ({ page }) => {
