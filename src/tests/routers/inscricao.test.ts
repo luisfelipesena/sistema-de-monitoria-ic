@@ -102,7 +102,7 @@ describe('inscricaoRouter', () => {
       vi.spyOn(mockContext.db.query.inscricaoTable, 'findFirst').mockResolvedValue(undefined)
       // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.projetoDisciplinaTable, 'findMany').mockResolvedValue([
-        { disciplina: { id: 1 } }
+        { disciplina: { id: 1 } },
       ] as any)
       // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.equivalenciaDisciplinasTable, 'findMany').mockResolvedValue([] as any)
