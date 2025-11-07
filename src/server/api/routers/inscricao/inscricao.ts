@@ -3,8 +3,10 @@ import {
   alunoTable,
   departamentoTable,
   disciplinaTable,
+  equivalenciaDisciplinasTable,
   inscricaoDocumentoTable,
   inscricaoTable,
+  notaAlunoTable,
   periodoInscricaoTable,
   professorTable,
   projetoDisciplinaTable,
@@ -27,10 +29,79 @@ import {
 } from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
-import { and, desc, eq, gte, isNull, lte } from 'drizzle-orm'
+import { and, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
 import { z } from 'zod'
 
 const log = logger.child({ context: 'InscricaoRouter' })
+
+/**
+ * Helper function to find a student's grade for a discipline, considering equivalent disciplines
+ * @param alunoId - Student ID
+ * @param disciplinaId - Target discipline ID
+ * @param db - Database context
+ * @returns The student's grade or null if not found
+ */
+async function findStudentGradeWithEquivalents(
+  alunoId: number,
+  disciplinaId: number,
+  // biome-ignore lint/suspicious/noExplicitAny: Database context type
+  db: any
+): Promise<number | null> {
+  try {
+    // 1. Try direct grade lookup
+    const directGrade = await db.query.notaAlunoTable.findFirst({
+      where: and(eq(notaAlunoTable.alunoId, alunoId), eq(notaAlunoTable.disciplinaId, disciplinaId)),
+    })
+
+    if (directGrade) {
+      log.info({ alunoId, disciplinaId, nota: directGrade.nota }, 'Found direct grade')
+      return directGrade.nota
+    }
+
+    // 2. Find equivalences (bidirectional search)
+    const equivalences = await db.query.equivalenciaDisciplinasTable.findMany({
+      where: or(
+        eq(equivalenciaDisciplinasTable.disciplinaOrigemId, disciplinaId),
+        eq(equivalenciaDisciplinasTable.disciplinaEquivalenteId, disciplinaId)
+      ),
+    })
+
+    if (equivalences.length === 0) {
+      log.info({ alunoId, disciplinaId }, 'No equivalences found, no grade available')
+      return null
+    }
+
+    // 3. Extract equivalent discipline IDs
+    const equivalentIds = equivalences.map(
+      (equiv: { disciplinaOrigemId: number; disciplinaEquivalenteId: number }) =>
+        equiv.disciplinaOrigemId === disciplinaId ? equiv.disciplinaEquivalenteId : equiv.disciplinaOrigemId
+    )
+
+    // 4. Search for grades in equivalent disciplines
+    const equivalentGrade = await db.query.notaAlunoTable.findFirst({
+      where: and(eq(notaAlunoTable.alunoId, alunoId), inArray(notaAlunoTable.disciplinaId, equivalentIds)),
+    })
+
+    if (equivalentGrade) {
+      log.info(
+        {
+          alunoId,
+          targetDisciplinaId: disciplinaId,
+          foundInDisciplinaId: equivalentGrade.disciplinaId,
+          nota: equivalentGrade.nota,
+        },
+        'Found grade in equivalent discipline'
+      )
+      return equivalentGrade.nota
+    }
+
+    log.info({ alunoId, disciplinaId, equivalentIds }, 'No grade found in direct or equivalent disciplines')
+    return null
+  } catch (error) {
+    log.error(error, 'Error finding student grade with equivalents')
+    return null
+  }
+}
 
 export const inscricaoRouter = createTRPCRouter({
   getMyStatus: protectedProcedure
@@ -334,6 +405,28 @@ export const inscricaoRouter = createTRPCRouter({
           })
         }
 
+        // Fetch the project's disciplines to get student's grade
+        const projetoDisciplinas = await ctx.db.query.projetoDisciplinaTable.findMany({
+          where: eq(projetoDisciplinaTable.projetoId, input.projetoId),
+          with: {
+            disciplina: true,
+          },
+        })
+
+        // Try to find the student's grade in any of the project's disciplines (considering equivalences)
+        let notaDisciplina: number | null = null
+        for (const pd of projetoDisciplinas) {
+          const grade = await findStudentGradeWithEquivalents(aluno.id, pd.disciplina.id, ctx.db)
+          if (grade !== null) {
+            notaDisciplina = grade
+            log.info(
+              { alunoId: aluno.id, disciplinaId: pd.disciplina.id, nota: grade },
+              'Found student grade for inscription'
+            )
+            break // Use the first valid grade found
+          }
+        }
+
         // Create the inscription
         const [novaInscricao] = await ctx.db
           .insert(inscricaoTable)
@@ -344,6 +437,7 @@ export const inscricaoRouter = createTRPCRouter({
             tipoVagaPretendida: input.tipo,
             status: 'SUBMITTED',
             coeficienteRendimento: aluno.cr?.toString() || null,
+            notaDisciplina: notaDisciplina?.toString() || null,
           })
           .returning()
 

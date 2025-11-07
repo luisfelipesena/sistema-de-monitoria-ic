@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import {
+  ArrowLeftRight,
   Award,
   BookOpen,
   Building,
@@ -192,6 +193,12 @@ const menuConfig: MenuConfig[] = [
         label: "Disciplinas",
         href: "/home/admin/disciplinas",
         icon: BookOpen,
+        roles: ["admin"],
+      },
+      {
+        label: "Equivalências de Disciplinas",
+        href: "/home/admin/equivalencias",
+        icon: ArrowLeftRight,
         roles: ["admin"],
       },
     ],
