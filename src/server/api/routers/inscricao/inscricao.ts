@@ -72,9 +72,8 @@ async function findStudentGradeWithEquivalents(
     }
 
     // 3. Extract equivalent discipline IDs
-    const equivalentIds = equivalences.map(
-      (equiv: { disciplinaOrigemId: number; disciplinaEquivalenteId: number }) =>
-        equiv.disciplinaOrigemId === disciplinaId ? equiv.disciplinaEquivalenteId : equiv.disciplinaOrigemId
+    const equivalentIds = equivalences.map((equiv: { disciplinaOrigemId: number; disciplinaEquivalenteId: number }) =>
+      equiv.disciplinaOrigemId === disciplinaId ? equiv.disciplinaEquivalenteId : equiv.disciplinaOrigemId
     )
 
     // 4. Search for grades in equivalent disciplines
