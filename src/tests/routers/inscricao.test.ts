@@ -36,6 +36,15 @@ const createMockContext = (user: User | null): TRPCContext => ({
         findFirst: vi.fn(),
         findMany: vi.fn(),
       },
+      projetoDisciplinaTable: {
+        findMany: vi.fn(),
+      },
+      equivalenciaDisciplinasTable: {
+        findMany: vi.fn(),
+      },
+      notaAlunoTable: {
+        findFirst: vi.fn(),
+      },
     },
     insert: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
@@ -91,6 +100,14 @@ describe('inscricaoRouter', () => {
       // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       vi.spyOn(mockContext.db.query.periodoInscricaoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
       vi.spyOn(mockContext.db.query.inscricaoTable, 'findFirst').mockResolvedValue(undefined)
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
+      vi.spyOn(mockContext.db.query.projetoDisciplinaTable, 'findMany').mockResolvedValue([
+        { disciplina: { id: 1 } }
+      ] as any)
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
+      vi.spyOn(mockContext.db.query.equivalenciaDisciplinasTable, 'findMany').mockResolvedValue([] as any)
+      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
+      vi.spyOn(mockContext.db.query.notaAlunoTable, 'findFirst').mockResolvedValue({ nota: 9.0 } as any)
       const insertMock = { returning: vi.fn().mockResolvedValue([{ id: 123 }]) }
       const valuesMock = { values: vi.fn().mockReturnValue(insertMock) }
       vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as any)
