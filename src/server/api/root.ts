@@ -2,6 +2,7 @@ import { analyticsRouter } from '@/server/api/routers/analytics/analytics'
 import { apiKeyRouter } from '@/server/api/routers/api-key/api-key'
 import { authRouter } from '@/server/api/routers/auth/auth'
 import { meRouter } from '@/server/api/routers/auth/me/me'
+import { configuracoesRouter } from '@/server/api/routers/configuracoes/configuracoes'
 import { courseRouter } from '@/server/api/routers/course/course'
 import { departamentoRouter } from '@/server/api/routers/departamento/departamento'
 import { disciplineRouter } from '@/server/api/routers/discipline/discipline'
@@ -47,6 +48,7 @@ export const appRouter = createTRPCRouter({
   vagas: vagasRouter,
   termos: termosRouter,
   notificacoes: notificacoesRouter,
+  configuracoes: configuracoesRouter,
 })
 
 export type AppRouter = typeof appRouter

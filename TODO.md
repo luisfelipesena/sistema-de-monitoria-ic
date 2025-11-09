@@ -183,9 +183,9 @@ export const disciplinaEquivalenciaTable = pgTable('disciplina_equivalencia', {
 **DESCRIÇÃO** - Adicionar configuração no sistema para emails do Instituto (IC) e Departamento (DCC)
 **CONTEXTO** - Sistema precisa saber para onde enviar: Instituto para projetos iniciais, Departamento para consolidação final
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - Adicionar campos de email em `departamentoTable`
-- `src/app/home/admin/configuracoes/page.tsx` - Interface para configurar emails
-**STATUS** - [ ] PENDENTE
+- `src/server/db/schema.ts` - Adicionar campos de email em `departamentoTable` - ✅ IMPLEMENTADO
+- `src/app/home/admin/configuracoes/page.tsx` - Interface para configurar emails - ✅ CRIADO
+**STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Ajustar envio de planilha final para Departamento (não PROGRAD)
 **DESCRIÇÃO** - Planilhas de bolsistas/voluntários devem ir para chefe do DEPARTAMENTO (email DCC), não direto PROGRAD
