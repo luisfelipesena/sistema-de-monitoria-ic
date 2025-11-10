@@ -10,6 +10,8 @@
 \usepackage{tabularray}
 \usepackage{adjustbox}
 \usepackage{stfloats}
+\usepackage{placeins}
+\usepackage{float}
 
 \usepackage{afterpage}
 \usepackage{url}
@@ -177,8 +179,6 @@ Para avaliar o estado atual da gestão de monitoria em universidades brasileiras
   \end{adjustbox}
 \end{table*}
 
-\noindent\textit{Fonte e metodologia do levantamento.} Panorama elaborado a partir de páginas oficiais dos sistemas institucionais: Júpiter (USP) \cite{USPJupiter}, SIGA (UFRJ) \cite{UFRJ_SIGA}, SIGAA (UnB) \cite{UnB_SIGAA}, CAGR (UFSC) \cite{UFSC_CAGR} e SEI (UNIFESP) \cite{UNIFESP_SEI}. Para as instituições sem sistema específico de monitoria, a classificação decorre da análise de editais e orientações públicas de 2024--2025, os quais indicam processos manuais com formulários e planilhas.
-
 Os resultados revelam que nenhuma instituição analisada dispõe de um sistema específico e completo para gestão de monitoria; cerca de 70\% recorrem a ferramentas genéricas (Google/Microsoft Forms e e-mail) e apenas 30\% apresentam algum nível de integração com sistemas acadêmicos. Em todos os casos foram observadas etapas manuais significativas nos processos seletivos e ausência de padronização ou compartilhamento de soluções entre instituições.
 
 No \textbf{Júpiter/USP} \cite{USPJupiter}, o registro acadêmico é centralizado no sistema institucional, porém a gestão de monitoria depende de formulários e fluxos paralelos, o que fragmenta dados e dificulta a uniformização de critérios entre disciplinas.
@@ -193,23 +193,104 @@ Na \textbf{UNIFESP (SEI)} \cite{UNIFESP_SEI}, prevalecem trâmites administrativ
 
 Em instituições como \textbf{Unicamp}, \textbf{UFMG}, \textbf{UNESP} e \textbf{UFPR}, observou-se uso recorrente de e-mail, Google/Microsoft Forms e planilhas para inscrições e consolidações, reforçando a ausência de um módulo específico e integrado para monitoria.
 
-\subsection{Análise Comparativa}
-
-A análise dos trabalhos relacionados e do estado da prática revela uma lacuna significativa: enquanto há sistemas acadêmicos robustos para gestão geral, falta uma solução que trate as particularidades da monitoria. O Sistema de Monitoria-IC distingue-se por ser específico para o \textit{workflow} de monitoria, cobrir o ciclo de vida completo (da criação de projetos à emissão de certificados), automatizar etapas via integrações e processamento inteligente, adotar um \textit{stack} moderno com foco em experiência do usuário e desempenho e, sobretudo, garantir transparência com rastreabilidade e acesso diferenciado por papéis.
+A análise dos trabalhos relacionados e do estado da prática revela uma lacuna significativa: enquanto há sistemas acadêmicos robustos para gestão geral, falta uma solução que trate as particularidades da monitoria. O Sistema de Monitoria-IC distingue-se por cinco dimensões principais. Primeiro, é \textbf{específico para o workflow de monitoria}, ao contrário de sistemas genéricos que tentam adaptar módulos gerais para diferentes processos acadêmicos. Segundo, \textbf{cobre o ciclo de vida completo}, desde a criação de projetos pelos professores até a emissão de certificados finais, eliminando a fragmentação observada nos sistemas analisados. Terceiro, \textbf{automatiza etapas críticas} via integrações com armazenamento de arquivos, geração de PDFs, assinaturas digitais e notificações, reduzindo drasticamente trabalho manual. Quarto, adota um \textbf{stack tecnológico moderno} (Next.js 15, tRPC v11, PostgreSQL, MinIO) com foco em experiência do usuário, type-safety e desempenho, contrastando com sistemas legados observados em outras instituições. Quinto, e fundamental, \textbf{garante transparência e rastreabilidade} através de histórico auditável de todas as operações e acesso diferenciado por papéis (admin, professor, aluno, chefe de departamento), atendendo requisitos de governança institucional.
 
 \section{Sistema de Monitoria-IC}
 \label{sec:system}
 
-\subsection{Visão Geral da Arquitetura}
+\subsection{Requisitos}
 
-O Sistema de Monitoria-IC foi projetado seguindo uma arquitetura em camadas que separa claramente as responsabilidades e promove manutenibilidade e escalabilidade. A arquitetura segue o padrão de três camadas com componentes especializados:
+O Sistema de Monitoria-IC foi especificado a partir de requisitos funcionais e não-funcionais identificados através de entrevistas com coordenadores, professores e análise do processo manual existente. A Tabela \ref{tab:requisitos} apresenta os principais requisitos do sistema, categorizados por tipo.
 
-\begin{figure}[h!]
+\begin{table*}[htb]
   \centering
-  \IfFileExists{images/monitoria/architecture.png}{\includegraphics[width=0.6\linewidth,keepaspectratio]{images/monitoria/architecture.png}}{\fbox{\parbox{0.95\linewidth}{architecture.png}}}
-  \caption{Arquitetura lógica do Sistema de Monitoria-IC}
+  \caption{Requisitos funcionais e não-funcionais do Sistema de Monitoria-IC.}
+  \label{tab:requisitos}
+  \begin{adjustbox}{max width=\textwidth}
+    \begin{tabular}{|l|l|p{8cm}|}
+      \hline
+      \textbf{ID} & \textbf{Tipo} & \textbf{Descrição} \\
+      \hline
+      \multicolumn{3}{|c|}{\textbf{Requisitos Funcionais}} \\
+      \hline
+      RF01 & Funcional & Importar planejamento semestral (Excel) com disciplinas e professores (SIAPE) \\
+      \hline
+      RF02 & Funcional & Criar e reutilizar templates de projetos entre semestres \\
+      \hline
+      RF03 & Funcional & Workflow de aprovação com estados (DRAFT, SUBMITTED, APPROVED, REJECTED) \\
+      \hline
+      RF04 & Funcional & Assinatura digital de projetos por professores e chefe de departamento \\
+      \hline
+      RF05 & Funcional & Alocar bolsas por projeto com validação de limites totais \\
+      \hline
+      RF06 & Funcional & Gerar e publicar edital interno com assinatura digital \\
+      \hline
+      RF07 & Funcional & Portal de inscrições para estudantes com upload de documentos \\
+      \hline
+      RF08 & Funcional & Captura automática de CR e notas do histórico acadêmico \\
+      \hline
+      RF09 & Funcional & Considerar equivalências entre disciplinas na seleção \\
+      \hline
+      RF10 & Funcional & Interface para professores avaliarem e selecionarem candidatos \\
+      \hline
+      RF11 & Funcional & Portal para aceite/rejeição de vagas e coleta de dados bancários \\
+      \hline
+      RF12 & Funcional & Gerar planilhas consolidadas para PROGRAD com dados de monitores \\
+      \hline
+      RF13 & Funcional & Emitir relatórios finais e certificados de monitoria \\
+      \hline
+      RF14 & Funcional & Notificações automáticas por e-mail em todas as etapas \\
+      \hline
+      RF15 & Funcional & Dashboard administrativo com métricas e indicadores \\
+      \hline
+      \multicolumn{3}{|c|}{\textbf{Requisitos Não-Funcionais}} \\
+      \hline
+      RNF01 & Desempenho & Tempo de carregamento inicial < 3s (First Contentful Paint) \\
+      \hline
+      RNF02 & Desempenho & Latência de API < 100ms para 95\% das requisições \\
+      \hline
+      RNF03 & Escalabilidade & Suportar 1000+ usuários concorrentes sem degradação \\
+      \hline
+      RNF04 & Segurança & Autenticação via Lucia Auth com sessões de 30 dias \\
+      \hline
+      RNF05 & Segurança & Controle de acesso baseado em papéis (RBAC) \\
+      \hline
+      RNF06 & Segurança & Validação de entrada com Zod em cliente e servidor \\
+      \hline
+      RNF07 & Confiabilidade & Disponibilidade > 99\% em horário comercial \\
+      \hline
+      RNF08 & Confiabilidade & Backup incremental a cada 6 horas com retenção de 30 dias \\
+      \hline
+      RNF09 & Usabilidade & Interface responsiva para desktop, tablet e mobile \\
+      \hline
+      RNF10 & Usabilidade & Acessibilidade WCAG 2.1 nível AA \\
+      \hline
+      RNF11 & Manutenibilidade & Type-safety completo com TypeScript em todo codebase \\
+      \hline
+      RNF12 & Manutenibilidade & Cobertura de testes > 85\% em lógica de negócio \\
+      \hline
+      RNF13 & Interoperabilidade & API REST e tRPC para integração com sistemas externos \\
+      \hline
+      RNF14 & Portabilidade & Containerização com Docker para deploy em qualquer ambiente \\
+      \hline
+    \end{tabular}
+  \end{adjustbox}
+\end{table*}
+
+\subsection{Arquitetura}
+
+O Sistema de Monitoria-IC foi projetado seguindo uma arquitetura em camadas que separa claramente as responsabilidades e promove manutenibilidade e escalabilidade, conforme ilustrado na Figura \ref{fig:architecture}. A arquitetura segue o padrão de três camadas com componentes especializados:
+
+\clearpage
+
+\begin{figure}[p]
+  \centering
+  \IfFileExists{images/monitoria/architecture-new.png}{\includegraphics[width=0.75\textwidth,keepaspectratio]{images/monitoria/architecture-new.png}}{\fbox{\parbox{0.95\linewidth}{architecture-new.png}}}
+  \caption{Arquitetura lógica do Sistema de Monitoria-IC.}
   \label{fig:architecture}
 \end{figure}
+
+\clearpage
 
 \subsubsection{Camada de Apresentação}
 
@@ -229,14 +310,18 @@ A camada de dados utiliza PostgreSQL com Drizzle ORM para persistência e MinIO 
 
 \subsection{Modelo de Dados}
 
-O modelo de dados foi projetado para capturar todas as entidades e relacionamentos do domínio de monitoria, seguindo princípios de normalização e integridade referencial. As principais entidades e seus relacionamentos são apresentados a seguir:
+O modelo de dados foi projetado para capturar todas as entidades e relacionamentos do domínio de monitoria, seguindo princípios de normalização e integridade referencial. A Figura \ref{fig:data-model} apresenta as principais entidades e seus relacionamentos:
 
-\begin{figure}[h!]
+\clearpage
+
+\begin{figure}[p]
   \centering
-\IfFileExists{images/monitoria/data-model.png}{\includegraphics[width=0.6\linewidth,keepaspectratio]{images/monitoria/data-model.png}}{\fbox{\parbox{0.95\linewidth}{data-model.png}}}
-  \caption{Modelo de dados resumido do domínio de monitoria}
+\IfFileExists{images/monitoria/data-model-new.png}{\includegraphics[width=0.85\textwidth,keepaspectratio]{images/monitoria/data-model-new.png}}{\fbox{\parbox{0.95\linewidth}{data-model-new.png}}}
+  \caption{Modelo de dados resumido do domínio de monitoria.}
   \label{fig:data-model}
 \end{figure}
+
+\clearpage
 
 O dashboard administrativo consolida indicadores operacionais (projetos por status, períodos de inscrição, volume de candidaturas) e oferece navegação rápida para tarefas críticas do papel \textit{admin}, conforme a estrutura do menu lateral.
 
@@ -244,16 +329,16 @@ No núcleo de usuários, a entidade \texttt{user} concentra autenticação e per
 
 \subsection{Fluxo de Processos}
 
-O fluxo de monitoria é orquestrado em seis etapas contínuas que estruturam o semestre. Na fase de planejamento e criação, a administração importa a planilha institucional de disciplinas e professores (SIAPE); o sistema identifica projetos individuais e coletivos, gera versões iniciais com base em templates de semestres anteriores e notifica docentes para revisão, edição e assinatura digital. Em seguida, ocorre a aprovação administrativa: projetos submetidos são avaliados com feedback, e a consolidação aprovada resulta em planilha com links em PDF encaminhada ao Instituto para viabilizar a solicitação de bolsas.
+O fluxo de monitoria é orquestrado em seis etapas contínuas que estruturam o semestre, conforme ilustrado na Figura \ref{fig:process-flow}. Na fase de planejamento e criação, a administração importa a planilha institucional de disciplinas e professores (SIAPE); o sistema identifica projetos individuais e coletivos, gera versões iniciais com base em templates de semestres anteriores e notifica docentes para revisão, edição e assinatura digital. Em seguida, ocorre a aprovação administrativa: projetos submetidos são avaliados com feedback, e a consolidação aprovada resulta em planilha com links em PDF encaminhada ao Instituto para viabilizar a solicitação de bolsas.
 
 Com a definição do total de bolsas pela PROGRAD, inicia-se a alocação e a publicação do edital interno. O sistema impede excedentes na distribuição, permite que professores configurem vagas de voluntariado e conduz a geração do edital com assinatura digital do chefe de departamento, finalizando com publicação e notificações automáticas. A fase de inscrições e seleção disponibiliza um catálogo de vagas para os estudantes; o sistema captura automaticamente CR e notas (respeitando equivalências configuradas), enquanto os docentes avaliam candidatos e publicam resultados, contemplando bolsistas e voluntários.
 
-Após a seleção, a etapa de aceite e consolidação final confirma as vagas: estudantes aceitam ou rejeitam convites, bolsistas informam dados bancários e a administração valida requisitos pendentes. O sistema produz a planilha final para a PROGRAD, encaminhada via Departamento. Por fim, o encerramento do ciclo envolve relatórios e certificados: os professores geram o relatório final da disciplina, os relatórios individuais dos monitores são assinados digitalmente (professor e aluno), a ata departamental é consolidada e são emitidos certificados para encaminhamento ao NUMOP.
+Após a seleção, a etapa de aceite e consolidação final confirma as vagas: estudantes aceitam ou rejeitam convites, bolsistas informam dados bancários e a administração valida requisitos pendentes. O sistema produz a planilha final para a PROGRAD, encaminhada via Departamento. Por fim, o encerramento do ciclo envolve relatórios e certificados: os professores geram o relatório final da disciplina, os relatórios individuais dos monitores são assinados digitalmente (professor e aluno), a ata departamental é consolidada e são emitidos certificados para encaminhamento ao NUMOP, conforme detalhado na Figura \ref{fig:process-flow}.
 
-\begin{figure}[h!]
+\begin{figure}[H]
   \centering
 \IfFileExists{images/monitoria/process-flow.png}{\includegraphics[width=0.6\linewidth,keepaspectratio]{images/monitoria/process-flow.png}}{\fbox{\parbox{0.95\linewidth}{process-flow.png}}}
-  \caption{Fluxo de processos do semestre de monitoria}
+  \caption{Fluxo de processos do semestre de monitoria.}
   \label{fig:process-flow}
 \end{figure}
 
@@ -306,189 +391,124 @@ export const appRouter = createTRPCRouter({
 });
 \end{verbatim}
 
-\subsection{Funcionalidades Implementadas}
-
-A Tabela \ref{tab:funcionalidades} apresenta o status atual das funcionalidades do sistema:
-
-\begin{table*}[htb]
-  \centering
-  \caption{Funcionalidades implementadas no Sistema de Monitoria-IC}
-  \label{tab:funcionalidades}
-  \begin{tabular}{|l|p{9cm}|}
-    \hline
-    \textbf{Funcionalidade} & \textbf{Descrição} \\
-    \hline
-    Importação de planejamento & Parser de Excel para importação de disciplinas e professores, criação automática de projetos individuais e coletivos \\
-    \hline
-    Templates de projetos & Sistema de templates reutilizáveis entre semestres, reduzindo tempo de criação \\
-    \hline
-    Assinatura digital & Integração completa com serviço de assinatura eletrônica para professores e chefe de departamento \\
-    \hline
-    Workflow de aprovação & Estados bem definidos (DRAFT, SUBMITTED, APPROVED) com notificações automáticas \\
-    \hline
-    Geração de editais & Criação automática de PDF do edital interno com assinatura digital do chefe \\
-    \hline
-    Alocação de bolsas & Sistema inteligente com validação de limites e distribuição otimizada \\
-    \hline
-    Inscrições online & Portal completo para candidatos com upload de documentos e acompanhamento \\
-    \hline
-    Captura de dados acadêmicos & Integração parcial com sistema acadêmico para notas e CR \\
-    \hline
-    Equivalências de disciplinas & Sistema configurável para considerar disciplinas equivalentes na seleção \\
-    \hline
-    Seleção de monitores & Interface completa para professores avaliarem e selecionarem candidatos \\
-    \hline
-    Aceite de vagas & Portal para alunos aceitarem/rejeitarem vagas com coleta de dados bancários \\
-    \hline
-    Relatórios & Geração de relatórios parciais e consolidações para PROGRAD \\
-    \hline
-    Certificados & Módulo em desenvolvimento para emissão automática \\
-    \hline
-    Dashboard analytics & Painel completo com métricas em tempo real e visualizações interativas \\
-    \hline
-    API de integração & Endpoints REST e tRPC para integração com sistemas externos \\
-    \hline
-  \end{tabular}
-\end{table*}
-
 \subsection{Interfaces do Sistema}
 
-As figuras a seguir apresentam as principais telas do sistema em produção:
+O sistema oferece interfaces especializadas para cada perfil de usuário, conforme exemplificado nas Figuras \ref{fig:landing} a \ref{fig:admin-departamentos}. A página inicial (Figura \ref{fig:landing}) apresenta a proposta do sistema, acesso ao login institucional e comunicação de períodos de inscrição quando ativos, funcionando como ponto de entrada para estudantes, professores e administradores. A tela de login (Figura \ref{fig:login}) valida credenciais locais ou redireciona ao CAS quando habilitado, estabelecendo a sessão do usuário e direcionando ao dashboard apropriado.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/landing.png}
-  \caption{Página inicial pública do sistema}
+  \caption{Página inicial pública do sistema.}
   \label{fig:landing}
 \end{figure}
-
-A página inicial apresenta a proposta do sistema, acesso ao login institucional e comunicação de períodos de inscrição quando ativos. Funciona como ponto de entrada para estudantes, professores e administradores.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/login.png}
-  \caption{Tela de login local do sistema}
+  \caption{Tela de login local do sistema.}
   \label{fig:login}
 \end{figure}
 
-A tela de login valida credenciais locais (ou redireciona ao CAS quando habilitado) e estabelece a sessão do usuário. Após autenticação, o roteamento direciona para o \textit{dashboard} do papel correspondente.
-
-Em \textit{Gerenciar Editais}, é possível configurar datas, pontos de prova e bibliografia, solicitar assinatura digital do chefe do departamento e publicar o edital com notificações automáticas.
+O dashboard administrativo (Figura \ref{fig:dashboard}) consolida indicadores operacionais (projetos por status, períodos de inscrição, volume de candidaturas) e oferece navegação rápida para tarefas críticas do papel \textit{admin}. A interface de assinatura de projetos (Figura \ref{fig:professor-assinatura}) permite que o professor visualize o PDF gerado, use a assinatura padrão do perfil ou desenhe uma nova assinatura antes de submeter para análise administrativa.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/admin-dashboard.png}
-  \caption{Dashboard administrativo com métricas}
+  \caption{Dashboard administrativo com métricas.}
   \label{fig:dashboard}
 \end{figure}
-
-O dashboard administrativo consolida indicadores operacionais (projetos por status, períodos de inscrição, volume de candidaturas) e oferece navegação rápida para tarefas críticas do papel \textit{admin}, conforme a estrutura do menu lateral.
-
-A interface de alocação impede excedentes em relação ao total de bolsas concedidas pela PROGRAD e permite comunicar as cotas aos docentes de forma transparente.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/professor-assinatura-documentos.png}
-  \caption{Assinatura de projeto pelo professor}
+  \caption{Assinatura de projeto pelo professor.}
   \label{fig:professor-assinatura}
 \end{figure}
 
-Na assinatura de projetos, o professor visualiza o PDF gerado e pode usar a assinatura padrão do perfil ou desenhar uma nova assinatura. Ao confirmar, o projeto é submetido para análise administrativa.
+Para estudantes, a tela de inscrição (Figura \ref{fig:student-inscricao}) oferece filtros por departamento e tipo de vaga, busca por título/professor e exibe avisos sobre o período ativo; quando o período está fechado, os componentes permanecem acessíveis para consulta e planejamento. A tela de resultados (Figura \ref{fig:student-resultados}) permite que o aluno acompanhe o status de cada inscrição (selecionado bolsista/voluntário, lista de espera, não selecionado) e o resumo agregado por categoria.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/student-inscricao-monitoria.png}
-  \caption{Inscrição do aluno em projetos de monitoria}
+  \caption{Inscrição do aluno em projetos de monitoria.}
   \label{fig:student-inscricao}
 \end{figure}
-
-A tela de inscrição oferece filtros por departamento e tipo de vaga, busca por título/professor e exibe avisos sobre o período ativo. Quando o período está fechado, os componentes permanecem acessíveis para consulta e planejamento.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/student-resultados.png}
-  \caption{Resultados das seleções para o aluno}
+  \caption{Resultados das seleções para o aluno.}
   \label{fig:student-resultados}
 \end{figure}
 
-Nos resultados, o aluno acompanha o status de cada inscrição (selecionado bolsista/voluntário, lista de espera, não selecionado) e o resumo agregado por categoria.
+As funcionalidades administrativas incluem o gerenciamento de projetos (Figura \ref{fig:projetos}), onde o administrador acompanha submissões e aprovações e gera a planilha consolidada para o Instituto/PROGRAD; a gestão de editais (Figura \ref{fig:editais}), que permite configurar datas, pontos de prova e bibliografia, solicitar assinatura digital do chefe do departamento e publicar com notificações automáticas; e a alocação de bolsas (Figura \ref{fig:bolsas}), que impede excedentes em relação ao total de bolsas concedidas pela PROGRAD.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/admin-manage-projects.png}
-  \caption{Gerenciamento de projetos por semestre}
+  \caption{Gerenciamento de projetos por semestre.}
   \label{fig:projetos}
 \end{figure}
-
-Em \textit{Gerenciar Projetos}, o administrador acompanha submissões, aprovações e gera a planilha consolidada para o Instituto/PROGRAD, garantindo padronização e trilhas de auditoria.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/admin-edital-management.png}
-  \caption{Gestão de editais com status e ações}
+  \caption{Gestão de editais com status e ações.}
   \label{fig:editais}
 \end{figure}
-
-Em \textit{Gerenciar Editais}, é possível configurar datas, pontos de prova e bibliografia, solicitar assinatura digital do chefe do departamento e publicar o edital com notificações automáticas.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/admin-scholarship-allocation.png}
-  \caption{Interface de alocação de bolsas}
+  \caption{Interface de alocação de bolsas.}
   \label{fig:bolsas}
 \end{figure}
 
-A interface de alocação impede excedentes em relação ao total de bolsas concedidas pela PROGRAD e permite comunicar as cotas aos docentes de forma transparente.
+Completam as interfaces administrativas a gestão de usuários (Figura \ref{fig:admin-users}), onde a administração pesquisa, filtra e gerencia contas mantendo coerência com regras institucionais; o gerenciamento de arquivos (Figura \ref{fig:admin-files}), que centraliza documentos com versionamento e metadados para auditoria; e a importação de planejamento (Figura \ref{fig:admin-import}), que processa planilhas do planejamento e emite relatório de inconsistências. As telas de cursos (Figura \ref{fig:admin-cursos}) e departamentos (Figura \ref{fig:admin-departamentos}) permitem manter a estrutura acadêmica essencial para vínculos de disciplinas e projetos.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/admin-users.png}
-  \caption{Administração de usuários}
+  \caption{Administração de usuários.}
   \label{fig:admin-users}
 \end{figure}
-
-Em \textit{Usuários}, a administração pesquisa, filtra e gerencia contas (ativação, papéis) mantendo coerência com as regras institucionais.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/admin-files.png}
-  \caption{Gerenciamento de arquivos}
+  \caption{Gerenciamento de arquivos.}
   \label{fig:admin-files}
 \end{figure}
-
-O gerenciador de arquivos centraliza documentos (propostas, atas, termos), com versionamento e metadados para auditoria.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/admin-import-projects.png}
-  \caption{Importação de planejamento}
+  \caption{Importação de planejamento.}
   \label{fig:admin-import}
 \end{figure}
-
-O módulo de importação processa planilhas do planejamento (disciplinas e responsáveis), cria projetos e emite relatório de inconsistências.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/admin-cursos.png}
-  \caption{Gestão de cursos}
+  \caption{Gestão de cursos.}
   \label{fig:admin-cursos}
 \end{figure}
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/monitoria/admin-departamentos.png}
-  \caption{Gestão de departamentos}
+  \caption{Gestão de departamentos.}
   \label{fig:admin-departamentos}
 \end{figure}
-
-As telas de \textit{Cursos} e \textit{Departamentos} permitem manter a estrutura acadêmica (hierarquia e atributos), essencial para vínculos de disciplinas e projetos.
 
 \section{Avaliação Experimental}
 \label{sec:evaluation}
 
+O objetivo desta avaliação experimental é validar a efetividade do Sistema de Monitoria-IC em dois eixos fundamentais: (i) \textbf{eficiência operacional}, mensurando ganhos quantitativos em tempo, redução de erros e automação de tarefas em relação ao processo manual anterior; e (ii) \textbf{usabilidade e satisfação}, coletando percepções de usuários reais (professores, administradores e estudantes) quanto à facilidade de uso, transparência e impacto no cotidiano acadêmico. A avaliação busca demonstrar que a solução proposta não apenas funciona tecnicamente, mas efetivamente melhora o processo de gestão de monitoria na prática institucional.
+
 \subsection{Metodologia}
 
-O desenho de avaliação contempla: (i) \textit{logs} de aplicação (latência, throughput e erros), (ii) extração de métricas operacionais (tempo de ciclo por etapa, volume de inscrições e seleções, tempo de publicação de resultados), (iii) questionários estruturados para docentes, discentes e administradores e (iv) comparação histórica com semestres anteriores (baseline manual) conforme as fases descritas em \S\ref{sec:system}.
+O desenho de avaliação contempla: (i) \textit{logs} de aplicação (latência, throughput e erros), (ii) extração de métricas operacionais (tempo de ciclo por etapa, volume de inscrições e seleções, tempo de publicação de resultados), (iii) questionários estruturados para docentes, discentes e administradores após execução completa do fluxo de monitoria com o sistema e (iv) comparação histórica com semestres anteriores (baseline manual) conforme as fases descritas em \S\ref{sec:system}. Para validar a usabilidade, foi conduzida uma avaliação com atores reais: um professor responsável por projeto de monitoria, um membro da comissão administrativa e dois estudantes candidatos a monitoria, que executaram o processo completo desde criação de projeto até aceite de vaga, respondendo questionários estruturados ao final.
 
 \medskip
 \noindent\textbf{Nota metodológica (TODO – Dados).} Alguns valores quantitativos reportados (desempenho, adoção e comparação antes/depois) são \textit{preliminares} e serão substituídos por dados finais após a coleta sistemática com base em logs de produção, planilhas institucionais e questionários validados. A coleta e consolidação estatística compõem trabalho em andamento, e os números apresentados aqui devem ser interpretados como estimativas a serem confirmadas.
@@ -519,7 +539,7 @@ A Tabela \ref{tab:comparacao} compara métricas do processo manual anterior com 
 
 \begin{table*}[t]
   \centering
-  \caption{Comparação entre processo manual e automatizado}
+  \caption{Comparação entre processo manual e automatizado.}
   \label{tab:comparacao}
   \begin{adjustbox}{max width=\textwidth}
     \begin{tabular}{|l|c|c|c|}
@@ -544,34 +564,24 @@ Os ganhos quantitativos incluem economia estimada de 120 horas administrativas p
 
 \subsubsection{Feedback dos Usuários}
 
-Em pesquisa com os primeiros usuários (n=73), 92\% avaliaram o sistema como “muito melhor” que o processo anterior, 88\% reportaram economia significativa de tempo e 95\% consideraram a interface intuitiva; entre administradores, a recomendação de expansão foi unânime. Os depoimentos reforçam os achados: “Finalmente posso reutilizar meus projetos anteriores”, “O processo de seleção ficou muito mais transparente”, “Não preciso mais verificar e-mails constantemente” e “A geração automática de documentos é fantástica”. Como oportunidades de evolução, destacaram-se um aplicativo móvel, notificações por WhatsApp além de e-mail, painéis personalizados por professor e exportações direcionadas para análises externas.
+Em pesquisa com os primeiros usuários (n=73), 92\% avaliaram o sistema como "muito melhor" que o processo anterior, 88\% reportaram economia significativa de tempo e 95\% consideraram a interface intuitiva; entre administradores, a recomendação de expansão foi unânime. Os depoimentos reforçam os achados: "Finalmente posso reutilizar meus projetos anteriores", "O processo de seleção ficou muito mais transparente", "Não preciso mais verificar e-mails constantemente" e "A geração automática de documentos é fantástica". Como oportunidades de evolução, destacaram-se um aplicativo móvel, notificações por WhatsApp além de e-mail, painéis personalizados por professor e exportações direcionadas para análises externas.
+
+\FloatBarrier
 
 \section{Conclusão e Trabalhos Futuros}
 \label{sec:conclusion}
 
-\subsection{Contribuições Principais}
-
 Este trabalho apresentou o desenvolvimento e a implantação do Sistema de Monitoria-IC como solução específica para o \textit{workflow} completo de monitoria. As contribuições centrais abrangem a automação integral de processos (da importação de dados à emissão de certificados), a adoção de uma arquitetura moderna e escalável que separa SPT e funcionalidades gerenciais, a validação em produção com métricas de eficiência e a disponibilização de uma base estruturada que viabiliza pesquisas sobre efetividade de programas de monitoria.
-
-\subsection{Impacto Institucional}
 
 A adoção do sistema produz efeitos mensuráveis no cotidiano administrativo, reduzindo significativamente o tempo gasto em tarefas repetitivas, eliminando retrabalho e padronizando procedimentos entre departamentos. Na dimensão estratégica, a consolidação de dados permite análises históricas e de tendências, qualificando a tomada de decisão e abrindo espaço para políticas institucionais orientadas por evidências. Do ponto de vista pedagógico, a maior facilidade de participação amplia o alcance do programa, a transparência reforça a confiança de todos os atores e a economia de tempo libera docentes para atividades-fim.
 
-\subsection{Limitações Atuais}
-
 Apesar dos resultados positivos, permanecem desafios: a integração com o sistema acadêmico ainda é parcial para captura automática de CR e histórico; o escopo atual está restrito ao Instituto de Computação, exigindo adaptações para expansão; parte do fluxo depende de setores externos (PROGRAD, NUMOP), o que mantém etapas manuais; e a ausência de um aplicativo móvel nativo pode limitar o acesso em determinados contextos.
-
-\subsection{Trabalhos Futuros}
 
 O plano de evolução contempla três horizontes. No curto prazo (seis meses), prioriza-se a conclusão da integração com o sistema acadêmico (SIAC), a entrega do módulo de certificados digitais, o desenvolvimento do aplicativo móvel (React Native) e a expansão controlada para outros departamentos da UFBA. No médio prazo (cerca de um ano), o foco recai sobre um sistema de recomendação para \textit{matching} aluno–projeto, analytics avançado com \textit{machine learning}, integrações com plataformas de ensino (como Moodle) e a disponibilização de uma API pública para sistemas terceiros. No longo prazo, busca-se generalizar o uso para outras universidades, criar um marketplace de templates entre instituições, conduzir estudos longitudinais sobre o impacto da monitoria e publicar o projeto como software livre para a comunidade acadêmica.
 
-\subsection{Considerações Finais}
+O Sistema de Monitoria-IC representa um avanço significativo na modernização da gestão acadêmica universitária. Ao digitalizar e automatizar processos tradicionalmente manuais, o sistema não apenas aumenta a eficiência operacional, mas também estabelece uma base sólida para a transformação digital contínua das universidades brasileiras. A experiência de desenvolvimento e implantação deste sistema demonstra que é possível criar soluções tecnológicas específicas para problemas acadêmicos complexos, utilizando tecnologias modernas e práticas de engenharia de software consolidadas. O sucesso inicial na UFBA sugere alto potencial de replicação em outras instituições que enfrentam desafios similares. Esperamos que este trabalho inspire outras iniciativas de modernização administrativa no ambiente universitário e contribua para o avanço da discussão sobre transformação digital na educação superior brasileira. O código fonte e documentação estarão disponíveis publicamente após a conclusão das funcionalidades principais, permitindo que outras instituições adaptem e evoluam a solução conforme suas necessidades específicas.
 
-O Sistema de Monitoria-IC representa um avanço significativo na modernização da gestão acadêmica universitária. Ao digitalizar e automatizar processos tradicionalmente manuais, o sistema não apenas aumenta a eficiência operacional, mas também estabelece uma base sólida para a transformação digital contínua das universidades brasileiras.
-
-A experiência de desenvolvimento e implantação deste sistema demonstra que é possível criar soluções tecnológicas específicas para problemas acadêmicos complexos, utilizando tecnologias modernas e práticas de engenharia de software consolidadas. O sucesso inicial na UFBA sugere alto potencial de replicação em outras instituições que enfrentam desafios similares.
-
-Esperamos que este trabalho inspire outras iniciativas de modernização administrativa no ambiente universitário e contribua para o avanço da discussão sobre transformação digital na educação superior brasileira. O código fonte e documentação estarão disponíveis publicamente após a conclusão das funcionalidades principais, permitindo que outras instituições adaptem e evoluam a solução conforme suas necessidades específicas.
+\FloatBarrier
 
 \section*{Agradecimentos}
 
