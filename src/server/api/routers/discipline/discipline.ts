@@ -1,17 +1,25 @@
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, adminProtectedProcedure } from '@/server/api/trpc'
 import {
   disciplinaProfessorResponsavelTable,
   disciplinaTable,
+  equivalenciaDisciplinasTable,
   inscricaoTable,
   professorTable,
   projetoDisciplinaTable,
   projetoTable,
   projetoTemplateTable,
 } from '@/server/db/schema'
-import { disciplinaSchema, newDisciplinaSchema, updateDisciplineSchema } from '@/types'
+import {
+  disciplinaSchema,
+  newDisciplinaSchema,
+  updateDisciplineSchema,
+  createEquivalenceSchema,
+  deleteEquivalenceSchema,
+  checkEquivalenceSchema,
+} from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
-import { and, eq, inArray, sql } from 'drizzle-orm'
+import { and, eq, inArray, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 const log = logger.child({ context: 'DisciplineRouter' })
@@ -638,6 +646,223 @@ export const disciplineRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Erro ao desassociar professor da disciplina',
+        })
+      }
+    }),
+
+  // ========================================
+  // DISCIPLINE EQUIVALENCES
+  // ========================================
+
+  listEquivalences: adminProtectedProcedure
+    .input(z.void())
+    .output(
+      z.array(
+        z.object({
+          id: z.number(),
+          disciplinaOrigem: z.object({
+            id: z.number(),
+            codigo: z.string(),
+            nome: z.string(),
+          }),
+          disciplinaEquivalente: z.object({
+            id: z.number(),
+            codigo: z.string(),
+            nome: z.string(),
+          }),
+          createdAt: z.date(),
+        })
+      )
+    )
+    .query(async ({ ctx }) => {
+      try {
+        const equivalences = await ctx.db
+          .select({
+            id: equivalenciaDisciplinasTable.id,
+            disciplinaOrigemId: equivalenciaDisciplinasTable.disciplinaOrigemId,
+            disciplinaEquivalenteId: equivalenciaDisciplinasTable.disciplinaEquivalenteId,
+            createdAt: equivalenciaDisciplinasTable.createdAt,
+          })
+          .from(equivalenciaDisciplinasTable)
+
+        const disciplinaIds = [
+          ...new Set([
+            ...equivalences.map((e) => e.disciplinaOrigemId),
+            ...equivalences.map((e) => e.disciplinaEquivalenteId),
+          ]),
+        ]
+
+        const disciplinas = await ctx.db.query.disciplinaTable.findMany({
+          where: inArray(disciplinaTable.id, disciplinaIds),
+        })
+
+        const disciplinaMap = new Map(disciplinas.map((d) => [d.id, d]))
+
+        return equivalences.map((eq) => {
+          const origem = disciplinaMap.get(eq.disciplinaOrigemId)
+          const equivalente = disciplinaMap.get(eq.disciplinaEquivalenteId)
+
+          if (!origem || !equivalente) {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Disciplina não encontrada para equivalência',
+            })
+          }
+
+          return {
+            id: eq.id,
+            disciplinaOrigem: {
+              id: origem.id,
+              codigo: origem.codigo,
+              nome: origem.nome,
+            },
+            disciplinaEquivalente: {
+              id: equivalente.id,
+              codigo: equivalente.codigo,
+              nome: equivalente.nome,
+            },
+            createdAt: eq.createdAt,
+          }
+        })
+      } catch (error) {
+        log.error(error, 'Erro ao listar equivalências')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao listar equivalências de disciplinas',
+        })
+      }
+    }),
+
+  createEquivalence: adminProtectedProcedure
+    .input(createEquivalenceSchema)
+    .output(z.object({ success: z.boolean(), id: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        // Validate both disciplines exist
+        const [disciplinaOrigem, disciplinaEquivalente] = await Promise.all([
+          ctx.db.query.disciplinaTable.findFirst({
+            where: eq(disciplinaTable.id, input.disciplinaOrigemId),
+          }),
+          ctx.db.query.disciplinaTable.findFirst({
+            where: eq(disciplinaTable.id, input.disciplinaEquivalenteId),
+          }),
+        ])
+
+        if (!disciplinaOrigem || !disciplinaEquivalente) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Uma ou ambas as disciplinas não foram encontradas',
+          })
+        }
+
+        // Check if equivalence already exists (bidirectional check)
+        const existingEquivalence = await ctx.db.query.equivalenciaDisciplinasTable.findFirst({
+          where: or(
+            and(
+              eq(equivalenciaDisciplinasTable.disciplinaOrigemId, input.disciplinaOrigemId),
+              eq(equivalenciaDisciplinasTable.disciplinaEquivalenteId, input.disciplinaEquivalenteId)
+            ),
+            and(
+              eq(equivalenciaDisciplinasTable.disciplinaOrigemId, input.disciplinaEquivalenteId),
+              eq(equivalenciaDisciplinasTable.disciplinaEquivalenteId, input.disciplinaOrigemId)
+            )
+          ),
+        })
+
+        if (existingEquivalence) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Equivalência já existe entre estas disciplinas',
+          })
+        }
+
+        const [result] = await ctx.db
+          .insert(equivalenciaDisciplinasTable)
+          .values({
+            disciplinaOrigemId: input.disciplinaOrigemId,
+            disciplinaEquivalenteId: input.disciplinaEquivalenteId,
+          })
+          .returning()
+
+        if (!result) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Erro ao criar equivalência',
+          })
+        }
+
+        log.info(
+          {
+            disciplinaOrigemId: input.disciplinaOrigemId,
+            disciplinaEquivalenteId: input.disciplinaEquivalenteId,
+          },
+          'Equivalência criada com sucesso'
+        )
+
+        return { success: true, id: result.id }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        log.error(error, 'Erro ao criar equivalência')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao criar equivalência de disciplinas',
+        })
+      }
+    }),
+
+  deleteEquivalence: adminProtectedProcedure
+    .input(deleteEquivalenceSchema)
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const result = await ctx.db
+          .delete(equivalenciaDisciplinasTable)
+          .where(eq(equivalenciaDisciplinasTable.id, input.id))
+          .returning()
+
+        if (!result.length) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Equivalência não encontrada',
+          })
+        }
+
+        log.info({ equivalenceId: input.id }, 'Equivalência deletada com sucesso')
+        return { success: true }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        log.error(error, 'Erro ao deletar equivalência')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao deletar equivalência de disciplinas',
+        })
+      }
+    }),
+
+  checkEquivalence: protectedProcedure
+    .input(checkEquivalenceSchema)
+    .output(z.object({ isEquivalent: z.boolean() }))
+    .query(async ({ input, ctx }) => {
+      try {
+        const equivalence = await ctx.db.query.equivalenciaDisciplinasTable.findFirst({
+          where: or(
+            and(
+              eq(equivalenciaDisciplinasTable.disciplinaOrigemId, input.disciplinaOrigemId),
+              eq(equivalenciaDisciplinasTable.disciplinaEquivalenteId, input.disciplinaEquivalenteId)
+            ),
+            and(
+              eq(equivalenciaDisciplinasTable.disciplinaOrigemId, input.disciplinaEquivalenteId),
+              eq(equivalenciaDisciplinasTable.disciplinaEquivalenteId, input.disciplinaOrigemId)
+            )
+          ),
+        })
+
+        return { isEquivalent: !!equivalence }
+      } catch (error) {
+        log.error(error, 'Erro ao verificar equivalência')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao verificar equivalência de disciplinas',
         })
       }
     }),

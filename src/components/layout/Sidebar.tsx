@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import {
+  ArrowLeftRight,
   Award,
   BookOpen,
   Building,
@@ -26,6 +27,7 @@ import {
   FileText,
   GraduationCap,
   LayoutDashboard,
+  Mail,
   Settings,
   TrendingUp,
   Upload,
@@ -192,6 +194,18 @@ const menuConfig: MenuConfig[] = [
         label: "Disciplinas",
         href: "/home/admin/disciplinas",
         icon: BookOpen,
+        roles: ["admin"],
+      },
+      {
+        label: "Equivalências de Disciplinas",
+        href: "/home/admin/equivalencias",
+        icon: ArrowLeftRight,
+        roles: ["admin"],
+      },
+      {
+        label: "Email",
+        href: "/home/admin/configuracoes",
+        icon: Mail,
         roles: ["admin"],
       },
     ],

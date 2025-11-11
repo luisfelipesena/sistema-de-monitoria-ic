@@ -260,13 +260,19 @@
       "when": 1761949950123,
       "tag": "0036_mysterious_prism",
       "breakpoints": true
-    }
-    ,
+    },
     {
       "idx": 35,
       "version": "7",
       "when": 1759599663000,
       "tag": "0035_demo_seed",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1762473373383,
+      "tag": "0036_furry_venom",
       "breakpoints": true
     }
   ]

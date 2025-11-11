@@ -102,7 +102,7 @@
 - `drizzle/migrations/` - Nova migração para tabela
 **STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Interface admin para gerenciar equivalências
+**TAREFA** - Interface admin para gerenciar equivalências ✅
 **DESCRIÇÃO** - Criar página no admin para cadastrar/editar/remover equivalências entre disciplinas
 **CONTEXTO** - Admin precisa indicar que disciplinas são equivalentes para o sistema considerar automaticamente
 ⚠️ **OBS CRÍTICA - INTERFACE DEVE SER VISUAL E EDITÁVEL**:
@@ -112,18 +112,29 @@
 - Considerar filtros por departamento e ativar/desativar por edital
 - Pode incluir campo no próprio formulário de criação/edição do edital
 **ARQUIVOS AFETADOS**:
-- `src/app/home/admin/equivalencias/page.tsx` - Nova página de gestão standalone
-- `src/app/home/admin/edital-management/` - Adicionar seção de equivalências no formulário de edital
-- `src/server/api/routers/discipline/discipline.ts` - Adicionar procedures para CRUD de equivalências
-**STATUS** - [ ] PENDENTE
+- `src/app/home/admin/equivalencias/page.tsx` - ✅ CRIADO - Página completa com tabela, dialog criação/deleção
+- `src/components/layout/Sidebar.tsx` - ✅ ATUALIZADO - Adicionado link "Equivalências de Disciplinas" no menu admin
+- `src/server/api/routers/discipline/discipline.ts` - ✅ ATUALIZADO - Procedures: listEquivalences, createEquivalence, deleteEquivalence, checkEquivalence
+- `src/types/discipline.ts` - ✅ ATUALIZADO - Tipos e schemas para equivalências
+**STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Ajustar busca de notas considerando equivalências
+**TAREFA** - Ajustar busca de notas considerando equivalências ✅
 **DESCRIÇÃO** - Ao buscar nota de uma disciplina, sistema deve verificar se aluno tem nota em disciplina equivalente
 **CONTEXTO** - Sistema deve aceitar nota de MATA37 ou MATE045 indistintamente quando são equivalentes
 **ARQUIVOS AFETADOS**:
-- `src/server/api/routers/inscricao/inscricao.ts` - Lógica de busca de nota considerando equivalências
-- `src/server/api/routers/selecao/selecao.ts` - Considerar equivalências na seleção
-**STATUS** - [ ] PENDENTE
+- `src/server/api/routers/inscricao/inscricao.ts` - ✅ IMPLEMENTADO - Helper function `findStudentGradeWithEquivalents()` + integração em `createInscricao`
+- `src/tests/e2e/equivalence-workflow.spec.ts` - ✅ CRIADO - Testes E2E completos para workflow de equivalências
+**STATUS** - [x] ✅ COMPLETO
+
+**IMPLEMENTAÇÃO**:
+- ✅ Helper function `findStudentGradeWithEquivalents(alunoId, disciplinaId, db)`:
+  1. Busca direta de nota na disciplina
+  2. Busca equivalências (bidirecionais)
+  3. Busca nota em disciplinas equivalentes
+  4. Retorna primeira nota válida encontrada
+- ✅ Integrado em `createInscricao`: busca notas do aluno em disciplinas do projeto considerando equivalências
+- ✅ Campo `notaDisciplina` preenchido automaticamente na inscrição
+- ✅ Logging completo para auditoria e debug
 
 📋 **DESIGN PROPOSTO - TABELA DE EQUIVALÊNCIAS**:
 ```typescript
@@ -172,9 +183,9 @@ export const disciplinaEquivalenciaTable = pgTable('disciplina_equivalencia', {
 **DESCRIÇÃO** - Adicionar configuração no sistema para emails do Instituto (IC) e Departamento (DCC)
 **CONTEXTO** - Sistema precisa saber para onde enviar: Instituto para projetos iniciais, Departamento para consolidação final
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - Adicionar campos de email em `departamentoTable`
-- `src/app/home/admin/configuracoes/page.tsx` - Interface para configurar emails
-**STATUS** - [ ] PENDENTE
+- `src/server/db/schema.ts` - Adicionar campos de email em `departamentoTable` - ✅ IMPLEMENTADO
+- `src/app/home/admin/configuracoes/page.tsx` - Interface para configurar emails - ✅ CRIADO
+**STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Ajustar envio de planilha final para Departamento (não PROGRAD)
 **DESCRIÇÃO** - Planilhas de bolsistas/voluntários devem ir para chefe do DEPARTAMENTO (email DCC), não direto PROGRAD
