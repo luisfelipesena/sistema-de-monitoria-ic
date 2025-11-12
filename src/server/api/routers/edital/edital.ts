@@ -1,5 +1,5 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { editalTable, periodoInscricaoTable, projetoTable, professorTable } from '@/server/db/schema'
+import { editalTable, periodoInscricaoTable, professorTable, projetoTable } from '@/server/db/schema'
 import { sendEditalPublishedNotification } from '@/server/lib/email-service'
 import minioClient, { bucketName } from '@/server/lib/minio'
 import { EditalInternoTemplate, type EditalInternoData } from '@/server/lib/pdfTemplates/edital-interno'
@@ -7,7 +7,7 @@ import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { TRPCError } from '@trpc/server'
-import { and, eq, gte, lte, or, sql, inArray, isNull, isNotNull } from 'drizzle-orm'
+import { and, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 const log = logger.child({ context: 'EditalRouter' })
@@ -1002,7 +1002,7 @@ export const editalRouter = createTRPCRouter({
             codigo: projeto.disciplinas[0]?.disciplina.codigo || 'MON',
             nome: projeto.titulo,
             professor: {
-              nome: projeto.professorResponsavel.user.username,
+              nome: projeto.professorResponsavel.nomeCompleto,
               email: projeto.professorResponsavel.user.email,
             },
             tipoMonitoria: 'INDIVIDUAL' as const,

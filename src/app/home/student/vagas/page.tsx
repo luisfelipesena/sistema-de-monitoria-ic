@@ -125,104 +125,102 @@ export default function VagasPage() {
         )}
       </div>
 
-      {/* Filters and Stats in single row */}
-      <div className="grid gap-4 lg:grid-cols-[1fr,auto]">
-        {/* Filters Section - Left */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Filtros</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <Label htmlFor="search">Buscar projetos</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="search"
-                    placeholder="Título ou professor..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="departamento">Departamento</Label>
-                <Select value={selectedDepartamento} onValueChange={setSelectedDepartamento}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos os departamentos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os departamentos</SelectItem>
-                    {departamentos.map((dept: any) => (
-                      <SelectItem key={dept.id} value={dept.id.toString()}>
-                        {dept.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="tipoVaga">Tipo de vaga</Label>
-                <Select value={tipoVagaFilter} onValueChange={setTipoVagaFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos os tipos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os tipos</SelectItem>
-                    <SelectItem value={TIPO_VAGA_LABELS.BOLSISTA}>{TIPO_VAGA_LABELS.BOLSISTA}</SelectItem>
-                    <SelectItem value={TIPO_VAGA_LABELS.VOLUNTARIO}>{TIPO_VAGA_LABELS.VOLUNTARIO}</SelectItem>
-                  </SelectContent>
-                </Select>
+      {/* Filters and Stats*/}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Filtros</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div>
+              <Label htmlFor="search">Buscar projetos</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  placeholder="Título ou professor..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Stats Cards - Right */}
-        <div className="flex flex-col gap-3 lg:w-64">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Award className="h-6 w-6 text-yellow-500 flex-shrink-0" />
-                <div>
-                  <div className="text-xl font-bold">
-                    {filteredProjetos.reduce((sum, p) => sum + (p.bolsasDisponibilizadas ?? 0), 0)}
+            <div>
+              <Label htmlFor="departamento">Departamento</Label>
+              <Select value={selectedDepartamento} onValueChange={setSelectedDepartamento}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os departamentos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os departamentos</SelectItem>
+                  {departamentos.map((dept: any) => (
+                    <SelectItem key={dept.id} value={dept.id.toString()}>
+                      {dept.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="tipoVaga">Tipo de vaga</Label>
+              <Select value={tipoVagaFilter} onValueChange={setTipoVagaFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os tipos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
+                  <SelectItem value={TIPO_VAGA_LABELS.BOLSISTA}>{TIPO_VAGA_LABELS.BOLSISTA}</SelectItem>
+                  <SelectItem value={TIPO_VAGA_LABELS.VOLUNTARIO}>{TIPO_VAGA_LABELS.VOLUNTARIO}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardContent className="p-4">             
+                <div className="flex items-center gap-2">
+                  <Award className="h-6 w-6 text-yellow-500 flex-shrink-0" />
+                  <div>
+                    <div className="text-xl font-bold">
+                      {filteredProjetos.reduce((sum, p) => sum + (p.bolsasDisponibilizadas ?? 0), 0)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Bolsas Disponíveis</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">Bolsas Disponíveis</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <Users className="h-6 w-6 text-blue-500 flex-shrink-0" />
-                <div>
-                  <div className="text-xl font-bold">
-                    {filteredProjetos.reduce((sum, p) => sum + (p.voluntariosSolicitados ?? 0), 0)}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">             
+                <div className="flex items-center gap-2">
+                  <Users className="h-6 w-6 text-blue-500 flex-shrink-0" />
+                  <div>
+                    <div className="text-xl font-bold">
+                      {filteredProjetos.reduce((sum, p) => sum + (p.voluntariosSolicitados ?? 0), 0)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Vagas Voluntárias</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">Vagas Voluntárias</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-6 w-6 text-green-500 flex-shrink-0" />
-                <div>
-                  <div className="text-xl font-bold">{filteredProjetos.length}</div>
-                  <p className="text-xs text-muted-foreground">Projetos Disponíveis</p>
+              </CardContent>
+            </Card> 
+
+            <Card>
+              <CardContent className="p-4">             
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-6 w-6 text-green-500 flex-shrink-0" />
+                  <div>
+                    <div className="text-xl font-bold">{filteredProjetos.length}</div>
+                    <p className="text-xs text-muted-foreground">Projetos Disponíveis</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              </CardContent>
+            </Card>                           
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Results Summary */}
       <div className="flex items-center justify-between">
