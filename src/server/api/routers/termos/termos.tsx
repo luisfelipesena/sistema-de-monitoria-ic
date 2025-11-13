@@ -92,7 +92,7 @@ export const termosRouter = createTRPCRouter({
             },
             professor: {
               user: {
-                name: vagaData.projeto.professorResponsavel.user.username,
+                name: vagaData.projeto.professorResponsavel.nomeCompleto,
                 email: vagaData.projeto.professorResponsavel.user.email,
               },
               siape: vagaData.projeto.professorResponsavel.matriculaSiape ?? undefined,
@@ -652,7 +652,7 @@ Sistema de Monitoria IC
               to: vaga.projeto.professorResponsavel.user.email,
               subject: "Lembrete: Assinatura de Termo de Compromisso Pendente",
               html: `
-Olá ${vaga.projeto.professorResponsavel.user.username},<br><br>
+Olá ${vaga.projeto.professorResponsavel.nomeCompleto},<br><br>
 
 Você tem um termo de compromisso pendente de assinatura para o aluno ${vaga.aluno.user.username} do projeto ${vaga.projeto.titulo}.<br><br>
 

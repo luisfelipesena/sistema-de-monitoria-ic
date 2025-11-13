@@ -319,7 +319,7 @@ export const selecaoRouter = createTRPCRouter({
               studentName: inscricaoItem.aluno.user.username,
               studentEmail: inscricaoItem.aluno.user.email,
               projectTitle: projetoData.titulo,
-              professorName: projetoData.professorResponsavel.user.username,
+              professorName: projetoData.professorResponsavel.nomeCompleto,
               status,
               feedbackProfessor: input.mensagemPersonalizada,
               projetoId: parseInt(input.projetoId),
