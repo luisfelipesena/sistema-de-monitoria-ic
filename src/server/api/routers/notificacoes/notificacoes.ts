@@ -134,7 +134,7 @@ Sistema de Monitoria IC
                 to: vagaItem.projeto.professorResponsavel.user.email,
                 subject: `Lembrete: Assine termo de compromisso - ${vagaItem.aluno.user.username}`,
                 html: `
-Olá ${vagaItem.projeto.professorResponsavel.user.username},<br><br>
+Olá ${vagaItem.projeto.professorResponsavel.nomeCompleto},<br><br>
 
 O termo de compromisso do monitor ${vagaItem.aluno.user.username} está pendente de sua assinatura há ${diasLimite} dias.<br><br>
 

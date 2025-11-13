@@ -171,7 +171,7 @@ export const vagasRouter = createTRPCRouter({
           to: inscricaoData.projeto.professorResponsavel.user.email,
           subject: `Vaga aceita - ${inscricaoData.aluno.user.username}`,
           html: `
-Olá ${inscricaoData.projeto.professorResponsavel.user.username},<br><br>
+Olá ${inscricaoData.projeto.professorResponsavel.nomeCompleto},<br><br>
 
 O aluno ${inscricaoData.aluno.user.username} aceitou a vaga de ${input.tipoBolsa.toLowerCase()} para o projeto ${inscricaoData.projeto.titulo}.<br><br>
 
@@ -267,7 +267,7 @@ Sistema de Monitoria IC
           to: inscricaoData.projeto.professorResponsavel.user.email,
           subject: `Vaga recusada - ${inscricaoData.aluno.user.username}`,
           html: `
-Olá ${inscricaoData.projeto.professorResponsavel.user.username},<br><br>
+Olá ${inscricaoData.projeto.professorResponsavel.nomeCompleto},<br><br>
 
 O aluno ${inscricaoData.aluno.user.username} recusou a vaga oferecida para o projeto ${inscricaoData.projeto.titulo}.<br><br>
 
@@ -617,7 +617,7 @@ Sistema de Monitoria IC
           to: vagaData.projeto.professorResponsavel.user.email,
           subject: 'Monitoria Finalizada',
           html: `
-Olá ${vagaData.projeto.professorResponsavel.user.username},<br><br>
+Olá ${vagaData.projeto.professorResponsavel.nomeCompleto},<br><br>
 
 A monitoria do aluno ${vagaData.aluno.user.username} no projeto ${vagaData.projeto.titulo} foi oficialmente finalizada em ${dataFimFinal.toLocaleDateString('pt-BR')}.<br><br>
 

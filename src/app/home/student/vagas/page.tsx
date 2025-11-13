@@ -125,12 +125,12 @@ export default function VagasPage() {
         )}
       </div>
 
-      {/* Filters */}
+      {/* Filters and Stats*/}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Filtros</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
             <div>
               <Label htmlFor="search">Buscar projetos</Label>
@@ -177,6 +177,48 @@ export default function VagasPage() {
               </Select>
             </div>
           </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardContent className="p-4">             
+                <div className="flex items-center gap-2">
+                  <Award className="h-6 w-6 text-yellow-500 flex-shrink-0" />
+                  <div>
+                    <div className="text-xl font-bold">
+                      {filteredProjetos.reduce((sum, p) => sum + (p.bolsasDisponibilizadas ?? 0), 0)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Bolsas Disponíveis</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">             
+                <div className="flex items-center gap-2">
+                  <Users className="h-6 w-6 text-blue-500 flex-shrink-0" />
+                  <div>
+                    <div className="text-xl font-bold">
+                      {filteredProjetos.reduce((sum, p) => sum + (p.voluntariosSolicitados ?? 0), 0)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Vagas Voluntárias</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card> 
+
+            <Card>
+              <CardContent className="p-4">             
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-6 w-6 text-green-500 flex-shrink-0" />
+                  <div>
+                    <div className="text-xl font-bold">{filteredProjetos.length}</div>
+                    <p className="text-xs text-muted-foreground">Projetos Disponíveis</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>                           
+          </div>
         </CardContent>
       </Card>
 
@@ -186,47 +228,6 @@ export default function VagasPage() {
           {filteredProjetos.length} projeto{filteredProjetos.length !== 1 ? "s" : ""} encontrado
           {filteredProjetos.length !== 1 ? "s" : ""}
         </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Award className="h-8 w-8 text-yellow-500" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {filteredProjetos.reduce((sum, p) => sum + (p.bolsasDisponibilizadas ?? 0), 0)}
-                </div>
-                <p className="text-sm text-muted-foreground">Bolsas Disponíveis</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <Users className="h-8 w-8 text-blue-500" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {filteredProjetos.reduce((sum, p) => sum + (p.voluntariosSolicitados ?? 0), 0)}
-                </div>
-                <p className="text-sm text-muted-foreground">Vagas Voluntárias</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-8 w-8 text-green-500" />
-              <div>
-                <div className="text-2xl font-bold">{filteredProjetos.length}</div>
-                <p className="text-sm text-muted-foreground">Projetos Disponíveis</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Project Cards */}
