@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EditalListItem } from "@/types";
+import { EditalListItem, SEMESTRE_1, TIPO_EDITAL_DCC } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { Edit, Eye, FileText, Trash2, Upload, Send } from "lucide-react";
 import { EditalStatusBadge, getPeriodStatusBadge } from "./EditalStatusBadge";
@@ -63,7 +63,7 @@ export function createEditalTableColumns({
       cell: ({ row }) => {
         const tipo = row.getValue("tipo") as string;
         return (
-          <Badge variant={tipo === "DCC" ? "default" : "secondary"}>
+          <Badge variant={tipo === TIPO_EDITAL_DCC ? "default" : "secondary"}>
             {tipo}
           </Badge>
         );
@@ -79,7 +79,7 @@ export function createEditalTableColumns({
         return (
           <div className="text-sm">
             <div className="font-medium">
-              {periodo.ano}/{periodo.semestre === "SEMESTRE_1" ? "1" : "2"}
+              {periodo.ano}/{periodo.semestre === SEMESTRE_1 ? "1" : "2"}
             </div>
             <div className="text-muted-foreground">
               {formatDate(periodo.dataInicio)} - {formatDate(periodo.dataFim)}

@@ -1,7 +1,6 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { userTable } from '@/server/db/schema'
+import { signatureService } from '@/server/services/signature/signature-service'
 import { TRPCError } from '@trpc/server'
-import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { logger } from '@/utils/logger'
 
@@ -29,22 +28,7 @@ export const signatureRouter = createTRPCRouter({
     )
     .query(async ({ ctx }) => {
       try {
-        const user = await ctx.db.query.userTable.findFirst({
-          where: eq(userTable.id, ctx.user.id),
-          columns: {
-            assinaturaDefault: true,
-            dataAssinaturaDefault: true,
-          },
-        })
-
-        if (!user?.assinaturaDefault) {
-          return null
-        }
-
-        return {
-          signatureData: user.assinaturaDefault,
-          dataAssinatura: user.dataAssinaturaDefault || new Date(),
-        }
+        return await signatureService.getDefaultSignature(ctx.user.id)
       } catch (error) {
         log.error(error, 'Error getting default signature')
         throw new TRPCError({
@@ -76,14 +60,7 @@ export const signatureRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       try {
-        await ctx.db
-          .update(userTable)
-          .set({
-            assinaturaDefault: input.signatureData,
-            dataAssinaturaDefault: new Date(),
-          })
-          .where(eq(userTable.id, ctx.user.id))
-
+        await signatureService.saveDefaultSignature(ctx.user.id, input.signatureData)
         log.info({ userId: ctx.user.id }, 'Default signature saved successfully')
         return { success: true }
       } catch (error) {
@@ -113,14 +90,7 @@ export const signatureRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx }) => {
       try {
-        await ctx.db
-          .update(userTable)
-          .set({
-            assinaturaDefault: null,
-            dataAssinaturaDefault: null,
-          })
-          .where(eq(userTable.id, ctx.user.id))
-
+        await signatureService.deleteDefaultSignature(ctx.user.id)
         log.info({ userId: ctx.user.id }, 'Default signature deleted successfully')
         return { success: true }
       } catch (error) {

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { type DepartmentStatus } from './enums'
 import { nameSchema } from './schemas'
 
 // ========================================
@@ -41,7 +42,7 @@ export interface DepartamentoListItem {
   cursos: number
   disciplinas: number
   projetos: number
-  status: 'ATIVO' | 'INATIVO'
+  status: DepartmentStatus
   criadoEm: string
   atualizadoEm: string
 }

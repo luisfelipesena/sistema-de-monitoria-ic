@@ -2,6 +2,7 @@ import { logger } from '@/utils/logger'
 import * as XLSX from 'xlsx'
 
 const log = logger.child({ context: 'PlanejamentoDCCParser' })
+const HEADER_DISCIPLINA_MARKER = 'DISCIPLINA' as const
 
 export interface PlanejamentoDCCRow {
   disciplinaCodigo: string
@@ -58,7 +59,7 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
       const row = data[i]
       if (Array.isArray(row) && row.length > 0) {
         const firstCol = String(row[0] || '').toUpperCase()
-        if (firstCol.includes('DISCIPLINA')) {
+        if (firstCol.includes(HEADER_DISCIPLINA_MARKER)) {
           headerIndex = i
           break
         }
@@ -66,7 +67,7 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
     }
 
     if (headerIndex === -1) {
-      errors.push('Não foi possível encontrar linha de cabeçalho (procurando por "DISCIPLINA")')
+      errors.push(`Não foi possível encontrar linha de cabeçalho (procurando por "${HEADER_DISCIPLINA_MARKER}")`)
       return { rows, errors, warnings }
     }
 

@@ -9,7 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { SelecaoCandidato, AtaSelecaoData } from "@/types"
+import {
+  SelecaoCandidato,
+  AtaSelecaoData,
+  PROJETO_STATUS_APPROVED,
+  Semestre,
+  STATUS_INSCRICAO_SELECTED_BOLSISTA,
+  STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
+  STATUS_INSCRICAO_REJECTED_BY_PROFESSOR,
+  STATUS_INSCRICAO_WAITING_LIST,
+  getSemestreNumero,
+} from "@/types"
 import { api } from "@/utils/api"
 import { Award, Eye, FileText, Send, Users } from "lucide-react"
 import { useState } from "react"
@@ -92,7 +102,8 @@ export default function PublicarResultadosPage() {
   })
 
   // Projetos que podem ter resultados publicados
-  const projetosElegiveis = projetos?.filter((p) => p.status === "APPROVED" && p.totalInscritos > 0) || []
+  const projetosElegiveis =
+    projetos?.filter((p) => p.status === PROJETO_STATUS_APPROVED && p.totalInscritos > 0) || []
 
   const handleSelectProject = (projectId: string) => {
     setSelectedProjectId(parseInt(projectId))
@@ -117,13 +128,13 @@ export default function PublicarResultadosPage() {
 
   const formatStatus = (status: string) => {
     switch (status) {
-      case "SELECTED_BOLSISTA":
+      case STATUS_INSCRICAO_SELECTED_BOLSISTA:
         return "Selecionado (Bolsista)"
-      case "SELECTED_VOLUNTARIO":
+      case STATUS_INSCRICAO_SELECTED_VOLUNTARIO:
         return "Selecionado (Voluntário)"
-      case "REJECTED_BY_PROFESSOR":
+      case STATUS_INSCRICAO_REJECTED_BY_PROFESSOR:
         return "Não Selecionado"
-      case "WAITING_LIST":
+      case STATUS_INSCRICAO_WAITING_LIST:
         return "Lista de Espera"
       default:
         return status
@@ -132,13 +143,13 @@ export default function PublicarResultadosPage() {
 
   const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
-      case "SELECTED_BOLSISTA":
+      case STATUS_INSCRICAO_SELECTED_BOLSISTA:
         return "default"
-      case "SELECTED_VOLUNTARIO":
+      case STATUS_INSCRICAO_SELECTED_VOLUNTARIO:
         return "secondary"
-      case "REJECTED_BY_PROFESSOR":
+      case STATUS_INSCRICAO_REJECTED_BY_PROFESSOR:
         return "destructive"
-      case "WAITING_LIST":
+      case STATUS_INSCRICAO_WAITING_LIST:
         return "outline"
       default:
         return "outline"
@@ -174,8 +185,7 @@ export default function PublicarResultadosPage() {
                     <div className="flex flex-col">
                       <span className="font-medium">{projeto.titulo}</span>
                       <span className="text-sm text-muted-foreground">
-                        {projeto.ano}.{projeto.semestre === "SEMESTRE_1" ? "1" : "2"} - {projeto.totalInscritos}{" "}
-                        candidatos
+                        {projeto.ano}.{getSemestreNumero(projeto.semestre as Semestre)} - {projeto.totalInscritos} candidatos
                       </span>
                     </div>
                   </SelectItem>

@@ -1,18 +1,19 @@
-'use client'
+"use client"
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { FileUploadField } from '@/components/ui/FileUploadField'
-import { api } from '@/utils/api'
-import { useState } from 'react'
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { FileUploadField } from "@/components/ui/FileUploadField"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { CheckCircle, AlertTriangle, ArrowRight, Info } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import type { OnboardingStatusResponse } from '@/server/api/routers/onboarding/onboarding'
+import type { OnboardingStatusResponse } from "@/server/api/routers/onboarding/onboarding"
+import { GENERO_FEMININO, GENERO_MASCULINO, GENERO_OUTRO, type Genero } from "@/types"
+import { api } from "@/utils/api"
+import { AlertTriangle, ArrowRight, CheckCircle, Info } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 interface StudentOnboardingFormProps {
   onboardingStatus: OnboardingStatusResponse
@@ -22,16 +23,16 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
   const { toast } = useToast()
   const router = useRouter()
   const [formData, setFormData] = useState({
-    nomeCompleto: '',
-    matricula: '',
-    cpf: '',
-    cr: '',
+    nomeCompleto: "",
+    matricula: "",
+    cpf: "",
+    cr: "",
     cursoId: 0,
-    telefone: '',
-    genero: '' as 'MASCULINO' | 'FEMININO' | 'OUTRO' | '',
-    especificacaoGenero: '',
-    nomeSocial: '',
-    rg: '',
+    telefone: "",
+    genero: "" as Genero | "",
+    especificacaoGenero: "",
+    nomeSocial: "",
+    rg: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -47,11 +48,18 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!formData.nomeCompleto || !formData.matricula || !formData.cpf || !formData.cursoId || !formData.genero || !formData.cr) {
+
+    if (
+      !formData.nomeCompleto ||
+      !formData.matricula ||
+      !formData.cpf ||
+      !formData.cursoId ||
+      !formData.genero ||
+      !formData.cr
+    ) {
       toast({
         title: "Erro",
-        description: 'Preencha todos os campos obrigatórios',
+        description: "Preencha todos os campos obrigatórios",
         variant: "destructive",
       })
       return
@@ -61,7 +69,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
     if (isNaN(crValue) || crValue < 0 || crValue > 10) {
       toast({
         title: "Erro",
-        description: 'CR deve ser um número válido entre 0 e 10',
+        description: "CR deve ser um número válido entre 0 e 10",
         variant: "destructive",
       })
       return
@@ -72,17 +80,17 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
       await createProfileMutation.mutateAsync({
         ...formData,
         cr: crValue,
-        genero: formData.genero as 'MASCULINO' | 'FEMININO' | 'OUTRO'
+        genero: formData.genero as Genero,
       })
       toast({
         title: "Sucesso!",
-        description: 'Perfil criado com sucesso!',
+        description: "Perfil criado com sucesso!",
       })
       await refetchOnboardingStatus()
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: error.message || 'Erro ao criar perfil',
+        description: error.message || "Erro ao criar perfil",
         variant: "destructive",
       })
     } finally {
@@ -93,59 +101,58 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
   const handleDocumentUpload = async (docType: string, fileId: string, fileName: string) => {
     try {
       await updateDocumentMutation.mutateAsync({
-        documentType: docType as 'comprovante_matricula' | 'historico_escolar',
+        documentType: docType as "comprovante_matricula" | "historico_escolar",
         fileId,
       })
 
       toast({
         title: "Sucesso!",
-        description: 'Documento vinculado com sucesso!',
+        description: "Documento vinculado com sucesso!",
       })
       await refetchOnboardingStatus()
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: error.message || 'Erro ao vincular documento',
+        description: error.message || "Erro ao vincular documento",
         variant: "destructive",
       })
     }
   }
 
   const handleContinue = () => {
-    router.push('/home/student/dashboard')
+    router.push("/home/student/dashboard")
   }
 
   const getDocumentStatus = (docType: string) => {
     if (uploadedDocs.includes(docType)) {
-      return 'uploaded'
+      return "uploaded"
     }
     if (requiredDocs.includes(docType)) {
-      return 'required'
+      return "required"
     }
-    return 'optional'
+    return "optional"
   }
 
   const documents = [
     {
-      id: 'comprovante_matricula',
-      name: 'Comprovante de Matrícula',
-      description: 'Comprovante de matrícula atual',
+      id: "comprovante_matricula",
+      name: "Comprovante de Matrícula",
+      description: "Comprovante de matrícula atual",
       required: true,
     },
     {
-      id: 'historico_escolar',
-      name: 'Histórico Escolar',
-      description: 'Histórico escolar atualizado',
+      id: "historico_escolar",
+      name: "Histórico Escolar",
+      description: "Histórico escolar atualizado",
       required: false,
     },
   ]
 
-  const requiredDocsCompleted = hasProfile && requiredDocs.every(docType => uploadedDocs.includes(docType))
+  const requiredDocsCompleted = hasProfile && requiredDocs.every((docType) => uploadedDocs.includes(docType))
   const isOnboardingComplete = hasProfile && missingDocs.length === 0
 
   return (
-    <section className="w-full">  
-
+    <section className="w-full">
       <div className="space-y-8">
         {!hasProfile && (
           <Card className="shadow-lg">
@@ -221,22 +228,20 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                     <Label htmlFor="genero">Gênero *</Label>
                     <Select
                       value={formData.genero}
-                      onValueChange={(value: 'MASCULINO' | 'FEMININO' | 'OUTRO') =>
-                        setFormData({ ...formData, genero: value })
-                      }
+                      onValueChange={(value: Genero) => setFormData({ ...formData, genero: value })}
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Selecione seu gênero" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="MASCULINO">Masculino</SelectItem>
-                        <SelectItem value="FEMININO">Feminino</SelectItem>
-                        <SelectItem value="OUTRO">Outro</SelectItem>
+                        <SelectItem value={GENERO_MASCULINO}>Masculino</SelectItem>
+                        <SelectItem value={GENERO_FEMININO}>Feminino</SelectItem>
+                        <SelectItem value={GENERO_OUTRO}>Outro</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {formData.genero === 'OUTRO' && (
+                  {formData.genero === GENERO_OUTRO && (
                     <div>
                       <Label htmlFor="especificacaoGenero">Especificação de Gênero</Label>
                       <Input
@@ -252,9 +257,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                     <Label htmlFor="curso">Curso *</Label>
                     <Select
                       value={formData.cursoId.toString()}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, cursoId: parseInt(value) })
-                      }
+                      onValueChange={(value) => setFormData({ ...formData, cursoId: parseInt(value) })}
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Selecione seu curso" />
@@ -286,8 +289,13 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                 </div>
 
                 <div className="pt-4">
-                  <Button type="submit" disabled={isSubmitting} size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
-                    {isSubmitting ? 'Criando perfil...' : 'Criar Perfil'}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    size="lg"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isSubmitting ? "Criando perfil..." : "Criar Perfil"}
                   </Button>
                 </div>
               </form>
@@ -298,19 +306,17 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
         <Card className="shadow-lg">
           <CardHeader className="text-center">
             <CardTitle className="text-xl">Documentos</CardTitle>
-            <p className="text-sm text-gray-600">
-              Envie os documentos necessários para validar seu perfil
-            </p>
+            <p className="text-sm text-gray-600">Envie os documentos necessários para validar seu perfil</p>
           </CardHeader>
           <CardContent className="p-8">
             <div className="space-y-6">
               {documents.map((doc) => {
                 const status = getDocumentStatus(doc.id)
-                const isUploaded = status === 'uploaded'
-                
+                const isUploaded = status === "uploaded"
+
                 return (
-                  <div 
-                    key={doc.id} 
+                  <div
+                    key={doc.id}
                     className="border rounded-lg p-6 bg-gray-50"
                     data-status={status}
                     data-uploaded={isUploaded}
@@ -323,17 +329,15 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                           Enviado
                         </Badge>
                       )}
-                      {status === 'required' && !isUploaded && (
+                      {status === "required" && !isUploaded && (
                         <Badge variant="destructive">
                           <AlertTriangle className="h-3 w-3 mr-1" />
                           Obrigatório
                         </Badge>
                       )}
-                      {status === 'optional' && !isUploaded && (
-                        <Badge variant="outline">Opcional</Badge>
-                      )}
+                      {status === "optional" && !isUploaded && <Badge variant="outline">Opcional</Badge>}
                     </div>
-                    
+
                     {!isUploaded && (
                       <FileUploadField
                         label=""
@@ -346,15 +350,11 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                       />
                     )}
 
-                    {isUploaded && (
-                      <p className="text-sm text-green-700 font-medium">
-                        ✅ {doc.description}
-                      </p>
-                    )}
+                    {isUploaded && <p className="text-sm text-green-700 font-medium">✅ {doc.description}</p>}
                   </div>
                 )
               })}
-              
+
               {!hasProfile && (
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                   <Info className="h-5 w-5 text-blue-600 mx-auto mb-2" />
@@ -380,11 +380,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                 Você enviou todos os documentos obrigatórios. Pode continuar ou enviar documentos opcionais se desejar.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  onClick={handleContinue}
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 px-8"
-                >
+                <Button onClick={handleContinue} size="lg" className="bg-blue-600 hover:bg-blue-700 px-8">
                   Continuar para o Dashboard
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -392,9 +388,11 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                   variant="outline"
                   size="lg"
                   onClick={() => {
-                    const firstOptionalDoc = document.querySelector('[data-status="optional"]:not([data-uploaded="true"])')
+                    const firstOptionalDoc = document.querySelector(
+                      '[data-status="optional"]:not([data-uploaded="true"])'
+                    )
                     if (firstOptionalDoc) {
-                      firstOptionalDoc.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                      firstOptionalDoc.scrollIntoView({ behavior: "smooth", block: "center" })
                     }
                   }}
                   className="px-8"
@@ -416,13 +414,10 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
             </CardHeader>
             <CardContent className="text-center p-8">
               <p className="text-green-700 mb-6 text-lg">
-                Parabéns! Seu perfil está completo com todos os documentos e você já pode utilizar todas as funcionalidades do sistema.
+                Parabéns! Seu perfil está completo com todos os documentos e você já pode utilizar todas as
+                funcionalidades do sistema.
               </p>
-              <Button
-                onClick={handleContinue}
-                size="lg"
-                className="bg-green-600 hover:bg-green-700 px-8"
-              >
+              <Button onClick={handleContinue} size="lg" className="bg-green-600 hover:bg-green-700 px-8">
                 Continuar para o Dashboard
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
@@ -432,4 +427,4 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
       </div>
     </section>
   )
-} 
+}

@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Spinner } from '@/components/ui/spinner'
 import { useAuth } from '@/hooks/use-auth'
 import { useOnboardingStatus } from '@/hooks/use-onboarding'
+import { PROFESSOR, STUDENT } from '@/types'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { StudentOnboardingForm } from '@/components/features/onboarding/StudentOnboardingForm'
@@ -39,20 +40,20 @@ export default function OnboardingPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {user.role === 'student' ? 'Perfil do Estudante' : 'Perfil do Professor'}
+              {user.role === STUDENT ? 'Perfil do Estudante' : 'Perfil do Professor'}
             </CardTitle>
             <CardDescription>
-              {user.role === 'student' 
+              {user.role === STUDENT
                 ? 'Preencha suas informações acadêmicas e envie os documentos necessários'
                 : 'Complete suas informações profissionais e envie os documentos obrigatórios'
               }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {user.role === 'student' && (
+            {user.role === STUDENT && (
               <StudentOnboardingForm onboardingStatus={onboardingStatus} />
             )}
-            {user.role === 'professor' && (
+            {user.role === PROFESSOR && (
               <ProfessorOnboardingForm onboardingStatus={onboardingStatus} />
             )}
           </CardContent>

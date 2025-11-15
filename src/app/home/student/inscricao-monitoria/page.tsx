@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
-import { TIPO_VAGA_LABELS } from "@/types/enums"
+import { TIPO_VAGA_BOLSISTA, TIPO_VAGA_LABELS, TIPO_VAGA_VOLUNTARIO, getSemestreNumero } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Award, BookOpen, Calendar, Clock, FileText, MapPin, Search, User, Users } from "lucide-react"
@@ -27,7 +27,7 @@ import { z } from "zod"
 
 const inscricaoSchema = z.object({
   projetoId: z.number(),
-  tipoVagaPretendida: z.enum([TIPO_VAGA_LABELS.BOLSISTA, TIPO_VAGA_LABELS.VOLUNTARIO]),
+  tipoVagaPretendida: z.enum([TIPO_VAGA_BOLSISTA, TIPO_VAGA_VOLUNTARIO]),
 })
 
 type InscricaoForm = z.infer<typeof inscricaoSchema>
@@ -98,7 +98,7 @@ export default function InscricaoMonitoria() {
   const form = useForm<InscricaoForm>({
     resolver: zodResolver(inscricaoSchema),
     defaultValues: {
-      tipoVagaPretendida: TIPO_VAGA_LABELS.BOLSISTA,
+      tipoVagaPretendida: TIPO_VAGA_BOLSISTA,
     },
   })
 
@@ -114,10 +114,12 @@ export default function InscricaoMonitoria() {
       projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       projeto.professorResponsavelNome.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesDepartamento = !selectedDepartamento || selectedDepartamento === "all" || projeto.departamentoNome === selectedDepartamento
+    const matchesDepartamento =
+      !selectedDepartamento || selectedDepartamento === "all" || projeto.departamentoNome === selectedDepartamento
 
     const matchesTipoVaga =
-      !tipoVagaFilter || tipoVagaFilter === "all" ||
+      !tipoVagaFilter ||
+      tipoVagaFilter === "all" ||
       (tipoVagaFilter === TIPO_VAGA_LABELS.BOLSISTA && (projeto.bolsasDisponibilizadas ?? 0) > 0) ||
       (tipoVagaFilter === TIPO_VAGA_LABELS.VOLUNTARIO && (projeto.voluntariosSolicitados ?? 0) > 0)
 
@@ -128,7 +130,8 @@ export default function InscricaoMonitoria() {
     try {
       await createInscricao.mutateAsync({
         projetoId: data.projetoId,
-        tipoVagaPretendida: data.tipoVagaPretendida === TIPO_VAGA_LABELS.BOLSISTA ? "BOLSISTA" : "VOLUNTARIO",
+        tipoVagaPretendida:
+          data.tipoVagaPretendida === TIPO_VAGA_LABELS.BOLSISTA ? TIPO_VAGA_BOLSISTA : TIPO_VAGA_VOLUNTARIO,
       })
     } catch (error) {
       // Error handling is done in the mutation onError
@@ -168,9 +171,8 @@ export default function InscricaoMonitoria() {
               <div>
                 <h3 className="font-medium text-green-800">Período de Inscrições Ativo</h3>
                 <p className="text-sm text-green-700 mt-1">
-                  {activePeriod.ano}.{activePeriod.semestre === "SEMESTRE_1" ? "1" : "2"} •
-                  Até {activePeriod.dataFim.toLocaleDateString('pt-BR')} •
-                  {activePeriod.totalProjetos} projetos disponíveis
+                  {activePeriod.ano}.{getSemestreNumero(activePeriod.semestre)} • Até{" "}
+                  {activePeriod.dataFim.toLocaleDateString("pt-BR")} •{activePeriod.totalProjetos} projetos disponíveis
                 </p>
               </div>
             </div>
@@ -297,7 +299,7 @@ export default function InscricaoMonitoria() {
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      {projeto.ano}.{projeto.semestre === "SEMESTRE_1" ? "1" : "2"}
+                      {projeto.ano}.{getSemestreNumero(projeto.semestre)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -355,8 +357,8 @@ export default function InscricaoMonitoria() {
               <Label htmlFor="tipoVaga">Tipo de vaga desejada</Label>
               <Select
                 value={form.watch("tipoVagaPretendida")}
-                onValueChange={(value: typeof TIPO_VAGA_LABELS.BOLSISTA | typeof TIPO_VAGA_LABELS.VOLUNTARIO) =>
-                  form.setValue("tipoVagaPretendida", value)
+                onValueChange={(value) =>
+                  form.setValue("tipoVagaPretendida", value as typeof TIPO_VAGA_BOLSISTA | typeof TIPO_VAGA_VOLUNTARIO)
                 }
               >
                 <SelectTrigger>
@@ -385,9 +387,7 @@ export default function InscricaoMonitoria() {
             {user?.aluno?.cr && (
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <Label className="text-sm font-medium text-blue-800">Seu CR (Coeficiente de Rendimento)</Label>
-                <p className="text-lg font-semibold text-blue-900 mt-1">
-                  {user.aluno.cr.toFixed(2)}
-                </p>
+                <p className="text-lg font-semibold text-blue-900 mt-1">{user.aluno.cr.toFixed(2)}</p>
                 <p className="text-xs text-blue-700 mt-1">
                   Este valor será automaticamente registrado na sua inscrição
                 </p>
@@ -407,7 +407,7 @@ export default function InscricaoMonitoria() {
               </p>
               <p>
                 <strong>Período:</strong> {selectedProjeto?.ano}.
-                {selectedProjeto?.semestre === "SEMESTRE_1" ? "1" : "2"}
+                {selectedProjeto?.semestre ? getSemestreNumero(selectedProjeto.semestre) : ""}
               </p>
             </div>
 

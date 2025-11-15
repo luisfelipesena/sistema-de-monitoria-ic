@@ -1,105 +1,37 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
-  alunoTable,
-  departamentoTable,
-  disciplinaTable,
-  equivalenciaDisciplinasTable,
-  inscricaoDocumentoTable,
-  inscricaoTable,
-  notaAlunoTable,
-  periodoInscricaoTable,
-  professorTable,
-  projetoDisciplinaTable,
-  projetoTable,
-  userTable,
-} from '@/server/db/schema'
-import {
-  ACCEPTED_BOLSISTA,
-  ACCEPTED_VOLUNTARIO,
   acceptInscriptionSchema,
   candidateEvaluationSchema,
+  candidateResultStatusSchema,
   idSchema,
   inscriptionDetailSchema,
   inscriptionFormSchema,
-  REJECTED_BY_PROFESSOR,
   rejectInscriptionSchema,
-  SELECTED_BOLSISTA,
-  SELECTED_VOLUNTARIO,
   tipoVagaSchema,
+  type TipoVaga,
 } from '@/types'
-import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
-import { and, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
 import { z } from 'zod'
+import { createInscricaoService } from '@/server/services/inscricao/inscricao-service'
+import { BusinessError } from '@/types/errors'
 
-const log = logger.child({ context: 'InscricaoRouter' })
-
-/**
- * Helper function to find a student's grade for a discipline, considering equivalent disciplines
- * @param alunoId - Student ID
- * @param disciplinaId - Target discipline ID
- * @param db - Database context
- * @returns The student's grade or null if not found
- */
-async function findStudentGradeWithEquivalents(
-  alunoId: number,
-  disciplinaId: number,
-  // biome-ignore lint/suspicious/noExplicitAny: Database context type
-  db: any
-): Promise<number | null> {
-  try {
-    // 1. Try direct grade lookup
-    const directGrade = await db.query.notaAlunoTable.findFirst({
-      where: and(eq(notaAlunoTable.alunoId, alunoId), eq(notaAlunoTable.disciplinaId, disciplinaId)),
-    })
-
-    if (directGrade) {
-      log.info({ alunoId, disciplinaId, nota: directGrade.nota }, 'Found direct grade')
-      return directGrade.nota
+const transformError = (error: unknown): TRPCError => {
+  if (error instanceof BusinessError) {
+    const codeMap: Record<string, 'FORBIDDEN' | 'NOT_FOUND' | 'BAD_REQUEST' | 'CONFLICT' | 'INTERNAL_SERVER_ERROR'> = {
+      FORBIDDEN: 'FORBIDDEN',
+      NOT_FOUND: 'NOT_FOUND',
+      BAD_REQUEST: 'BAD_REQUEST',
+      CONFLICT: 'CONFLICT',
+      VALIDATION_ERROR: 'BAD_REQUEST',
+      UNAUTHORIZED: 'FORBIDDEN',
+      INTERNAL_ERROR: 'INTERNAL_SERVER_ERROR',
     }
-
-    // 2. Find equivalences (bidirectional search)
-    const equivalences = await db.query.equivalenciaDisciplinasTable.findMany({
-      where: or(
-        eq(equivalenciaDisciplinasTable.disciplinaOrigemId, disciplinaId),
-        eq(equivalenciaDisciplinasTable.disciplinaEquivalenteId, disciplinaId)
-      ),
-    })
-
-    if (equivalences.length === 0) {
-      log.info({ alunoId, disciplinaId }, 'No equivalences found, no grade available')
-      return null
-    }
-
-    // 3. Extract equivalent discipline IDs
-    const equivalentIds = equivalences.map((equiv: { disciplinaOrigemId: number; disciplinaEquivalenteId: number }) =>
-      equiv.disciplinaOrigemId === disciplinaId ? equiv.disciplinaEquivalenteId : equiv.disciplinaOrigemId
-    )
-
-    // 4. Search for grades in equivalent disciplines
-    const equivalentGrade = await db.query.notaAlunoTable.findFirst({
-      where: and(eq(notaAlunoTable.alunoId, alunoId), inArray(notaAlunoTable.disciplinaId, equivalentIds)),
-    })
-
-    if (equivalentGrade) {
-      log.info(
-        {
-          alunoId,
-          targetDisciplinaId: disciplinaId,
-          foundInDisciplinaId: equivalentGrade.disciplinaId,
-          nota: equivalentGrade.nota,
-        },
-        'Found grade in equivalent discipline'
-      )
-      return equivalentGrade.nota
-    }
-
-    log.info({ alunoId, disciplinaId, equivalentIds }, 'No grade found in direct or equivalent disciplines')
-    return null
-  } catch (error) {
-    log.error(error, 'Error finding student grade with equivalents')
-    return null
+    return new TRPCError({ code: codeMap[error.code] || 'INTERNAL_SERVER_ERROR', message: error.message })
   }
+  return new TRPCError({
+    code: 'INTERNAL_SERVER_ERROR',
+    message: error instanceof Error ? error.message : 'Erro interno do servidor',
+  })
 }
 
 export const inscricaoRouter = createTRPCRouter({
@@ -162,130 +94,10 @@ export const inscricaoRouter = createTRPCRouter({
     )
     .query(async ({ ctx }) => {
       try {
-        if (ctx.user.role !== 'student') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Acesso permitido apenas para estudantes',
-          })
-        }
-
-        const aluno = await ctx.db.query.alunoTable.findFirst({
-          where: eq(alunoTable.userId, ctx.user.id),
-        })
-
-        if (!aluno) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de estudante não encontrado',
-          })
-        }
-
-        // Get all inscriptions for this student
-        const inscricoes = await ctx.db.query.inscricaoTable.findMany({
-          where: eq(inscricaoTable.alunoId, aluno.id),
-          with: {
-            projeto: {
-              with: {
-                professorResponsavel: true,
-                disciplinas: {
-                  with: {
-                    disciplina: true,
-                  },
-                },
-              },
-            },
-          },
-        })
-
-        const totalInscricoes = inscricoes.length
-        const totalAprovacoes = inscricoes.filter(
-          (inscricao) =>
-            inscricao.status === SELECTED_BOLSISTA ||
-            inscricao.status === SELECTED_VOLUNTARIO ||
-            inscricao.status === ACCEPTED_BOLSISTA ||
-            inscricao.status === ACCEPTED_VOLUNTARIO
-        ).length
-
-        // Check for active monitoring position
-        const monitoriaAtiva = inscricoes.find(
-          (inscricao) => inscricao.status === ACCEPTED_BOLSISTA || inscricao.status === ACCEPTED_VOLUNTARIO
-        )
-
-        let monitoriaAtivaFormatted = null
-        if (monitoriaAtiva) {
-          monitoriaAtivaFormatted = {
-            id: monitoriaAtiva.id,
-            projeto: {
-              titulo: monitoriaAtiva.projeto.titulo,
-              disciplinas: monitoriaAtiva.projeto.disciplinas.map((pd) => ({
-                codigo: pd.disciplina.codigo,
-                nome: pd.disciplina.nome,
-                turma: pd.disciplina.turma,
-              })),
-              professorResponsavelNome: monitoriaAtiva.projeto.professorResponsavel.nomeCompleto,
-            },
-            status: 'ATIVO',
-            tipo: (monitoriaAtiva.tipoVagaPretendida === 'BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO') as
-              | 'BOLSISTA'
-              | 'VOLUNTARIO',
-            dataInicio:
-              monitoriaAtiva.projeto.ano && monitoriaAtiva.projeto.semestre
-                ? new Date(monitoriaAtiva.projeto.ano, monitoriaAtiva.projeto.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
-                : null,
-            dataFim:
-              monitoriaAtiva.projeto.ano && monitoriaAtiva.projeto.semestre
-                ? new Date(monitoriaAtiva.projeto.ano, monitoriaAtiva.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
-                : null,
-            cargaHorariaCumprida: 0,
-            cargaHorariaPlanejada: monitoriaAtiva.projeto.cargaHorariaSemana * monitoriaAtiva.projeto.numeroSemanas,
-          }
-        }
-
-        // Generate historic activities
-        const historicoAtividades = inscricoes
-          .filter((inscricao) => inscricao.status !== 'SUBMITTED')
-          .map((inscricao) => ({
-            tipo:
-              inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
-                ? 'APROVACAO'
-                : 'INSCRICAO',
-            descricao: `${
-              inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED')
-                ? 'Aprovado em'
-                : 'Inscrito em'
-            } ${inscricao.projeto.titulo}`,
-            data: inscricao.updatedAt || inscricao.createdAt,
-          }))
-
-        // Generate next actions
-        const proximasAcoes = []
-        if (monitoriaAtiva) {
-          const prazoRelatorio =
-            monitoriaAtiva.projeto.ano && monitoriaAtiva.projeto.semestre
-              ? new Date(monitoriaAtiva.projeto.ano, monitoriaAtiva.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 15)
-              : undefined
-
-          proximasAcoes.push({
-            titulo: 'Relatório Final',
-            descricao: 'Entregue o relatório final da monitoria',
-            prazo: prazoRelatorio,
-          })
-        }
-
-        return {
-          totalInscricoes,
-          totalAprovacoes,
-          monitoriaAtiva: monitoriaAtivaFormatted,
-          historicoAtividades,
-          proximasAcoes,
-        }
+        const service = createInscricaoService(ctx.db)
+        return await service.getMyStatus(ctx.user.id, ctx.user.role)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Error getting student status')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao buscar status do estudante',
-        })
+        throw transformError(error)
       }
     }),
 
@@ -317,151 +129,10 @@ export const inscricaoRouter = createTRPCRouter({
     .output(z.object({ success: z.boolean(), inscricaoId: idSchema }))
     .mutation(async ({ input, ctx }) => {
       try {
-        if (ctx.user.role !== 'student') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Acesso permitido apenas para estudantes',
-          })
-        }
-
-        const aluno = await ctx.db.query.alunoTable.findFirst({
-          where: eq(alunoTable.userId, ctx.user.id),
-        })
-
-        if (!aluno) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de estudante não encontrado',
-          })
-        }
-
-        // Check if project exists and is approved
-        const projeto = await ctx.db.query.projetoTable.findFirst({
-          where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
-        })
-
-        if (!projeto || projeto.status !== 'APPROVED') {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Projeto não encontrado ou não aprovado',
-          })
-        }
-
-        // Get current active inscription period
-        const now = new Date()
-        const periodoAtivo = await ctx.db.query.periodoInscricaoTable.findFirst({
-          where: and(
-            eq(periodoInscricaoTable.ano, projeto.ano),
-            eq(periodoInscricaoTable.semestre, projeto.semestre),
-            lte(periodoInscricaoTable.dataInicio, now),
-            gte(periodoInscricaoTable.dataFim, now)
-          ),
-        })
-
-        if (!periodoAtivo) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Período de inscrições não está ativo',
-          })
-        }
-
-        // Check if student already applied to this project
-        const existingInscricao = await ctx.db.query.inscricaoTable.findFirst({
-          where: and(
-            eq(inscricaoTable.alunoId, aluno.id),
-            eq(inscricaoTable.projetoId, input.projetoId),
-            eq(inscricaoTable.periodoInscricaoId, periodoAtivo.id)
-          ),
-        })
-
-        if (existingInscricao) {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'Você já se inscreveu neste projeto',
-          })
-        }
-
-        // Validar dados obrigatórios
-        if (!input.tipo) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Tipo de vaga é obrigatório',
-          })
-        }
-
-        // Verificar se há vagas disponíveis
-        if (input.tipo === 'BOLSISTA' && (!projeto.bolsasDisponibilizadas || projeto.bolsasDisponibilizadas <= 0)) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Não há vagas de bolsista disponíveis para este projeto',
-          })
-        }
-
-        if (input.tipo === 'VOLUNTARIO' && (!projeto.voluntariosSolicitados || projeto.voluntariosSolicitados <= 0)) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Não há vagas de voluntário disponíveis para este projeto',
-          })
-        }
-
-        // Fetch the project's disciplines to get student's grade
-        const projetoDisciplinas = await ctx.db.query.projetoDisciplinaTable.findMany({
-          where: eq(projetoDisciplinaTable.projetoId, input.projetoId),
-          with: {
-            disciplina: true,
-          },
-        })
-
-        // Try to find the student's grade in any of the project's disciplines (considering equivalences)
-        let notaDisciplina: number | null = null
-        for (const pd of projetoDisciplinas) {
-          const grade = await findStudentGradeWithEquivalents(aluno.id, pd.disciplina.id, ctx.db)
-          if (grade !== null) {
-            notaDisciplina = grade
-            log.info(
-              { alunoId: aluno.id, disciplinaId: pd.disciplina.id, nota: grade },
-              'Found student grade for inscription'
-            )
-            break // Use the first valid grade found
-          }
-        }
-
-        // Create the inscription
-        const [novaInscricao] = await ctx.db
-          .insert(inscricaoTable)
-          .values({
-            periodoInscricaoId: periodoAtivo.id,
-            projetoId: input.projetoId,
-            alunoId: aluno.id,
-            tipoVagaPretendida: input.tipo,
-            status: 'SUBMITTED',
-            coeficienteRendimento: aluno.cr?.toString() || null,
-            notaDisciplina: notaDisciplina?.toString() || null,
-          })
-          .returning()
-
-        if (input.documentos && input.documentos.length > 0) {
-          const documentosToInsert = input.documentos.map((doc) => ({
-            inscricaoId: novaInscricao.id,
-            fileId: doc.fileId,
-            tipoDocumento: doc.tipoDocumento,
-          }))
-          await ctx.db.insert(inscricaoDocumentoTable).values(documentosToInsert)
-        }
-
-        log.info({ inscricaoId: novaInscricao.id }, 'Nova inscrição criada')
-
-        return {
-          success: true,
-          inscricaoId: novaInscricao.id,
-        }
+        const service = createInscricaoService(ctx.db)
+        return await service.createInscricao(ctx.user.id, ctx.user.role, input)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Error creating inscription')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao criar inscrição',
-        })
+        throw transformError(error)
       }
     }),
 
@@ -487,103 +158,51 @@ export const inscricaoRouter = createTRPCRouter({
               z.object({
                 codigo: z.string(),
                 nome: z.string(),
+                turma: z.string(),
               })
             ),
             professorResponsavelNome: z.string(),
           }),
           tipoInscricao: tipoVagaSchema,
-          status: z.enum(['APROVADO', 'REPROVADO', 'EM_ANALISE', 'LISTA_ESPERA']),
+          status: candidateResultStatusSchema,
           dataResultado: z.date().optional(),
           posicaoLista: z.number().optional(),
           observacoes: z.string().optional(),
         })
       )
     )
-    .query(async ({ ctx }) => {
-      try {
-        if (ctx.user.role !== 'student') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Acesso permitido apenas para estudantes',
-          })
-        }
-
-        const aluno = await ctx.db.query.alunoTable.findFirst({
-          where: eq(alunoTable.userId, ctx.user.id),
-        })
-
-        if (!aluno) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de estudante não encontrado',
-          })
-        }
-
-        const inscricoes = await ctx.db.query.inscricaoTable.findMany({
-          where: eq(inscricaoTable.alunoId, aluno.id),
-          with: {
-            projeto: {
-              with: {
-                professorResponsavel: true,
-                disciplinas: {
-                  with: {
-                    disciplina: true,
-                  },
-                },
-              },
-            },
-          },
-          orderBy: desc(inscricaoTable.createdAt),
-        })
-
-        return inscricoes.map((inscricao) => {
-          // Map status from DB to display format
-          let status: 'APROVADO' | 'REPROVADO' | 'EM_ANALISE' | 'LISTA_ESPERA'
-          switch (inscricao.status) {
-            case SELECTED_BOLSISTA:
-            case SELECTED_VOLUNTARIO:
-            case ACCEPTED_BOLSISTA:
-            case ACCEPTED_VOLUNTARIO:
-              status = 'APROVADO'
-              break
-            case REJECTED_BY_PROFESSOR:
-              status = 'REPROVADO'
-              break
-            case 'SUBMITTED':
-              status = 'EM_ANALISE'
-              break
-            default:
-              status = 'EM_ANALISE'
+    .query(
+      async ({
+        ctx,
+      }): Promise<
+        Array<{
+          id: number
+          projeto: {
+            id: number
+            titulo: string
+            disciplinas: Array<{
+              codigo: string
+              nome: string
+              turma: string
+            }>
+            professorResponsavelNome: string
           }
-
-          return {
-            id: inscricao.id,
-            projeto: {
-              id: inscricao.projeto.id,
-              titulo: inscricao.projeto.titulo,
-              disciplinas: inscricao.projeto.disciplinas.map((pd) => ({
-                codigo: pd.disciplina.codigo,
-                nome: pd.disciplina.nome,
-                turma: pd.disciplina.turma,
-              })),
-              professorResponsavelNome: inscricao.projeto.professorResponsavel.nomeCompleto,
-            },
-            tipoInscricao: inscricao.tipoVagaPretendida === 'BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO',
-            status,
-            dataResultado: inscricao.updatedAt || undefined,
-            posicaoLista: undefined,
-            observacoes: inscricao.feedbackProfessor || undefined,
-          }
-        })
-      } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Error getting student results')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao buscar resultados',
-        })
+          tipoInscricao: TipoVaga
+          status: 'APROVADO' | 'REPROVADO' | 'EM_ANALISE' | 'LISTA_ESPERA'
+          dataResultado?: Date
+          posicaoLista?: number
+          observacoes?: string
+        }>
+      > => {
+        try {
+          const service = createInscricaoService(ctx.db)
+          return await service.getMyResults(ctx.user.id, ctx.user.role)
+        } catch (error) {
+          throw transformError(error)
+        }
       }
-    }),
+    ),
+
   getMinhasInscricoes: protectedProcedure
     .meta({
       openapi: {
@@ -598,114 +217,10 @@ export const inscricaoRouter = createTRPCRouter({
     .output(z.array(inscriptionDetailSchema))
     .query(async ({ ctx }) => {
       try {
-        const aluno = await ctx.db.query.alunoTable.findFirst({
-          where: eq(alunoTable.userId, ctx.user.id),
-        })
-
-        if (!aluno) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de aluno não encontrado',
-          })
-        }
-
-        const inscricoes = await ctx.db
-          .select({
-            id: inscricaoTable.id,
-            projetoId: inscricaoTable.projetoId,
-            alunoId: inscricaoTable.alunoId,
-            tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
-            status: inscricaoTable.status,
-            notaDisciplina: inscricaoTable.notaDisciplina,
-            notaSelecao: inscricaoTable.notaSelecao,
-            coeficienteRendimento: inscricaoTable.coeficienteRendimento,
-            notaFinal: inscricaoTable.notaFinal,
-            feedbackProfessor: inscricaoTable.feedbackProfessor,
-            createdAt: inscricaoTable.createdAt,
-            updatedAt: inscricaoTable.updatedAt,
-            projeto: {
-              id: projetoTable.id,
-              titulo: projetoTable.titulo,
-              descricao: projetoTable.descricao,
-              ano: projetoTable.ano,
-              semestre: projetoTable.semestre,
-              status: projetoTable.status,
-              bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
-              voluntariosSolicitados: projetoTable.voluntariosSolicitados,
-            },
-            professorResponsavel: {
-              id: professorTable.id,
-              nomeCompleto: professorTable.nomeCompleto,
-              emailInstitucional: professorTable.emailInstitucional,
-            },
-            departamento: {
-              id: departamentoTable.id,
-              nome: departamentoTable.nome,
-            },
-            aluno: {
-              id: alunoTable.id,
-              nomeCompleto: alunoTable.nomeCompleto,
-              matricula: alunoTable.matricula,
-              cr: alunoTable.cr,
-            },
-            alunoUser: {
-              id: userTable.id,
-              email: userTable.email,
-            },
-          })
-          .from(inscricaoTable)
-          .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
-          .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-          .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-          .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
-          .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
-          .where(eq(inscricaoTable.alunoId, aluno.id))
-          .orderBy(inscricaoTable.createdAt)
-
-        const inscricoesComDisciplinas = await Promise.all(
-          inscricoes.map(async (inscricao) => {
-            const disciplinas = await ctx.db
-              .select({
-                id: disciplinaTable.id,
-                nome: disciplinaTable.nome,
-                codigo: disciplinaTable.codigo,
-                turma: disciplinaTable.turma,
-              })
-              .from(disciplinaTable)
-              .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
-              .where(eq(projetoDisciplinaTable.projetoId, inscricao.projetoId))
-
-            return {
-              ...inscricao,
-              notaDisciplina: inscricao.notaDisciplina ? Number(inscricao.notaDisciplina) : null,
-              notaSelecao: inscricao.notaSelecao ? Number(inscricao.notaSelecao) : null,
-              coeficienteRendimento: inscricao.coeficienteRendimento ? Number(inscricao.coeficienteRendimento) : null,
-              notaFinal: inscricao.notaFinal ? Number(inscricao.notaFinal) : null,
-              projeto: {
-                ...inscricao.projeto,
-                professorResponsavel: inscricao.professorResponsavel,
-                departamento: inscricao.departamento,
-                disciplinas,
-              },
-              aluno: {
-                ...inscricao.aluno,
-                user: inscricao.alunoUser,
-              },
-            }
-          })
-        )
-
-        log.info({ alunoId: aluno.id }, 'Inscrições recuperadas com sucesso')
-        return inscricoesComDisciplinas
+        const service = createInscricaoService(ctx.db)
+        return await service.getMinhasInscricoes(ctx.user.id)
       } catch (error) {
-        log.error(error, 'Erro ao recuperar inscrições')
-        if (error instanceof TRPCError) {
-          throw error
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao recuperar inscrições',
-        })
+        throw transformError(error)
       }
     }),
 
@@ -723,119 +238,10 @@ export const inscricaoRouter = createTRPCRouter({
     .output(z.object({ id: idSchema, message: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        if (ctx.user.role !== 'student') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Apenas estudantes podem criar inscrições',
-          })
-        }
-
-        const aluno = await ctx.db.query.alunoTable.findFirst({
-          where: eq(alunoTable.userId, ctx.user.id),
-        })
-
-        if (!aluno) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de aluno não encontrado',
-          })
-        }
-
-        // Verificar se o projeto existe e está aprovado
-        const projeto = await ctx.db.query.projetoTable.findFirst({
-          where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
-        })
-
-        if (!projeto) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Projeto não encontrado',
-          })
-        }
-
-        if (projeto.status !== 'APPROVED') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Projeto não está disponível para inscrições',
-          })
-        }
-
-        // Verificar se período de inscrição está ativo
-        const periodoAtivo = await ctx.db.query.periodoInscricaoTable.findFirst({
-          where: and(
-            eq(periodoInscricaoTable.ano, projeto.ano),
-            eq(periodoInscricaoTable.semestre, projeto.semestre),
-            lte(periodoInscricaoTable.dataInicio, new Date()),
-            gte(periodoInscricaoTable.dataFim, new Date())
-          ),
-        })
-
-        if (!periodoAtivo) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Período de inscrições não está ativo para este projeto',
-          })
-        }
-
-        // Verificar se já possui inscrição para este projeto
-        const inscricaoExistente = await ctx.db.query.inscricaoTable.findFirst({
-          where: and(eq(inscricaoTable.alunoId, aluno.id), eq(inscricaoTable.projetoId, input.projetoId)),
-        })
-
-        if (inscricaoExistente) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Você já possui uma inscrição para este projeto',
-          })
-        }
-
-        // Validar dados obrigatórios
-        if (!input.tipoVagaPretendida) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Tipo de vaga é obrigatório',
-          })
-        }
-
-        const [novaInscricao] = await ctx.db
-          .insert(inscricaoTable)
-          .values({
-            alunoId: aluno.id,
-            projetoId: input.projetoId,
-            periodoInscricaoId: periodoAtivo.id,
-            tipoVagaPretendida: input.tipoVagaPretendida,
-            coeficienteRendimento: aluno.cr?.toString() || null,
-            status: 'SUBMITTED',
-          })
-          .returning()
-
-        if (input.documentos && input.documentos.length > 0) {
-          const documentosToInsert = input.documentos.map((doc) => ({
-            inscricaoId: novaInscricao.id,
-            fileId: doc.fileId,
-            tipoDocumento: doc.tipoDocumento,
-          }))
-          await ctx.db.insert(inscricaoDocumentoTable).values(documentosToInsert)
-        }
-
-        log.info(
-          { inscricaoId: novaInscricao.id, projetoId: input.projetoId, alunoId: aluno.id },
-          'Inscrição criada com sucesso'
-        )
-
-        return {
-          id: novaInscricao.id,
-          message: 'Inscrição realizada com sucesso!',
-        }
+        const service = createInscricaoService(ctx.db)
+        return await service.criarInscricao(ctx.user.id, ctx.user.role, input)
       } catch (error) {
-        log.error(error, 'Erro ao criar inscrição')
-        if (error instanceof TRPCError) {
-          throw error
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao criar inscrição',
-        })
+        throw transformError(error)
       }
     }),
 
@@ -853,91 +259,10 @@ export const inscricaoRouter = createTRPCRouter({
     .output(z.object({ success: z.boolean(), message: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        if (ctx.user.role !== 'student') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Apenas estudantes podem aceitar inscrições',
-          })
-        }
-
-        const aluno = await ctx.db.query.alunoTable.findFirst({
-          where: eq(alunoTable.userId, ctx.user.id),
-        })
-
-        if (!aluno) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de aluno não encontrado',
-          })
-        }
-
-        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
-          where: and(eq(inscricaoTable.id, input.inscricaoId), eq(inscricaoTable.alunoId, aluno.id)),
-          with: {
-            projeto: true,
-          },
-        })
-
-        if (!inscricao) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Inscrição não encontrada',
-          })
-        }
-
-        if (inscricao.status !== SELECTED_BOLSISTA && inscricao.status !== SELECTED_VOLUNTARIO) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Inscrição não está selecionada',
-          })
-        }
-
-        // Verificar se já aceita bolsa no mesmo semestre (limite de 1 bolsa)
-        if (inscricao.status === SELECTED_BOLSISTA) {
-          const bolsaExistente = await ctx.db.query.inscricaoTable.findFirst({
-            where: and(eq(inscricaoTable.alunoId, aluno.id), eq(inscricaoTable.status, ACCEPTED_BOLSISTA)),
-            with: {
-              projeto: true,
-            },
-          })
-
-          if (
-            bolsaExistente &&
-            bolsaExistente.projeto.ano === inscricao.projeto.ano &&
-            bolsaExistente.projeto.semestre === inscricao.projeto.semestre
-          ) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Você já possui uma bolsa aceita neste semestre',
-            })
-          }
-        }
-
-        const novoStatus = inscricao.status === SELECTED_BOLSISTA ? ACCEPTED_BOLSISTA : ACCEPTED_VOLUNTARIO
-
-        await ctx.db
-          .update(inscricaoTable)
-          .set({
-            status: novoStatus,
-            updatedAt: new Date(),
-          })
-          .where(eq(inscricaoTable.id, input.inscricaoId))
-
-        log.info({ inscricaoId: input.inscricaoId, novoStatus }, 'Inscrição aceita com sucesso')
-
-        return {
-          success: true,
-          message: 'Inscrição aceita com sucesso!',
-        }
+        const service = createInscricaoService(ctx.db)
+        return await service.aceitarInscricao(ctx.user.id, ctx.user.role, input.inscricaoId)
       } catch (error) {
-        log.error(error, 'Erro ao aceitar inscrição')
-        if (error instanceof TRPCError) {
-          throw error
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao aceitar inscrição',
-        })
+        throw transformError(error)
       }
     }),
 
@@ -955,66 +280,10 @@ export const inscricaoRouter = createTRPCRouter({
     .output(z.object({ success: z.boolean(), message: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        if (ctx.user.role !== 'student') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Apenas estudantes podem recusar inscrições',
-          })
-        }
-
-        const aluno = await ctx.db.query.alunoTable.findFirst({
-          where: eq(alunoTable.userId, ctx.user.id),
-        })
-
-        if (!aluno) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de aluno não encontrado',
-          })
-        }
-
-        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
-          where: and(eq(inscricaoTable.id, input.inscricaoId), eq(inscricaoTable.alunoId, aluno.id)),
-        })
-
-        if (!inscricao) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Inscrição não encontrada',
-          })
-        }
-
-        if (inscricao.status !== SELECTED_BOLSISTA && inscricao.status !== SELECTED_VOLUNTARIO) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Inscrição não está selecionada',
-          })
-        }
-
-        await ctx.db
-          .update(inscricaoTable)
-          .set({
-            status: 'REJECTED_BY_STUDENT',
-            feedbackProfessor: input.feedbackProfessor,
-            updatedAt: new Date(),
-          })
-          .where(eq(inscricaoTable.id, input.inscricaoId))
-
-        log.info({ inscricaoId: input.inscricaoId }, 'Inscrição recusada pelo estudante')
-
-        return {
-          success: true,
-          message: 'Inscrição recusada com sucesso!',
-        }
+        const service = createInscricaoService(ctx.db)
+        return await service.recusarInscricao(ctx.user.id, ctx.user.role, input.inscricaoId, input.feedbackProfessor)
       } catch (error) {
-        log.error(error, 'Erro ao recusar inscrição')
-        if (error instanceof TRPCError) {
-          throw error
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao recusar inscrição',
-        })
+        throw transformError(error)
       }
     }),
 
@@ -1032,81 +301,10 @@ export const inscricaoRouter = createTRPCRouter({
     .output(z.object({ success: z.boolean(), notaFinal: z.number() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        if (ctx.user.role !== 'professor') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Apenas professores podem avaliar candidatos',
-          })
-        }
-
-        const professor = await ctx.db.query.professorTable.findFirst({
-          where: eq(professorTable.userId, ctx.user.id),
-        })
-
-        if (!professor) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de professor não encontrado',
-          })
-        }
-
-        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
-          where: eq(inscricaoTable.id, input.inscricaoId),
-          with: {
-            projeto: true,
-          },
-        })
-
-        if (!inscricao) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Inscrição não encontrada',
-          })
-        }
-
-        if (inscricao.projeto.professorResponsavelId !== professor.id) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Você não pode avaliar candidatos de outros projetos',
-          })
-        }
-
-        if (inscricao.status !== 'SUBMITTED') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Esta inscrição não pode ser avaliada',
-          })
-        }
-
-        // Calcular nota final: (notaDisciplina * 5 + notaSelecao * 3 + coeficienteRendimento * 2) / 10
-        const coeficiente = Number(inscricao.coeficienteRendimento) || 0
-        const notaFinal = (input.notaDisciplina * 5 + input.notaSelecao * 3 + coeficiente * 2) / 10
-
-        await ctx.db
-          .update(inscricaoTable)
-          .set({
-            notaDisciplina: input.notaDisciplina.toString(),
-            notaSelecao: input.notaSelecao.toString(),
-            notaFinal: (Math.round(notaFinal * 100) / 100).toString(), // Arredondar para 2 casas decimais
-            updatedAt: new Date(),
-          })
-          .where(eq(inscricaoTable.id, input.inscricaoId))
-
-        log.info({ inscricaoId: input.inscricaoId, notaFinal }, 'Candidato avaliado com sucesso')
-
-        return {
-          success: true,
-          notaFinal: Math.round(notaFinal * 100) / 100,
-        }
+        const service = createInscricaoService(ctx.db)
+        return await service.avaliarCandidato(ctx.user.id, ctx.user.role, input)
       } catch (error) {
-        log.error(error, 'Erro ao avaliar candidato')
-        if (error instanceof TRPCError) {
-          throw error
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao avaliar candidato',
-        })
+        throw transformError(error)
       }
     }),
 
@@ -1120,141 +318,14 @@ export const inscricaoRouter = createTRPCRouter({
         description: 'Get all applications for a specific project (professor/admin only)',
       },
     })
-    .input(
-      z.object({
-        projetoId: idSchema,
-      })
-    )
+    .input(z.object({ projetoId: idSchema }))
     .output(z.array(inscriptionDetailSchema))
     .query(async ({ input, ctx }) => {
       try {
-        const projeto = await ctx.db.query.projetoTable.findFirst({
-          where: and(eq(projetoTable.id, input.projetoId), isNull(projetoTable.deletedAt)),
-        })
-
-        if (!projeto) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Projeto não encontrado',
-          })
-        }
-
-        // Verificar permissão de acesso
-        if (ctx.user.role === 'professor') {
-          const professor = await ctx.db.query.professorTable.findFirst({
-            where: eq(professorTable.userId, ctx.user.id),
-          })
-
-          if (!professor || projeto.professorResponsavelId !== professor.id) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Acesso negado a este projeto',
-            })
-          }
-        } else if (ctx.user.role !== 'admin') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Acesso negado',
-          })
-        }
-
-        const inscricoes = await ctx.db
-          .select({
-            id: inscricaoTable.id,
-            projetoId: inscricaoTable.projetoId,
-            alunoId: inscricaoTable.alunoId,
-            tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
-            status: inscricaoTable.status,
-            notaDisciplina: inscricaoTable.notaDisciplina,
-            notaSelecao: inscricaoTable.notaSelecao,
-            coeficienteRendimento: inscricaoTable.coeficienteRendimento,
-            notaFinal: inscricaoTable.notaFinal,
-            feedbackProfessor: inscricaoTable.feedbackProfessor,
-            createdAt: inscricaoTable.createdAt,
-            updatedAt: inscricaoTable.updatedAt,
-            projeto: {
-              id: projetoTable.id,
-              titulo: projetoTable.titulo,
-              descricao: projetoTable.descricao,
-              ano: projetoTable.ano,
-              semestre: projetoTable.semestre,
-              status: projetoTable.status,
-              bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
-              voluntariosSolicitados: projetoTable.voluntariosSolicitados,
-            },
-            professorResponsavel: {
-              id: professorTable.id,
-              nomeCompleto: professorTable.nomeCompleto,
-              emailInstitucional: professorTable.emailInstitucional,
-            },
-            departamento: {
-              id: departamentoTable.id,
-              nome: departamentoTable.nome,
-            },
-            aluno: {
-              id: alunoTable.id,
-              nomeCompleto: alunoTable.nomeCompleto,
-              matricula: alunoTable.matricula,
-              cr: alunoTable.cr,
-            },
-            alunoUser: {
-              id: userTable.id,
-              email: userTable.email,
-            },
-          })
-          .from(inscricaoTable)
-          .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
-          .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-          .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-          .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
-          .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
-          .where(eq(inscricaoTable.projetoId, input.projetoId))
-          .orderBy(inscricaoTable.notaFinal, inscricaoTable.createdAt)
-
-        const inscricoesComDisciplinas = await Promise.all(
-          inscricoes.map(async (inscricao) => {
-            const disciplinas = await ctx.db
-              .select({
-                id: disciplinaTable.id,
-                nome: disciplinaTable.nome,
-                codigo: disciplinaTable.codigo,
-                turma: disciplinaTable.turma,
-              })
-              .from(disciplinaTable)
-              .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
-              .where(eq(projetoDisciplinaTable.projetoId, inscricao.projetoId))
-
-            return {
-              ...inscricao,
-              notaDisciplina: inscricao.notaDisciplina ? Number(inscricao.notaDisciplina) : null,
-              notaSelecao: inscricao.notaSelecao ? Number(inscricao.notaSelecao) : null,
-              coeficienteRendimento: inscricao.coeficienteRendimento ? Number(inscricao.coeficienteRendimento) : null,
-              notaFinal: inscricao.notaFinal ? Number(inscricao.notaFinal) : null,
-              projeto: {
-                ...inscricao.projeto,
-                professorResponsavel: inscricao.professorResponsavel,
-                departamento: inscricao.departamento,
-                disciplinas,
-              },
-              aluno: {
-                ...inscricao.aluno,
-                user: inscricao.alunoUser,
-              },
-            }
-          })
-        )
-
-        log.info({ projetoId: input.projetoId }, 'Inscrições do projeto recuperadas com sucesso')
-        return inscricoesComDisciplinas
+        const service = createInscricaoService(ctx.db)
+        return await service.getInscricoesProjeto(ctx.user.id, ctx.user.role, input.projetoId)
       } catch (error) {
-        log.error(error, 'Erro ao recuperar inscrições do projeto')
-        if (error instanceof TRPCError) {
-          throw error
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao recuperar inscrições do projeto',
-        })
+        throw transformError(error)
       }
     }),
 
@@ -1269,60 +340,14 @@ export const inscricaoRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== 'professor') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Apenas professores podem avaliar candidatos',
-        })
+      try {
+        const service = createInscricaoService(ctx.db)
+        return await service.evaluateApplications(ctx.user.id, ctx.user.role, input)
+      } catch (error) {
+        throw transformError(error)
       }
-
-      // Calcular nota final: (disciplina×5 + seleção×3 + CR×2) / 10
-      const notaFinal = (input.notaDisciplina * 5 + input.notaSelecao * 3 + input.coeficienteRendimento * 2) / 10
-
-      // Verificar se o professor é responsável pelo projeto
-      const inscricao = await ctx.db.query.inscricaoTable.findFirst({
-        where: eq(inscricaoTable.id, input.inscricaoId),
-        with: {
-          projeto: {
-            with: {
-              professorResponsavel: true,
-            },
-          },
-        },
-      })
-
-      if (!inscricao) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Inscrição não encontrada',
-        })
-      }
-
-      if (inscricao.projeto.professorResponsavel.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Você não é responsável por este projeto',
-        })
-      }
-
-      // Atualizar a inscrição com as notas
-      const [updatedInscricao] = await ctx.db
-        .update(inscricaoTable)
-        .set({
-          notaDisciplina: input.notaDisciplina.toString(),
-          notaSelecao: input.notaSelecao.toString(),
-          coeficienteRendimento: input.coeficienteRendimento.toString(),
-          notaFinal: notaFinal.toString(),
-          feedbackProfessor: input.feedbackProfessor,
-          updatedAt: new Date(),
-        })
-        .where(eq(inscricaoTable.id, input.inscricaoId))
-        .returning()
-
-      return updatedInscricao
     }),
 
-  // Aceitar vaga oferecida
   acceptPosition: protectedProcedure
     .meta({
       openapi: {
@@ -1333,105 +358,17 @@ export const inscricaoRouter = createTRPCRouter({
         description: 'Accept offered position (scholarship or volunteer)',
       },
     })
-    .input(
-      z.object({
-        inscricaoId: idSchema,
-      })
-    )
+    .input(z.object({ inscricaoId: idSchema }))
     .output(z.object({ success: z.boolean(), message: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        if (ctx.user.role !== 'student') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Apenas estudantes podem aceitar vagas',
-          })
-        }
-
-        const aluno = await ctx.db.query.alunoTable.findFirst({
-          where: eq(alunoTable.userId, ctx.user.id),
-        })
-
-        if (!aluno) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de estudante não encontrado',
-          })
-        }
-
-        // Buscar a inscrição
-        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
-          where: and(eq(inscricaoTable.id, input.inscricaoId), eq(inscricaoTable.alunoId, aluno.id)),
-          with: {
-            projeto: true,
-          },
-        })
-
-        if (!inscricao) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Inscrição não encontrada',
-          })
-        }
-
-        // Verificar se foi selecionado
-        if (!inscricao.status.startsWith('SELECTED_')) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Não é possível aceitar uma vaga não oferecida',
-          })
-        }
-
-        // Se for bolsista, verificar se já tem bolsa no semestre
-        if (inscricao.status === SELECTED_BOLSISTA) {
-          const bolsaExistente = await ctx.db.query.inscricaoTable.findFirst({
-            where: and(eq(inscricaoTable.alunoId, aluno.id), eq(inscricaoTable.status, ACCEPTED_BOLSISTA)),
-            with: {
-              projeto: true,
-            },
-          })
-
-          if (
-            bolsaExistente &&
-            bolsaExistente.projeto.ano === inscricao.projeto.ano &&
-            bolsaExistente.projeto.semestre === inscricao.projeto.semestre
-          ) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Você já possui uma bolsa neste semestre. Só é permitida uma bolsa por semestre.',
-            })
-          }
-        }
-
-        // Atualizar status para aceito
-        const newStatus = inscricao.status === SELECTED_BOLSISTA ? ACCEPTED_BOLSISTA : ACCEPTED_VOLUNTARIO
-
-        await ctx.db
-          .update(inscricaoTable)
-          .set({
-            status: newStatus,
-            updatedAt: new Date(),
-          })
-          .where(eq(inscricaoTable.id, input.inscricaoId))
-
-        const tipoVaga = newStatus === ACCEPTED_BOLSISTA ? 'bolsista' : 'voluntária'
-        log.info({ inscricaoId: input.inscricaoId, newStatus }, `Vaga ${tipoVaga} aceita`)
-
-        return {
-          success: true,
-          message: `Vaga ${tipoVaga} aceita com sucesso!`,
-        }
+        const service = createInscricaoService(ctx.db)
+        return await service.acceptPosition(ctx.user.id, ctx.user.role, input.inscricaoId)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Erro ao aceitar vaga')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao aceitar vaga',
-        })
+        throw transformError(error)
       }
     }),
 
-  // Recusar vaga oferecida
   rejectPosition: protectedProcedure
     .meta({
       openapi: {
@@ -1451,72 +388,13 @@ export const inscricaoRouter = createTRPCRouter({
     .output(z.object({ success: z.boolean(), message: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        if (ctx.user.role !== 'student') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Apenas estudantes podem recusar vagas',
-          })
-        }
-
-        const aluno = await ctx.db.query.alunoTable.findFirst({
-          where: eq(alunoTable.userId, ctx.user.id),
-        })
-
-        if (!aluno) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de estudante não encontrado',
-          })
-        }
-
-        // Buscar a inscrição
-        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
-          where: and(eq(inscricaoTable.id, input.inscricaoId), eq(inscricaoTable.alunoId, aluno.id)),
-        })
-
-        if (!inscricao) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Inscrição não encontrada',
-          })
-        }
-
-        // Verificar se foi selecionado
-        if (!inscricao.status.startsWith('SELECTED_')) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Não é possível recusar uma vaga não oferecida',
-          })
-        }
-
-        // Atualizar status para recusado
-        await ctx.db
-          .update(inscricaoTable)
-          .set({
-            status: 'REJECTED_BY_STUDENT',
-            feedbackProfessor: input.motivo || 'Vaga recusada pelo estudante',
-            updatedAt: new Date(),
-          })
-          .where(eq(inscricaoTable.id, input.inscricaoId))
-
-        const tipoVaga = inscricao.status === SELECTED_BOLSISTA ? 'bolsista' : 'voluntária'
-        log.info({ inscricaoId: input.inscricaoId, motivo: input.motivo }, `Vaga ${tipoVaga} recusada`)
-
-        return {
-          success: true,
-          message: `Vaga ${tipoVaga} recusada com sucesso.`,
-        }
+        const service = createInscricaoService(ctx.db)
+        return await service.rejectPosition(ctx.user.id, ctx.user.role, input.inscricaoId, input.motivo)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Erro ao recusar vaga')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao recusar vaga',
-        })
+        throw transformError(error)
       }
     }),
 
-  // Gerar dados para termo de compromisso
   generateCommitmentTermData: protectedProcedure
     .meta({
       openapi: {
@@ -1568,133 +446,52 @@ export const inscricaoRouter = createTRPCRouter({
         }),
       })
     )
-    .query(async ({ input, ctx }) => {
-      try {
-        // Buscar a inscrição com todos os dados necessários
-        const inscricao = await ctx.db.query.inscricaoTable.findFirst({
-          where: eq(inscricaoTable.id, input.inscricaoId),
-          with: {
-            aluno: {
-              with: {
-                user: true,
-              },
-            },
-            projeto: {
-              with: {
-                professorResponsavel: true,
-                departamento: true,
-              },
-            },
-            periodoInscricao: {
-              with: {
-                edital: true,
-              },
-            },
-          },
-        })
-
-        if (!inscricao) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Inscrição não encontrada',
-          })
+    .query(
+      async ({
+        input,
+        ctx,
+      }): Promise<{
+        monitor: {
+          nome: string
+          matricula: string | null
+          email: string
+          telefone?: string
+          cr: number | null
         }
-
-        // Verificar se o usuário tem acesso a esta inscrição
-        if (ctx.user.role === 'student') {
-          const aluno = await ctx.db.query.alunoTable.findFirst({
-            where: eq(alunoTable.userId, ctx.user.id),
-          })
-
-          if (!aluno || inscricao.alunoId !== aluno.id) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Acesso negado a esta inscrição',
-            })
-          }
-        } else if (ctx.user.role === 'professor') {
-          const professor = await ctx.db.query.professorTable.findFirst({
-            where: eq(professorTable.userId, ctx.user.id),
-          })
-
-          if (!professor || inscricao.projeto.professorResponsavelId !== professor.id) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Acesso negado a esta inscrição',
-            })
-          }
+        professor: {
+          nome: string
+          matriculaSiape?: string
+          email: string | null
+          departamento: string
         }
-
-        // Verificar se foi aceita
-        if (!inscricao.status.includes('ACCEPTED_')) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Termo de compromisso só pode ser gerado para vagas aceitas',
-          })
+        projeto: {
+          titulo: string
+          disciplinas: Array<{
+            codigo: string
+            nome: string
+          }>
+          ano: number
+          semestre: string
+          cargaHorariaSemana: number
+          numeroSemanas: number
         }
-
-        // Buscar disciplinas do projeto
-        const disciplinas = await ctx.db
-          .select({
-            codigo: disciplinaTable.codigo,
-            nome: disciplinaTable.nome,
-            turma: disciplinaTable.turma,
-          })
-          .from(disciplinaTable)
-          .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))
-          .where(eq(projetoDisciplinaTable.projetoId, inscricao.projetoId))
-
-        // Calcular datas (exemplo: início no semestre atual, fim baseado no número de semanas)
-        const hoje = new Date()
-        const inicioSemestre = new Date(inscricao.projeto.ano, inscricao.projeto.semestre === 'SEMESTRE_1' ? 2 : 7, 1)
-        const fimSemestre = new Date(inscricao.projeto.ano, inscricao.projeto.semestre === 'SEMESTRE_1' ? 6 : 11, 30)
-
-        const tipoMonitoria = inscricao.status === ACCEPTED_BOLSISTA ? 'BOLSISTA' : 'VOLUNTARIO'
-
-        // Gerar número do termo
-        const numeroTermo = `${inscricao.projeto.ano}${inscricao.projeto.semestre === 'SEMESTRE_1' ? '1' : '2'}-${inscricao.id.toString().padStart(4, '0')}`
-
-        return {
-          monitor: {
-            nome: inscricao.aluno.nomeCompleto,
-            matricula: inscricao.aluno.matricula,
-            email: inscricao.aluno.user.email,
-            telefone: inscricao.aluno.telefone || undefined,
-            cr: inscricao.aluno.cr,
-          },
-          professor: {
-            nome: inscricao.projeto.professorResponsavel.nomeCompleto,
-            matriculaSiape: inscricao.projeto.professorResponsavel.matriculaSiape || undefined,
-            email: inscricao.projeto.professorResponsavel.emailInstitucional,
-            departamento: inscricao.projeto.departamento.nome,
-          },
-          projeto: {
-            titulo: inscricao.projeto.titulo,
-            disciplinas,
-            ano: inscricao.projeto.ano,
-            semestre: inscricao.projeto.semestre,
-            cargaHorariaSemana: inscricao.projeto.cargaHorariaSemana,
-            numeroSemanas: inscricao.projeto.numeroSemanas,
-          },
-          monitoria: {
-            tipo: tipoMonitoria,
-            dataInicio: inicioSemestre.toLocaleDateString('pt-BR'),
-            dataFim: fimSemestre.toLocaleDateString('pt-BR'),
-            valorBolsa:
-              tipoMonitoria === 'BOLSISTA' ? parseFloat(inscricao.periodoInscricao.edital.valorBolsa) : undefined,
-          },
-          termo: {
-            numero: numeroTermo,
-            dataGeracao: hoje.toLocaleDateString('pt-BR'),
-          },
+        monitoria: {
+          tipo: TipoVaga
+          dataInicio: string
+          dataFim: string
+          valorBolsa?: number
         }
-      } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Erro ao buscar dados do termo de compromisso')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao buscar dados do termo de compromisso',
-        })
+        termo: {
+          numero: string
+          dataGeracao: string
+        }
+      }> => {
+        try {
+          const service = createInscricaoService(ctx.db)
+          return await service.generateCommitmentTermData(ctx.user.id, ctx.user.role, input.inscricaoId)
+        } catch (error) {
+          throw transformError(error)
+        }
       }
-    }),
+    ),
 })

@@ -82,18 +82,10 @@ export const successResponseSchema = z.object({
 })
 
 export const errorResponseSchema = z.object({
-  error: z.string(),
-  details: z.unknown().optional(),
-})
-
-// Academic period schemas
-export const semesterSchema = z.number().int().min(1).max(2)
-export const yearSchema = z.number().int().min(2020).max(2030)
-
-// Period validation schema
-export const periodSchema = z.object({
-  ano: yearSchema,
-  semestre: semesterSchema,
+  title: z.string(),
+  message: z.string(),
+  code: z.string().optional(),
+  details: z.record(z.unknown()).optional(),
 })
 
 // Grade and performance schemas
@@ -117,6 +109,24 @@ export const createNullableSchema = <T extends z.ZodTypeAny>(schema: T) => schem
 export const createOptionalNullableSchema = <T extends z.ZodTypeAny>(schema: T) => schema.optional().nullable()
 
 // ========================================
+// STATUS ENUM SCHEMAS
+// ========================================
+
+// Periodo Inscricao Status
+export const PERIODO_INSCRICAO_STATUS_ATIVO = 'ATIVO' as const
+export const PERIODO_INSCRICAO_STATUS_FUTURO = 'FUTURO' as const
+export const PERIODO_INSCRICAO_STATUS_FINALIZADO = 'FINALIZADO' as const
+
+export const periodoInscricaoStatusSchema = z.enum([
+  PERIODO_INSCRICAO_STATUS_ATIVO,
+  PERIODO_INSCRICAO_STATUS_FUTURO,
+  PERIODO_INSCRICAO_STATUS_FINALIZADO,
+])
+
+// Note: Schemas below are now defined in enums.ts for centralization
+// Import them from @/types instead of defining here
+
+// ========================================
 // EXPORTED TYPES FROM SCHEMAS
 // ========================================
 
@@ -126,9 +136,6 @@ export type Name = z.infer<typeof nameSchema>
 export type Username = z.infer<typeof usernameSchema>
 export type Email = z.infer<typeof emailSchema>
 export type Phone = z.infer<typeof phoneSchema>
-export type Semester = z.infer<typeof semesterSchema>
-export type Year = z.infer<typeof yearSchema>
-export type Period = z.infer<typeof periodSchema>
 export type Grade = z.infer<typeof gradeSchema>
 export type Pagination = z.infer<typeof paginationSchema>
 export type Search = z.infer<typeof searchSchema>
@@ -137,3 +144,6 @@ export type FileId = z.infer<typeof fileIdSchema>
 export type SignatureData = z.infer<typeof signatureDataSchema>
 export type SuccessResponse = z.infer<typeof successResponseSchema>
 export type ErrorResponse = z.infer<typeof errorResponseSchema>
+export type PeriodoInscricaoStatus = z.infer<typeof periodoInscricaoStatusSchema>
+// Note: VoluntarioStatus, RelatorioValidationType, CandidateResultStatus, and ProfessorStatus
+// are now exported from enums.ts - import from @/types instead

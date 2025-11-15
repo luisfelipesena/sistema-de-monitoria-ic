@@ -1,3 +1,9 @@
+import {
+  PROJETO_STATUS_APPROVED,
+  PROJETO_STATUS_PENDING_SIGNATURE,
+  PROJETO_STATUS_REJECTED,
+  PROJETO_STATUS_SUBMITTED,
+} from '@/types'
 import { getBaseLayoutHTML } from './base-layout'
 
 export interface ProjetoStatusChangeData {
@@ -20,18 +26,18 @@ export function getProjetoStatusChangeHTML(data: ProjetoStatusChangeData): strin
   let color = '#1976d2'
 
   switch (data.novoStatus) {
-    case 'SUBMITTED':
+    case PROJETO_STATUS_SUBMITTED:
       title = '📄 Projeto Submetido para Análise'
       message = `<p>Seu projeto de monitoria "<strong>${data.projetoTitulo}</strong>" foi submetido com sucesso e agora aguarda análise da coordenação.</p>`
       color = '#2196f3'
       break
-    case 'PENDING_PROFESSOR_SIGNATURE':
+    case PROJETO_STATUS_PENDING_SIGNATURE:
       title = '✍️ Assinatura Pendente no Projeto'
       message = `<p>O projeto de monitoria "<strong>${data.projetoTitulo}</strong>" foi gerado ou precisa de sua atenção para assinatura.</p>
                  <p>Por favor, acesse o sistema para revisar os detalhes, baixar o documento para assinatura e realizar o upload do documento assinado.</p>`
       color = '#ff9800'
       break
-    case 'APPROVED':
+    case PROJETO_STATUS_APPROVED:
       title = '✅ Projeto Aprovado!'
       message = `<p>Parabéns! Seu projeto de monitoria "<strong>${data.projetoTitulo}</strong>" foi <strong>APROVADO</strong>.</p>`
       if (data.bolsasDisponibilizadas !== undefined) {
@@ -43,7 +49,7 @@ export function getProjetoStatusChangeHTML(data: ProjetoStatusChangeData): strin
       message += `<p>O próximo passo é aguardar o período de inscrições dos estudantes. Você será notificado.</p>`
       color = '#4caf50'
       break
-    case 'REJECTED':
+    case PROJETO_STATUS_REJECTED:
       title = '❌ Projeto Rejeitado'
       message = `<p>Informamos que seu projeto de monitoria "<strong>${data.projetoTitulo}</strong>" foi <strong>REJEITADO</strong>.</p>`
       if (data.feedback) {

@@ -1,9 +1,15 @@
-import { Badge } from "@/components/ui/badge";
-import { AlertCircle, CheckCircle, Clock } from "lucide-react";
-import { EditalListItem } from "@/types";
+import { Badge } from "@/components/ui/badge"
+import { EditalListItem } from "@/types"
+import {
+  PERIODO_INSCRICAO_STATUS_ATIVO,
+  PERIODO_INSCRICAO_STATUS_FINALIZADO,
+  PERIODO_INSCRICAO_STATUS_FUTURO,
+  type PeriodoInscricaoStatus,
+} from "@/types/schemas"
+import { AlertCircle, CheckCircle, Clock } from "lucide-react"
 
 interface EditalStatusBadgeProps {
-  edital: EditalListItem;
+  edital: EditalListItem
 }
 
 export function EditalStatusBadge({ edital }: EditalStatusBadgeProps) {
@@ -13,7 +19,7 @@ export function EditalStatusBadge({ edital }: EditalStatusBadgeProps) {
         <CheckCircle className="h-3 w-3 mr-1" />
         Publicado
       </Badge>
-    );
+    )
   }
 
   if (edital.chefeAssinouEm) {
@@ -22,7 +28,7 @@ export function EditalStatusBadge({ edital }: EditalStatusBadgeProps) {
         <CheckCircle className="h-3 w-3 mr-1" />
         Assinado pelo Chefe
       </Badge>
-    );
+    )
   }
 
   if (edital.fileIdAssinado) {
@@ -31,7 +37,7 @@ export function EditalStatusBadge({ edital }: EditalStatusBadgeProps) {
         <Clock className="h-3 w-3 mr-1" />
         PDF Assinado
       </Badge>
-    );
+    )
   }
 
   return (
@@ -39,26 +45,26 @@ export function EditalStatusBadge({ edital }: EditalStatusBadgeProps) {
       <AlertCircle className="h-3 w-3 mr-1" />
       Rascunho
     </Badge>
-  );
+  )
 }
 
-export function getPeriodStatusBadge(status: string) {
+export function getPeriodStatusBadge(status: PeriodoInscricaoStatus | string) {
   switch (status) {
-    case "ATIVO":
+    case PERIODO_INSCRICAO_STATUS_ATIVO:
       return (
         <Badge variant="default" className="bg-green-500">
           Ativo
         </Badge>
-      );
-    case "FUTURO":
+      )
+    case PERIODO_INSCRICAO_STATUS_FUTURO:
       return (
         <Badge variant="outline" className="border-blue-500 text-blue-700">
           Futuro
         </Badge>
-      );
-    case "FINALIZADO":
-      return <Badge variant="outline">Finalizado</Badge>;
+      )
+    case PERIODO_INSCRICAO_STATUS_FINALIZADO:
+      return <Badge variant="outline">Finalizado</Badge>
     default:
-      return <Badge variant="outline">{status}</Badge>;
+      return <Badge variant="outline">{status}</Badge>
   }
 }

@@ -9,6 +9,7 @@ import {
   tipoInscricaoSchema,
   tipoRelatorioSchema,
   TipoVaga,
+  tipoVagaSchema,
 } from './enums'
 import { idSchema, nameSchema } from './schemas'
 
@@ -127,9 +128,9 @@ export interface MonitorConsolidado {
   id: number
   monitor: {
     nome: string
-    matricula: string
+    matricula: string | null
     email: string
-    cr: number
+    cr: number | null
     banco?: string | null
     agencia?: string | null
     conta?: string | null
@@ -138,7 +139,7 @@ export interface MonitorConsolidado {
   professor: {
     nome: string
     matriculaSiape?: string | null
-    email: string
+    email: string | null
     departamento: string
   }
   projeto: {
@@ -354,7 +355,7 @@ export const monitorConsolidadoSchema = z.object({
     numeroSemanas: z.number().int().positive(),
   }),
   monitoria: z.object({
-    tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
+    tipo: tipoVagaSchema,
     dataInicio: z.string(),
     dataFim: z.string(),
     valorBolsa: z.number().nullable().optional(),
@@ -366,7 +367,7 @@ export const monitoresFinalFiltersSchema = z.object({
   ano: anoSchema,
   semestre: semestreSchema,
   departamentoId: idSchema.optional(),
-  tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']).optional(),
+  tipo: tipoVagaSchema.optional(),
 })
 
 export const monitorFinalBolsistaSchema = z.object({
@@ -390,7 +391,7 @@ export const monitorFinalBolsistaSchema = z.object({
     cargaHorariaSemana: z.number().int().positive(),
     numeroSemanas: z.number().int().positive(),
   }),
-  tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']),
+  tipo: tipoVagaSchema,
   valorBolsa: z.number().optional(),
 })
 

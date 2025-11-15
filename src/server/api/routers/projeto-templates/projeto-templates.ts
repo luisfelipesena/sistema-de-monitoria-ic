@@ -1,126 +1,21 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { projetoTemplateTable } from '@/server/db/schema'
-import { desc, eq } from 'drizzle-orm'
+import { createProjetoTemplatesService } from '@/server/services/projeto-templates/projeto-templates-service'
 import { z } from 'zod'
 
 export const projetoTemplatesRouter = createTRPCRouter({
   getTemplates: adminProtectedProcedure.query(async ({ ctx }) => {
-    const templates = await ctx.db.query.projetoTemplateTable.findMany({
-      orderBy: [desc(projetoTemplateTable.updatedAt)],
-      with: {
-        disciplina: {
-          with: {
-            departamento: {
-              columns: {
-                id: true,
-                nome: true,
-                sigla: true,
-              },
-            },
-          },
-        },
-        criadoPor: {
-          columns: {
-            id: true,
-            username: true,
-            email: true,
-          },
-        },
-        ultimaAtualizacaoPor: {
-          columns: {
-            id: true,
-            username: true,
-            email: true,
-          },
-        },
-      },
-    })
-
-    return templates.map((template) => ({
-      id: template.id,
-      disciplinaId: template.disciplinaId,
-      tituloDefault: template.tituloDefault,
-      descricaoDefault: template.descricaoDefault,
-      cargaHorariaSemanaDefault: template.cargaHorariaSemanaDefault,
-      numeroSemanasDefault: template.numeroSemanasDefault,
-      publicoAlvoDefault: template.publicoAlvoDefault,
-      atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
-      pontosProvaDefault: template.pontosProvaDefault,
-      bibliografiaDefault: template.bibliografiaDefault,
-      createdAt: template.createdAt,
-      updatedAt: template.updatedAt,
-      disciplina: {
-        id: template.disciplina.id,
-        nome: template.disciplina.nome,
-        codigo: template.disciplina.codigo,
-        departamento: template.disciplina.departamento,
-      },
-      criadoPor: template.criadoPor,
-      ultimaAtualizacaoPor: template.ultimaAtualizacaoPor,
-    }))
+    const service = createProjetoTemplatesService(ctx.db)
+    return service.getAllTemplates()
   }),
 
-  // Endpoint acessível por professores para listar templates
   getProjetoTemplates: protectedProcedure.query(async ({ ctx }) => {
-    const templates = await ctx.db.query.projetoTemplateTable.findMany({
-      orderBy: [desc(projetoTemplateTable.updatedAt)],
-      with: {
-        disciplina: {
-          with: {
-            departamento: {
-              columns: {
-                id: true,
-                nome: true,
-                sigla: true,
-              },
-            },
-          },
-        },
-      },
-    })
-
-    return templates.map((template) => ({
-      id: template.id,
-      disciplinaId: template.disciplinaId,
-      tituloDefault: template.tituloDefault,
-      descricaoDefault: template.descricaoDefault,
-      cargaHorariaSemanaDefault: template.cargaHorariaSemanaDefault,
-      numeroSemanasDefault: template.numeroSemanasDefault,
-      publicoAlvoDefault: template.publicoAlvoDefault,
-      atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
-      pontosProvaDefault: template.pontosProvaDefault,
-      bibliografiaDefault: template.bibliografiaDefault,
-      disciplina: {
-        id: template.disciplina.id,
-        nome: template.disciplina.nome,
-        codigo: template.disciplina.codigo,
-        departamento: template.disciplina.departamento,
-      },
-    }))
+    const service = createProjetoTemplatesService(ctx.db)
+    return service.getTemplatesForProfessor()
   }),
 
   getTemplate: adminProtectedProcedure.input(z.object({ id: z.number() })).query(async ({ input, ctx }) => {
-    const template = await ctx.db.query.projetoTemplateTable.findFirst({
-      where: eq(projetoTemplateTable.id, input.id),
-      with: {
-        disciplina: {
-          with: {
-            departamento: true,
-          },
-        },
-        criadoPor: true,
-        ultimaAtualizacaoPor: true,
-      },
-    })
-
-    if (!template) {
-      throw new Error('Template não encontrado')
-    }
-
-    return {
-      ...template,
-      atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
-    }
+    const service = createProjetoTemplatesService(ctx.db)
+    return service.getTemplate(input.id)
   }),
 
   createTemplate: adminProtectedProcedure
@@ -138,29 +33,8 @@ export const projetoTemplatesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Check if template already exists for this discipline
-      const existingTemplate = await ctx.db.query.projetoTemplateTable.findFirst({
-        where: eq(projetoTemplateTable.disciplinaId, input.disciplinaId),
-      })
-
-      if (existingTemplate) {
-        throw new Error('Já existe um template para esta disciplina')
-      }
-
-      const { atividadesDefault, pontosProvaDefault, bibliografiaDefault, ...templateData } = input
-
-      const [template] = await ctx.db
-        .insert(projetoTemplateTable)
-        .values({
-          ...templateData,
-          atividadesDefault: atividadesDefault ? JSON.stringify(atividadesDefault) : null,
-          pontosProvaDefault: pontosProvaDefault || null,
-          bibliografiaDefault: bibliografiaDefault || null,
-          criadoPorUserId: ctx.user.id,
-        })
-        .returning()
-
-      return template
+      const service = createProjetoTemplatesService(ctx.db)
+      return service.createTemplate(input, ctx.user.id)
     }),
 
   updateTemplate: adminProtectedProcedure
@@ -178,92 +52,25 @@ export const projetoTemplatesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, atividadesDefault, pontosProvaDefault, bibliografiaDefault, ...updateData } = input
-
-      const template = await ctx.db.query.projetoTemplateTable.findFirst({
-        where: eq(projetoTemplateTable.id, id),
-      })
-
-      if (!template) {
-        throw new Error('Template não encontrado')
-      }
-
-      const [updated] = await ctx.db
-        .update(projetoTemplateTable)
-        .set({
-          ...updateData,
-          atividadesDefault: atividadesDefault ? JSON.stringify(atividadesDefault) : null,
-          pontosProvaDefault: pontosProvaDefault,
-          bibliografiaDefault: bibliografiaDefault,
-          ultimaAtualizacaoUserId: ctx.user.id,
-        })
-        .where(eq(projetoTemplateTable.id, id))
-        .returning()
-
-      return updated
+      const service = createProjetoTemplatesService(ctx.db)
+      return service.updateTemplate(input, ctx.user.id)
     }),
 
   deleteTemplate: adminProtectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
-    const template = await ctx.db.query.projetoTemplateTable.findFirst({
-      where: eq(projetoTemplateTable.id, input.id),
-    })
-
-    if (!template) {
-      throw new Error('Template não encontrado')
-    }
-
-    await ctx.db.delete(projetoTemplateTable).where(eq(projetoTemplateTable.id, input.id))
-
-    return { success: true }
+    const service = createProjetoTemplatesService(ctx.db)
+    return service.deleteTemplate(input.id)
   }),
 
   getDisciplinasDisponiveis: adminProtectedProcedure.query(async ({ ctx }) => {
-    // Get disciplines that don't have templates yet
-    const allDisciplinas = await ctx.db.query.disciplinaTable.findMany({
-      with: {
-        departamento: {
-          columns: {
-            id: true,
-            nome: true,
-            sigla: true,
-          },
-        },
-      },
-    })
-
-    const templatesExistentes = await ctx.db.query.projetoTemplateTable.findMany({
-      columns: {
-        disciplinaId: true,
-      },
-    })
-
-    const disciplinasComTemplate = new Set(templatesExistentes.map((t) => t.disciplinaId))
-
-    return allDisciplinas.filter((d) => !disciplinasComTemplate.has(d.id))
+    const service = createProjetoTemplatesService(ctx.db)
+    return service.getAvailableDisciplines()
   }),
 
   getTemplateByDisciplina: adminProtectedProcedure
     .input(z.object({ disciplinaId: z.number() }))
     .query(async ({ input, ctx }) => {
-      const template = await ctx.db.query.projetoTemplateTable.findFirst({
-        where: eq(projetoTemplateTable.disciplinaId, input.disciplinaId),
-        with: {
-          disciplina: {
-            with: {
-              departamento: true,
-            },
-          },
-        },
-      })
-
-      if (!template) {
-        return null
-      }
-
-      return {
-        ...template,
-        atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
-      }
+      const service = createProjetoTemplatesService(ctx.db)
+      return service.getTemplateByDisciplina(input.disciplinaId)
     }),
 
   duplicateTemplate: adminProtectedProcedure
@@ -274,78 +81,22 @@ export const projetoTemplatesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const sourceTemplate = await ctx.db.query.projetoTemplateTable.findFirst({
-        where: eq(projetoTemplateTable.id, input.sourceId),
-      })
-
-      if (!sourceTemplate) {
-        throw new Error('Template fonte não encontrado')
-      }
-
-      // Check if target discipline already has a template
-      const existingTemplate = await ctx.db.query.projetoTemplateTable.findFirst({
-        where: eq(projetoTemplateTable.disciplinaId, input.targetDisciplinaId),
-      })
-
-      if (existingTemplate) {
-        throw new Error('A disciplina de destino já possui um template')
-      }
-
-      const [newTemplate] = await ctx.db
-        .insert(projetoTemplateTable)
-        .values({
-          disciplinaId: input.targetDisciplinaId,
-          tituloDefault: sourceTemplate.tituloDefault,
-          descricaoDefault: sourceTemplate.descricaoDefault,
-          cargaHorariaSemanaDefault: sourceTemplate.cargaHorariaSemanaDefault,
-          numeroSemanasDefault: sourceTemplate.numeroSemanasDefault,
-          publicoAlvoDefault: sourceTemplate.publicoAlvoDefault,
-          atividadesDefault: sourceTemplate.atividadesDefault,
-          criadoPorUserId: ctx.user.id,
-        })
-        .returning()
-
-      return newTemplate
+      const service = createProjetoTemplatesService(ctx.db)
+      return service.duplicateTemplate(input, ctx.user.id)
     }),
 
   getTemplateStats: adminProtectedProcedure.query(async ({ ctx }) => {
-    const totalTemplates = await ctx.db.query.projetoTemplateTable.findMany()
-    const totalDisciplinas = await ctx.db.query.disciplinaTable.findMany()
-
-    return {
-      totalTemplates: totalTemplates.length,
-      totalDisciplinas: totalDisciplinas.length,
-      cobertura: totalDisciplinas.length > 0 ? Math.round((totalTemplates.length / totalDisciplinas.length) * 100) : 0,
-      disciplinasSemTemplate: totalDisciplinas.length - totalTemplates.length,
-    }
+    const service = createProjetoTemplatesService(ctx.db)
+    return service.getTemplateStats()
   }),
 
-  // Professor pode obter template por disciplina
   getTemplateByDisciplinaForProfessor: protectedProcedure
     .input(z.object({ disciplinaId: z.number() }))
     .query(async ({ input, ctx }) => {
-      const template = await ctx.db.query.projetoTemplateTable.findFirst({
-        where: eq(projetoTemplateTable.disciplinaId, input.disciplinaId),
-        with: {
-          disciplina: {
-            with: {
-              departamento: true,
-            },
-          },
-        },
-      })
-
-      if (!template) {
-        return null
-      }
-
-      return {
-        ...template,
-        atividadesDefault: template.atividadesDefault ? (JSON.parse(template.atividadesDefault) as string[]) : [],
-      }
+      const service = createProjetoTemplatesService(ctx.db)
+      return service.getTemplateByDisciplina(input.disciplinaId)
     }),
 
-  // Professor pode criar/editar template por disciplina
   upsertTemplateByProfessor: protectedProcedure
     .input(
       z.object({
@@ -361,43 +112,7 @@ export const projetoTemplatesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Check if template already exists for this discipline
-      const existingTemplate = await ctx.db.query.projetoTemplateTable.findFirst({
-        where: eq(projetoTemplateTable.disciplinaId, input.disciplinaId),
-      })
-
-      const { disciplinaId, atividadesDefault, pontosProvaDefault, bibliografiaDefault, ...templateData } = input
-
-      if (existingTemplate) {
-        // Update existing template
-        const [updated] = await ctx.db
-          .update(projetoTemplateTable)
-          .set({
-            ...templateData,
-            atividadesDefault: atividadesDefault ? JSON.stringify(atividadesDefault) : null,
-            pontosProvaDefault: pontosProvaDefault,
-            bibliografiaDefault: bibliografiaDefault,
-            ultimaAtualizacaoUserId: ctx.user.id,
-          })
-          .where(eq(projetoTemplateTable.id, existingTemplate.id))
-          .returning()
-
-        return { ...updated, isNew: false }
-      }
-
-      // Create new template
-      const [template] = await ctx.db
-        .insert(projetoTemplateTable)
-        .values({
-          disciplinaId,
-          ...templateData,
-          atividadesDefault: atividadesDefault ? JSON.stringify(atividadesDefault) : null,
-          pontosProvaDefault: pontosProvaDefault || null,
-          bibliografiaDefault: bibliografiaDefault || null,
-          criadoPorUserId: ctx.user.id,
-        })
-        .returning()
-
-      return { ...template, isNew: true }
+      const service = createProjetoTemplatesService(ctx.db)
+      return service.upsertTemplateByProfessor(input, ctx.user.id)
     }),
 })

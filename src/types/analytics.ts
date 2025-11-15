@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { anoSchema, semestreSchema } from './enums'
+import { alertTypeSchema, anoSchema, semestreSchema } from './enums'
 import { idSchema } from './schemas'
 
 // ========================================
@@ -135,7 +135,7 @@ export const dashboardMetricsSchema = z.object({
   }),
   alertas: z.array(
     z.object({
-      tipo: z.enum(['warning', 'error', 'info']),
+      tipo: alertTypeSchema,
       titulo: z.string(),
       descricao: z.string(),
       link: z.string().optional(),

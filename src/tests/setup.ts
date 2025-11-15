@@ -206,7 +206,7 @@ vi.mock('pdf-lib', () => ({
 }))
 
 // Mock email service
-vi.mock('@/server/lib/email-service', () => ({
+vi.mock('@/server/lib/email', () => ({
   emailService: {
     sendGenericEmail: vi.fn().mockResolvedValue({ success: true }),
   },

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Genero, generoSchema } from './enums'
+import { Genero, generoSchema, StudentStatus } from './enums'
 import { cpfSchema } from './schemas'
 
 // ========================================
@@ -64,7 +64,7 @@ export interface AlunoListItem {
     nome: string
     departamento: string
   }
-  status: 'ATIVO' | 'INATIVO' | 'GRADUADO' | 'TRANSFERIDO'
+  status: StudentStatus
   inscricoes: number
   bolsasAtivas: number
   voluntariadosAtivos: number

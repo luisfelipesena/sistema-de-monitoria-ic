@@ -30,3 +30,7 @@ CLAUDE.local.md
 .next/
 
 .env.prod
+
+# TypeScript build info
+*.tsbuildinfo
+tsconfig.tsbuildinfo

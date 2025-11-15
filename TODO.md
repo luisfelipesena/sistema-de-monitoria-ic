@@ -188,12 +188,12 @@ export const disciplinaEquivalenciaTable = pgTable('disciplina_equivalencia', {
 **STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Ajustar envio de planilha final para Departamento (não PROGRAD)
-**DESCRIÇÃO** - Planilhas de bolsistas/voluntários devem ir para chefe do DEPARTAMENTO (email DCC), não direto PROGRAD
+**DESCRIÇÃO** - Planilhas de bolsistas/voluntários devem ir para chefe do DEPARTAMENTO (email DCC), não direto PROGRAD. Separar consolidação final em dois anexos distintos (uma planilha apenas de bolsistas e outra apenas de voluntários), mantendo filtros por semestre/ano.
 **CONTEXTO** - Professor explicou: "As planilhas vão para o chefe do departamento. Pode mandar para o e-mail do DCC. O chefe do departamento vai mandar para a PROGRAD"
 **ARQUIVOS AFETADOS**:
 - `src/server/api/routers/relatorios/relatorios.ts` - Ajustar `exportConsolidated` para enviar ao DCC
 - `src/components/features/consolidacao/ConsolidacaoContent.tsx` - Atualizar interface
-**STATUS** - [ ] PENDENTE
+**STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Documentar processo manual de distribuição de bolsas
 **DESCRIÇÃO** - Criar documentação clara do processo: PROGRAD → Instituto → Departamento → Comissão → Admin
@@ -599,6 +599,23 @@ FASE 2: Alocação de Bolsas
 **Impacto**: Workflow completo de gestão de bolsas com transparência e auditoria
 
 ---
+
+### 2.1 AJUSTES FINOS NO WORKFLOW DE BOLSAS (ALINHAR COM FLUXO FINAL) 🚧
+
+**TAREFA** - Validar limite de bolsas PROGRAD na alocação (backend + frontend)  
+**DESCRIÇÃO** - Garantir que a soma de `bolsasDisponibilizadas` em todos os projetos aprovados do período nunca ultrapasse `totalBolsasPrograd` definido em `periodoInscricao`. Bloquear `bulkUpdateAllocations` e `updateScholarshipAllocation` quando a operação exceder o limite e exibir erro claro na UI.  
+**ARQUIVOS AFETADOS**:  
+- `src/server/api/routers/scholarship-allocation/scholarship-allocation.ts` – validação de negócio no servidor  
+- `src/app/home/admin/scholarship-allocation/page.tsx` – feedback visual (erros, badge de sobre-alocação)  
+**STATUS** - [x] ✅ COMPLETO  
+
+**TAREFA** - Notificar todos os professores com projetos aprovados após alocação  
+**DESCRIÇÃO** - Ajustar o fluxo de `notifyProfessorsAfterAllocation` para enviar e-mail também a professores com projetos aprovados sem bolsas PROGRAD (apenas vagas voluntárias), já que eles também precisam configurar voluntários e dados de edital. E-mail deve deixar claro quando o projeto tem 0 bolsas e apenas vagas voluntárias.  
+**ARQUIVOS AFETADOS**:  
+- `src/server/api/routers/scholarship-allocation/scholarship-allocation.ts` – remover filtro `bolsasDisponibilizadas > 0` ou parametrizar comportamento  
+- `src/server/lib/email-service.ts` – ajustar template `sendScholarshipAllocationNotification` para contemplar projetos sem bolsas  
+- `src/app/home/admin/scholarship-allocation/page.tsx` – texto do botão/tooltip explicando quem será notificado  
+**STATUS** - [x] ✅ COMPLETO  
 
 **STATUS ATUAL**: 🟢 Sistema completo - Todos os workflows implementados e validados | ✅ Todas as tarefas concluídas
 **PRÓXIMO PASSO**: Sistema pronto para produção - todos os requisitos implementados

@@ -10,9 +10,18 @@ import {
   projetoTemplateTable,
   type NewProjeto,
 } from '@/server/db/schema'
-import { sendProjectCreationNotification } from '@/server/lib/email-service'
+import { sendProjectCreationNotification } from '@/server/lib/email'
 import minioClient, { bucketName as MINIO_BUCKET } from '@/server/lib/minio'
 import { groupByDisciplinaTurma, parsePlanejamentoDCC } from '@/server/lib/planejamento-dcc-parser'
+import {
+  IMPORT_STATUS_CONCLUIDO,
+  IMPORT_STATUS_CONCLUIDO_COM_ERROS,
+  IMPORT_STATUS_ERRO,
+  PROJETO_STATUS_PENDING_SIGNATURE,
+  TIPO_PROPOSICAO_COLETIVA,
+  TIPO_PROPOSICAO_INDIVIDUAL,
+  type ImportStatus,
+} from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { and, eq, inArray } from 'drizzle-orm'
@@ -129,7 +138,7 @@ export async function processImportedFileDCC(importacaoId: number, ctx: TRPCCont
           continue
         }
 
-        const tipoProposicao = professores.length > 1 ? 'COLETIVA' : 'INDIVIDUAL'
+        const tipoProposicao = professores.length > 1 ? TIPO_PROPOSICAO_COLETIVA : TIPO_PROPOSICAO_INDIVIDUAL
         const professorResponsavel = professores[0]
 
         if (!professorResponsavel.departamentoId) {
@@ -171,7 +180,7 @@ export async function processImportedFileDCC(importacaoId: number, ctx: TRPCCont
           warnings.push(`Disciplina ${firstEntry.disciplinaCodigo}: Sem template cadastrado, usando valores padrão`)
         }
 
-        if (tipoProposicao === 'COLETIVA') {
+        if (tipoProposicao === TIPO_PROPOSICAO_COLETIVA) {
           professoresParticipantes = professores.map((p) => p.nomeCompleto).join(', ')
         }
 
@@ -191,7 +200,7 @@ export async function processImportedFileDCC(importacaoId: number, ctx: TRPCCont
           voluntariosSolicitados: 0,
           tipoProposicao,
           professoresParticipantes,
-          status: 'PENDING_PROFESSOR_SIGNATURE',
+          status: PROJETO_STATUS_PENDING_SIGNATURE,
         }
 
         const [projeto] = await ctx.db.insert(projetoTable).values(novoProjeto).returning()
@@ -248,13 +257,13 @@ export async function processImportedFileDCC(importacaoId: number, ctx: TRPCCont
       }
     }
 
-    let finalStatus = 'CONCLUIDO'
+    let finalStatus: ImportStatus = IMPORT_STATUS_CONCLUIDO
     if (erros.some((erro) => erro.includes('Timeout'))) {
-      finalStatus = 'ERRO'
+      finalStatus = IMPORT_STATUS_ERRO
     } else if (projetosComErro > 0 && projetosCriados === 0) {
-      finalStatus = 'ERRO'
+      finalStatus = IMPORT_STATUS_ERRO
     } else if (projetosComErro > 0) {
-      finalStatus = 'CONCLUIDO_COM_ERROS'
+      finalStatus = IMPORT_STATUS_CONCLUIDO_COM_ERROS
     }
 
     await ctx.db

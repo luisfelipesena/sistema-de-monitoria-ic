@@ -1,4 +1,4 @@
-import { TermoCompromissoData } from "@/types"
+import { getSemestreNumero, TermoCompromissoData, TIPO_VAGA_BOLSISTA, type Semestre } from "@/types"
 import { Document, Font, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 
 // Register fonts (optional, but good for better text rendering)
@@ -127,9 +127,9 @@ const styles = StyleSheet.create({
 export default function TermoCompromisso({ data }: { data: TermoCompromissoData }) {
   const { monitor, professor, projeto, monitoria, termo } = data
 
-  const semestre = projeto.semestre === "SEMESTRE_1" ? "1º" : "2º"
+  const semestre = getSemestreNumero(projeto.semestre as Semestre)
   const cargaHorariaTotal = projeto.cargaHorariaSemana * projeto.numeroSemanas
-  const tipoMonitoria = monitoria.tipo === "BOLSISTA" ? "Bolsista" : "Voluntária"
+  const tipoMonitoria = monitoria.tipo === TIPO_VAGA_BOLSISTA ? "Bolsista" : "Voluntária"
 
   return (
     <Document>
@@ -144,7 +144,7 @@ export default function TermoCompromisso({ data }: { data: TermoCompromissoData 
         {/* Title */}
         <Text style={styles.title}>TERMO DE COMPROMISSO DE MONITORIA {tipoMonitoria.toUpperCase()}</Text>
         <Text style={[styles.paragraph, { textAlign: "center", fontSize: 10, marginBottom: 20 }]}>
-          Termo nº {termo.numero} - {projeto.ano}.{projeto.semestre === "SEMESTRE_1" ? "1" : "2"}
+          Termo nº {termo.numero} - {projeto.ano}.{getSemestreNumero(projeto.semestre as Semestre)}
         </Text>
 
         {/* Monitor Information */}
@@ -243,7 +243,7 @@ export default function TermoCompromisso({ data }: { data: TermoCompromissoData 
               <View style={styles.tableCol}>
                 <Text style={styles.tableCell}>
                   {tipoMonitoria}
-                  {monitoria.tipo === "BOLSISTA" &&
+                  {monitoria.tipo === TIPO_VAGA_BOLSISTA &&
                     monitoria.valorBolsa &&
                     ` - Valor: R$ ${monitoria.valorBolsa.toFixed(2)}`}
                 </Text>
@@ -277,7 +277,7 @@ export default function TermoCompromisso({ data }: { data: TermoCompromissoData 
             atividades conforme cronograma estabelecido pelo professor responsável.
           </Text>
 
-          {monitoria.tipo === "BOLSISTA" && (
+          {monitoria.tipo === TIPO_VAGA_BOLSISTA && (
             <Text style={styles.paragraph}>
               <Text style={styles.clauseNumber}>3.5.</Text> O monitor bolsista receberá auxílio financeiro mensal
               {monitoria.valorBolsa && ` no valor de R$ ${monitoria.valorBolsa.toFixed(2)}`}, condicionado ao
@@ -286,15 +286,15 @@ export default function TermoCompromisso({ data }: { data: TermoCompromissoData 
           )}
 
           <Text style={styles.paragraph}>
-            <Text style={styles.clauseNumber}>{monitoria.tipo === "BOLSISTA" ? "3.6." : "3.5."}</Text> O descumprimento
-            das obrigações estabelecidas neste termo poderá resultar no cancelamento da monitoria, sem direito a
-            indenização.
+            <Text style={styles.clauseNumber}>{monitoria.tipo === TIPO_VAGA_BOLSISTA ? "3.6." : "3.5."}</Text> O
+            descumprimento das obrigações estabelecidas neste termo poderá resultar no cancelamento da monitoria, sem
+            direito a indenização.
           </Text>
 
           <Text style={styles.paragraph}>
-            <Text style={styles.clauseNumber}>{monitoria.tipo === "BOLSISTA" ? "3.7." : "3.6."}</Text> A vigência deste
-            termo é de {monitoria.dataInicio} a {monitoria.dataFim}, podendo ser renovado conforme regulamentação
-            vigente.
+            <Text style={styles.clauseNumber}>{monitoria.tipo === TIPO_VAGA_BOLSISTA ? "3.7." : "3.6."}</Text> A
+            vigência deste termo é de {monitoria.dataInicio} a {monitoria.dataFim}, podendo ser renovado conforme
+            regulamentação vigente.
           </Text>
         </View>
 

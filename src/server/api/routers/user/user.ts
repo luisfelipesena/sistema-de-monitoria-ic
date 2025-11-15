@@ -1,13 +1,5 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import {
-  alunoTable,
-  inscricaoDocumentoTable,
-  inscricaoTable,
-  professorTable,
-  projetoTable,
-  userTable,
-  vagaTable,
-} from '@/server/db/schema'
+import { userService } from '@/server/services/user/user-service'
 import {
   cpfSchema,
   crSchema,
@@ -15,6 +7,7 @@ import {
   idSchema,
   nameSchema,
   phoneSchema,
+  professorStatusSchema,
   regimeSchema,
   userListItemSchema,
   usernameSchema,
@@ -22,8 +15,8 @@ import {
 } from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
-import { and, eq, isNull, like, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
+import { NotFoundError, ValidationError } from '@/server/lib/errors'
 
 const log = logger.child({ context: 'UserRouter' })
 
@@ -52,161 +45,9 @@ export const userRouter = createTRPCRouter({
         total: z.number(),
       })
     )
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       try {
-        const whereConditions = []
-
-        if (input.role) {
-          whereConditions.push(eq(userTable.role, input.role))
-        }
-
-        if (input.search) {
-          whereConditions.push(
-            or(like(userTable.username, `%${input.search}%`), like(userTable.email, `%${input.search}%`))
-          )
-        }
-
-        const users = await ctx.db.query.userTable.findMany({
-          where: whereConditions.length > 0 ? and(...whereConditions) : undefined,
-          with: {
-            professorProfile: {
-              with: {
-                departamento: true,
-              },
-            },
-            studentProfile: {
-              with: {
-                curso: true,
-              },
-            },
-          },
-          limit: input.limit,
-          offset: input.offset,
-          orderBy: (table, { asc }) => [asc(table.username)],
-        })
-
-        const total = await ctx.db.$count(userTable, whereConditions.length > 0 ? and(...whereConditions) : undefined)
-
-        // Fetch statistics for professors and students
-        const formattedUsers = await Promise.all(
-          users.map(async (user) => {
-            let professorStats = null
-            let studentStats = null
-
-            if (user.professorProfile) {
-              // Get professor statistics
-              const [projetosCount] = await ctx.db
-                .select({ count: sql<number>`count(*)::int` })
-                .from(projetoTable)
-                .where(
-                  and(eq(projetoTable.professorResponsavelId, user.professorProfile.id), isNull(projetoTable.deletedAt))
-                )
-
-              const [projetosAtivosCount] = await ctx.db
-                .select({ count: sql<number>`count(*)::int` })
-                .from(projetoTable)
-                .where(
-                  and(
-                    eq(projetoTable.professorResponsavelId, user.professorProfile.id),
-                    eq(projetoTable.status, 'APPROVED'),
-                    isNull(projetoTable.deletedAt)
-                  )
-                )
-
-              professorStats = {
-                id: user.professorProfile.id,
-                nomeCompleto: user.professorProfile.nomeCompleto,
-                cpf: user.professorProfile.cpf,
-                telefone: user.professorProfile.telefone,
-                telefoneInstitucional: user.professorProfile.telefoneInstitucional,
-                emailInstitucional: user.professorProfile.emailInstitucional,
-                matriculaSiape: user.professorProfile.matriculaSiape,
-                regime: user.professorProfile.regime as z.infer<typeof regimeSchema>,
-                departamentoId: user.professorProfile.departamentoId,
-                assinaturaDefault: user.professorProfile.assinaturaDefault,
-                dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
-                projetos: projetosCount?.count || 0,
-                projetosAtivos: projetosAtivosCount?.count || 0,
-              }
-            }
-
-            if (user.studentProfile) {
-              // Get student statistics
-              const [inscricoesCount] = await ctx.db
-                .select({ count: sql<number>`count(*)::int` })
-                .from(inscricaoTable)
-                .where(eq(inscricaoTable.alunoId, user.studentProfile.id))
-
-              const [bolsasAtivasCount] = await ctx.db
-                .select({ count: sql<number>`count(*)::int` })
-                .from(vagaTable)
-                .where(and(eq(vagaTable.alunoId, user.studentProfile.id), eq(vagaTable.tipo, 'BOLSISTA')))
-
-              const [voluntariadosAtivosCount] = await ctx.db
-                .select({ count: sql<number>`count(*)::int` })
-                .from(vagaTable)
-                .where(and(eq(vagaTable.alunoId, user.studentProfile.id), eq(vagaTable.tipo, 'VOLUNTARIO')))
-
-              const [totalDocumentosCount] = await ctx.db
-                .select({ count: sql<number>`count(*)::int` })
-                .from(inscricaoDocumentoTable)
-                .innerJoin(inscricaoTable, eq(inscricaoDocumentoTable.inscricaoId, inscricaoTable.id))
-                .where(eq(inscricaoTable.alunoId, user.studentProfile.id))
-
-              // Count validated documents (documents for applications that were accepted)
-              const [documentosValidadosCount] = await ctx.db
-                .select({ count: sql<number>`count(*)::int` })
-                .from(inscricaoDocumentoTable)
-                .innerJoin(inscricaoTable, eq(inscricaoDocumentoTable.inscricaoId, inscricaoTable.id))
-                .where(
-                  and(
-                    eq(inscricaoTable.alunoId, user.studentProfile.id),
-                    sql`${inscricaoTable.status} IN ('ACCEPTED_BOLSISTA', 'ACCEPTED_VOLUNTARIO')`
-                  )
-                )
-
-              studentStats = {
-                id: user.studentProfile.id,
-                nomeCompleto: user.studentProfile.nomeCompleto,
-                matricula: user.studentProfile.matricula,
-                cpf: user.studentProfile.cpf,
-                cr: user.studentProfile.cr,
-                cursoId: user.studentProfile.cursoId,
-                telefone: user.studentProfile.telefone,
-                emailInstitucional: user.studentProfile.emailInstitucional,
-                historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
-                comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
-                banco: user.studentProfile.banco,
-                agencia: user.studentProfile.agencia,
-                conta: user.studentProfile.conta,
-                digitoConta: user.studentProfile.digitoConta,
-                inscricoes: inscricoesCount?.count || 0,
-                bolsasAtivas: bolsasAtivasCount?.count || 0,
-                voluntariadosAtivos: voluntariadosAtivosCount?.count || 0,
-                documentosValidados: documentosValidadosCount?.count || 0,
-                totalDocumentos: totalDocumentosCount?.count || 0,
-              }
-            }
-
-            return {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-              role: user.role as z.infer<typeof userRoleSchema>,
-              assinaturaDefault: user.assinaturaDefault,
-              dataAssinaturaDefault: user.dataAssinaturaDefault,
-              professorProfile: professorStats,
-              studentProfile: studentStats,
-              createdAt: user.professorProfile?.createdAt || user.studentProfile?.createdAt || null,
-              updatedAt: user.professorProfile?.updatedAt || user.studentProfile?.updatedAt || null,
-            }
-          })
-        )
-
-        return {
-          users: formattedUsers,
-          total,
-        }
+        return await userService.listUsers(input)
       } catch (error) {
         log.error(error, 'Error listing users')
         throw new TRPCError({
@@ -230,74 +71,14 @@ export const userRouter = createTRPCRouter({
     .output(userListItemSchema)
     .query(async ({ ctx }) => {
       try {
-        const user = await ctx.db.query.userTable.findFirst({
-          where: eq(userTable.id, ctx.user.id),
-          with: {
-            professorProfile: {
-              with: {
-                departamento: true,
-              },
-            },
-            studentProfile: {
-              with: {
-                curso: true,
-              },
-            },
-          },
-        })
-
-        if (!user) {
+        return await userService.getProfile(ctx.user.id)
+      } catch (error) {
+        if (error instanceof NotFoundError) {
           throw new TRPCError({
             code: 'NOT_FOUND',
-            message: 'User not found',
+            message: error.message,
           })
         }
-
-        return {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role as z.infer<typeof userRoleSchema>,
-          assinaturaDefault: user.assinaturaDefault,
-          dataAssinaturaDefault: user.dataAssinaturaDefault,
-          professorProfile: user.professorProfile
-            ? {
-                id: user.professorProfile.id,
-                nomeCompleto: user.professorProfile.nomeCompleto,
-                cpf: user.professorProfile.cpf,
-                telefone: user.professorProfile.telefone,
-                telefoneInstitucional: user.professorProfile.telefoneInstitucional,
-                emailInstitucional: user.professorProfile.emailInstitucional,
-                matriculaSiape: user.professorProfile.matriculaSiape,
-                regime: user.professorProfile.regime as z.infer<typeof regimeSchema>,
-                departamentoId: user.professorProfile.departamentoId,
-                curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
-                comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
-                assinaturaDefault: user.professorProfile.assinaturaDefault,
-                dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
-              }
-            : null,
-          studentProfile: user.studentProfile
-            ? {
-                id: user.studentProfile.id,
-                nomeCompleto: user.studentProfile.nomeCompleto,
-                matricula: user.studentProfile.matricula,
-                cpf: user.studentProfile.cpf,
-                cr: user.studentProfile.cr,
-                cursoId: user.studentProfile.cursoId,
-                telefone: user.studentProfile.telefone,
-                emailInstitucional: user.studentProfile.emailInstitucional,
-                historicoEscolarFileId: user.studentProfile.historicoEscolarFileId,
-                comprovanteMatriculaFileId: user.studentProfile.comprovanteMatriculaFileId,
-                banco: user.studentProfile.banco,
-                agencia: user.studentProfile.agencia,
-                conta: user.studentProfile.conta,
-                digitoConta: user.studentProfile.digitoConta,
-              }
-            : null,
-        }
-      } catch (error) {
-        if (error instanceof TRPCError) throw error
         log.error(error, 'Error getting user profile')
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -351,49 +132,22 @@ export const userRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       try {
-        // Update user table if username provided
-        if (input.username) {
-          await ctx.db.update(userTable).set({ username: input.username }).where(eq(userTable.id, ctx.user.id))
-        }
-
-        // Update professor profile if provided
-        if (input.professorData && ctx.user.role === 'professor') {
-          await ctx.db
-            .update(professorTable)
-            .set({
-              nomeCompleto: input.professorData.nomeCompleto,
-              cpf: input.professorData.cpf,
-              telefone: input.professorData.telefone,
-              telefoneInstitucional: input.professorData.telefoneInstitucional,
-              regime: input.professorData.regime,
-              updatedAt: new Date(),
-            })
-            .where(eq(professorTable.userId, ctx.user.id))
-        }
-
-        // Update student profile if provided
-        if (input.studentData && ctx.user.role === 'student') {
-          await ctx.db
-            .update(alunoTable)
-            .set({
-              nomeCompleto: input.studentData.nomeCompleto,
-              matricula: input.studentData.matricula,
-              cpf: input.studentData.cpf,
-              cr: input.studentData.cr,
-              cursoId: input.studentData.cursoId,
-              telefone: input.studentData.telefone,
-              banco: input.studentData.banco,
-              agencia: input.studentData.agencia,
-              conta: input.studentData.conta,
-              digitoConta: input.studentData.digitoConta,
-              updatedAt: new Date(),
-            })
-            .where(eq(alunoTable.userId, ctx.user.id))
-        }
-
+        await userService.updateProfile(ctx.user.id, input)
         log.info({ userId: ctx.user.id }, 'User profile updated successfully')
         return { success: true }
       } catch (error) {
+        if (error instanceof ValidationError) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: error.message,
+          })
+        }
+        if (error instanceof NotFoundError) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: error.message,
+          })
+        }
         log.error(error, 'Error updating user profile')
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -408,27 +162,16 @@ export const userRouter = createTRPCRouter({
         id: idSchema,
       })
     )
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       try {
-        const user = await ctx.db.query.userTable.findFirst({
-          where: eq(userTable.id, input.id),
-          with: {
-            professorProfile: true,
-            studentProfile: true,
-          },
-        })
-
-        if (!user) {
+        return await userService.getUserById(input.id)
+      } catch (error) {
+        if (error instanceof NotFoundError) {
           throw new TRPCError({
             code: 'NOT_FOUND',
-            message: 'User not found',
+            message: error.message,
           })
         }
-
-        return user
-      } catch (error) {
-        if (error instanceof TRPCError) throw error
-
         log.error(error, 'Error fetching user by id')
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -446,15 +189,19 @@ export const userRouter = createTRPCRouter({
         role: userRoleSchema.optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       try {
         const { id, ...updateData } = input
-
-        await ctx.db.update(userTable).set(updateData).where(eq(userTable.id, id))
-
+        await userService.updateUser(id, updateData)
         log.info({ userId: id }, 'User updated successfully')
         return { success: true }
       } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: error.message,
+          })
+        }
         log.error(error, 'Error updating user')
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
@@ -476,7 +223,7 @@ export const userRouter = createTRPCRouter({
     .input(
       z.object({
         id: idSchema,
-        status: z.enum(['ATIVO', 'INATIVO']),
+        status: professorStatusSchema,
       })
     )
     .output(
@@ -485,58 +232,24 @@ export const userRouter = createTRPCRouter({
         message: z.string(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
+    .mutation(async ({ input }) => {
       try {
-        const user = await ctx.db.query.userTable.findFirst({
-          where: eq(userTable.id, input.id),
-          with: {
-            professorProfile: true,
-          },
-        })
-
-        if (!user) {
+        const result = await userService.updateProfessorStatus(input.id, input.status)
+        log.info({ userId: input.id, newStatus: input.status }, 'Professor status updated successfully')
+        return result
+      } catch (error) {
+        if (error instanceof NotFoundError) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Usuário não encontrado',
           })
         }
-
-        if (!user.professorProfile) {
+        if (error instanceof ValidationError) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
-            message: 'Usuário não possui perfil de professor',
+            message: error.message,
           })
         }
-
-        // For now, we'll use the user's role to simulate status
-        // In a full implementation, you might want to add a status field to the professor table
-        const newRole = input.status === 'ATIVO' ? 'professor' : 'professor'
-
-        await ctx.db
-          .update(userTable)
-          .set({
-            role: newRole,
-          })
-          .where(eq(userTable.id, input.id))
-
-        // Update professor profile with current timestamp to indicate status change
-        await ctx.db
-          .update(professorTable)
-          .set({
-            updatedAt: new Date(),
-          })
-          .where(eq(professorTable.userId, input.id))
-
-        const statusText = input.status === 'ATIVO' ? 'ativado' : 'desativado'
-
-        log.info({ userId: input.id, newStatus: input.status }, 'Professor status updated successfully')
-
-        return {
-          success: true,
-          message: `Professor ${statusText} com sucesso`,
-        }
-      } catch (error) {
-        if (error instanceof TRPCError) throw error
         log.error(error, 'Error updating professor status')
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',

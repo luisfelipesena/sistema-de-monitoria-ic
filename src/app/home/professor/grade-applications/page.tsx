@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { inscriptionDetailSchema } from "@/types"
+import { inscriptionDetailSchema, PROJETO_STATUS_APPROVED, TIPO_VAGA_BOLSISTA } from "@/types"
 import { api } from "@/utils/api"
 import { Calculator, ClipboardCheck, Save, Users } from "lucide-react"
 import { useState } from "react"
@@ -96,7 +96,7 @@ export default function GradeApplicationsPage() {
     return (disciplina * 5 + selecao * 3 + cr * 2) / 10
   }
 
-  const projetosAprovados = projetos?.filter((p) => p.status === "APPROVED") || []
+  const projetosAprovados = projetos?.filter((p) => p.status === PROJETO_STATUS_APPROVED) || []
 
   return (
     <PagesLayout title="Avaliar Candidatos">
@@ -160,7 +160,7 @@ export default function GradeApplicationsPage() {
                         <TableCell>{inscricao.aluno.nomeCompleto}</TableCell>
                         <TableCell>{inscricao.aluno.matricula}</TableCell>
                         <TableCell>
-                          <Badge variant={inscricao.tipoVagaPretendida === "BOLSISTA" ? "default" : "secondary"}>
+                          <Badge variant={inscricao.tipoVagaPretendida === TIPO_VAGA_BOLSISTA ? "default" : "secondary"}>
                             {inscricao.tipoVagaPretendida}
                           </Badge>
                         </TableCell>

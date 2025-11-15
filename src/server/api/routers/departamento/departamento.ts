@@ -1,9 +1,10 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { cursoTable, departamentoTable, disciplinaTable, professorTable, projetoTable } from '@/server/db/schema'
+import { NotFoundError } from '@/server/lib/errors'
+import { createDepartamentoRepository } from '@/server/services/departamento/departamento-repository'
+import { createDepartamentoService } from '@/server/services/departamento/departamento-service'
 import { createDepartmentSchema, departamentoSchema, updateDepartmentSchema } from '@/types'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
-import { and, eq, isNull, sql } from 'drizzle-orm'
 import { z } from 'zod'
 
 const log = logger.child({ context: 'DepartamentoRouter' })
@@ -19,64 +20,18 @@ export const departamentoRouter = createTRPCRouter({
         description: 'Retrieve all departamentos with statistics',
       },
     })
-    .input(
-      z.object({
-        includeStats: z.boolean().default(false),
-      })
-    )
+    .input(z.object({ includeStats: z.boolean().default(false) }))
     .output(z.array(departamentoSchema))
     .query(async ({ input, ctx }) => {
       try {
-        const departamentos = await ctx.db.query.departamentoTable.findMany({
-          orderBy: (departamentos, { asc }) => [asc(departamentos.nome)],
-        })
-
-        if (!input.includeStats) {
-          log.info('Departamentos recuperados com sucesso (sem estatísticas)')
-          return departamentos
-        }
-
-        // Add statistics for each department
-        const departamentosWithStats = await Promise.all(
-          departamentos.map(async (departamento) => {
-            const [professoresCount] = await ctx.db
-              .select({ count: sql<number>`count(*)::int` })
-              .from(professorTable)
-              .where(eq(professorTable.departamentoId, departamento.id))
-
-            const [cursosCount] = await ctx.db
-              .select({ count: sql<number>`count(*)::int` })
-              .from(cursoTable)
-              .where(eq(cursoTable.departamentoId, departamento.id))
-
-            const [disciplinasCount] = await ctx.db
-              .select({ count: sql<number>`count(*)::int` })
-              .from(disciplinaTable)
-              .where(and(eq(disciplinaTable.departamentoId, departamento.id), isNull(disciplinaTable.deletedAt)))
-
-            const [projetosCount] = await ctx.db
-              .select({ count: sql<number>`count(*)::int` })
-              .from(projetoTable)
-              .where(and(eq(projetoTable.departamentoId, departamento.id), isNull(projetoTable.deletedAt)))
-
-            return {
-              ...departamento,
-              professores: professoresCount?.count || 0,
-              cursos: cursosCount?.count || 0,
-              disciplinas: disciplinasCount?.count || 0,
-              projetos: projetosCount?.count || 0,
-            }
-          })
-        )
-
-        log.info('Departamentos recuperados com sucesso (com estatísticas)')
-        return departamentosWithStats
+        const repository = createDepartamentoRepository(ctx.db)
+        const service = createDepartamentoService(repository)
+        const departamentos = await service.getDepartamentos(input.includeStats)
+        log.info(`Departamentos recuperados com sucesso (${input.includeStats ? 'com' : 'sem'} estatísticas)`)
+        return departamentos
       } catch (error) {
         log.error(error, 'Erro ao recuperar departamentos')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao recuperar departamentos',
-        })
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao recuperar departamentos' })
       }
     }),
 
@@ -90,25 +45,19 @@ export const departamentoRouter = createTRPCRouter({
         description: 'Retrieve a specific departamento',
       },
     })
-    .input(
-      z.object({
-        id: z.number(),
-      })
-    )
+    .input(z.object({ id: z.number() }))
     .output(departamentoSchema)
     .query(async ({ input, ctx }) => {
-      const departamento = await ctx.db.query.departamentoTable.findFirst({
-        where: eq(departamentoTable.id, input.id),
-      })
-
-      if (!departamento) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Departamento não encontrado',
-        })
+      try {
+        const repository = createDepartamentoRepository(ctx.db)
+        const service = createDepartamentoService(repository)
+        return await service.getDepartamento(input.id)
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })
       }
-
-      return departamento
     }),
 
   createDepartamento: adminProtectedProcedure
@@ -125,27 +74,14 @@ export const departamentoRouter = createTRPCRouter({
     .output(departamentoSchema)
     .mutation(async ({ input, ctx }) => {
       try {
-        const result = await ctx.db
-          .insert(departamentoTable)
-          .values({
-            nome: input.nome,
-            sigla: input.sigla,
-            unidadeUniversitaria: input.unidadeUniversitaria,
-            coordenador: input.coordenador,
-            email: input.email || null,
-            telefone: input.telefone,
-            descricao: input.descricao,
-          })
-          .returning()
-
-        log.info({ departamentoId: result[0].id }, 'Departamento criado com sucesso')
-        return result[0]
+        const repository = createDepartamentoRepository(ctx.db)
+        const service = createDepartamentoService(repository)
+        const departamento = await service.createDepartamento(input)
+        log.info({ departamentoId: departamento.id }, 'Departamento criado com sucesso')
+        return departamento
       } catch (error) {
         log.error(error, 'Erro ao criar departamento')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao criar departamento',
-        })
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao criar departamento' })
       }
     }),
 
@@ -162,34 +98,17 @@ export const departamentoRouter = createTRPCRouter({
     .input(updateDepartmentSchema)
     .output(departamentoSchema)
     .mutation(async ({ input, ctx }) => {
-      const { id, ...updateData } = input
-
-      const departamento = await ctx.db.query.departamentoTable.findFirst({
-        where: eq(departamentoTable.id, id),
-      })
-
-      if (!departamento) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Departamento não encontrado',
-        })
+      try {
+        const { id, ...updateData } = input
+        const repository = createDepartamentoRepository(ctx.db)
+        const service = createDepartamentoService(repository)
+        return await service.updateDepartamento(id, updateData)
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' })
       }
-
-      const cleanedUpdateData = {
-        ...updateData,
-        email: updateData.email || null,
-      }
-
-      const result = await ctx.db
-        .update(departamentoTable)
-        .set({
-          ...cleanedUpdateData,
-          updatedAt: new Date(),
-        })
-        .where(eq(departamentoTable.id, id))
-        .returning()
-
-      return result[0]
     }),
 
   deleteDepartamento: adminProtectedProcedure
@@ -202,39 +121,19 @@ export const departamentoRouter = createTRPCRouter({
         description: 'Delete a departamento and all its dependencies',
       },
     })
-    .input(
-      z.object({
-        id: z.number(),
-      })
-    )
+    .input(z.object({ id: z.number() }))
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
-      const departamento = await ctx.db.query.departamentoTable.findFirst({
-        where: eq(departamentoTable.id, input.id),
-      })
-
-      if (!departamento) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Departamento não encontrado',
-        })
-      }
-
       try {
-        // Use transaction to ensure all deletions succeed or fail together
-        await ctx.db.transaction(async (tx) => {
-          // Note: The schema already has proper cascade relationships:
-          // - cursoTable -> alunoTable (cascade)
-          // - departamentoTable -> cursoTable, disciplinaTable, professorTable, projetoTable
-          // When we delete the department, all dependent records should cascade automatically
-
-          await tx.delete(departamentoTable).where(eq(departamentoTable.id, input.id))
-
-          log.info({ departamentoId: input.id }, 'Departamento e dependências deletados com sucesso')
-        })
-
-        return { success: true }
+        const repository = createDepartamentoRepository(ctx.db)
+        const service = createDepartamentoService(repository)
+        const result = await service.deleteDepartamento(input.id)
+        log.info({ departamentoId: input.id }, 'Departamento e dependências deletados com sucesso')
+        return result
       } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: error.message })
+        }
         log.error(error, 'Erro ao deletar departamento')
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',

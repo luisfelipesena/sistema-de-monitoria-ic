@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ADMIN, PROFESSOR, STUDENT, type UserRole } from '@/types'
 import { api } from '@/utils/api'
 import { useRouter } from 'next/navigation'
 import { useParams } from 'next/navigation'
@@ -26,11 +27,11 @@ export default function EditUserPage() {
   const [formData, setFormData] = useState<{
     username: string
     email: string
-    role: 'admin' | 'professor' | 'student'
+    role: UserRole
   }>({
     username: '',
     email: '',
-    role: 'student',
+    role: STUDENT,
   })
 
   const { data: user, isLoading } = api.user.getUserById.useQuery({ id: userId })
@@ -63,7 +64,7 @@ export default function EditUserPage() {
       setFormData({
         username: user.username,
         email: user.email,
-        role: user.role as 'admin' | 'professor' | 'student',
+        role: user.role as UserRole,
       })
     }
   }, [user])
@@ -150,9 +151,9 @@ export default function EditUserPage() {
 
             <div>
               <Label htmlFor="role">Papel</Label>
-              <Select 
-                value={formData.role} 
-                onValueChange={(value) => setFormData({ ...formData, role: value as 'admin' | 'professor' | 'student' })}
+              <Select
+                value={formData.role}
+                onValueChange={(value) => setFormData({ ...formData, role: value as UserRole })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um papel" />

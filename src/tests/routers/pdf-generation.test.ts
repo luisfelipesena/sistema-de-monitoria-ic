@@ -29,7 +29,7 @@ vi.mock('@/server/lib/minio', () => ({
 }))
 
 // Mock email service
-vi.mock('@/server/lib/email-service', () => ({
+vi.mock('@/server/lib/email', () => ({
   emailService: {
     sendProfessorAssinouPropostaNotification: vi.fn(),
     sendAdminAprovou: vi.fn(),

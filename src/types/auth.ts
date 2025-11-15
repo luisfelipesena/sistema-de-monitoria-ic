@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { regimeSchema, UserRole, userRoleSchema } from './enums'
+import { Genero, registrationRoleSchema, Regime, regimeSchema, UserRole, userRoleSchema } from './enums'
 import {
   crSchema,
   emailSchema,
@@ -45,10 +45,10 @@ export type AppUser = {
     departamentoId: number | null
     nomeCompleto: string
     nomeSocial: string | null
-    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO' | null
+    genero: Genero | null
     cpf: string | null
     matriculaSiape: string | null
-    regime: '20H' | '40H' | 'DE' | null
+    regime: Regime | null
     telefone: string | null
     telefoneInstitucional: string | null
     emailInstitucional: string | null
@@ -73,7 +73,7 @@ export interface UserListItem {
     telefoneInstitucional?: string | null
     emailInstitucional: string | null
     matriculaSiape?: string | null
-    regime: '20H' | '40H' | 'DE' | null
+    regime: Regime | null
     departamentoId: number | null
     curriculumVitaeFileId?: string | null
     comprovanteVinculoFileId?: string | null
@@ -205,8 +205,6 @@ export const deleteApiKeySchema = z.object({
 // ========================================
 // LOCAL AUTHENTICATION SCHEMAS
 // ========================================
-
-export const registrationRoleSchema = z.enum(['professor', 'student'])
 
 export const registerUserSchema = z.object({
   name: nameSchema,

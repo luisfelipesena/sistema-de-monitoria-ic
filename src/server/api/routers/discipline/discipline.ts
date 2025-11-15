@@ -1,28 +1,19 @@
-import { createTRPCRouter, protectedProcedure, adminProtectedProcedure } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { BusinessError } from '@/server/lib/errors'
+import { createDisciplineService } from '@/server/services/discipline/discipline-service'
 import {
-  disciplinaProfessorResponsavelTable,
-  disciplinaTable,
-  equivalenciaDisciplinasTable,
-  inscricaoTable,
-  professorTable,
-  projetoDisciplinaTable,
-  projetoTable,
-  projetoTemplateTable,
-} from '@/server/db/schema'
-import {
-  disciplinaSchema,
-  newDisciplinaSchema,
-  updateDisciplineSchema,
+  checkEquivalenceSchema,
   createEquivalenceSchema,
   deleteEquivalenceSchema,
-  checkEquivalenceSchema,
+  disciplinaSchema,
+  generoSchema,
+  newDisciplinaSchema,
+  regimeSchema,
+  semestreSchema,
+  updateDisciplineSchema,
 } from '@/types'
-import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
-import { and, eq, inArray, or, sql } from 'drizzle-orm'
 import { z } from 'zod'
-
-const log = logger.child({ context: 'DisciplineRouter' })
 
 export const disciplineRouter = createTRPCRouter({
   getDisciplineWithProfessor: protectedProcedure
@@ -35,11 +26,7 @@ export const disciplineRouter = createTRPCRouter({
         description: 'Get discipline details with responsible professor for current semester',
       },
     })
-    .input(
-      z.object({
-        id: z.number(),
-      })
-    )
+    .input(z.object({ id: z.number() }))
     .output(
       z.object({
         disciplina: disciplinaSchema,
@@ -48,10 +35,10 @@ export const disciplineRouter = createTRPCRouter({
             id: z.number(),
             nomeCompleto: z.string(),
             nomeSocial: z.string().nullable(),
-            genero: z.enum(['MASCULINO', 'FEMININO', 'OUTRO']).nullable(),
+            genero: generoSchema.nullable(),
             cpf: z.string().nullable(),
             matriculaSiape: z.string().nullable(),
-            regime: z.enum(['20H', '40H', 'DE']).nullable(),
+            regime: regimeSchema.nullable(),
             telefone: z.string().nullable(),
             telefoneInstitucional: z.string().nullable(),
             emailInstitucional: z.string().nullable(),
@@ -60,39 +47,8 @@ export const disciplineRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      const disciplina = await ctx.db.query.disciplinaTable.findFirst({
-        where: eq(disciplinaTable.id, input.id),
-      })
-
-      if (!disciplina) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Disciplina não encontrada' })
-      }
-
-      // Get current year and semester
-      const now = new Date()
-      const currentYear = now.getFullYear()
-      const currentSemestre = now.getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2'
-
-      // Find responsible professor for this discipline in current semester
-      const professorResponsavel = await ctx.db
-        .select({
-          professor: professorTable,
-        })
-        .from(disciplinaProfessorResponsavelTable)
-        .innerJoin(professorTable, eq(disciplinaProfessorResponsavelTable.professorId, professorTable.id))
-        .where(
-          and(
-            eq(disciplinaProfessorResponsavelTable.disciplinaId, input.id),
-            eq(disciplinaProfessorResponsavelTable.ano, currentYear),
-            eq(disciplinaProfessorResponsavelTable.semestre, currentSemestre)
-          )
-        )
-        .limit(1)
-
-      return {
-        disciplina,
-        professor: professorResponsavel[0]?.professor || null,
-      }
+      const service = createDisciplineService(ctx.db)
+      return service.getDisciplineWithProfessor(input.id)
     }),
 
   getDisciplines: protectedProcedure
@@ -108,8 +64,8 @@ export const disciplineRouter = createTRPCRouter({
     .input(z.void())
     .output(z.array(disciplinaSchema))
     .query(async ({ ctx }) => {
-      const disciplinas = await ctx.db.query.disciplinaTable.findMany()
-      return disciplinas
+      const service = createDisciplineService(ctx.db)
+      return service.getAllDisciplines()
     }),
 
   getDiscipline: protectedProcedure
@@ -122,22 +78,11 @@ export const disciplineRouter = createTRPCRouter({
         description: 'Retrieve the discipline',
       },
     })
-    .input(
-      z.object({
-        id: z.number(),
-      })
-    )
+    .input(z.object({ id: z.number() }))
     .output(disciplinaSchema)
     .query(async ({ input, ctx }) => {
-      const disciplina = await ctx.db.query.disciplinaTable.findFirst({
-        where: eq(disciplinaTable.id, input.id),
-      })
-
-      if (!disciplina) {
-        throw new TRPCError({ code: 'NOT_FOUND' })
-      }
-
-      return disciplina
+      const service = createDisciplineService(ctx.db)
+      return service.getDisciplineById(input.id)
     }),
 
   create: protectedProcedure
@@ -153,8 +98,8 @@ export const disciplineRouter = createTRPCRouter({
     .input(newDisciplinaSchema)
     .output(disciplinaSchema)
     .mutation(async ({ input, ctx }) => {
-      const disciplina = await ctx.db.insert(disciplinaTable).values(input).returning()
-      return disciplina[0]
+      const service = createDisciplineService(ctx.db)
+      return service.createDiscipline(input)
     }),
 
   updateDiscipline: protectedProcedure
@@ -170,18 +115,8 @@ export const disciplineRouter = createTRPCRouter({
     .input(updateDisciplineSchema)
     .output(disciplinaSchema)
     .mutation(async ({ input, ctx }) => {
-      const { id, ...updateData } = input
-      const disciplina = await ctx.db
-        .update(disciplinaTable)
-        .set(updateData)
-        .where(eq(disciplinaTable.id, id))
-        .returning()
-
-      if (!disciplina[0]) {
-        throw new TRPCError({ code: 'NOT_FOUND' })
-      }
-
-      return disciplina[0]
+      const service = createDisciplineService(ctx.db)
+      return service.updateDiscipline(input)
     }),
 
   deleteDiscipline: protectedProcedure
@@ -194,52 +129,17 @@ export const disciplineRouter = createTRPCRouter({
         description: 'Delete the discipline and all its dependencies',
       },
     })
-    .input(
-      z.object({
-        id: z.number(),
-      })
-    )
+    .input(z.object({ id: z.number() }))
     .output(z.void())
     .mutation(async ({ input, ctx }) => {
-      // Check if discipline exists
-      const disciplina = await ctx.db.query.disciplinaTable.findFirst({
-        where: eq(disciplinaTable.id, input.id),
-      })
-
-      if (!disciplina) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Disciplina não encontrada' })
-      }
-
       try {
-        // Use transaction to ensure all deletions succeed or fail together
-        await ctx.db.transaction(async (tx) => {
-          // Delete projeto templates first
-          await tx.delete(projetoTemplateTable).where(eq(projetoTemplateTable.disciplinaId, input.id))
-
-          // Delete professor responsibilities
-          await tx
-            .delete(disciplinaProfessorResponsavelTable)
-            .where(eq(disciplinaProfessorResponsavelTable.disciplinaId, input.id))
-
-          // Delete projeto-disciplina relationships
-          await tx.delete(projetoDisciplinaTable).where(eq(projetoDisciplinaTable.disciplinaId, input.id))
-
-          // Finally, delete the discipline
-          const result = await tx.delete(disciplinaTable).where(eq(disciplinaTable.id, input.id)).returning()
-
-          if (!result.length) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Erro ao deletar disciplina' })
-          }
-
-          log.info({ disciplinaId: input.id }, 'Disciplina e dependências deletadas com sucesso')
-        })
+        const service = createDisciplineService(ctx.db)
+        await service.deleteDiscipline(input.id)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Erro ao deletar disciplina')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao deletar disciplina e suas dependências',
-        })
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: error.code as TRPCError['code'], message: error.message })
+        }
+        throw error
       }
     }),
 
@@ -269,129 +169,13 @@ export const disciplineRouter = createTRPCRouter({
     )
     .query(async ({ ctx }) => {
       try {
-        if (ctx.user.role !== 'professor') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Apenas professores podem ver suas disciplinas',
-          })
-        }
-
-        const professor = await ctx.db.query.professorTable.findFirst({
-          where: eq(professorTable.userId, ctx.user.id),
-        })
-
-        if (!professor) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de professor não encontrado',
-          })
-        }
-
-        // Get current year and semester
-        const now = new Date()
-        const currentYear = now.getFullYear()
-        const currentSemester = now.getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2'
-
-        // Get disciplines taught by this professor
-        const disciplinasResponsavel = await ctx.db
-          .select({
-            disciplinaId: disciplinaProfessorResponsavelTable.disciplinaId,
-          })
-          .from(disciplinaProfessorResponsavelTable)
-          .where(
-            and(
-              eq(disciplinaProfessorResponsavelTable.professorId, professor.id),
-              eq(disciplinaProfessorResponsavelTable.ano, currentYear),
-              eq(disciplinaProfessorResponsavelTable.semestre, currentSemester)
-            )
-          )
-
-        const disciplinaIds = disciplinasResponsavel.map((d) => d.disciplinaId)
-
-        if (disciplinaIds.length === 0) {
-          return []
-        }
-
-        // Validate that disciplinaIds are numbers
-        const validDisciplinaIds = disciplinaIds.filter((id) => typeof id === 'number' && !isNaN(id))
-
-        if (validDisciplinaIds.length === 0) {
-          log.error({ disciplinaIds }, 'IDs de disciplinas inválidos encontrados')
-          return []
-        }
-
-        // Get discipline details
-        const disciplinas = await ctx.db.query.disciplinaTable.findMany({
-          where: inArray(disciplinaTable.id, validDisciplinaIds),
-        })
-
-        // Get active projects count for each discipline
-        const projetosAtivos = await ctx.db
-          .select({
-            disciplinaId: projetoDisciplinaTable.disciplinaId,
-            count: sql<number>`count(distinct ${projetoTable.id})`,
-          })
-          .from(projetoDisciplinaTable)
-          .innerJoin(projetoTable, eq(projetoDisciplinaTable.projetoId, projetoTable.id))
-          .where(
-            and(
-              inArray(projetoDisciplinaTable.disciplinaId, validDisciplinaIds),
-              eq(projetoTable.professorResponsavelId, professor.id),
-              eq(projetoTable.status, 'APPROVED'),
-              eq(projetoTable.ano, currentYear),
-              eq(projetoTable.semestre, currentSemester)
-            )
-          )
-          .groupBy(projetoDisciplinaTable.disciplinaId)
-
-        const projetosMap = new Map(projetosAtivos.map((p) => [p.disciplinaId, Number(p.count)]))
-
-        // Get monitors count for each discipline
-        const monitores = await ctx.db
-          .select({
-            disciplinaId: projetoDisciplinaTable.disciplinaId,
-            bolsistas: sql<number>`count(case when ${inscricaoTable.status} = ACCEPTED_BOLSISTA then 1 end)`,
-            voluntarios: sql<number>`count(case when ${inscricaoTable.status} = ACCEPTED_VOLUNTARIO then 1 end)`,
-          })
-          .from(projetoDisciplinaTable)
-          .innerJoin(projetoTable, eq(projetoDisciplinaTable.projetoId, projetoTable.id))
-          .leftJoin(inscricaoTable, eq(inscricaoTable.projetoId, projetoTable.id))
-          .where(
-            and(
-              inArray(projetoDisciplinaTable.disciplinaId, validDisciplinaIds),
-              eq(projetoTable.professorResponsavelId, professor.id)
-            )
-          )
-          .groupBy(projetoDisciplinaTable.disciplinaId)
-
-        const monitoresMap = new Map(
-          monitores.map((m) => [m.disciplinaId, { bolsistas: Number(m.bolsistas), voluntarios: Number(m.voluntarios) }])
-        )
-
-        const result = disciplinas.map((disciplina) => {
-          const projetosCount = projetosMap.get(disciplina.id) || 0
-          const monitoresData = monitoresMap.get(disciplina.id) || { bolsistas: 0, voluntarios: 0 }
-
-          return {
-            id: disciplina.id,
-            codigo: disciplina.codigo,
-            nome: disciplina.nome,
-            cargaHoraria: 60, // Default, could be made configurable
-            projetosAtivos: projetosCount,
-            monitoresAtivos: monitoresData.bolsistas,
-            voluntariosAtivos: monitoresData.voluntarios,
-          }
-        })
-
-        log.info('Disciplinas do professor recuperadas com sucesso')
-        return result
+        const service = createDisciplineService(ctx.db)
+        return service.getProfessorDisciplines(ctx.user.id, ctx.user.role)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Erro ao recuperar disciplinas do professor')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao recuperar disciplinas',
-        })
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: error.code as TRPCError['code'], message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao recuperar disciplinas' })
       }
     }),
 
@@ -415,77 +199,19 @@ export const disciplineRouter = createTRPCRouter({
           departamentoId: z.number(),
           isAssociated: z.boolean(),
           ano: z.number().optional(),
-          semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']).optional(),
+          semestre: semestreSchema.optional(),
         })
       )
     )
     .query(async ({ ctx }) => {
       try {
-        if (ctx.user.role !== 'professor') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Apenas professores podem ver disciplinas do departamento',
-          })
-        }
-
-        const professor = await ctx.db.query.professorTable.findFirst({
-          where: eq(professorTable.userId, ctx.user.id),
-        })
-
-        if (!professor) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de professor não encontrado',
-          })
-        }
-
-        const now = new Date()
-        const currentYear = now.getFullYear()
-        const currentSemester = now.getMonth() < 6 ? 'SEMESTRE_1' : 'SEMESTRE_2'
-
-        // If professor has no department, return all disciplines
-        const disciplinas = professor.departamentoId
-          ? await ctx.db.query.disciplinaTable.findMany({
-              where: eq(disciplinaTable.departamentoId, professor.departamentoId),
-            })
-          : await ctx.db.query.disciplinaTable.findMany()
-
-        const associacoes = await ctx.db
-          .select({
-            disciplinaId: disciplinaProfessorResponsavelTable.disciplinaId,
-            ano: disciplinaProfessorResponsavelTable.ano,
-            semestre: disciplinaProfessorResponsavelTable.semestre,
-          })
-          .from(disciplinaProfessorResponsavelTable)
-          .where(
-            and(
-              eq(disciplinaProfessorResponsavelTable.professorId, professor.id),
-              eq(disciplinaProfessorResponsavelTable.ano, currentYear),
-              eq(disciplinaProfessorResponsavelTable.semestre, currentSemester)
-            )
-          )
-
-        const associacoesMap = new Map(associacoes.map((a) => [a.disciplinaId, { ano: a.ano, semestre: a.semestre }]))
-
-        return disciplinas.map((disciplina) => {
-          const associacao = associacoesMap.get(disciplina.id)
-          return {
-            id: disciplina.id,
-            codigo: disciplina.codigo,
-            nome: disciplina.nome,
-            departamentoId: disciplina.departamentoId,
-            isAssociated: !!associacao,
-            ano: associacao?.ano,
-            semestre: associacao?.semestre,
-          }
-        })
+        const service = createDisciplineService(ctx.db)
+        return service.getDepartmentDisciplines(ctx.user.id, ctx.user.role)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Erro ao recuperar disciplinas do departamento')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao recuperar disciplinas do departamento',
-        })
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: error.code as TRPCError['code'], message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao recuperar disciplinas do departamento' })
       }
     }),
 
@@ -499,85 +225,17 @@ export const disciplineRouter = createTRPCRouter({
         description: 'Associate current professor with a discipline for a specific period',
       },
     })
-    .input(
-      z.object({
-        id: z.number(),
-        ano: z.number(),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-      })
-    )
+    .input(z.object({ id: z.number(), ano: z.number(), semestre: semestreSchema }))
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        if (ctx.user.role !== 'professor') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Apenas professores podem se associar a disciplinas',
-          })
-        }
-
-        const professor = await ctx.db.query.professorTable.findFirst({
-          where: eq(professorTable.userId, ctx.user.id),
-        })
-
-        if (!professor) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de professor não encontrado',
-          })
-        }
-
-        const disciplina = await ctx.db.query.disciplinaTable.findFirst({
-          where: eq(disciplinaTable.id, input.id),
-        })
-
-        if (!disciplina) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Disciplina não encontrada',
-          })
-        }
-
-        // Only validate department match if professor has a department associated
-        if (professor.departamentoId && disciplina.departamentoId !== professor.departamentoId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Você só pode se associar a disciplinas do seu departamento',
-          })
-        }
-
-        const existingAssociation = await ctx.db.query.disciplinaProfessorResponsavelTable.findFirst({
-          where: and(
-            eq(disciplinaProfessorResponsavelTable.disciplinaId, input.id),
-            eq(disciplinaProfessorResponsavelTable.professorId, professor.id),
-            eq(disciplinaProfessorResponsavelTable.ano, input.ano),
-            eq(disciplinaProfessorResponsavelTable.semestre, input.semestre)
-          ),
-        })
-
-        if (existingAssociation) {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'Você já está associado a esta disciplina neste período',
-          })
-        }
-
-        await ctx.db.insert(disciplinaProfessorResponsavelTable).values({
-          disciplinaId: input.id,
-          professorId: professor.id,
-          ano: input.ano,
-          semestre: input.semestre,
-        })
-
-        log.info({ professorId: professor.id, disciplinaId: input.id }, 'Professor associado à disciplina')
-        return { success: true }
+        const service = createDisciplineService(ctx.db)
+        return service.associateDiscipline(input.id, input.ano, input.semestre, ctx.user.id, ctx.user.role)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Erro ao associar professor à disciplina')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao associar professor à disciplina',
-        })
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: error.code as TRPCError['code'], message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao associar professor à disciplina' })
       }
     }),
 
@@ -591,68 +249,19 @@ export const disciplineRouter = createTRPCRouter({
         description: 'Remove association between professor and discipline for a specific period',
       },
     })
-    .input(
-      z.object({
-        id: z.number(),
-        ano: z.number(),
-        semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-      })
-    )
+    .input(z.object({ id: z.number(), ano: z.number(), semestre: semestreSchema }))
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        if (ctx.user.role !== 'professor') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Apenas professores podem se desassociar de disciplinas',
-          })
-        }
-
-        const professor = await ctx.db.query.professorTable.findFirst({
-          where: eq(professorTable.userId, ctx.user.id),
-        })
-
-        if (!professor) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Perfil de professor não encontrado',
-          })
-        }
-
-        const result = await ctx.db
-          .delete(disciplinaProfessorResponsavelTable)
-          .where(
-            and(
-              eq(disciplinaProfessorResponsavelTable.disciplinaId, input.id),
-              eq(disciplinaProfessorResponsavelTable.professorId, professor.id),
-              eq(disciplinaProfessorResponsavelTable.ano, input.ano),
-              eq(disciplinaProfessorResponsavelTable.semestre, input.semestre)
-            )
-          )
-          .returning()
-
-        if (!result.length) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Associação não encontrada',
-          })
-        }
-
-        log.info({ professorId: professor.id, disciplinaId: input.id }, 'Professor desassociado da disciplina')
-        return { success: true }
+        const service = createDisciplineService(ctx.db)
+        return service.disassociateDiscipline(input.id, input.ano, input.semestre, ctx.user.id, ctx.user.role)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Erro ao desassociar professor da disciplina')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao desassociar professor da disciplina',
-        })
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: error.code as TRPCError['code'], message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao desassociar professor da disciplina' })
       }
     }),
-
-  // ========================================
-  // DISCIPLINE EQUIVALENCES
-  // ========================================
 
   listEquivalences: adminProtectedProcedure
     .input(z.void())
@@ -676,60 +285,13 @@ export const disciplineRouter = createTRPCRouter({
     )
     .query(async ({ ctx }) => {
       try {
-        const equivalences = await ctx.db
-          .select({
-            id: equivalenciaDisciplinasTable.id,
-            disciplinaOrigemId: equivalenciaDisciplinasTable.disciplinaOrigemId,
-            disciplinaEquivalenteId: equivalenciaDisciplinasTable.disciplinaEquivalenteId,
-            createdAt: equivalenciaDisciplinasTable.createdAt,
-          })
-          .from(equivalenciaDisciplinasTable)
-
-        const disciplinaIds = [
-          ...new Set([
-            ...equivalences.map((e) => e.disciplinaOrigemId),
-            ...equivalences.map((e) => e.disciplinaEquivalenteId),
-          ]),
-        ]
-
-        const disciplinas = await ctx.db.query.disciplinaTable.findMany({
-          where: inArray(disciplinaTable.id, disciplinaIds),
-        })
-
-        const disciplinaMap = new Map(disciplinas.map((d) => [d.id, d]))
-
-        return equivalences.map((eq) => {
-          const origem = disciplinaMap.get(eq.disciplinaOrigemId)
-          const equivalente = disciplinaMap.get(eq.disciplinaEquivalenteId)
-
-          if (!origem || !equivalente) {
-            throw new TRPCError({
-              code: 'INTERNAL_SERVER_ERROR',
-              message: 'Disciplina não encontrada para equivalência',
-            })
-          }
-
-          return {
-            id: eq.id,
-            disciplinaOrigem: {
-              id: origem.id,
-              codigo: origem.codigo,
-              nome: origem.nome,
-            },
-            disciplinaEquivalente: {
-              id: equivalente.id,
-              codigo: equivalente.codigo,
-              nome: equivalente.nome,
-            },
-            createdAt: eq.createdAt,
-          }
-        })
+        const service = createDisciplineService(ctx.db)
+        return service.listEquivalences()
       } catch (error) {
-        log.error(error, 'Erro ao listar equivalências')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao listar equivalências de disciplinas',
-        })
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: error.code as TRPCError['code'], message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao listar equivalências de disciplinas' })
       }
     }),
 
@@ -738,75 +300,13 @@ export const disciplineRouter = createTRPCRouter({
     .output(z.object({ success: z.boolean(), id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        // Validate both disciplines exist
-        const [disciplinaOrigem, disciplinaEquivalente] = await Promise.all([
-          ctx.db.query.disciplinaTable.findFirst({
-            where: eq(disciplinaTable.id, input.disciplinaOrigemId),
-          }),
-          ctx.db.query.disciplinaTable.findFirst({
-            where: eq(disciplinaTable.id, input.disciplinaEquivalenteId),
-          }),
-        ])
-
-        if (!disciplinaOrigem || !disciplinaEquivalente) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Uma ou ambas as disciplinas não foram encontradas',
-          })
-        }
-
-        // Check if equivalence already exists (bidirectional check)
-        const existingEquivalence = await ctx.db.query.equivalenciaDisciplinasTable.findFirst({
-          where: or(
-            and(
-              eq(equivalenciaDisciplinasTable.disciplinaOrigemId, input.disciplinaOrigemId),
-              eq(equivalenciaDisciplinasTable.disciplinaEquivalenteId, input.disciplinaEquivalenteId)
-            ),
-            and(
-              eq(equivalenciaDisciplinasTable.disciplinaOrigemId, input.disciplinaEquivalenteId),
-              eq(equivalenciaDisciplinasTable.disciplinaEquivalenteId, input.disciplinaOrigemId)
-            )
-          ),
-        })
-
-        if (existingEquivalence) {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message: 'Equivalência já existe entre estas disciplinas',
-          })
-        }
-
-        const [result] = await ctx.db
-          .insert(equivalenciaDisciplinasTable)
-          .values({
-            disciplinaOrigemId: input.disciplinaOrigemId,
-            disciplinaEquivalenteId: input.disciplinaEquivalenteId,
-          })
-          .returning()
-
-        if (!result) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Erro ao criar equivalência',
-          })
-        }
-
-        log.info(
-          {
-            disciplinaOrigemId: input.disciplinaOrigemId,
-            disciplinaEquivalenteId: input.disciplinaEquivalenteId,
-          },
-          'Equivalência criada com sucesso'
-        )
-
-        return { success: true, id: result.id }
+        const service = createDisciplineService(ctx.db)
+        return service.createEquivalence(input)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Erro ao criar equivalência')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao criar equivalência de disciplinas',
-        })
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: error.code as TRPCError['code'], message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao criar equivalência de disciplinas' })
       }
     }),
 
@@ -815,27 +315,13 @@ export const disciplineRouter = createTRPCRouter({
     .output(z.object({ success: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
       try {
-        const result = await ctx.db
-          .delete(equivalenciaDisciplinasTable)
-          .where(eq(equivalenciaDisciplinasTable.id, input.id))
-          .returning()
-
-        if (!result.length) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Equivalência não encontrada',
-          })
-        }
-
-        log.info({ equivalenceId: input.id }, 'Equivalência deletada com sucesso')
-        return { success: true }
+        const service = createDisciplineService(ctx.db)
+        return service.deleteEquivalence(input.id)
       } catch (error) {
-        if (error instanceof TRPCError) throw error
-        log.error(error, 'Erro ao deletar equivalência')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao deletar equivalência de disciplinas',
-        })
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: error.code as TRPCError['code'], message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao deletar equivalência de disciplinas' })
       }
     }),
 
@@ -844,26 +330,13 @@ export const disciplineRouter = createTRPCRouter({
     .output(z.object({ isEquivalent: z.boolean() }))
     .query(async ({ input, ctx }) => {
       try {
-        const equivalence = await ctx.db.query.equivalenciaDisciplinasTable.findFirst({
-          where: or(
-            and(
-              eq(equivalenciaDisciplinasTable.disciplinaOrigemId, input.disciplinaOrigemId),
-              eq(equivalenciaDisciplinasTable.disciplinaEquivalenteId, input.disciplinaEquivalenteId)
-            ),
-            and(
-              eq(equivalenciaDisciplinasTable.disciplinaOrigemId, input.disciplinaEquivalenteId),
-              eq(equivalenciaDisciplinasTable.disciplinaEquivalenteId, input.disciplinaOrigemId)
-            )
-          ),
-        })
-
-        return { isEquivalent: !!equivalence }
+        const service = createDisciplineService(ctx.db)
+        return service.checkEquivalence(input)
       } catch (error) {
-        log.error(error, 'Erro ao verificar equivalência')
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erro ao verificar equivalência de disciplinas',
-        })
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: error.code as TRPCError['code'], message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao verificar equivalência de disciplinas' })
       }
     }),
 })

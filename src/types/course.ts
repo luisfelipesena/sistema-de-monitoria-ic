@@ -48,8 +48,8 @@ export interface CursoListItem {
   id: number
   nome: string
   codigo: string
-  tipo: 'BACHARELADO' | 'LICENCIATURA' | 'TECNICO' | 'POS_GRADUACAO'
-  modalidade: 'PRESENCIAL' | 'EAD' | 'HIBRIDO'
+  tipo: TipoCurso
+  modalidade: ModalidadeCurso
   duracao: number // em semestres
   cargaHoraria: number
   descricao?: string
@@ -63,7 +63,7 @@ export interface CursoListItem {
   alunos: number
   disciplinas: number
   projetos: number
-  status: 'ATIVO' | 'INATIVO' | 'EM_REFORMULACAO'
+  status: StatusCurso
   criadoEm: string
   atualizadoEm: string
 }
@@ -90,15 +90,15 @@ export const courseSchema = z.object({
   id: idSchema,
   nome: nameSchema,
   codigo: z.number().int().nonnegative(),
-  tipo: z.enum(['BACHARELADO', 'LICENCIATURA', 'TECNICO', 'POS_GRADUACAO']),
-  modalidade: z.enum(['PRESENCIAL', 'EAD', 'HIBRIDO']),
+  tipo: tipoCursoSchema,
+  modalidade: modalidadeCursoSchema,
   duracao: z.number().int().nonnegative(),
   departamentoId: idSchema,
   cargaHoraria: z.number().int().nonnegative(),
   descricao: z.string().nullable().optional(),
   coordenador: z.string().nullable().optional(),
   emailCoordenacao: z.string().email().nullable().optional(),
-  status: z.enum(['ATIVO', 'INATIVO', 'EM_REFORMULACAO']),
+  status: statusCursoSchema,
   createdAt: z.date(),
   updatedAt: z.date().nullable().optional(),
 })
@@ -107,15 +107,15 @@ export const updateCourseSchema = z.object({
   id: idSchema,
   nome: nameSchema.optional(),
   codigo: z.number().int().nonnegative().optional(),
-  tipo: z.enum(['BACHARELADO', 'LICENCIATURA', 'TECNICO', 'POS_GRADUACAO']).optional(),
-  modalidade: z.enum(['PRESENCIAL', 'EAD', 'HIBRIDO']).optional(),
+  tipo: tipoCursoSchema.optional(),
+  modalidade: modalidadeCursoSchema.optional(),
   duracao: z.number().int().nonnegative().optional(),
   departamentoId: idSchema.optional(),
   cargaHoraria: z.number().int().nonnegative().optional(),
   descricao: z.string().nullable().optional(),
   coordenador: z.string().nullable().optional(),
   emailCoordenacao: z.string().email().nullable().optional(),
-  status: z.enum(['ATIVO', 'INATIVO', 'EM_REFORMULACAO']).optional(),
+  status: statusCursoSchema.optional(),
 })
 
 export type CreateCourseData = z.infer<typeof createCourseSchema>
