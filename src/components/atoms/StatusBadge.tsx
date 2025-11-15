@@ -1,9 +1,29 @@
 import { Badge } from "@/components/ui/badge"
-import type { ProjetoStatus, StatusInscricao, StatusCurso, TipoVaga } from "@/types"
+import type {
+  AllocationStatus,
+  DepartmentStatus,
+  ProfessorInvitationStatus,
+  ProjetoStatus,
+  ProjetoTipo,
+  StatusCurso,
+  StatusInscricao,
+  TermoWorkflowStatus,
+  TipoVaga,
+} from "@/types"
 import { cn } from "@/lib/utils"
 import { CheckCircle2, XCircle, Clock, FileText, AlertCircle } from "lucide-react"
 
-type StatusType = ProjetoStatus | StatusInscricao | StatusCurso | TipoVaga | string
+type StatusType =
+  | ProjetoStatus
+  | StatusInscricao
+  | StatusCurso
+  | TipoVaga
+  | AllocationStatus
+  | ProfessorInvitationStatus
+  | ProjetoTipo
+  | DepartmentStatus
+  | TermoWorkflowStatus
+  | string
 
 interface StatusConfig {
   variant: "default" | "secondary" | "destructive" | "outline"
@@ -121,6 +141,55 @@ const STATUS_CONFIG_MAP: Record<string, StatusConfig> = {
     ariaLabel: "Status: Em reformulação",
     icon: AlertCircle,
     className: "bg-blue-50 text-blue-800 border-blue-300",
+  },
+  CONCLUIDO: {
+    variant: "secondary",
+    label: "Concluído",
+    ariaLabel: "Status: Monitoria concluída",
+    icon: CheckCircle2,
+    className: "bg-blue-500 text-white border-blue-600",
+  },
+  "CONCLUÍDO": {
+    variant: "secondary",
+    label: "Concluído",
+    ariaLabel: "Status: Monitoria concluída",
+    icon: CheckCircle2,
+    className: "bg-blue-500 text-white border-blue-600",
+  },
+  EM_ANDAMENTO: {
+    variant: "outline",
+    label: "Em Andamento",
+    ariaLabel: "Status: Monitoria em andamento",
+    icon: Clock,
+    className: "bg-yellow-50 text-yellow-800 border-yellow-400",
+  },
+  SUSPENSO: {
+    variant: "destructive",
+    label: "Suspenso",
+    ariaLabel: "Status: Monitoria suspensa",
+    icon: AlertCircle,
+    className: "bg-red-50 text-red-700 border-red-400",
+  },
+  pendente_assinatura: {
+    variant: "outline",
+    label: "Pendente Assinatura",
+    ariaLabel: "Status: Termo pendente de assinatura",
+    icon: Clock,
+    className: "border-orange-400 text-orange-600",
+  },
+  parcialmente_assinado: {
+    variant: "secondary",
+    label: "Parcialmente Assinado",
+    ariaLabel: "Status: Termo parcialmente assinado",
+    icon: AlertCircle,
+    className: "bg-blue-50 text-blue-700 border-blue-300",
+  },
+  assinado_completo: {
+    variant: "default",
+    label: "Assinado Completo",
+    ariaLabel: "Status: Termo totalmente assinado",
+    icon: CheckCircle2,
+    className: "bg-green-500 text-white border-green-600",
   },
 
   // Vaga types

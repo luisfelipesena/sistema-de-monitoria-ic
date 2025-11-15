@@ -1,12 +1,18 @@
-import { useState, useCallback, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
-import { projectFormSchema, SEMESTRE_1, formatErrorResponse } from '@/types'
 import type { MonitoriaFormData } from '@/types'
+import {
+  formatErrorResponse,
+  projectFormSchema,
+  PROJETO_STATUS_DRAFT,
+  SEMESTRE_1,
+  TIPO_PROPOSICAO_INDIVIDUAL,
+} from '@/types'
+import { api } from '@/utils/api'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 const templateSchema = z.object({
   tituloDefault: z.string().optional(),
@@ -106,7 +112,7 @@ export function useProjectCreation() {
       departamentoId: 0,
       ano: new Date().getFullYear(),
       semestre: SEMESTRE_1,
-      tipoProposicao: 'INDIVIDUAL',
+      tipoProposicao: TIPO_PROPOSICAO_INDIVIDUAL,
       bolsasSolicitadas: 1,
       voluntariosSolicitados: 2,
       cargaHorariaSemana: 12,
@@ -166,7 +172,7 @@ export function useProjectCreation() {
         departamentoId: disciplina.departamentoId,
         ano: new Date().getFullYear(),
         semestre: SEMESTRE_1,
-        tipoProposicao: 'INDIVIDUAL',
+        tipoProposicao: TIPO_PROPOSICAO_INDIVIDUAL,
         bolsasSolicitadas: 1,
         voluntariosSolicitados: 2,
         cargaHorariaSemana: currentTemplate.cargaHorariaSemanaDefault || 12,
@@ -243,7 +249,7 @@ export function useProjectCreation() {
             : undefined,
           ano: new Date().getFullYear(),
           semestre: SEMESTRE_1,
-          tipoProposicao: 'INDIVIDUAL',
+          tipoProposicao: TIPO_PROPOSICAO_INDIVIDUAL,
           bolsasSolicitadas: 1,
           voluntariosSolicitados: 2,
           cargaHorariaSemana: templateValues.cargaHorariaSemanaDefault || 12,
@@ -368,7 +374,7 @@ export function useProjectCreation() {
       ...data,
       disciplinaIds: data.disciplinas,
       atividades: atividadesFiltradas,
-      status: 'DRAFT' as const,
+      status: PROJETO_STATUS_DRAFT,
     }
 
     await createProjeto.mutateAsync(projetoData)

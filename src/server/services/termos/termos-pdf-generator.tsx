@@ -1,12 +1,20 @@
 import { BusinessError } from "@/server/lib/errors"
 import minioClient from "@/server/lib/minio"
 import { TermoCompromissoTemplate, type TermoCompromissoProps } from "@/server/lib/pdfTemplates/termo"
-import { SEMESTRE_1 } from "@/types"
+import { SEMESTRE_1, TIPO_ASSINATURA_ATA_SELECAO, TIPO_ASSINATURA_TERMO_COMPROMISSO } from "@/types"
 import { logger } from "@/utils/logger"
 import { renderToBuffer } from "@react-pdf/renderer"
 import { PDFDocument } from "pdf-lib"
 
 const log = logger.child({ context: "TermosPdfGenerator" })
+
+const ERROR_CODES = {
+  pdfGenerationFailed: "PDF_GENERATION_FAILED",
+  minioUploadFailed: "MINIO_UPLOAD_FAILED",
+  minioDownloadFailed: "MINIO_DOWNLOAD_FAILED",
+  minioPresignedFailed: "MINIO_PRESIGNED_URL_FAILED",
+  pdfSignatureFailed: "PDF_SIGNATURE_FAILED",
+} as const
 
 export type VagaData = {
   id: number
@@ -98,7 +106,7 @@ export function createPdfGenerator() {
         return await renderToBuffer(<TermoCompromissoTemplate {...termoData} />)
       } catch (error) {
         log.error({ error, vagaId: vagaData.id }, "Erro ao gerar PDF do termo")
-        throw new BusinessError("Erro ao gerar termo de compromisso", "PDF_GENERATION_FAILED")
+        throw new BusinessError("Erro ao gerar termo de compromisso", ERROR_CODES.pdfGenerationFailed)
       }
     },
 
@@ -119,7 +127,7 @@ export function createPdfGenerator() {
         })
       } catch (error) {
         log.error({ error, fileName }, "Erro ao fazer upload do PDF para MinIO")
-        throw new BusinessError("Erro ao salvar termo no storage", "MINIO_UPLOAD_FAILED")
+        throw new BusinessError("Erro ao salvar termo no storage", ERROR_CODES.minioUploadFailed)
       }
     },
 
@@ -133,7 +141,7 @@ export function createPdfGenerator() {
         return Buffer.concat(chunks)
       } catch (error) {
         log.error({ error, fileName }, "Erro ao buscar PDF do MinIO")
-        throw new BusinessError("Termo não encontrado no storage", "MINIO_DOWNLOAD_FAILED")
+        throw new BusinessError("Termo não encontrado no storage", ERROR_CODES.minioDownloadFailed)
       }
     },
 
@@ -143,7 +151,7 @@ export function createPdfGenerator() {
         return await minioClient.presignedGetObject("documents", fileName, 24 * 60 * 60)
       } catch (error) {
         log.error({ error, fileName }, "Erro ao gerar URL pré-assinada")
-        throw new BusinessError("Termo não encontrado. Gere o termo primeiro.", "MINIO_PRESIGNED_URL_FAILED")
+        throw new BusinessError("Termo não encontrado. Gere o termo primeiro.", ERROR_CODES.minioPresignedFailed)
       }
     },
 
@@ -159,9 +167,9 @@ export function createPdfGenerator() {
           const signatureDims = signatureImage.scale(0.25)
 
           let coords = { x: 0, y: 0 }
-          if (signature.tipoAssinatura === "TERMO_COMPROMISSO_ALUNO") {
+          if (signature.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO) {
             coords = { x: 90, y: 155 }
-          } else if (signature.tipoAssinatura === "ATA_SELECAO_PROFESSOR") {
+          } else if (signature.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO) {
             coords = { x: 330, y: 155 }
           }
 
@@ -172,7 +180,7 @@ export function createPdfGenerator() {
         await this.uploadToMinio(fileName, Buffer.from(modifiedPdfBytes))
       } catch (error) {
         log.error({ error, fileName }, "Erro ao adicionar assinaturas ao PDF")
-        throw new BusinessError("Falha ao assinar o termo digitalmente", "PDF_SIGNATURE_FAILED")
+        throw new BusinessError("Falha ao assinar o termo digitalmente", ERROR_CODES.pdfSignatureFailed)
       }
     },
   }

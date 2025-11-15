@@ -1,7 +1,23 @@
-import { MonitoriaFormData, SEMESTRE_1, SEMESTRE_2 } from "@/types"
+import { PDF_PAGE_SIZE_A4 } from "@/constants/pdf"
+import {
+  ADMIN,
+  GENERO_FEMININO,
+  GENERO_MASCULINO,
+  GENERO_OUTRO,
+  MonitoriaFormData,
+  REGIME_20H,
+  REGIME_40H,
+  REGIME_DE,
+  SEMESTRE_1,
+  SEMESTRE_2,
+  TIPO_PROPOSICAO_COLETIVA,
+  TIPO_PROPOSICAO_INDIVIDUAL,
+} from "@/types"
 import { UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 import React from "react"
+
+const DEFAULT_DISCIPLINA_CODIGO = "MATA60" as const
 
 const styles = StyleSheet.create({
   page: {
@@ -241,7 +257,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size={PDF_PAGE_SIZE_A4} style={styles.page}>
         {/* Header - Centered on page */}
         <View style={styles.header}>
           <Image style={styles.headerImage} src={UFBA_LOGO__FORM_BASE64} cache={false} />
@@ -290,9 +306,9 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
 
             <View style={styles.formRow}>
               <Text>
-                1.6 Proposição²: Individual ( {data.tipoProposicao === "INDIVIDUAL" ? "X" : ""} ) Coletiva ({" "}
-                {data.tipoProposicao === "COLETIVA" ? "X" : ""} )
-                {data.tipoProposicao === "COLETIVA" && data.professoresParticipantes
+                1.6 Proposição²: Individual ( {data.tipoProposicao === TIPO_PROPOSICAO_INDIVIDUAL ? "X" : ""} ) Coletiva
+                ( {data.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? "X" : ""} )
+                {data.tipoProposicao === TIPO_PROPOSICAO_COLETIVA && data.professoresParticipantes
                   ? ` - Professores participantes: ${data.professoresParticipantes}`
                   : ""}
               </Text>
@@ -339,7 +355,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
               <Text>
                 2.1 Nome Completo:{" "}
                 {data.professorResponsavel?.nomeCompleto ||
-                  (data.user?.role !== "admin" ? data.user?.nomeCompleto : "") ||
+                  (data.user?.role !== ADMIN ? data.user?.nomeCompleto : "") ||
                   "Não informado"}
               </Text>
             </View>
@@ -351,9 +367,9 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
             <View style={styles.threeColumnRow}>
               <View style={styles.threeColumnLeft}>
                 <Text>
-                  2.3 Gênero: Feminino ( {data.professorResponsavel?.genero === "FEMININO" ? "X" : ""} ) Masculino ({" "}
-                  {data.professorResponsavel?.genero === "MASCULINO" ? "X" : ""} ) Outro ({" "}
-                  {data.professorResponsavel?.genero === "OUTRO" ? "X" : ""} ):
+                  2.3 Gênero: Feminino ( {data.professorResponsavel?.genero === GENERO_FEMININO ? "X" : ""} ) Masculino
+                  ({data.professorResponsavel?.genero === GENERO_MASCULINO ? "X" : ""} ) Outro (
+                  {data.professorResponsavel?.genero === GENERO_OUTRO ? "X" : ""} ):
                 </Text>
               </View>
               <View style={styles.threeColumnMiddle}>
@@ -367,9 +383,9 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
             <View style={styles.threeColumnRow}>
               <View style={styles.threeColumnLeft}>
                 <Text>
-                  2.6 Regime: 20h ( {data.professorResponsavel?.regime === "20H" ? "X" : ""} ) 40h ({" "}
-                  {data.professorResponsavel?.regime === "40H" ? "X" : ""} ) DE ({" "}
-                  {data.professorResponsavel?.regime === "DE" ? "X" : ""} )
+                  2.6 Regime: 20h ( {data.professorResponsavel?.regime === REGIME_20H ? "X" : ""} ) 40h (
+                  {data.professorResponsavel?.regime === REGIME_40H ? "X" : ""} ) DE (
+                  {data.professorResponsavel?.regime === REGIME_DE ? "X" : ""} )
                 </Text>
               </View>
               <View style={styles.threeColumnMiddle}>
@@ -388,12 +404,12 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
             </View>
 
             {/* Section 3 - Only show if project is collaborative */}
-            {data.tipoProposicao === "COLETIVA" && (
+            {data.tipoProposicao === TIPO_PROPOSICAO_COLETIVA && (
               <>
                 <Text style={styles.sectionHeader}>3. BREVE DESCRIÇÃO DO PROJETO</Text>
                 <View style={styles.formRowTall}>
                   <Text>
-                    A disciplina {data.disciplinas?.map((d) => d.codigo).join(", ") || "MATA60"} -{" "}
+                    A disciplina {data.disciplinas?.map((d) => d.codigo).join(", ") || DEFAULT_DISCIPLINA_CODIGO} -{" "}
                     {data.disciplinas?.map((d) => d.nome).join(", ") || "Bancos de Dados"} tem como objetivo ensinar aos
                     alunos os conceitos fundamentais de bancos de dados, incluindo modelagem, normalização, consultas
                     SQL e gerenciamento de sistemas de banco de dados. Durante o curso, os alunos realizam atividades
@@ -450,7 +466,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
             )}
 
             {/* Section 3 for individual projects */}
-            {data.tipoProposicao === "INDIVIDUAL" && (
+            {data.tipoProposicao === TIPO_PROPOSICAO_INDIVIDUAL && (
               <>
                 <Text style={styles.sectionHeader}>3 DESCRIÇÃO DO PROJETO</Text>
                 {descricaoLines.map((line, index) => (

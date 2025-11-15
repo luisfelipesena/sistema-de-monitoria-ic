@@ -5,7 +5,16 @@ import { BusinessError, NotFoundError } from '@/server/lib/errors'
 import minioClient, { bucketName as MINIO_BUCKET } from '@/server/lib/minio'
 import { parsePlanejamentoSpreadsheet, validateSpreadsheetStructure } from '@/server/lib/spreadsheet-parser'
 import type { Semestre } from '@/types'
-import { TIPO_PROPOSICAO_COLETIVA, TIPO_PROPOSICAO_INDIVIDUAL } from '@/types'
+import {
+  IMPORT_STATUS_CONCLUIDO,
+  IMPORT_STATUS_CONCLUIDO_COM_ERROS,
+  IMPORT_STATUS_ERRO,
+  IMPORT_STATUS_PROCESSANDO,
+  PROJETO_STATUS_PENDING_SIGNATURE,
+  TIPO_PROPOSICAO_COLETIVA,
+  TIPO_PROPOSICAO_INDIVIDUAL,
+  type ImportStatus,
+} from '@/types'
 import { logger } from '@/utils/logger'
 import { createImportProjectsRepository } from './import-projects-repository'
 
@@ -53,7 +62,7 @@ export function createImportProjectsService(db: Database) {
         nomeArquivo: input.fileName,
         ano: input.ano,
         semestre: input.semestre,
-        status: 'PROCESSANDO',
+        status: IMPORT_STATUS_PROCESSANDO,
         importadoPorUserId: userId,
       })
 
@@ -78,7 +87,7 @@ export function createImportProjectsService(db: Database) {
         throw new NotFoundError('Importação', importacaoId)
       }
 
-      if (importacao.status !== 'PROCESSANDO') {
+      if (importacao.status !== IMPORT_STATUS_PROCESSANDO) {
         throw new BusinessError('Importação não está em processamento', 'INVALID_STATUS')
       }
 
@@ -199,7 +208,7 @@ export function createImportProjectsService(db: Database) {
             voluntariosSolicitados: 0,
             tipoProposicao,
             professoresParticipantes,
-            status: 'PENDING_PROFESSOR_SIGNATURE',
+            status: PROJETO_STATUS_PENDING_SIGNATURE,
           }
 
           const projeto = await repo.createProjeto(novoProjeto)
@@ -250,13 +259,13 @@ export function createImportProjectsService(db: Database) {
         }
       }
 
-      let finalStatus = 'CONCLUIDO'
+      let finalStatus: ImportStatus = IMPORT_STATUS_CONCLUIDO
       if (erros.some((erro) => erro.includes('Timeout'))) {
-        finalStatus = 'ERRO'
+        finalStatus = IMPORT_STATUS_ERRO
       } else if (projetosComErro > 0 && projetosCriados === 0) {
-        finalStatus = 'ERRO'
+        finalStatus = IMPORT_STATUS_ERRO
       } else if (projetosComErro > 0) {
-        finalStatus = 'CONCLUIDO_COM_ERROS'
+        finalStatus = IMPORT_STATUS_CONCLUIDO_COM_ERROS
       }
 
       await repo.updateImportacao(importacaoId, {

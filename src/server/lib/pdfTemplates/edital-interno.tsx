@@ -1,4 +1,4 @@
-import { SEMESTRE_LABELS } from "@/types"
+import { SEMESTRE_LABELS, type Semestre, type TipoMonitoria } from "@/types"
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 
 // Styles for the PDF
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
 export interface EditalInternoData {
   numeroEdital: string
   ano: number
-  semestre: string
+  semestre: Semestre
   titulo: string
   descricao?: string
   periodoInscricao: {
@@ -137,7 +137,7 @@ export interface EditalInternoData {
       nome: string
       email?: string
     }
-    tipoMonitoria: "INDIVIDUAL" | "COLETIVO"
+    tipoMonitoria: TipoMonitoria
     numTurmas?: number
     numBolsistas: number
     numVoluntarios: number
@@ -154,8 +154,8 @@ export interface EditalInternoData {
 }
 
 export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
-  const formatSemestre = (semestre: string) => {
-    return SEMESTRE_LABELS[semestre as keyof typeof SEMESTRE_LABELS]
+  const formatSemestre = (semestre: Semestre) => {
+    return SEMESTRE_LABELS[semestre]
   }
 
   const formatDate = (dateString: string) => {

@@ -1,12 +1,20 @@
 "use client"
 
+import { StatusBadge } from "@/components/atoms/StatusBadge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { PROJETO_STATUS_APPROVED, Semestre, getSemestreNumero } from "@/types"
+import {
+  PROJETO_STATUS_APPROVED,
+  TERMO_WORKFLOW_STATUS_ASSINADO_COMPLETO,
+  TERMO_WORKFLOW_STATUS_PARCIALMENTE_ASSINADO,
+  TERMO_WORKFLOW_STATUS_PENDENTE_ASSINATURA,
+  type Semestre,
+  getSemestreNumero,
+} from "@/types"
 import { api } from "@/utils/api"
 import { Award, Download, FileText, User, Users } from "lucide-react"
 import { useState } from "react"
@@ -62,20 +70,10 @@ export default function TermosCompromissoPage() {
 
   const getTermoStatusBadge = (statusTermo: string) => {
     switch (statusTermo) {
-      case "pendente_assinatura":
-        return (
-          <Badge variant="outline" className="text-orange-600">
-            Pendente Assinatura
-          </Badge>
-        )
-      case "parcialmente_assinado":
-        return (
-          <Badge variant="secondary" className="text-blue-600">
-            Parcialmente Assinado
-          </Badge>
-        )
-      case "assinado_completo":
-        return <Badge className="bg-green-500">Assinado Completo</Badge>
+      case TERMO_WORKFLOW_STATUS_PENDENTE_ASSINATURA:
+      case TERMO_WORKFLOW_STATUS_PARCIALMENTE_ASSINADO:
+      case TERMO_WORKFLOW_STATUS_ASSINADO_COMPLETO:
+        return <StatusBadge status={statusTermo} />
       default:
         return <Badge variant="outline">{statusTermo}</Badge>
     }
@@ -261,19 +259,31 @@ export default function TermosCompromissoPage() {
               </div>
               <div className="p-3 bg-orange-50 rounded-lg">
                 <div className="text-2xl font-bold text-orange-600">
-                  {termosStatus.filter((t) => t.statusTermo === "pendente_assinatura").length}
+                  {
+                    termosStatus.filter(
+                      (t) => t.statusTermo === TERMO_WORKFLOW_STATUS_PENDENTE_ASSINATURA
+                    ).length
+                  }
                 </div>
                 <div className="text-sm text-muted-foreground">Pendentes</div>
               </div>
               <div className="p-3 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">
-                  {termosStatus.filter((t) => t.statusTermo === "parcialmente_assinado").length}
+                  {
+                    termosStatus.filter(
+                      (t) => t.statusTermo === TERMO_WORKFLOW_STATUS_PARCIALMENTE_ASSINADO
+                    ).length
+                  }
                 </div>
                 <div className="text-sm text-muted-foreground">Parciais</div>
               </div>
               <div className="p-3 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
-                  {termosStatus.filter((t) => t.statusTermo === "assinado_completo").length}
+                  {
+                    termosStatus.filter(
+                      (t) => t.statusTermo === TERMO_WORKFLOW_STATUS_ASSINADO_COMPLETO
+                    ).length
+                  }
                 </div>
                 <div className="text-sm text-muted-foreground">Completos</div>
               </div>

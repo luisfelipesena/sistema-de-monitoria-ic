@@ -17,6 +17,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  MODALIDADE_CURSO_EAD,
+  MODALIDADE_CURSO_HIBRIDO,
+  MODALIDADE_CURSO_PRESENCIAL,
+  TIPO_CURSO_BACHARELADO,
+  TIPO_CURSO_LICENCIATURA,
+  TIPO_CURSO_POS_GRADUACAO,
+  TIPO_CURSO_TECNICO,
+  type ModalidadeCurso,
+  type TipoCurso,
+} from "@/types";
 
 interface DepartmentSimple {
   id: number;
@@ -27,8 +38,8 @@ interface DepartmentSimple {
 export interface CourseFormData {
   nome: string;
   codigo: string;
-  tipo: "BACHARELADO" | "LICENCIATURA" | "TECNICO" | "POS_GRADUACAO" | "";
-  modalidade: "PRESENCIAL" | "EAD" | "HIBRIDO" | "";
+  tipo: TipoCurso | "";
+  modalidade: ModalidadeCurso | "";
   duracao: number;
   cargaHoraria: number;
   descricao: string;
@@ -116,10 +127,10 @@ export function CourseFormDialog({
                   <SelectValue placeholder="Selecione o tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="BACHARELADO">Bacharelado</SelectItem>
-                  <SelectItem value="LICENCIATURA">Licenciatura</SelectItem>
-                  <SelectItem value="TECNICO">Técnico</SelectItem>
-                  <SelectItem value="POS_GRADUACAO">Pós-Graduação</SelectItem>
+                  <SelectItem value={TIPO_CURSO_BACHARELADO}>Bacharelado</SelectItem>
+                  <SelectItem value={TIPO_CURSO_LICENCIATURA}>Licenciatura</SelectItem>
+                  <SelectItem value={TIPO_CURSO_TECNICO}>Técnico</SelectItem>
+                  <SelectItem value={TIPO_CURSO_POS_GRADUACAO}>Pós-Graduação</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -139,9 +150,9 @@ export function CourseFormDialog({
                   <SelectValue placeholder="Selecione a modalidade" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PRESENCIAL">Presencial</SelectItem>
-                  <SelectItem value="EAD">EAD</SelectItem>
-                  <SelectItem value="HIBRIDO">Híbrido</SelectItem>
+                  <SelectItem value={MODALIDADE_CURSO_PRESENCIAL}>Presencial</SelectItem>
+                  <SelectItem value={MODALIDADE_CURSO_EAD}>EAD</SelectItem>
+                  <SelectItem value={MODALIDADE_CURSO_HIBRIDO}>Híbrido</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -2,6 +2,9 @@ import { adminProtectedProcedure, createTRPCRouter } from '@/server/api/trpc'
 import { db } from '@/server/db'
 import { professorInvitationTable, userTable } from '@/server/db/schema'
 import {
+  INVITATION_STATUS_ACCEPTED,
+  INVITATION_STATUS_EXPIRED,
+  INVITATION_STATUS_PENDING,
   cancelInvitationSchema,
   deleteInvitationSchema,
   getInvitationsSchema,
@@ -26,7 +29,10 @@ export const inviteProfessorRouter = createTRPCRouter({
 
     // Check if there's already a pending invitation
     const existingInvitation = await ctx.db.query.professorInvitationTable.findFirst({
-      where: and(eq(professorInvitationTable.email, input.email), eq(professorInvitationTable.status, 'PENDING')),
+      where: and(
+        eq(professorInvitationTable.email, input.email),
+        eq(professorInvitationTable.status, INVITATION_STATUS_PENDING)
+      ),
     })
 
     if (existingInvitation) {
@@ -91,19 +97,24 @@ export const inviteProfessorRouter = createTRPCRouter({
 
     // Check for expired invitations and update status
     const now = new Date()
-    const expiredInvitations = invitations.filter((inv) => inv.status === 'PENDING' && inv.expiresAt < now)
+    const expiredInvitations = invitations.filter(
+      (inv) => inv.status === INVITATION_STATUS_PENDING && inv.expiresAt < now
+    )
 
     if (expiredInvitations.length > 0) {
       await Promise.all(
         expiredInvitations.map((inv) =>
-          db.update(professorInvitationTable).set({ status: 'EXPIRED' }).where(eq(professorInvitationTable.id, inv.id))
+          db
+            .update(professorInvitationTable)
+            .set({ status: INVITATION_STATUS_EXPIRED })
+            .where(eq(professorInvitationTable.id, inv.id))
         )
       )
     }
 
     return invitations.map((inv) => ({
       ...inv,
-      status: inv.status === 'PENDING' && inv.expiresAt < now ? 'EXPIRED' : inv.status,
+      status: inv.status === INVITATION_STATUS_PENDING && inv.expiresAt < now ? INVITATION_STATUS_EXPIRED : inv.status,
     }))
   }),
 
@@ -116,7 +127,7 @@ export const inviteProfessorRouter = createTRPCRouter({
       throw new Error('Convite não encontrado')
     }
 
-    if (invitation.status === 'ACCEPTED') {
+    if (invitation.status === INVITATION_STATUS_ACCEPTED) {
       throw new Error('Este convite já foi aceito')
     }
 
@@ -130,7 +141,7 @@ export const inviteProfessorRouter = createTRPCRouter({
       .set({
         token,
         expiresAt,
-        status: 'PENDING',
+        status: INVITATION_STATUS_PENDING,
       })
       .where(eq(professorInvitationTable.id, input.invitationId))
 
@@ -158,13 +169,13 @@ export const inviteProfessorRouter = createTRPCRouter({
       throw new Error('Convite não encontrado')
     }
 
-    if (invitation.status === 'ACCEPTED') {
+    if (invitation.status === INVITATION_STATUS_ACCEPTED) {
       throw new Error('Não é possível cancelar um convite já aceito')
     }
 
     await ctx.db
       .update(professorInvitationTable)
-      .set({ status: 'EXPIRED' })
+      .set({ status: INVITATION_STATUS_EXPIRED })
       .where(eq(professorInvitationTable.id, input.invitationId))
 
     return { success: true }
@@ -181,10 +192,13 @@ export const inviteProfessorRouter = createTRPCRouter({
 
     const stats = {
       total: invitations.length,
-      pending: invitations.filter((inv) => inv.status === 'PENDING' && inv.expiresAt > new Date()).length,
-      accepted: invitations.filter((inv) => inv.status === 'ACCEPTED').length,
+      pending: invitations.filter((inv) => inv.status === INVITATION_STATUS_PENDING && inv.expiresAt > new Date())
+        .length,
+      accepted: invitations.filter((inv) => inv.status === INVITATION_STATUS_ACCEPTED).length,
       expired: invitations.filter(
-        (inv) => inv.status === 'EXPIRED' || (inv.status === 'PENDING' && inv.expiresAt <= new Date())
+        (inv) =>
+          inv.status === INVITATION_STATUS_EXPIRED ||
+          (inv.status === INVITATION_STATUS_PENDING && inv.expiresAt <= new Date())
       ).length,
     }
 
@@ -202,14 +216,14 @@ export const inviteProfessorRouter = createTRPCRouter({
         throw new Error('Token de convite inválido')
       }
 
-      if (invitation.status !== 'PENDING') {
+      if (invitation.status !== INVITATION_STATUS_PENDING) {
         throw new Error('Este convite não está mais válido')
       }
 
       if (invitation.expiresAt < new Date()) {
         await ctx.db
           .update(professorInvitationTable)
-          .set({ status: 'EXPIRED' })
+          .set({ status: INVITATION_STATUS_EXPIRED })
           .where(eq(professorInvitationTable.id, invitation.id))
 
         throw new Error('Este convite expirou')

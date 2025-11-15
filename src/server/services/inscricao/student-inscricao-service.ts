@@ -1,11 +1,16 @@
 import { BusinessError } from '@/server/lib/errors'
-import type { TipoInscricao, TipoVaga, UserRole } from '@/types'
+import type { StatusInscricao, TipoInscricao, TipoVaga, UserRole } from '@/types'
 import {
   ACCEPTED_BOLSISTA,
   ACCEPTED_VOLUNTARIO,
   BOLSISTA,
+  CANDIDATE_RESULT_APROVADO,
+  CANDIDATE_RESULT_EM_ANALISE,
+  CANDIDATE_RESULT_REPROVADO,
+  type CandidateResultStatus,
   PROJETO_STATUS_APPROVED,
   REJECTED_BY_PROFESSOR,
+  REJECTED_BY_STUDENT,
   SELECTED_BOLSISTA,
   SELECTED_VOLUNTARIO,
   SEMESTRE_1,
@@ -14,12 +19,21 @@ import {
   SUBMITTED,
   TIPO_INSCRICAO_BOLSISTA,
   TIPO_INSCRICAO_VOLUNTARIO,
+  VAGA_STATUS_ATIVO,
   VOLUNTARIO,
 } from '@/types'
 import { logger } from '@/utils/logger'
 import type { InscricaoRepository } from './inscricao-repository'
 
 const log = logger.child({ context: 'StudentInscricaoService' })
+
+const APPROVAL_STATUSES = new Set<StatusInscricao>([
+  SELECTED_BOLSISTA,
+  SELECTED_VOLUNTARIO,
+  ACCEPTED_BOLSISTA,
+  ACCEPTED_VOLUNTARIO,
+])
+const ACTIVE_MONITOR_STATUSES = new Set<StatusInscricao>([ACCEPTED_BOLSISTA, ACCEPTED_VOLUNTARIO])
 
 export class StudentInscricaoService {
   constructor(private repository: InscricaoRepository) {}
@@ -37,16 +51,12 @@ export class StudentInscricaoService {
     const inscricoes = await this.repository.findInscricoesByAlunoId(aluno.id)
 
     const totalInscricoes = inscricoes.length
-    const totalAprovacoes = inscricoes.filter(
-      (inscricao) =>
-        inscricao.status === SELECTED_BOLSISTA ||
-        inscricao.status === SELECTED_VOLUNTARIO ||
-        inscricao.status === ACCEPTED_BOLSISTA ||
-        inscricao.status === ACCEPTED_VOLUNTARIO
+    const totalAprovacoes = inscricoes.filter((inscricao) =>
+      APPROVAL_STATUSES.has(inscricao.status as StatusInscricao)
     ).length
 
-    const monitoriaAtiva = inscricoes.find(
-      (inscricao) => inscricao.status === ACCEPTED_BOLSISTA || inscricao.status === ACCEPTED_VOLUNTARIO
+    const monitoriaAtiva = inscricoes.find((inscricao) =>
+      ACTIVE_MONITOR_STATUSES.has(inscricao.status as StatusInscricao)
     )
 
     let monitoriaAtivaFormatted = null
@@ -62,7 +72,7 @@ export class StudentInscricaoService {
           })),
           professorResponsavelNome: monitoriaAtiva.projeto.professorResponsavel.nomeCompleto,
         },
-        status: 'ATIVO',
+        status: VAGA_STATUS_ATIVO,
         tipo: monitoriaAtiva.tipoVagaPretendida === BOLSISTA ? BOLSISTA : VOLUNTARIO,
         dataInicio:
           monitoriaAtiva.projeto.ano && monitoriaAtiva.projeto.semestre
@@ -79,14 +89,16 @@ export class StudentInscricaoService {
 
     const historicoAtividades = inscricoes
       .filter((inscricao) => inscricao.status !== SUBMITTED)
-      .map((inscricao) => ({
-        tipo:
-          inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED') ? 'APROVACAO' : 'INSCRICAO',
-        descricao: `${
-          inscricao.status.includes('SELECTED') || inscricao.status.includes('ACCEPTED') ? 'Aprovado em' : 'Inscrito em'
-        } ${inscricao.projeto.titulo}`,
-        data: inscricao.updatedAt || inscricao.createdAt,
-      }))
+      .map((inscricao) => {
+        const status = inscricao.status as StatusInscricao
+        const isAprovacao = APPROVAL_STATUSES.has(status)
+
+        return {
+          tipo: isAprovacao ? 'APROVACAO' : 'INSCRICAO',
+          descricao: `${isAprovacao ? 'Aprovado em' : 'Inscrito em'} ${inscricao.projeto.titulo}`,
+          data: inscricao.updatedAt || inscricao.createdAt,
+        }
+      })
 
     const proximasAcoes = []
     if (monitoriaAtiva) {
@@ -208,22 +220,22 @@ export class StudentInscricaoService {
     const inscricoes = await this.repository.findInscricoesByAlunoId(aluno.id)
 
     return inscricoes.map((inscricao) => {
-      let status: 'APROVADO' | 'REPROVADO' | 'EM_ANALISE' | 'LISTA_ESPERA'
+      let status: CandidateResultStatus
       switch (inscricao.status) {
         case SELECTED_BOLSISTA:
         case SELECTED_VOLUNTARIO:
         case ACCEPTED_BOLSISTA:
         case ACCEPTED_VOLUNTARIO:
-          status = 'APROVADO'
+          status = CANDIDATE_RESULT_APROVADO
           break
         case REJECTED_BY_PROFESSOR:
-          status = 'REPROVADO'
+          status = CANDIDATE_RESULT_REPROVADO
           break
         case STATUS_INSCRICAO_SUBMITTED:
-          status = 'EM_ANALISE'
+          status = CANDIDATE_RESULT_EM_ANALISE
           break
         default:
-          status = 'EM_ANALISE'
+          status = CANDIDATE_RESULT_EM_ANALISE
       }
 
       return {
@@ -286,7 +298,7 @@ export class StudentInscricaoService {
   }
 
   async aceitarInscricao(userId: number, userRole: string, inscricaoId: number) {
-    if (userRole !== 'student') {
+    if (userRole !== STUDENT) {
       throw new BusinessError('Apenas estudantes podem aceitar inscrições', 'FORBIDDEN')
     }
 
@@ -332,7 +344,7 @@ export class StudentInscricaoService {
   }
 
   async recusarInscricao(userId: number, userRole: string, inscricaoId: number, feedbackProfessor?: string) {
-    if (userRole !== 'student') {
+    if (userRole !== STUDENT) {
       throw new BusinessError('Apenas estudantes podem recusar inscrições', 'FORBIDDEN')
     }
 
@@ -351,7 +363,7 @@ export class StudentInscricaoService {
     }
 
     await this.repository.updateInscricao(inscricaoId, {
-      status: 'REJECTED_BY_STUDENT',
+      status: REJECTED_BY_STUDENT,
       feedbackProfessor,
       updatedAt: new Date(),
     })

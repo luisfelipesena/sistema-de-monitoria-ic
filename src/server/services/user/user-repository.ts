@@ -9,7 +9,15 @@ import {
   vagaTable,
 } from '@/server/db/schema'
 import type { Regime, UserRole } from '@/types'
-import { PROFESSOR, PROJETO_STATUS_APPROVED, STUDENT, TIPO_VAGA_BOLSISTA, TIPO_VAGA_VOLUNTARIO } from '@/types'
+import {
+  PROFESSOR,
+  PROFESSOR_STATUS_ATIVO,
+  PROFESSOR_STATUS_INATIVO,
+  PROJETO_STATUS_APPROVED,
+  STUDENT,
+  TIPO_VAGA_BOLSISTA,
+  TIPO_VAGA_VOLUNTARIO,
+} from '@/types'
 import { and, eq, isNull, like, or, sql, type SQL } from 'drizzle-orm'
 type Database = typeof db
 
@@ -230,8 +238,11 @@ export const createUserRepository = (db: Database) => {
       await db.update(userTable).set(data).where(eq(userTable.id, id))
     },
 
-    async updateProfessorStatus(userId: number, status: 'ATIVO' | 'INATIVO') {
-      const newRole = status === 'ATIVO' ? PROFESSOR : PROFESSOR
+    async updateProfessorStatus(
+      userId: number,
+      status: typeof PROFESSOR_STATUS_ATIVO | typeof PROFESSOR_STATUS_INATIVO
+    ) {
+      const newRole = status === PROFESSOR_STATUS_ATIVO ? PROFESSOR : PROFESSOR
 
       await db.transaction(async (tx) => {
         await tx.update(userTable).set({ role: newRole }).where(eq(userTable.id, userId))

@@ -1,10 +1,12 @@
 import { isProfessor, requireAdminOrProfessor, requireProfessor, requireStudent } from '@/server/lib/auth-helpers'
 import { BusinessError } from '@/server/lib/errors'
-import type { UserRole } from '@/types'
+import type { StatusInscricao, UserRole } from '@/types'
 import {
   ACCEPTED_BOLSISTA,
   ACCEPTED_VOLUNTARIO,
+  REJECTED_BY_STUDENT,
   SELECTED_BOLSISTA,
+  SELECTED_VOLUNTARIO,
   SEMESTRE_1,
   SUBMITTED,
   TIPO_VAGA_BOLSISTA,
@@ -15,6 +17,9 @@ import { logger } from '@/utils/logger'
 import type { InscricaoRepository } from './inscricao-repository'
 
 const log = logger.child({ context: 'ProfessorInscricaoService' })
+
+const SELECTED_STATUSES = new Set<StatusInscricao>([SELECTED_BOLSISTA, SELECTED_VOLUNTARIO])
+const ACCEPTED_STATUSES = new Set<StatusInscricao>([ACCEPTED_BOLSISTA, ACCEPTED_VOLUNTARIO])
 
 export class ProfessorInscricaoService {
   constructor(private repository: InscricaoRepository) {}
@@ -160,7 +165,7 @@ export class ProfessorInscricaoService {
       throw new BusinessError('Inscrição não encontrada', 'NOT_FOUND')
     }
 
-    if (!inscricao.status.startsWith('SELECTED_')) {
+    if (!SELECTED_STATUSES.has(inscricao.status as StatusInscricao)) {
       throw new BusinessError('Não é possível aceitar uma vaga não oferecida', 'BAD_REQUEST')
     }
 
@@ -208,12 +213,12 @@ export class ProfessorInscricaoService {
       throw new BusinessError('Inscrição não encontrada', 'NOT_FOUND')
     }
 
-    if (!inscricao.status.startsWith('SELECTED_')) {
+    if (!SELECTED_STATUSES.has(inscricao.status as StatusInscricao)) {
       throw new BusinessError('Não é possível recusar uma vaga não oferecida', 'BAD_REQUEST')
     }
 
     await this.repository.updateInscricao(inscricaoId, {
-      status: 'REJECTED_BY_STUDENT',
+      status: REJECTED_BY_STUDENT,
       feedbackProfessor: motivo || 'Vaga recusada pelo estudante',
       updatedAt: new Date(),
     })
@@ -247,7 +252,7 @@ export class ProfessorInscricaoService {
       }
     }
 
-    if (!inscricao.status.includes('ACCEPTED_')) {
+    if (!ACCEPTED_STATUSES.has(inscricao.status as StatusInscricao)) {
       throw new BusinessError('Termo de compromisso só pode ser gerado para vagas aceitas', 'BAD_REQUEST')
     }
 

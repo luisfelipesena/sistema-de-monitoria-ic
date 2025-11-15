@@ -2,7 +2,7 @@ import type { db } from '@/server/db'
 import { emailSender } from '@/server/lib/email/email-sender'
 import { ForbiddenError } from '@/server/lib/errors'
 import type { UserRole } from '@/types'
-import { ADMIN, PROFESSOR } from '@/types'
+import { ADMIN, PROFESSOR, TIPO_ASSINATURA_ATA_SELECAO, TIPO_ASSINATURA_TERMO_COMPROMISSO } from '@/types'
 import { logger } from '@/utils/logger'
 import { createTermosRepository } from './termos-repository'
 
@@ -39,8 +39,8 @@ export function createTermosNotifier(db: Database) {
       for (const vaga of vagas) {
         const assinaturas = await repo.findSignaturesByVagaId(vaga.id)
 
-        const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
-        const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+        const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
+        const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
 
         if (!assinaturaAluno) {
           try {

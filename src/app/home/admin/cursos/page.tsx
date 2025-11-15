@@ -11,7 +11,19 @@ import { PagesLayout } from "@/components/layout/PagesLayout";
 import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { STATUS_CURSO_ATIVO, STATUS_CURSO_INATIVO, CursoListItem } from "@/types";
+import {
+  MODALIDADE_CURSO_EAD,
+  MODALIDADE_CURSO_HIBRIDO,
+  MODALIDADE_CURSO_PRESENCIAL,
+  STATUS_CURSO_ATIVO,
+  STATUS_CURSO_EM_REFORMULACAO,
+  STATUS_CURSO_INATIVO,
+  TIPO_CURSO_BACHARELADO,
+  TIPO_CURSO_LICENCIATURA,
+  TIPO_CURSO_POS_GRADUACAO,
+  TIPO_CURSO_TECNICO,
+  type CursoListItem,
+} from "@/types";
 import { api } from "@/utils/api";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -65,8 +77,8 @@ export default function CursosPage() {
       id: curso.id,
       nome: curso.nome,
       codigo: curso.codigo.toString(),
-      tipo: curso.tipo || ("BACHARELADO" as const),
-      modalidade: curso.modalidade || ("PRESENCIAL" as const),
+      tipo: curso.tipo || TIPO_CURSO_BACHARELADO,
+      modalidade: curso.modalidade || MODALIDADE_CURSO_PRESENCIAL,
       duracao: curso.duracao || 8,
       cargaHoraria: curso.cargaHoraria,
       descricao: curso.descricao || undefined,
@@ -84,10 +96,8 @@ export default function CursosPage() {
       alunos: 0,
       disciplinas: 0,
       projetos: 0,
-      status: (curso.status || STATUS_CURSO_ATIVO) as
-        | typeof STATUS_CURSO_ATIVO
-        | typeof STATUS_CURSO_INATIVO
-        | "EM_REFORMULACAO",
+      status: (curso.status ||
+        STATUS_CURSO_ATIVO) as typeof STATUS_CURSO_ATIVO | typeof STATUS_CURSO_INATIVO | typeof STATUS_CURSO_EM_REFORMULACAO,
       criadoEm: curso.createdAt.toISOString(),
       atualizadoEm:
         curso.updatedAt?.toISOString() || curso.createdAt.toISOString(),

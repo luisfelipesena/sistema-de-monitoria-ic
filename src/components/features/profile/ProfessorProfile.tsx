@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import { api } from "@/utils/api"
 import { useEffect, useState } from "react"
+import { REGIME_20H, REGIME_40H, REGIME_DE, type Regime } from "@/types"
 
 interface ProfessorFormData {
   nomeCompleto: string
@@ -16,7 +17,7 @@ interface ProfessorFormData {
   cpf: string
   telefone: string
   telefoneInstitucional: string
-  regime: "20H" | "40H" | "DE" | ""
+  regime: Regime | ""
 }
 
 export function ProfessorProfile() {
@@ -67,7 +68,7 @@ export function ProfessorProfile() {
           cpf: formData.cpf,
           telefone: formData.telefone,
           telefoneInstitucional: formData.telefoneInstitucional,
-          regime: formData.regime as "20H" | "40H" | "DE",
+          regime: formData.regime,
         },
       })
 
@@ -180,15 +181,15 @@ export function ProfessorProfile() {
             <Label htmlFor="regime">Regime de Trabalho</Label>
             <Select
               value={formData.regime}
-              onValueChange={(value: "20H" | "40H" | "DE") => setFormData({ ...formData, regime: value })}
+              onValueChange={(value: Regime) => setFormData({ ...formData, regime: value })}
             >
               <SelectTrigger disabled={!isEditing}>
                 <SelectValue placeholder="Selecione o regime" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="20H">20 horas</SelectItem>
-                <SelectItem value="40H">40 horas</SelectItem>
-                <SelectItem value="DE">Dedicação Exclusiva</SelectItem>
+                <SelectItem value={REGIME_20H}>20 horas</SelectItem>
+                <SelectItem value={REGIME_40H}>40 horas</SelectItem>
+                <SelectItem value={REGIME_DE}>Dedicação Exclusiva</SelectItem>
               </SelectContent>
             </Select>
           </div>

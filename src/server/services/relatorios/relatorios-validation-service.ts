@@ -1,4 +1,5 @@
 import type { Semestre, ValidationResult } from '@/types'
+import { TIPO_ASSINATURA_ATA_SELECAO, TIPO_ASSINATURA_TERMO_COMPROMISSO } from '@/types'
 import { logger } from '@/utils/logger'
 import type { RelatoriosRepository } from './relatorios-repository'
 
@@ -36,8 +37,8 @@ export function createRelatoriosValidationService(repo: RelatoriosRepository) {
 
       const assinaturas = await repo.findAssinaturasByVagaId(vagaId)
 
-      const assinaturaAluno = assinaturas.some((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
-      const assinaturaProfessor = assinaturas.some((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+      const assinaturaAluno = assinaturas.some((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
+      const assinaturaProfessor = assinaturas.some((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
 
       if (!assinaturaAluno) problemasDetalhados.push('Termo não assinado pelo aluno')
       if (!assinaturaProfessor) problemasDetalhados.push('Termo não assinado pelo professor')

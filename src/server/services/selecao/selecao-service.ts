@@ -15,6 +15,7 @@ import {
   STATUS_INSCRICAO_SELECTED_BOLSISTA,
   STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
   STATUS_INSCRICAO_SUBMITTED,
+  TIPO_ASSINATURA_ATA_SELECAO,
   TIPO_INSCRICAO_BOLSISTA,
   TIPO_INSCRICAO_VOLUNTARIO,
 } from '@/types'
@@ -127,7 +128,7 @@ export function createSelecaoService(db: Database) {
         const txRepo = createSelecaoRepository(tx as unknown as Database)
         await txRepo.createAssinatura({
           assinaturaData: assinaturaBase64,
-          tipoAssinatura: 'ATA_SELECAO_PROFESSOR',
+          tipoAssinatura: TIPO_ASSINATURA_ATA_SELECAO,
           userId: userId,
           projetoId: ata.projetoId,
         })

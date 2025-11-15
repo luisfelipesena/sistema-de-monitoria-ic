@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { SEMESTRE_1, SEMESTRE_2, Semestre } from "@/types"
+import { SEMESTRE_1, SEMESTRE_2, Semestre, TIPO_PROPOSICAO_COLETIVA } from "@/types"
 import { api } from "@/utils/api"
 import { PDFViewer } from "@react-pdf/renderer"
 import { AlertTriangle, Eye, FileSpreadsheet, Mail, Send } from "lucide-react"
@@ -129,10 +129,7 @@ export default function PlanilhaPROGRADPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="semestre">Semestre</Label>
-                <Select
-                  value={selectedSemester}
-                  onValueChange={(value) => setSelectedSemester(value as Semestre)}
-                >
+                <Select value={selectedSemester} onValueChange={(value) => setSelectedSemester(value as Semestre)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o semestre" />
                   </SelectTrigger>
@@ -177,7 +174,7 @@ export default function PlanilhaPROGRADPage() {
                     </div>
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600">
-                        {planilhaData.projetos.filter((p) => p.tipoProposicao === "COLETIVA").length}
+                        {planilhaData.projetos.filter((p) => p.tipoProposicao === TIPO_PROPOSICAO_COLETIVA).length}
                       </div>
                       <div className="text-sm text-purple-700">Projetos Coletivos</div>
                     </div>

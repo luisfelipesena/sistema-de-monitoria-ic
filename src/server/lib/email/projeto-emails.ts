@@ -1,14 +1,15 @@
-import { env } from '@/utils/env'
-import { emailSender } from './email-sender'
+import { getNotificacaoGeralAdminsHTML } from '@/server/email-templates/admin-notifications'
 import {
   getProjetoStatusChangeHTML,
   type ProjetoStatusChangeData,
 } from '@/server/email-templates/project-status-change'
-import { getNotificacaoGeralAdminsHTML } from '@/server/email-templates/admin-notifications'
 import {
   getLembreteSubmissaoProjetoHTML,
   type LembreteSubmissaoData,
 } from '@/server/email-templates/reminder-templates'
+import { getSemestreNumero, PROJETO_STATUS_PENDING_SIGNATURE, SEMESTRE_LABELS, type Semestre } from '@/types'
+import { env } from '@/utils/env'
+import { emailSender } from './email-sender'
 
 const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
 
@@ -47,7 +48,7 @@ export const projetoEmailService = {
           <p><strong>ID do Projeto:</strong> #${data.projetoId}</p>
           <p><strong>Título:</strong> ${data.projetoTitulo}</p>
           ${data.departamento ? `<p><strong>Departamento:</strong> ${data.departamento}</p>` : ''}
-          ${data.ano && data.semestre ? `<p><strong>Período:</strong> ${data.ano}.${data.semestre === 'SEMESTRE_1' ? '1' : '2'}</p>` : ''}
+          ${data.ano && data.semestre ? `<p><strong>Período:</strong> ${data.ano}.${getSemestreNumero(data.semestre as Semestre)}</p>` : ''}
       </div>
     `
 
@@ -118,7 +119,7 @@ export const projetoEmailService = {
       professorNome: data.professorNome,
       projetoTitulo: data.projetoTitulo,
       projetoId: data.projetoId,
-      novoStatus: 'PENDING_PROFESSOR_SIGNATURE',
+      novoStatus: PROJETO_STATUS_PENDING_SIGNATURE,
       linkProjeto: `${clientUrl}/home/professor/project/${data.projetoId}`,
       remetenteUserId: data.remetenteUserId,
     }
@@ -168,9 +169,9 @@ export const projetoEmailService = {
     to: string
     professorName: string
     ano: number
-    semestre: string
+    semestre: Semestre
   }): Promise<void> {
-    const semestreFormatado = data.semestre === 'SEMESTRE_1' ? '1º Semestre' : '2º Semestre'
+    const semestreFormatado = SEMESTRE_LABELS[data.semestre]
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

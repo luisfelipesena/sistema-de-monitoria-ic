@@ -1,15 +1,15 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import type { MonitorConsolidado, Semestre } from "@/types"
 import { Download } from "lucide-react"
 import { EmailDialog } from "./EmailDialog"
-import type { MonitorConsolidado } from "@/types"
 
 interface ExportSectionProps {
   data: MonitorConsolidado[] | undefined
   isLoading: boolean
   emailsDepartamento: string[]
   selectedYear: number
-  selectedSemester: string
+  selectedSemester: Semestre
   incluirBolsistas: boolean
   incluirVoluntarios: boolean
   showEmailDialog: boolean

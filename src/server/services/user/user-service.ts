@@ -1,7 +1,7 @@
 import { db } from '@/server/db'
 import { NotFoundError, ValidationError } from '@/server/lib/errors'
 import type { Regime, UserRole } from '@/types'
-import { PROFESSOR, STUDENT } from '@/types'
+import { PROFESSOR, PROFESSOR_STATUS_ATIVO, PROFESSOR_STATUS_INATIVO, STUDENT } from '@/types'
 import { createUserRepository, type UpdateProfileData, type UserFilters } from './user-repository'
 
 export const createUserService = (database: typeof db) => {
@@ -175,7 +175,10 @@ export const createUserService = (database: typeof db) => {
       await userRepository.update(id, data)
     },
 
-    async updateProfessorStatus(userId: number, status: 'ATIVO' | 'INATIVO') {
+    async updateProfessorStatus(
+      userId: number,
+      status: typeof PROFESSOR_STATUS_ATIVO | typeof PROFESSOR_STATUS_INATIVO
+    ) {
       const user = await userRepository.findById(userId)
 
       if (!user) {
@@ -190,7 +193,7 @@ export const createUserService = (database: typeof db) => {
 
       return {
         success: true,
-        message: `Professor ${status === 'ATIVO' ? 'ativado' : 'desativado'} com sucesso`,
+        message: `Professor ${status === PROFESSOR_STATUS_ATIVO ? 'ativado' : 'desativado'} com sucesso`,
       }
     },
   }

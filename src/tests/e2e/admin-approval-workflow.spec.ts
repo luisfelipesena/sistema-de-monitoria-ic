@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test'
+import { PROJETO_STATUS_SUBMITTED } from '@/types'
 
 const ADMIN_USER = {
   email: 'admin@ufba.br',
@@ -167,7 +168,7 @@ test.describe('Admin Approval Workflow', () => {
     // Look for projects with "Submitted" status
     const submittedProjects = page
       .locator('text=/submetido|pendente|aguardando/i')
-      .or(page.locator('[data-status="SUBMITTED"]'))
+      .or(page.locator(`[data-status="${PROJETO_STATUS_SUBMITTED}"]`))
       .first()
 
     const projectExists = await submittedProjects.isVisible({ timeout: 5000 }).catch(() => false)

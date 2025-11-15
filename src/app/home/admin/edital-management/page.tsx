@@ -11,7 +11,14 @@ import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
 import { useEditalPdf } from "@/hooks/use-files";
 import { useToast } from "@/hooks/use-toast";
-import { EditalListItem, SEMESTRE_1, SEMESTRE_2, TIPO_EDITAL_DCC, TIPO_EDITAL_PROGRAD } from "@/types";
+import {
+  EditalListItem,
+  PERIODO_INSCRICAO_STATUS_ATIVO,
+  SEMESTRE_1,
+  SEMESTRE_2,
+  TIPO_EDITAL_DCC,
+  TIPO_EDITAL_PROGRAD,
+} from "@/types";
 import { api } from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
@@ -154,13 +161,13 @@ export default function EditalManagementPage() {
   const createForm = useForm<EditalFormData>({
     resolver: zodResolver(editalFormSchema),
     defaultValues: {
-      tipo: "DCC",
+      tipo: TIPO_EDITAL_DCC,
       numeroEdital: "",
       titulo: "Edital Interno de Seleção de Monitores",
       descricaoHtml: "",
       valorBolsa: "400.00",
       ano: new Date().getFullYear(),
-      semestre: "SEMESTRE_1",
+      semestre: SEMESTRE_1,
       dataInicio: new Date(),
       dataFim: new Date(new Date().setDate(new Date().getDate() + 30)),
     },
@@ -169,13 +176,13 @@ export default function EditalManagementPage() {
   const editForm = useForm<EditalFormData>({
     resolver: zodResolver(editalFormSchema),
     defaultValues: {
-      tipo: "DCC",
+      tipo: TIPO_EDITAL_DCC,
       numeroEdital: "",
       titulo: "",
       descricaoHtml: "",
       valorBolsa: "400.00",
       ano: new Date().getFullYear(),
-      semestre: "SEMESTRE_1",
+      semestre: SEMESTRE_1,
       dataInicio: new Date(),
       dataFim: new Date(new Date().setDate(new Date().getDate() + 30)),
     },
@@ -272,13 +279,13 @@ export default function EditalManagementPage() {
   const openEditDialog = (edital: EditalListItem) => {
     setSelectedEdital(edital);
     editForm.reset({
-      tipo: (edital.tipo as "DCC" | "PROGRAD") || "DCC",
+      tipo: (edital.tipo as typeof TIPO_EDITAL_DCC | typeof TIPO_EDITAL_PROGRAD) || TIPO_EDITAL_DCC,
       numeroEdital: edital.numeroEdital,
       titulo: edital.titulo,
       descricaoHtml: edital.descricaoHtml || "",
       valorBolsa: "400.00", // Default value since EditalListItem doesn't have valorBolsa
       ano: edital.periodoInscricao?.ano || new Date().getFullYear(),
-      semestre: edital.periodoInscricao?.semestre || "SEMESTRE_1",
+      semestre: edital.periodoInscricao?.semestre || SEMESTRE_1,
       dataInicio: edital.periodoInscricao?.dataInicio
         ? new Date(edital.periodoInscricao.dataInicio)
         : new Date(),
@@ -301,7 +308,7 @@ export default function EditalManagementPage() {
   const editaisList = editais || [];
   const totalEditais = editaisList.length;
   const editaisAtivos = editaisList.filter(
-    (e) => e.periodoInscricao?.status === "ATIVO"
+    (e) => e.periodoInscricao?.status === PERIODO_INSCRICAO_STATUS_ATIVO
   ).length;
   const editaisPublicados = editaisList.filter((e) => e.publicado).length;
   const editaisAssinados = editaisList.filter((e) => e.chefeAssinouEm).length;

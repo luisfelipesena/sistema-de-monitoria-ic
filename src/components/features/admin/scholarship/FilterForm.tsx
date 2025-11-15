@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { UseFormReturn } from "react-hook-form"
 import type { FilterFormData } from "@/hooks/features/useScholarshipAllocation"
+import { SEMESTRE_1, SEMESTRE_2 } from "@/types"
 
 interface FilterFormProps {
   form: UseFormReturn<FilterFormData>
@@ -51,8 +52,8 @@ export function FilterForm({ form, onSubmit }: FilterFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
-                      <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
+                      <SelectItem value={SEMESTRE_1}>1º Semestre</SelectItem>
+                      <SelectItem value={SEMESTRE_2}>2º Semestre</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

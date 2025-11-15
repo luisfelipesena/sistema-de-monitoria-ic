@@ -3,6 +3,8 @@ import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@
 import {
   ACCEPTED_VOLUNTARIO,
   PROJETO_STATUS_DRAFT,
+  VOLUNTARIO_STATUS_ATIVO,
+  VOLUNTARIO_STATUS_INATIVO,
   type CreateProjetoInput,
   type UpdateProjetoInput,
   type UserRole,
@@ -231,7 +233,12 @@ export function createProjetoCreationService(repo: ProjetoRepository) {
       log.info({ projetoId: id }, 'Projeto excluído com sucesso')
     },
 
-    async updateVolunteerStatus(id: number, status: 'ATIVO' | 'INATIVO', userId: number, _userRole: UserRole) {
+    async updateVolunteerStatus(
+      id: number,
+      status: typeof VOLUNTARIO_STATUS_ATIVO | typeof VOLUNTARIO_STATUS_INATIVO,
+      userId: number,
+      _userRole: UserRole
+    ) {
       const professor = await repo.findProfessorByUserId(userId)
       if (!professor) {
         throw new NotFoundError('Professor', userId)

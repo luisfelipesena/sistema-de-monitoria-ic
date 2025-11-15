@@ -4,11 +4,11 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { UseFormReturn } from "react-hook-form"
-import { SEMESTRE_1, SEMESTRE_2 } from "@/types"
+import { SEMESTRE_1, SEMESTRE_2, type Semestre } from "@/types"
 
 interface FiltersData {
   ano: number
-  semestre: typeof SEMESTRE_1 | typeof SEMESTRE_2
+  semestre: Semestre
 }
 
 interface RelatoriosFiltersProps {
@@ -56,8 +56,8 @@ export function RelatoriosFilters({ form, onSubmit }: RelatoriosFiltersProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
-                      <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
+                      <SelectItem value={SEMESTRE_1}>1º Semestre</SelectItem>
+                      <SelectItem value={SEMESTRE_2}>2º Semestre</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

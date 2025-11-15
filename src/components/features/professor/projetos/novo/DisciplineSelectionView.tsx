@@ -1,5 +1,6 @@
 import { DisciplineSelector } from "@/components/features/projects/DisciplineSelector"
 import { PagesLayout } from "@/components/layout/PagesLayout"
+import type { Semestre } from "@/types"
 
 interface DepartmentDiscipline {
   id: number
@@ -8,7 +9,7 @@ interface DepartmentDiscipline {
   departamentoId: number
   isAssociated: boolean
   ano?: number
-  semestre?: "SEMESTRE_1" | "SEMESTRE_2"
+  semestre?: Semestre
 }
 
 interface DisciplineSelectionViewProps {

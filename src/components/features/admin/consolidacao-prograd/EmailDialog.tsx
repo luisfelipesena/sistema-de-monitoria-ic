@@ -1,6 +1,7 @@
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { getSemestreNumero, type Semestre } from "@/types"
 import { AlertTriangle, Mail } from "lucide-react"
 
 interface EmailDialogProps {
@@ -8,7 +9,7 @@ interface EmailDialogProps {
   onOpenChange: (open: boolean) => void
   emailsDepartamento: string[]
   selectedYear: number
-  selectedSemester: string
+  selectedSemester: Semestre
   incluirBolsistas: boolean
   incluirVoluntarios: boolean
   totalMonitores: number
@@ -55,7 +56,7 @@ export function EmailDialog({
             <h5 className="font-medium mb-2">Informações que serão enviadas:</h5>
             <ul className="text-sm text-muted-foreground space-y-1">
               <li>
-                • Período: {selectedYear}.{selectedSemester === "SEMESTRE_1" ? "1" : "2"}
+                • Período: {selectedYear}.{getSemestreNumero(selectedSemester)}
               </li>
               <li>• Total de monitores: {totalMonitores}</li>
               <li>• Incluir bolsistas: {incluirBolsistas ? "Sim" : "Não"}</li>

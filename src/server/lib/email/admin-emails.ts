@@ -1,4 +1,4 @@
-import { Semestre, SEMESTRE_LABELS } from '@/types'
+import { SEMESTRE_LABELS, type Semestre } from '@/types'
 import { env } from '@/utils/env'
 import { emailSender } from './email-sender'
 
@@ -68,11 +68,11 @@ export const adminEmailService = {
   async sendDepartmentConsolidation(data: {
     to: string
     ano: number
-    semestre: string
+    semestre: Semestre
     anexos: { filename: string; buffer: Buffer }[]
     remetenteUserId?: number
   }): Promise<void> {
-    const semestreDisplay = data.semestre === 'SEMESTRE_1' ? '1º Semestre' : '2º Semestre'
+    const semestreDisplay = SEMESTRE_LABELS[data.semestre]
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

@@ -1,6 +1,18 @@
 import { sendDepartamentoConsolidationEmail } from '@/server/lib/email'
 import { BusinessError, NotFoundError, ValidationError } from '@/server/lib/errors'
-import { ACCEPTED_BOLSISTA, BOLSISTA, SEMESTRE_1, SEMESTRE_LABELS, VOLUNTARIO, type Semestre } from '@/types'
+import {
+  ACCEPTED_BOLSISTA,
+  BOLSISTA,
+  SEMESTRE_1,
+  SEMESTRE_LABELS,
+  TERMO_STATUS_COMPLETO,
+  TERMO_STATUS_PENDENTE,
+  TIPO_ASSINATURA_ATA_SELECAO,
+  TIPO_ASSINATURA_TERMO_COMPROMISSO,
+  VAGA_STATUS_ATIVO,
+  VOLUNTARIO,
+  type Semestre,
+} from '@/types'
 import { logger } from '@/utils/logger'
 import * as XLSX from 'xlsx'
 import type { RelatoriosRepository } from './relatorios-repository'
@@ -403,7 +415,7 @@ export function createRelatoriosExportService(
               dataInicio: vaga.dataInicio?.toISOString() || inicioSemestre.toISOString(),
               dataFim: vaga.dataFim?.toISOString() || fimSemestre.toISOString(),
               valorBolsa: tipoMonitoria === BOLSISTA ? 400 : 0,
-              status: 'ATIVO',
+              status: VAGA_STATUS_ATIVO,
             },
           }
         })
@@ -458,9 +470,9 @@ export function createRelatoriosExportService(
           const disciplinas = await repo.findDisciplinasByProjetoId(voluntario.projeto.id)
           const assinaturas = await repo.findAssinaturasByVagaId(voluntario.vaga.id)
 
-          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
-          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
-          const statusTermo = assinaturaAluno && assinaturaProfessor ? 'COMPLETO' : 'PENDENTE'
+          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
+          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
+          const statusTermo = assinaturaAluno && assinaturaProfessor ? TERMO_STATUS_COMPLETO : TERMO_STATUS_PENDENTE
           const disciplinasTexto = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
 
           const dataInicio = voluntario.vaga.dataInicio || new Date(ano, semestre === SEMESTRE_1 ? 1 : 6, 1)

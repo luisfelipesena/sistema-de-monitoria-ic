@@ -94,7 +94,7 @@ export type ProfessorInvitationStatus = ExtractEnumValues<typeof professorInvita
 export type StatusEnvio = ExtractEnumValues<typeof statusEnvioEnum>
 
 // Import status (not from pgEnum, defined locally)
-export const IMPORT_STATUS_ENUM = ['PROCESSANDO', 'CONCLUIDO', 'ERRO'] as const
+export const IMPORT_STATUS_ENUM = ['PROCESSANDO', 'CONCLUIDO', 'ERRO', 'CONCLUIDO_COM_ERROS'] as const
 export const importStatusSchema = z.enum(IMPORT_STATUS_ENUM)
 export type ImportStatus = z.infer<typeof importStatusSchema>
 
@@ -124,6 +124,13 @@ export type TipoProblema = z.infer<typeof tipoProblemaSchema>
 export const STATUS_MONITOR_ENUM = ['ATIVO', 'CONCLUÍDO', 'CANCELADO'] as const
 export const statusMonitorSchema = z.enum(STATUS_MONITOR_ENUM)
 export type StatusMonitor = z.infer<typeof statusMonitorSchema>
+
+// Department status (not from pgEnum)
+export const DEPARTMENT_STATUS_ATIVO = 'ATIVO' as const
+export const DEPARTMENT_STATUS_INATIVO = 'INATIVO' as const
+export const DEPARTMENT_STATUS_ENUM = [DEPARTMENT_STATUS_ATIVO, DEPARTMENT_STATUS_INATIVO] as const
+export const departmentStatusSchema = z.enum(DEPARTMENT_STATUS_ENUM)
+export type DepartmentStatus = z.infer<typeof departmentStatusSchema>
 
 // Voluntario/Monitor Status (not from pgEnum, defined locally)
 export const VOLUNTARIO_STATUS_ATIVO = 'ATIVO' as const
@@ -170,6 +177,20 @@ export const PROFESSOR_STATUS_ENUM = [PROFESSOR_STATUS_ATIVO, PROFESSOR_STATUS_I
 export const professorStatusSchema = z.enum(PROFESSOR_STATUS_ENUM)
 export type ProfessorStatus = z.infer<typeof professorStatusSchema>
 
+// Student Status (not from pgEnum, defined locally)
+export const STUDENT_STATUS_ATIVO = 'ATIVO' as const
+export const STUDENT_STATUS_INATIVO = 'INATIVO' as const
+export const STUDENT_STATUS_GRADUADO = 'GRADUADO' as const
+export const STUDENT_STATUS_TRANSFERIDO = 'TRANSFERIDO' as const
+export const STUDENT_STATUS_ENUM = [
+  STUDENT_STATUS_ATIVO,
+  STUDENT_STATUS_INATIVO,
+  STUDENT_STATUS_GRADUADO,
+  STUDENT_STATUS_TRANSFERIDO,
+] as const
+export const studentStatusSchema = z.enum(STUDENT_STATUS_ENUM)
+export type StudentStatus = z.infer<typeof studentStatusSchema>
+
 // Inscription Decision (not from pgEnum, defined locally for quick evaluation)
 export const DECISION_SELECT_SCHOLARSHIP = 'SELECT_SCHOLARSHIP' as const
 export const DECISION_SELECT_VOLUNTEER = 'SELECT_VOLUNTEER' as const
@@ -191,6 +212,49 @@ export const ALERT_TYPE_INFO = 'info' as const
 export const ALERT_TYPE_ENUM = [ALERT_TYPE_WARNING, ALERT_TYPE_ERROR, ALERT_TYPE_INFO] as const
 export const alertTypeSchema = z.enum(ALERT_TYPE_ENUM)
 export type AlertType = z.infer<typeof alertTypeSchema>
+
+// Vaga Status (computed status, not from pgEnum)
+export const VAGA_STATUS_ATIVA = 'ATIVA' as const
+export const VAGA_STATUS_ATIVO = 'ATIVO' as const
+export const VAGA_STATUS_PENDENTE_ASSINATURA = 'PENDENTE_ASSINATURA' as const
+export const VAGA_STATUS_INCOMPLETO = 'INCOMPLETO' as const
+export const VAGA_STATUS_ENUM = [
+  VAGA_STATUS_ATIVA,
+  VAGA_STATUS_ATIVO,
+  VAGA_STATUS_PENDENTE_ASSINATURA,
+  VAGA_STATUS_INCOMPLETO,
+] as const
+export const vagaStatusSchema = z.enum(VAGA_STATUS_ENUM)
+export type VagaStatus = z.infer<typeof vagaStatusSchema>
+
+// Termo Status (computed status, not from pgEnum)
+export const TERMO_STATUS_COMPLETO = 'COMPLETO' as const
+export const TERMO_STATUS_PENDENTE = 'PENDENTE' as const
+export const TERMO_STATUS_ENUM = [TERMO_STATUS_COMPLETO, TERMO_STATUS_PENDENTE] as const
+export const termoStatusSchema = z.enum(TERMO_STATUS_ENUM)
+export type TermoStatus = z.infer<typeof termoStatusSchema>
+
+export const TERMO_WORKFLOW_STATUS_PENDENTE_ASSINATURA = 'pendente_assinatura' as const
+export const TERMO_WORKFLOW_STATUS_PARCIALMENTE_ASSINADO = 'parcialmente_assinado' as const
+export const TERMO_WORKFLOW_STATUS_ASSINADO_COMPLETO = 'assinado_completo' as const
+export const TERMO_WORKFLOW_STATUS_ENUM = [
+  TERMO_WORKFLOW_STATUS_PENDENTE_ASSINATURA,
+  TERMO_WORKFLOW_STATUS_PARCIALMENTE_ASSINADO,
+  TERMO_WORKFLOW_STATUS_ASSINADO_COMPLETO,
+] as const
+export type TermoWorkflowStatus = (typeof TERMO_WORKFLOW_STATUS_ENUM)[number]
+
+// Import Status constants (already defined, adding explicit constants)
+export const IMPORT_STATUS_PROCESSANDO = 'PROCESSANDO' as const
+export const IMPORT_STATUS_CONCLUIDO = 'CONCLUIDO' as const
+export const IMPORT_STATUS_ERRO = 'ERRO' as const
+export const IMPORT_STATUS_CONCLUIDO_COM_ERROS = 'CONCLUIDO_COM_ERROS' as const
+
+// Candidate Result Status constants (already defined, adding explicit constants for convenience)
+export const CANDIDATE_RESULT_APROVADO_CONST = CANDIDATE_RESULT_APROVADO
+export const CANDIDATE_RESULT_REPROVADO_CONST = CANDIDATE_RESULT_REPROVADO
+export const CANDIDATE_RESULT_EM_ANALISE_CONST = CANDIDATE_RESULT_EM_ANALISE
+export const CANDIDATE_RESULT_LISTA_ESPERA_CONST = CANDIDATE_RESULT_LISTA_ESPERA
 
 // ========================================
 // RUNTIME TYPED CONSTANTS
@@ -219,6 +283,11 @@ export const PROJETO_STATUS_PENDING_SIGNATURE = 'PENDING_PROFESSOR_SIGNATURE' as
 // Tipo Proposição constants (as const for literal type inference)
 export const TIPO_PROPOSICAO_INDIVIDUAL = 'INDIVIDUAL' as const
 export const TIPO_PROPOSICAO_COLETIVA = 'COLETIVA' as const
+
+// Tipo Monitoria (alias for TipoProposicao, used in PDF templates)
+export const TIPO_MONITORIA_INDIVIDUAL = TIPO_PROPOSICAO_INDIVIDUAL
+export const TIPO_MONITORIA_COLETIVO = TIPO_PROPOSICAO_COLETIVA
+export type TipoMonitoria = TipoProposicao
 
 // Tipo Vaga constants (as const for literal type inference)
 export const TIPO_VAGA_BOLSISTA = 'BOLSISTA' as const
@@ -270,6 +339,13 @@ export const TIPO_DOCUMENTO_PROPOSTA_ORIGINAL = 'PROPOSTA_ORIGINAL' as const
 export const TIPO_DOCUMENTO_PROPOSTA_ASSINADA_PROFESSOR = 'PROPOSTA_ASSINADA_PROFESSOR' as const
 export const TIPO_DOCUMENTO_PROPOSTA_ASSINADA_ADMIN = 'PROPOSTA_ASSINADA_ADMIN' as const
 export const TIPO_DOCUMENTO_ATA_SELECAO = 'ATA_SELECAO' as const
+
+// Projeto Tipo constants (as const for literal type inference)
+export const PROJETO_TIPO_NOVO = 'NOVO' as const
+export const PROJETO_TIPO_CONTINUACAO = 'CONTINUACAO' as const
+export const PROJETO_TIPO_ENUM = [PROJETO_TIPO_NOVO, PROJETO_TIPO_CONTINUACAO] as const
+export const projetoTipoSchema = z.enum(PROJETO_TIPO_ENUM)
+export type ProjetoTipo = z.infer<typeof projetoTipoSchema>
 
 // Tipo Assinatura constants (as const for literal type inference)
 export const TIPO_ASSINATURA_PROJETO_PROFESSOR = 'PROJETO_PROFESSOR_RESPONSAVEL' as const
@@ -458,6 +534,38 @@ export const USER_ROLE_LABELS: Record<UserRole, string> = {
   student: 'Estudante',
 }
 
+export const STUDENT_STATUS_LABELS: Record<StudentStatus, string> = {
+  ATIVO: 'Ativo',
+  INATIVO: 'Inativo',
+  GRADUADO: 'Graduado',
+  TRANSFERIDO: 'Transferido',
+}
+
+export const PROJETO_TIPO_LABELS: Record<ProjetoTipo, string> = {
+  NOVO: 'Novo Projeto',
+  CONTINUACAO: 'Continuação',
+}
+
+export const ALLOCATION_STATUS_NAO_ALOCADO = 'NAO_ALOCADO' as const
+export const ALLOCATION_STATUS_PARCIALMENTE_ALOCADO = 'PARCIALMENTE_ALOCADO' as const
+export const ALLOCATION_STATUS_TOTALMENTE_ALOCADO = 'TOTALMENTE_ALOCADO' as const
+export const ALLOCATION_STATUS_SOBRE_ALOCADO = 'SOBRE_ALOCADO' as const
+export const ALLOCATION_STATUS_ENUM = [
+  ALLOCATION_STATUS_NAO_ALOCADO,
+  ALLOCATION_STATUS_PARCIALMENTE_ALOCADO,
+  ALLOCATION_STATUS_TOTALMENTE_ALOCADO,
+  ALLOCATION_STATUS_SOBRE_ALOCADO,
+] as const
+export const allocationStatusSchema = z.enum(ALLOCATION_STATUS_ENUM)
+export type AllocationStatus = z.infer<typeof allocationStatusSchema>
+
+export const ALLOCATION_STATUS_LABELS: Record<AllocationStatus, string> = {
+  NAO_ALOCADO: 'Não Alocado',
+  PARCIALMENTE_ALOCADO: 'Parcialmente Alocado',
+  TOTALMENTE_ALOCADO: 'Totalmente Alocado',
+  SOBRE_ALOCADO: 'Sobre-alocado',
+}
+
 // ========================================
 // UTILITY FUNCTIONS
 // ========================================
@@ -512,6 +620,14 @@ export function getStatusMonitorLabel(status: StatusMonitor): string {
 
 export function getUserRoleLabel(role: UserRole): string {
   return USER_ROLE_LABELS[role]
+}
+
+export function getProjetoTipoLabel(tipo: ProjetoTipo): string {
+  return PROJETO_TIPO_LABELS[tipo]
+}
+
+export function getAllocationStatusLabel(status: AllocationStatus): string {
+  return ALLOCATION_STATUS_LABELS[status]
 }
 
 // Period validation schema

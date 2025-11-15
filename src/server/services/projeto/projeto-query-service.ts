@@ -1,6 +1,6 @@
 import { isAdmin, isProfessor } from '@/server/lib/auth-helpers'
 import { ForbiddenError, NotFoundError } from '@/server/lib/errors'
-import { ACCEPTED_VOLUNTARIO, SEMESTRE_1, SEMESTRE_2, type UserRole } from '@/types'
+import { ACCEPTED_VOLUNTARIO, SEMESTRE_1, SEMESTRE_2, VAGA_STATUS_ATIVO, type UserRole } from '@/types'
 import { logger } from '@/utils/logger'
 import type { ProjetoRepository } from './projeto-repository'
 
@@ -164,7 +164,7 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
             telefone: inscricao.aluno.telefone || undefined,
             disciplina: disciplina[0] || { codigo: '', nome: 'N/A' },
             projeto: inscricao.projeto,
-            status: 'ATIVO' as const,
+            status: VAGA_STATUS_ATIVO,
             dataInicio: inscricao.createdAt,
           }
         })

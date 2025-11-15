@@ -5,7 +5,13 @@ import { TableComponent } from "@/components/layout/TableComponent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { STATUS_CURSO_ATIVO, STATUS_CURSO_INATIVO, VoluntarioListItem } from "@/types"
+import {
+  VOLUNTARIO_STATUS_ATIVO,
+  VOLUNTARIO_STATUS_INATIVO,
+  VOLUNTARIO_STATUS_PENDENTE,
+  type VoluntarioListItem,
+  type VoluntarioStatus,
+} from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { Check, Mail, Phone, Users, X } from "lucide-react"
@@ -32,21 +38,24 @@ export default function VolunteerManagementPage() {
     },
   })
 
-  const handleUpdateStatus = (voluntarioId: number, status: typeof STATUS_CURSO_ATIVO | typeof STATUS_CURSO_INATIVO) => {
+  const handleUpdateStatus = (
+    voluntarioId: number,
+    status: typeof VOLUNTARIO_STATUS_ATIVO | typeof VOLUNTARIO_STATUS_INATIVO
+  ) => {
     updateVolunteerMutation.mutate({ id: voluntarioId, status })
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: VoluntarioStatus) => {
     switch (status) {
-      case STATUS_CURSO_ATIVO:
+      case VOLUNTARIO_STATUS_ATIVO:
         return (
           <Badge variant="default" className="bg-green-500">
             Ativo
           </Badge>
         )
-      case STATUS_CURSO_INATIVO:
+      case VOLUNTARIO_STATUS_INATIVO:
         return <Badge variant="secondary">Inativo</Badge>
-      case "PENDENTE":
+      case VOLUNTARIO_STATUS_PENDENTE:
         return (
           <Badge variant="outline" className="border-yellow-500 text-yellow-700">
             Pendente
@@ -114,12 +123,12 @@ export default function VolunteerManagementPage() {
         const voluntario = row.original
         return (
           <div className="flex items-center gap-2">
-            {voluntario.status === "PENDENTE" && (
+            {voluntario.status === VOLUNTARIO_STATUS_PENDENTE && (
               <>
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={() => handleUpdateStatus(voluntario.id, "ATIVO")}
+                  onClick={() => handleUpdateStatus(voluntario.id, VOLUNTARIO_STATUS_ATIVO)}
                   disabled={updateVolunteerMutation.isPending}
                 >
                   <Check className="h-4 w-4 mr-1" />
@@ -128,7 +137,7 @@ export default function VolunteerManagementPage() {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleUpdateStatus(voluntario.id, "INATIVO")}
+                  onClick={() => handleUpdateStatus(voluntario.id, VOLUNTARIO_STATUS_INATIVO)}
                   disabled={updateVolunteerMutation.isPending}
                 >
                   <X className="h-4 w-4 mr-1" />
@@ -136,22 +145,22 @@ export default function VolunteerManagementPage() {
                 </Button>
               </>
             )}
-            {voluntario.status === "ATIVO" && (
+            {voluntario.status === VOLUNTARIO_STATUS_ATIVO && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleUpdateStatus(voluntario.id, "INATIVO")}
+                onClick={() => handleUpdateStatus(voluntario.id, VOLUNTARIO_STATUS_INATIVO)}
                 disabled={updateVolunteerMutation.isPending}
               >
                 <X className="h-4 w-4 mr-1" />
                 Desativar
               </Button>
             )}
-            {voluntario.status === "INATIVO" && (
+            {voluntario.status === VOLUNTARIO_STATUS_INATIVO && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleUpdateStatus(voluntario.id, "ATIVO")}
+                onClick={() => handleUpdateStatus(voluntario.id, VOLUNTARIO_STATUS_ATIVO)}
                 disabled={updateVolunteerMutation.isPending}
               >
                 <Check className="h-4 w-4 mr-1" />

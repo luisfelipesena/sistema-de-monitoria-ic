@@ -1,7 +1,16 @@
 import type { db } from '@/server/db'
 import { BusinessError, ForbiddenError, NotFoundError } from '@/server/lib/errors'
-import type { SignatureTypeTermo, UserRole } from '@/types'
-import { ADMIN, PROFESSOR, STUDENT } from '@/types'
+import type { SignatureTypeTermo, TermoWorkflowStatus, UserRole } from '@/types'
+import {
+  ADMIN,
+  PROFESSOR,
+  STUDENT,
+  TIPO_ASSINATURA_ATA_SELECAO,
+  TIPO_ASSINATURA_TERMO_COMPROMISSO,
+  TERMO_WORKFLOW_STATUS_ASSINADO_COMPLETO,
+  TERMO_WORKFLOW_STATUS_PARCIALMENTE_ASSINADO,
+  TERMO_WORKFLOW_STATUS_PENDENTE_ASSINATURA,
+} from '@/types'
 import { logger } from '@/utils/logger'
 import { createPdfGenerator } from './termos-pdf-generator'
 import { createTermosRepository } from './termos-repository'
@@ -89,10 +98,10 @@ export function createTermosService(db: Database) {
         throw new NotFoundError('Vaga', vagaId)
       }
 
-      if (tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO' && vagaData.aluno.userId !== userId) {
+      if (tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO && vagaData.aluno.userId !== userId) {
         throw new ForbiddenError('Apenas o aluno pode assinar como aluno.')
       }
-      if (tipoAssinatura === 'ATA_SELECAO_PROFESSOR' && vagaData.projeto.professorResponsavelId !== userId) {
+      if (tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO && vagaData.projeto.professorResponsavelId !== userId) {
         throw new ForbiddenError('Apenas o professor responsável pode assinar.')
       }
 
@@ -167,14 +176,14 @@ export function createTermosService(db: Database) {
         vagas.map(async (vagaItem) => {
           const assinaturas = await repo.findSignaturesByVagaId(vagaItem.id)
 
-          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
-          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
+          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
 
-          let statusTermo = 'pendente_assinatura'
+          let statusTermo: TermoWorkflowStatus = TERMO_WORKFLOW_STATUS_PENDENTE_ASSINATURA
           if (assinaturaAluno && assinaturaProfessor) {
-            statusTermo = 'assinado_completo'
+            statusTermo = TERMO_WORKFLOW_STATUS_ASSINADO_COMPLETO
           } else if (assinaturaAluno || assinaturaProfessor) {
-            statusTermo = 'parcialmente_assinado'
+            statusTermo = TERMO_WORKFLOW_STATUS_PARCIALMENTE_ASSINADO
           }
 
           return {
@@ -201,7 +210,7 @@ export function createTermosService(db: Database) {
 
         const termosPendentes = await Promise.all(
           vagasAluno.map(async (vagaItem) => {
-            const assinaturaAluno = await repo.findSignature(vagaItem.id, 'TERMO_COMPROMISSO_ALUNO')
+            const assinaturaAluno = await repo.findSignature(vagaItem.id, TIPO_ASSINATURA_TERMO_COMPROMISSO)
 
             if (!assinaturaAluno) {
               return {
@@ -224,7 +233,7 @@ export function createTermosService(db: Database) {
 
         const termosPendentes = await Promise.all(
           vagasProfessor.map(async (vagaItem) => {
-            const assinaturaProfessor = await repo.findSignature(vagaItem.id, 'ATA_SELECAO_PROFESSOR')
+            const assinaturaProfessor = await repo.findSignature(vagaItem.id, TIPO_ASSINATURA_ATA_SELECAO)
 
             if (!assinaturaProfessor) {
               return {
@@ -248,8 +257,8 @@ export function createTermosService(db: Database) {
         todasVagas.map(async (vagaItem) => {
           const assinaturas = await repo.findSignaturesByVagaId(vagaItem.id)
 
-          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
-          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
+          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
 
           if (!assinaturaAluno || !assinaturaProfessor) {
             return {
@@ -286,8 +295,8 @@ export function createTermosService(db: Database) {
 
       const assinaturas = await repo.findSignaturesByVagaId(vagaId)
 
-      const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
-      const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+      const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
+      const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
 
       const pendencias: string[] = []
       if (!assinaturaAluno) pendencias.push('Assinatura do aluno')

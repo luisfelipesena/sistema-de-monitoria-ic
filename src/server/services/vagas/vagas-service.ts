@@ -7,10 +7,17 @@ import {
   ACCEPTED_VOLUNTARIO,
   BOLSISTA,
   REJECTED_BY_STUDENT,
+  TIPO_ASSINATURA_ATA_SELECAO,
+  TIPO_ASSINATURA_TERMO_COMPROMISSO,
   VOLUNTARIO,
+  VAGA_STATUS_ATIVA,
+  VAGA_STATUS_ATIVO,
+  VAGA_STATUS_INCOMPLETO,
+  VAGA_STATUS_PENDENTE_ASSINATURA,
   type UserRole,
   type Semestre,
   type TipoVaga,
+  type VagaStatus,
 } from '@/types'
 import { and, eq, sql } from 'drizzle-orm'
 import { inscricaoTable, projetoTable, vagaTable } from '@/server/db/schema'
@@ -203,7 +210,7 @@ Sistema de Monitoria IC
           departamento: vaga.projeto.departamento.nome,
           professor: vaga.projeto.professorResponsavel.nomeCompleto,
         },
-        status: 'ATIVA',
+        status: VAGA_STATUS_ATIVA,
       }))
     },
 
@@ -239,7 +246,7 @@ Sistema de Monitoria IC
               username: vaga.aluno.user.username,
             },
           },
-          status: 'ATIVA',
+          status: VAGA_STATUS_ATIVA,
         })),
       }
     },
@@ -279,14 +286,14 @@ Sistema de Monitoria IC
         vagas.map(async (vaga) => {
           const assinaturas = await repo.findAssinaturasByVagaId(vaga.id)
 
-          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO')
-          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
+          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
 
-          let statusFinal = 'INCOMPLETO'
+          let statusFinal: VagaStatus = VAGA_STATUS_INCOMPLETO
           if (assinaturaAluno && assinaturaProfessor) {
-            statusFinal = 'ATIVO'
+            statusFinal = VAGA_STATUS_ATIVO
           } else if (assinaturaAluno || assinaturaProfessor) {
-            statusFinal = 'PENDENTE_ASSINATURA'
+            statusFinal = VAGA_STATUS_PENDENTE_ASSINATURA
           }
 
           return {
@@ -325,9 +332,9 @@ Sistema de Monitoria IC
         vagas: vagasComStatus,
         estatisticas: {
           total: vagasComStatus.length,
-          ativas: vagasComStatus.filter((v) => v.status === 'ATIVO').length,
-          pendentes: vagasComStatus.filter((v) => v.status === 'PENDENTE_ASSINATURA').length,
-          incompletas: vagasComStatus.filter((v) => v.status === 'INCOMPLETO').length,
+          ativas: vagasComStatus.filter((v) => v.status === VAGA_STATUS_ATIVO).length,
+          pendentes: vagasComStatus.filter((v) => v.status === VAGA_STATUS_PENDENTE_ASSINATURA).length,
+          incompletas: vagasComStatus.filter((v) => v.status === VAGA_STATUS_INCOMPLETO).length,
         },
       }
     },
@@ -344,8 +351,8 @@ Sistema de Monitoria IC
       const assinaturas = await repo.findAssinaturasByVagaId(parseInt(vagaId))
 
       const termoCompleto =
-        assinaturas.some((a) => a.tipoAssinatura === 'TERMO_COMPROMISSO_ALUNO') &&
-        assinaturas.some((a) => a.tipoAssinatura === 'ATA_SELECAO_PROFESSOR')
+        assinaturas.some((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO) &&
+        assinaturas.some((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
 
       if (!termoCompleto) {
         throw new BusinessError(

@@ -8,7 +8,7 @@ import {
   projetoDisciplinaTable,
   projetoTable,
 } from '@/server/db/schema'
-import { PROJETO_STATUS_APPROVED, STATUS_INSCRICAO_SUBMITTED } from '@/types'
+import { PROJETO_STATUS_APPROVED, STATUS_INSCRICAO_SUBMITTED, TIPO_ASSINATURA_ATA_SELECAO } from '@/types'
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
 import { and, desc, eq, isNotNull } from 'drizzle-orm'
 
@@ -145,7 +145,7 @@ export function createSelecaoRepository(db: Database) {
         where: and(
           eq(assinaturaDocumentoTable.projetoId, projetoId),
           eq(assinaturaDocumentoTable.userId, userId),
-          eq(assinaturaDocumentoTable.tipoAssinatura, 'ATA_SELECAO_PROFESSOR')
+          eq(assinaturaDocumentoTable.tipoAssinatura, TIPO_ASSINATURA_ATA_SELECAO)
         ),
       })
     },

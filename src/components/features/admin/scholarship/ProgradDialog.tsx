@@ -1,18 +1,18 @@
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import type { SEMESTRE_1, SEMESTRE_2 } from "@/types"
+import { getSemestreNumero, type Semestre } from "@/types"
+import { useState } from "react"
 
 interface ProgradDialogProps {
   isOpen: boolean
   onClose: () => void
   filters: {
     ano: number
-    semestre: typeof SEMESTRE_1 | typeof SEMESTRE_2
+    semestre: Semestre
   }
-  onSave: (data: { ano: number; semestre: typeof SEMESTRE_1 | typeof SEMESTRE_2; totalBolsas: number }) => void
+  onSave: (data: { ano: number; semestre: Semestre; totalBolsas: number }) => void
   isSaving: boolean
 }
 
@@ -61,7 +61,7 @@ export function ProgradDialog({ isOpen, onClose, filters, onSave, isSaving }: Pr
             />
             <p className="text-xs text-muted-foreground">
               Este é o número total de bolsas que a PROGRAD disponibilizou para o período {filters.ano}.
-              {filters.semestre === "SEMESTRE_1" ? "1" : "2"}
+              {getSemestreNumero(filters.semestre)}
             </p>
           </div>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">

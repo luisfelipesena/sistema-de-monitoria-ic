@@ -6,7 +6,13 @@ import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { useToast } from "@/hooks/use-toast"
-import { MonitoriaFormData, projectFormSchema, SEMESTRE_1 } from "@/types"
+import {
+  MonitoriaFormData,
+  projectFormSchema,
+  PROJETO_STATUS_DRAFT,
+  SEMESTRE_1,
+  TIPO_PROPOSICAO_INDIVIDUAL,
+} from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PDFViewer } from "@react-pdf/renderer"
@@ -61,7 +67,7 @@ export default function EditProjetoPage() {
       departamentoId: 0,
       ano: new Date().getFullYear(),
       semestre: SEMESTRE_1,
-      tipoProposicao: "INDIVIDUAL",
+      tipoProposicao: TIPO_PROPOSICAO_INDIVIDUAL,
       professoresParticipantes: "",
       bolsasSolicitadas: 0,
       voluntariosSolicitados: 0,
@@ -74,7 +80,7 @@ export default function EditProjetoPage() {
   })
 
   useEffect(() => {
-    if (projeto?.status !== "DRAFT") {
+    if (projeto?.status !== PROJETO_STATUS_DRAFT) {
       router.back()
     }
     if (projeto) {

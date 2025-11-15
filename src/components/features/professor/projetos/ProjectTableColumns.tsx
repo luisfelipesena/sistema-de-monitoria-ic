@@ -3,11 +3,14 @@ import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/atoms/StatusBadge"
 import {
   ProfessorProjetoListItem,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_SUBMITTED,
   PROJETO_STATUS_APPROVED,
-  PROJETO_STATUS_REJECTED,
+  PROJETO_STATUS_DRAFT,
   PROJETO_STATUS_PENDING_SIGNATURE,
+  PROJETO_STATUS_REJECTED,
+  PROJETO_STATUS_SUBMITTED,
+  PROJETO_TIPO_CONTINUACAO,
+  PROJETO_TIPO_NOVO,
+  type ProjetoTipo,
   Semestre,
   getSemestreNumero,
 } from "@/types"
@@ -21,11 +24,11 @@ interface ProjectColumnsHandlers {
   loadingPdfProjetoId: number | null
 }
 
-const renderTipoProposicaoBadge = (tipo: string) => {
+const renderTipoProposicaoBadge = (tipo: ProjetoTipo) => {
   switch (tipo) {
-    case "NOVO":
+    case PROJETO_TIPO_NOVO:
       return <Badge className="bg-blue-100 text-blue-800">Novo</Badge>
-    case "CONTINUACAO":
+    case PROJETO_TIPO_CONTINUACAO:
       return <Badge className="bg-purple-100 text-purple-800">Continuação</Badge>
     default:
       return <Badge variant="outline">{tipo}</Badge>

@@ -1,9 +1,16 @@
+import type { FilterValues } from '@/components/ui/FilterModal'
 import { useTRPCMutation } from '@/hooks/useTRPCMutation'
+import {
+  PROJETO_STATUS_APPROVED,
+  PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_REJECTED,
+  PROJETO_STATUS_SUBMITTED,
+  type DashboardProjectItem,
+  type UserListItem,
+} from '@/types'
 import { api } from '@/utils/api'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
-import type { FilterValues } from '@/components/ui/FilterModal'
-import type { DashboardProjectItem, UserListItem } from '@/types'
 
 export function useDashboard() {
   const router = useRouter()
@@ -88,16 +95,16 @@ export function useDashboard() {
     return actualProjetos.reduce(
       (acc, projeto) => {
         switch (projeto.status) {
-          case 'DRAFT':
+          case PROJETO_STATUS_DRAFT:
             acc.draft++
             break
-          case 'SUBMITTED':
+          case PROJETO_STATUS_SUBMITTED:
             acc.submitted++
             break
-          case 'APPROVED':
+          case PROJETO_STATUS_APPROVED:
             acc.approved++
             break
-          case 'REJECTED':
+          case PROJETO_STATUS_REJECTED:
             acc.rejected++
             break
         }

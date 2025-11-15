@@ -2,11 +2,21 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DialogTrigger } from '@/components/ui/dialog'
+import {
+  INVITATION_STATUS_ACCEPTED,
+  INVITATION_STATUS_EXPIRED,
+  INVITATION_STATUS_PENDING,
+  type ProfessorInvitationStatus,
+} from '@/types'
 import { UserPlus } from 'lucide-react'
 
+const FILTER_ALL = 'ALL' as const
+
+type FilterStatus = ProfessorInvitationStatus | typeof FILTER_ALL
+
 interface InvitationTableHeaderProps {
-  filterStatus: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'ALL'
-  onFilterChange: (value: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'ALL') => void
+  filterStatus: FilterStatus
+  onFilterChange: (value: FilterStatus) => void
   invitationCount?: number
 }
 
@@ -28,10 +38,10 @@ export function InvitationTableHeader({ filterStatus, onFilterChange, invitation
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="ALL">Todos</SelectItem>
-            <SelectItem value="PENDING">Pendentes</SelectItem>
-            <SelectItem value="ACCEPTED">Aceitos</SelectItem>
-            <SelectItem value="EXPIRED">Expirados</SelectItem>
+            <SelectItem value={FILTER_ALL}>Todos</SelectItem>
+            <SelectItem value={INVITATION_STATUS_PENDING}>Pendentes</SelectItem>
+            <SelectItem value={INVITATION_STATUS_ACCEPTED}>Aceitos</SelectItem>
+            <SelectItem value={INVITATION_STATUS_EXPIRED}>Expirados</SelectItem>
           </SelectContent>
         </Select>
         <DialogTrigger asChild>

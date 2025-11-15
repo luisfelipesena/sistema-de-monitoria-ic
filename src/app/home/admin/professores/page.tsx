@@ -19,7 +19,16 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { PROFESSOR, UserListItem } from "@/types"
+import {
+  PROFESSOR,
+  PROFESSOR_STATUS_ATIVO,
+  PROFESSOR_STATUS_INATIVO,
+  REGIME_20H,
+  REGIME_40H,
+  REGIME_DE,
+  type Regime,
+  type UserListItem,
+} from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
@@ -35,9 +44,11 @@ export default function ProfessoresPage() {
     email: "",
     nomeCompleto: "",
     departamentoId: "",
-    regime: "" as "20H" | "40H" | "DE" | "",
+    regime: "" as Regime | "",
     mensagem: "",
   })
+
+  const PROFESSOR_STATUS_PENDING = "PENDENTE" as const
 
   // Fetch professors data
   const {
@@ -99,9 +110,12 @@ export default function ProfessoresPage() {
     setIsDetailDialogOpen(true)
   }
 
-  const handleToggleStatus = async (professorId: number, currentStatus: string) => {
+  const handleToggleStatus = async (
+    professorId: number,
+    currentStatus: typeof PROFESSOR_STATUS_ATIVO | typeof PROFESSOR_STATUS_INATIVO
+  ) => {
     try {
-      const newStatus = currentStatus === "ATIVO" ? "INATIVO" : "ATIVO"
+      const newStatus = currentStatus === PROFESSOR_STATUS_ATIVO ? PROFESSOR_STATUS_INATIVO : PROFESSOR_STATUS_ATIVO
 
       await updateProfessorStatusMutation.mutateAsync({
         id: professorId,
@@ -112,7 +126,7 @@ export default function ProfessoresPage() {
 
       toast({
         title: "Status atualizado",
-        description: `Professor ${newStatus === "ATIVO" ? "ativado" : "desativado"} com sucesso`,
+        description: `Professor ${newStatus === PROFESSOR_STATUS_ATIVO ? "ativado" : "desativado"} com sucesso`,
       })
     } catch (error: any) {
       toast({
@@ -123,16 +137,16 @@ export default function ProfessoresPage() {
     }
   }
 
-  const renderStatusBadge = (status: string) => {
+  const renderStatusBadge = (status?: string | null) => {
     switch (status) {
-      case "ATIVO":
+      case PROFESSOR_STATUS_ATIVO:
         return <Badge className="bg-green-100 text-green-800">Ativo</Badge>
-      case "INATIVO":
+      case PROFESSOR_STATUS_INATIVO:
         return <Badge variant="destructive">Inativo</Badge>
-      case "PENDENTE":
+      case PROFESSOR_STATUS_PENDING:
         return <Badge variant="secondary">Pendente</Badge>
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status ?? "Indefinido"}</Badge>
     }
   }
 
@@ -179,7 +193,8 @@ export default function ProfessoresPage() {
     {
       accessorKey: "professorProfile.status",
       header: "Status",
-      cell: ({ row }) => renderStatusBadge(row.original.professorProfile?.projetos ? "ATIVO" : "INATIVO"),
+      cell: ({ row }) =>
+        renderStatusBadge(row.original.professorProfile?.projetos ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO),
     },
     {
       accessorKey: "createdAt",
@@ -205,7 +220,10 @@ export default function ProfessoresPage() {
               variant={professor.professorProfile?.projetos ? "destructive" : "default"}
               size="sm"
               onClick={() =>
-                handleToggleStatus(professor.id, professor.professorProfile?.projetos ? "ATIVO" : "INATIVO")
+                handleToggleStatus(
+                  professor.id,
+                  professor.professorProfile?.projetos ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO
+                )
               }
             >
               {professor.professorProfile?.projetos ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
@@ -344,15 +362,15 @@ export default function ProfessoresPage() {
                     <Label htmlFor="regime">Regime de Trabalho *</Label>
                     <Select
                       value={inviteForm.regime}
-                      onValueChange={(value: "20H" | "40H" | "DE") => setInviteForm({ ...inviteForm, regime: value })}
+                      onValueChange={(value: Regime) => setInviteForm({ ...inviteForm, regime: value })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o regime" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="20H">20 horas</SelectItem>
-                        <SelectItem value="40H">40 horas</SelectItem>
-                        <SelectItem value="DE">Dedicação Exclusiva</SelectItem>
+                        <SelectItem value={REGIME_20H}>20 horas</SelectItem>
+                        <SelectItem value={REGIME_40H}>40 horas</SelectItem>
+                        <SelectItem value={REGIME_DE}>Dedicação Exclusiva</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -446,7 +464,11 @@ export default function ProfessoresPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                    <div>{renderStatusBadge(selectedProfessor.professorProfile?.projetos ? "ATIVO" : "INATIVO")}</div>
+                    <div>
+                      {renderStatusBadge(
+                        selectedProfessor.professorProfile?.projetos ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO
+                      )}
+                    </div>
                   </div>
 
                   <div>

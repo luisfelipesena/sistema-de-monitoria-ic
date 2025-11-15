@@ -8,7 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { STUDENT, AlunoListItem } from "@/types"
+import {
+  STUDENT,
+  STUDENT_STATUS_ATIVO,
+  STUDENT_STATUS_GRADUADO,
+  STUDENT_STATUS_INATIVO,
+  STUDENT_STATUS_TRANSFERIDO,
+  type AlunoListItem,
+  type StudentStatus,
+} from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
@@ -54,12 +62,7 @@ export default function AlunosPage() {
             nome: curso?.nome || "N/A",
             departamento: departamento?.nome || "N/A",
           },
-          status:
-            (user.studentProfile!.bolsasAtivas && user.studentProfile!.bolsasAtivas > 0) ||
-            (user.studentProfile!.voluntariadosAtivos && user.studentProfile!.voluntariadosAtivos > 0) ||
-            (user.studentProfile!.inscricoes && user.studentProfile!.inscricoes > 0)
-              ? "ATIVO"
-              : ("INATIVO" as const),
+          status: getAlunoStatus(user.studentProfile!),
           inscricoes: user.studentProfile!.inscricoes || 0,
           bolsasAtivas: user.studentProfile!.bolsasAtivas || 0,
           voluntariadosAtivos: user.studentProfile!.voluntariadosAtivos || 0,
@@ -74,16 +77,26 @@ export default function AlunosPage() {
     setIsDetailDialogOpen(true)
   }
 
-  const handleToggleStatus = async (alunoId: number, currentStatus: string) => {
+  const getAlunoStatus = (profile: {
+    bolsasAtivas?: number | null
+    voluntariadosAtivos?: number | null
+    inscricoes?: number | null
+  }): StudentStatus => {
+    return profile.bolsasAtivas || profile.voluntariadosAtivos || profile.inscricoes
+      ? STUDENT_STATUS_ATIVO
+      : STUDENT_STATUS_INATIVO
+  }
+
+  const handleToggleStatus = async (alunoId: number, currentStatus: StudentStatus) => {
     try {
-      const newStatus = currentStatus === "ATIVO" ? "INATIVO" : "ATIVO"
+      const newStatus = currentStatus === STUDENT_STATUS_ATIVO ? STUDENT_STATUS_INATIVO : STUDENT_STATUS_ATIVO
 
       // This would use actual tRPC mutation when implemented
       // await updateAlunoStatusMutation.mutateAsync({ id: alunoId, status: newStatus })
 
       toast({
         title: "Status atualizado",
-        description: `Aluno ${newStatus === "ATIVO" ? "ativado" : "desativado"} com sucesso`,
+        description: `Aluno ${newStatus === STUDENT_STATUS_ATIVO ? "ativado" : "desativado"} com sucesso`,
       })
     } catch (error: any) {
       toast({
@@ -94,15 +107,15 @@ export default function AlunosPage() {
     }
   }
 
-  const renderStatusBadge = (status: string) => {
+  const renderStatusBadge = (status: StudentStatus) => {
     switch (status) {
-      case "ATIVO":
+      case STUDENT_STATUS_ATIVO:
         return <Badge className="bg-green-100 text-green-800">Ativo</Badge>
-      case "INATIVO":
+      case STUDENT_STATUS_INATIVO:
         return <Badge variant="destructive">Inativo</Badge>
-      case "GRADUADO":
+      case STUDENT_STATUS_GRADUADO:
         return <Badge className="bg-blue-100 text-blue-800">Graduado</Badge>
-      case "TRANSFERIDO":
+      case STUDENT_STATUS_TRANSFERIDO:
         return <Badge variant="secondary">Transferido</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
@@ -205,11 +218,15 @@ export default function AlunosPage() {
             </Button>
 
             <Button
-              variant={aluno.status === "ATIVO" ? "destructive" : "default"}
+              variant={aluno.status === STUDENT_STATUS_ATIVO ? "destructive" : "default"}
               size="sm"
               onClick={() => handleToggleStatus(aluno.id, aluno.status)}
             >
-              {aluno.status === "ATIVO" ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+              {aluno.status === STUDENT_STATUS_ATIVO ? (
+                <UserX className="h-4 w-4" />
+              ) : (
+                <UserCheck className="h-4 w-4" />
+              )}
             </Button>
           </div>
         )
@@ -218,7 +235,7 @@ export default function AlunosPage() {
   ]
 
   const totalAlunos = alunos.length
-  const alunosAtivos = alunos.filter((a) => a.status === "ATIVO").length
+  const alunosAtivos = alunos.filter((a) => a.status === STUDENT_STATUS_ATIVO).length
   const totalBolsistas = alunos.reduce((sum, a) => sum + a.bolsasAtivas, 0)
   const totalVoluntarios = alunos.reduce((sum, a) => sum + a.voluntariadosAtivos, 0)
 
@@ -398,13 +415,13 @@ export default function AlunosPage() {
               </Button>
               {selectedAluno && (
                 <Button
-                  variant={selectedAluno.status === "ATIVO" ? "destructive" : "default"}
+                  variant={selectedAluno.status === STUDENT_STATUS_ATIVO ? "destructive" : "default"}
                   onClick={() => {
                     handleToggleStatus(selectedAluno.id, selectedAluno.status)
                     setIsDetailDialogOpen(false)
                   }}
                 >
-                  {selectedAluno.status === "ATIVO" ? "Desativar" : "Ativar"} Aluno
+                  {selectedAluno.status === STUDENT_STATUS_ATIVO ? "Desativar" : "Ativar"} Aluno
                 </Button>
               )}
             </DialogFooter>

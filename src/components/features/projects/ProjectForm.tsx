@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { SEMESTRE_1, SEMESTRE_2 } from "@/types"
+import { SEMESTRE_1, SEMESTRE_2, TIPO_PROPOSICAO_COLETIVA, TIPO_PROPOSICAO_INDIVIDUAL } from "@/types"
 import { Loader2, Plus, Trash2 } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
 
@@ -146,8 +146,8 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="INDIVIDUAL">Individual</SelectItem>
-                        <SelectItem value="COLETIVA">Coletiva</SelectItem>
+                        <SelectItem value={TIPO_PROPOSICAO_INDIVIDUAL}>Individual</SelectItem>
+                        <SelectItem value={TIPO_PROPOSICAO_COLETIVA}>Coletiva</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -157,7 +157,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             </div>
 
             {/* Campo condicional para professores participantes */}
-            {form.watch("tipoProposicao") === "COLETIVA" && (
+            {form.watch("tipoProposicao") === TIPO_PROPOSICAO_COLETIVA && (
               <div className="space-y-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h4 className="font-semibold text-blue-800">Projeto Coletivo</h4>
                 <FormField
@@ -401,11 +401,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
 
         {/* Ações */}
         <div className="flex justify-end space-x-4">
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-[#1B2A50] text-white hover:bg-[#24376c]"
-          >
+          <Button type="submit" disabled={isSubmitting} className="bg-[#1B2A50] text-white hover:bg-[#24376c]">
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

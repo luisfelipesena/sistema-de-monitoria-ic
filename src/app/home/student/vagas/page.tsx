@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { TIPO_VAGA_BOLSISTA, TIPO_VAGA_LABELS, TIPO_VAGA_VOLUNTARIO } from "@/types"
+import { getSemestreNumero, PROJETO_STATUS_APPROVED, TIPO_VAGA_LABELS, type Semestre } from "@/types"
 import { api } from "@/utils/api"
 import { Award, BookOpen, Calendar, Clock, MapPin, Search, User, Users } from "lucide-react"
 import { useState } from "react"
@@ -58,16 +58,20 @@ export default function VagasPage() {
 
   // Filter projects - only show APPROVED projects
   const filteredProjetos = projetos.filter((projeto) => {
-    if (projeto.status !== "APPROVED") return false
+    if (projeto.status !== PROJETO_STATUS_APPROVED) return false
 
     const matchesSearch =
       projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       projeto.professorResponsavelNome.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesDepartamento = !selectedDepartamento || selectedDepartamento === "all" || projeto.departamentoId.toString() === selectedDepartamento
+    const matchesDepartamento =
+      !selectedDepartamento ||
+      selectedDepartamento === "all" ||
+      projeto.departamentoId.toString() === selectedDepartamento
 
     const matchesTipoVaga =
-      !tipoVagaFilter || tipoVagaFilter === "all" ||
+      !tipoVagaFilter ||
+      tipoVagaFilter === "all" ||
       (tipoVagaFilter === TIPO_VAGA_LABELS.BOLSISTA && (projeto.bolsasDisponibilizadas ?? 0) > 0) ||
       (tipoVagaFilter === TIPO_VAGA_LABELS.VOLUNTARIO && (projeto.voluntariosSolicitados ?? 0) > 0)
 
@@ -102,9 +106,7 @@ export default function VagasPage() {
               <Calendar className="h-5 w-5 text-orange-600" />
               <div>
                 <p className="text-orange-800 font-medium">Período de inscrições encerrado</p>
-                <p className="text-orange-700 text-sm">
-                  Não há período ativo para inscrições em monitoria no momento.
-                </p>
+                <p className="text-orange-700 text-sm">Não há período ativo para inscrições em monitoria no momento.</p>
               </div>
             </div>
           </div>
@@ -117,7 +119,7 @@ export default function VagasPage() {
               <div>
                 <p className="text-green-800 font-medium">Período de inscrições ativo</p>
                 <p className="text-green-700 text-sm">
-                  Inscrições abertas até {new Date(activePeriod.dataFim).toLocaleDateString('pt-BR')}
+                  Inscrições abertas até {new Date(activePeriod.dataFim).toLocaleDateString("pt-BR")}
                 </p>
               </div>
             </div>
@@ -180,7 +182,7 @@ export default function VagasPage() {
 
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
-              <CardContent className="p-4">             
+              <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <Award className="h-6 w-6 text-yellow-500 flex-shrink-0" />
                   <div>
@@ -194,7 +196,7 @@ export default function VagasPage() {
             </Card>
 
             <Card>
-              <CardContent className="p-4">             
+              <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <Users className="h-6 w-6 text-blue-500 flex-shrink-0" />
                   <div>
@@ -205,10 +207,10 @@ export default function VagasPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card> 
+            </Card>
 
             <Card>
-              <CardContent className="p-4">             
+              <CardContent className="p-4">
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-6 w-6 text-green-500 flex-shrink-0" />
                   <div>
@@ -217,7 +219,7 @@ export default function VagasPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>                           
+            </Card>
           </div>
         </CardContent>
       </Card>
@@ -272,7 +274,7 @@ export default function VagasPage() {
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
-                      {projeto.ano}.{projeto.semestre === "SEMESTRE_1" ? "1" : "2"}
+                      {projeto.ano}.{getSemestreNumero(projeto.semestre as Semestre)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -298,16 +300,12 @@ export default function VagasPage() {
                 )}
 
                 {/* Info Notice */}
-                <div className={`border rounded-lg p-3 ${
-                  hasActivePeriod
-                    ? "bg-blue-50 border-blue-200"
-                    : "bg-gray-50 border-gray-200"
-                }`}>
-                  <p className={`text-sm ${
-                    hasActivePeriod
-                      ? "text-blue-700"
-                      : "text-gray-600"
-                  }`}>
+                <div
+                  className={`border rounded-lg p-3 ${
+                    hasActivePeriod ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-gray-200"
+                  }`}
+                >
+                  <p className={`text-sm ${hasActivePeriod ? "text-blue-700" : "text-gray-600"}`}>
                     {hasActivePeriod ? (
                       <>
                         Para se inscrever neste projeto, visite a página de{" "}
@@ -318,8 +316,8 @@ export default function VagasPage() {
                       </>
                     ) : (
                       <>
-                        As inscrições para este projeto estão fechadas no momento.
-                        Aguarde a abertura do próximo período de inscrições.
+                        As inscrições para este projeto estão fechadas no momento. Aguarde a abertura do próximo período
+                        de inscrições.
                       </>
                     )}
                   </p>

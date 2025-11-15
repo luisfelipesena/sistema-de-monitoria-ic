@@ -8,15 +8,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAuth } from "@/hooks/use-auth"
 import {
+  GENERO_OUTRO,
   MonitoriaFormData,
+  PROFESSOR,
+  PROJETO_STATUS_APPROVED,
   PROJETO_STATUS_DRAFT,
   PROJETO_STATUS_PENDING_SIGNATURE,
-  PROJETO_STATUS_SUBMITTED,
-  PROJETO_STATUS_APPROVED,
   PROJETO_STATUS_REJECTED,
+  PROJETO_STATUS_SUBMITTED,
+  REGIME_20H,
   SEMESTRE_1,
   SIGNING_MODE_PROFESSOR,
-  PROFESSOR,
 } from "@/types"
 import { api } from "@/utils/api"
 import { ArrowLeft, CheckCircle, FileSignature } from "lucide-react"
@@ -62,10 +64,10 @@ function DocumentSigningContent() {
         ? {
             id: selectedProject.professorResponsavel.id,
             nomeCompleto: selectedProject.professorResponsavel.nomeCompleto,
-            genero: "OUTRO" as const,
+            genero: GENERO_OUTRO,
             cpf: "",
             emailInstitucional: selectedProject.professorResponsavel.emailInstitucional,
-            regime: "20H" as const,
+            regime: REGIME_20H,
             telefone: "",
             telefoneInstitucional: "",
           }
@@ -87,9 +89,7 @@ function DocumentSigningContent() {
         role: user?.role,
       },
       assinaturaProfessor: selectedProject.assinaturaProfessor || undefined,
-      dataAssinaturaProfessor: selectedProject.assinaturaProfessor
-        ? new Date().toLocaleDateString("pt-BR")
-        : undefined,
+      dataAssinaturaProfessor: selectedProject.assinaturaProfessor ? new Date().toLocaleDateString("pt-BR") : undefined,
       projetoId: selectedProject.id,
       signingMode: SIGNING_MODE_PROFESSOR,
     }

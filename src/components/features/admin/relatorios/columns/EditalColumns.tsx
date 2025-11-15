@@ -1,6 +1,7 @@
-import { ColumnDef } from "@tanstack/react-table"
-import type { EditalRelatorio } from "@/types"
 import { Badge } from "@/components/ui/badge"
+import type { EditalRelatorio } from "@/types"
+import { getSemestreNumero } from "@/types"
+import { ColumnDef } from "@tanstack/react-table"
 import { CheckCircle, Clock } from "lucide-react"
 
 export const editaisColumns: ColumnDef<EditalRelatorio>[] = [
@@ -25,7 +26,7 @@ export const editaisColumns: ColumnDef<EditalRelatorio>[] = [
       return (
         <div>
           <div className="font-medium">
-            {edital.periodo.ano}/{edital.periodo.semestre === "SEMESTRE_1" ? "1" : "2"}
+            {edital.periodo.ano}/{getSemestreNumero(edital.periodo.semestre)}
           </div>
           <div className="text-sm text-muted-foreground">
             {new Date(edital.periodo.dataInicio).toLocaleDateString("pt-BR")} -

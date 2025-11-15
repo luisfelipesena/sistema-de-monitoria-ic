@@ -1,10 +1,15 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { StatusBadge } from "@/components/atoms/StatusBadge"
+import {
+  ALLOCATION_STATUS_NAO_ALOCADO,
+  ALLOCATION_STATUS_PARCIALMENTE_ALOCADO,
+  ALLOCATION_STATUS_SOBRE_ALOCADO,
+  ALLOCATION_STATUS_TOTALMENTE_ALOCADO,
+  type AllocationStatus,
+} from "@/types"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Edit, Eye, Save } from "lucide-react"
-
-type AllocationStatus = "Não Alocado" | "Parcialmente Alocado" | "Totalmente Alocado" | "Sobre-alocado"
 
 interface AllocationProject {
   id: number
@@ -29,20 +34,10 @@ function getAllocationStatus(project: AllocationProject): AllocationStatus {
   const disponibilizadas = project.bolsasDisponibilizadas || 0
   const solicitadas = project.bolsasSolicitadas
 
-  if (disponibilizadas === 0) return "Não Alocado"
-  if (disponibilizadas < solicitadas) return "Parcialmente Alocado"
-  if (disponibilizadas === solicitadas) return "Totalmente Alocado"
-  return "Sobre-alocado"
-}
-
-function getStatusBadgeVariant(status: AllocationStatus): string {
-  const statusMap: Record<AllocationStatus, string> = {
-    "Não Alocado": "NAO_ALOCADO",
-    "Parcialmente Alocado": "PARCIALMENTE_ALOCADO",
-    "Totalmente Alocado": "TOTALMENTE_ALOCADO",
-    "Sobre-alocado": "SOBRE_ALOCADO",
-  }
-  return statusMap[status] || "NAO_ALOCADO"
+  if (disponibilizadas === 0) return ALLOCATION_STATUS_NAO_ALOCADO
+  if (disponibilizadas < solicitadas) return ALLOCATION_STATUS_PARCIALMENTE_ALOCADO
+  if (disponibilizadas === solicitadas) return ALLOCATION_STATUS_TOTALMENTE_ALOCADO
+  return ALLOCATION_STATUS_SOBRE_ALOCADO
 }
 
 export function createAllocationTableColumns(
@@ -126,8 +121,7 @@ export function createAllocationTableColumns(
       id: "status",
       cell: ({ row }) => {
         const status = getAllocationStatus(row.original)
-        const badgeStatus = getStatusBadgeVariant(status)
-        return <StatusBadge status={badgeStatus} />
+        return <StatusBadge status={status} />
       },
     },
     {

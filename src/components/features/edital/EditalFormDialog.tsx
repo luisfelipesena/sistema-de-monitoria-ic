@@ -24,17 +24,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { SEMESTRE_1, SEMESTRE_2, TIPO_EDITAL_DCC, TIPO_EDITAL_PROGRAD } from "@/types";
+import { SEMESTRE_1, SEMESTRE_2, TIPO_EDITAL_DCC, TIPO_EDITAL_PROGRAD, type Semestre, type TipoEdital } from "@/types";
 import { UseFormReturn } from "react-hook-form";
 
 export interface EditalFormData {
-  tipo: "DCC" | "PROGRAD";
+  tipo: TipoEdital;
   numeroEdital: string;
   titulo: string;
   descricaoHtml?: string;
   valorBolsa: string;
   ano: number;
-  semestre: "SEMESTRE_1" | "SEMESTRE_2";
+  semestre: Semestre;
   dataInicio: Date;
   dataFim: Date;
 }
