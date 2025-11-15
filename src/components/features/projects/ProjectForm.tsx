@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { SEMESTRE_1, SEMESTRE_2 } from "@/types"
 import { Loader2, Plus, Trash2 } from "lucide-react"
 import { UseFormReturn } from "react-hook-form"
 
@@ -123,8 +124,8 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
-                        <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
+                        <SelectItem value={SEMESTRE_1}>1º Semestre</SelectItem>
+                        <SelectItem value={SEMESTRE_2}>2º Semestre</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

@@ -11,7 +11,7 @@ import { PagesLayout } from "@/components/layout/PagesLayout";
 import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { CursoListItem } from "@/types";
+import { STATUS_CURSO_ATIVO, STATUS_CURSO_INATIVO, CursoListItem } from "@/types";
 import { api } from "@/utils/api";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -84,9 +84,9 @@ export default function CursosPage() {
       alunos: 0,
       disciplinas: 0,
       projetos: 0,
-      status: (curso.status || "ATIVO") as
-        | "ATIVO"
-        | "INATIVO"
+      status: (curso.status || STATUS_CURSO_ATIVO) as
+        | typeof STATUS_CURSO_ATIVO
+        | typeof STATUS_CURSO_INATIVO
         | "EM_REFORMULACAO",
       criadoEm: curso.createdAt.toISOString(),
       atualizadoEm:
@@ -250,7 +250,7 @@ export default function CursosPage() {
   });
 
   const totalCursos = cursos.length;
-  const cursosAtivos = cursos.filter((c) => c.status === "ATIVO").length;
+  const cursosAtivos = cursos.filter((c) => c.status === STATUS_CURSO_ATIVO).length;
   const totalAlunos = cursos.reduce((sum, c) => sum + c.alunos, 0);
   const totalDisciplinas = cursos.reduce((sum, c) => sum + c.disciplinas, 0);
 

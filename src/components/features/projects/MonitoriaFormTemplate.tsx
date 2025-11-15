@@ -1,4 +1,4 @@
-import { MonitoriaFormData } from "@/types"
+import { MonitoriaFormData, SEMESTRE_1, SEMESTRE_2 } from "@/types"
 import { UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 import React from "react"
@@ -283,8 +283,8 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
 
             <View style={styles.formRow}>
               <Text>
-                1.5 Período das atividades de monitoria: {data.ano}.1 ( {data.semestre === "SEMESTRE_1" ? "X" : ""} ){" "}
-                {data.ano}.2 ( {data.semestre === "SEMESTRE_2" ? "X" : ""} )
+                1.5 Período das atividades de monitoria: {data.ano}.1 ( {data.semestre === SEMESTRE_1 ? "X" : ""} ){" "}
+                {data.ano}.2 ( {data.semestre === SEMESTRE_2 ? "X" : ""} )
               </Text>
             </View>
 
@@ -443,7 +443,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                   <Text>
                     Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das normas descritas no Edital
                     PROGRAD/UFBA Nº 004/2025 – Programa de Monitoria {data.ano}.
-                    {data.semestre === "SEMESTRE_2" ? "2" : "1"} ( {data.semestre === "SEMESTRE_2" ? "X" : "X"} ).
+                    {data.semestre === SEMESTRE_2 ? "2" : "1"} ( {data.semestre === SEMESTRE_2 ? "X" : "X"} ).
                   </Text>
                 </View>
               </>
@@ -504,7 +504,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                   <Text>
                     Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das normas descritas no Edital
                     PROGRAD/UFBA Nº 004/{data.ano} – Programa de Monitoria {data.ano}.
-                    {data.semestre === "SEMESTRE_1" ? "1" : "2"} ( {data.semestre === "SEMESTRE_1" ? "X" : "X"} ).
+                    {data.semestre === SEMESTRE_1 ? "1" : "2"} ( {data.semestre === SEMESTRE_1 ? "X" : "X"} ).
                   </Text>
                 </View>
               </>

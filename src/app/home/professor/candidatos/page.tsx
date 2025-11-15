@@ -8,7 +8,21 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { InscriptionDetailData, QuickEvaluation } from "@/types"
+import {
+  InscriptionDetailData,
+  QuickEvaluation,
+  TIPO_VAGA_BOLSISTA,
+  TIPO_VAGA_VOLUNTARIO,
+  TIPO_INSCRICAO_ANY,
+  PROJETO_STATUS_APPROVED,
+  STATUS_INSCRICAO_SUBMITTED,
+  STATUS_INSCRICAO_SELECTED_BOLSISTA,
+  STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
+  STATUS_INSCRICAO_ACCEPTED_BOLSISTA,
+  STATUS_INSCRICAO_ACCEPTED_VOLUNTARIO,
+  STATUS_INSCRICAO_REJECTED_BY_PROFESSOR,
+  STATUS_INSCRICAO_REJECTED_BY_STUDENT,
+} from "@/types"
 import { api } from "@/utils/api"
 import { CheckCircle, Clock, GraduationCap, Star, Users } from "lucide-react"
 import { useSearchParams } from "next/navigation"
@@ -31,7 +45,7 @@ function ProjectApplicationsContent() {
   // Filter projects that are approved and belong to the current professor
   const myApprovedProjects = useMemo(() => {
     if (!projetos) return []
-    return projetos.filter((projeto) => projeto.status === "APPROVED")
+    return projetos.filter((projeto) => projeto.status === PROJETO_STATUS_APPROVED)
   }, [projetos])
 
   const selectedProject = myApprovedProjects.find((p) => p.id === parseInt(projectId || "0"))
@@ -39,9 +53,9 @@ function ProjectApplicationsContent() {
   const candidatesByType = useMemo(() => {
     if (!inscricoes) return { scholarship: [], volunteer: [] }
 
-    const scholarship = inscricoes.filter((c) => c.tipoVagaPretendida === "BOLSISTA" || c.tipoVagaPretendida === "ANY")
+    const scholarship = inscricoes.filter((c) => c.tipoVagaPretendida === TIPO_VAGA_BOLSISTA || c.tipoVagaPretendida === TIPO_INSCRICAO_ANY)
 
-    const volunteer = inscricoes.filter((c) => c.tipoVagaPretendida === "VOLUNTARIO" || c.tipoVagaPretendida === "ANY")
+    const volunteer = inscricoes.filter((c) => c.tipoVagaPretendida === TIPO_VAGA_VOLUNTARIO || c.tipoVagaPretendida === TIPO_INSCRICAO_ANY)
 
     return { scholarship, volunteer }
   }, [inscricoes])
@@ -99,35 +113,35 @@ function ProjectApplicationsContent() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "SUBMITTED":
+      case STATUS_INSCRICAO_SUBMITTED:
         return <Badge variant="secondary">Aguardando Avaliação</Badge>
-      case "SELECTED_BOLSISTA":
+      case STATUS_INSCRICAO_SELECTED_BOLSISTA:
         return (
           <Badge variant="default" className="bg-green-600">
             Selecionado (Bolsista)
           </Badge>
         )
-      case "SELECTED_VOLUNTARIO":
+      case STATUS_INSCRICAO_SELECTED_VOLUNTARIO:
         return (
           <Badge variant="default" className="bg-blue-600">
             Selecionado (Voluntário)
           </Badge>
         )
-      case "ACCEPTED_BOLSISTA":
+      case STATUS_INSCRICAO_ACCEPTED_BOLSISTA:
         return (
           <Badge variant="default" className="bg-green-800">
             Aceito (Bolsista)
           </Badge>
         )
-      case "ACCEPTED_VOLUNTARIO":
+      case STATUS_INSCRICAO_ACCEPTED_VOLUNTARIO:
         return (
           <Badge variant="default" className="bg-blue-800">
             Aceito (Voluntário)
           </Badge>
         )
-      case "REJECTED_BY_PROFESSOR":
+      case STATUS_INSCRICAO_REJECTED_BY_PROFESSOR:
         return <Badge variant="destructive">Rejeitado</Badge>
-      case "REJECTED_BY_STUDENT":
+      case STATUS_INSCRICAO_REJECTED_BY_STUDENT:
         return <Badge variant="outline">Recusado pelo Estudante</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
@@ -163,7 +177,7 @@ function ProjectApplicationsContent() {
           </div>
         </CardHeader>
 
-        {!hasExistingEvaluation && candidate.status === "SUBMITTED" && (
+        {!hasExistingEvaluation && candidate.status === STATUS_INSCRICAO_SUBMITTED && (
           <CardContent className="pt-0">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { PROJETO_STATUS_APPROVED, Semestre, getSemestreNumero } from "@/types"
 import { api } from "@/utils/api"
 import { Award, Download, FileText, User, Users } from "lucide-react"
 import { useState } from "react"
@@ -30,7 +31,7 @@ export default function TermosCompromissoPage() {
   )
 
   // Projetos que têm vagas ativas
-  const projetosComVagas = projetos?.filter((p) => p.status === "APPROVED") || []
+  const projetosComVagas = projetos?.filter((p) => p.status === PROJETO_STATUS_APPROVED) || []
 
   const handleSelectProject = (projectId: string) => {
     const id = parseInt(projectId)
@@ -169,7 +170,7 @@ export default function TermosCompromissoPage() {
                     <div className="flex flex-col">
                       <span className="font-medium">{projeto.titulo}</span>
                       <span className="text-sm text-muted-foreground">
-                        {projeto.ano}.{projeto.semestre === "SEMESTRE_1" ? "1" : "2"}
+                        {projeto.ano}.{getSemestreNumero(projeto.semestre as Semestre)}
                       </span>
                     </div>
                   </SelectItem>

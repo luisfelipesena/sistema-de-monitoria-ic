@@ -1,3 +1,4 @@
+import { SEMESTRE_1 } from "@/types"
 import { UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
 import { Document, Image, Page, StyleSheet, Text, View, type DocumentProps } from "@react-pdf/renderer"
 import React, { type ReactElement } from "react"
@@ -160,7 +161,7 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
         {/* Title */}
         <Text style={styles.title}>
           PLANILHA DE DETALHAMENTO DOS PROJETOS APROVADOS NA CONGREGAÇÃO DO IC - {data.ano}.
-          {data.semestre === "SEMESTRE_1" ? "1" : "2"}
+          {data.semestre === SEMESTRE_1 ? "1" : "2"}
         </Text>
 
         {/* Table */}

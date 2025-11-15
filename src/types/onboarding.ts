@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { UserRole, userRoleSchema } from './enums'
 
 // ========================================
 // ONBOARDING TYPES
@@ -8,7 +9,7 @@ export interface OnboardingStatus {
   pending: boolean
   profile: {
     exists: boolean
-    type: 'student' | 'professor' | 'admin'
+    type: UserRole
   }
   documents: {
     required: string[]
@@ -28,7 +29,7 @@ export const onboardingStatusResponseSchema = z.object({
   pending: z.boolean(),
   profile: z.object({
     exists: z.boolean(),
-    type: z.enum(['student', 'professor', 'admin']),
+    type: userRoleSchema,
   }),
   documents: z.object({
     required: z.array(z.string()),

@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SEMESTRE_1, SEMESTRE_2, TIPO_EDITAL_DCC, TIPO_EDITAL_PROGRAD } from "@/types";
 import { UseFormReturn } from "react-hook-form";
 
 export interface EditalFormData {
@@ -83,8 +84,8 @@ export function EditalFormDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="DCC">DCC</SelectItem>
-                        <SelectItem value="PROGRAD">PROGRAD</SelectItem>
+                        <SelectItem value={TIPO_EDITAL_DCC}>DCC</SelectItem>
+                        <SelectItem value={TIPO_EDITAL_PROGRAD}>PROGRAD</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -172,8 +173,8 @@ export function EditalFormDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
-                        <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
+                        <SelectItem value={SEMESTRE_1}>1º Semestre</SelectItem>
+                        <SelectItem value={SEMESTRE_2}>2º Semestre</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

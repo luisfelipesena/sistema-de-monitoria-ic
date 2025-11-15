@@ -5,7 +5,7 @@ import { TableComponent } from "@/components/layout/TableComponent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { VoluntarioListItem } from "@/types"
+import { STATUS_CURSO_ATIVO, STATUS_CURSO_INATIVO, VoluntarioListItem } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { Check, Mail, Phone, Users, X } from "lucide-react"
@@ -32,19 +32,19 @@ export default function VolunteerManagementPage() {
     },
   })
 
-  const handleUpdateStatus = (voluntarioId: number, status: "ATIVO" | "INATIVO") => {
+  const handleUpdateStatus = (voluntarioId: number, status: typeof STATUS_CURSO_ATIVO | typeof STATUS_CURSO_INATIVO) => {
     updateVolunteerMutation.mutate({ id: voluntarioId, status })
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "ATIVO":
+      case STATUS_CURSO_ATIVO:
         return (
           <Badge variant="default" className="bg-green-500">
             Ativo
           </Badge>
         )
-      case "INATIVO":
+      case STATUS_CURSO_INATIVO:
         return <Badge variant="secondary">Inativo</Badge>
       case "PENDENTE":
         return (

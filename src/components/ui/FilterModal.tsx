@@ -15,14 +15,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useDepartamentoList } from '@/hooks/use-departamento';
-import { 
-  SUBMITTED, 
-  SELECTED_BOLSISTA, 
+import {
+  SUBMITTED,
+  SELECTED_BOLSISTA,
   SELECTED_VOLUNTARIO,
   ACCEPTED_BOLSISTA,
   ACCEPTED_VOLUNTARIO,
   REJECTED_BY_PROFESSOR,
-  WAITING_LIST
+  WAITING_LIST,
+  SEMESTRE_1,
+  SEMESTRE_2,
+  TIPO_INSCRICAO_BOLSISTA,
+  TIPO_INSCRICAO_VOLUNTARIO,
+  TIPO_INSCRICAO_ANY,
 } from '@/types';
 import { useState } from 'react';
 
@@ -165,8 +170,8 @@ export function FilterModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os semestres</SelectItem>
-                  <SelectItem value="SEMESTRE_1">2025.1</SelectItem>
-                  <SelectItem value="SEMESTRE_2">2025.2</SelectItem>
+                  <SelectItem value={SEMESTRE_1}>2025.1</SelectItem>
+                  <SelectItem value={SEMESTRE_2}>2025.2</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -216,9 +221,9 @@ export function FilterModal({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os tipos</SelectItem>
-                  <SelectItem value="BOLSISTA">Bolsista</SelectItem>
-                  <SelectItem value="VOLUNTARIO">Voluntário</SelectItem>
-                  <SelectItem value="ANY">Qualquer</SelectItem>
+                  <SelectItem value={TIPO_INSCRICAO_BOLSISTA}>Bolsista</SelectItem>
+                  <SelectItem value={TIPO_INSCRICAO_VOLUNTARIO}>Voluntário</SelectItem>
+                  <SelectItem value={TIPO_INSCRICAO_ANY}>Qualquer</SelectItem>
                 </SelectContent>
               </Select>
             </div>

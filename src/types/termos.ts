@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { anoSchema, tipoVagaSchema } from './enums'
+import { anoSchema, TipoVaga, tipoVagaSchema } from './enums'
 import { crSchema, emailSchema, matriculaSchema, nameSchema, phoneSchema } from './schemas'
 
 // ========================================
@@ -32,7 +32,7 @@ export interface TermoCompromissoData {
     numeroSemanas: number
   }
   monitoria: {
-    tipo: 'BOLSISTA' | 'VOLUNTARIO'
+    tipo: TipoVaga
     dataInicio: string
     dataFim: string
     valorBolsa?: number

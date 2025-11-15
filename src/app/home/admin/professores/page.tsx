@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { UserListItem } from "@/types"
+import { PROFESSOR, UserListItem } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
@@ -45,7 +45,7 @@ export default function ProfessoresPage() {
     isLoading,
     refetch,
   } = api.user.getUsers.useQuery({
-    role: "professor",
+    role: PROFESSOR,
     limit: 100,
   })
 
@@ -55,7 +55,7 @@ export default function ProfessoresPage() {
 
   const departamentos = departamentosData || []
 
-  const professores = usersData?.users.filter((u) => u.role === "professor") || []
+  const professores = usersData?.users.filter((u) => u.role === PROFESSOR) || []
 
   const handleInviteProfessor = async () => {
     try {

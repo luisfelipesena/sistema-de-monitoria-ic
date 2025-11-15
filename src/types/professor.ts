@@ -4,6 +4,7 @@ import {
   generoSchema,
   ProfessorInvitationStatus,
   professorInvitationStatusSchema,
+  ProjetoStatus,
   Regime,
   regimeSchema,
   Semestre,
@@ -96,7 +97,7 @@ export interface ProfessorProjetoListItem {
   ano: number
   semestre: Semestre
   tipoProposicao: 'NOVO' | 'CONTINUACAO'
-  status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'PENDING_PROFESSOR_SIGNATURE'
+  status: ProjetoStatus
   bolsasSolicitadas: number
   voluntariosSolicitados: number
   inscricoes: number

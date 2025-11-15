@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import { useToast } from "@/hooks/use-toast"
-import { DisciplineAssociation } from "@/types"
+import { DisciplineAssociation, SEMESTRE_1, SEMESTRE_2 } from "@/types"
 import { api } from "@/utils/api"
 import { ArrowLeft, Award, BookOpen, Calendar, Check, FileText, Plus, Users, X } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -29,7 +29,7 @@ export default function ManageDisciplinasPage() {
   })
 
   const currentYear = new Date().getFullYear()
-  const currentSemester = new Date().getMonth() < 6 ? "SEMESTRE_1" : ("SEMESTRE_2" as "SEMESTRE_1" | "SEMESTRE_2")
+  const currentSemester = new Date().getMonth() < 6 ? SEMESTRE_1 : SEMESTRE_2
 
   const {
     data: professorDisciplinas,

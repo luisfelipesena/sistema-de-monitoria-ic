@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { PDFDownloadWrapper } from "@/components/ui/pdf-download-wrapper"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { TIPO_VAGA_LABELS } from "@/types/enums"
+import { TIPO_VAGA_BOLSISTA, TIPO_VAGA_LABELS, TIPO_VAGA_VOLUNTARIO, type TipoVaga } from "@/types"
 import { api } from "@/utils/api"
 import { AlertCircle, Award, CheckCircle, Clock, FileText, MessageSquare, Users, XCircle } from "lucide-react"
 import { useState } from "react"
@@ -71,7 +71,7 @@ export default function ResultadosPage() {
   const handleAccept = (inscricaoId: number, tipoVagaPretendida: string) => {
     aceitarVagaMutation.mutate({
       inscricaoId: inscricaoId.toString(),
-      tipoBolsa: tipoVagaPretendida as "BOLSISTA" | "VOLUNTARIO",
+      tipoBolsa: tipoVagaPretendida as TipoVaga,
     })
   }
 

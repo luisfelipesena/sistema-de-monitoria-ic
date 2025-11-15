@@ -1,0 +1,193 @@
+import type { db } from '@/server/db'
+import {
+  importacaoPlanejamentoTable,
+  disciplinaTable,
+  professorTable,
+  projetoTable,
+  projetoTemplateTable,
+  projetoDisciplinaTable,
+  disciplinaProfessorResponsavelTable,
+  atividadeProjetoTable,
+  type NewProjeto,
+} from '@/server/db/schema'
+import type { InferInsertModel } from 'drizzle-orm'
+import { and, desc, eq, inArray } from 'drizzle-orm'
+import type { Semestre } from '@/types'
+
+type Database = typeof db
+
+export type ImportacaoInsert = InferInsertModel<typeof importacaoPlanejamentoTable>
+export type ImportacaoUpdate = Partial<ImportacaoInsert>
+export type AtividadeProjetoInsert = InferInsertModel<typeof atividadeProjetoTable>
+
+export function createImportProjectsRepository(db: Database) {
+  return {
+    async createImportacao(data: ImportacaoInsert) {
+      const [importacao] = await db.insert(importacaoPlanejamentoTable).values(data).returning()
+      return importacao
+    },
+
+    async findImportacao(id: number) {
+      return db.query.importacaoPlanejamentoTable.findFirst({
+        where: eq(importacaoPlanejamentoTable.id, id),
+      })
+    },
+
+    async updateImportacao(id: number, data: ImportacaoUpdate) {
+      await db.update(importacaoPlanejamentoTable).set(data).where(eq(importacaoPlanejamentoTable.id, id))
+    },
+
+    async findDisciplinaByCodigo(codigo: string) {
+      return db.query.disciplinaTable.findFirst({
+        where: eq(disciplinaTable.codigo, codigo),
+      })
+    },
+
+    async findProfessoresBySiapes(siapes: string[]) {
+      return db.query.professorTable.findMany({
+        where: inArray(professorTable.matriculaSiape, siapes),
+        with: {
+          user: {
+            columns: {
+              id: true,
+              email: true,
+              username: true,
+            },
+          },
+        },
+      })
+    },
+
+    async findTemplatePorDisciplina(disciplinaId: number) {
+      return db.query.projetoTemplateTable.findFirst({
+        where: eq(projetoTemplateTable.disciplinaId, disciplinaId),
+      })
+    },
+
+    async createProjeto(data: NewProjeto) {
+      const [projeto] = await db.insert(projetoTable).values(data).returning()
+      return projeto
+    },
+
+    async associateProjetoDisciplina(projetoId: number, disciplinaId: number) {
+      await db.insert(projetoDisciplinaTable).values({
+        projetoId,
+        disciplinaId,
+      })
+    },
+
+    async findAssociacaoProfessorDisciplina(
+      disciplinaId: number,
+      professorId: number,
+      ano: number,
+      semestre: Semestre
+    ) {
+      return db.query.disciplinaProfessorResponsavelTable.findFirst({
+        where: and(
+          eq(disciplinaProfessorResponsavelTable.disciplinaId, disciplinaId),
+          eq(disciplinaProfessorResponsavelTable.professorId, professorId),
+          eq(disciplinaProfessorResponsavelTable.ano, ano),
+          eq(disciplinaProfessorResponsavelTable.semestre, semestre)
+        ),
+      })
+    },
+
+    async createAssociacaoProfessorDisciplina(
+      disciplinaId: number,
+      professorId: number,
+      ano: number,
+      semestre: Semestre
+    ) {
+      await db.insert(disciplinaProfessorResponsavelTable).values({
+        disciplinaId,
+        professorId,
+        ano,
+        semestre,
+      })
+    },
+
+    async insertAtividades(atividades: AtividadeProjetoInsert[]) {
+      await db.insert(atividadeProjetoTable).values(atividades)
+    },
+
+    async findProfessoresByIds(userIds: number[]) {
+      return db.query.professorTable.findMany({
+        where: inArray(professorTable.userId, Array.from(userIds)),
+        with: {
+          user: {
+            columns: {
+              email: true,
+              username: true,
+            },
+          },
+        },
+      })
+    },
+
+    async findAllImportacoes() {
+      return db.query.importacaoPlanejamentoTable.findMany({
+        orderBy: [desc(importacaoPlanejamentoTable.createdAt)],
+        with: {
+          importadoPor: {
+            columns: {
+              username: true,
+              email: true,
+            },
+          },
+        },
+      })
+    },
+
+    async findImportacaoComDetalhes(id: number) {
+      return db.query.importacaoPlanejamentoTable.findFirst({
+        where: eq(importacaoPlanejamentoTable.id, id),
+        with: {
+          importadoPor: true,
+        },
+      })
+    },
+
+    async deleteImportacao(id: number) {
+      await db.delete(importacaoPlanejamentoTable).where(eq(importacaoPlanejamentoTable.id, id))
+    },
+
+    async findAllProfessores() {
+      return db.query.professorTable.findMany({
+        columns: {
+          id: true,
+          nomeCompleto: true,
+          matriculaSiape: true,
+          emailInstitucional: true,
+        },
+        with: {
+          departamento: {
+            columns: {
+              nome: true,
+              sigla: true,
+            },
+          },
+        },
+      })
+    },
+
+    async findAllDisciplinas() {
+      return db.query.disciplinaTable.findMany({
+        columns: {
+          id: true,
+          nome: true,
+          codigo: true,
+        },
+        with: {
+          departamento: {
+            columns: {
+              nome: true,
+              sigla: true,
+            },
+          },
+        },
+      })
+    },
+  }
+}
+
+export type ImportProjectsRepository = ReturnType<typeof createImportProjectsRepository>

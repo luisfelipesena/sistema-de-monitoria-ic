@@ -6,7 +6,7 @@ import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
 import { useToast } from "@/hooks/use-toast"
-import { MonitoriaFormData, projectFormSchema } from "@/types"
+import { MonitoriaFormData, projectFormSchema, SEMESTRE_1 } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PDFViewer } from "@react-pdf/renderer"
@@ -60,7 +60,7 @@ export default function EditProjetoPage() {
       descricao: "",
       departamentoId: 0,
       ano: new Date().getFullYear(),
-      semestre: "SEMESTRE_1",
+      semestre: SEMESTRE_1,
       tipoProposicao: "INDIVIDUAL",
       professoresParticipantes: "",
       bolsasSolicitadas: 0,

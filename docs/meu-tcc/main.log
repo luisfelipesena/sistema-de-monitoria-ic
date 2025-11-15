@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  12 NOV 2025 14:34
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  15 NOV 2025 12:29
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -778,6 +778,23 @@ Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \float@box=\box95
 \@float@everytoks=\toks45
 \@floatcapt=\box96
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/libraries/pgflibraryarrows.meta.code.tex
+File: pgflibraryarrows.meta.code.tex 2023-01-15 v3.1.10 (3.1.10)
+\pgfarrowinset=\dimen351
+\pgfarrowlength=\dimen352
+\pgfarrowwidth=\dimen353
+\pgfarrowlinewidth=\dimen354
+LaTeX Font Info:    Trying to load font information for T1+qtm on input line 204.
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/tex-gyre/t1qtm.fd
+File: t1qtm.fd 2009/09/25 v1.2 font definition file for T1/qtm
+)) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarypositioning.code.tex
+File: tikzlibrarypositioning.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibraryfit.code.tex
+File: tikzlibraryfit.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarycalc.code.tex
+File: tikzlibrarycalc.code.tex 2023-01-15 v3.1.10 (3.1.10)
+) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarymatrix.code.tex
+File: tikzlibrarymatrix.code.tex 2023-01-15 v3.1.10 (3.1.10)
 ) (/usr/local/texlive/2025/texmf-dist/tex/latex/tools/afterpage.sty
 Package: afterpage 2023/07/04 v1.08 After-Page Package (DPC)
 \AP@output=\toks46
@@ -793,33 +810,30 @@ LaTeX Font Info:    Trying to load font information for U+psy on input line 64.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/psnfss/upsy.fd
 File: upsy.fd 2001/06/04 font definitions for U/psy.
 ))
-Package hyperref Info: Option `colorlinks' set `true' on input line 29.
-Package hyperref Info: Option `breaklinks' set `true' on input line 29.
-LaTeX Font Info:    Trying to load font information for T1+qtm on input line 43.
- (/usr/local/texlive/2025/texmf-dist/tex/latex/tex-gyre/t1qtm.fd
-File: t1qtm.fd 2009/09/25 v1.2 font definition file for T1/qtm
-) (./main.aux)
+Package hyperref Info: Option `colorlinks' set `true' on input line 31.
+Package hyperref Info: Option `breaklinks' set `true' on input line 31.
+ (./main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 43.
-LaTeX Font Info:    ... okay on input line 43.
-Package hyperref Info: Link coloring ON on input line 43.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 45.
+LaTeX Font Info:    ... okay on input line 45.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 45.
+LaTeX Font Info:    ... okay on input line 45.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 45.
+LaTeX Font Info:    ... okay on input line 45.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 45.
+LaTeX Font Info:    ... okay on input line 45.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 45.
+LaTeX Font Info:    ... okay on input line 45.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 45.
+LaTeX Font Info:    ... okay on input line 45.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 45.
+LaTeX Font Info:    ... okay on input line 45.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 45.
+LaTeX Font Info:    ... okay on input line 45.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 45.
+LaTeX Font Info:    ... okay on input line 45.
+Package hyperref Info: Link coloring ON on input line 45.
  (./main.out) (./main.out)
 \@outlinefile=\write4
 \openout4 = `main.out'.
@@ -827,13 +841,13 @@ Package hyperref Info: Link coloring ON on input line 43.
  (/usr/local/texlive/2025/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count367
-\scratchdimen=\dimen351
+\scratchdimen=\dimen355
 \scratchbox=\box99
 \nofMPsegments=\count368
 \nofMParguments=\count369
 \everyMPshowfont=\toks47
 \MPscratchCnt=\count370
-\MPscratchDim=\dimen352
+\MPscratchDim=\dimen356
 \MPnumerator=\count371
 \makeMPintoPDFobject=\count372
 \everyMPtoPDFconversion=\toks48
@@ -844,22 +858,22 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 48
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
 Package microtype Info: Patching varwidth to enable character protrusion.
-\MT@vwid@leftmargin=\dimen353
-\MT@vwid@rightmargin=\dimen354
-LaTeX Info: Redefining \microtypecontext on input line 43.
-Package microtype Info: Applying patch `item' on input line 43.
-Package microtype Info: Applying patch `toc' on input line 43.
-Package microtype Info: Applying patch `eqnum' on input line 43.
-Package microtype Info: Applying patch `footnote' on input line 43.
-Package microtype Info: Applying patch `verbatim' on input line 43.
-LaTeX Info: Redefining \microtypesetup on input line 43.
+\MT@vwid@leftmargin=\dimen357
+\MT@vwid@rightmargin=\dimen358
+LaTeX Info: Redefining \microtypecontext on input line 45.
+Package microtype Info: Applying patch `item' on input line 45.
+Package microtype Info: Applying patch `toc' on input line 45.
+Package microtype Info: Applying patch `eqnum' on input line 45.
+Package microtype Info: Applying patch `footnote' on input line 45.
+Package microtype Info: Applying patch `verbatim' on input line 45.
+LaTeX Info: Redefining \microtypesetup on input line 45.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
 Package microtype Info: Automatic font expansion enabled (level 2),
 (microtype)             stretch: 20, shrink: 20, step: 1, non-selected.
 Package microtype Info: Using default expansion set `alltext-nott'.
-LaTeX Info: Redefining \showhyphens on input line 43.
+LaTeX Info: Redefining \showhyphens on input line 45.
 Package microtype Info: Tracking enabled.
 Package microtype Info: Using tracking set `smallcaps'.
 Package microtype Info: No adjustment of interword spacing.
@@ -910,96 +924,96 @@ Package caption Info: End \AtBeginDocument code.
 (/usr/local/texlive/2025/texmf-dist/tex/latex/ninecolors/ninecolors.sty
 Package: ninecolors 2022-02-13 v2022D Select colors with proper color contrast
 )
-LaTeX Font Info:    Trying to load font information for T1+FiraSans-OsF on input line 73.
+LaTeX Font Info:    Trying to load font information for T1+FiraSans-OsF on input line 75.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/fira/T1FiraSans-OsF.fd
 File: T1FiraSans-OsF.fd 2019/10/10 (autoinst) Font definitions for T1/FiraSans-OsF.
 )
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <8> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 73.
+(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 8.0pt on input line 73.
+(Font)              scaled to size 8.0pt on input line 75.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `FiraSans-OsF' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/sc' in size <8> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/sc' tried instead on input line 73.
+(Font)              Font shape `T1/FiraSans-OsF/bold/sc' tried instead on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/sc' will be
-(Font)              scaled to size 8.0pt on input line 73.
+(Font)              scaled to size 8.0pt on input line 75.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/microtype/mt-cmr.cfg
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+msa on input line 73.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 75.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 ) (/usr/local/texlive/2025/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 73.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 75.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) (/usr/local/texlive/2025/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <18> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 73.
+(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 18.0pt on input line 73.
+(Font)              scaled to size 18.0pt on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <14> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 73.
+(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 14.0pt on input line 73.
+(Font)              scaled to size 14.0pt on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/it' in size <14> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/it' tried instead on input line 73.
+(Font)              Font shape `T1/FiraSans-OsF/bold/it' tried instead on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/it' will be
-(Font)              scaled to size 14.0pt on input line 73.
+(Font)              scaled to size 14.0pt on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <10> not available
-(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 73.
+(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 10.0pt on input line 73.
+(Font)              scaled to size 10.0pt on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <8> not available
-(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 73.
+(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 8.0pt on input line 73.
-LaTeX Font Info:    Trying to load font information for U+fontawesometwo on input line 73.
+(Font)              scaled to size 8.0pt on input line 75.
+LaTeX Font Info:    Trying to load font information for U+fontawesometwo on input line 75.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/fontawesome/ufontawesometwo.fd
 File: ufontawesometwo.fd 2016/05/22 Font definitions for U/fontawesometwo.
 )
 
 LaTeX Font Warning: Font shape `U/fontawesometwo/sl/n' undefined
-(Font)              using `U/fontawesometwo/m/n' instead on input line 73.
+(Font)              using `U/fontawesometwo/m/n' instead on input line 75.
 
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/it' in size <8> not available
-(Font)              Font shape `T1/FiraSans-OsF/book/it' tried instead on input line 73.
+(Font)              Font shape `T1/FiraSans-OsF/book/it' tried instead on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/it' will be
-(Font)              scaled to size 8.0pt on input line 73.
+(Font)              scaled to size 8.0pt on input line 75.
 
 LaTeX Font Warning: Font shape `U/fontawesometwo/m/it' undefined
-(Font)              using `U/fontawesometwo/m/n' instead on input line 73.
+(Font)              using `U/fontawesometwo/m/n' instead on input line 75.
 
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <9> not available
-(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 73.
+(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 9.0pt on input line 73.
+(Font)              scaled to size 9.0pt on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <9> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 73.
+(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 75.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 9.0pt on input line 73.
+(Font)              scaled to size 9.0pt on input line 75.
 
-Overfull \hbox (66.0pt too wide) in paragraph at lines 73--73
+Overfull \hbox (66.0pt too wide) in paragraph at lines 75--75
 [][]  
  []
 
 
-Overfull \hbox (66.0pt too wide) in paragraph at lines 73--73
+Overfull \hbox (66.0pt too wide) in paragraph at lines 75--75
 [][]  
  []
 
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <14> not available
-(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 75.
+(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 77.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 14.0pt on input line 75.
-LaTeX Font Info:    Trying to load font information for TS1+qtm on input line 80.
+(Font)              scaled to size 14.0pt on input line 77.
+LaTeX Font Info:    Trying to load font information for TS1+qtm on input line 82.
 (/usr/local/texlive/2025/texmf-dist/tex/latex/tex-gyre/ts1qtm.fd
 File: ts1qtm.fd 2009/09/25 v1.2 font definition file for TS1/qtm
 )
@@ -1011,27 +1025,47 @@ File: ts1qtm.fd 2009/09/25 v1.2 font definition file for TS1/qtm
 
 {/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/tex-gyre/q-ts1.enc}]
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <12> not available
-(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 88.
+(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 90.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 12.0pt on input line 88.
+(Font)              scaled to size 12.0pt on input line 90.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <12> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 88.
+(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 90.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 12.0pt on input line 88.
+(Font)              scaled to size 12.0pt on input line 90.
 
 
 
 
 [2]
-
-
-Underfull \hbox (badness 1286) in paragraph at lines 194--195
-[]\T1/qtm/m/n/10 (+20) Em ins-ti-tu-i-ções como \T1/qtm/b/n/10 (+20) Uni-camp\T1/qtm/m/n/10 (+20) , \T1/qtm/b/n/10 (+20) UFMG\T1/qtm/m/n/10 (+20) , \T1/qtm/b/n/10 (+20) UNESP
+Underfull \hbox (badness 1675) in paragraph at lines 162--163
+[]\T1/qtm/m/n/10 (+20) Documentação pú-blica men-ci-ona
  []
 
 
-Underfull \hbox (badness 2277) in paragraph at lines 194--195
-\T1/qtm/m/n/10 (+20) e \T1/qtm/b/n/10 (+20) UFPR\T1/qtm/m/n/10 (+20) , observou-se uso re-cor-rente de e-mail, Go-o-
+Underfull \hbox (badness 10000) in paragraph at lines 178--179
+[]\T1/qtm/m/n/10 (+20) Editais re-cen-tes men-ci-o-nam
+ []
+
+
+Underfull \hbox (badness 2990) in paragraph at lines 178--179
+\T1/qtm/m/n/10 (+20) uso de for-mu-lá-rios (como Go-o-
+ []
+
+
+Underfull \hbox (badness 3590) in paragraph at lines 178--179
+\T1/qtm/m/n/10 (+20) gle/Microsoft Forms) e trâ-mi-tes
+ []
+
+
+Underfull \hbox (badness 6859) in paragraph at lines 178--179
+\T1/qtm/m/n/10 (+20) ele-trô-ni-cos de-par-ta-men-tais, sem
+ []
+
+
+
+
+Underfull \hbox (badness 2452) in paragraph at lines 191--192
+[]\T1/qtm/m/n/10 (+20) À luz desse ce-ná-rio, o Sis-tema de Monitoria-IC
  []
 
 
@@ -1042,29 +1076,28 @@ Underfull \hbox (badness 2277) in paragraph at lines 194--195
 
 [4
 
-] [5]
-<images/monitoria/architecture-new.png, id=261, 789.95125pt x 2476.25125pt>
-File: images/monitoria/architecture-new.png Graphic file (type png)
-<use images/monitoria/architecture-new.png>
-Package pdftex.def Info: images/monitoria/architecture-new.png  used on input line 288.
-(pdftex.def)             Requested size: 183.74614pt x 576.0022pt.
+] [5] [6]
+Overfull \hbox (255.77097pt too wide) in paragraph at lines 361--362
+ [][] 
+ []
 
 
 
 
-[6
+
+[7
 
 
 
- <./images/monitoria/architecture-new.png>]
+]
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <10> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 295.
+(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 368.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 10.0pt on input line 295.
+(Font)              scaled to size 10.0pt on input line 368.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/it' in size <10> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/it' tried instead on input line 295.
+(Font)              Font shape `T1/FiraSans-OsF/bold/it' tried instead on input line 368.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/it' will be
-(Font)              scaled to size 10.0pt on input line 295.
+(Font)              scaled to size 10.0pt on input line 368.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `cmtt' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
@@ -1073,18 +1106,18 @@ Package microtype Info: Loading generic protrusion settings for font family
 
 
 
-[7
+[8
 
 {/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}
 
 ]
-<images/monitoria/data-model-new.png, id=276, 2172.115pt x 1666.225pt>
+<images/monitoria/data-model-new.png, id=258, 2172.115pt x 1666.225pt>
 File: images/monitoria/data-model-new.png Graphic file (type png)
 <use images/monitoria/data-model-new.png>
-Package pdftex.def Info: images/monitoria/data-model-new.png  used on input line 319.
+Package pdftex.def Info: images/monitoria/data-model-new.png  used on input line 392.
 (pdftex.def)             Requested size: 473.09848pt x 362.9095pt.
 
-Overfull \hbox (233.09848pt too wide) in paragraph at lines 319--320
+Overfull \hbox (233.09848pt too wide) in paragraph at lines 392--393
  [][] 
  []
 
@@ -1092,149 +1125,153 @@ Overfull \hbox (233.09848pt too wide) in paragraph at lines 319--320
 
 
 
-[8
+[9
 
 
  <./images/monitoria/data-model-new.png>]
-<images/monitoria/process-flow.png, id=284, 702.625pt x 1101.11375pt>
-File: images/monitoria/process-flow.png Graphic file (type png)
-<use images/monitoria/process-flow.png>
-Package pdftex.def Info: images/monitoria/process-flow.png  used on input line 340.
-(pdftex.def)             Requested size: 144.00146pt x 225.66257pt.
 
 
 
+[10
 
-[9
-
- <./images/monitoria/process-flow.png (PNG copy)>]
-<images/monitoria/landing.png, id=294, 3181.8875pt x 3478.9975pt>
+]
+<images/monitoria/landing.png, id=276, 3181.8875pt x 3478.9975pt>
 File: images/monitoria/landing.png Graphic file (type png)
 <use images/monitoria/landing.png>
-Package pdftex.def Info: images/monitoria/landing.png  used on input line 400.
+Package pdftex.def Info: images/monitoria/landing.png  used on input line 490.
 (pdftex.def)             Requested size: 240.0pt x 262.39993pt.
-<images/monitoria/login.png, id=295, 3175.865pt x 1662.21pt>
-File: images/monitoria/login.png Graphic file (type png)
-<use images/monitoria/login.png>
-Package pdftex.def Info: images/monitoria/login.png  used on input line 407.
-(pdftex.def)             Requested size: 240.0pt x 125.5988pt.
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-dashboard.png, id=298, 4611.2275pt x 2266.4675pt>
+<images/monitoria/login.png, id=277, 3175.865pt x 1662.21pt>
+File: images/monitoria/login.png Graphic file (type png)
+<use images/monitoria/login.png>
+Package pdftex.def Info: images/monitoria/login.png  used on input line 497.
+(pdftex.def)             Requested size: 240.0pt x 125.5988pt.
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+<images/monitoria/admin-dashboard.png, id=280, 4611.2275pt x 2266.4675pt>
 File: images/monitoria/admin-dashboard.png Graphic file (type png)
 <use images/monitoria/admin-dashboard.png>
-Package pdftex.def Info: images/monitoria/admin-dashboard.png  used on input line 416.
+Package pdftex.def Info: images/monitoria/admin-dashboard.png  used on input line 506.
 (pdftex.def)             Requested size: 240.0pt x 117.92961pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/professor-assinatura-documentos.png, id=299, 3472.975pt x 2635.8475pt>
+<images/monitoria/professor-assinatura-documentos.png, id=281, 3472.975pt x 2635.8475pt>
 File: images/monitoria/professor-assinatura-documentos.png Graphic file (type png)
 <use images/monitoria/professor-assinatura-documentos.png>
-Package pdftex.def Info: images/monitoria/professor-assinatura-documentos.png  used on input line 423.
+Package pdftex.def Info: images/monitoria/professor-assinatura-documentos.png  used on input line 513.
 (pdftex.def)             Requested size: 240.0pt x 182.11499pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-
-
-<images/monitoria/student-inscricao-monitoria.png, id=302, 3458.9225pt x 2635.8475pt>
+<images/monitoria/student-inscricao-monitoria.png, id=284, 3458.9225pt x 2635.8475pt>
 File: images/monitoria/student-inscricao-monitoria.png Graphic file (type png)
 <use images/monitoria/student-inscricao-monitoria.png>
-Package pdftex.def Info: images/monitoria/student-inscricao-monitoria.png  used on input line 432.
+Package pdftex.def Info: images/monitoria/student-inscricao-monitoria.png  used on input line 522.
 (pdftex.def)             Requested size: 240.0pt x 182.87917pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/student-resultados.png, id=303, 3458.9225pt x 2635.8475pt>
+<images/monitoria/student-resultados.png, id=285, 3458.9225pt x 2635.8475pt>
 File: images/monitoria/student-resultados.png Graphic file (type png)
 <use images/monitoria/student-resultados.png>
-Package pdftex.def Info: images/monitoria/student-resultados.png  used on input line 439.
+Package pdftex.def Info: images/monitoria/student-resultados.png  used on input line 529.
 (pdftex.def)             Requested size: 240.0pt x 182.87917pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-manage-projects.png, id=307, 4611.2275pt x 2266.4675pt>
+
+
+<images/monitoria/admin-manage-projects.png, id=289, 4611.2275pt x 2266.4675pt>
 File: images/monitoria/admin-manage-projects.png Graphic file (type png)
 <use images/monitoria/admin-manage-projects.png>
-Package pdftex.def Info: images/monitoria/admin-manage-projects.png  used on input line 448.
+Package pdftex.def Info: images/monitoria/admin-manage-projects.png  used on input line 538.
 (pdftex.def)             Requested size: 240.0pt x 117.92961pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-edital-management.png, id=308, 4611.2275pt x 2266.4675pt>
+<images/monitoria/admin-edital-management.png, id=290, 4611.2275pt x 2266.4675pt>
 File: images/monitoria/admin-edital-management.png Graphic file (type png)
 <use images/monitoria/admin-edital-management.png>
-Package pdftex.def Info: images/monitoria/admin-edital-management.png  used on input line 455.
+Package pdftex.def Info: images/monitoria/admin-edital-management.png  used on input line 545.
 (pdftex.def)             Requested size: 240.0pt x 117.92961pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-scholarship-allocation.png, id=309, 4611.2275pt x 2266.4675pt>
+<images/monitoria/admin-scholarship-allocation.png, id=291, 4611.2275pt x 2266.4675pt>
 File: images/monitoria/admin-scholarship-allocation.png Graphic file (type png)
 <use images/monitoria/admin-scholarship-allocation.png>
-Package pdftex.def Info: images/monitoria/admin-scholarship-allocation.png  used on input line 462.
+Package pdftex.def Info: images/monitoria/admin-scholarship-allocation.png  used on input line 552.
 (pdftex.def)             Requested size: 240.0pt x 117.92961pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 
-[10 <./images/monitoria/landing.png (PNG copy)> <./images/monitoria/login.png (PNG copy)> <./images/monitoria/admin-dashboard.png (PNG copy)> <./images/monitoria/professor-assinatura-documentos.png>]
-
-<images/monitoria/admin-users.png, id=331, 2860.6875pt x 2915.89375pt>
+[11 <./images/monitoria/landing.png (PNG copy)> <./images/monitoria/login.png (PNG copy)> <./images/monitoria/admin-dashboard.png (PNG copy)>]
+<images/monitoria/admin-users.png, id=315, 2860.6875pt x 2915.89375pt>
 File: images/monitoria/admin-users.png Graphic file (type png)
 <use images/monitoria/admin-users.png>
-Package pdftex.def Info: images/monitoria/admin-users.png  used on input line 471.
+Package pdftex.def Info: images/monitoria/admin-users.png  used on input line 561.
 (pdftex.def)             Requested size: 240.0pt x 244.62196pt.
-<images/monitoria/admin-files.png, id=332, 4611.2275pt x 2266.4675pt>
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+<images/monitoria/admin-files.png, id=316, 4611.2275pt x 2266.4675pt>
 File: images/monitoria/admin-files.png Graphic file (type png)
 <use images/monitoria/admin-files.png>
-Package pdftex.def Info: images/monitoria/admin-files.png  used on input line 478.
+Package pdftex.def Info: images/monitoria/admin-files.png  used on input line 568.
 (pdftex.def)             Requested size: 240.0pt x 117.92961pt.
-<images/monitoria/admin-import-projects.png, id=333, 2847.63875pt x 2559.5625pt>
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+<images/monitoria/admin-import-projects.png, id=317, 2847.63875pt x 2559.5625pt>
 File: images/monitoria/admin-import-projects.png Graphic file (type png)
 <use images/monitoria/admin-import-projects.png>
-Package pdftex.def Info: images/monitoria/admin-import-projects.png  used on input line 485.
+Package pdftex.def Info: images/monitoria/admin-import-projects.png  used on input line 575.
 (pdftex.def)             Requested size: 240.0pt x 215.70479pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-cursos.png, id=334, 3111.625pt x 2549.525pt>
+<images/monitoria/admin-cursos.png, id=318, 3111.625pt x 2549.525pt>
 File: images/monitoria/admin-cursos.png Graphic file (type png)
 <use images/monitoria/admin-cursos.png>
-Package pdftex.def Info: images/monitoria/admin-cursos.png  used on input line 492.
+Package pdftex.def Info: images/monitoria/admin-cursos.png  used on input line 582.
 (pdftex.def)             Requested size: 240.0pt x 196.61359pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-departamentos.png, id=335, 3111.625pt x 2549.525pt>
+<images/monitoria/admin-departamentos.png, id=319, 3111.625pt x 2549.525pt>
 File: images/monitoria/admin-departamentos.png Graphic file (type png)
 <use images/monitoria/admin-departamentos.png>
-Package pdftex.def Info: images/monitoria/admin-departamentos.png  used on input line 499.
+Package pdftex.def Info: images/monitoria/admin-departamentos.png  used on input line 589.
 (pdftex.def)             Requested size: 240.0pt x 196.61359pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 
-[11 <./images/monitoria/student-inscricao-monitoria.png> <./images/monitoria/student-resultados.png> <./images/monitoria/admin-manage-projects.png (PNG copy)> <./images/monitoria/admin-edital-management.png (PNG copy)> <./images/monitoria/admin-scholarship-allocation.png (PNG copy)> <./images/monitoria/admin-users.png (PNG copy)> <./images/monitoria/admin-files.png (PNG copy)>]
 
 
+[12 <./images/monitoria/professor-assinatura-documentos.png> <./images/monitoria/student-inscricao-monitoria.png> <./images/monitoria/student-resultados.png> <./images/monitoria/admin-manage-projects.png (PNG copy)> <./images/monitoria/admin-edital-management.png (PNG copy)> <./images/monitoria/admin-scholarship-allocation.png (PNG copy)> <./images/monitoria/admin-users.png (PNG copy)>]
 
-[12 <./images/monitoria/admin-import-projects.png (PNG copy)> <./images/monitoria/admin-cursos.png (PNG copy)> <./images/monitoria/admin-departamentos.png (PNG copy)>]
+<images/TODO.jpeg, id=326, 277.035pt x 183.68625pt>
+File: images/TODO.jpeg Graphic file (type jpg)
+<use images/TODO.jpeg>
+Package pdftex.def Info: images/TODO.jpeg  used on input line 609.
+(pdftex.def)             Requested size: 95.99854pt x 63.64929pt.
 
 
+[13 <./images/monitoria/admin-files.png (PNG copy)> <./images/monitoria/admin-import-projects.png (PNG copy)> <./images/monitoria/admin-cursos.png (PNG copy)> <./images/monitoria/admin-departamentos.png (PNG copy)> <./images/TODO.jpeg>] (./main.bbl
 
-[13] (./main.bbl)
+)
 
-
-
-[14
-
-] (./main.aux)
+[14] (./main.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
@@ -1244,21 +1281,21 @@ L3 programming layer <2025-01-18>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: F4070A891417101504A9A8843FC51FBC;5084.
+(rerunfilecheck)             Checksum: 0D72BB1B203F0B08DC87E698583B234D;4056.
  ) 
 Here is how much of TeX's memory you used:
- 34345 strings out of 473190
- 646166 string characters out of 5715801
- 1063763 words of memory out of 5000000
- 56632 multiletter control sequences out of 15000+600000
- 854557 words of font info for 246 fonts, out of 8000000 for 9000
+ 35204 strings out of 473190
+ 667692 string characters out of 5715801
+ 1104792 words of memory out of 5000000
+ 57475 multiletter control sequences out of 15000+600000
+ 857413 words of font info for 257 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 132i,13n,135p,1640b,885s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Bold.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BoldItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Book.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BookItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmb.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmbi.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmr.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmri.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb>
-Output written on main.pdf (14 pages, 6648294 bytes).
+ 132i,16n,135p,1565b,1263s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Bold.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BoldItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Book.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BookItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmb.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmr.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmri.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb>
+Output written on main.pdf (14 pages, 6383413 bytes).
 PDF statistics:
- 437 PDF objects out of 1000 (max. 8388607)
- 366 compressed objects within 4 object streams
- 85 named destinations out of 1000 (max. 500000)
- 84306 words of extra memory for PDF output out of 89155 (max. 10000000)
+ 407 PDF objects out of 1000 (max. 8388607)
+ 340 compressed objects within 4 object streams
+ 81 named destinations out of 1000 (max. 500000)
+ 85285 words of extra memory for PDF output out of 89155 (max. 10000000)
 

@@ -1,8 +1,8 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { userTable } from '@/server/db/schema'
-import { AppUser } from '@/types'
+import { meService } from '@/server/services/auth/me-service'
+import type { AppUser } from '@/types'
 import { TRPCError } from '@trpc/server'
-import { eq } from 'drizzle-orm'
+import { BusinessError } from '@/server/lib/errors'
 import { z } from 'zod'
 
 export const meRouter = createTRPCRouter({
@@ -19,37 +19,16 @@ export const meRouter = createTRPCRouter({
     .input(z.void())
     .output(z.custom<AppUser>())
     .query(async ({ ctx }): Promise<AppUser> => {
-      const user = await ctx.db.query.userTable.findFirst({
-        where: eq(userTable.id, ctx.user.id),
-      })
-
-      if (!user) {
-        throw new TRPCError({ code: 'NOT_FOUND' })
-      }
-
-      let professorProfile = null
-      if (user.role === 'professor') {
-        professorProfile = await ctx.db.query.professorTable.findFirst({
-          where: (table, { eq }) => eq(table.userId, user.id),
-        })
-      }
-
-      let alunoProfile = null
-      if (user.role === 'student') {
-        alunoProfile = await ctx.db.query.alunoTable.findFirst({
-          where: (table, { eq }) => eq(table.userId, user.id),
-          columns: {
-            id: true,
-            cursoId: true,
-            cr: true,
-          },
-        })
-      }
-
-      return {
-        ...user,
-        professor: professorProfile,
-        aluno: alunoProfile,
+      try {
+        return await meService.getMe(ctx.user.id)
+      } catch (error) {
+        if (error instanceof BusinessError) {
+          throw new TRPCError({
+            code: error.code as 'NOT_FOUND',
+            message: error.message,
+          })
+        }
+        throw error
       }
     }),
 })

@@ -10,7 +10,7 @@ import {
   projetoTemplateTable,
   type NewProjeto,
 } from '@/server/db/schema'
-import { sendProjectCreationNotification } from '@/server/lib/email-service'
+import { sendProjectCreationNotification } from '@/server/lib/email'
 import minioClient, { bucketName as MINIO_BUCKET } from '@/server/lib/minio'
 import { groupByDisciplinaTurma, parsePlanejamentoDCC } from '@/server/lib/planejamento-dcc-parser'
 import { logger } from '@/utils/logger'

@@ -11,7 +11,7 @@ import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
 import { useEditalPdf } from "@/hooks/use-files";
 import { useToast } from "@/hooks/use-toast";
-import { EditalListItem } from "@/types";
+import { EditalListItem, SEMESTRE_1, SEMESTRE_2, TIPO_EDITAL_DCC, TIPO_EDITAL_PROGRAD } from "@/types";
 import { api } from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
@@ -20,13 +20,13 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const editalFormSchema = z.object({
-  tipo: z.enum(["DCC", "PROGRAD"]),
+  tipo: z.enum([TIPO_EDITAL_DCC, TIPO_EDITAL_PROGRAD]),
   numeroEdital: z.string().min(1, "Número do edital é obrigatório"),
   titulo: z.string().min(1, "Título é obrigatório"),
   descricaoHtml: z.string().optional(),
   valorBolsa: z.string(),
   ano: z.number().int().min(2000).max(2100),
-  semestre: z.enum(["SEMESTRE_1", "SEMESTRE_2"]),
+  semestre: z.enum([SEMESTRE_1, SEMESTRE_2]),
   dataInicio: z.date(),
   dataFim: z.date(),
 });

@@ -7,7 +7,17 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAuth } from "@/hooks/use-auth"
-import { MonitoriaFormData } from "@/types"
+import {
+  MonitoriaFormData,
+  PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_PENDING_SIGNATURE,
+  PROJETO_STATUS_SUBMITTED,
+  PROJETO_STATUS_APPROVED,
+  PROJETO_STATUS_REJECTED,
+  SEMESTRE_1,
+  SIGNING_MODE_PROFESSOR,
+  PROFESSOR,
+} from "@/types"
 import { api } from "@/utils/api"
 import { ArrowLeft, CheckCircle, FileSignature } from "lucide-react"
 import { useSearchParams } from "next/navigation"
@@ -31,7 +41,7 @@ function DocumentSigningContent() {
 
     return projetos.filter((projeto) => {
       // For professors, show only projects that need professor signature
-      return projeto.status === "DRAFT" || projeto.status === "PENDING_PROFESSOR_SIGNATURE"
+      return projeto.status === PROJETO_STATUS_DRAFT || projeto.status === PROJETO_STATUS_PENDING_SIGNATURE
     })
   }, [projetos, user])
 
@@ -81,7 +91,7 @@ function DocumentSigningContent() {
         ? new Date().toLocaleDateString("pt-BR")
         : undefined,
       projetoId: selectedProject.id,
-      signingMode: "professor",
+      signingMode: SIGNING_MODE_PROFESSOR,
     }
   }, [selectedProject, user])
 
@@ -96,22 +106,22 @@ function DocumentSigningContent() {
 
   const renderStatusBadge = (status: string) => {
     switch (status) {
-      case "DRAFT":
+      case PROJETO_STATUS_DRAFT:
         return <Badge variant="outline">Aguardando Assinatura Professor</Badge>
-      case "PENDING_PROFESSOR_SIGNATURE":
+      case PROJETO_STATUS_PENDING_SIGNATURE:
         return <Badge variant="outline">Aguardando Assinatura Professor</Badge>
-      case "SUBMITTED":
+      case PROJETO_STATUS_SUBMITTED:
         return <Badge variant="secondary">Submetido para Análise</Badge>
-      case "APPROVED":
+      case PROJETO_STATUS_APPROVED:
         return <Badge className="bg-green-100 text-green-800">Aprovado</Badge>
-      case "REJECTED":
+      case PROJETO_STATUS_REJECTED:
         return <Badge variant="destructive">Rejeitado</Badge>
       default:
         return <Badge>{status}</Badge>
     }
   }
 
-  if (user?.role !== "professor") {
+  if (user?.role !== PROFESSOR) {
     return (
       <PagesLayout title="Acesso Negado">
         <div className="text-center py-12">
@@ -198,7 +208,7 @@ function DocumentSigningContent() {
                       <TableCell className="font-medium">{projeto.titulo}</TableCell>
                       <TableCell>{projeto.departamentoNome}</TableCell>
                       <TableCell>
-                        {projeto.ano}.{projeto.semestre === "SEMESTRE_1" ? 1 : 2}
+                        {projeto.ano}.{projeto.semestre === SEMESTRE_1 ? 1 : 2}
                       </TableCell>
                       <TableCell>{projeto.bolsasSolicitadas || 0}</TableCell>
                       <TableCell>{projeto.voluntariosSolicitados || 0}</TableCell>

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { AlunoListItem } from "@/types"
+import { STUDENT, AlunoListItem } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
@@ -22,7 +22,7 @@ export default function AlunosPage() {
 
   // Fetch students data
   const { data: usersData, isLoading } = api.user.getUsers.useQuery({
-    role: "student",
+    role: STUDENT,
     limit: 100,
   })
 

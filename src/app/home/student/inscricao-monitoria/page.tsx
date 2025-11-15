@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
-import { TIPO_VAGA_LABELS } from "@/types/enums"
+import { TIPO_VAGA_BOLSISTA, TIPO_VAGA_LABELS, TIPO_VAGA_VOLUNTARIO } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Award, BookOpen, Calendar, Clock, FileText, MapPin, Search, User, Users } from "lucide-react"
@@ -27,7 +27,7 @@ import { z } from "zod"
 
 const inscricaoSchema = z.object({
   projetoId: z.number(),
-  tipoVagaPretendida: z.enum([TIPO_VAGA_LABELS.BOLSISTA, TIPO_VAGA_LABELS.VOLUNTARIO]),
+  tipoVagaPretendida: z.enum([TIPO_VAGA_BOLSISTA, TIPO_VAGA_VOLUNTARIO]),
 })
 
 type InscricaoForm = z.infer<typeof inscricaoSchema>
@@ -98,7 +98,7 @@ export default function InscricaoMonitoria() {
   const form = useForm<InscricaoForm>({
     resolver: zodResolver(inscricaoSchema),
     defaultValues: {
-      tipoVagaPretendida: TIPO_VAGA_LABELS.BOLSISTA,
+      tipoVagaPretendida: TIPO_VAGA_BOLSISTA,
     },
   })
 
@@ -128,7 +128,7 @@ export default function InscricaoMonitoria() {
     try {
       await createInscricao.mutateAsync({
         projetoId: data.projetoId,
-        tipoVagaPretendida: data.tipoVagaPretendida === TIPO_VAGA_LABELS.BOLSISTA ? "BOLSISTA" : "VOLUNTARIO",
+        tipoVagaPretendida: data.tipoVagaPretendida === TIPO_VAGA_LABELS.BOLSISTA ? TIPO_VAGA_BOLSISTA : TIPO_VAGA_VOLUNTARIO,
       })
     } catch (error) {
       // Error handling is done in the mutation onError
@@ -355,8 +355,8 @@ export default function InscricaoMonitoria() {
               <Label htmlFor="tipoVaga">Tipo de vaga desejada</Label>
               <Select
                 value={form.watch("tipoVagaPretendida")}
-                onValueChange={(value: typeof TIPO_VAGA_LABELS.BOLSISTA | typeof TIPO_VAGA_LABELS.VOLUNTARIO) =>
-                  form.setValue("tipoVagaPretendida", value)
+                onValueChange={(value) =>
+                  form.setValue("tipoVagaPretendida", value as typeof TIPO_VAGA_BOLSISTA | typeof TIPO_VAGA_VOLUNTARIO)
                 }
               >
                 <SelectTrigger>

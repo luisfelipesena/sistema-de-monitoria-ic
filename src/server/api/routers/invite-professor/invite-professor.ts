@@ -50,7 +50,7 @@ export const inviteProfessorRouter = createTRPCRouter({
       .returning()
 
     // Send email notification
-    const { sendProfessorInvitationEmail } = await import('@/server/lib/email-service')
+    const { sendProfessorInvitationEmail } = await import('@/server/lib/email')
     const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
     const invitationLink = `${clientUrl}/auth/accept-invitation?token=${token}`
 
@@ -135,7 +135,7 @@ export const inviteProfessorRouter = createTRPCRouter({
       .where(eq(professorInvitationTable.id, input.invitationId))
 
     // Send email notification
-    const { sendProfessorInvitationEmail } = await import('@/server/lib/email-service')
+    const { sendProfessorInvitationEmail } = await import('@/server/lib/email')
     const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
     const invitationLink = `${clientUrl}/auth/accept-invitation?token=${token}`
 

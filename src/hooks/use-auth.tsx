@@ -195,6 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (input: RequestPasswordResetInput) => {
       setErrors(null)
       const response = await requestPasswordResetMutation.mutateAsync(input)
+      if (!response) return { success: false, message: 'Erro desconhecido' }
       return { success: response.success, message: response.message }
     },
     [requestPasswordResetMutation]
@@ -204,6 +205,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (input: ResetPasswordWithTokenInput) => {
       setErrors(null)
       const response = await resetPasswordMutation.mutateAsync(input)
+      if (!response) return { success: false, message: 'Erro desconhecido' }
       return { success: response.success, message: response.message }
     },
     [resetPasswordMutation]
@@ -213,6 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (input: SetPasswordInput) => {
       setErrors(null)
       const response = await setPasswordMutation.mutateAsync(input)
+      if (!response) return { success: false, message: 'Erro desconhecido' }
       return { success: response.success, message: response.message }
     },
     [setPasswordMutation]

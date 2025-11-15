@@ -12,6 +12,8 @@
 \usepackage{stfloats}
 \usepackage{placeins}
 \usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,matrix}
 
 \usepackage{afterpage}
 \usepackage{url}
@@ -51,11 +53,11 @@ Instituto de Computação, Universidade Federal da Bahia, Av. Milton Santos, s/n
 \end{mail}
 
 \begin{abstract-pt}
-A monitoria acadêmica é um processo fundamental nas universidades brasileiras que permite aos alunos desenvolverem habilidades pedagógicas enquanto auxiliam no processo de ensino-aprendizagem. Porém, o gerenciamento desse processo frequentemente enfrenta desafios relacionados à burocracia, falta de transparência e múltiplos processos manuais ineficientes. Este trabalho apresenta o desenvolvimento do Sistema de Monitoria-IC, uma plataforma web projetada para automatizar e simplificar todo o ciclo de vida dos projetos de monitoria na UFBA. A solução proposta digitaliza desde a criação de projetos pelos professores até a seleção de monitores, alocação de bolsas e geração de relatórios finais. O sistema foi desenvolvido utilizando tecnologias modernas como Next.js 15, TypeScript, tRPC, PostgreSQL e MinIO, seguindo princípios de engenharia de software que garantem escalabilidade e manutenibilidade. A arquitetura implementada separa claramente as responsabilidades entre um Sistema de Processamento de Transações (SPT) para operações cotidianas e funcionalidades gerenciais para análise e controle. A validação técnica através de testes end-to-end demonstra a robustez da solução. Os resultados indicam que a automação proposta elimina retrabalho administrativo, aumenta a transparência através de histórico auditável, e estabelece uma base sólida para modernização da gestão acadêmica na universidade. O sistema encontra-se disponível em produção em https://sistema-de-monitoria.app.ic.ufba.br/.
+A monitoria acadêmica é um processo fundamental nas universidades brasileiras que permite aos alunos desenvolverem habilidades pedagógicas enquanto auxiliam no processo de ensino-aprendizagem. Porém, o gerenciamento desse processo frequentemente enfrenta desafios relacionados à burocracia, falta de transparência e múltiplos processos manuais ineficientes. Este trabalho apresenta o desenvolvimento do Sistema de Monitoria-IC, uma plataforma web projetada para automatizar e simplificar todo o ciclo de vida dos projetos de monitoria na UFBA. A solução proposta digitaliza desde a criação de projetos pelos professores até a seleção de monitores, alocação de bolsas e geração de relatórios finais. O sistema foi desenvolvido utilizando tecnologias modernas como Next.js 15, TypeScript, tRPC, PostgreSQL e MinIO, seguindo princípios de engenharia de software que garantem escalabilidade e manutenibilidade. A arquitetura implementada separa claramente as responsabilidades entre um Sistema de Processamento de Transações (SPT) para operações cotidianas e funcionalidades gerenciais para análise e controle. A validação técnica através de testes end-to-end demonstra a robustez da solução. Os resultados esperados indicam que a automação proposta tende a eliminar retrabalho administrativo, aumentar a transparência por meio de histórico auditável e estabelecer uma base sólida para a modernização da gestão acadêmica na universidade.
 \end{abstract-pt}
 
 \begin{abstract-en}
-Academic monitoring is a fundamental process in Brazilian universities that allows students to develop pedagogical skills while assisting in the teaching-learning process. However, managing this process often faces challenges related to bureaucracy, lack of transparency, and multiple inefficient manual procedures. This work presents the development of Sistema de Monitoria-IC, a web platform designed to automate and simplify the entire lifecycle of monitoring projects at UFBA. The proposed solution digitizes everything from project creation by professors to monitor selection, scholarship allocation, and final report generation. The system was developed using modern technologies such as Next.js 15, TypeScript, tRPC, PostgreSQL, and MinIO, following software engineering principles that ensure scalability and maintainability. The implemented architecture clearly separates responsibilities between a Transaction Processing System (TPS) for daily operations and managerial functionalities for analysis and control. Technical validation through end-to-end tests demonstrates the solution's robustness. Results indicate that the proposed automation eliminates administrative rework, increases transparency through auditable history, and establishes a solid foundation for modernizing academic management at the university. The system is available in production at https://sistema-de-monitoria.app.ic.ufba.br/.
+Academic monitoring is a fundamental process in Brazilian universities that allows students to develop pedagogical skills while assisting in the teaching-learning process. However, managing this process often faces challenges related to bureaucracy, lack of transparency, and multiple inefficient manual procedures. This work presents the development of Sistema de Monitoria-IC, a web platform designed to automate and simplify the entire lifecycle of monitoring projects at UFBA. The proposed solution digitizes everything from project creation by professors to monitor selection, scholarship allocation, and final report generation. The system was developed using modern technologies such as Next.js 15, TypeScript, tRPC, PostgreSQL, and MinIO, following software engineering principles that ensure scalability and maintainability. The implemented architecture clearly separates responsibilities between a Transaction Processing System (TPS) for daily operations and managerial functionalities for analysis and control. Technical validation through end-to-end tests demonstrates the solution's robustness. Expected results indicate that the proposed automation tends to eliminate administrative rework, increase transparency through auditable history, and establish a solid foundation for modernizing academic management at the university.
 \end{abstract-en}
 
 \begin{pchaves}
@@ -81,7 +83,7 @@ A monitoria acadêmica representa um dos pilares fundamentais do ensino superior
 
 Na Universidade Federal da Bahia (UFBA), o programa de monitoria segue um fluxo complexo que envolve múltiplos atores e etapas interdependentes. O processo inicia-se com o planejamento semestral, quando a administração importa dados de disciplinas e professores. Em seguida, os docentes criam e submetem projetos de monitoria que precisam ser aprovados administrativamente. Após a aprovação, ocorre a publicação de editais internos, inscrição de candidatos, processo seletivo, alocação de bolsas, e finalmente, a consolidação de dados para envio à PROGRAD (Pró-Reitoria de Graduação).
 
-A literatura de Sistemas de Informação fornece evidências de que a digitalização e a automação de processos reduzem custos transacionais, eliminam retrabalho e aumentam a confiabilidade e a auditabilidade dos registros \cite{Laudon_Laudon_2011, Davenport1993, Hammer1993}. Em contextos públicos e acadêmicos, iniciativas de governo digital e transformação digital têm sido associadas a ganhos de eficiência administrativa e transparência, desde que apoiadas por arquitetura tecnológica moderna e governança de dados adequada \cite{OECD2020, UNESCO2022}. No escopo deste trabalho, adotamos tais fundamentos para sustentar a proposta de um sistema unificado de monitoria, substituindo fluxos fragmentados por um \textit{workflow} padronizado, rastreável e escalável.
+A literatura de Sistemas de Informação fornece evidências de que a digitalização e a automação de processos reduzem custos transacionais, eliminam retrabalho e aumentam a confiabilidade e a auditabilidade dos registros \cite{Laudon_Laudon_2011, Davenport1993, Hammer1993}. Em contextos públicos e acadêmicos, iniciativas de governo digital e transformação digital têm sido associadas a ganhos de eficiência administrativa e transparência, desde que apoiadas por arquitetura tecnológica moderna e governança de dados adequada \cite{WorldBank2022, UNESCO2022}. No escopo deste trabalho, adotamos tais fundamentos para sustentar a proposta de um sistema unificado de monitoria, substituindo fluxos fragmentados por um \textit{workflow} padronizado, rastreável e escalável.
 
 Apesar de sua importância reconhecida, a gestão dos programas de monitoria na UFBA ainda depende predominantemente de processos manuais e fragmentados. Formulários em papel, planilhas eletrônicas dispersas, comunicação via e-mail e ausência de um sistema centralizado caracterizam o cenário atual, resultando em ineficiências operacionais significativas. Essa realidade contrasta com a tendência global de digitalização e automação de processos administrativos no ambiente acadêmico, conforme defendem \cite{Laudon_Laudon_2011}, que argumentam que a tecnologia da informação constitui uma das principais ferramentas para alcançar excelência operacional.
 
@@ -93,7 +95,7 @@ Para estudantes, a descoberta de vagas é \textbf{imprevisível} e a jornada é 
 
 Administrativamente, a consolidação de dados heterogêneos \textbf{gera retrabalho}, \textbf{dificulta a conformidade} com regulamentos e prazos e \textbf{fragiliza a prestação de contas}. Sem um \textbf{repositório transacional e analítico integrado}, relatórios custam caro e análises históricas confiáveis tornam-se inviáveis para decisões como distribuição de bolsas e avaliação de efetividade de projetos.
 
-Em síntese, há uma lacuna tecnológica clara: falta um sistema de informação \textit{fim-a-fim} específico para monitoria que integre criação e aprovação de projetos, publicação de editais, inscrições, seleção, aceite de vagas e consolidações finais. A literatura indica que a automação e a padronização, apoiadas por arquitetura adequada e governança de dados, reduzem custos transacionais, retrabalho e erros e elevam a confiabilidade e a auditabilidade dos registros \cite{Davenport1993, Hammer1993, Laudon_Laudon_2011, OECD2020, UNESCO2022}.
+Em síntese, há uma lacuna tecnológica clara: falta um sistema de informação \textit{fim-a-fim} específico para monitoria que integre criação e aprovação de projetos, publicação de editais, inscrições, seleção, aceite de vagas e consolidações finais. A literatura indica que a automação e a padronização, apoiadas por arquitetura adequada e governança de dados, reduzem custos transacionais, retrabalho e erros e elevam a confiabilidade e a auditabilidade dos registros \cite{Davenport1993, Hammer1993, Laudon_Laudon_2011, WorldBank2022, UNESCO2022}.
 
 \subsection{Objetivo}
 
@@ -144,56 +146,49 @@ A separação de responsabilidades entre SPT (camada operacional) e SIG (camada 
 
 \subsection{Levantamento do Estado da Prática}
 
-Para avaliar o estado atual da gestão de monitoria em universidades brasileiras, realizamos um levantamento nos cursos de Computação das dez universidades públicas mais bem classificadas segundo o Ranking Universitário Folha (RUF) 2024 \cite{folha2024ruf}.
+Para avaliar o estado atual da gestão de monitoria em universidades brasileiras, foi realizado um levantamento documental nos cursos de Computação das dez universidades públicas mais bem classificadas segundo o Ranking Universitário Folha (RUF) 2024 \cite{folha2024ruf}. A análise concentrou-se em fontes públicas: páginas institucionais dos sistemas acadêmicos, editais de monitoria e documentos de orientação disponíveis em 2024--2025. Não houve acesso a sistemas internos autenticados, o que impõe limites importantes à generalização dos resultados.
 
 \begin{table*}[htb]
   \centering
-\caption{Panorama da gestão de monitoria em universidades públicas brasileiras.\\Fonte: páginas oficiais dos sistemas institucionais Júpiter/USP \cite{USPJupiter}, SIGA/UFRJ \cite{UFRJ_SIGA}, SIGAA/UnB \cite{UnB_SIGAA}, CAGR/UFSC \cite{UFSC_CAGR} e SEI/UNIFESP \cite{UNIFESP_SEI}; complementado por análise de editais e orientações públicas (2024--2025).}
+\caption{Panorama sintético da gestão de monitoria em universidades públicas brasileiras, a partir de fontes públicas (sítios institucionais e editais).\\Fonte: páginas oficiais dos sistemas Júpiter/USP \cite{USPJupiter}, SIGA/UFRJ \cite{UFRJ_SIGA}, SIGAA/UnB \cite{UnB_SIGAA}, CAGR/UFSC \cite{UFSC_CAGR} e SEI/UNIFESP \cite{UNIFESP_SEI}, complementadas por editais e orientações públicas (2024--2025).}
   \label{tab:estado-pratica}
   \begin{adjustbox}{max width=\textwidth}
     \begin{tabular}{|c|l|c|c|p{3cm}|p{5cm}|}
       \hline
-      \textbf{Rank} & \textbf{Universidade} & \textbf{Sistema Específico} & \textbf{Sistema Integrado} & \textbf{Ferramentas} & \textbf{Características} \\
+      \textbf{Rank} & \textbf{Universidade} & \textbf{Sistema específico de monitoria\footnotemark} & \textbf{Uso de sistema acadêmico} & \textbf{Evidências de ferramentas} & \textbf{Observações a partir das fontes públicas} \\
       \hline
-      1º & USP & Não & Parcial & Júpiter + Forms & Cadastro no sistema acadêmico, seleção via formulários \\
+      1º  & USP     & Não identificado & Sim    & Júpiter + formulários complementares & Monitoria relacionada ao sistema acadêmico geral, com seleção apoiada em formulários e orientações departamentais. \\
       \hline
-      2º & Unicamp & Não & Não & E-mail + Planilhas & Processo totalmente manual \\
+      2º  & Unicamp & Não identificado & Parcial & Páginas do PAD e editais locais     & Documentação pública menciona critérios e programas (por exemplo, PAD), mas não detalha mecanismo único e integrado de inscrição para todos os cursos. \\
       \hline
-      3º & UFRGS & Não & Sim & Portal do Aluno & Funcionalidades básicas no portal institucional \\
+      3º  & UFRGS   & Não identificado & Sim    & Portal do Aluno                      & Portal acadêmico institucional com funcionalidades para atividades acadêmicas; editais indicam processos complementares por unidade. \\
       \hline
-      4º & UFRJ & Não & Parcial & SIGA + E-mail & Registro no SIGA, processo seletivo manual \\
+      4º  & UFRJ    & Não identificado & Sim    & SIGA + documentos administrativos    & Parte do cadastro ocorre no SIGA; editais descrevem etapas adicionais conduzidas por departamentos e comissões. \\
       \hline
-      5º & UFMG & Não & Não & Google Forms & Inscrições via formulários, gestão em planilhas \\
+      5º  & UFMG    & Não identificado & Parcial & Editais e formulários online         & Editais indicam uso de formulários eletrônicos simples para inscrição, com consolidações posteriores em planilhas e documentos administrativos. \\
       \hline
-      6º & UNESP & Não & Não & E-mail + Docs & Processo manual com documentos Word \\
+      6º  & UNESP   & Não identificado & Parcial & Editais + documentação interna       & Não foram localizados, nas fontes públicas, módulos específicos de monitoria; editais sugerem trâmites administrativos distribuídos entre unidades. \\
       \hline
-      7º & UFSC & Não & Sim & CAGR & Sistema acadêmico com módulo básico \\
+      7º  & UFSC    & Não identificado & Sim    & CAGR                                 & Sistema acadêmico com módulo genérico; as especificidades da monitoria são tratadas em editais e orientações complementares. \\
       \hline
-      8º & UnB & Não & Parcial & SIGAA & Módulo genérico no SIGAA \\
+      8º  & UnB     & Não identificado & Sim    & SIGAA                                & SIGAA oferece módulo para atividades acadêmicas; editais indicam que a monitoria utiliza esse módulo em combinação com procedimentos departamentais. \\
       \hline
-      9º & UNIFESP & Não & Não & SEI + Forms & Processo administrativo via SEI \\
+      9º  & UNIFESP & Não identificado & Parcial & SEI + formulários                    & Processos administrativos tramitam via SEI, com inscrições tipicamente apoiadas em formulários e documentos anexos. \\
       \hline
-      10º & UFPR & Não & Não & Microsoft Forms & Formulários online, gestão manual \\
+      10º & UFPR    & Não identificado & Parcial & Editais + formulários online         & Editais recentes mencionam uso de formulários (como Google/Microsoft Forms) e trâmites eletrônicos departamentais, sem referência a módulo dedicado de monitoria. \\
       \hline
     \end{tabular}
   \end{adjustbox}
 \end{table*}
+\footnotetext{``Não identificado'' significa que, nas fontes públicas consultadas (páginas institucionais e editais), não foi encontrada menção explícita a um sistema dedicado exclusivamente à gestão de monitoria; isso não implica que tais módulos inexistam internamente, apenas que não foram documentados de forma acessível ao público externo.}
 
-Os resultados revelam que nenhuma instituição analisada dispõe de um sistema específico e completo para gestão de monitoria; cerca de 70\% recorrem a ferramentas genéricas (Google/Microsoft Forms e e-mail) e apenas 30\% apresentam algum nível de integração com sistemas acadêmicos. Em todos os casos foram observadas etapas manuais significativas nos processos seletivos e ausência de padronização ou compartilhamento de soluções entre instituições.
+Com base nesse levantamento, não foi possível confirmar a existência de um sistema específico e completo de monitoria em nenhuma das instituições analisadas apenas a partir de fontes públicas. Em vários casos, há evidência de sistemas acadêmicos consolidados (como Júpiter, SIGA, SIGAA e CAGR) que oferecem algum suporte ao processo, mas as descrições dos editais e das orientações complementares indicam que etapas críticas --- como submissão de projetos, consolidação de inscrições, definição de bolsas e emissão de relatórios --- permanecem distribuídas entre formulários eletrônicos genéricos, documentos administrativos e fluxos manuais conduzidos por departamentos.
 
-No \textbf{Júpiter/USP} \cite{USPJupiter}, o registro acadêmico é centralizado no sistema institucional, porém a gestão de monitoria depende de formulários e fluxos paralelos, o que fragmenta dados e dificulta a uniformização de critérios entre disciplinas.
+Outro padrão observado é a fragmentação dos canais de interação: o estudante frequentemente acessa uma combinação de páginas institucionais, formulários externos e comunicados por e-mail para compreender o processo de monitoria, enquanto professores e coordenações dependem de planilhas, documentos anexados em sistemas de processo eletrônico e rotinas internas de consolidação. Mesmo nos casos em que há módulos de ``atividades acadêmicas'' ou programas de apoio didático, a documentação pública não descreve workflows fim-a-fim de monitoria equivalentes ao ciclo completo apresentado na Seção~\ref{sec:system}.
 
-No \textbf{SIGA/UFRJ} \cite{UFRJ_SIGA}, parte do cadastro é suportada pelo sistema integrado, mas a seleção e a comunicação com candidatos continuam, em grande medida, apoiadas em e-mails e documentos externos, reduzindo rastreabilidade fim-a-fim.
+Essas limitações metodológicas são importantes: o levantamento baseia-se apenas em evidências disponíveis publicamente, em um recorte temporal específico (2024--2025) e focado nos cursos de Computação. É possível que existam soluções internas não documentadas, iniciativas departamentais em fase piloto ou sistemas legados de uso restrito que não foram capturados nessa análise. Ainda assim, o panorama obtido é consistente com a literatura sobre transformação digital na gestão acadêmica \cite{Laudon_Laudon_2011, Davenport1993, Hammer1993, WorldBank2022, UNESCO2022}, que aponta para a coexistência de sistemas institucionais robustos com processos específicos de alto teor manual e fragmentado.
 
-No \textbf{SIGAA/UnB} \cite{UnB_SIGAA}, há módulo genérico para atividades acadêmicas; ainda assim, a especificidade do workflow de monitoria (templates reutilizáveis, assinaturas por papéis, equivalências entre disciplinas e consolidações para PROGRAD) não é plenamente contemplada.
-
-No \textbf{CAGR/UFSC} \cite{UFSC_CAGR}, o sistema acadêmico oferece funcionalidades básicas, sem abarcar um processo completo com assinaturas digitais e automações para documentos e relatórios específicos da monitoria.
-
-Na \textbf{UNIFESP (SEI)} \cite{UNIFESP_SEI}, prevalecem trâmites administrativos via SEI combinados a formulários de inscrição, mantendo operações manuais e dispersão de informações entre sistemas.
-
-Em instituições como \textbf{Unicamp}, \textbf{UFMG}, \textbf{UNESP} e \textbf{UFPR}, observou-se uso recorrente de e-mail, Google/Microsoft Forms e planilhas para inscrições e consolidações, reforçando a ausência de um módulo específico e integrado para monitoria.
-
-A análise dos trabalhos relacionados e do estado da prática revela uma lacuna significativa: enquanto há sistemas acadêmicos robustos para gestão geral, falta uma solução que trate as particularidades da monitoria. O Sistema de Monitoria-IC distingue-se por cinco dimensões principais. Primeiro, é \textbf{específico para o workflow de monitoria}, ao contrário de sistemas genéricos que tentam adaptar módulos gerais para diferentes processos acadêmicos. Segundo, \textbf{cobre o ciclo de vida completo}, desde a criação de projetos pelos professores até a emissão de certificados finais, eliminando a fragmentação observada nos sistemas analisados. Terceiro, \textbf{automatiza etapas críticas} via integrações com armazenamento de arquivos, geração de PDFs, assinaturas digitais e notificações, reduzindo drasticamente trabalho manual. Quarto, adota um \textbf{stack tecnológico moderno} (Next.js 15, tRPC v11, PostgreSQL, MinIO) com foco em experiência do usuário, type-safety e desempenho, contrastando com sistemas legados observados em outras instituições. Quinto, e fundamental, \textbf{garante transparência e rastreabilidade} através de histórico auditável de todas as operações e acesso diferenciado por papéis (admin, professor, aluno, chefe de departamento), atendendo requisitos de governança institucional.
+À luz desse cenário, o Sistema de Monitoria-IC distingue-se por cinco dimensões principais. Primeiro, é \textbf{específico para o workflow de monitoria}, ao invés de reutilizar módulos genéricos concebidos para múltiplos processos acadêmicos. Segundo, \textbf{cobre o ciclo de vida completo}, desde a criação e aprovação de projetos até a consolidação final e emissão de certificados, reduzindo a fragmentação observada nas instituições analisadas. Terceiro, \textbf{automatiza etapas críticas} via integrações com armazenamento de arquivos, geração de PDFs, assinaturas digitais e notificações, diminuindo significativamente a necessidade de retrabalho manual. Quarto, adota um \textbf{stack tecnológico moderno} (Next.js 15, tRPC v11, PostgreSQL, MinIO) com foco em experiência do usuário, \textit{type-safety} e desempenho, em contraste com soluções frequentemente baseadas em sistemas legados e formulários genéricos. Por fim, \textbf{garante transparência e rastreabilidade} através de histórico auditável e acesso diferenciado por papéis (admin, professor, aluno, chefe de departamento), alinhando-se às recomendações de boas práticas em governo digital e governança de dados em educação superior.
 
 \section{Sistema de Monitoria-IC}
 \label{sec:system}
@@ -283,9 +278,87 @@ O Sistema de Monitoria-IC foi projetado seguindo uma arquitetura em camadas que 
 
 \clearpage
 
-\begin{figure}[p]
+\begin{figure}[h]
   \centering
-  \includegraphics[height=0.8\textheight,keepaspectratio]{images/monitoria/architecture-new.png}
+  \begin{tikzpicture}[
+    layer/.style={rounded corners, draw=gray!60, fill=yellow!10, fill opacity=0.35, draw opacity=1, thick, inner sep=10pt},
+    box/.style={draw=gray!70, rounded corners, fill=yellow!6, text width=4.4cm, align=center, minimum height=0.95cm, font=\small\bfseries, text=black},
+    smallbox/.style={draw=gray!70, rounded corners, fill=yellow!6, text width=5.2cm, align=center, minimum height=0.95cm, font=\small\bfseries, text=black},
+    databox/.style={draw=gray!70, rounded corners, fill=yellow!6, text width=3.4cm, align=center, minimum height=0.9cm, font=\small\bfseries, text=black},
+    connector/.style={-Latex, thick, gray!70}
+  ]
+    % Camada de Apresentação
+    \matrix (presentation) [
+      matrix of nodes,
+      nodes={box},
+      row sep=4pt,
+      column sep=0pt,
+      matrix anchor=north,
+      anchor=north
+    ] at (-4.6,0) {
+      {Next.js 15 SPA\\React + TypeScript} \\
+      {UI Components\\shadcn/ui + Tailwind} \\
+      {Forms \& Validation\\React Hook Form + Zod} \\
+      {State Management\\React Query + Zustand} \\
+    };
+    \node[layer, fit=(presentation-1-1)(presentation-4-1), label={[font=\small\bfseries]above:Camada de Apresentação}] (presentationLayer) {};
+
+    % Camada de Aplicação
+    \matrix (application) [
+      matrix of nodes,
+      nodes={box},
+      row sep=4pt,
+      column sep=0pt,
+      matrix anchor=north,
+      anchor=north
+    ] at (4.6,0) {
+      {tRPC v11\\API com Tipagem Segura} \\
+      {Autenticação\\Lucia Auth} \\
+      {Autorização\\RBAC roles} \\
+      {Rotas\\projeto, inscrição, edital} \\
+    };
+    \node[layer, fit=(application-1-1)(application-4-1), label={[font=\small\bfseries]above:Camada de Aplicação}] (applicationLayer) {};
+
+    % Camada de Negócio
+    \coordinate (topMid) at ($(presentationLayer.south)!0.5!(applicationLayer.south)$);
+    \matrix (business) [
+      matrix of nodes,
+      nodes={smallbox},
+      row sep=4pt,
+      column sep=0pt,
+      matrix anchor=north,
+      anchor=north
+    ] at ($(topMid)+(0,-2.6)$) {
+      {ProjectService\\Gerenciamento do Ciclo de Vida} \\
+      {SelectionService\\Inscrições e Seleção} \\
+      {NotificationService\\Automação de E-mails} \\
+      {DocumentService\\PDF + Assinaturas Digitais} \\
+      {AnalyticsService\\Relatórios e Dashboards} \\
+    };
+    \node[layer, fit=(business-1-1)(business-5-1), label={[font=\small\bfseries]above:Camada de Negócio}] (businessLayer) {};
+
+    % Camada de Dados
+    \matrix (data) [
+      matrix of nodes,
+      nodes={databox},
+      row sep=0pt,
+      column sep=0.7cm,
+      matrix anchor=north,
+      anchor=north
+    ] at ($(businessLayer.south)+(0,-2.4)$) {
+      {Drizzle ORM\\Consultas Tipadas} &
+      {MinIO\\Object Storage} &
+      {Nodemailer\\Serviço SMTP} &
+      {PostgreSQL\\Banco Relacional} \\
+    };
+    \node[layer, fit=(data-1-1)(data-1-4), label={[font=\small\bfseries]above:Camada de Dados}] (dataLayer) {};
+
+    % Conectores
+    \draw[connector] (presentationLayer.east) -- node[above,font=\small]{HTTP / JSON} (applicationLayer.west);
+    \draw[connector] (presentationLayer.south) .. controls +(0,-1.0) and +(-3,0.8) .. (businessLayer.north);
+    \draw[connector] (applicationLayer.south) .. controls +(0,-1.0) and +(3,0.8) .. (businessLayer.north);
+    \draw[connector] (businessLayer.south) -- (dataLayer.north);
+  \end{tikzpicture}
   \caption{Arquitetura lógica do Sistema de Monitoria-IC.}
   \label{fig:architecture}
 \end{figure}
@@ -337,7 +410,24 @@ Após a seleção, a etapa de aceite e consolidação final confirma as vagas: e
 
 \begin{figure}[H]
   \centering
-\IfFileExists{images/monitoria/process-flow.png}{\includegraphics[width=0.6\linewidth,keepaspectratio]{images/monitoria/process-flow.png}}{\fbox{\parbox{0.95\linewidth}{process-flow.png}}}
+  \begin{tikzpicture}[
+    node distance=1.4cm,
+    every node/.style={rounded corners, draw, align=center, minimum width=7cm, minimum height=0.9cm},
+    >={Stealth[length=3mm]}
+  ]
+    \node (fase1) {Planejamento \& Criação\\\footnotesize Importação de planilha, templates, assinatura};
+    \node[below=of fase1] (fase2) {Aprovação \& PROGRAD\\\footnotesize Aprovação administrativa, planilha para o Instituto};
+    \node[below=of fase2] (fase3) {Alocação \& Edital\\\footnotesize Bolsas PROGRAD, edital interno assinado};
+    \node[below=of fase3] (fase4) {Inscrições \& Seleção\\\footnotesize Catálogo de vagas, notas/CR, publicação de resultados};
+    \node[below=of fase4] (fase5) {Aceite \& Consolidação\\\footnotesize Aceite, dados bancários, planilha final};
+    \node[below=of fase5] (fase6) {Relatórios \& Certificados\\\footnotesize Relatórios finais e certificação};
+
+    \draw[->] (fase1) -- (fase2);
+    \draw[->] (fase2) -- (fase3);
+    \draw[->] (fase3) -- (fase4);
+    \draw[->] (fase4) -- (fase5);
+    \draw[->] (fase5) -- (fase6);
+  \end{tikzpicture}
   \caption{Fluxo de processos do semestre de monitoria.}
   \label{fig:process-flow}
 \end{figure}
@@ -508,72 +598,27 @@ O objetivo desta avaliação experimental é validar a efetividade do Sistema de
 
 \subsection{Metodologia}
 
-O desenho de avaliação contempla: (i) \textit{logs} de aplicação (latência, throughput e erros), (ii) extração de métricas operacionais (tempo de ciclo por etapa, volume de inscrições e seleções, tempo de publicação de resultados), (iii) questionários estruturados para docentes, discentes e administradores após execução completa do fluxo de monitoria com o sistema e (iv) comparação histórica com semestres anteriores (baseline manual) conforme as fases descritas em \S\ref{sec:system}. Para validar a usabilidade, foi conduzida uma avaliação com atores reais: um professor responsável por projeto de monitoria, um membro da comissão administrativa e dois estudantes candidatos a monitoria, que executaram o processo completo desde criação de projeto até aceite de vaga, respondendo questionários estruturados ao final.
+O desenho de avaliação contempla: (i) \textit{logs} de aplicação (latência, throughput e erros), (ii) extração de métricas operacionais (tempo de ciclo por etapa, volume de inscrições e seleções, tempo de publicação de resultados), (iii) questionários estruturados para docentes, discentes e administradores após execução completa do fluxo de monitoria com o sistema e (iv) comparação histórica com semestres anteriores (baseline manual) conforme as fases descritas em \S\ref{sec:system}. Para validar a usabilidade, foi definida uma avaliação com atores reais que executam o processo completo desde criação de projeto até aceite de vaga, respondendo questionários estruturados ao final.
 
 \medskip
-\noindent\textbf{Nota metodológica (TODO – Dados).} Alguns valores quantitativos reportados (desempenho, adoção e comparação antes/depois) são \textit{preliminares} e serão substituídos por dados finais após a coleta sistemática com base em logs de produção, planilhas institucionais e questionários validados. A coleta e consolidação estatística compõem trabalho em andamento, e os números apresentados aqui devem ser interpretados como estimativas a serem confirmadas.
 
 \subsection{Resultados}
 
-\subsubsection{Implantação e Ambiente de Produção}
-
-O Sistema de Monitoria-IC está em produção desde janeiro de 2025 (\url{https://sistema-de-monitoria.app.ic.ufba.br/}) como plataforma oficial do Instituto de Computação. A infraestrutura é provisionada em servidor dedicado do datacenter institucional, com PostgreSQL 16 configurado para redundância, MinIO em cluster de três nós para armazenamento distribuído, Nginx como \textit{reverse proxy} com SSL e cache estático, além de monitoramento contínuo com Prometheus e Grafana. Políticas de backup incremental a cada seis horas (com diários completos e retenção de 30 dias) e entrega otimizada por CDN complementam a operação.
-
-\subsubsection{Testes e Qualidade de Software}
-
-A estratégia de qualidade combina testes unitários, de integração e end-to-end, integrados a uma pipeline de CI/CD. Com Vitest, 287 testes garantem 89\% de cobertura em lógica de negócio, executando em menos de 30 segundos. A camada de integração valida \textit{procedures} tRPC e operações de banco de dados sob transações, enquanto o Playwright automatiza 26 fluxos completos que cobrem os principais \textit{user journeys} em múltiplos navegadores. No GitHub Actions, a pipeline realiza linting e formatação (Biome), verificação de tipos (TypeScript), execução de testes unitários e de integração, build de produção, testes E2E em ambiente isolado e, após aprovação, \textit{deploy} automatizado.
-
-\subsubsection{Métricas de Desempenho}
-
-Em produção, as medições indicam tempo de carregamento inicial de 1,2 s (First Contentful Paint) e \textit{Time to Interactive} de 2,1 s, com pontuação Lighthouse de 96/100. A API mantém latência média de 45 ms e sustenta cerca de 500 requisições por segundo. No piloto de 2024.2 no Departamento de Ciência da Computação, foram cadastrados e gerenciados 152 projetos de monitoria, com 47 professores ativos (adesão integral), 823 inscrições processadas e 198 monitores selecionados (78 bolsistas e 120 voluntários), abrangendo 68 disciplinas e reutilizando 12 templates entre semestres.
-
-Do ponto de vista operacional, observou-se redução aproximada de 85\% no tempo total de processamento administrativo, eliminação de erros de transcrição, conformidade integral com prazos institucionais e publicação de resultados cerca de três vezes mais rápida. O tempo médio de resposta a demandas administrativas passou para aproximadamente duas horas (cenário anterior: três a cinco dias).
-
-\subsubsection{Análise de Impacto}
-
-\paragraph{Impacto Quantitativo.}
-
-\paragraph{Antes vs Depois.}
-
-A Tabela \ref{tab:comparacao} compara métricas do processo manual anterior com o sistema implementado:
-
-\begin{table*}[t]
+\begin{figure}[h!]
   \centering
-  \caption{Comparação entre processo manual e automatizado.}
-  \label{tab:comparacao}
-  \begin{adjustbox}{max width=\textwidth}
-    \begin{tabular}{|l|c|c|c|}
-      \hline
-      \textbf{Métrica} & \textbf{Manual} & \textbf{Sistema} & \textbf{Melhoria} \\
-      \hline
-      Criação de projeto & 2-3 dias & 30 min & 95\% \\
-      Aprovação administrativa & 1 semana & 1 dia & 86\% \\
-      Processamento de inscrições & 5 dias & Instantâneo & 100\% \\
-      Consolidação de dados & 3 dias & 5 min & 99\% \\
-      Geração de relatórios & 2 dias & Automático & 100\% \\
-      Erros de preenchimento & 15\% & <1\% & 93\% \\
-      Retrabalho administrativo & Alto & Mínimo & 90\% \\
-      \hline
-    \end{tabular}
-  \end{adjustbox}
-\end{table*}
-
-\paragraph{Benefícios Identificados.}
-
-Os ganhos quantitativos incluem economia estimada de 120 horas administrativas por semestre, redução de cerca de 95\% no uso de papel, eliminação de erros de transcrição e aumento aproximado de 40\% no volume de inscrições motivado pela simplificação do processo. Em termos qualitativos, a plataforma promove transparência \textit{end-to-end} com histórico auditável, padroniza processos entre departamentos, eleva a satisfação de professores e estudantes e cria uma base confiável para análises e tomada de decisão institucional.
-
-\subsubsection{Feedback dos Usuários}
-
-Em pesquisa com os primeiros usuários (n=73), 92\% avaliaram o sistema como "muito melhor" que o processo anterior, 88\% reportaram economia significativa de tempo e 95\% consideraram a interface intuitiva; entre administradores, a recomendação de expansão foi unânime. Os depoimentos reforçam os achados: "Finalmente posso reutilizar meus projetos anteriores", "O processo de seleção ficou muito mais transparente", "Não preciso mais verificar e-mails constantemente" e "A geração automática de documentos é fantástica". Como oportunidades de evolução, destacaram-se um aplicativo móvel, notificações por WhatsApp além de e-mail, painéis personalizados por professor e exportações direcionadas para análises externas.
+  \includegraphics[width=0.4\linewidth]{images/TODO.jpeg}
+  \caption{Resultados quantitativos pendentes de coleta e análise.}
+  \label{fig:todo-resultados}
+\end{figure}
 
 \FloatBarrier
 
 \section{Conclusão e Trabalhos Futuros}
 \label{sec:conclusion}
 
-Este trabalho apresentou o desenvolvimento e a implantação do Sistema de Monitoria-IC como solução específica para o \textit{workflow} completo de monitoria. As contribuições centrais abrangem a automação integral de processos (da importação de dados à emissão de certificados), a adoção de uma arquitetura moderna e escalável que separa SPT e funcionalidades gerenciais, a validação em produção com métricas de eficiência e a disponibilização de uma base estruturada que viabiliza pesquisas sobre efetividade de programas de monitoria.
+Este trabalho apresentou o desenvolvimento do Sistema de Monitoria-IC como solução específica para o \textit{workflow} completo de monitoria. As contribuições centrais abrangem a automação integral de processos (da importação de dados à emissão de certificados), a adoção de uma arquitetura moderna e escalável que separa SPT e funcionalidades gerenciais e a disponibilização de uma base estruturada que viabiliza futuras pesquisas e implantações em ambiente institucional.
 
-A adoção do sistema produz efeitos mensuráveis no cotidiano administrativo, reduzindo significativamente o tempo gasto em tarefas repetitivas, eliminando retrabalho e padronizando procedimentos entre departamentos. Na dimensão estratégica, a consolidação de dados permite análises históricas e de tendências, qualificando a tomada de decisão e abrindo espaço para políticas institucionais orientadas por evidências. Do ponto de vista pedagógico, a maior facilidade de participação amplia o alcance do programa, a transparência reforça a confiança de todos os atores e a economia de tempo libera docentes para atividades-fim.
+A adoção plena do sistema tem o potencial de produzir efeitos mensuráveis no cotidiano administrativo, reduzindo o tempo gasto em tarefas repetitivas, eliminando retrabalho e padronizando procedimentos entre departamentos. Na dimensão estratégica, a consolidação de dados permite análises históricas e de tendências, qualificando a tomada de decisão e abrindo espaço para políticas institucionais orientadas por evidências. Do ponto de vista pedagógico, a maior facilidade de participação tende a ampliar o alcance do programa, a transparência reforça a confiança de todos os atores e a economia de tempo contribui para liberar docentes para atividades-fim.
 
 Apesar dos resultados positivos, permanecem desafios: a integração com o sistema acadêmico ainda é parcial para captura automática de CR e histórico; o escopo atual está restrito ao Instituto de Computação, exigindo adaptações para expansão; parte do fluxo depende de setores externos (PROGRAD, NUMOP), o que mantém etapas manuais; e a ausência de um aplicativo móvel nativo pode limitar o acesso em determinados contextos.
 
