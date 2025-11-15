@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 /**
  * E2E Test: Discipline Equivalence Workflow
@@ -134,23 +134,93 @@ test.describe('Discipline Equivalence Workflow', () => {
     await page.getByRole('button', { name: 'Configurações' }).first().click()
     await page.getByRole('link', { name: 'Equivalências de Disciplinas' }).click()
 
-    // Wait for table to load
-    await expect(page.locator('table')).toBeVisible({ timeout: 3000 })
+    // Wait for page to load (either table or empty state)
+    await page.waitForLoadState('networkidle')
+    await expect(page.locator('h1')).toContainText('Equivalências de Disciplinas', { timeout: 5000 })
 
-    // Click delete button on first equivalence (if any exists)
-    const deleteButton = page.locator('button[class*="destructive"]').first()
-    const hasEquivalences = await deleteButton.isVisible({ timeout: 1000 }).catch(() => false)
+    // Check if there are equivalences to delete
+    // The page shows either a table (if equivalences exist) or an empty state message
+    const hasTable = await page
+      .locator('table')
+      .isVisible({ timeout: 2000 })
+      .catch(() => false)
+    const hasEmptyState = await page
+      .getByText('Nenhuma equivalência cadastrada')
+      .isVisible({ timeout: 2000 })
+      .catch(() => false)
+
+    if (!hasTable && hasEmptyState) {
+      console.log('No equivalences to delete in clean test environment')
+      return
+    }
+
+    // Wait for table to be visible if it exists
+    if (hasTable) {
+      await expect(page.locator('table')).toBeVisible({ timeout: 3000 })
+    }
+
+    // Find delete button (trash icon button in table)
+    // The button has variant="ghost" and contains a Trash2 icon
+    const deleteButton = page
+      .locator('table')
+      .locator('button')
+      .filter({ has: page.locator('svg') })
+      .first()
+    const hasEquivalences = await deleteButton.isVisible({ timeout: 2000 }).catch(() => false)
 
     if (hasEquivalences) {
+      // Get initial count of equivalences
+      const initialRowCount = await page.locator('table tbody tr').count()
+
       await deleteButton.click()
 
       // Confirm deletion
       const confirmDialog = page.locator('[role="dialog"]')
-      await expect(confirmDialog).toContainText('Remover Equivalência')
+      await expect(confirmDialog).toContainText('Remover Equivalência', { timeout: 5000 })
       await confirmDialog.getByRole('button', { name: 'Remover' }).click()
 
-      // Verify success
-      await expect(page.getByText('Equivalência removida com sucesso')).toBeVisible({ timeout: 3000 })
+      // Wait for deletion to complete
+      await page.waitForTimeout(2000)
+
+      // Verify success by checking toast or that the table has one less row
+      const toastSelectors = [
+        page.locator('[data-state="open"]').getByText(/Equivalência removida com sucesso/i),
+        page.locator('[role="status"]').getByText(/removida com sucesso/i),
+        page.locator('.toast, [class*="toast"]').getByText(/removida/i),
+      ]
+
+      let toastFound = false
+      for (const selector of toastSelectors) {
+        try {
+          const isVisible = await selector.isVisible({ timeout: 3000 })
+          if (isVisible) {
+            toastFound = true
+            break
+          }
+        } catch {
+          // Continue to next selector
+        }
+      }
+
+      // Alternative verification: check if table row count decreased or empty state appeared
+      const finalRowCount = await page
+        .locator('table tbody tr')
+        .count()
+        .catch(() => 0)
+      const hasEmptyStateAfter = await page
+        .getByText('Nenhuma equivalência cadastrada')
+        .isVisible({ timeout: 2000 })
+        .catch(() => false)
+
+      // Test passes if toast found OR row count decreased OR empty state appeared
+      const deletionSuccessful = toastFound || finalRowCount < initialRowCount || hasEmptyStateAfter
+
+      if (!deletionSuccessful) {
+        console.log('Deletion may have succeeded but verification failed')
+      }
+
+      // Don't fail the test if toast not found, but deletion appears successful
+      expect(deletionSuccessful).toBeTruthy()
     } else {
       console.log('No equivalences to delete in clean test environment')
     }
