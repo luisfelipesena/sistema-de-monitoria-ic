@@ -1,9 +1,10 @@
 'use client'
 
+import { StatusBadge } from '@/components/atoms/StatusBadge'
 import { PagesLayout } from '@/components/layout/PagesLayout'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { TIPO_VAGA_BOLSISTA } from '@/types'
 import { api } from '@/utils/api'
 import { FileCheck, Clock, Award, Users, Calendar, CheckCircle } from 'lucide-react'
 
@@ -37,21 +38,6 @@ export default function StatusPage() {
         </div>
       </PagesLayout>
     )
-  }
-
-  const getStatusBadge = (statusValue: string) => {
-    switch (statusValue) {
-      case 'ATIVO':
-        return <Badge variant="default" className="bg-green-500">Ativo</Badge>
-      case 'CONCLUIDO':
-        return <Badge variant="secondary" className="bg-blue-500 text-white">Concluído</Badge>
-      case 'SUSPENSO':
-        return <Badge variant="destructive">Suspenso</Badge>
-      case 'EM_ANDAMENTO':
-        return <Badge variant="secondary" className="bg-yellow-500 text-white">Em Andamento</Badge>
-      default:
-        return <Badge variant="outline">{statusValue}</Badge>
-    }
   }
 
   const calculateProgress = (inicio: Date, fim: Date) => {
@@ -114,17 +100,17 @@ export default function StatusPage() {
                     {status.monitoriaAtiva.projeto.disciplinas[0]?.codigo} - {status.monitoriaAtiva.projeto.professorResponsavelNome}
                   </p>
                 </div>
-                {getStatusBadge(status.monitoriaAtiva.status)}
+                <StatusBadge status={status.monitoriaAtiva.status} />
               </div>
 
               <div className="flex items-center gap-2">
-                {status.monitoriaAtiva.tipo === 'BOLSISTA' ? (
+                {status.monitoriaAtiva.tipo === TIPO_VAGA_BOLSISTA ? (
                   <Award className="h-4 w-4 text-yellow-600" />
                 ) : (
                   <Users className="h-4 w-4 text-blue-600" />
                 )}
                 <span className="text-sm">
-                  {status.monitoriaAtiva.tipo === 'BOLSISTA' ? 'Monitor Bolsista' : 'Monitor Voluntário'}
+                  {status.monitoriaAtiva.tipo === TIPO_VAGA_BOLSISTA ? 'Monitor Bolsista' : 'Monitor Voluntário'}
                 </span>
               </div>
 

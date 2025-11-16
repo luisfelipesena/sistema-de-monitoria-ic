@@ -5,6 +5,7 @@ import { SidebarLayout } from "@/components/layout/Sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useAuth } from "@/hooks/use-auth"
 import { useOnboardingStatus } from "@/hooks/use-onboarding"
+import { PROFESSOR, STUDENT } from "@/types"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { Spinner } from "@/components/ui/spinner"
@@ -28,7 +29,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
     }
 
     const needsOnboarding = onboardingStatus?.pending
-    const isStudentOrProfessor = user.role === 'student' || user.role === 'professor'
+    const isStudentOrProfessor = user.role === STUDENT || user.role === PROFESSOR
 
     if (needsOnboarding && isStudentOrProfessor && !isOnboardingPage) {
       router.push("/home/common/onboarding")
@@ -55,7 +56,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
   }
 
   const needsOnboarding = onboardingStatus?.pending
-  const isStudentOrProfessor = user.role === 'student' || user.role === 'professor'
+  const isStudentOrProfessor = user.role === STUDENT || user.role === PROFESSOR
 
   if (needsOnboarding && isStudentOrProfessor && !isOnboardingPage) {
     return (

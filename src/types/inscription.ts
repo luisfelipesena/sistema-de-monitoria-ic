@@ -2,6 +2,8 @@ import { z } from 'zod'
 import {
   ACCEPTED_BOLSISTA,
   ACCEPTED_VOLUNTARIO,
+  decisionSchema,
+  Genero,
   REJECTED_BY_PROFESSOR,
   REJECTED_BY_STUDENT,
   SELECTED_BOLSISTA,
@@ -11,6 +13,7 @@ import {
   SUBMITTED,
   TipoInscricao,
   tipoInscricaoSchema,
+  UserRole,
   WAITING_LIST,
 } from './enums'
 import { idSchema } from './schemas'
@@ -53,7 +56,7 @@ export interface SelecaoCandidato {
   periodoInscricaoId: number
   projetoId: number
   alunoId: number
-  tipoVagaPretendida: 'BOLSISTA' | 'VOLUNTARIO' | 'ANY' | null
+  tipoVagaPretendida: TipoInscricao | null
   status:
     | typeof SUBMITTED
     | typeof SELECTED_BOLSISTA
@@ -75,7 +78,7 @@ export interface SelecaoCandidato {
     userId: number
     nomeCompleto: string
     nomeSocial: string | null
-    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO' | null
+    genero: Genero | null
     especificacaoGenero: string | null
     emailInstitucional: string | null
     matricula: string | null
@@ -97,7 +100,7 @@ export interface SelecaoCandidato {
       id: number
       username: string
       email: string
-      role: 'admin' | 'professor' | 'student'
+      role: UserRole
       assinaturaDefault: string | null
       dataAssinaturaDefault: Date | null
     }
@@ -157,7 +160,7 @@ export const createInscriptionSchema = z.object({
   projetoId: z.number().int().positive(),
   alunoId: z.number().int().positive(),
   tipoVagaPretendida: tipoInscricaoSchema.optional(),
-  status: statusInscricaoSchema.default('SUBMITTED'),
+  status: statusInscricaoSchema.default(SUBMITTED),
   notaDisciplina: z.number().min(0).max(10).optional(),
   notaSelecao: z.number().min(0).max(10).optional(),
   coeficienteRendimento: z.number().min(0).max(10).optional(),
@@ -167,7 +170,7 @@ export const createInscriptionSchema = z.object({
 
 export const inscriptionFormSchema = z.object({
   projetoId: idSchema,
-  tipoVagaPretendida: z.enum(['BOLSISTA', 'VOLUNTARIO', 'ANY']).optional(),
+  tipoVagaPretendida: tipoInscricaoSchema.optional(),
   documentos: z
     .array(
       z.object({
@@ -199,7 +202,7 @@ export const quickEvaluationSchema = z.object({
   inscricaoId: idSchema,
   rating: z.number().int().min(1).max(5),
   notes: z.string(),
-  decision: z.enum(['SELECT_SCHOLARSHIP', 'SELECT_VOLUNTEER', 'REJECT', 'PENDING']),
+  decision: decisionSchema,
 })
 
 export const inscriptionDetailSchema = z.object({

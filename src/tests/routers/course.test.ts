@@ -1,5 +1,6 @@
 import { courseRouter } from '@/server/api/routers/course/course'
 import type { Curso, User } from '@/server/db/schema'
+import { MODALIDADE_CURSO_PRESENCIAL, STATUS_CURSO_ATIVO, TIPO_CURSO_BACHARELADO } from '@/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMockContext } from '../setup'
 
@@ -23,15 +24,15 @@ describe('Course Router', () => {
     id: 1,
     nome: 'Computer Science',
     codigo: 12345,
-    tipo: 'BACHARELADO',
-    modalidade: 'PRESENCIAL',
+    tipo: TIPO_CURSO_BACHARELADO,
+    modalidade: MODALIDADE_CURSO_PRESENCIAL,
     duracao: 8,
     departamentoId: 1,
     cargaHoraria: 3200,
     descricao: 'Computer Science course description',
     coordenador: 'Dr. Smith',
     emailCoordenacao: 'coord@example.com',
-    status: 'ATIVO',
+    status: STATUS_CURSO_ATIVO,
     createdAt: new Date(),
     updatedAt: null,
   }

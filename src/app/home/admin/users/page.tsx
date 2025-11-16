@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FilterModal, type FilterValues } from "@/components/ui/FilterModal"
 import { useToast } from "@/hooks/use-toast"
-import { UserListItem } from "@/types"
+import { ADMIN, PROFESSOR, STUDENT, type UserRole, UserListItem } from "@/types"
 import { api } from "@/utils/api"
 import { formatUsernameToProperName } from "@/utils/username-formatter"
 import { useQueryClient } from "@tanstack/react-query"
@@ -28,7 +28,7 @@ export default function UsersPage() {
 
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({})
-  const [selectedRole, setSelectedRole] = useState<"all" | "admin" | "professor" | "student">("all")
+  const [selectedRole, setSelectedRole] = useState<"all" | UserRole>("all")
 
   const handleApplyFilters = (newFilters: FilterValues) => {
     setFilters(newFilters)
@@ -68,9 +68,9 @@ export default function UsersPage() {
     return usersData.users.reduce(
       (acc, user) => {
         acc.total++
-        if (user.role === "admin") acc.admins++
-        else if (user.role === "professor") acc.professors++
-        else if (user.role === "student") acc.students++
+        if (user.role === ADMIN) acc.admins++
+        else if (user.role === PROFESSOR) acc.professors++
+        else if (user.role === STUDENT) acc.students++
         return acc
       },
       { total: 0, admins: 0, professors: 0, students: 0 }
@@ -151,7 +151,7 @@ export default function UsersPage() {
       cell: ({ row }) => {
         const user = row.original
 
-        if (user.role === "professor" && user.professorProfile) {
+        if (user.role === PROFESSOR && user.professorProfile) {
           const dept = departamentos?.find((d) => d.id === user.professorProfile?.departamentoId)
           return (
             <div className="text-sm">
@@ -164,7 +164,7 @@ export default function UsersPage() {
           )
         }
 
-        if (user.role === "student" && user.studentProfile) {
+        if (user.role === STUDENT && user.studentProfile) {
           const curso = cursos?.find((c) => c.id === user.studentProfile?.cursoId)
           return (
             <div className="text-sm">
@@ -271,7 +271,7 @@ export default function UsersPage() {
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setSelectedRole(tab.id as "all" | "admin" | "professor" | "student")}
+                onClick={() => setSelectedRole(tab.id as "all" | UserRole)}
                 className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
                   selectedRole === tab.id
                     ? "border-black text-black"

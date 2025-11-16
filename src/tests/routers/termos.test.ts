@@ -1,6 +1,7 @@
 import { termosRouter } from '@/server/api/routers/termos/termos'
 import { type TRPCContext } from '@/server/api/trpc'
 import { type User } from '@/server/db/schema'
+import { TIPO_ASSINATURA_ATA_SELECAO, TIPO_ASSINATURA_TERMO_COMPROMISSO } from '@/types'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockDb = vi.mocked(await import('@/server/db')).db
@@ -65,7 +66,7 @@ describe('termosRouter', () => {
       const input = {
         vagaId: '1',
         assinaturaData: 'base64-signature-data',
-        tipoAssinatura: 'TERMO_COMPROMISSO_ALUNO' as const,
+        tipoAssinatura: TIPO_ASSINATURA_TERMO_COMPROMISSO,
       }
 
       await expect(caller.signTermo(input)).rejects.toThrowError(/Apenas o aluno pode assinar como alun/)
@@ -84,7 +85,7 @@ describe('termosRouter', () => {
           semestre: 'SEMESTRE_1',
         },
       }
-      const mockSignature = { tipoAssinatura: 'TERMO_COMPROMISSO_ALUNO' }
+      const mockSignature = { tipoAssinatura: TIPO_ASSINATURA_TERMO_COMPROMISSO }
 
       vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as any)
       vi.mocked(mockDb.query.assinaturaDocumentoTable.findFirst).mockResolvedValue(mockSignature as any)
@@ -92,7 +93,7 @@ describe('termosRouter', () => {
       const input = {
         vagaId: '1',
         assinaturaData: 'base64-signature-data',
-        tipoAssinatura: 'TERMO_COMPROMISSO_ALUNO' as const,
+        tipoAssinatura: TIPO_ASSINATURA_TERMO_COMPROMISSO,
       }
 
       await expect(caller.signTermo(input)).rejects.toThrowError(/Este documento já foi assinado por voc/)
@@ -115,7 +116,7 @@ describe('termosRouter', () => {
       vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as any)
       // Mock that only the professor has signed
       vi.mocked(mockDb.query.assinaturaDocumentoTable.findMany).mockResolvedValue([
-        { tipoAssinatura: 'ATA_SELECAO_PROFESSOR' },
+        { tipoAssinatura: TIPO_ASSINATURA_ATA_SELECAO },
         // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       ] as any)
 
@@ -140,8 +141,8 @@ describe('termosRouter', () => {
       vi.mocked(mockDb.query.vagaTable.findFirst).mockResolvedValue(mockVaga as any)
       // Mock that both parties have signed
       vi.mocked(mockDb.query.assinaturaDocumentoTable.findMany).mockResolvedValue([
-        { tipoAssinatura: 'ATA_SELECAO_PROFESSOR' },
-        { tipoAssinatura: 'TERMO_COMPROMISSO_ALUNO' },
+        { tipoAssinatura: TIPO_ASSINATURA_ATA_SELECAO },
+        { tipoAssinatura: TIPO_ASSINATURA_TERMO_COMPROMISSO },
         // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
       ] as any)
 

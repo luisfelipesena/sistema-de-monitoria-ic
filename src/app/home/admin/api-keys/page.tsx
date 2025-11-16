@@ -39,10 +39,12 @@ export default function ApiKeysPage() {
         expiresAt,
       })
 
-      setGeneratedKey(result.key)
-      setShowKey(true)
-      setNewKeyName("")
-      setNewKeyDescription("")
+      if (result) {
+        setGeneratedKey(result.key)
+        setShowKey(true)
+        setNewKeyName("")
+        setNewKeyDescription("")
+      }
       setNewKeyExpiration("")
       toast({
         title: "Sucesso!",

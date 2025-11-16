@@ -2,19 +2,29 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
 import type { OnboardingStatusResponse } from "@/server/api/routers/onboarding/onboarding"
+import {
+  GENERO_FEMININO,
+  GENERO_MASCULINO,
+  GENERO_OUTRO,
+  REGIME_20H,
+  REGIME_40H,
+  REGIME_DE,
+  type Genero,
+  type Regime,
+} from "@/types"
 import { api } from "@/utils/api"
+import { formatUsernameToProperName } from "@/utils/username-formatter"
 import { ArrowRight, CheckCircle, FileSignature, Info, UserCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useRef, useState, useEffect } from "react"
-import { useToast } from "@/hooks/use-toast"
-import { useAuth } from "@/hooks/use-auth"
+import { useEffect, useRef, useState } from "react"
 import SignatureCanvas from "react-signature-canvas"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { formatUsernameToProperName } from "@/utils/username-formatter"
 
 interface ProfessorOnboardingFormProps {
   onboardingStatus: OnboardingStatusResponse
@@ -30,15 +40,15 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
     cpf: "",
     telefone: "",
     telefoneInstitucional: "",
-    regime: "" as "20H" | "40H" | "DE" | "",
+    regime: "" as Regime | "",
     departamentoId: 0,
-    genero: "" as "MASCULINO" | "FEMININO" | "OUTRO" | "",
+    genero: "" as Genero | "",
     especificacaoGenero: "",
     nomeSocial: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSignatureDialog, setShowSignatureDialog] = useState(false)
-  const [signatureMode, setSignatureMode] = useState<'draw' | 'upload'>('draw')
+  const [signatureMode, setSignatureMode] = useState<"draw" | "upload">("draw")
   const signatureRef = useRef<SignatureCanvas>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -51,9 +61,9 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   // Pre-populate name from user data
   useEffect(() => {
     if (user?.username && !formData.nomeCompleto) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        nomeCompleto: formatUsernameToProperName(user.username)
+        nomeCompleto: formatUsernameToProperName(user.username),
       }))
     }
   }, [user, formData.nomeCompleto])
@@ -65,7 +75,14 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.nomeCompleto || !formData.matriculaSiape || !formData.cpf || !formData.regime || !formData.departamentoId || !formData.genero) {
+    if (
+      !formData.nomeCompleto ||
+      !formData.matriculaSiape ||
+      !formData.cpf ||
+      !formData.regime ||
+      !formData.departamentoId ||
+      !formData.genero
+    ) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios",
@@ -89,8 +106,8 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
       // 1. Criar perfil
       await createProfileMutation.mutateAsync({
         ...formData,
-        regime: formData.regime as "20H" | "40H" | "DE",
-        genero: formData.genero as "MASCULINO" | "FEMININO" | "OUTRO",
+        regime: formData.regime as Regime,
+        genero: formData.genero as Genero,
       })
 
       // 2. Salvar assinatura
@@ -117,7 +134,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const handleSaveSignatureLocally = (signatureData: string) => {
     setSignatureDataURL(signatureData)
     setShowSignatureDialog(false)
-    setSignatureMode('draw')
+    setSignatureMode("draw")
     toast({
       title: "Assinatura configurada!",
       description: "Assinatura salva localmente. Complete o formulário para finalizar.",
@@ -141,7 +158,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
     const file = event.target.files?.[0]
     if (!file) return
 
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       toast({
         title: "Formato inválido",
         description: "Por favor, selecione uma imagem",
@@ -187,23 +204,13 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="nomeCompleto">Nome Completo *</Label>
-                    <Input
-                      id="nomeCompleto"
-                      value={formData.nomeCompleto}
-                      disabled
-                      className="mt-1 bg-gray-50"
-                    />
+                    <Input id="nomeCompleto" value={formData.nomeCompleto} disabled className="mt-1 bg-gray-50" />
                     <p className="text-xs text-muted-foreground mt-1">Pré-preenchido com base no seu usuário</p>
                   </div>
 
                   <div>
                     <Label htmlFor="email">E-mail *</Label>
-                    <Input
-                      id="email"
-                      value={user?.email || ""}
-                      disabled
-                      className="mt-1 bg-gray-50"
-                    />
+                    <Input id="email" value={user?.email || ""} disabled className="mt-1 bg-gray-50" />
                     <p className="text-xs text-muted-foreground mt-1">E-mail cadastrado no sistema</p>
                   </div>
 
@@ -266,22 +273,20 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     <Label htmlFor="genero">Gênero *</Label>
                     <Select
                       value={formData.genero}
-                      onValueChange={(value: "MASCULINO" | "FEMININO" | "OUTRO") =>
-                        setFormData({ ...formData, genero: value })
-                      }
+                      onValueChange={(value: Genero) => setFormData({ ...formData, genero: value })}
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Selecione seu gênero" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="MASCULINO">Masculino</SelectItem>
-                        <SelectItem value="FEMININO">Feminino</SelectItem>
-                        <SelectItem value="OUTRO">Outro</SelectItem>
+                        <SelectItem value={GENERO_MASCULINO}>Masculino</SelectItem>
+                        <SelectItem value={GENERO_FEMININO}>Feminino</SelectItem>
+                        <SelectItem value={GENERO_OUTRO}>Outro</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {formData.genero === "OUTRO" && (
+                  {formData.genero === GENERO_OUTRO && (
                     <div>
                       <Label htmlFor="especificacaoGenero">Especificação de Gênero</Label>
                       <Input
@@ -316,15 +321,15 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     <Label htmlFor="regime">Regime de Trabalho *</Label>
                     <Select
                       value={formData.regime}
-                      onValueChange={(value: "20H" | "40H" | "DE") => setFormData({ ...formData, regime: value })}
+                      onValueChange={(value: Regime) => setFormData({ ...formData, regime: value })}
                     >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Selecione o regime" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="20H">20 horas</SelectItem>
-                        <SelectItem value="40H">40 horas</SelectItem>
-                        <SelectItem value="DE">Dedicação Exclusiva</SelectItem>
+                        <SelectItem value={REGIME_20H}>20 horas</SelectItem>
+                        <SelectItem value={REGIME_40H}>40 horas</SelectItem>
+                        <SelectItem value={REGIME_DE}>Dedicação Exclusiva</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -352,12 +357,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                             <p className="text-sm text-green-700">Sua assinatura foi salva com sucesso</p>
                           </div>
                         </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowSignatureDialog(true)}
-                        >
+                        <Button type="button" variant="outline" size="sm" onClick={() => setShowSignatureDialog(true)}>
                           Alterar
                         </Button>
                       </div>
@@ -372,7 +372,8 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                         <div className="flex-1">
                           <p className="font-medium text-amber-800 mb-2">Assinatura obrigatória</p>
                           <p className="text-sm text-amber-700 mb-3">
-                            A assinatura digital garante a autenticidade e validade legal dos documentos gerados pelo sistema.
+                            A assinatura digital garante a autenticidade e validade legal dos documentos gerados pelo
+                            sistema.
                           </p>
                           <Button
                             type="button"
@@ -433,22 +434,22 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
           <div className="space-y-4">
             <div className="flex gap-2 border-b pb-2">
               <Button
-                variant={signatureMode === 'draw' ? 'default' : 'outline'}
+                variant={signatureMode === "draw" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSignatureMode('draw')}
+                onClick={() => setSignatureMode("draw")}
               >
                 Desenhar
               </Button>
               <Button
-                variant={signatureMode === 'upload' ? 'default' : 'outline'}
+                variant={signatureMode === "upload" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSignatureMode('upload')}
+                onClick={() => setSignatureMode("upload")}
               >
                 Fazer Upload
               </Button>
             </div>
 
-            {signatureMode === 'draw' ? (
+            {signatureMode === "draw" ? (
               <>
                 <div className="text-sm text-muted-foreground">Desenhe sua assinatura no espaço abaixo:</div>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
@@ -467,7 +468,10 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="text-xs text-blue-800">
                       <p className="font-medium mb-1">Dica:</p>
-                      <p>Desenhe sua assinatura de forma clara e legível. Esta será sua assinatura padrão para todos os documentos.</p>
+                      <p>
+                        Desenhe sua assinatura de forma clara e legível. Esta será sua assinatura padrão para todos os
+                        documentos.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -505,7 +509,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
             )}
           </div>
           <div className="flex justify-between">
-            {signatureMode === 'draw' ? (
+            {signatureMode === "draw" ? (
               <Button variant="outline" onClick={handleClearSignature}>
                 Limpar
               </Button>
@@ -517,12 +521,12 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                 variant="outline"
                 onClick={() => {
                   setShowSignatureDialog(false)
-                  setSignatureMode('draw')
+                  setSignatureMode("draw")
                 }}
               >
                 Cancelar
               </Button>
-              {signatureMode === 'draw' && (
+              {signatureMode === "draw" && (
                 <Button onClick={handleSaveFromDraw} disabled={isSubmitting}>
                   {isSubmitting ? "Salvando..." : "Salvar Assinatura"}
                 </Button>

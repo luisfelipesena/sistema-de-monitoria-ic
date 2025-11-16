@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { importFormSchema, ImportHistoryItem } from "@/types"
+import { importFormSchema, ImportHistoryItem, SEMESTRE_1, SEMESTRE_2 } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ColumnDef } from "@tanstack/react-table"
@@ -100,7 +100,7 @@ export default function ImportProjectsPage() {
     resolver: zodResolver(importFormSchema),
     defaultValues: {
       ano: new Date().getFullYear(),
-      semestre: "SEMESTRE_1",
+      semestre: SEMESTRE_1,
     },
   })
 
@@ -204,7 +204,7 @@ export default function ImportProjectsPage() {
         <div>
           <div className="font-medium">{row.original.nomeArquivo}</div>
           <div className="text-sm text-muted-foreground">
-            {row.original.ano}/{row.original.semestre === "SEMESTRE_1" ? "1" : "2"}
+            {row.original.ano}/{row.original.semestre === SEMESTRE_1 ? "1" : "2"}
           </div>
         </div>
       ),
@@ -315,8 +315,8 @@ export default function ImportProjectsPage() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="SEMESTRE_1">1º Semestre</SelectItem>
-                                <SelectItem value="SEMESTRE_2">2º Semestre</SelectItem>
+                                <SelectItem value={SEMESTRE_1}>1º Semestre</SelectItem>
+                                <SelectItem value={SEMESTRE_2}>2º Semestre</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -449,7 +449,7 @@ export default function ImportProjectsPage() {
                   <div>
                     <p className="text-sm font-medium">Período</p>
                     <p className="text-sm text-muted-foreground">
-                      {importDetails.ano}/{importDetails.semestre === "SEMESTRE_1" ? "1" : "2"}
+                      {importDetails.ano}/{importDetails.semestre === SEMESTRE_1 ? "1" : "2"}
                     </p>
                   </div>
                   <div>

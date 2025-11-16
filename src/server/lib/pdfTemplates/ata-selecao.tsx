@@ -1,4 +1,17 @@
-import { AtaSelecaoData } from "@/types"
+import { PDF_PAGE_SIZE_A4 } from "@/constants/pdf"
+import {
+  AtaSelecaoData,
+  SEMESTRE_LABELS,
+  STATUS_INSCRICAO_REJECTED_BY_PROFESSOR,
+  STATUS_INSCRICAO_SELECTED_BOLSISTA,
+  STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
+  STATUS_INSCRICAO_WAITING_LIST,
+  TIPO_VAGA_BOLSISTA,
+  TIPO_VAGA_VOLUNTARIO,
+  type Semestre,
+  type StatusInscricao,
+  type TipoVaga,
+} from "@/types"
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 
 // Styles for the PDF
@@ -92,19 +105,25 @@ const styles = StyleSheet.create({
 })
 
 export function AtaSelecaoTemplate({ data }: { data: AtaSelecaoData }) {
-  const formatSemestre = (semestre: string) => {
-    return semestre === "SEMESTRE_1" ? "1º Semestre" : "2º Semestre"
+  const formatSemestre = (semestre: Semestre) => {
+    return SEMESTRE_LABELS[semestre]
   }
 
-  const formatStatus = (status: string) => {
+  const formatTipoVaga = (tipo: TipoVaga | string | null | undefined) => {
+    if (tipo === TIPO_VAGA_BOLSISTA) return "B"
+    if (tipo === TIPO_VAGA_VOLUNTARIO) return "V"
+    return "-"
+  }
+
+  const formatStatus = (status: StatusInscricao | string) => {
     switch (status) {
-      case "SELECTED_BOLSISTA":
+      case STATUS_INSCRICAO_SELECTED_BOLSISTA:
         return "Selecionado (Bolsista)"
-      case "SELECTED_VOLUNTARIO":
+      case STATUS_INSCRICAO_SELECTED_VOLUNTARIO:
         return "Selecionado (Voluntário)"
-      case "REJECTED_BY_PROFESSOR":
+      case STATUS_INSCRICAO_REJECTED_BY_PROFESSOR:
         return "Não Selecionado"
-      case "WAITING_LIST":
+      case STATUS_INSCRICAO_WAITING_LIST:
         return "Lista de Espera"
       default:
         return status
@@ -118,12 +137,12 @@ export function AtaSelecaoTemplate({ data }: { data: AtaSelecaoData }) {
   })
 
   const aprovados = candidatosOrdenados.filter(
-    (c) => c.status === "SELECTED_BOLSISTA" || c.status === "SELECTED_VOLUNTARIO"
+    (c) => c.status === STATUS_INSCRICAO_SELECTED_BOLSISTA || c.status === STATUS_INSCRICAO_SELECTED_VOLUNTARIO
   )
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size={PDF_PAGE_SIZE_A4} style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>UNIVERSIDADE FEDERAL DA BAHIA</Text>
@@ -139,7 +158,7 @@ export function AtaSelecaoTemplate({ data }: { data: AtaSelecaoData }) {
           </Text>
           <Text style={styles.text}>
             <Text style={{ fontWeight: "bold" }}>Período:</Text> {data.projeto.ano}.
-            {formatSemestre(data.projeto.semestre)}
+            {formatSemestre(data.projeto.semestre as Semestre)}
           </Text>
           <Text style={styles.text}>
             <Text style={{ fontWeight: "bold" }}>Departamento:</Text> {data.projeto.departamento.nome}
@@ -186,7 +205,7 @@ export function AtaSelecaoTemplate({ data }: { data: AtaSelecaoData }) {
                 <Text style={[styles.tableCell, { flex: 2 }]}>{candidato.aluno.nomeCompleto}</Text>
                 <Text style={styles.tableCellNarrow}>{candidato.aluno.matricula}</Text>
                 <Text style={styles.tableCellNarrow}>{candidato.aluno.cr?.toFixed(2) || "-"}</Text>
-                <Text style={styles.tableCellNarrow}>{candidato.tipoVagaPretendida === "BOLSISTA" ? "B" : "V"}</Text>
+                <Text style={styles.tableCellNarrow}>{formatTipoVaga(candidato.tipoVagaPretendida)}</Text>
                 <Text style={styles.tableCellNarrow}>{candidato.notaDisciplina?.toFixed(1) || "-"}</Text>
                 <Text style={styles.tableCellNarrow}>{candidato.notaSelecao?.toFixed(1) || "-"}</Text>
                 <Text style={styles.tableCellNarrow}>{candidato.notaFinal?.toFixed(1) || "-"}</Text>

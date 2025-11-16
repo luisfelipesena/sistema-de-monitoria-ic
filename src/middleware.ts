@@ -1,4 +1,5 @@
 import { apiKeyTable, sessionTable, userTable } from '@/server/db/schema'
+import { ADMIN, PROFESSOR, STUDENT, type UserRole } from '@/types'
 import { env } from '@/utils/env'
 import { LUCIA_SESSION_COOKIE_NAME } from '@/utils/utils'
 import { createHash } from 'crypto'
@@ -11,7 +12,7 @@ export const runtime = 'nodejs'
 
 interface SessionPayload {
   userId: number
-  role: 'admin' | 'professor' | 'student'
+  role: UserRole
 }
 
 const protectedRoutes = {
@@ -32,15 +33,15 @@ function isApiRoute(pathname: string): boolean {
   return apiRoutes.some((route) => pathname.startsWith(route))
 }
 
-function getRequiredRole(pathname: string): 'admin' | 'professor' | 'student' | 'authenticated' | null {
+function getRequiredRole(pathname: string): UserRole | 'authenticated' | null {
   if (protectedRoutes.admin.some((route) => pathname.startsWith(route))) {
-    return 'admin'
+    return ADMIN
   }
   if (protectedRoutes.professor.some((route) => pathname.startsWith(route))) {
-    return 'professor'
+    return PROFESSOR
   }
   if (protectedRoutes.student.some((route) => pathname.startsWith(route))) {
-    return 'student'
+    return STUDENT
   }
   if (protectedRoutes.authenticated.some((route) => pathname.startsWith(route))) {
     return 'authenticated'
@@ -86,7 +87,7 @@ async function verifySession(sessionId: string): Promise<SessionPayload | null> 
 
     return {
       userId: session.userId,
-      role: session.role as 'admin' | 'professor' | 'student',
+      role: session.role as UserRole,
     }
   } catch (error) {
     console.error('Erro ao verificar sessão:', error)
@@ -133,7 +134,7 @@ async function verifyApiKey(apiKey: string): Promise<SessionPayload | null> {
 
     return {
       userId: record.userId,
-      role: user[0].role as 'admin' | 'professor' | 'student',
+      role: user[0].role as UserRole,
     }
   } catch (error) {
     console.error('Erro ao verificar API key:', error)

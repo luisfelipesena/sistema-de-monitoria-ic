@@ -77,7 +77,7 @@ export function getFirstNameFromUsername(username: string): string {
 /**
  * Creates initials from a username
  * @param username - The username from UFBA CAS
- * @returns Initials (e.g., "luis.sena" -> "LS")
+ * @returns Initials (e.g., luis.sena -> LS)
  */
 export function getUserInitials(username: string): string {
   if (!username || typeof username !== 'string') {

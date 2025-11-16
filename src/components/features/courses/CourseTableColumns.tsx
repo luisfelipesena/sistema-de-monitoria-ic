@@ -1,6 +1,23 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CursoListItem } from "@/types";
+import {
+  MODALIDADE_CURSO_EAD,
+  MODALIDADE_CURSO_HIBRIDO,
+  MODALIDADE_CURSO_LABELS,
+  MODALIDADE_CURSO_PRESENCIAL,
+  STATUS_CURSO_ATIVO,
+  STATUS_CURSO_EM_REFORMULACAO,
+  STATUS_CURSO_INATIVO,
+  TIPO_CURSO_BACHARELADO,
+  TIPO_CURSO_LICENCIATURA,
+  TIPO_CURSO_POS_GRADUACAO,
+  TIPO_CURSO_TECNICO,
+  TIPO_CURSO_LABELS,
+  type CursoListItem,
+  type ModalidadeCurso,
+  type StatusCurso,
+  type TipoCurso,
+} from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
 import { Edit, Trash2 } from "lucide-react";
 
@@ -39,24 +56,17 @@ export function createCourseTableColumns({
       accessorKey: "tipo",
       header: "Tipo",
       cell: ({ row }) => {
-        const tipo = row.getValue("tipo") as string;
-        const tipoColor: Record<string, string> = {
-          BACHARELADO: "bg-blue-100 text-blue-800",
-          LICENCIATURA: "bg-green-100 text-green-800",
-          TECNICO: "bg-yellow-100 text-yellow-800",
-          POS_GRADUACAO: "bg-purple-100 text-purple-800",
-        };
-
-        const tipoLabel: Record<string, string> = {
-          BACHARELADO: "Bacharelado",
-          LICENCIATURA: "Licenciatura",
-          TECNICO: "Técnico",
-          POS_GRADUACAO: "Pós-Graduação",
+        const tipo = row.getValue("tipo") as TipoCurso;
+        const tipoColor: Record<TipoCurso, string> = {
+          [TIPO_CURSO_BACHARELADO]: "bg-blue-100 text-blue-800",
+          [TIPO_CURSO_LICENCIATURA]: "bg-green-100 text-green-800",
+          [TIPO_CURSO_TECNICO]: "bg-yellow-100 text-yellow-800",
+          [TIPO_CURSO_POS_GRADUACAO]: "bg-purple-100 text-purple-800",
         };
 
         return (
           <Badge className={tipoColor[tipo] || ""} variant="secondary">
-            {tipoLabel[tipo] || tipo}
+            {TIPO_CURSO_LABELS[tipo] || tipo}
           </Badge>
         );
       },
@@ -65,15 +75,10 @@ export function createCourseTableColumns({
       accessorKey: "modalidade",
       header: "Modalidade",
       cell: ({ row }) => {
-        const modalidade = row.getValue("modalidade") as string;
-        const modalidadeLabel: Record<string, string> = {
-          PRESENCIAL: "Presencial",
-          EAD: "EAD",
-          HIBRIDO: "Híbrido",
-        };
+        const modalidade = row.getValue("modalidade") as ModalidadeCurso;
         return (
-          <span className="text-sm">{modalidadeLabel[modalidade] || modalidade}</span>
-        );
+          <span className="text-sm">{MODALIDADE_CURSO_LABELS[modalidade] || modalidade}</span>
+        )
       },
     },
     {
@@ -124,24 +129,23 @@ export function createCourseTableColumns({
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => {
-        const status = row.getValue("status") as string;
-        const statusColor: Record<string, string> = {
-          ATIVO: "bg-green-100 text-green-800",
-          INATIVO: "bg-gray-100 text-gray-800",
-          EM_REFORMULACAO: "bg-yellow-100 text-yellow-800",
-        };
-
-        const statusLabel: Record<string, string> = {
-          ATIVO: "Ativo",
-          INATIVO: "Inativo",
-          EM_REFORMULACAO: "Em Reformulação",
-        };
+        const status = row.getValue("status") as StatusCurso
+        const statusColor: Record<StatusCurso, string> = {
+          [STATUS_CURSO_ATIVO]: "bg-green-100 text-green-800",
+          [STATUS_CURSO_INATIVO]: "bg-gray-100 text-gray-800",
+          [STATUS_CURSO_EM_REFORMULACAO]: "bg-yellow-100 text-yellow-800",
+        }
+        const statusLabel: Record<StatusCurso, string> = {
+          [STATUS_CURSO_ATIVO]: "Ativo",
+          [STATUS_CURSO_INATIVO]: "Inativo",
+          [STATUS_CURSO_EM_REFORMULACAO]: "Em Reformulação",
+        }
 
         return (
           <Badge className={statusColor[status] || ""} variant="secondary">
             {statusLabel[status] || status}
           </Badge>
-        );
+        )
       },
     },
     {

@@ -1,9 +1,13 @@
 import { z } from 'zod'
 import {
+  Genero,
+  PROJETO_STATUS_DRAFT,
   ProjetoStatus,
   projetoStatusSchema,
+  Regime,
   Semestre,
   semestreSchema,
+  SigningMode,
   TipoProposicao,
   tipoProposicaoSchema,
 } from './enums'
@@ -141,18 +145,18 @@ export interface MonitoriaFormData {
     id: number
     nomeCompleto: string
     nomeSocial?: string
-    genero: 'MASCULINO' | 'FEMININO' | 'OUTRO' | null
+    genero: Genero | null
     cpf: string | null
     matriculaSiape?: string
-    regime: '20H' | '40H' | 'DE' | null
+    regime: Regime | null
     telefone?: string
     telefoneInstitucional?: string
     emailInstitucional: string | null
   }
   ano: number
-  semestre: 'SEMESTRE_1' | 'SEMESTRE_2'
+  semestre: Semestre
   numeroEdital?: string
-  tipoProposicao: 'INDIVIDUAL' | 'COLETIVA'
+  tipoProposicao: TipoProposicao
   professoresParticipantes?: string
   numeroMonitroresSolicitados?: number
   bolsasSolicitadas: number
@@ -179,7 +183,7 @@ export interface MonitoriaFormData {
   dataAssinaturaProfessor?: string
   dataAssinaturaAdmin?: string
   allowSigning?: boolean
-  signingMode?: 'professor' | 'admin' | 'view'
+  signingMode?: SigningMode
   projetoId?: number
 }
 
@@ -240,7 +244,7 @@ export const createProjectSchema = z.object({
   professorResponsavelId: z.number().int().positive(),
   titulo: z.string().min(1).max(255),
   descricao: z.string().min(1),
-  status: projetoStatusSchema.default('DRAFT'),
+  status: projetoStatusSchema.default(PROJETO_STATUS_DRAFT),
   assinaturaProfessor: z.string().optional(),
   feedbackAdmin: z.string().optional(),
 })
@@ -270,8 +274,8 @@ export const updateProjetoSchema = z.object({
   id: z.number().int().positive(),
   departamentoId: z.number().int().positive().optional(),
   ano: z.number().int().min(2000).max(2100).optional(),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']).optional(),
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']).optional(),
+  semestre: semestreSchema.optional(),
+  tipoProposicao: tipoProposicaoSchema.optional(),
   bolsasSolicitadas: z.number().int().min(0).optional(),
   voluntariosSolicitados: z.number().int().min(0).optional(),
   bolsasDisponibilizadas: z.number().int().min(0).optional(),
@@ -282,7 +286,7 @@ export const updateProjetoSchema = z.object({
   professorResponsavelId: z.number().int().positive().optional(),
   titulo: z.string().min(1).optional(),
   descricao: z.string().min(1).optional(),
-  status: z.enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_PROFESSOR_SIGNATURE']).optional(),
+  status: projetoStatusSchema.optional(),
   assinaturaProfessor: z.string().optional(),
   feedbackAdmin: z.string().optional(),
 })
@@ -290,8 +294,8 @@ export const updateProjetoSchema = z.object({
 export const insertProjetoTableSchema = z.object({
   departamentoId: z.number().int().positive(),
   ano: z.number().int().min(2000).max(2100),
-  semestre: z.enum(['SEMESTRE_1', 'SEMESTRE_2']),
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
+  semestre: semestreSchema,
+  tipoProposicao: tipoProposicaoSchema,
   bolsasSolicitadas: z.number().int().min(0).default(0),
   voluntariosSolicitados: z.number().int().min(0).default(0),
   bolsasDisponibilizadas: z.number().int().min(0).optional(),
@@ -302,7 +306,7 @@ export const insertProjetoTableSchema = z.object({
   professorResponsavelId: z.number().int().positive(),
   titulo: z.string().min(1).max(255),
   descricao: z.string().min(1),
-  status: z.enum(['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED', 'PENDING_PROFESSOR_SIGNATURE']).default('DRAFT'),
+  status: projetoStatusSchema.default(PROJETO_STATUS_DRAFT),
   assinaturaProfessor: z.string().optional(),
   feedbackAdmin: z.string().optional(),
 })
@@ -328,7 +332,7 @@ export const projectFormSchema = z.object({
   departamentoId: z.number().int().positive(),
   ano: z.number().int().min(2000).max(2100),
   semestre: semestreSchema,
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
+  tipoProposicao: tipoProposicaoSchema,
   bolsasSolicitadas: z.number().int().min(0),
   voluntariosSolicitados: z.number().int().min(0),
   cargaHorariaSemana: z.number().int().positive(),
@@ -349,7 +353,7 @@ export const projectDetailSchema = z.object({
   departamentoId: z.number().int().positive(),
   ano: z.number().int().min(2000).max(2100),
   semestre: semestreSchema,
-  tipoProposicao: z.enum(['INDIVIDUAL', 'COLETIVA']),
+  tipoProposicao: tipoProposicaoSchema,
   bolsasSolicitadas: z.number().int().min(0),
   voluntariosSolicitados: z.number().int().min(0),
   bolsasDisponibilizadas: z.number().int().min(0).nullable().optional(),

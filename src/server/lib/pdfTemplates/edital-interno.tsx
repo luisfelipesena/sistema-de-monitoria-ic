@@ -1,10 +1,10 @@
-import React from 'react'
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { SEMESTRE_LABELS, type Semestre, type TipoMonitoria } from "@/types"
+import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
 
 // Styles for the PDF
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Helvetica',
+    fontFamily: "Helvetica",
     fontSize: 11,
     paddingTop: 30,
     paddingLeft: 60,
@@ -13,17 +13,17 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
   },
   header: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 30,
   },
   title: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
   },
   section: {
@@ -31,19 +31,19 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    color: '#1976d2',
+    color: "#1976d2",
   },
   text: {
     fontSize: 11,
     marginBottom: 5,
-    textAlign: 'justify',
+    textAlign: "justify",
   },
   textBold: {
     fontSize: 11,
     marginBottom: 5,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   list: {
     marginLeft: 20,
@@ -52,72 +52,72 @@ const styles = StyleSheet.create({
   listItem: {
     fontSize: 11,
     marginBottom: 3,
-    textAlign: 'justify',
+    textAlign: "justify",
   },
   table: {
     marginBottom: 20,
   },
   tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#f5f5f5',
+    flexDirection: "row",
+    backgroundColor: "#f5f5f5",
     padding: 8,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 10,
     borderTopWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: '#000',
+    borderColor: "#000",
   },
   tableRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     borderBottomWidth: 1,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: '#000',
+    borderColor: "#000",
     padding: 6,
     fontSize: 10,
   },
   tableCell: {
     flex: 1,
-    textAlign: 'left',
+    textAlign: "left",
     paddingHorizontal: 4,
   },
   tableCellCenter: {
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     paddingHorizontal: 4,
   },
   tableCellNarrow: {
     width: 80,
-    textAlign: 'center',
+    textAlign: "center",
     paddingHorizontal: 4,
   },
   signature: {
     marginTop: 40,
-    textAlign: 'center',
+    textAlign: "center",
   },
   signatureLine: {
     borderBottomWidth: 1,
-    borderBottomColor: '#000',
+    borderBottomColor: "#000",
     marginBottom: 5,
     paddingBottom: 30,
     marginHorizontal: 50,
   },
   footer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 30,
     left: 60,
     right: 60,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 9,
-    color: '#666',
+    color: "#666",
   },
 })
 
 export interface EditalInternoData {
   numeroEdital: string
   ano: number
-  semestre: string
+  semestre: Semestre
   titulo: string
   descricao?: string
   periodoInscricao: {
@@ -137,7 +137,7 @@ export interface EditalInternoData {
       nome: string
       email?: string
     }
-    tipoMonitoria: 'INDIVIDUAL' | 'COLETIVO'
+    tipoMonitoria: TipoMonitoria
     numTurmas?: number
     numBolsistas: number
     numVoluntarios: number
@@ -154,12 +154,12 @@ export interface EditalInternoData {
 }
 
 export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
-  const formatSemestre = (semestre: string) => {
-    return semestre === 'SEMESTRE_1' ? '1º Semestre' : '2º Semestre'
+  const formatSemestre = (semestre: Semestre) => {
+    return SEMESTRE_LABELS[semestre]
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR')
+    return new Date(dateString).toLocaleDateString("pt-BR")
   }
 
   return (
@@ -167,15 +167,9 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>
-            UNIVERSIDADE FEDERAL DA BAHIA
-          </Text>
-          <Text style={styles.subtitle}>
-            INSTITUTO DE COMPUTAÇÃO
-          </Text>
-          <Text style={styles.subtitle}>
-            DEPARTAMENTO DE CIÊNCIA DA COMPUTAÇÃO
-          </Text>
+          <Text style={styles.title}>UNIVERSIDADE FEDERAL DA BAHIA</Text>
+          <Text style={styles.subtitle}>INSTITUTO DE COMPUTAÇÃO</Text>
+          <Text style={styles.subtitle}>DEPARTAMENTO DE CIÊNCIA DA COMPUTAÇÃO</Text>
           <Text style={[styles.title, { marginTop: 20 }]}>
             EDITAL Nº {data.numeroEdital}/{data.ano}
           </Text>
@@ -187,8 +181,8 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
         {/* Descrição/Introdução */}
         <View style={styles.section}>
           <Text style={styles.text}>
-            {data.descricao || 
-            `O Departamento de Ciência da Computação (DCC) do Instituto de Computação da UFBA 
+            {data.descricao ||
+              `O Departamento de Ciência da Computação (DCC) do Instituto de Computação da UFBA 
             torna público o presente edital para seleção de monitores para o ${formatSemestre(data.semestre)} 
             de ${data.ano}, conforme as normas estabelecidas pela Resolução 04/2019 do CONSEPE.`}
           </Text>
@@ -198,13 +192,14 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. DAS INSCRIÇÕES</Text>
           <Text style={styles.text}>
-            As inscrições para o Programa de Monitoria deverão ser realizadas no período de{' '}
-            <Text style={{ fontWeight: 'bold' }}>
+            As inscrições para o Programa de Monitoria deverão ser realizadas no período de{" "}
+            <Text style={{ fontWeight: "bold" }}>
               {formatDate(data.periodoInscricao.dataInicio)} a {formatDate(data.periodoInscricao.dataFim)}
-            </Text>, exclusivamente através do formulário eletrônico disponível em:
+            </Text>
+            , exclusivamente através do formulário eletrônico disponível em:
           </Text>
           {data.formularioInscricaoUrl && (
-            <Text style={[styles.text, { color: '#1976d2', textDecoration: 'underline' }]}>
+            <Text style={[styles.text, { color: "#1976d2", textDecoration: "underline" }]}>
               {data.formularioInscricaoUrl}
             </Text>
           )}
@@ -213,9 +208,7 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
         {/* 2. Dos Documentos Necessários */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>2. DOS DOCUMENTOS NECESSÁRIOS</Text>
-          <Text style={styles.text}>
-            O candidato deverá anexar os seguintes documentos no ato da inscrição:
-          </Text>
+          <Text style={styles.text}>O candidato deverá anexar os seguintes documentos no ato da inscrição:</Text>
           <View style={styles.list}>
             <Text style={styles.listItem}>a) Formulário de inscrição devidamente preenchido e assinado;</Text>
             <Text style={styles.listItem}>b) Termo de compromisso assinado;</Text>
@@ -228,10 +221,8 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
         {/* 3. Das Disciplinas e Vagas */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>3. DAS DISCIPLINAS E VAGAS OFERECIDAS</Text>
-          <Text style={styles.text}>
-            Estão sendo oferecidas as seguintes vagas para monitoria:
-          </Text>
-          
+          <Text style={styles.text}>Estão sendo oferecidas as seguintes vagas para monitoria:</Text>
+
           <View style={styles.table}>
             <View style={styles.tableHeader}>
               <Text style={[styles.tableCell, { flex: 1.5 }]}>Disciplina</Text>
@@ -240,25 +231,19 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
               <Text style={styles.tableCellNarrow}>Voluntários</Text>
               <Text style={[styles.tableCell, { flex: 1.2 }]}>Data/Horário Seleção</Text>
             </View>
-            
+
             {data.disciplinas.map((disciplina, index) => (
               <View key={index} style={styles.tableRow}>
                 <Text style={[styles.tableCell, { flex: 1.5 }]}>
                   {disciplina.codigo} - {disciplina.nome}
                 </Text>
-                <Text style={[styles.tableCell, { flex: 2 }]}>
-                  {disciplina.professor.nome}
-                </Text>
-                <Text style={styles.tableCellNarrow}>
-                  {disciplina.numBolsistas}
-                </Text>
-                <Text style={styles.tableCellNarrow}>
-                  {disciplina.numVoluntarios}
-                </Text>
+                <Text style={[styles.tableCell, { flex: 2 }]}>{disciplina.professor.nome}</Text>
+                <Text style={styles.tableCellNarrow}>{disciplina.numBolsistas}</Text>
+                <Text style={styles.tableCellNarrow}>{disciplina.numVoluntarios}</Text>
                 <Text style={[styles.tableCell, { flex: 1.2 }]}>
-                  {disciplina.dataSelecao && disciplina.horarioSelecao 
+                  {disciplina.dataSelecao && disciplina.horarioSelecao
                     ? `${formatDate(disciplina.dataSelecao)} ${disciplina.horarioSelecao}`
-                    : 'A definir'}
+                    : "A definir"}
                 </Text>
               </View>
             ))}
@@ -269,12 +254,12 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>4. DO PROCESSO SELETIVO</Text>
           <Text style={styles.text}>
-            O processo seletivo será realizado mediante prova específica para cada disciplina, 
-            considerando o conteúdo programático e bibliografia indicados pelo professor responsável.
+            O processo seletivo será realizado mediante prova específica para cada disciplina, considerando o conteúdo
+            programático e bibliografia indicados pelo professor responsável.
           </Text>
           <Text style={styles.text}>
-            A nota final será calculada pela média ponderada entre a nota obtida na disciplina (peso 4), 
-            o coeficiente de rendimento (peso 3) e a nota da prova de seleção (peso 3).
+            A nota final será calculada pela média ponderada entre a nota obtida na disciplina (peso 4), o coeficiente
+            de rendimento (peso 3) e a nota da prova de seleção (peso 3).
           </Text>
         </View>
 
@@ -298,14 +283,14 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
         {/* Divulgação dos Resultados */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            {data.equivalencias && data.equivalencias.length > 0 ? '6' : '5'}. DA DIVULGAÇÃO DOS RESULTADOS
+            {data.equivalencias && data.equivalencias.length > 0 ? "6" : "5"}. DA DIVULGAÇÃO DOS RESULTADOS
           </Text>
           <Text style={styles.text}>
-            Os resultados das seleções serão divulgados{' '}
-            {data.dataDivulgacao 
+            Os resultados das seleções serão divulgados{" "}
+            {data.dataDivulgacao
               ? `até o dia ${formatDate(data.dataDivulgacao)}`
-              : 'conforme cronograma estabelecido pelos professores responsáveis'
-            }, através do sistema de monitoria e comunicação direta aos candidatos.
+              : "conforme cronograma estabelecido pelos professores responsáveis"}
+            , através do sistema de monitoria e comunicação direta aos candidatos.
           </Text>
         </View>
 
@@ -320,22 +305,16 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
         {/* Disposições Finais */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>DISPOSIÇÕES FINAIS</Text>
-          <Text style={styles.text}>
-            Os casos omissos serão resolvidos pela Comissão de Monitoria do DCC.
-          </Text>
+          <Text style={styles.text}>Os casos omissos serão resolvidos pela Comissão de Monitoria do DCC.</Text>
         </View>
 
         {/* Data e Assinatura */}
         <View style={styles.signature}>
-          <Text style={styles.text}>
-            Salvador, {new Date().toLocaleDateString('pt-BR')}
-          </Text>
+          <Text style={styles.text}>Salvador, {new Date().toLocaleDateString("pt-BR")}</Text>
           <View style={styles.signatureLine} />
+          <Text style={styles.text}>{data.chefeResponsavel?.nome || "Prof. Dr. [Nome do Chefe]"}</Text>
           <Text style={styles.text}>
-            {data.chefeResponsavel?.nome || 'Prof. Dr. [Nome do Chefe]'}
-          </Text>
-          <Text style={styles.text}>
-            {data.chefeResponsavel?.cargo || 'Chefe do Departamento de Ciência da Computação'}
+            {data.chefeResponsavel?.cargo || "Chefe do Departamento de Ciência da Computação"}
           </Text>
         </View>
 
@@ -348,9 +327,7 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
       {/* Segunda página com pontos e bibliografia por disciplina */}
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.title}>
-            ANEXO I - CONTEÚDO PROGRAMÁTICO E BIBLIOGRAFIA
-          </Text>
+          <Text style={styles.title}>ANEXO I - CONTEÚDO PROGRAMÁTICO E BIBLIOGRAFIA</Text>
           <Text style={styles.subtitle}>
             EDITAL Nº {data.numeroEdital}/{data.ano}
           </Text>
@@ -361,15 +338,11 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
             <Text style={styles.sectionTitle}>
               {disciplina.codigo} - {disciplina.nome}
             </Text>
-            <Text style={styles.textBold}>
-              Professor: {disciplina.professor.nome}
-            </Text>
-            
+            <Text style={styles.textBold}>Professor: {disciplina.professor.nome}</Text>
+
             {disciplina.pontosSelecao && disciplina.pontosSelecao.length > 0 && (
               <>
-                <Text style={[styles.textBold, { marginTop: 10 }]}>
-                  Pontos para Seleção:
-                </Text>
+                <Text style={[styles.textBold, { marginTop: 10 }]}>Pontos para Seleção:</Text>
                 <View style={styles.list}>
                   {disciplina.pontosSelecao.map((ponto, idx) => (
                     <Text key={idx} style={styles.listItem}>
@@ -382,9 +355,7 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
 
             {disciplina.bibliografia && disciplina.bibliografia.length > 0 && (
               <>
-                <Text style={[styles.textBold, { marginTop: 10 }]}>
-                  Bibliografia:
-                </Text>
+                <Text style={[styles.textBold, { marginTop: 10 }]}>Bibliografia:</Text>
                 <View style={styles.list}>
                   {disciplina.bibliografia.map((ref, idx) => (
                     <Text key={idx} style={styles.listItem}>

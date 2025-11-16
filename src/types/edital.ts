@@ -1,14 +1,10 @@
 import { z } from 'zod'
-import { Semestre, semestreSchema } from './enums'
+import { Semestre, semestreSchema, TipoEdital, tipoEditalSchema } from './enums'
+import { type PeriodoInscricaoStatus } from './schemas'
 
 // ========================================
 // EDITAL TYPES
 // ========================================
-
-export const TIPO_EDITAL_ENUM = ['DCC', 'PROGRAD'] as const
-export type TipoEdital = (typeof TIPO_EDITAL_ENUM)[number]
-
-export const tipoEditalSchema = z.enum(TIPO_EDITAL_ENUM)
 
 // ========================================
 // PERIODO INSCRICAO & EDITAL TYPES
@@ -48,19 +44,21 @@ export interface Edital {
   updatedAt?: Date
 }
 
-export interface CreateEditalInput {
-  periodoInscricaoId: number
-  tipo: TipoEdital
-  numeroEdital: string
-  titulo: string
-  descricaoHtml?: string
-  fileIdAssinado?: string
-  fileIdProgradOriginal?: string
-  dataPublicacao?: Date
-  publicado?: boolean
-  valorBolsa?: string
-  criadoPorUserId: number
-}
+// NOTE: CreateEditalInput is now defined in edital-inputs.ts
+// Keeping this as a reference but commented out to avoid duplicate exports
+// export interface CreateEditalInput {
+//   periodoInscricaoId: number
+//   tipo: TipoEdital
+//   numeroEdital: string
+//   titulo: string
+//   descricaoHtml?: string
+//   fileIdAssinado?: string
+//   fileIdProgradOriginal?: string
+//   dataPublicacao?: Date
+//   publicado?: boolean
+//   valorBolsa?: string
+//   criadoPorUserId: number
+// }
 
 export interface EditalListItem {
   id: number
@@ -81,7 +79,48 @@ export interface EditalListItem {
     ano: number
     dataInicio: Date
     dataFim: Date
-    status: 'ATIVO' | 'FUTURO' | 'FINALIZADO'
+    status: PeriodoInscricaoStatus
+    totalProjetos: number
+    totalInscricoes: number
+  } | null
+  criadoPor: {
+    id: number
+    username: string
+    email: string
+  } | null
+}
+
+// Type for Edital with PeriodoInscricao status (used in services)
+export interface EditalWithPeriodoStatus {
+  id: number
+  createdAt: Date
+  updatedAt: Date | null
+  tipo: TipoEdital
+  titulo: string
+  periodoInscricaoId: number
+  numeroEdital: string
+  descricaoHtml: string | null
+  fileIdAssinado: string | null
+  fileIdProgradOriginal: string | null
+  dataPublicacao: Date | null
+  publicado: boolean
+  valorBolsa: string
+  datasProvasDisponiveis: string | null
+  dataDivulgacaoResultado: Date | null
+  chefeAssinouEm: Date | null
+  chefeAssinatura: string | null
+  chefeDepartamentoId: number | null
+  criadoPorUserId: number
+  periodoInscricao: {
+    id: number
+    createdAt: Date
+    updatedAt: Date | null
+    ano: number
+    semestre: Semestre
+    dataInicio: Date
+    dataFim: Date
+    totalBolsasPrograd: number | null
+    status: PeriodoInscricaoStatus
     totalProjetos: number
     totalInscricoes: number
   } | null

@@ -19,326 +19,335 @@
 
 ## 📋 Sumário
 
-- [Sobre o Projeto](#-sobre-o-projeto)
+- [Sobre](#-sobre)
 - [Funcionalidades](#-funcionalidades)
+- [Tech Stack](#-tech-stack)
 - [Arquitetura](#-arquitetura)
-- [Tecnologias](#-tecnologias)
-- [Instalação e Execução](#-instalação-e-execução)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [API e Documentação](#-api-e-documentação)
-- [Fluxo de Trabalho](#-fluxo-de-trabalho)
+- [Começando](#-começando)
+- [Estrutura](#-estrutura)
+- [Scripts](#-scripts)
+- [Contribuindo](#-contribuindo)
 
-## 🎯 Sobre o Projeto
+## 🎯 Sobre
 
-O **Sistema de Monitoria IC** é uma plataforma completa para gerenciamento de programas de monitoria acadêmica da UFBA. O sistema automatiza todo o ciclo de vida da monitoria, desde a criação de projetos pelos professores até a seleção e acompanhamento dos monitores.
+Sistema completo para gerenciamento de programas de monitoria acadêmica da UFBA. Automatiza todo o ciclo de vida: criação de projetos, inscrições, seleção e acompanhamento de monitores.
 
-### Principais Objetivos
-
-- **Digitalização Completa**: Eliminar processos manuais e documentos físicos
-- **Transparência**: Processo seletivo claro e rastreável
-- **Eficiência**: Reduzir tempo de processamento e aprovação
-- **Integração**: Conectar com sistemas existentes da UFBA (CAS/SSO)
+**Objetivos**: Digitalização completa, transparência no processo seletivo, eficiência operacional e integração com sistemas UFBA.
 
 ## ⚡ Funcionalidades
 
-### 👨‍🏫 Para Professores
+### 👨‍🏫 Professor
+- Criar/gerenciar projetos de monitoria (individual/coletivo)
+- Avaliar e selecionar candidatos
+- Gerar atas e termos de compromisso
+- Gerenciar disciplinas e voluntários
 
-- **Gestão de Projetos de Monitoria**
-  - Criação de projetos individuais ou coletivos
-  - Definição de vagas para bolsistas e voluntários
-  - Workflow de aprovação (Rascunho → Submetido → Aprovado/Rejeitado)
-  - Assinatura digital de documentos
+### 👨‍🎓 Aluno
+- Buscar e se inscrever em vagas
+- Acompanhar status da inscrição
+- Visualizar resultados e feedback
+- Fazer upload de documentos
 
-- **Seleção de Monitores**
-  - Visualização de candidatos inscritos
-  - Sistema de avaliação e classificação
-  - Geração de atas de seleção
-  - Feedback para candidatos
+### 👨‍💼 Admin
+- Gerenciar projetos, editais e aprovações
+- Configurar cursos, departamentos e disciplinas
+- Alocar bolsas por departamento
+- Gerar relatórios e analytics
+- Gerenciar usuários e permissões
 
-- **Gestão de Disciplinas**
-  - Associação de disciplinas aos projetos
-  - Definição de carga horária e atividades
-  - Acompanhamento de monitores ativos
+## 🚀 Tech Stack
 
-### 👨‍🎓 Para Alunos
+### Frontend
+- **Framework**: Next.js 15.1.4 (App Router)
+- **Components**: shadcn/ui + Radix UI (Atomic Design)
+- **Styling**: Tailwind CSS
+- **Forms**: React Hook Form + Zod
+- **State**: TanStack Query
+- **PDF**: React PDF + PDF-lib
 
-- **Inscrição em Projetos**
-  - Busca de vagas disponíveis por período
-  - Upload de documentos (histórico, comprovante de matrícula)
-  - Acompanhamento do status da inscrição
-  - Visualização de resultados e feedback
-
-- **Painel do Monitor**
-  - Acesso aos detalhes do projeto
-  - Download de documentos e certificados
-  - Histórico de monitorias
-
-### 👨‍💼 Para Administradores
-
-- **Gestão Acadêmica**
-  - Cadastro de departamentos, cursos e disciplinas
-  - Configuração de períodos de inscrição
-  - Importação em massa de projetos via planilha
-
-- **Aprovação e Editais**
-  - Fluxo de aprovação de projetos
-  - Geração automática de editais
-  - Alocação de bolsas por departamento
-
-- **Relatórios e Analytics**
-  - Dashboard com métricas em tempo real
-  - Relatórios de desempenho por departamento
-  - Exportação de dados para análise
-
-- **Gestão de Usuários**
-  - Sistema de convite para professores
-  - Gerenciamento de permissões
-  - Integração com CAS/UFBA
+### Backend
+- **API**: tRPC v11 (type-safe, 3-layer architecture)
+- **ORM**: Drizzle
+- **Auth**: Lucia + CAS UFBA
+- **Storage**: MinIO (S3)
+- **Email**: Nodemailer
+- **DB**: PostgreSQL 16.3
 
 ## 🏗️ Arquitetura
 
-### Stack Tecnológica
+### Backend - 3 Layer Pattern
 
-#### Frontend
-- **Framework**: Next.js 15.1.4 (App Router)
-- **UI Components**: shadcn/ui + Radix UI
-- **Estilização**: Tailwind CSS
-- **Formulários**: React Hook Form + Zod
-- **Estado**: TanStack Query (React Query)
-- **PDF**: React PDF Renderer + PDF-lib
+```
+Router (tRPC) → Service (business logic) → Repository (data access)
+```
 
-#### Backend
-- **API**: tRPC v11 (Type-safe API)
-- **ORM**: Drizzle ORM
-- **Autenticação**: Lucia Auth + CAS UFBA
-- **Storage**: MinIO (S3-compatible)
-- **Email**: Nodemailer
-- **Logs**: Pino
+**Routers** (`src/server/api/routers/`): 50-150 lines
+- tRPC definitions, validation (Zod)
+- Delegate to services
+- Transform domain errors → TRPCError
 
-#### Infraestrutura
-- **Database**: PostgreSQL 16.3
-- **Container**: Docker + Docker Compose
-- **Node**: v20.19.3
-- **Package Manager**: npm 10.8.2
+**Services** (`src/server/services/`): 200-300 lines
+- Business logic orchestration
+- Factory pattern: `createXService(db)`
+- Coordinate repositories, external services
+- Handle transactions
 
-### Padrões e Boas Práticas
+**Repositories** (`src/server/services/`): 150-250 lines
+- CRUD + complex Drizzle queries
+- Data transformation (DB → Domain)
+- No business logic
 
-- **Type Safety**: TypeScript em todo o projeto
-- **Code Quality**: Biome para linting e formatação
-- **API Design**: RESTful via tRPC + OpenAPI
-- **Security**: Autenticação JWT, API Keys, validação Zod
-- **Performance**: Server Components, lazy loading, caching
+### Frontend - Atomic Design
 
-## 🚀 Instalação e Execução
+```
+Atoms → Molecules → Organisms → Templates → Pages
+```
+
+**Atoms** (`src/components/atoms/`): Pure UI (<50 lines)
+- StatusBadge, EmptyState, LoadingSpinner
+
+**Molecules** (`src/components/molecules/`): Composite (<100 lines)
+- DataCard, FormFieldWrapper
+
+**Organisms** (`src/components/organisms/`): Complex blocks (<200 lines)
+- FormDialog, PageHeader
+
+**Features** (`src/components/features/`): Domain-specific (<300 lines)
+- Organized by domain (admin, professor, profile, projects, etc.)
+
+**Custom Hooks** (`src/hooks/`):
+- `useTRPCMutation` - Auto toast + query invalidation
+- `useDialogState` - Dialog state management
+- `useTableFilters` - Table filtering/sorting
+- `useErrorHandler` - Type-safe error handling
+
+### Type System (`src/types/`)
+
+**Single Source of Truth**:
+```
+DB (pgEnum) → TS Types → Zod Schemas → Routers/Components
+```
+
+- All types centralized in `@/types`
+- No DTOs, use `z.infer<typeof schema>`
+- Domain-specific files: `auth.ts`, `project.ts`, `inscription.ts`, etc.
+- Utilities: `errors.ts`, `table.ts`, `forms.ts`
+
+## 🎬 Começando
 
 ### Pré-requisitos
-
 - Node.js 20.19.3
 - npm 10.8.2
-- Docker e Docker Compose
-- Conta no MinIO ou S3
+- Docker + Docker Compose
 
-### Configuração do Ambiente
+### Setup Rápido
 
-1. **Clone o repositório**
 ```bash
+# Clone
 git clone https://github.com/seu-usuario/sistema-de-monitoria-ic.git
 cd sistema-de-monitoria-ic
-```
 
-2. **Instale as dependências**
-```bash
+# Install
 npm install
-```
 
-3. **Configure as variáveis de ambiente**
-```bash
+# Env
 cp .env.sample .env
-```
+# Edite .env com suas configurações
 
-Edite o arquivo `.env` com suas configurações:
-
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/sistema-de-monitoria-ic"
-CAS_SERVER_URL_PREFIX="https://autenticacao.ufba.br/ca"
-SERVER_URL="http://localhost:3000/api"
-CLIENT_URL="http://localhost:3000"
-MINIO_ENDPOINT=sistema-de-monitoria-minio.app.ic.ufba.br
-MINIO_ACCESS_KEY=yDuaIivNT94ngIToIlnS
-MINIO_SECRET_KEY=y4R8w2faAJIwz3i9tAJ1vd9PBpewa3LqAuKEPvZ3
-MINIO_BUCKET_NAME=sistema-de-monitoria-dev
-NODE_ENV=development
-EMAIL_USER="sistema.monitoria.ic@gmail.com"
-EMAIL_PASS=""
-
-VITE_ENABLE_STAGEWISE=true
-```
-
-4. **Inicie o banco de dados**
-```bash
+# Database
 docker-compose up -d
-```
-
-5. **Execute as migrações**
-```bash
 npm run db:push
-```
 
-6. **Inicie o servidor de desenvolvimento**
-```bash
+# Dev
 npm run dev
 ```
 
-7. **Acesse a aplicação**
+Acesse: `http://localhost:3000`
+
+## 📁 Estrutura
+
 ```
-http://localhost:3000
+src/
+├── app/                      # Next.js App Router
+│   ├── api/                 # tRPC + CAS + OpenAPI
+│   ├── docs/                # API docs
+│   └── home/                # App pages
+│       ├── admin/          # 25 admin pages
+│       ├── professor/      # 14 professor pages
+│       ├── student/        # 4 student pages
+│       └── common/         # Shared pages
+│
+├── components/              # Atomic Design
+│   ├── atoms/              # StatusBadge, EmptyState, LoadingSpinner
+│   ├── molecules/          # DataCard, FormFieldWrapper
+│   ├── organisms/          # FormDialog, PageHeader
+│   ├── features/           # Domain components
+│   │   ├── admin/
+│   │   ├── profile/
+│   │   └── projects/
+│   ├── layout/             # Sidebar, PagesLayout
+│   └── ui/                 # shadcn/ui
+│
+├── server/                  # Backend (3-layer)
+│   ├── api/
+│   │   └── routers/        # tRPC routers (50-150 lines)
+│   ├── services/           # Business logic (200-300 lines)
+│   │   ├── user/
+│   │   ├── projeto/
+│   │   └── */
+│   ├── db/                 # Drizzle schema
+│   └── lib/
+│       ├── email/          # Email templates by domain
+│       ├── pdf/            # PDF generation
+│       └── errors.ts       # Domain errors
+│
+├── hooks/                   # Custom hooks
+│   ├── useTRPCMutation.ts
+│   ├── useDialogState.ts
+│   ├── useErrorHandler.ts
+│   └── features/           # Feature-specific hooks
+│
+├── types/                   # Type system (Single source)
+│   ├── enums.ts            # All enums from DB
+│   ├── errors.ts           # Error handling types
+│   ├── table.ts            # Table utilities
+│   ├── forms.ts            # Form utilities
+│   └── [domain].ts         # Domain types
+│
+└── tests/                   # Vitest unit tests
 ```
 
-### Scripts Disponíveis
+## 🔧 Scripts
 
 ```bash
-# Desenvolvimento
-npm run dev          # Inicia servidor de desenvolvimento
+# Development
+npm run dev              # Dev server
 
-# Build e Produção
-npm run build        # Build para produção
-npm run start        # Inicia servidor de produção
+# Build
+npm run build           # Production build
+npm run start           # Production server
 
 # Database
-npm run db:generate  # Gera migrações
-npm run db:migrate   # Executa migrações
-npm run db:push      # Sincroniza schema
-npm run db:studio    # Abre Drizzle Studio
-npm run db:drop      # Remove todas as tabelas
+npm run db:push         # Sync schema (dev)
+npm run db:generate     # Generate migrations
+npm run db:migrate      # Run migrations
+npm run db:studio       # Drizzle Studio GUI
 
 # Code Quality
-npm run lint         # Executa linting
-npm run lint:fix     # Corrige problemas de linting
-npm run format       # Formata código
+npm run lint            # Biome lint
+npm run lint:fix        # Auto-fix lint issues
 
-# Testes
-npm run test         # Executa os testes unitários
-npm run test:ui      # Inicia a UI interativa do Vitest
-npm run test:coverage # Gera um relatório de cobertura de testes
+# Testing
+npm run test            # Run unit tests
+npm run test:ui         # Vitest UI
+npm run test:coverage   # Coverage report
+npm run test:e2e        # E2E tests (Playwright)
 ```
 
-## 📁 Estrutura do Projeto
+## 🎨 Design Patterns
 
-```
-sistema-de-monitoria-ic/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── api/               # API Routes
-│   │   │   ├── cas-**/        # CAS authentication
-│   │   │   ├── openapi/       # OpenAPI endpoints
-│   │   │   └── trpc/          # tRPC endpoint
-│   │   ├── docs/              # API documentation
-│   │   └── home/              # Páginas da aplicação
-│   │       ├── admin/         # Páginas administrativas
-│   │       ├── professor/     # Páginas do professor
-│   │       └── student/       # Páginas do aluno
-│   │
-│   ├── components/            # Componentes React
-│   │   ├── features/          # Componentes específicos
-│   │   ├── layout/            # Layout components
-│   │   └── ui/                # shadcn/ui components
-│   │
-│   ├── server/                # Backend
-│   │   ├── api/               # tRPC routers
-│   │   │   └── routers/       # Rotas organizadas por domínio
-│   │   ├── db/                # Database (Drizzle)
-│   │   ├── email-templates/   # Templates de email
-│   │   └── lib/               # Utilitários do servidor
-│   │
-│   ├── hooks/                 # React hooks customizados
-│   ├── lib/                   # Utilitários compartilhados
-│   └── utils/                 # Funções auxiliares
-│
-├── public/                    # Arquivos estáticos
-├── docs/                      # Documentação adicional
-├── drizzle/                   # Migrações do banco
-├── src/tests/                 # Testes unitários e de integração
-├── docker-compose.yml         # Configuração Docker
-└── package.json              # Dependências e scripts
+### Component Pattern
+```tsx
+// Before: 789 lines monolithic file ❌
+// After: Atomic composition ✅
+
+import { PageHeader, FormDialog, DataCard } from '@/components/...'
+import { useProjectManagement } from '@/hooks/features/...'
+
+export default function Page() {
+  const { data, handlers } = useProjectManagement()
+
+  return (
+    <PageHeader title="..." actions={...}>
+      <DataCard icon={Icon} label="..." value={...} />
+      {/* Clean composition */}
+    </PageHeader>
+  )
+}
 ```
 
-## 📡 API e Documentação
+### Mutation Pattern
+```tsx
+// Before: 20 lines of boilerplate ❌
+const mutation = api.projeto.create.useMutation({
+  onSuccess: () => {
+    toast({ title: "Success!" })
+    queryClient.invalidateQueries()
+    dialog.close()
+  },
+  onError: (error) => {
+    toast({ title: "Error", description: error.message })
+  }
+})
 
-### OpenAPI/Swagger
-
-A documentação interativa da API está disponível em:
-[https://sistema-de-monitoria.app.ic.ufba.br/docs](https://sistema-de-monitoria.app.ic.ufba.br/docs)
-
-### Endpoints tRPC
-
-O sistema expõe os seguintes routers via tRPC:
-
-- **Auth**: `/api/trpc/me.*`
-- **Projetos**: `/api/trpc/projeto.*`
-- **Inscrições**: `/api/trpc/inscricao.*`
-- **Disciplinas**: `/api/trpc/discipline.*`
-- **Departamentos**: `/api/trpc/departamento.*`
-- **Usuários**: `/api/trpc/user.*`
-- **Arquivos**: `/api/trpc/file.*`
-- **Analytics**: `/api/trpc/analytics.*`
-
-### Autenticação API
-
-Para acesso programático, use API Keys:
-
-```bash
-# Header x-api-key
-curl -H "x-api-key: your-api-key" http://localhost:3000/api/openapi/projeto/list
-
-# Bearer Token
-curl -H "Authorization: Bearer your-api-key" http://localhost:3000/api/openapi/projeto/list
+// After: 5 lines ✅
+const mutation = useTRPCMutation(
+  api.projeto.create.useMutation,
+  {
+    successMessage: "Projeto criado!",
+    invalidateQueries: ["projeto"],
+    onSuccess: () => dialog.close()
+  }
+)
 ```
 
-## 🔄 Fluxo de Trabalho
+### Error Handling Pattern
+```tsx
+// Before: error: any ❌
+catch (error: any) {
+  toast({ description: error.message || "Error" })
+}
 
-### 1. Criação de Projeto
+// After: Type-safe ✅
+import { formatErrorResponse } from '@/types'
 
-```mermaid
-flowchart LR
-    A[Rascunho] --> B[Submetido] --> C[Em Análise] --> D[Aprovado/Rejeitado]
+catch (error) {
+  const { title, message } = formatErrorResponse(error)
+  toast({ title, description: message, variant: "destructive" })
+}
 ```
 
-### 2. Processo de Inscrição
+## 📊 Métricas
 
-```mermaid
-flowchart LR
-    A[Período Aberto] --> B[Inscrição] --> C[Análise] --> D[Seleção] --> E[Resultado]
-```
+### Redução de Código
+- `admin/manage-projects`: 789 → 178 lines (-77%)
+- `home/profile`: 772 → 64 lines (-92%)
+- `admin/departamentos`: 716 → 140 lines (-80%)
 
-### 3. Gestão de Documentos
+### Eliminação de Duplicação
+- Status badges: 57+ → 1 component
+- Toast patterns: 96+ → 1 hook
+- Dialog states: 32+ → 1 hook
+- Error handling: 55 `:any` → 0
 
-```mermaid
-flowchart LR
-    A[Upload] --> B[Validação] --> C[Assinatura Digital] --> D[Arquivamento]
-```
+### Qualidade
+- ✅ 100% TypeScript strict mode
+- ✅ Zero `:any` types
+- ✅ All files <300 lines
+- ✅ WCAG AA accessibility
+- ✅ Atomic design compliance
 
 ## 🤝 Contribuindo
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add: nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+### Convenções
+- **TypeScript**: `strict: true`, no `:any`
+- **Files**: Max 300 lines (400 for routers)
+- **Components**: Atomic design pattern
+- **Backend**: 3-layer (Router → Service → Repository)
+- **Types**: Centralized in `@/types`
+- **Tests**: Coverage required for new features
 
-### Convenções de Código
-
-- Use TypeScript com `strict: true`
-- Siga as regras do Biome
-- Mantenha componentes pequenos e focados
-- Escreva testes para novas funcionalidades
-- Documente APIs com JSDoc
+### Git Flow
+```bash
+git checkout -b feature/amazing-feature
+git commit -m "feat: add amazing feature"
+git push origin feature/amazing-feature
+```
 
 ## 📝 Licença
 
-Este projeto é propriedade da Universidade Federal da Bahia (UFBA) e do Instituto de Computação (IC).
+© 2025 Universidade Federal da Bahia (UFBA) - Instituto de Computação (IC)
 
 ---
 
-<p align="center">
-  Desenvolvido com ❤️ pelo time de desenvolvimento do IC-UFBA
-</p>
+<p align="center">Desenvolvido com ❤️ pelo IC-UFBA</p>

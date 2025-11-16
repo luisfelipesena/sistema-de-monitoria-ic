@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { tipoVagaSchema } from './enums'
+import { tipoVagaSchema, type TipoVaga, type VoluntarioStatus } from './enums'
 
 // ========================================
 // VAGA TYPES
@@ -10,7 +10,7 @@ export interface Vaga {
   alunoId: number
   projetoId: number
   inscricaoId: number
-  tipo: 'BOLSISTA' | 'VOLUNTARIO'
+  tipo: TipoVaga
   dataInicio?: Date
   dataFim?: Date
   createdAt: Date
@@ -21,7 +21,7 @@ export interface CreateVagaInput {
   alunoId: number
   projetoId: number
   inscricaoId: number
-  tipo: 'BOLSISTA' | 'VOLUNTARIO'
+  tipo: TipoVaga
   dataInicio?: Date
   dataFim?: Date
 }
@@ -39,7 +39,7 @@ export interface VoluntarioListItem {
     id: number
     titulo: string
   }
-  status: 'ATIVO' | 'INATIVO' | 'PENDENTE'
+  status: VoluntarioStatus
   dataInicio?: Date
 }
 

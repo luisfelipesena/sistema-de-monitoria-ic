@@ -16,7 +16,14 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FilterModal, FilterValues } from "@/components/ui/FilterModal"
 import { useToast } from "@/hooks/use-toast"
-import { DashboardProjectItem } from "@/types"
+import {
+  DashboardProjectItem,
+  PROJETO_STATUS_APPROVED,
+  PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_PENDING_SIGNATURE,
+  PROJETO_STATUS_REJECTED,
+  PROJETO_STATUS_SUBMITTED,
+} from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
@@ -142,23 +149,23 @@ export default function DashboardProfessor() {
       accessorKey: "status",
       cell: ({ row }) => {
         const status = row.original.status
-        if (status === "APPROVED") {
+        if (status === PROJETO_STATUS_APPROVED) {
           return (
             <Badge variant="secondary" className="bg-green-100 text-green-800">
               Aprovado
             </Badge>
           )
-        } else if (status === "REJECTED") {
+        } else if (status === PROJETO_STATUS_REJECTED) {
           return <Badge variant="destructive">Rejeitado</Badge>
-        } else if (status === "SUBMITTED") {
+        } else if (status === PROJETO_STATUS_SUBMITTED) {
           return (
             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
               Em análise
             </Badge>
           )
-        } else if (status === "DRAFT") {
+        } else if (status === PROJETO_STATUS_DRAFT) {
           return <Badge variant="outline">Rascunho</Badge>
-        } else if (status === "PENDING_PROFESSOR_SIGNATURE") {
+        } else if (status === PROJETO_STATUS_PENDING_SIGNATURE) {
           return <Badge variant="secondary">Aguardando Assinatura do Professor</Badge>
         }
         return <Badge variant="outline">{status}</Badge>
@@ -175,7 +182,7 @@ export default function DashboardProfessor() {
       cell: ({ row }) => {
         const bolsas = row.original.bolsasDisponibilizadas ?? 0
         const status = row.original.status
-        if (status === "APPROVED") {
+        if (status === PROJETO_STATUS_APPROVED) {
           return <span>{bolsas}</span>
         }
         return <span>-</span>
@@ -191,7 +198,7 @@ export default function DashboardProfessor() {
       accessorKey: "voluntariosSolicitados",
       cell: ({ row }) => {
         const status = row.original.status
-        if (status === "APPROVED") {
+        if (status === PROJETO_STATUS_APPROVED) {
           return <div className="text-center">{row.original.voluntariosSolicitados ?? 0}</div>
         }
         return <div className="text-center">-</div>
@@ -207,7 +214,7 @@ export default function DashboardProfessor() {
       accessorKey: "totalInscritos",
       cell: ({ row }) => {
         const status = row.original.status
-        if (status === "APPROVED") {
+        if (status === PROJETO_STATUS_APPROVED) {
           return <div className="text-center text-base">{row.original.totalInscritos}</div>
         }
         return <div className="text-center">-</div>
@@ -226,7 +233,7 @@ export default function DashboardProfessor() {
 
         return (
           <div className="flex gap-2">
-            {(projeto.status === "DRAFT" || projeto.status === "PENDING_PROFESSOR_SIGNATURE") && (
+            {(projeto.status === PROJETO_STATUS_DRAFT || projeto.status === PROJETO_STATUS_PENDING_SIGNATURE) && (
               <>
                 <Link href={`/home/professor/projetos/${projeto.id}/edit`}>
                   <Button variant="outline" size="sm" className="rounded-full flex items-center gap-1">
@@ -253,7 +260,7 @@ export default function DashboardProfessor() {
               </>
             )}
 
-            {(projeto.status === "SUBMITTED" || projeto.status === "APPROVED" || projeto.status === "REJECTED") && (
+            {(projeto.status === PROJETO_STATUS_SUBMITTED || projeto.status === PROJETO_STATUS_APPROVED || projeto.status === PROJETO_STATUS_REJECTED) && (
               <Button
                 variant="outline"
                 size="sm"
@@ -267,7 +274,7 @@ export default function DashboardProfessor() {
               </Button>
             )}
 
-            {projeto.status === "APPROVED" && (
+            {projeto.status === PROJETO_STATUS_APPROVED && (
               <Link href={`/home/professor/candidatos?projetoId=${projeto.id}`}>
                 <Button variant="primary" size="sm" className="rounded-full flex items-center gap-1">
                   <Users className="h-4 w-4" />

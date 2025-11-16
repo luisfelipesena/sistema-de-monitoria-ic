@@ -1,3 +1,5 @@
+import { PDF_PAGE_SIZE_A4 } from "@/constants/pdf"
+import { SEMESTRE_1, TIPO_PROPOSICAO_COLETIVA } from "@/types"
 import { UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
 import { Document, Image, Page, StyleSheet, Text, View, type DocumentProps } from "@react-pdf/renderer"
 import React, { type ReactElement } from "react"
@@ -146,7 +148,7 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
 
   return (
     <Document {...rest}>
-      <Page size="A4" style={styles.page} orientation="landscape">
+      <Page size={PDF_PAGE_SIZE_A4} style={styles.page} orientation="landscape">
         {/* Header */}
         <View style={styles.header}>
           <Image style={styles.headerImage} src={UFBA_LOGO__FORM_BASE64} cache={false} />
@@ -160,7 +162,7 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
         {/* Title */}
         <Text style={styles.title}>
           PLANILHA DE DETALHAMENTO DOS PROJETOS APROVADOS NA CONGREGAÇÃO DO IC - {data.ano}.
-          {data.semestre === "SEMESTRE_1" ? "1" : "2"}
+          {data.semestre === SEMESTRE_1 ? "1" : "2"}
         </Text>
 
         {/* Table */}
@@ -238,7 +240,9 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
                   </View>
                   <View style={styles.tableCol6}>
                     <Text style={styles.tableCellText}>
-                      {projeto.tipoProposicao === "COLETIVA" ? projeto.professoresParticipantes || "Não informado" : ""}
+                      {projeto.tipoProposicao === TIPO_PROPOSICAO_COLETIVA
+                        ? projeto.professoresParticipantes || "Não informado"
+                        : ""}
                     </Text>
                   </View>
                   <View style={styles.tableCol7}>

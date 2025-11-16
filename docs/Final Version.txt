@@ -42,8 +42,8 @@ Processo Manual de Distribuição (antes do sistema)
 
 Admin
 	1.	Define no sistema o total de bolsas informado pela PROGRAD.
-	2.	Aloca bolsas por projeto aprovado conforme decisão da comissão (o sistema impede exceder o total).
-	3.	Clica em "Notificar Professores" – o sistema envia e-mails automáticos com a tabela de bolsas.
+	2.	Aloca bolsas por projeto aprovado conforme decisão da comissão (o sistema impede exceder o total). (aqui todos os projetos devem estar abertos para alocação, óbvio que alocaremos de acordo com a comissão)
+	3.	Clica em "Notificar Professores" – o sistema envia e-mails automáticos com a tabela de bolsas. (aqui o envio é para todos os profs que submeteram projetos, pois podem definir voluntários tb)
 
 Professor
 	1.	Recebe o e-mail com suas bolsas alocadas.
@@ -109,7 +109,7 @@ Admin
 	4.	Gera planilha Excel consolidada com todos os monitores ativos:
 	•	Bolsistas (com dados de pagamento).
 	•	Voluntários (se configurado para incluir).
-	5.	Envia a planilha final por e-mail ao DEPARTAMENTO (DCC).
+	5.	Envia a planilha final por e-mail ao DEPARTAMENTO (DCC). (Aqui são duas planilhas isoladas, uma dos bolsitas e uma dos voluntários)
 
 Chefe do Departamento
 	1.	Recebe a planilha consolidada.

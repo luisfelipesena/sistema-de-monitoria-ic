@@ -1,548 +1,100 @@
-"use client";
+'use client'
 
-import { PagesLayout } from "@/components/layout/PagesLayout";
-import { TableComponent } from "@/components/layout/TableComponent";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { InvitationItem, inviteFormSchema } from "@/types";
-import { api } from "@/utils/api";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ColumnDef } from "@tanstack/react-table";
-import {
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Mail,
-  RefreshCw,
-  Trash2,
-  UserPlus,
-  X,
-} from "lucide-react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
-
-type InviteFormData = z.infer<typeof inviteFormSchema>;
+import { PagesLayout } from '@/components/layout/PagesLayout'
+import { TableComponent } from '@/components/layout/TableComponent'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog } from '@/components/ui/dialog'
+import { InvitationStatsCards } from '@/components/features/admin/invite-professor/InvitationStatsCards'
+import { InvitationTableHeader } from '@/components/features/admin/invite-professor/InvitationTableHeader'
+import { InviteFormDialog } from '@/components/features/admin/invite-professor/InviteFormDialog'
+import { EmptyInvitationState } from '@/components/features/admin/invite-professor/EmptyInvitationState'
+import { createInvitationColumns } from '@/components/features/admin/invite-professor/InvitationTableColumns'
+import { useInvitationManagement } from '@/hooks/features/useInvitationManagement'
+import { useMemo } from 'react'
 
 export default function InviteProfessorPage() {
-  const { toast } = useToast()
-
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [filterStatus, setFilterStatus] = useState<
-    "PENDING" | "ACCEPTED" | "EXPIRED" | "ALL"
-  >("ALL");
-
   const {
-    data: invitations,
+    isDialogOpen,
+    setIsDialogOpen,
+    filterStatus,
+    form,
+    invitations,
     isLoading,
-    refetch,
-  } = api.inviteProfessor.getInvitations.useQuery(
-    filterStatus === "ALL" ? undefined : { status: filterStatus }
-  );
-  const { data: stats } = api.inviteProfessor.getInvitationStats.useQuery();
+    stats,
+    sendInvitationMutation,
+    resendInvitationMutation,
+    cancelInvitationMutation,
+    deleteInvitationMutation,
+    handleSendInvite,
+    handleResend,
+    handleCancel,
+    handleDelete,
+    handleFilterChange,
+    copyInviteLink,
+  } = useInvitationManagement()
 
-  const sendInvitationMutation = api.inviteProfessor.sendInvitation.useMutation(
-    {
-      onSuccess: () => {
-        toast({
-        title: "Sucesso!",
-        description: "Convite enviado com sucesso!",
-      });
-        setIsDialogOpen(false);
-        refetch();
-        form.reset();
-      },
-      onError: (error) => {
-        toast({
-        title: "Erro",
-        description: `Erro: ${error.message}`,
-        variant: "destructive",
-      });
-      },
-    }
-  );
-
-  const resendInvitationMutation =
-    api.inviteProfessor.resendInvitation.useMutation({
-      onSuccess: () => {
-        toast({
-        title: "Sucesso!",
-        description: "Convite reenviado com sucesso!",
-      });
-        refetch();
-      },
-      onError: (error) => {
-        toast({
-        title: "Erro",
-        description: `Erro: ${error.message}`,
-        variant: "destructive",
-      });
-      },
-    });
-
-  const cancelInvitationMutation =
-    api.inviteProfessor.cancelInvitation.useMutation({
-      onSuccess: () => {
-        toast({
-        title: "Sucesso!",
-        description: "Convite cancelado!",
-      });
-        refetch();
-      },
-      onError: (error) => {
-        toast({
-        title: "Erro",
-        description: `Erro: ${error.message}`,
-        variant: "destructive",
-      });
-      },
-    });
-
-  const deleteInvitationMutation =
-    api.inviteProfessor.deleteInvitation.useMutation({
-      onSuccess: () => {
-        toast({
-        title: "Sucesso!",
-        description: "Convite excluído!",
-      });
-        refetch();
-      },
-      onError: (error) => {
-        toast({
-        title: "Erro",
-        description: `Erro: ${error.message}`,
-        variant: "destructive",
-      });
-      },
-    });
-
-  const form = useForm<InviteFormData>({
-    resolver: zodResolver(inviteFormSchema),
-    defaultValues: {
-      email: "",
-      expiresInDays: 7,
-    },
-  });
-
-  const handleInvite = (data: InviteFormData) => {
-    sendInvitationMutation.mutate(data);
-  };
-
-  const handleResend = (invitationId: number) => {
-    resendInvitationMutation.mutate({ invitationId, expiresInDays: 7 });
-  };
-
-  const handleCancel = (invitationId: number) => {
-    cancelInvitationMutation.mutate({ invitationId });
-  };
-
-  const handleDelete = (invitationId: number) => {
-    deleteInvitationMutation.mutate({ invitationId });
-  };
-
-  const getStatusBadge = (status: string, expiresAt: Date) => {
-    const now = new Date();
-    const isExpired = status === "PENDING" && expiresAt < now;
-
-    if (isExpired || status === "EXPIRED") {
-      return (
-        <Badge variant="outline" className="border-red-500 text-red-700">
-          <AlertCircle className="h-3 w-3 mr-1" />
-          Expirado
-        </Badge>
-      );
-    }
-
-    switch (status) {
-      case "PENDING":
-        return (
-          <Badge
-            variant="outline"
-            className="border-yellow-500 text-yellow-700"
-          >
-            <Clock className="h-3 w-3 mr-1" />
-            Pendente
-          </Badge>
-        );
-      case "ACCEPTED":
-        return (
-          <Badge variant="default" className="bg-green-500">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Aceito
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const getInviteLink = (token: string) => {
-    return `${window.location.origin}/auth/accept-invitation?token=${token}`;
-  };
-
-  const copyInviteLink = (token: string) => {
-    const link = getInviteLink(token);
-    navigator.clipboard.writeText(link);
-    toast({
-        title: "Sucesso!",
-        description: "Link copiado para a área de transferência!",
-      });
-  };
-
-  const columns: ColumnDef<InvitationItem>[] = [
-    {
-      header: "Email",
-      accessorKey: "email",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.email}</div>
-          <div className="text-sm text-muted-foreground">
-            Convite enviado em{" "}
-            {new Date(row.original.createdAt).toLocaleDateString("pt-BR")}
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: "Status",
-      accessorKey: "status",
-      cell: ({ row }) =>
-        getStatusBadge(row.original.status, row.original.expiresAt),
-    },
-    {
-      header: "Expira em",
-      accessorKey: "expiresAt",
-      cell: ({ row }) => {
-        const now = new Date();
-        const expiresAt = new Date(row.original.expiresAt);
-        const isExpired = expiresAt < now;
-
-        if (isExpired) {
-          return <span className="text-red-600">Expirado</span>;
-        }
-
-        const diffTime = expiresAt.getTime() - now.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        return (
-          <span
-            className={
-              diffDays <= 1 ? "text-orange-600" : "text-muted-foreground"
-            }
-          >
-            {diffDays} dia(s)
-          </span>
-        );
-      },
-    },
-    {
-      header: "Convidado por",
-      accessorKey: "invitedByUser.username",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">
-            {row.original.invitedByUser.username}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {row.original.invitedByUser.email}
-          </div>
-        </div>
-      ),
-    },
-    {
-      header: "Aceito por",
-      cell: ({ row }) => {
-        if (row.original.acceptedByUser) {
-          return (
-            <div>
-              <div className="font-medium">
-                {row.original.acceptedByUser.username}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {row.original.acceptedByUser.email}
-              </div>
-            </div>
-          );
-        }
-        return <span className="text-muted-foreground">-</span>;
-      },
-    },
-    {
-      header: "Ações",
-      id: "actions",
-      cell: ({ row }) => {
-        const invitation = row.original;
-        const now = new Date();
-        const isExpired =
-          invitation.expiresAt < now || invitation.status === "EXPIRED";
-        const isPending = invitation.status === "PENDING" && !isExpired;
-
-        return (
-          <div className="flex items-center gap-2">
-            {isPending && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyInviteLink(invitation.token)}
-                >
-                  Copiar Link
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleResend(invitation.id)}
-                  disabled={resendInvitationMutation.isPending}
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCancel(invitation.id)}
-                  disabled={cancelInvitationMutation.isPending}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-            {(isExpired || invitation.status === "EXPIRED") && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleResend(invitation.id)}
-                disabled={resendInvitationMutation.isPending}
-              >
-                <RefreshCw className="h-4 w-4 mr-1" />
-                Reenviar
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleDelete(invitation.id)}
-              disabled={deleteInvitationMutation.isPending}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        );
-      },
-    },
-  ];
+  const columns = useMemo(
+    () =>
+      createInvitationColumns({
+        onCopyLink: copyInviteLink,
+        onResend: handleResend,
+        onCancel: handleCancel,
+        onDelete: handleDelete,
+        isResending: resendInvitationMutation.isPending,
+        isCanceling: cancelInvitationMutation.isPending,
+        isDeleting: deleteInvitationMutation.isPending,
+      }),
+    [
+      copyInviteLink,
+      handleResend,
+      handleCancel,
+      handleDelete,
+      resendInvitationMutation.isPending,
+      cancelInvitationMutation.isPending,
+      deleteInvitationMutation.isPending,
+    ]
+  )
 
   return (
-    <PagesLayout
-      title="Convidar Professor"
-      subtitle="Gerencie convites para professores ingressarem no sistema"
-    >
+    <PagesLayout title="Convidar Professor" subtitle="Gerencie convites para professores ingressarem no sistema">
       <div className="space-y-6">
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-2">
-                  <Mail className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Total de Convites
-                    </p>
-                    <p className="text-2xl font-semibold">{stats.total}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-2">
-                  <Clock className="h-5 w-5 text-yellow-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pendentes</p>
-                    <p className="text-2xl font-semibold">{stats.pending}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Aceitos</p>
-                    <p className="text-2xl font-semibold">{stats.accepted}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="h-5 w-5 text-red-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Expirados</p>
-                    <p className="text-2xl font-semibold">{stats.expired}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {stats && <InvitationStatsCards stats={stats} />}
 
-        {/* Invitations Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5" />
-                Convites de Professor
-                {invitations && (
-                  <Badge variant="outline" className="ml-2">
-                    {invitations.length} convite(s)
-                  </Badge>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <Select
-                  value={filterStatus}
-                  onValueChange={(value: any) => setFilterStatus(value)}
-                >
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">Todos</SelectItem>
-                    <SelectItem value="PENDING">Pendentes</SelectItem>
-                    <SelectItem value="ACCEPTED">Aceitos</SelectItem>
-                    <SelectItem value="EXPIRED">Expirados</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Novo Convite
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Convidar Professor</DialogTitle>
-                    </DialogHeader>
-                    <Form {...form}>
-                      <form
-                        onSubmit={form.handleSubmit(handleInvite)}
-                        className="space-y-4"
-                      >
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Email do Professor</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="email"
-                                  placeholder="professor@ufba.br"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="expiresInDays"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Expira em (dias)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  max="30"
-                                  {...field}
-                                  onChange={(e) =>
-                                    field.onChange(parseInt(e.target.value))
-                                  }
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <Button
-                          type="submit"
-                          className="w-full"
-                          disabled={sendInvitationMutation.isPending}
-                        >
-                          {sendInvitationMutation.isPending
-                            ? "Enviando..."
-                            : "Enviar Convite"}
-                        </Button>
-                      </form>
-                    </Form>
-                  </DialogContent>
-                </Dialog>
-              </div>
+            <CardTitle>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <InvitationTableHeader
+                  filterStatus={filterStatus}
+                  onFilterChange={handleFilterChange}
+                  invitationCount={invitations?.length}
+                />
+                <InviteFormDialog
+                  isOpen={isDialogOpen}
+                  onClose={() => setIsDialogOpen(false)}
+                  onSubmit={handleSendInvite}
+                  form={form}
+                  isSubmitting={sendInvitationMutation.isPending}
+                />
+              </Dialog>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center items-center py-8">
                 <div className="text-center">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
                   <p className="mt-2">Carregando convites...</p>
                 </div>
               </div>
             ) : invitations && invitations.length > 0 ? (
-              <TableComponent
-                columns={columns}
-                data={invitations}
-                searchableColumn="email"
-                searchPlaceholder="Buscar por email..."
-              />
+              <TableComponent columns={columns} data={invitations} searchableColumn="email" searchPlaceholder="Buscar por email..." />
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <UserPlus className="mx-auto h-12 w-12 mb-4" />
-                <h3 className="text-lg font-medium mb-2">
-                  Nenhum convite encontrado
-                </h3>
-                <p>
-                  {filterStatus === "ALL"
-                    ? "Ainda não foram enviados convites para professores."
-                    : `Não há convites com status "${filterStatus.toLowerCase()}".`}
-                </p>
-              </div>
+              <EmptyInvitationState filterStatus={filterStatus} />
             )}
           </CardContent>
         </Card>
       </div>
     </PagesLayout>
-  );
+  )
 }

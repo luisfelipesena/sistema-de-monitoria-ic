@@ -3,6 +3,34 @@
 // ========================================
 export * from './enums'
 export * from './schemas'
+export * from './errors'
+export * from './table'
+export * from './forms'
+
+// Additional enum exports for type safety
+export type {
+  FileAction,
+  DocumentType,
+  NotificationType,
+  NotificationPriority,
+  StatsPeriod,
+  SignatureTypeTermo,
+} from './enums'
+export {
+  fileActionSchema,
+  documentTypeSchema,
+  notificationTypeSchema,
+  notificationPrioritySchema,
+  statsPeriodSchema,
+  signatureTypeTermoSchema,
+} from './enums'
+
+// ========================================
+// INPUT DTOs (Service Layer Inputs)
+// ========================================
+export * from './projeto-inputs'
+export * from './edital-inputs'
+export * from './selecao-inputs'
 
 // ========================================
 // DOMAIN-SPECIFIC TYPES
@@ -41,6 +69,7 @@ export * from './relatorios'
 export * from './import'
 export * from './onboarding'
 export * from './vagas'
+export * from './monitor-selection'
 
 // ========================================
 // RE-EXPORTS FROM THIRD-PARTY LIBRARIES

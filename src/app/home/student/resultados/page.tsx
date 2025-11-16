@@ -1,5 +1,6 @@
 "use client"
 
+import { StatusBadge } from "@/components/atoms/StatusBadge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,10 +16,44 @@ import { Label } from "@/components/ui/label"
 import { PDFDownloadWrapper } from "@/components/ui/pdf-download-wrapper"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { TIPO_VAGA_LABELS } from "@/types/enums"
+import {
+  STATUS_INSCRICAO_ACCEPTED_BOLSISTA,
+  STATUS_INSCRICAO_ACCEPTED_VOLUNTARIO,
+  STATUS_INSCRICAO_REJECTED_BY_PROFESSOR,
+  STATUS_INSCRICAO_REJECTED_BY_STUDENT,
+  STATUS_INSCRICAO_SELECTED_BOLSISTA,
+  STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
+  STATUS_INSCRICAO_SUBMITTED,
+  TIPO_VAGA_BOLSISTA,
+  TIPO_VAGA_VOLUNTARIO,
+  type StatusInscricao,
+  type TipoVaga,
+} from "@/types"
 import { api } from "@/utils/api"
 import { AlertCircle, Award, CheckCircle, Clock, FileText, MessageSquare, Users, XCircle } from "lucide-react"
 import { useState } from "react"
+
+const SELECTED_STATUSES = new Set<StatusInscricao>([
+  STATUS_INSCRICAO_SELECTED_BOLSISTA,
+  STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
+])
+const ACCEPTED_STATUSES = new Set<StatusInscricao>([
+  STATUS_INSCRICAO_ACCEPTED_BOLSISTA,
+  STATUS_INSCRICAO_ACCEPTED_VOLUNTARIO,
+])
+const REJECTED_STATUSES = new Set<StatusInscricao>([
+  STATUS_INSCRICAO_REJECTED_BY_PROFESSOR,
+  STATUS_INSCRICAO_REJECTED_BY_STUDENT,
+])
+const BOLSISTA_STATUSES = new Set<StatusInscricao>([
+  STATUS_INSCRICAO_SELECTED_BOLSISTA,
+  STATUS_INSCRICAO_ACCEPTED_BOLSISTA,
+])
+const VOLUNTARIO_STATUSES = new Set<StatusInscricao>([
+  STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
+  STATUS_INSCRICAO_ACCEPTED_VOLUNTARIO,
+])
+const PENDING_STATUSES = new Set<StatusInscricao>([STATUS_INSCRICAO_SUBMITTED])
 
 export default function ResultadosPage() {
   const { toast } = useToast()
@@ -68,10 +103,10 @@ export default function ResultadosPage() {
     },
   })
 
-  const handleAccept = (inscricaoId: number, tipoVagaPretendida: string) => {
+  const handleAccept = (inscricaoId: number, tipoVagaPretendida: TipoVaga) => {
     aceitarVagaMutation.mutate({
       inscricaoId: inscricaoId.toString(),
-      tipoBolsa: tipoVagaPretendida as "BOLSISTA" | "VOLUNTARIO",
+      tipoBolsa: tipoVagaPretendida,
     })
   }
 
@@ -89,66 +124,35 @@ export default function ResultadosPage() {
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "SELECTED_BOLSISTA":
-        return <Badge className="bg-green-500">Selecionado (Bolsista)</Badge>
-      case "SELECTED_VOLUNTARIO":
-        return <Badge className="bg-blue-500">Selecionado (Voluntário)</Badge>
-      case "ACCEPTED_BOLSISTA":
-        return <Badge className="bg-green-600">Aceito (Bolsista)</Badge>
-      case "ACCEPTED_VOLUNTARIO":
-        return <Badge className="bg-blue-600">Aceito (Voluntário)</Badge>
-      case "REJECTED_BY_PROFESSOR":
-        return <Badge variant="destructive">Não Selecionado</Badge>
-      case "REJECTED_BY_STUDENT":
-        return <Badge variant="outline">Recusado por Você</Badge>
-      case "WAITING_LIST":
-        return (
-          <Badge variant="outline" className="border-orange-500 text-orange-700">
-            Lista de Espera
-          </Badge>
-        )
-      case "SUBMITTED":
-        return (
-          <Badge variant="secondary" className="bg-yellow-500 text-white">
-            Em Análise
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
-
-  const getTipoVagaIcon = (tipo: string | null | undefined) => {
+  const getTipoVagaIcon = (tipo: TipoVaga | null | undefined) => {
     switch (tipo) {
-      case TIPO_VAGA_LABELS.BOLSISTA:
+      case TIPO_VAGA_BOLSISTA:
         return <Award className="h-4 w-4 text-yellow-600" />
-      case TIPO_VAGA_LABELS.VOLUNTARIO:
+      case TIPO_VAGA_VOLUNTARIO:
         return <Users className="h-4 w-4 text-blue-600" />
       default:
         return <AlertCircle className="h-4 w-4 text-gray-500" />
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    if (status.includes("SELECTED_")) {
+  const getStatusIcon = (status: StatusInscricao) => {
+    if (SELECTED_STATUSES.has(status)) {
       return <CheckCircle className="h-5 w-5 text-green-500" />
-    } else if (status.includes("ACCEPTED_")) {
+    } else if (ACCEPTED_STATUSES.has(status)) {
       return <CheckCircle className="h-5 w-5 text-green-600" />
-    } else if (status.includes("REJECTED_")) {
+    } else if (REJECTED_STATUSES.has(status)) {
       return <XCircle className="h-5 w-5 text-red-500" />
     } else {
       return <Clock className="h-5 w-5 text-yellow-500" />
     }
   }
 
-  const canAcceptOrReject = (status: string) => {
-    return status === "SELECTED_BOLSISTA" || status === "SELECTED_VOLUNTARIO"
+  const canAcceptOrReject = (status: StatusInscricao) => {
+    return SELECTED_STATUSES.has(status)
   }
 
-  const isAccepted = (status: string) => {
-    return status === "ACCEPTED_BOLSISTA" || status === "ACCEPTED_VOLUNTARIO"
+  const isAccepted = (status: StatusInscricao) => {
+    return ACCEPTED_STATUSES.has(status)
   }
 
   // Component para download do termo de compromisso
@@ -192,13 +196,14 @@ export default function ResultadosPage() {
     )
   }
 
-  const inscricoesComResultado = inscricoes?.filter((i) => !["SUBMITTED", "UNDER_REVIEW"].includes(i.status)) || []
+  const inscricoesComResultado = inscricoes?.filter((i) => !PENDING_STATUSES.has(i.status as StatusInscricao)) || []
 
-  const inscricoesSelecionadas = inscricoesComResultado.filter(
-    (i) => i.status.includes("SELECTED_") || i.status.includes("ACCEPTED_")
-  )
+  const inscricoesSelecionadas = inscricoesComResultado.filter((i) => {
+    const status = i.status as StatusInscricao
+    return SELECTED_STATUSES.has(status) || ACCEPTED_STATUSES.has(status)
+  })
 
-  const inscricoesRejeitadas = inscricoesComResultado.filter((i) => i.status.includes("REJECTED_"))
+  const inscricoesRejeitadas = inscricoesComResultado.filter((i) => REJECTED_STATUSES.has(i.status as StatusInscricao))
 
   return (
     <div className="space-y-6">
@@ -226,7 +231,7 @@ export default function ResultadosPage() {
               <Award className="h-8 w-8 text-yellow-500" />
               <div>
                 <div className="text-2xl font-bold">
-                  {inscricoesSelecionadas.filter((i) => i.status.includes("BOLSISTA")).length}
+                  {inscricoesSelecionadas.filter((i) => BOLSISTA_STATUSES.has(i.status as StatusInscricao)).length}
                 </div>
                 <div className="text-sm text-muted-foreground">Bolsas</div>
               </div>
@@ -239,7 +244,7 @@ export default function ResultadosPage() {
               <Users className="h-8 w-8 text-blue-500" />
               <div>
                 <div className="text-2xl font-bold">
-                  {inscricoesSelecionadas.filter((i) => i.status.includes("VOLUNTARIO")).length}
+                  {inscricoesSelecionadas.filter((i) => VOLUNTARIO_STATUSES.has(i.status as StatusInscricao)).length}
                 </div>
                 <div className="text-sm text-muted-foreground">Voluntário</div>
               </div>
@@ -272,69 +277,76 @@ export default function ResultadosPage() {
             <div className="space-y-4">
               {inscricoesSelecionadas.map((inscricao) => (
                 <div key={inscricao.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {getStatusIcon(inscricao.status)}
-                        <h3 className="font-semibold text-lg">{inscricao.projeto.titulo}</h3>
-                        {getTipoVagaIcon(inscricao.tipoVagaPretendida)}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
-                      </p>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Disciplinas: {inscricao.projeto.disciplinas.map((d) => `${d.codigo} (${d.turma})`).join(", ")}
-                      </p>
-                      <div className="flex items-center gap-2 mb-3">
-                        {getStatusBadge(inscricao.status)}
-                        {inscricao.notaFinal && (
-                          <span className="text-sm text-green-700 font-medium">
-                            Nota Final: {Number(inscricao.notaFinal).toFixed(1)}
-                          </span>
+                  {(() => {
+                    const status = inscricao.status as StatusInscricao
+                    const tipoVaga = inscricao.tipoVagaPretendida as TipoVaga | null
+                    return (
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            {getStatusIcon(status)}
+                            <h3 className="font-semibold text-lg">{inscricao.projeto.titulo}</h3>
+                            {getTipoVagaIcon(tipoVaga)}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
+                          </p>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Disciplinas:{" "}
+                            {inscricao.projeto.disciplinas.map((d) => `${d.codigo} (${d.turma})`).join(", ")}
+                          </p>
+                          <div className="flex items-center gap-2 mb-3">
+                            <StatusBadge status={status} />
+                            {inscricao.notaFinal && (
+                              <span className="text-sm text-green-700 font-medium">
+                                Nota Final: {Number(inscricao.notaFinal).toFixed(1)}
+                              </span>
+                            )}
+                          </div>
+                          {inscricao.feedbackProfessor && (
+                            <div className="bg-white p-3 rounded border border-green-200">
+                              <p className="text-sm font-medium text-green-800 mb-1">Mensagem do Professor:</p>
+                              <p className="text-sm text-green-700">{inscricao.feedbackProfessor}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Botões de Ação */}
+                        {canAcceptOrReject(status) && (
+                          <div className="flex gap-2 ml-4">
+                            <Button
+                              onClick={() => handleAccept(inscricao.id, tipoVaga ?? TIPO_VAGA_BOLSISTA)}
+                              disabled={aceitarVagaMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Aceitar
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              onClick={() => handleRejectClick(inscricao.id)}
+                              disabled={recusarVagaMutation.isPending}
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Recusar
+                            </Button>
+                          </div>
+                        )}
+
+                        {ACCEPTED_STATUSES.has(status) && (
+                          <div className="ml-4 space-y-2">
+                            <Badge className="bg-green-600">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Vaga Aceita
+                            </Badge>
+                            <div>
+                              <TermoCompromissoDownload inscricaoId={inscricao.id} />
+                            </div>
+                          </div>
                         )}
                       </div>
-                      {inscricao.feedbackProfessor && (
-                        <div className="bg-white p-3 rounded border border-green-200">
-                          <p className="text-sm font-medium text-green-800 mb-1">Mensagem do Professor:</p>
-                          <p className="text-sm text-green-700">{inscricao.feedbackProfessor}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Botões de Ação */}
-                    {canAcceptOrReject(inscricao.status) && (
-                      <div className="flex gap-2 ml-4">
-                        <Button
-                          onClick={() => handleAccept(inscricao.id, inscricao.tipoVagaPretendida as string)}
-                          disabled={aceitarVagaMutation.isPending}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Aceitar
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={() => handleRejectClick(inscricao.id)}
-                          disabled={recusarVagaMutation.isPending}
-                        >
-                          <XCircle className="h-4 w-4 mr-1" />
-                          Recusar
-                        </Button>
-                      </div>
-                    )}
-
-                    {inscricao.status.includes("ACCEPTED_") && (
-                      <div className="ml-4 space-y-2">
-                        <Badge className="bg-green-600">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Vaga Aceita
-                        </Badge>
-                        <div>
-                          <TermoCompromissoDownload inscricaoId={inscricao.id} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    )
+                  })()}
                 </div>
               ))}
             </div>
@@ -355,32 +367,38 @@ export default function ResultadosPage() {
             <div className="space-y-4">
               {inscricoesRejeitadas.map((inscricao) => (
                 <div key={inscricao.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {getStatusIcon(inscricao.status)}
-                        <h3 className="font-semibold">{inscricao.projeto.titulo}</h3>
-                        {getTipoVagaIcon(inscricao.tipoVagaPretendida)}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
-                      </p>
-                      <div className="flex items-center gap-2 mb-2">
-                        {getStatusBadge(inscricao.status)}
-                        {inscricao.notaFinal && (
-                          <span className="text-sm text-muted-foreground">
-                            Nota Final: {Number(inscricao.notaFinal).toFixed(1)}
-                          </span>
-                        )}
-                      </div>
-                      {inscricao.feedbackProfessor && (
-                        <div className="bg-gray-50 p-3 rounded border">
-                          <p className="text-sm font-medium text-gray-700 mb-1">Feedback:</p>
-                          <p className="text-sm text-gray-600">{inscricao.feedbackProfessor}</p>
+                  {(() => {
+                    const status = inscricao.status as StatusInscricao
+                    const tipoVaga = inscricao.tipoVagaPretendida as TipoVaga | null
+                    return (
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            {getStatusIcon(status)}
+                            <h3 className="font-semibold">{inscricao.projeto.titulo}</h3>
+                            {getTipoVagaIcon(tipoVaga)}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
+                          </p>
+                          <div className="flex items-center gap-2 mb-2">
+                            <StatusBadge status={status} />
+                            {inscricao.notaFinal && (
+                              <span className="text-sm text-muted-foreground">
+                                Nota Final: {Number(inscricao.notaFinal).toFixed(1)}
+                              </span>
+                            )}
+                          </div>
+                          {inscricao.feedbackProfessor && (
+                            <div className="bg-gray-50 p-3 rounded border">
+                              <p className="text-sm font-medium text-gray-700 mb-1">Feedback:</p>
+                              <p className="text-sm text-gray-600">{inscricao.feedbackProfessor}</p>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </div>
+                      </div>
+                    )
+                  })()}
                 </div>
               ))}
             </div>

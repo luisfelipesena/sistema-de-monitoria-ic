@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import { useToast } from "@/hooks/use-toast"
-import { DisciplineAssociation } from "@/types"
+import { DisciplineAssociation, getSemestreNumero, SEMESTRE_1, SEMESTRE_2 } from "@/types"
 import { api } from "@/utils/api"
 import { ArrowLeft, Award, BookOpen, Calendar, Check, FileText, Plus, Users, X } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -29,7 +29,7 @@ export default function ManageDisciplinasPage() {
   })
 
   const currentYear = new Date().getFullYear()
-  const currentSemester = new Date().getMonth() < 6 ? "SEMESTRE_1" : ("SEMESTRE_2" as "SEMESTRE_1" | "SEMESTRE_2")
+  const currentSemester = new Date().getMonth() < 6 ? SEMESTRE_1 : SEMESTRE_2
 
   const {
     data: professorDisciplinas,
@@ -157,7 +157,7 @@ export default function ManageDisciplinasPage() {
   return (
     <PagesLayout
       title="Gerenciar Disciplinas"
-      subtitle={`Gerencie suas disciplinas para ${currentYear}.${currentSemester === "SEMESTRE_1" ? "1" : "2"}`}
+      subtitle={`Gerencie suas disciplinas para ${currentYear}.${getSemestreNumero(currentSemester)}`}
     >
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -169,7 +169,7 @@ export default function ManageDisciplinasPage() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
-              Período: {currentYear}.{currentSemester === "SEMESTRE_1" ? "1" : "2"}
+              Período: {currentYear}.{getSemestreNumero(currentSemester)}
             </div>
             {departamentoInfo && <Badge variant="outline">{departamentoInfo.sigla || departamentoInfo.nome}</Badge>}
           </div>
@@ -273,7 +273,10 @@ export default function ManageDisciplinasPage() {
 
                   <div>
                     <Label htmlFor="turma">Turma</Label>
-                    <Select value={newDisciplina.turma} onValueChange={(value) => setNewDisciplina({ ...newDisciplina, turma: value })}>
+                    <Select
+                      value={newDisciplina.turma}
+                      onValueChange={(value) => setNewDisciplina({ ...newDisciplina, turma: value })}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a turma" />
                       </SelectTrigger>
