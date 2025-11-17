@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1763220377.24075 "main.aux" "main.bbl" "main" 1763220550.58125 0
+["bibtex main"] 1763386301.53923 "main.aux" "main.bbl" "main" 1763386455.26366 0
   "./apalike-sol.bst" 1761156389.19737 24928 269dedab788b7f84af88c155ecb45872 ""
-  "./references.bib" 1763217146.90855 5105 75fdcc00403d4deb0850e4d7a2bb4101 ""
-  "main.aux" 1763220550.28431 11523 42680eeab6a58ad05dc8747bed5b68fb "pdflatex"
+  "./references.bib" 1763384560.10643 5821 b6d4d5e8aa51b5cbb22f8f95034588e6 ""
+  "main.aux" 1763386454.99903 12177 1865f85f51d5cb222eb182032b1725f1 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1763220547.95846 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1763220550.58143 0
-  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1763220547.72672 50467 45e396bec83fc7ef6739e10f5113721a ""
+["pdflatex"] 1763386452.84508 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1763386455.26382 0
+  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1763386374.96269 74621 1a3563f5bd2ff1b147e810d0ac953bc3 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_2mfh3o.enc" 1570828436 3443 c184b8b1bd90c3ec5d4289b992e64d96 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_iln36p.enc" 1570828436 3071 cfa92ee28d698dd9275559d9d1c3a233 ""
@@ -21,19 +21,12 @@
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/jknappen/ec/ecrm1000.tfm" 1136768653 3584 adb004a0c8e7c46ee66cad73671f37b4 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/jknappen/ec/ectt1000.tfm" 1136768653 1536 06717a2b50de47d4087ac0e6cd759455 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
-  "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1246382020 916 f87d7c45f9c908e672703b83b72241a3 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam5.tfm" 1246382020 924 9904cf1d39e9767e7a3622f2a125a565 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam7.tfm" 1246382020 928 2dc8d444221b7a635bb58038579b861a ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm" 1246382020 908 2921f8a10601f252058503cc6570e581 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm5.tfm" 1246382020 940 75ac932a52f80982a9f8ea75d03a34cf ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7.tfm" 1246382020 940 228d6584342e91276bf566bcf9716b83 ""
-  "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmmi6.tfm" 1136768653 1512 f21f83efb36853c0b70002322c1ab3ad ""
-  "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmmi8.tfm" 1136768653 1520 eccf95517727cb11801f4f1aee3a21b4 ""
-  "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmr6.tfm" 1136768653 1300 b62933e007d01cfd073f79b963c01526 ""
-  "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmr8.tfm" 1136768653 1292 21c1c5bfeaebccffdb478fd231a0997d ""
-  "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmsy6.tfm" 1136768653 1116 933a60c408fc0a863a92debe84b2d294 ""
-  "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmsy8.tfm" 1136768653 1120 8b7d695260f3cff42e636090a8002094 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Bold-osf-sc-t1--base.tfm" 1558644978 1744 c0880df9a3bb4bcdedcb509114352925 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Bold-osf-sc-t1.tfm" 1558644978 51596 89d153c1db2d64ed80ef5c78612aa5d5 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Bold-osf-t1--base.tfm" 1558644978 1796 11e21ab836516246ef24a10a351d2541 ""
@@ -257,7 +250,7 @@
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1743556498 3345730 b0114b64bb79cd284171e12692394348 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
   "aas_macros.sty" 1761156389.19667 4967 cf45ff75f433e372cec5993ac08f4363 ""
-  "images/TODO.jpeg" 1763216452.01943 3686 ecc0c13b80b5a5ad6fdcc9fae77b5f4a ""
+  "images/TODO.jpeg" 1763318490.33781 3686 ecc0c13b80b5a5ad6fdcc9fae77b5f4a ""
   "images/monitoria/admin-cursos.png" 1762564923.85374 486387 0f2c39fafcdb1623dcf310a54e83753c ""
   "images/monitoria/admin-dashboard.png" 1762564924.16431 356176 db8d6f7d145e9d60936285b5baac19f0 ""
   "images/monitoria/admin-departamentos.png" 1762564924.47864 486387 0f2c39fafcdb1623dcf310a54e83753c ""
@@ -273,10 +266,10 @@
   "images/monitoria/professor-assinatura-documentos.png" 1762564928.07899 466429 a4163aa45f79e20bfb8083259441d302 ""
   "images/monitoria/student-inscricao-monitoria.png" 1762564928.3089 263589 f6a0a60e8f9dc6ce22517d2aee7ba91c ""
   "images/monitoria/student-resultados.png" 1762564928.51813 229017 4965e5208eb2f9215993b966ed85640c ""
-  "main.aux" 1763220550.28431 11523 42680eeab6a58ad05dc8747bed5b68fb "pdflatex"
-  "main.bbl" 1763220377.33333 2892 48e70bc46d0cf88bd4acdaeca2f0c679 "bibtex main"
-  "main.out" 1763220550.28534 4056 0d72bb1b203f0b08dc87e698583b234d "pdflatex"
-  "main.tex" 1763220547.72672 50467 45e396bec83fc7ef6739e10f5113721a ""
+  "main.aux" 1763386454.99903 12177 1865f85f51d5cb222eb182032b1725f1 "pdflatex"
+  "main.bbl" 1763386399.84876 3509 7a6030e0d54230dfdd9b10410b5c8c9a "bibtex main"
+  "main.out" 1763386455.00011 4032 2b7bf7b5ff95c0f914733e02872ced47 "pdflatex"
+  "main.tex" 1763386374.96269 74621 1a3563f5bd2ff1b147e810d0ac953bc3 ""
   "sbc2025.cls" 1761156389.24799 14761 c546ee61221e9a80c8e82e624cbd925e ""
   (generated)
   "main.aux"
