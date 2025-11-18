@@ -86,9 +86,7 @@ export default function ScholarshipAllocationPage() {
                 O sistema valida que a alocação não exceda o total oficial de bolsas PROGRAD.
               </p>
               <Link
-                href="/docs/processo-distribuicao-bolsas.md"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/home/admin/processo-distribuicao-bolsas"
                 className="text-sm text-primary hover:underline inline-flex items-center gap-1"
               >
                 Ver documentação completa →
