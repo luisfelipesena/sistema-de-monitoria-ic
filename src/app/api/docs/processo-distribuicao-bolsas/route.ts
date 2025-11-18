@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const filePath = join(process.cwd(), 'docs', 'processo-distribuicao-bolsas.md')
     const fileContents = await readFile(filePath, 'utf-8')
-    
+
     return NextResponse.json(
       { content: fileContents },
       {
@@ -17,10 +17,6 @@ export async function GET() {
     )
   } catch (error) {
     console.error('Error reading markdown file:', error)
-    return NextResponse.json(
-      { error: 'Documentação não encontrada' },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: 'Documentação não encontrada' }, { status: 404 })
   }
 }
-
