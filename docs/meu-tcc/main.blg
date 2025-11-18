@@ -6,45 +6,45 @@ Database file #1: references.bib
 Warning--empty doi in Dantas2014
 Warning--empty doi in Frison2016
 Warning--empty doi in Natario2010
-You've used 15 entries,
+You've used 17 entries,
             1961 wiz_defined-function locations,
-            559 strings with 5750 characters,
-and the built_in function-call counts, 4219 in all, are:
-= -- 423
-> -- 123
-< -- 15
-+ -- 36
-- -- 36
-* -- 302
-:= -- 792
-add.period$ -- 38
-call.type$ -- 15
-change.case$ -- 91
-chr.to.int$ -- 15
-cite$ -- 18
-duplicate$ -- 174
-empty$ -- 298
-format.name$ -- 57
-if$ -- 796
+            570 strings with 6217 characters,
+and the built_in function-call counts, 4749 in all, are:
+= -- 479
+> -- 137
+< -- 17
++ -- 40
+- -- 40
+* -- 336
+:= -- 900
+add.period$ -- 44
+call.type$ -- 17
+change.case$ -- 105
+chr.to.int$ -- 17
+cite$ -- 20
+duplicate$ -- 196
+empty$ -- 332
+format.name$ -- 63
+if$ -- 894
 int.to.chr$ -- 1
 int.to.str$ -- 0
 missing$ -- 9
-newline$ -- 71
-num.names$ -- 45
-pop$ -- 69
+newline$ -- 81
+num.names$ -- 51
+pop$ -- 77
 preamble$ -- 1
-purify$ -- 93
+purify$ -- 105
 quote$ -- 0
-skip$ -- 145
+skip$ -- 163
 stack$ -- 0
-substring$ -- 255
+substring$ -- 279
 swap$ -- 6
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 84
+type$ -- 96
 warning$ -- 3
-while$ -- 36
+while$ -- 40
 width$ -- 0
-write$ -- 172
+write$ -- 200
 (There were 3 warnings)

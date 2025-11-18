@@ -100,7 +100,7 @@ export default function PlanilhaPROGRADPage() {
   const totalProjetos = planilhaData?.projetos?.length || 0
 
   return (
-    <PagesLayout title="Planilha PROGRAD" subtitle="Gere a planilha oficial e envie ao Instituto (IC)">
+    <PagesLayout title="Planilha para Instituto" subtitle="Gere a planilha oficial e envie ao Instituto (IC)">
       <div className="space-y-6">
         {/* Configuração */}
         <Card>
@@ -208,7 +208,7 @@ export default function PlanilhaPROGRADPage() {
           <DialogContent className="max-w-6xl max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>
-                Planilha PROGRAD - {selectedYear}.{semestreDisplay}
+                Planilha para Instituto - {selectedYear}.{semestreDisplay}
               </DialogTitle>
             </DialogHeader>
             <div className="h-[80vh] w-full">

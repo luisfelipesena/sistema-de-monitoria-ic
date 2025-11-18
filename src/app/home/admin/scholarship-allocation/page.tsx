@@ -2,6 +2,10 @@
 
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
+import { Info } from "lucide-react"
+import Link from "next/link"
 import { type TipoVaga } from "@/types"
 import { api } from "@/utils/api"
 import { useDialogState } from "@/hooks/useDialogState"
@@ -62,7 +66,36 @@ export default function ScholarshipAllocationPage() {
   }
 
   return (
-    <PagesLayout title="Alocação de Bolsas" subtitle="Gerencie a distribuição de bolsas para projetos aprovados">
+    <PagesLayout
+      title="Alocação de Bolsas"
+      subtitle="Gerencie a distribuição de bolsas para projetos aprovados"
+      actions={
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Informações sobre o processo de distribuição de bolsas">
+              <Info className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-96" align="end">
+            <div className="space-y-3">
+              <h4 className="font-semibold text-sm">Processo de Distribuição de Bolsas</h4>
+              <p className="text-sm text-muted-foreground">
+                O processo de distribuição segue o fluxo institucional: PROGRAD publica resultado → Diretor do Instituto conversa com chefe de departamento → Chefe conversa com comissão → Admin replica os números no sistema.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                O sistema valida que a alocação não exceda o total oficial de bolsas PROGRAD.
+              </p>
+              <Link
+                href="/home/admin/processo-distribuicao-bolsas"
+                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+              >
+                Ver documentação completa →
+              </Link>
+            </div>
+          </PopoverContent>
+        </Popover>
+      }
+    >
       <div className="space-y-6">
         <FilterForm form={form} onSubmit={handleFilterSubmit} />
 
