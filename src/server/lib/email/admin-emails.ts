@@ -23,7 +23,7 @@ export const adminEmailService = {
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1976d2; text-align: center;">Planilha PROGRAD - ${data.ano}.${semestreDisplay}</h2>
+        <h2 style="color: #1976d2; text-align: center;">Planilha para Instituto - ${data.ano}.${semestreDisplay}</h2>
 
         <p>Prezados,</p>
 
@@ -39,7 +39,7 @@ export const adminEmailService = {
           <li>Departamentos e códigos das disciplinas</li>
         </ul>
 
-        <p>Os dados foram validados e estão prontos para processamento pela PROGRAD.</p>
+        <p>Esta planilha será encaminhada pelo Instituto de Computação à PROGRAD para processamento.</p>
 
         <p>Para dúvidas ou esclarecimentos, entrar em contato através do Sistema de Monitoria IC.</p>
 
@@ -51,7 +51,7 @@ export const adminEmailService = {
 
     await emailSender.send({
       to: data.progradEmail,
-      subject: `[Monitoria IC] Consolidação PROGRAD - ${data.ano}.${semestreDisplay}`,
+      subject: `[Monitoria IC] Consolidação para Instituto - ${data.ano}.${semestreDisplay}`,
       html,
       attachments: [
         {

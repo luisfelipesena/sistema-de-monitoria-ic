@@ -169,15 +169,14 @@ export const disciplinaEquivalenciaTable = pgTable('disciplina_equivalencia', {
 
 ### 7. FLUXO DE ENVIO CORRETO PARA INSTITUTO/DEPARTAMENTO
 
-**TAREFA** - Ajustar envio de planilha inicial para Instituto (não PROGRAD)
+**TAREFA** - Ajustar envio de planilha inicial para Instituto (não PROGRAD) ✅
 **DESCRIÇÃO** - Planilha de projetos deve ser enviada para email do INSTITUTO (IC), não direto para PROGRAD
 **CONTEXTO** - Professor esclareceu: "esse envio é feito pelo Instituto, pelo e-mail do IC. Podemos mandar essa planilha para o e-mail do Instituto, e aí o Instituto envia para a PROGRAD"
 **IMPORTANTE** - PROGRAD NÃO interage com o sistema - conforme professor: "A PROGRAD não interage com o nosso sistema. Ela é só para o entendimento de vocês sobre o que acontece com o fluxo"
 **ARQUIVOS AFETADOS**:
-- `src/server/api/routers/analytics/analytics.ts` - Ajustar destinatário do email
-- `src/server/lib/email-service.ts` - Atualizar templates mencionando Instituto
-- `src/app/home/admin/manage-projects/page.tsx` - Atualizar labels/textos
-**STATUS** - [ ] PENDENTE
+- `src/server/lib/email/admin-emails.ts` - ✅ IMPLEMENTADO - atualizado template de email (assunto, corpo, HTML heading)
+- `src/app/home/admin/planilha-prograd/page.tsx` - ✅ IMPLEMENTADO - atualizado título da página e diálogo de preview
+**STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Configurar emails do Instituto e Departamento
 **DESCRIÇÃO** - Adicionar configuração no sistema para emails do Instituto (IC) e Departamento (DCC)
@@ -195,13 +194,13 @@ export const disciplinaEquivalenciaTable = pgTable('disciplina_equivalencia', {
 - `src/components/features/consolidacao/ConsolidacaoContent.tsx` - Atualizar interface
 **STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Documentar processo manual de distribuição de bolsas
+**TAREFA** - Documentar processo manual de distribuição de bolsas ✅
 **DESCRIÇÃO** - Criar documentação clara do processo: PROGRAD → Instituto → Departamento → Comissão → Admin
 **CONTEXTO** - Professor detalhou: "PROGRAD publica resultado → diretor conversa com chefe depto (DCI vs DCC) → chefe conversa com comissão → admin aloca no sistema"
 **ARQUIVOS AFETADOS**:
-- `docs/processo-distribuicao-bolsas.md` - Novo arquivo de documentação
-- `src/app/home/admin/scholarship-allocation/page.tsx` - Adicionar tooltip/help explicativo
-**STATUS** - [ ] PENDENTE
+- `docs/processo-distribuicao-bolsas.md` - ✅ CRIADO - Documentação completa do processo com todas as etapas e responsabilidades
+- `src/app/home/admin/scholarship-allocation/page.tsx` - ✅ IMPLEMENTADO - Adicionado Popover com ícone Info contendo resumo do processo e link para documentação completa
+**STATUS** - [x] ✅ COMPLETO
 
 ### 8. MÓDULO DE RELATÓRIOS FINAIS - COMPLETO
 
