@@ -292,12 +292,7 @@ export const relatoriosRouter = createTRPCRouter({
     const templates = await db
       .select()
       .from(relatorioTemplateTable)
-      .where(
-        or(
-          eq(relatorioTemplateTable.criadoPorUserId, user.id),
-          eq(relatorioTemplateTable.isPublic, true)
-        )
-      )
+      .where(or(eq(relatorioTemplateTable.criadoPorUserId, user.id), eq(relatorioTemplateTable.isPublic, true)))
       .orderBy(relatorioTemplateTable.createdAt)
 
     return templates
@@ -344,28 +339,26 @@ export const relatoriosRouter = createTRPCRouter({
       return updated
     }),
 
-  deleteTemplate: protectedProcedure
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const { db, user } = ctx
+  deleteTemplate: protectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ ctx, input }) => {
+    const { db, user } = ctx
 
-      const existing = await db.query.relatorioTemplateTable.findFirst({
-        where: eq(relatorioTemplateTable.id, input.id),
+    const existing = await db.query.relatorioTemplateTable.findFirst({
+      where: eq(relatorioTemplateTable.id, input.id),
+    })
+
+    if (!existing) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Template not found' })
+    }
+
+    if (existing.criadoPorUserId !== user.id) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'You can only delete your own templates',
       })
+    }
 
-      if (!existing) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Template not found' })
-      }
+    await db.delete(relatorioTemplateTable).where(eq(relatorioTemplateTable.id, input.id))
 
-      if (existing.criadoPorUserId !== user.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You can only delete your own templates',
-        })
-      }
-
-      await db.delete(relatorioTemplateTable).where(eq(relatorioTemplateTable.id, input.id))
-
-      return { success: true }
-    }),
+    return { success: true }
+  }),
 })

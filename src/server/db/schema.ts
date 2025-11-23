@@ -139,12 +139,7 @@ export const statusInscricaoEnum = pgEnum('status_inscricao_enum', [
   // 'INAPTO', 'APTO' seem less relevant if selection is direct
 ])
 
-export const relatorioStatusEnum = pgEnum('relatorio_status_enum', [
-  'DRAFT',
-  'SUBMITTED',
-  'APPROVED',
-  'REJECTED',
-])
+export const relatorioStatusEnum = pgEnum('relatorio_status_enum', ['DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED'])
 
 export const departamentoTable = pgTable('departamento', {
   id: serial('id').primaryKey(),
