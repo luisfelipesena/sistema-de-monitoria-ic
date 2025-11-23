@@ -1,6 +1,6 @@
-import { adminProtectedProcedure, createTRPCRouter } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { relatorioTemplateTable } from '@/server/db/schema'
 import { createRelatoriosService } from '@/server/services/relatorios/relatorios-service'
-import { NotFoundError, ValidationError } from '@/types/errors'
 import {
   alunoRelatorioSchema,
   csvExportInputSchema,
@@ -16,10 +16,12 @@ import {
   relatorioFiltersWithDeptSchema,
   relatorioFiltersWithStatusSchema,
   relatorioGeralSchema,
-  semestreSchema,
   relatorioValidationTypeSchema,
+  semestreSchema,
 } from '@/types'
+import { NotFoundError, ValidationError } from '@/types/errors'
 import { TRPCError } from '@trpc/server'
+import { eq, or } from 'drizzle-orm'
 import { z } from 'zod'
 
 function mapDomainErrorToTRPC(error: unknown): never {
@@ -258,5 +260,112 @@ export const relatoriosRouter = createTRPCRouter({
         }
         mapDomainErrorToTRPC(error)
       }
+    }),
+  // --- Templates ---
+
+  createTemplate: protectedProcedure
+    .input(
+      z.object({
+        titulo: z.string().min(1),
+        conteudo: z.string().min(1), // JSON stringified
+        isPublic: z.boolean().default(false),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { db, user } = ctx
+      const [template] = await db
+        .insert(relatorioTemplateTable)
+        .values({
+          titulo: input.titulo,
+          conteudo: input.conteudo,
+          isPublic: input.isPublic,
+          criadoPorUserId: user.id,
+        })
+        .returning()
+
+      return template
+    }),
+
+  getTemplates: protectedProcedure.query(async ({ ctx }) => {
+    const { db, user } = ctx
+    // Return templates created by the user OR public templates
+    const templates = await db
+      .select()
+      .from(relatorioTemplateTable)
+      .where(
+        or(
+          eq(relatorioTemplateTable.criadoPorUserId, user.id),
+          eq(relatorioTemplateTable.isPublic, true)
+        )
+      )
+      .orderBy(relatorioTemplateTable.createdAt)
+
+    return templates
+  }),
+
+  updateTemplate: protectedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        titulo: z.string().min(1).optional(),
+        conteudo: z.string().min(1).optional(),
+        isPublic: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { db, user } = ctx
+
+      // Check if template exists and belongs to user
+      const existing = await db.query.relatorioTemplateTable.findFirst({
+        where: eq(relatorioTemplateTable.id, input.id),
+      })
+
+      if (!existing) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Template not found' })
+      }
+
+      if (existing.criadoPorUserId !== user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You can only update your own templates',
+        })
+      }
+
+      const [updated] = await db
+        .update(relatorioTemplateTable)
+        .set({
+          titulo: input.titulo,
+          conteudo: input.conteudo,
+          isPublic: input.isPublic,
+        })
+        .where(eq(relatorioTemplateTable.id, input.id))
+        .returning()
+
+      return updated
+    }),
+
+  deleteTemplate: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const { db, user } = ctx
+
+      const existing = await db.query.relatorioTemplateTable.findFirst({
+        where: eq(relatorioTemplateTable.id, input.id),
+      })
+
+      if (!existing) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Template not found' })
+      }
+
+      if (existing.criadoPorUserId !== user.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You can only delete your own templates',
+        })
+      }
+
+      await db.delete(relatorioTemplateTable).where(eq(relatorioTemplateTable.id, input.id))
+
+      return { success: true }
     }),
 })

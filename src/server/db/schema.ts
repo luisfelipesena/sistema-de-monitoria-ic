@@ -139,6 +139,13 @@ export const statusInscricaoEnum = pgEnum('status_inscricao_enum', [
   // 'INAPTO', 'APTO' seem less relevant if selection is direct
 ])
 
+export const relatorioStatusEnum = pgEnum('relatorio_status_enum', [
+  'DRAFT',
+  'SUBMITTED',
+  'APPROVED',
+  'REJECTED',
+])
+
 export const departamentoTable = pgTable('departamento', {
   id: serial('id').primaryKey(),
   unidadeUniversitaria: varchar('unidade_universitaria').notNull(),
@@ -661,6 +668,7 @@ export const projetoRelations = relations(projetoTable, ({ one, many }) => ({
   inscricoes: many(inscricaoTable),
   vagas: many(vagaTable),
   documentos: many(projetoDocumentoTable),
+  relatorioFinal: one(relatorioFinalDisciplinaTable),
 }))
 
 export const projetoDisciplinaRelations = relations(projetoDisciplinaTable, ({ one }) => ({
@@ -780,6 +788,7 @@ export const inscricaoRelations = relations(inscricaoTable, ({ one, many }) => (
     fields: [inscricaoTable.id],
     references: [vagaTable.inscricaoId],
   }),
+  relatorioFinal: one(relatorioFinalMonitorTable),
 }))
 
 export const inscricaoDocumentoRelations = relations(inscricaoDocumentoTable, ({ one }) => ({
@@ -1099,6 +1108,76 @@ export const ataSelecaoRelations = relations(ataSelecaoTable, ({ one }) => ({
   }),
 }))
 
+// --- Relatórios Finais ---
+
+export const relatorioFinalDisciplinaTable = pgTable('relatorio_final_disciplina', {
+  id: serial('id').primaryKey(),
+  projetoId: integer('projeto_id')
+    .references(() => projetoTable.id, { onDelete: 'cascade' })
+    .notNull()
+    .unique(),
+  conteudo: text('conteudo').notNull(), // JSON stringified
+  status: relatorioStatusEnum('status').notNull().default('DRAFT'),
+  professorAssinouEm: timestamp('professor_assinou_em', { withTimezone: true, mode: 'date' }),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
+})
+
+export const relatorioFinalDisciplinaRelations = relations(relatorioFinalDisciplinaTable, ({ one, many }) => ({
+  projeto: one(projetoTable, {
+    fields: [relatorioFinalDisciplinaTable.projetoId],
+    references: [projetoTable.id],
+  }),
+  relatoriosMonitores: many(relatorioFinalMonitorTable),
+}))
+
+export const relatorioFinalMonitorTable = pgTable('relatorio_final_monitor', {
+  id: serial('id').primaryKey(),
+  inscricaoId: integer('inscricao_id')
+    .references(() => inscricaoTable.id, { onDelete: 'cascade' })
+    .notNull()
+    .unique(),
+  relatorioDisciplinaId: integer('relatorio_disciplina_id')
+    .references(() => relatorioFinalDisciplinaTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  conteudo: text('conteudo').notNull(), // JSON stringified
+  status: relatorioStatusEnum('status').notNull().default('DRAFT'),
+  alunoAssinouEm: timestamp('aluno_assinou_em', { withTimezone: true, mode: 'date' }),
+  professorAssinouEm: timestamp('professor_assinou_em', { withTimezone: true, mode: 'date' }),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
+})
+
+export const relatorioFinalMonitorRelations = relations(relatorioFinalMonitorTable, ({ one }) => ({
+  inscricao: one(inscricaoTable, {
+    fields: [relatorioFinalMonitorTable.inscricaoId],
+    references: [inscricaoTable.id],
+  }),
+  relatorioDisciplina: one(relatorioFinalDisciplinaTable, {
+    fields: [relatorioFinalMonitorTable.relatorioDisciplinaId],
+    references: [relatorioFinalDisciplinaTable.id],
+  }),
+}))
+
+export const relatorioTemplateTable = pgTable('relatorio_template', {
+  id: serial('id').primaryKey(),
+  titulo: varchar('titulo', { length: 255 }).notNull(),
+  conteudo: text('conteudo').notNull(), // JSON stringified
+  criadoPorUserId: integer('criado_por_user_id')
+    .references(() => userTable.id)
+    .notNull(),
+  isPublic: boolean('is_public').default(false).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
+})
+
+export const relatorioTemplateRelations = relations(relatorioTemplateTable, ({ one }) => ({
+  criadoPor: one(userTable, {
+    fields: [relatorioTemplateTable.criadoPorUserId],
+    references: [userTable.id],
+  }),
+}))
+
 // Tabela para API Keys (autenticação alternativa para endpoints OpenAPI)
 export const apiKeyTable = pgTable('api_key', {
   id: serial('id').primaryKey(),
@@ -1149,3 +1228,9 @@ export type ApiKey = typeof apiKeyTable.$inferSelect
 export type NewApiKey = typeof apiKeyTable.$inferInsert
 export type ProfessorInvitation = typeof professorInvitationTable.$inferSelect
 export type NewProfessorInvitation = typeof professorInvitationTable.$inferInsert
+export type RelatorioFinalDisciplina = typeof relatorioFinalDisciplinaTable.$inferSelect
+export type NewRelatorioFinalDisciplina = typeof relatorioFinalDisciplinaTable.$inferInsert
+export type RelatorioFinalMonitor = typeof relatorioFinalMonitorTable.$inferSelect
+export type NewRelatorioFinalMonitor = typeof relatorioFinalMonitorTable.$inferInsert
+export type RelatorioTemplate = typeof relatorioTemplateTable.$inferSelect
+export type NewRelatorioTemplate = typeof relatorioTemplateTable.$inferInsert
