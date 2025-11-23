@@ -208,17 +208,17 @@ export const disciplinaEquivalenciaTable = pgTable('disciplina_equivalencia', {
 **DESCRIÇÃO** - Criar tabelas para armazenar relatórios finais de disciplina e relatórios individuais de monitores
 **CONTEXTO** - Sistema precisa gerar relatórios finais após término do semestre para emissão de certificados
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - Criar `relatorioFinalDisciplinaTable` e `relatorioFinalMonitorTable`
-- `drizzle/migrations/` - Nova migração
-**STATUS** - [ ] PENDENTE
+- `src/server/db/schema.ts` - ✅ IMPLEMENTADO - Criado `relatorioFinalDisciplinaTable` e `relatorioFinalMonitorTable`
+- `drizzle/migrations/` - ✅ CRIADO - Migração `0037_equal_hiroim.sql`
+**STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Implementar templates de relatórios finais
 **DESCRIÇÃO** - Criar sistema de templates para relatórios finais que professor pode reutilizar de semestres anteriores
 **CONTEXTO** - Professor mencionou: "tem um padrão, formato que a gente pode simplesmente pegar de semestres anteriores"
 **ARQUIVOS AFETADOS**:
-- `src/server/db/schema.ts` - Criar `relatorioTemplateTable`
-- `src/server/api/routers/relatorios/relatorios.ts` - CRUD de templates
-**STATUS** - [ ] PENDENTE
+- `src/server/db/schema.ts` - ✅ IMPLEMENTADO - Criado `relatorioTemplateTable`
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ IMPLEMENTADO - CRUD de templates (`createTemplate`, `getTemplates`, `updateTemplate`, `deleteTemplate`)
+**STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Criar fluxo de geração de relatórios pelo professor
 **DESCRIÇÃO** - Professor deve poder gerar relatório final da disciplina e relatórios individuais para cada monitor
