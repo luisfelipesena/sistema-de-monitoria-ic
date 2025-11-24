@@ -422,6 +422,8 @@ INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Book-osf
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Bold-osf-t1.tfm
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/tex-gyre/ec-qtmr.tfm
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Book-osf-t1.tfm
+INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Book-osf-t1.tfm
+INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Bold-osf-t1.tfm
 INPUT /usr/local/texlive/2025/texmf-dist/tex/latex/tex-gyre/ts1qtm.fd
 INPUT /usr/local/texlive/2025/texmf-dist/tex/latex/tex-gyre/ts1qtm.fd
 INPUT /usr/local/texlive/2025/texmf-dist/tex/latex/tex-gyre/ts1qtm.fd
@@ -450,11 +452,9 @@ INPUT /usr/local/texlive/2025/texmf-dist/fonts/vf/public/fira/FiraSans-Bold-osf-
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Bold-osf-t1--base.tfm
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/vf/public/fira/FiraSans-Bold-osf-t1.vf
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Bold-osf-t1--base.tfm
-INPUT /usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/tex-gyre/q-ts1.enc
-INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Book-osf-t1.tfm
-INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Bold-osf-t1.tfm
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/vf/public/fira/FiraSans-Bold-osf-t1.vf
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/fira/FiraSans-Bold-osf-t1--base.tfm
+INPUT /usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/tex-gyre/q-ts1.enc
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/tex-gyre/ec-qtmb.tfm
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/tex-gyre/ec-qtmb.tfm
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmr8.tfm
