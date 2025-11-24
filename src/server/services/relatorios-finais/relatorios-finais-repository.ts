@@ -9,7 +9,7 @@ import {
   vagaTable,
 } from '@/server/db/schema'
 import type { Semestre } from '@/types'
-import { and, eq, isNull, count, desc, inArray } from 'drizzle-orm'
+import { and, eq, isNull, desc, inArray } from 'drizzle-orm'
 
 type Database = typeof db
 
