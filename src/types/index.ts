@@ -64,6 +64,7 @@ export * from './notificacoes'
 export * from './analytics'
 export * from './prograd'
 export * from './relatorios'
+export * from './relatorios-finais'
 
 // System features
 export * from './import'

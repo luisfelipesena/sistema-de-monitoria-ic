@@ -304,6 +304,12 @@ const menuConfig: MenuConfig[] = [
         icon: FileText,
         roles: ["professor"],
       },
+      {
+        label: "Relatórios Finais",
+        href: "/home/professor/relatorios-finais",
+        icon: FileCheck,
+        roles: ["professor"],
+      },
     ],
   },
 
@@ -344,6 +350,12 @@ const menuConfig: MenuConfig[] = [
         label: "Resultados das Seleções",
         href: "/home/student/resultados",
         icon: FileCheck,
+        roles: ["student"],
+      },
+      {
+        label: "Relatórios Finais",
+        href: "/home/student/relatorios",
+        icon: FileText,
         roles: ["student"],
       },
       {

@@ -220,21 +220,24 @@ export const disciplinaEquivalenciaTable = pgTable('disciplina_equivalencia', {
 - `src/server/api/routers/relatorios/relatorios.ts` - ✅ IMPLEMENTADO - CRUD de templates (`createTemplate`, `getTemplates`, `updateTemplate`, `deleteTemplate`)
 **STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Criar fluxo de geração de relatórios pelo professor
+**TAREFA** - Criar fluxo de geração de relatórios pelo professor ✅
 **DESCRIÇÃO** - Professor deve poder gerar relatório final da disciplina e relatórios individuais para cada monitor
 **CONTEXTO** - "Professor entra na área dele, tem lá os alunos relacionados ao projeto. Ele fala: gerar relatório pra bolsista tal, voluntário tal"
 **ARQUIVOS AFETADOS**:
-- `src/app/home/professor/relatorios-finais/page.tsx` - Nova página
-- `src/server/api/routers/relatorios/relatorios.ts` - Procedures de geração
-**STATUS** - [ ] PENDENTE
+- `src/app/home/professor/relatorios-finais/page.tsx` - ✅ CRIADO - Página completa para professor gerenciar relatórios
+- `src/server/api/routers/relatorios-finais/relatorios-finais.ts` - ✅ CRIADO - Procedures de geração, edição e assinatura
+- `src/server/services/relatorios-finais/` - ✅ CRIADO - Service e Repository pattern
+- `src/types/relatorios-finais.ts` - ✅ CRIADO - Types e Zod schemas
+**STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Implementar assinatura digital de relatórios
+**TAREFA** - Implementar assinatura digital de relatórios ✅
 **DESCRIÇÃO** - Professor assina relatório da disciplina e relatórios dos alunos. Alunos assinam seus próprios relatórios
 **CONTEXTO** - "Professor assina tanto o relatório final da disciplina quanto os relatórios dos alunos. Os alunos precisam entrar no sistema e assinar também"
 **ARQUIVOS AFETADOS**:
-- `src/server/api/routers/signature/signature.ts` - Adicionar tipo `RELATORIO_FINAL`
-- `src/app/home/student/relatorios/page.tsx` - Interface para aluno assinar
-**STATUS** - [ ] PENDENTE
+- `src/server/api/routers/relatorios-finais/relatorios-finais.ts` - ✅ IMPLEMENTADO - Procedures `signRelatorioDisciplina`, `signRelatorioMonitorAsProfessor`, `signRelatorioMonitorAsAluno`
+- `src/app/home/student/relatorios/page.tsx` - ✅ CRIADO - Interface para aluno revisar e assinar relatório
+- `src/components/layout/Sidebar.tsx` - ✅ ATUALIZADO - Menu de relatórios para professor e aluno
+**STATUS** - [x] ✅ COMPLETO
 
 **TAREFA** - Sistema de notificações para relatórios
 **DESCRIÇÃO** - Admin notifica professores para gerar relatórios. Sistema notifica alunos quando têm relatório para assinar
