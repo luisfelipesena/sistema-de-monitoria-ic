@@ -3,6 +3,7 @@ import {
   boolean,
   date,
   decimal,
+  index,
   integer,
   numeric,
   pgEnum,
@@ -1126,22 +1127,29 @@ export const relatorioFinalDisciplinaRelations = relations(relatorioFinalDiscipl
   relatoriosMonitores: many(relatorioFinalMonitorTable),
 }))
 
-export const relatorioFinalMonitorTable = pgTable('relatorio_final_monitor', {
-  id: serial('id').primaryKey(),
-  inscricaoId: integer('inscricao_id')
-    .references(() => inscricaoTable.id, { onDelete: 'cascade' })
-    .notNull()
-    .unique(),
-  relatorioDisciplinaId: integer('relatorio_disciplina_id')
-    .references(() => relatorioFinalDisciplinaTable.id, { onDelete: 'cascade' })
-    .notNull(),
-  conteudo: text('conteudo').notNull(), // JSON stringified
-  status: relatorioStatusEnum('status').notNull().default('DRAFT'),
-  alunoAssinouEm: timestamp('aluno_assinou_em', { withTimezone: true, mode: 'date' }),
-  professorAssinouEm: timestamp('professor_assinou_em', { withTimezone: true, mode: 'date' }),
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
-})
+export const relatorioFinalMonitorTable = pgTable(
+  'relatorio_final_monitor',
+  {
+    id: serial('id').primaryKey(),
+    inscricaoId: integer('inscricao_id')
+      .references(() => inscricaoTable.id, { onDelete: 'cascade' })
+      .notNull()
+      .unique(),
+    relatorioDisciplinaId: integer('relatorio_disciplina_id')
+      .references(() => relatorioFinalDisciplinaTable.id, { onDelete: 'cascade' })
+      .notNull(),
+    conteudo: text('conteudo').notNull(), // JSON stringified
+    status: relatorioStatusEnum('status').notNull().default('DRAFT'),
+    alunoAssinouEm: timestamp('aluno_assinou_em', { withTimezone: true, mode: 'date' }),
+    professorAssinouEm: timestamp('professor_assinou_em', { withTimezone: true, mode: 'date' }),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
+  },
+  (table) => [
+    // Composite index for pending student signatures query
+    index('relatorio_monitor_pending_signature_idx').on(table.status, table.alunoAssinouEm, table.inscricaoId),
+  ]
+)
 
 export const relatorioFinalMonitorRelations = relations(relatorioFinalMonitorTable, ({ one }) => ({
   inscricao: one(inscricaoTable, {
