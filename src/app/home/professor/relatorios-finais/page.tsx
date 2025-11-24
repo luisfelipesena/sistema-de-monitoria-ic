@@ -208,7 +208,7 @@ export default function RelatoriosFinaisPage() {
         <CardContent className="flex gap-4">
           <div className="w-40">
             <Label>Ano</Label>
-            <Select value={ano?.toString()} onValueChange={(v) => setAno(v ? Number(v) : undefined)}>
+            <Select value={ano?.toString() ?? 'all'} onValueChange={(v) => setAno(v === 'all' ? undefined : Number(v))}>
               <SelectTrigger>
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
@@ -360,7 +360,10 @@ export default function RelatoriosFinaisPage() {
 
                       {!projetoDetails.professorAssinouEm && (
                         <div className="flex gap-2 pt-2">
-                          <Button variant="outline" size="sm" onClick={() => setShowCreateDialog(true)}>
+                          <Button variant="outline" size="sm" onClick={() => {
+                            setDisciplinaForm(projetoDetails.conteudo)
+                            setShowCreateDialog(true)
+                          }}>
                             <Edit className="h-4 w-4 mr-1" /> Editar
                           </Button>
                           <Button size="sm" onClick={handleSignDisciplinaRelatorio}>

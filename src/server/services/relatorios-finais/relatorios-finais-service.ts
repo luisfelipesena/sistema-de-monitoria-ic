@@ -13,6 +13,15 @@ import { createRelatoriosFinaisRepository } from './relatorios-finais-repository
 
 type Database = typeof db
 
+// Safe JSON parse helper
+function safeJsonParse<T>(json: string, errorContext: string): T {
+  try {
+    return JSON.parse(json) as T
+  } catch {
+    throw new BusinessError(`Dados inválidos: ${errorContext}`, 'INVALID_DATA')
+  }
+}
+
 export function createRelatoriosFinaisService(database: Database) {
   const repo = createRelatoriosFinaisRepository(database)
 
@@ -78,7 +87,10 @@ export function createRelatoriosFinaisService(database: Database) {
       }
 
       // Parse content
-      const conteudo = JSON.parse(relatorio.conteudo) as RelatorioFinalDisciplinaContent
+      const conteudo = safeJsonParse<RelatorioFinalDisciplinaContent>(
+        relatorio.conteudo,
+        'conteúdo do relatório da disciplina'
+      )
 
       // Get monitores with their relatorios
       const monitores = await repo.listMonitoresAceitosByProjetoId(projetoId)
@@ -168,7 +180,15 @@ export function createRelatoriosFinaisService(database: Database) {
         throw new BusinessError('Relatório já aprovado não pode ser editado', 'INVALID_STATUS')
       }
 
-      const currentConteudo = JSON.parse(relatorio.conteudo) as RelatorioFinalDisciplinaContent
+      // Block editing if report is already signed
+      if (relatorio.professorAssinouEm) {
+        throw new BusinessError('Relatório já assinado não pode ser editado', 'ALREADY_SIGNED')
+      }
+
+      const currentConteudo = safeJsonParse<RelatorioFinalDisciplinaContent>(
+        relatorio.conteudo,
+        'conteúdo do relatório da disciplina'
+      )
       const updatedConteudo = { ...currentConteudo, ...input.conteudo }
 
       return repo.updateRelatorioDisciplina(input.id, {
@@ -220,7 +240,10 @@ export function createRelatoriosFinaisService(database: Database) {
         throw new ForbiddenError('Você não é o professor responsável por este projeto')
       }
 
-      const conteudo = JSON.parse(relatorio.conteudo) as RelatorioFinalMonitorContent
+      const conteudo = safeJsonParse<RelatorioFinalMonitorContent>(
+        relatorio.conteudo,
+        'conteúdo do relatório do monitor'
+      )
 
       return {
         id: relatorio.id,
@@ -305,7 +328,15 @@ export function createRelatoriosFinaisService(database: Database) {
         throw new BusinessError('Relatório já aprovado não pode ser editado', 'INVALID_STATUS')
       }
 
-      const currentConteudo = JSON.parse(relatorio.conteudo) as RelatorioFinalMonitorContent
+      // Block editing if report is already signed by either party
+      if (relatorio.professorAssinouEm || relatorio.alunoAssinouEm) {
+        throw new BusinessError('Relatório já assinado não pode ser editado', 'ALREADY_SIGNED')
+      }
+
+      const currentConteudo = safeJsonParse<RelatorioFinalMonitorContent>(
+        relatorio.conteudo,
+        'conteúdo do relatório do monitor'
+      )
       const updatedConteudo = { ...currentConteudo, ...input.conteudo }
 
       return repo.updateRelatorioMonitor(input.id, {
@@ -351,7 +382,10 @@ export function createRelatoriosFinaisService(database: Database) {
       const relatorios = await repo.listRelatoriosPendentesAssinaturaAluno(aluno.id)
 
       return relatorios.map((r) => {
-        const conteudo = JSON.parse(r.conteudo) as RelatorioFinalMonitorContent
+        const conteudo = safeJsonParse<RelatorioFinalMonitorContent>(
+          r.conteudo,
+          'conteúdo do relatório do monitor'
+        )
         return {
           id: r.id,
           relatorioDisciplinaId: r.relatorioDisciplinaId,
@@ -388,7 +422,10 @@ export function createRelatoriosFinaisService(database: Database) {
         throw new ForbiddenError('Este relatório não pertence a você')
       }
 
-      const conteudo = JSON.parse(relatorio.conteudo) as RelatorioFinalMonitorContent
+      const conteudo = safeJsonParse<RelatorioFinalMonitorContent>(
+        relatorio.conteudo,
+        'conteúdo do relatório do monitor'
+      )
 
       return {
         id: relatorio.id,

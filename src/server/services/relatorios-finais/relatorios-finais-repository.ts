@@ -9,7 +9,7 @@ import {
   vagaTable,
 } from '@/server/db/schema'
 import type { Semestre } from '@/types'
-import { and, eq, isNull, count, sql, desc } from 'drizzle-orm'
+import { and, eq, isNull, count, desc, inArray } from 'drizzle-orm'
 
 type Database = typeof db
 
@@ -69,38 +69,32 @@ export function createRelatoriosFinaisRepository(database: Database) {
       if (ano) conditions.push(eq(projetoTable.ano, ano))
       if (semestre) conditions.push(eq(projetoTable.semestre, semestre))
 
+      // Single query with relations
       const projetos = await database.query.projetoTable.findMany({
         where: and(...conditions),
         with: {
           professorResponsavel: true,
+          relatorioFinal: {
+            with: {
+              relatoriosMonitores: true,
+            },
+          },
+          vagas: true, // Get all vagas in one query
         },
         orderBy: [desc(projetoTable.ano), desc(projetoTable.createdAt)],
       })
 
-      const result = []
-
-      for (const projeto of projetos) {
-        const relatorio = await database.query.relatorioFinalDisciplinaTable.findFirst({
-          where: eq(relatorioFinalDisciplinaTable.projetoId, projeto.id),
-          with: {
-            relatoriosMonitores: true,
-          },
-        })
-
-        // Count monitores aceitos (bolsistas + voluntários)
-        const monitores = await database
-          .select({ count: count() })
-          .from(vagaTable)
-          .where(eq(vagaTable.projetoId, projeto.id))
-
-        const totalMonitores = monitores[0]?.count ?? 0
+      return projetos.map((projeto) => {
+        const relatorio = projeto.relatorioFinal
+        const totalMonitores = projeto.vagas?.length ?? 0
 
         if (relatorio) {
           const monitoresAssinados = relatorio.relatoriosMonitores.filter(
-            (r) => r.alunoAssinouEm && r.professorAssinouEm
+            (r: { alunoAssinouEm: Date | null; professorAssinouEm: Date | null }) =>
+              r.alunoAssinouEm && r.professorAssinouEm
           ).length
 
-          result.push({
+          return {
             id: relatorio.id,
             projetoId: projeto.id,
             status: relatorio.status,
@@ -115,29 +109,27 @@ export function createRelatoriosFinaisRepository(database: Database) {
             },
             totalMonitores,
             monitoresAssinados,
-          })
-        } else {
-          // Projeto sem relatório criado ainda
-          result.push({
-            id: 0,
-            projetoId: projeto.id,
-            status: null,
-            professorAssinouEm: null,
-            createdAt: null,
-            projeto: {
-              id: projeto.id,
-              titulo: projeto.titulo,
-              ano: projeto.ano,
-              semestre: projeto.semestre,
-              disciplinaNome: projeto.disciplinaNome,
-            },
-            totalMonitores,
-            monitoresAssinados: 0,
-          })
+          }
         }
-      }
 
-      return result
+        // Projeto sem relatório criado ainda
+        return {
+          id: 0,
+          projetoId: projeto.id,
+          status: null,
+          professorAssinouEm: null,
+          createdAt: null,
+          projeto: {
+            id: projeto.id,
+            titulo: projeto.titulo,
+            ano: projeto.ano,
+            semestre: projeto.semestre,
+            disciplinaNome: projeto.disciplinaNome,
+          },
+          totalMonitores,
+          monitoresAssinados: 0,
+        }
+      })
     },
 
     async createRelatorioDisciplina(data: {
@@ -245,12 +237,10 @@ export function createRelatoriosFinaisRepository(database: Database) {
       const inscricaoIds = inscricoes.map((i) => i.id)
       if (inscricaoIds.length === 0) return []
 
+      // Use inArray instead of raw SQL to prevent SQL injection
       const relatorios = await database.query.relatorioFinalMonitorTable.findMany({
         where: and(
-          sql`${relatorioFinalMonitorTable.inscricaoId} IN (${sql.join(
-            inscricaoIds.map((id) => sql`${id}`),
-            sql`, `
-          )})`,
+          inArray(relatorioFinalMonitorTable.inscricaoId, inscricaoIds),
           eq(relatorioFinalMonitorTable.status, 'SUBMITTED'),
           isNull(relatorioFinalMonitorTable.alunoAssinouEm)
         ),
