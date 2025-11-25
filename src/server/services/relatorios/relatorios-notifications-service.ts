@@ -11,7 +11,15 @@ import {
   departamentoTable,
 } from '@/server/db/schema'
 import { relatoriosEmailService } from '@/server/lib/email/relatorios-emails'
-import { APPROVED, SEMESTRE_LABELS, type Semestre, extractNotaFromRelatorioConteudo } from '@/types'
+import { createAuditService } from '@/server/services/audit/audit-service'
+import {
+  APPROVED,
+  SEMESTRE_LABELS,
+  type Semestre,
+  extractNotaFromRelatorioConteudo,
+  AUDIT_ACTION_SEND_NOTIFICATION,
+  AUDIT_ENTITY_NOTIFICATION,
+} from '@/types'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import { and, count, eq, inArray, isNull, sql } from 'drizzle-orm'
@@ -23,6 +31,7 @@ const log = logger.child({ context: 'RelatoriosNotificationsService' })
 const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
 
 export function createRelatoriosNotificationsService(database: Database) {
+  const auditService = createAuditService(database)
   return {
     /**
      * Notifica professores para gerar relatórios finais
@@ -123,6 +132,20 @@ export function createRelatoriosNotificationsService(database: Database) {
         }
       }
 
+      // Log audit event
+      await auditService.log({
+        userId: remetenteUserId,
+        action: AUDIT_ACTION_SEND_NOTIFICATION,
+        entityType: AUDIT_ENTITY_NOTIFICATION,
+        details: {
+          type: 'PROFESSOR_RELATORIO_NOTIFICATION',
+          ano,
+          semestre,
+          emailsEnviados,
+          errorsCount: errors.length,
+        },
+      })
+
       return { success: errors.length === 0, emailsEnviados, errors }
     },
 
@@ -179,6 +202,20 @@ export function createRelatoriosNotificationsService(database: Database) {
           errors.push(errorMsg)
         }
       }
+
+      // Log audit event
+      await auditService.log({
+        userId: remetenteUserId,
+        action: AUDIT_ACTION_SEND_NOTIFICATION,
+        entityType: AUDIT_ENTITY_NOTIFICATION,
+        details: {
+          type: 'STUDENT_RELATORIO_NOTIFICATION',
+          ano,
+          semestre,
+          emailsEnviados,
+          errorsCount: errors.length,
+        },
+      })
 
       return { success: errors.length === 0, emailsEnviados, errors }
     },

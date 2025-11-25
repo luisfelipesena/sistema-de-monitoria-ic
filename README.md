@@ -54,6 +54,7 @@ Sistema completo para gerenciamento de programas de monitoria acadêmica da UFBA
 - Alocar bolsas por departamento
 - Gerar relatórios e analytics
 - Gerenciar usuários e permissões
+- **Audit Logs**: Visualizar histórico de ações do sistema
 
 ## 🚀 Tech Stack
 
@@ -132,6 +133,47 @@ DB (pgEnum) → TS Types → Zod Schemas → Routers/Components
 - No DTOs, use `z.infer<typeof schema>`
 - Domain-specific files: `auth.ts`, `project.ts`, `inscription.ts`, etc.
 - Utilities: `errors.ts`, `table.ts`, `forms.ts`
+
+### Audit Log System
+
+Sistema de auditoria para rastrear ações críticas no sistema.
+
+**Estrutura**:
+```
+src/server/db/schema.ts          # auditLogTable + enums
+src/types/audit.ts               # Types e constantes
+src/server/services/audit/       # Repository + Service
+src/server/api/routers/audit/    # Router (admin only)
+src/app/home/admin/audit-logs/   # UI admin
+```
+
+**Ações rastreadas**: `CREATE`, `UPDATE`, `DELETE`, `APPROVE`, `REJECT`, `SUBMIT`, `SIGN`, `LOGIN`, `LOGOUT`, `SEND_NOTIFICATION`, `PUBLISH`, `SELECT`, `ACCEPT`
+
+**Entidades**: `PROJETO`, `INSCRICAO`, `EDITAL`, `RELATORIO`, `VAGA`, `USER`, `PROFESSOR`, `ALUNO`, `NOTIFICATION`
+
+**Uso em services**:
+```typescript
+import { createAuditService } from '@/server/services/audit/audit-service'
+import { AUDIT_ACTION_SEND_NOTIFICATION, AUDIT_ENTITY_NOTIFICATION } from '@/types'
+
+const auditService = createAuditService(db)
+
+await auditService.log({
+  userId: ctx.user.id,
+  action: AUDIT_ACTION_SEND_NOTIFICATION,
+  entityType: AUDIT_ENTITY_NOTIFICATION,
+  entityId: projetoId,  // opcional
+  details: { ano, semestre, emailsEnviados },  // JSON opcional
+  ipAddress: ctx.req?.ip,  // opcional
+  userAgent: ctx.req?.headers['user-agent'],  // opcional
+})
+```
+
+**Para adicionar novas ações/entidades**:
+1. Adicionar valor ao enum em `src/server/db/schema.ts` (`auditActionEnum` ou `auditEntityEnum`)
+2. Adicionar constante em `src/types/audit.ts`
+3. Gerar migration: `npm run drizzle:generate`
+4. Aplicar migration: `npm run drizzle:migrate`
 
 ## 🎬 Começando
 

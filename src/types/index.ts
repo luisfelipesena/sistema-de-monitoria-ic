@@ -72,6 +72,9 @@ export * from './onboarding'
 export * from './vagas'
 export * from './monitor-selection'
 
+// Audit logging
+export * from './audit'
+
 // ========================================
 // RE-EXPORTS FROM THIRD-PARTY LIBRARIES
 // ========================================
