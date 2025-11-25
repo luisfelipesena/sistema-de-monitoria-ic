@@ -11,10 +11,10 @@ import {
   departamentoTable,
 } from '@/server/db/schema'
 import { relatoriosEmailService } from '@/server/lib/email/relatorios-emails'
-import { APPROVED, SEMESTRE_LABELS, type Semestre } from '@/types'
+import { APPROVED, SEMESTRE_LABELS, type Semestre, extractNotaFromRelatorioConteudo } from '@/types'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
-import { and, count, eq, isNull, sql } from 'drizzle-orm'
+import { and, count, eq, inArray, isNull, sql } from 'drizzle-orm'
 import * as XLSX from 'xlsx'
 
 type Database = typeof db
@@ -54,6 +54,26 @@ export function createRelatoriosNotificationsService(database: Database) {
         .leftJoin(relatorioFinalDisciplinaTable, eq(projetoTable.id, relatorioFinalDisciplinaTable.projetoId))
         .where(and(eq(projetoTable.ano, ano), eq(projetoTable.semestre, semestre), eq(projetoTable.status, APPROVED)))
 
+      // Filtrar apenas projetos sem relatório
+      const projetosSemRelatorio = professoresComProjetos.filter((row) => !row.relatorioId)
+      const allProjectIds = projetosSemRelatorio.map((row) => row.projetoId)
+
+      // Pre-fetch all monitor counts in a single query (fix N+1)
+      const monitorCountsByProject =
+        allProjectIds.length > 0
+          ? await database
+              .select({
+                projetoId: vagaTable.projetoId,
+                count: count(),
+              })
+              .from(vagaTable)
+              .where(inArray(vagaTable.projetoId, allProjectIds))
+              .groupBy(vagaTable.projetoId)
+          : []
+
+      // Convert to Map for O(1) lookup
+      const countsMap = new Map(monitorCountsByProject.map((r) => [r.projetoId, r.count]))
+
       // Agrupar por professor
       const professoresMap = new Map<
         number,
@@ -64,10 +84,7 @@ export function createRelatoriosNotificationsService(database: Database) {
         }
       >()
 
-      for (const row of professoresComProjetos) {
-        // Pular projetos que já têm relatório
-        if (row.relatorioId) continue
-
+      for (const row of projetosSemRelatorio) {
         if (!professoresMap.has(row.professorId)) {
           professoresMap.set(row.professorId, {
             email: row.professorEmail,
@@ -76,17 +93,11 @@ export function createRelatoriosNotificationsService(database: Database) {
           })
         }
 
-        // Contar monitores do projeto
-        const [monitoresResult] = await database
-          .select({ count: count() })
-          .from(vagaTable)
-          .where(eq(vagaTable.projetoId, row.projetoId))
-
         professoresMap.get(row.professorId)?.projetos.push({
           id: row.projetoId,
           titulo: row.projetoTitulo,
           disciplinaNome: row.disciplinaNome || 'N/A',
-          qtdMonitores: monitoresResult?.count || 0,
+          qtdMonitores: countsMap.get(row.projetoId) || 0,
         })
       }
 
@@ -209,15 +220,7 @@ export function createRelatoriosNotificationsService(database: Database) {
       texto += `O Departamento de Ciência da Computação submete à apreciação do Colegiado os seguintes relatórios finais de monitoria:\n\n`
 
       for (const rel of relatorios) {
-        // Tentar extrair nota do conteúdo JSON
-        let nota = 'N/A'
-        try {
-          const conteudo = JSON.parse(rel.relatorioConteudo)
-          nota = conteudo.nota || conteudo.notaFinal || 'N/A'
-        } catch {
-          // Ignorar erro de parsing
-        }
-
+        const nota = extractNotaFromRelatorioConteudo(rel.relatorioConteudo)
         const tipoVaga = rel.tipoVaga === 'BOLSISTA' ? 'Bolsista' : 'Voluntário'
         texto += `- Professor(a) ${rel.professorNome} solicita aprovação do relatório de monitoria do(a) aluno(a) `
         texto += `${rel.alunoNome} (matrícula: ${rel.alunoMatricula || 'N/A'}), ${tipoVaga}, `
@@ -274,16 +277,6 @@ export function createRelatoriosNotificationsService(database: Database) {
       const bolsistas = monitores.filter((m) => m.tipoVaga === 'BOLSISTA')
       const voluntarios = monitores.filter((m) => m.tipoVaga === 'VOLUNTARIO')
 
-      // Função para extrair nota do conteúdo JSON
-      const extrairNota = (conteudo: string): string => {
-        try {
-          const parsed = JSON.parse(conteudo)
-          return String(parsed.nota || parsed.notaFinal || 'N/A')
-        } catch {
-          return 'N/A'
-        }
-      }
-
       // Gerar planilha de bolsistas
       const bolsistasData = bolsistas.map((m) => ({
         'Nome do Aluno': m.alunoNome,
@@ -295,7 +288,7 @@ export function createRelatoriosNotificationsService(database: Database) {
         SIAPE: m.professorSiape || '',
         Departamento: m.departamentoNome,
         'Carga Horária Total': m.cargaHoraria,
-        Nota: extrairNota(m.relatorioConteudo),
+        Nota: extractNotaFromRelatorioConteudo(m.relatorioConteudo),
         'Link Relatório PDF': `${clientUrl}/api/relatorio-monitor/${m.relatorioMonitorId}/pdf`,
       }))
 
@@ -314,7 +307,7 @@ export function createRelatoriosNotificationsService(database: Database) {
         Professor: m.professorNome,
         Departamento: m.departamentoNome,
         'Carga Horária Total': m.cargaHoraria,
-        Nota: extrairNota(m.relatorioConteudo),
+        Nota: extractNotaFromRelatorioConteudo(m.relatorioConteudo),
         'Link Relatório PDF': `${clientUrl}/api/relatorio-monitor/${m.relatorioMonitorId}/pdf`,
       }))
 

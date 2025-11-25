@@ -402,10 +402,23 @@ export default function ValidacaoRelatoriosPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {!validationStatus?.podeExportar && validationStatus && (
+            <div className="flex items-start gap-2 p-3 rounded-md bg-amber-50 border border-amber-200">
+              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-amber-700">
+                <p className="font-medium">Atenção: Ainda há relatórios pendentes</p>
+                <p className="mt-1">
+                  As planilhas conterão apenas dados de relatórios já assinados. Para exportação completa, aguarde todos
+                  os relatórios serem finalizados.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-4">
             <Button
               onClick={handleGerarPlanilhas}
-              disabled={gerarPlanilhasMutation.isPending || !validationStatus?.podeExportar}
+              disabled={gerarPlanilhasMutation.isPending}
               variant="outline"
             >
               {gerarPlanilhasMutation.isPending ? (
@@ -429,7 +442,7 @@ export default function ValidacaoRelatoriosPage() {
               />
               <Button
                 onClick={handleEnviarNUMOP}
-                disabled={enviarCertificadosMutation.isPending || !validationStatus?.podeExportar || !emailNUMOP}
+                disabled={enviarCertificadosMutation.isPending || !emailNUMOP}
               >
                 {enviarCertificadosMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -439,12 +452,6 @@ export default function ValidacaoRelatoriosPage() {
                 Enviar para NUMOP
               </Button>
             </div>
-            {!validationStatus?.podeExportar && (
-              <p className="text-sm text-amber-600 mt-2">
-                <AlertCircle className="h-4 w-4 inline mr-1" />
-                É necessário ter pelo menos um relatório de disciplina e um de monitor totalmente assinados.
-              </p>
-            )}
           </div>
         </CardContent>
       </Card>
