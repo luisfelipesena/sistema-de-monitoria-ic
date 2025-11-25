@@ -1,17 +1,33 @@
 import { db } from '@/server/db'
 import {
   alunoTable,
+  assinaturaDocumentoTable,
+  ataSelecaoTable,
   cursoTable,
   departamentoTable,
   disciplinaProfessorResponsavelTable,
   disciplinaTable,
+  editalTable,
   enderecoTable,
+  importacaoPlanejamentoTable,
+  inscricaoDocumentoTable,
+  inscricaoTable,
+  notaAlunoTable,
+  notificacaoHistoricoTable,
   periodoInscricaoTable,
+  professorInvitationTable,
   professorTable,
+  projetoDocumentoTable,
   projetoDisciplinaTable,
+  projetoProfessorParticipanteTable,
   projetoTable,
+  projetoTemplateTable,
+  relatorioFinalDisciplinaTable,
+  relatorioFinalMonitorTable,
+  relatorioTemplateTable,
   sessionTable,
   userTable,
+  vagaTable,
 } from '@/server/db/schema'
 import {
   MODALIDADE_CURSO_PRESENCIAL,
@@ -27,16 +43,47 @@ async function seedDatabase() {
   log.info('🌱 Iniciando seed do banco de dados...')
 
   try {
-    // 1. Limpar dados existentes (em ordem para evitar conflitos de FK)
+    // 1. Limpar dados existentes (em ordem correta para evitar conflitos de FK)
     log.info('🧹 Limpando dados existentes...')
-    await db.delete(disciplinaProfessorResponsavelTable)
+    // Relatórios e templates
+    await db.delete(relatorioFinalMonitorTable)
+    await db.delete(relatorioFinalDisciplinaTable)
+    await db.delete(relatorioTemplateTable)
+    // Assinaturas e documentos
+    await db.delete(assinaturaDocumentoTable)
+    await db.delete(inscricaoDocumentoTable)
+    await db.delete(projetoDocumentoTable)
+    await db.delete(ataSelecaoTable)
+    // Vaga depende de inscricao e projeto
+    await db.delete(vagaTable)
+    // Inscricao depende de projeto, aluno, periodo
+    await db.delete(inscricaoTable)
+    // Notificações
+    await db.delete(notificacaoHistoricoTable)
+    // Importações (depende de user)
+    await db.delete(importacaoPlanejamentoTable)
+    // Edital depende de periodo e user
+    await db.delete(editalTable)
+    // Projetos e relacionados
+    await db.delete(projetoProfessorParticipanteTable)
     await db.delete(projetoDisciplinaTable)
     await db.delete(projetoTable)
+    // Templates de projeto (depende de disciplina e user)
+    await db.delete(projetoTemplateTable)
+    // Disciplinas e professores
+    await db.delete(disciplinaProfessorResponsavelTable)
+    await db.delete(notaAlunoTable)
+    // Periodo
     await db.delete(periodoInscricaoTable)
+    // Convites
+    await db.delete(professorInvitationTable)
+    // Perfis (depende de user)
     await db.delete(alunoTable)
     await db.delete(professorTable)
+    // Sessions e users
     await db.delete(sessionTable)
     await db.delete(userTable)
+    // Base tables
     await db.delete(disciplinaTable)
     await db.delete(cursoTable)
     await db.delete(enderecoTable)

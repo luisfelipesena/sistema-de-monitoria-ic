@@ -11,14 +11,19 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
     async getProjetos(userId: number, userRole: UserRole) {
       let projetosRaw: Awaited<ReturnType<typeof repo.findByProfessorId | typeof repo.findAll>>
 
-      if (isProfessor(userRole)) {
+      if (isAdmin(userRole)) {
+        // Admin sees all projects
+        projetosRaw = await repo.findAll()
+      } else if (isProfessor(userRole)) {
+        // Professor sees only their own projects
         const professor = await repo.findProfessorByUserId(userId)
         if (!professor) {
           return []
         }
         projetosRaw = await repo.findByProfessorId(professor.id)
       } else {
-        projetosRaw = await repo.findAll()
+        // Students shouldn't access this, but return empty if they do
+        return []
       }
 
       const inscricoesCount = await repo.getInscricoesCount()

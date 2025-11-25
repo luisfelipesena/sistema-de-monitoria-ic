@@ -235,6 +235,12 @@ const menuConfig: MenuConfig[] = [
         icon: FileSpreadsheet,
         roles: ["admin"],
       },
+      {
+        label: "Validação Relatórios",
+        href: "/home/admin/validacao-relatorios",
+        icon: FileCheck,
+        roles: ["admin"],
+      },
     ],
   },
 

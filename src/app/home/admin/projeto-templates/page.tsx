@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+
 import { DuplicateTemplateDialog } from "@/components/features/admin/templates/DuplicateTemplateDialog"
 import { TemplateDialog } from "@/components/features/admin/templates/TemplateDialog"
 import { TemplateStats } from "@/components/features/admin/templates/TemplateStats"

@@ -1,5 +1,7 @@
 "use client"
 
+export const dynamic = 'force-dynamic'
+
 import { DisciplineSelectionView } from "@/components/features/professor/projetos/novo/DisciplineSelectionView"
 import { ProjectFormView } from "@/components/features/professor/projetos/novo/ProjectFormView"
 import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
