@@ -366,13 +366,13 @@ export default function InscricaoMonitoria() {
                 </SelectTrigger>
                 <SelectContent>
                   {(selectedProjeto?.bolsasDisponibilizadas ?? 0) > 0 && (
-                    <SelectItem value={TIPO_VAGA_LABELS.BOLSISTA}>
+                    <SelectItem value={TIPO_VAGA_BOLSISTA}>
                       Bolsista ({selectedProjeto.bolsasDisponibilizadas} disponível
                       {selectedProjeto.bolsasDisponibilizadas !== 1 ? "is" : ""})
                     </SelectItem>
                   )}
                   {(selectedProjeto?.voluntariosSolicitados ?? 0) > 0 && (
-                    <SelectItem value={TIPO_VAGA_LABELS.VOLUNTARIO}>
+                    <SelectItem value={TIPO_VAGA_VOLUNTARIO}>
                       Voluntário ({selectedProjeto.voluntariosSolicitados} vaga
                       {selectedProjeto.voluntariosSolicitados !== 1 ? "s" : ""})
                     </SelectItem>

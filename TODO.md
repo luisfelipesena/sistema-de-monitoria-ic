@@ -239,45 +239,52 @@ export const disciplinaEquivalenciaTable = pgTable('disciplina_equivalencia', {
 - `src/components/layout/Sidebar.tsx` - ✅ ATUALIZADO - Menu de relatórios para professor e aluno
 **STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Sistema de notificações para relatórios
+**TAREFA** - Sistema de notificações para relatórios ✅
 **DESCRIÇÃO** - Admin notifica professores para gerar relatórios. Sistema notifica alunos quando têm relatório para assinar
 **CONTEXTO** - "Admin notifica, né? Gerar relatórios, aí isso vai à notificação pros professores"
 **ARQUIVOS AFETADOS**:
-- `src/server/lib/email-service.ts` - Templates de email para relatórios
-- `src/server/api/routers/notificacoes/notificacoes.ts` - Disparar notificações
-**STATUS** - [ ] PENDENTE
+- `src/server/lib/email/relatorios-emails.ts` - ✅ CRIADO - Templates de email para relatórios
+- `src/server/services/relatorios/relatorios-notifications-service.ts` - ✅ CRIADO - Service de notificações
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ ATUALIZADO - Procedures `notifyProfessorsToGenerateReports`, `notifyStudentsWithPendingReports`
+**STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Gerar texto padrão para ata do departamento
+**TAREFA** - Gerar texto padrão para ata do departamento ✅
 **DESCRIÇÃO** - Sistema gera texto formatado com todos os relatórios para incluir na ata do departamento
 **CONTEXTO** - "Gera texto padrão: 'Professor tal solicita aprovação, relatório de monitoria do aluno tal, com nota tal, no semestre tal, na disciplina tal'"
 **ARQUIVOS AFETADOS**:
-- `src/server/api/routers/relatorios/relatorios.ts` - Procedure `gerarTextoAta`
-- `src/app/home/admin/relatorios-finais/page.tsx` - Interface para copiar texto
-**STATUS** - [ ] PENDENTE
+- `src/server/services/relatorios/relatorios-notifications-service.ts` - ✅ IMPLEMENTADO - Método `gerarTextoAta`
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ IMPLEMENTADO - Procedure `gerarTextoAta`
+- `src/app/home/admin/validacao-relatorios/page.tsx` - ✅ IMPLEMENTADO - Interface com botão "Gerar Texto" e "Copiar Texto"
+**STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Gerar planilhas de certificados
+**TAREFA** - Gerar planilhas de certificados ✅
 **DESCRIÇÃO** - Gerar 3 planilhas: certificados bolsistas, certificados voluntários, relatórios finais disciplinas (todas com links PDF)
 **CONTEXTO** - "Geram-se duas planilhas: uma para certificado dos monitores bolsistas e uma pros voluntários. Com o link em PDF dos relatórios"
 **ARQUIVOS AFETADOS**:
-- `src/server/api/routers/relatorios/relatorios.ts` - `exportarCertificados`
-- `src/components/features/relatorios/PlanilhaCertificados.tsx` - Componente de geração
-**STATUS** - [ ] PENDENTE
+- `src/server/services/relatorios/relatorios-notifications-service.ts` - ✅ IMPLEMENTADO - Método `gerarPlanilhasCertificados` usando xlsx
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ IMPLEMENTADO - Procedure `gerarPlanilhasCertificados`
+- `src/app/home/admin/validacao-relatorios/page.tsx` - ✅ IMPLEMENTADO - Botão "Baixar Planilhas" com download de 3 arquivos
+**STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Implementar envio para NUMOP via Departamento
+**TAREFA** - Implementar envio para NUMOP via Departamento ✅
 **DESCRIÇÃO** - Sistema envia planilhas de certificados para departamento, que encaminha para NUMOP
 **CONTEXTO** - "Manda isso pro departamento também. Aí, o departamento vai mandar pro NUMOP"
 **ARQUIVOS AFETADOS**:
-- `src/server/api/routers/relatorios/relatorios.ts` - Procedure de envio
-- `src/server/lib/email-service.ts` - Template de email para NUMOP
-**STATUS** - [ ] PENDENTE
+- `src/server/services/relatorios/relatorios-notifications-service.ts` - ✅ IMPLEMENTADO - Método `enviarCertificadosParaNUMOP`
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ IMPLEMENTADO - Procedure `enviarCertificadosParaNUMOP`
+- `src/server/lib/email/relatorios-emails.ts` - ✅ IMPLEMENTADO - Template `sendCertificadosParaDepartamento`
+- `src/app/home/admin/validacao-relatorios/page.tsx` - ✅ IMPLEMENTADO - Campo email e botão "Enviar para NUMOP"
+**STATUS** - [x] ✅ COMPLETO
 
-**TAREFA** - Interface admin para validação de relatórios
+**TAREFA** - Interface admin para validação de relatórios ✅
 **DESCRIÇÃO** - Admin valida que todos os relatórios estão corretos antes de gerar consolidação
 **CONTEXTO** - "Admin vai entrar e confirmar os relatórios que tem ali, estão todos ok em relação às bolsas e voluntários"
 **ARQUIVOS AFETADOS**:
-- `src/app/home/admin/validacao-relatorios/page.tsx` - Nova página
-- `src/server/api/routers/relatorios/relatorios.ts` - Status de validação
-**STATUS** - [ ] PENDENTE
+- `src/app/home/admin/validacao-relatorios/page.tsx` - ✅ CRIADO - Página completa com status, notificações, ata, planilhas e envio
+- `src/server/services/relatorios/relatorios-notifications-service.ts` - ✅ IMPLEMENTADO - Método `getValidationStatus`
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ IMPLEMENTADO - Procedure `getValidationStatus`
+- `src/components/layout/Sidebar.tsx` - ✅ ATUALIZADO - Link "Validação Relatórios" no menu admin
+**STATUS** - [x] ✅ COMPLETO
 
 ---
 
@@ -707,5 +714,76 @@ FOREIGN KEY ("edital_interno_id") REFERENCES "public"."edital"("id");
 ```
 
 **Impacto**: Schema do banco completo com todas as relações necessárias para edital interno DCC
+
+---
+
+## ✅ FASE 6 COMPLETA - RELATÓRIOS FINAIS E CERTIFICADOS
+
+### MILESTONE 6 - RELATÓRIOS FINAIS E CERTIFICADOS ✅
+**Data**: 25/11/2025
+**Tickets**: 5/5 (100%)
+**Arquivos Criados**: `relatorios-emails.ts`, `relatorios-notifications-service.ts`, `validacao-relatorios/page.tsx`
+**Build**: ✅ Passou com sucesso (lint + typecheck)
+
+**Funcionalidades Implementadas**:
+
+**TAREFA** - Sistema de notificações para relatórios ✅
+**DESCRIÇÃO** - Admin notifica professores para gerar relatórios. Sistema notifica alunos quando têm relatório para assinar
+**ARQUIVOS AFETADOS**:
+- `src/server/lib/email/relatorios-emails.ts` - ✅ CRIADO - Templates de email para relatórios
+- `src/server/services/relatorios/relatorios-notifications-service.ts` - ✅ CRIADO - Service de notificações
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ ATUALIZADO - Procedures `notifyProfessorsToGenerateReports`, `notifyStudentsWithPendingReports`
+**STATUS** - [x] ✅ COMPLETO
+
+**TAREFA** - Gerar texto padrão para ata do departamento ✅
+**DESCRIÇÃO** - Sistema gera texto formatado com todos os relatórios para incluir na ata do departamento
+**ARQUIVOS AFETADOS**:
+- `src/server/services/relatorios/relatorios-notifications-service.ts` - ✅ IMPLEMENTADO - Método `gerarTextoAta`
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ IMPLEMENTADO - Procedure `gerarTextoAta`
+- `src/app/home/admin/validacao-relatorios/page.tsx` - ✅ IMPLEMENTADO - Interface com botão "Gerar Texto" e "Copiar Texto"
+**STATUS** - [x] ✅ COMPLETO
+
+**TAREFA** - Gerar planilhas de certificados ✅
+**DESCRIÇÃO** - Gerar 3 planilhas: certificados bolsistas, certificados voluntários, relatórios finais disciplinas (todas com links PDF)
+**ARQUIVOS AFETADOS**:
+- `src/server/services/relatorios/relatorios-notifications-service.ts` - ✅ IMPLEMENTADO - Método `gerarPlanilhasCertificados` usando xlsx
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ IMPLEMENTADO - Procedure `gerarPlanilhasCertificados`
+- `src/app/home/admin/validacao-relatorios/page.tsx` - ✅ IMPLEMENTADO - Botão "Baixar Planilhas" com download de 3 arquivos
+**STATUS** - [x] ✅ COMPLETO
+
+**TAREFA** - Implementar envio para NUMOP via Departamento ✅
+**DESCRIÇÃO** - Sistema envia planilhas de certificados para departamento, que encaminha para NUMOP
+**ARQUIVOS AFETADOS**:
+- `src/server/services/relatorios/relatorios-notifications-service.ts` - ✅ IMPLEMENTADO - Método `enviarCertificadosParaNUMOP`
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ IMPLEMENTADO - Procedure `enviarCertificadosParaNUMOP`
+- `src/server/lib/email/relatorios-emails.ts` - ✅ IMPLEMENTADO - Template `sendCertificadosParaDepartamento`
+- `src/app/home/admin/validacao-relatorios/page.tsx` - ✅ IMPLEMENTADO - Campo email e botão "Enviar para NUMOP"
+**STATUS** - [x] ✅ COMPLETO
+
+**TAREFA** - Interface admin para validação de relatórios ✅
+**DESCRIÇÃO** - Admin valida que todos os relatórios estão corretos antes de gerar consolidação
+**ARQUIVOS AFETADOS**:
+- `src/app/home/admin/validacao-relatorios/page.tsx` - ✅ CRIADO - Página completa com status, notificações, ata, planilhas e envio
+- `src/server/services/relatorios/relatorios-notifications-service.ts` - ✅ IMPLEMENTADO - Método `getValidationStatus`
+- `src/server/api/routers/relatorios/relatorios.ts` - ✅ IMPLEMENTADO - Procedure `getValidationStatus`
+- `src/components/layout/Sidebar.tsx` - ✅ ATUALIZADO - Link "Validação Relatórios" no menu admin
+**STATUS** - [x] ✅ COMPLETO
+
+**Impacto**: Sistema agora possui workflow completo de relatórios finais com notificações, geração de texto para ata, planilhas de certificados e envio para NUMOP.
+
+---
+
+### RESUMO DE PROGRESSO - 100% COMPLETO 🎉
+
+| Fase | Status | Pendências |
+|------|--------|------------|
+| FASE 1: Planejamento e Criação | ✅ 100% | - |
+| FASE 2: Aprovação e PROGRAD | ✅ 100% | - |
+| FASE 3: Alocação e Edital DCC | ✅ 100% | - |
+| FASE 4: Inscrições e Seleção | ✅ 100% | - |
+| FASE 5: Consolidação Final | ✅ 100% | - |
+| FASE 6: Relatórios e Certificados | ✅ 100% | - |
+
+**TOTAL GERAL**: 100% completo - Sistema pronto para produção! 🚀
 
 ---

@@ -1,6 +1,7 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { relatorioTemplateTable } from '@/server/db/schema'
 import { createRelatoriosService } from '@/server/services/relatorios/relatorios-service'
+import { relatoriosValidationRouter } from './relatorios-validation'
 import {
   alunoRelatorioSchema,
   csvExportInputSchema,
@@ -361,4 +362,7 @@ export const relatoriosRouter = createTRPCRouter({
 
     return { success: true }
   }),
+
+  // Merge validation router procedures
+  ...relatoriosValidationRouter._def.procedures,
 })

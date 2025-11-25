@@ -1204,6 +1204,63 @@ export const apiKeyRelations = relations(apiKeyTable, ({ one }) => ({
   }),
 }))
 
+// --- Audit Log ---
+
+export const auditActionEnum = pgEnum('audit_action_enum', [
+  'CREATE',
+  'UPDATE',
+  'DELETE',
+  'APPROVE',
+  'REJECT',
+  'SUBMIT',
+  'SIGN',
+  'LOGIN',
+  'LOGOUT',
+  'SEND_NOTIFICATION',
+  'PUBLISH',
+  'SELECT',
+  'ACCEPT',
+])
+
+export const auditEntityEnum = pgEnum('audit_entity_enum', [
+  'PROJETO',
+  'INSCRICAO',
+  'EDITAL',
+  'RELATORIO',
+  'VAGA',
+  'USER',
+  'PROFESSOR',
+  'ALUNO',
+  'NOTIFICATION',
+])
+
+export const auditLogTable = pgTable(
+  'audit_log',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id').references(() => userTable.id),
+    action: auditActionEnum('action').notNull(),
+    entityType: auditEntityEnum('entity_type').notNull(),
+    entityId: integer('entity_id'),
+    details: text('details'), // JSON stringified
+    ipAddress: varchar('ip_address', { length: 45 }),
+    userAgent: text('user_agent'),
+    timestamp: timestamp('timestamp', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('audit_log_user_idx').on(table.userId),
+    index('audit_log_entity_idx').on(table.entityType, table.entityId),
+    index('audit_log_timestamp_idx').on(table.timestamp),
+  ]
+)
+
+export const auditLogRelations = relations(auditLogTable, ({ one }) => ({
+  user: one(userTable, {
+    fields: [auditLogTable.userId],
+    references: [userTable.id],
+  }),
+}))
+
 // Export all table and relation types for use across the app
 export type User = typeof userTable.$inferSelect
 export type NewUser = typeof userTable.$inferInsert
@@ -1237,3 +1294,5 @@ export type RelatorioFinalMonitor = typeof relatorioFinalMonitorTable.$inferSele
 export type NewRelatorioFinalMonitor = typeof relatorioFinalMonitorTable.$inferInsert
 export type RelatorioTemplate = typeof relatorioTemplateTable.$inferSelect
 export type NewRelatorioTemplate = typeof relatorioTemplateTable.$inferInsert
+export type AuditLog = typeof auditLogTable.$inferSelect
+export type NewAuditLog = typeof auditLogTable.$inferInsert

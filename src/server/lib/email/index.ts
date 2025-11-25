@@ -5,6 +5,7 @@ export * from './student-emails'
 export * from './admin-emails'
 export * from './auth-emails'
 export * from './professor-emails'
+export * from './relatorios-emails'
 
 // Legacy compatibility - re-export commonly used functions
 import { projetoEmailService } from './projeto-emails'

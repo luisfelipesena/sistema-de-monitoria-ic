@@ -98,6 +98,22 @@ export interface RelatorioFinalMonitorContent {
   notaFinal: number
   avaliacaoQualitativa?: string
   observacoes?: string
+  // Legacy field names for backward compatibility
+  nota?: string | number
+}
+
+/**
+ * Extracts nota from RelatorioFinalMonitorContent JSON string
+ * Handles both legacy 'nota' field and current 'notaFinal' field
+ */
+export function extractNotaFromRelatorioConteudo(conteudoJson: string): string {
+  try {
+    const conteudo = JSON.parse(conteudoJson) as Partial<RelatorioFinalMonitorContent>
+    const nota = conteudo.notaFinal ?? conteudo.nota
+    return nota !== undefined ? String(nota) : 'N/A'
+  } catch {
+    return 'N/A'
+  }
 }
 
 export const relatorioFinalMonitorContentSchema = z.object({

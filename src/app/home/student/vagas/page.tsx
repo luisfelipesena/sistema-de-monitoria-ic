@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getSemestreNumero, PROJETO_STATUS_APPROVED, TIPO_VAGA_LABELS, type Semestre } from "@/types"
+import { getSemestreNumero, TIPO_VAGA_LABELS, type Semestre } from "@/types"
 import { api } from "@/utils/api"
 import { Award, BookOpen, Calendar, Clock, MapPin, Search, User, Users } from "lucide-react"
 import { useState } from "react"
@@ -46,7 +46,7 @@ export default function VagasPage() {
   const [selectedDepartamento, setSelectedDepartamento] = useState<string>("")
   const [tipoVagaFilter, setTipoVagaFilter] = useState<string>("")
 
-  const { data: projetos = [], isLoading: isLoadingProjetos } = api.projeto.getProjetos.useQuery()
+  const { data: projetos = [], isLoading: isLoadingProjetos } = api.projeto.getAvailableProjects.useQuery()
   const { data: departamentos = [] } = api.departamento.getDepartamentos.useQuery({})
   const { data: activePeriodData, isLoading: isLoadingPeriod } = api.edital.getActivePeriod.useQuery()
 
@@ -56,10 +56,8 @@ export default function VagasPage() {
   const hasActivePeriod = activePeriodData?.periodo !== null
   const activePeriod = activePeriodData?.periodo
 
-  // Filter projects - only show APPROVED projects
+  // Filter projects - getAvailableProjects already returns only APPROVED projects
   const filteredProjetos = projetos.filter((projeto) => {
-    if (projeto.status !== PROJETO_STATUS_APPROVED) return false
-
     const matchesSearch =
       projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       projeto.professorResponsavelNome.toLowerCase().includes(searchTerm.toLowerCase())
@@ -67,7 +65,9 @@ export default function VagasPage() {
     const matchesDepartamento =
       !selectedDepartamento ||
       selectedDepartamento === "all" ||
-      projeto.departamentoId.toString() === selectedDepartamento
+      projeto.departamentoNome.toLowerCase().includes(
+        departamentos.find((d: any) => d.id.toString() === selectedDepartamento)?.nome?.toLowerCase() || ""
+      )
 
     const matchesTipoVaga =
       !tipoVagaFilter ||

@@ -34,3 +34,5 @@ CLAUDE.local.md
 # TypeScript build info
 *.tsbuildinfo
 tsconfig.tsbuildinfo
+
+.playwright-mcp/

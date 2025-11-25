@@ -1,4 +1,5 @@
 import { analyticsRouter } from '@/server/api/routers/analytics/analytics'
+import { auditRouter } from '@/server/api/routers/audit/audit'
 import { apiKeyRouter } from '@/server/api/routers/api-key/api-key'
 import { authRouter } from '@/server/api/routers/auth/auth'
 import { meRouter } from '@/server/api/routers/auth/me/me'
@@ -51,6 +52,7 @@ export const appRouter = createTRPCRouter({
   termos: termosRouter,
   notificacoes: notificacoesRouter,
   configuracoes: configuracoesRouter,
+  audit: auditRouter,
 })
 
 export type AppRouter = typeof appRouter
