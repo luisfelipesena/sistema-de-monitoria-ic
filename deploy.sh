@@ -2,7 +2,7 @@
 set -e
 
 # Configurações
-REMOTE="ssh://dokku@app.ic.ufba.br:9999/sistema-de-monitoria" # Target Dokku app name
+REMOTE="ssh://dokku@200.128.51.137:9999/sistema-de-monitoria" # Target Dokku app name
 SSH_PORT=9999
 # Optional: Specify the local branch to deploy, default to current branch
 LOCAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
