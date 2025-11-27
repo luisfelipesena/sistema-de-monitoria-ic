@@ -23,6 +23,7 @@
 - [Funcionalidades](#-funcionalidades)
 - [Tech Stack](#-tech-stack)
 - [Arquitetura](#-arquitetura)
+- [Deploy (Dokku)](#-deploy-dokku)
 - [Começando](#-começando)
 - [Estrutura](#-estrutura)
 - [Scripts](#-scripts)
@@ -174,6 +175,76 @@ await auditService.log({
 2. Adicionar constante em `src/types/audit.ts`
 3. Gerar migration: `npm run drizzle:generate`
 4. Aplicar migration: `npm run drizzle:migrate`
+
+## 🚀 Deploy (Dokku)
+
+### Configuração do Servidor
+
+O deploy é feito via SSH para Dokku em `app.ic.ufba.br`:
+
+```bash
+# Deploy manual
+./deploy.sh
+
+# Ou via git push
+git push dokku main:master
+```
+
+**Configuração SSH** (`~/.ssh/config`):
+```
+Host app.ic.ufba.br
+  HostName app.ic.ufba.br
+  Port 9999
+  User dokku
+```
+
+### MinIO (Storage S3)
+
+O sistema usa MinIO para armazenamento de arquivos (PDFs, documentos).
+
+**Gerenciamento de Access Keys**:
+
+Access keys são globais por usuário (não por bucket). Para criar novas:
+
+```bash
+# Instalar mc (MinIO Client)
+brew install minio/stable/mc
+
+# Configurar alias (usar credenciais root do MinIO)
+mc alias set minio-prod https://sistema-de-monitoria-minio.app.ic.ufba.br MINIO_ROOT_USER MINIO_ROOT_PASSWORD
+
+# Criar nova access key
+mc admin accesskey create minio-prod
+
+# Atualizar no Dokku
+ssh -t -p 9999 dokku@app.ic.ufba.br config:set sistema-de-monitoria \
+  MINIO_ACCESS_KEY="NOVA_KEY" \
+  MINIO_SECRET_KEY="NOVA_SECRET"
+```
+
+**Variáveis de ambiente necessárias**:
+- `MINIO_ENDPOINT`: Host do MinIO (ex: `sistema-de-monitoria-minio.app.ic.ufba.br`)
+- `MINIO_ACCESS_KEY`: Access key do MinIO
+- `MINIO_SECRET_KEY`: Secret key do MinIO
+- `MINIO_BUCKET_NAME`: Nome do bucket (ex: `sistema-de-monitoria-production`)
+
+### Troubleshooting
+
+**Erro "InvalidAccessKeyId"**: Recriar access key via `mc admin accesskey create`.
+
+**Erro de conexão SSH**: Verificar se o IP em `/etc/hosts` está correto:
+```bash
+# Flush DNS cache (macOS)
+sudo killall -HUP mDNSResponder
+
+# Verificar resolução
+ping app.ic.ufba.br
+```
+
+**Ver logs de produção**:
+```bash
+ssh -t -p 9999 dokku@app.ic.ufba.br logs sistema-de-monitoria --tail 100
+```
 
 ## 🎬 Começando
 
