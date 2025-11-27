@@ -28,6 +28,17 @@ export default function AlunosPage() {
   const [selectedAluno, setSelectedAluno] = useState<AlunoListItem | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
 
+  // Helper function - must be declared before use to avoid TDZ
+  const getAlunoStatus = (profile: {
+    bolsasAtivas?: number | null
+    voluntariadosAtivos?: number | null
+    inscricoes?: number | null
+  }): StudentStatus => {
+    return profile.bolsasAtivas || profile.voluntariadosAtivos || profile.inscricoes
+      ? STUDENT_STATUS_ATIVO
+      : STUDENT_STATUS_INATIVO
+  }
+
   // Fetch students data
   const { data: usersData, isLoading } = api.user.getUsers.useQuery({
     role: STUDENT,
@@ -75,16 +86,6 @@ export default function AlunosPage() {
   const handleViewAluno = (aluno: AlunoListItem) => {
     setSelectedAluno(aluno)
     setIsDetailDialogOpen(true)
-  }
-
-  const getAlunoStatus = (profile: {
-    bolsasAtivas?: number | null
-    voluntariadosAtivos?: number | null
-    inscricoes?: number | null
-  }): StudentStatus => {
-    return profile.bolsasAtivas || profile.voluntariadosAtivos || profile.inscricoes
-      ? STUDENT_STATUS_ATIVO
-      : STUDENT_STATUS_INATIVO
   }
 
   const handleToggleStatus = async (alunoId: number, currentStatus: StudentStatus) => {
@@ -191,7 +192,7 @@ export default function AlunosPage() {
       header: "Documentos",
       cell: ({ row }) => {
         const { documentosValidados, totalDocumentos } = row.original
-        const percentage = (documentosValidados / totalDocumentos) * 100
+        const percentage = totalDocumentos > 0 ? (documentosValidados / totalDocumentos) * 100 : 0
         return (
           <div className="text-center">
             <Badge variant={percentage === 100 ? "default" : percentage >= 50 ? "secondary" : "destructive"}>
