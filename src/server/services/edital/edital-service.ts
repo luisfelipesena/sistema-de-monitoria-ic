@@ -49,6 +49,10 @@ export function createEditalService(db: Database) {
     requestChefeSignature: crudService.requestChefeSignature,
     signAsChefe: crudService.signAsChefe,
 
+    // Token-based signature operations (public)
+    getEditalByToken: crudService.getEditalByToken,
+    signEditalByToken: crudService.signEditalByToken,
+
     // Publication operations
     validateEditalForPublication: publicationService.validateEditalForPublication,
     publishEdital: publicationService.publishEdital,

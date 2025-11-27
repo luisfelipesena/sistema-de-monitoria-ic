@@ -1,12 +1,19 @@
 import { and, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm'
 import type { InferInsertModel } from 'drizzle-orm'
 import type { db } from '@/server/db'
-import { editalTable, periodoInscricaoTable, professorTable, projetoTable } from '@/server/db/schema'
+import {
+  editalTable,
+  editalSignatureTokenTable,
+  periodoInscricaoTable,
+  professorTable,
+  projetoTable,
+} from '@/server/db/schema'
 import type { Semestre, TipoEdital } from '@/types'
 import { TIPO_EDITAL_DCC, APPROVED } from '@/types'
 
 export type EditalInsert = InferInsertModel<typeof editalTable>
 export type PeriodoInscricaoInsert = InferInsertModel<typeof periodoInscricaoTable>
+export type EditalSignatureTokenInsert = InferInsertModel<typeof editalSignatureTokenTable>
 
 type Database = typeof db
 
@@ -223,6 +230,53 @@ export function createEditalRepository(db: Database) {
         where: eq(professorTable.userId, professorId),
         with: { departamento: true },
       })
+    },
+
+    // Token signature methods
+    async createSignatureToken(data: EditalSignatureTokenInsert) {
+      const [token] = await db.insert(editalSignatureTokenTable).values(data).returning()
+      return token
+    },
+
+    async findSignatureTokenByToken(token: string) {
+      return db.query.editalSignatureTokenTable.findFirst({
+        where: eq(editalSignatureTokenTable.token, token),
+        with: {
+          edital: {
+            with: {
+              periodoInscricao: true,
+            },
+          },
+        },
+      })
+    },
+
+    async findPendingTokenByEditalId(editalId: number) {
+      return db.query.editalSignatureTokenTable.findFirst({
+        where: and(
+          eq(editalSignatureTokenTable.editalId, editalId),
+          eq(editalSignatureTokenTable.status, 'PENDING'),
+          gte(editalSignatureTokenTable.expiresAt, new Date())
+        ),
+      })
+    },
+
+    async markTokenAsUsed(tokenId: number) {
+      const [token] = await db
+        .update(editalSignatureTokenTable)
+        .set({ status: 'USED', usedAt: new Date() })
+        .where(eq(editalSignatureTokenTable.id, tokenId))
+        .returning()
+      return token
+    },
+
+    async expireToken(tokenId: number) {
+      const [token] = await db
+        .update(editalSignatureTokenTable)
+        .set({ status: 'EXPIRED' })
+        .where(eq(editalSignatureTokenTable.id, tokenId))
+        .returning()
+      return token
     },
   }
 }

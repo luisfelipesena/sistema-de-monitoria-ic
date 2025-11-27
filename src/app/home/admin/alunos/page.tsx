@@ -211,22 +211,25 @@ export default function AlunosPage() {
       header: "Ações",
       cell: ({ row }) => {
         const aluno = row.original
+        const isAtivo = aluno.status === STUDENT_STATUS_ATIVO
         return (
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleViewAluno(aluno)}>
+            <Button
+              variant="outline"
+              size="sm"
+              title="Ver detalhes do aluno"
+              onClick={() => handleViewAluno(aluno)}
+            >
               <Eye className="h-4 w-4" />
             </Button>
 
             <Button
-              variant={aluno.status === STUDENT_STATUS_ATIVO ? "destructive" : "default"}
+              variant={isAtivo ? "destructive" : "default"}
               size="sm"
+              title={isAtivo ? "Desativar aluno" : "Ativar aluno"}
               onClick={() => handleToggleStatus(aluno.id, aluno.status)}
             >
-              {aluno.status === STUDENT_STATUS_ATIVO ? (
-                <UserX className="h-4 w-4" />
-              ) : (
-                <UserCheck className="h-4 w-4" />
-              )}
+              {isAtivo ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
             </Button>
           </div>
         )

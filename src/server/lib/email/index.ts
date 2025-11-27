@@ -49,6 +49,7 @@ export const emailService = {
   sendPlanilhaPROGRADEmail: adminEmailService.sendPlanilhaPROGRAD.bind(adminEmailService),
   sendDepartamentoConsolidationEmail: adminEmailService.sendDepartmentConsolidation.bind(adminEmailService),
   sendEditalPublishedNotification: adminEmailService.sendEditalPublished.bind(adminEmailService),
+  sendChefeSignatureRequest: adminEmailService.sendChefeSignatureRequest.bind(adminEmailService),
 
   // Auth emails
   sendEmailVerification: authEmailService.sendEmailVerification.bind(authEmailService),

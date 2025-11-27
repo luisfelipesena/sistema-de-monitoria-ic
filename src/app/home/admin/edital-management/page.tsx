@@ -6,6 +6,7 @@ import {
 } from "@/components/features/edital/EditalFormDialog";
 import { EditalStatsCards } from "@/components/features/edital/EditalStatsCards";
 import { createEditalTableColumns } from "@/components/features/edital/EditalTableColumns";
+import { RequestChefeSignatureDialog } from "@/components/features/edital/RequestChefeSignatureDialog";
 import { PagesLayout } from "@/components/layout/PagesLayout";
 import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,7 @@ export default function EditalManagementPage() {
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isSignatureDialogOpen, setIsSignatureDialogOpen] = useState(false);
   const [selectedEdital, setSelectedEdital] = useState<EditalListItem | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
 
@@ -139,17 +141,19 @@ export default function EditalManagementPage() {
   });
 
   const requestChefeSignatureMutation = api.edital.requestChefeSignature.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
-        title: "Sucesso!",
-        description: "Solicitação de assinatura enviada ao chefe do departamento!",
+        title: "Link de assinatura enviado!",
+        description: data.message,
       });
+      setIsSignatureDialogOpen(false);
+      setSelectedEdital(null);
       refetch();
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: `Erro: ${error.message}`,
+        title: "Erro ao enviar solicitação",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -268,12 +272,18 @@ export default function EditalManagementPage() {
     }
   };
 
-  const handleRequestChefeSignature = async (editalId: number) => {
-    try {
-      await requestChefeSignatureMutation.mutateAsync({ id: editalId });
-    } catch (error) {
-      console.error("Error requesting chief signature:", error);
-    }
+  const handleRequestChefeSignature = (edital: EditalListItem) => {
+    setSelectedEdital(edital);
+    setIsSignatureDialogOpen(true);
+  };
+
+  const handleConfirmSignatureRequest = async (chefeEmail: string, chefeNome?: string) => {
+    if (!selectedEdital) return;
+    await requestChefeSignatureMutation.mutateAsync({
+      id: selectedEdital.id,
+      chefeEmail,
+      chefeNome,
+    });
   };
 
   const openEditDialog = (edital: EditalListItem) => {
@@ -364,6 +374,18 @@ export default function EditalManagementPage() {
           title="Editar Edital"
           description="Atualize as informações do edital"
           submitLabel="Salvar Alterações"
+        />
+
+        <RequestChefeSignatureDialog
+          open={isSignatureDialogOpen}
+          onOpenChange={(open) => {
+            setIsSignatureDialogOpen(open);
+            if (!open) setSelectedEdital(null);
+          }}
+          editalNumero={selectedEdital?.numeroEdital || ""}
+          editalTitulo={selectedEdital?.titulo || ""}
+          onConfirm={handleConfirmSignatureRequest}
+          isLoading={requestChefeSignatureMutation.isPending}
         />
       </div>
     </PagesLayout>

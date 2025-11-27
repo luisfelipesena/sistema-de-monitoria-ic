@@ -2,7 +2,7 @@ import { SEMESTRE_LABELS, type Semestre } from '@/types'
 import { env } from '@/utils/env'
 import { emailSender } from './email-sender'
 
-const _clientUrl = env.CLIENT_URL || 'http://localhost:3000'
+const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
 
 export const adminEmailService = {
   async sendPlanilhaPROGRAD(data: {
@@ -165,5 +165,83 @@ export const adminEmailService = {
         tipoNotificacao: 'EDITAL_PUBLISHED_NOTIFICATION',
       }))
     )
+  },
+
+  async sendChefeSignatureRequest(data: {
+    chefeEmail: string
+    chefeNome?: string
+    editalNumero: string
+    editalTitulo: string
+    semestreFormatado: string
+    ano: number
+    signatureToken: string
+    expiresAt: Date
+    remetenteUserId?: number
+  }): Promise<void> {
+    const signatureUrl = `${clientUrl}/assinar-edital?token=${data.signatureToken}`
+    const expiresAtFormatted = data.expiresAt.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #0b5394; border-bottom: 2px solid #0b5394; padding-bottom: 10px;">
+          ✍️ Solicitação de Assinatura de Edital
+        </h2>
+
+        <p>Prezado(a) ${data.chefeNome || 'Chefe do Departamento'},</p>
+
+        <p>
+          O Coordenador de Monitoria do DCC solicita sua assinatura digital no
+          <strong>${data.editalTitulo}</strong> referente ao período
+          <strong>${data.semestreFormatado}/${data.ano}</strong>.
+        </p>
+
+        <div style="background-color: #e6f3ff; border-left: 4px solid #0b5394; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0;"><strong>📋 Edital:</strong> ${data.editalNumero}</p>
+          <p style="margin: 5px 0;"><strong>📝 Título:</strong> ${data.editalTitulo}</p>
+          <p style="margin: 5px 0;"><strong>📅 Período:</strong> ${data.semestreFormatado}/${data.ano}</p>
+        </div>
+
+        <p>
+          Clique no botão abaixo para visualizar o edital e realizar a assinatura digital.
+          Você poderá revisar todo o conteúdo antes de assinar.
+        </p>
+
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="${signatureUrl}"
+             style="background-color: #0b5394; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
+            ✍️ Assinar Edital
+          </a>
+        </p>
+
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0; color: #856404;">
+            <strong>⚠️ Atenção:</strong> Este link é válido até <strong>${expiresAtFormatted}</strong>.
+            Após este prazo, uma nova solicitação deverá ser feita pelo coordenador.
+          </p>
+        </div>
+
+        <p style="color: #666; font-size: 14px; margin-top: 30px;">
+          Se você recebeu este email por engano ou não é o Chefe do Departamento responsável,
+          por favor desconsidere esta mensagem.
+        </p>
+
+        <p style="margin-top: 20px;">Atenciosamente,<br/>
+        <strong>Sistema de Monitoria IC - UFBA</strong></p>
+      </div>
+    `
+
+    await emailSender.send({
+      to: data.chefeEmail,
+      subject: `[Monitoria IC] Solicitação de Assinatura - ${data.editalTitulo}`,
+      html,
+      tipoNotificacao: 'CHEFE_SIGNATURE_REQUEST',
+      remetenteUserId: data.remetenteUserId,
+    })
   },
 }

@@ -3,23 +3,44 @@ import { StatusBadge } from '@/components/atoms/StatusBadge'
 import { Button } from '@/components/ui/button'
 import type { DashboardProjectItem } from '@/types'
 import type { ColumnDef } from '@tanstack/react-table'
-import { Download, Eye, Hand, List, Loader, Users } from 'lucide-react'
+import { Eye, Hand, List, Loader, Trash2, Users } from 'lucide-react'
+import { useState } from 'react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 interface ProjectsTableProps {
   projetos: DashboardProjectItem[]
   groupedView: boolean
-  loadingPdfId: number | null
+  deletingProjetoId: number | null
   onAnalisarProjeto: (projetoId: number) => void
-  onViewPdf: (projetoId: number) => void
+  onDeleteProjeto: (projetoId: number) => void
 }
 
 export function ProjectsTable({
   projetos,
   groupedView,
-  loadingPdfId,
+  deletingProjetoId,
   onAnalisarProjeto,
-  onViewPdf,
+  onDeleteProjeto,
 }: ProjectsTableProps) {
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
+  const projetoToDelete = projetos.find((p) => p.id === deleteConfirmId)
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmId) {
+      onDeleteProjeto(deleteConfirmId)
+      setDeleteConfirmId(null)
+    }
+  }
+
   const columns: ColumnDef<DashboardProjectItem>[] = [
     {
       header: () => (
@@ -90,19 +111,43 @@ export function ProjectsTable({
             Analisar
           </Button>
           <Button
-            variant="outline"
+            variant="destructive"
             size="sm"
             className="rounded-full flex items-center gap-1"
-            onClick={() => onViewPdf(row.original.id)}
-            disabled={loadingPdfId === row.original.id}
+            onClick={() => setDeleteConfirmId(row.original.id)}
+            disabled={deletingProjetoId === row.original.id}
           >
-            <Download className="h-4 w-4" />
-            {loadingPdfId === row.original.id ? 'Carregando...' : 'Visualizar PDF'}
+            <Trash2 className="h-4 w-4" />
+            {deletingProjetoId === row.original.id ? 'Excluindo...' : 'Excluir'}
           </Button>
         </div>
       ),
     },
   ]
 
-  return <TableComponent columns={columns} data={projetos} />
+  return (
+    <>
+      <TableComponent columns={columns} data={projetos} />
+      <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o projeto{' '}
+              <strong>{projetoToDelete?.disciplinas?.[0]?.codigo || projetoToDelete?.titulo}</strong>?
+              <br />
+              <br />
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
 }

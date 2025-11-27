@@ -1261,6 +1261,42 @@ export const auditLogRelations = relations(auditLogTable, ({ one }) => ({
   }),
 }))
 
+// --- Token para Assinatura de Edital pelo Chefe ---
+
+export const editalSignatureTokenStatusEnum = pgEnum('edital_signature_token_status_enum', [
+  'PENDING',
+  'USED',
+  'EXPIRED',
+])
+
+export const editalSignatureTokenTable = pgTable('edital_signature_token', {
+  id: serial('id').primaryKey(),
+  editalId: integer('edital_id')
+    .references(() => editalTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  token: varchar('token', { length: 255 }).notNull().unique(),
+  chefeEmail: varchar('chefe_email', { length: 255 }).notNull(),
+  chefeNome: varchar('chefe_nome', { length: 255 }),
+  status: editalSignatureTokenStatusEnum('status').notNull().default('PENDING'),
+  expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull(),
+  usedAt: timestamp('used_at', { withTimezone: true, mode: 'date' }),
+  requestedByUserId: integer('requested_by_user_id')
+    .references(() => userTable.id)
+    .notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+})
+
+export const editalSignatureTokenRelations = relations(editalSignatureTokenTable, ({ one }) => ({
+  edital: one(editalTable, {
+    fields: [editalSignatureTokenTable.editalId],
+    references: [editalTable.id],
+  }),
+  requestedBy: one(userTable, {
+    fields: [editalSignatureTokenTable.requestedByUserId],
+    references: [userTable.id],
+  }),
+}))
+
 // Export all table and relation types for use across the app
 export type User = typeof userTable.$inferSelect
 export type NewUser = typeof userTable.$inferInsert
@@ -1296,3 +1332,5 @@ export type RelatorioTemplate = typeof relatorioTemplateTable.$inferSelect
 export type NewRelatorioTemplate = typeof relatorioTemplateTable.$inferInsert
 export type AuditLog = typeof auditLogTable.$inferSelect
 export type NewAuditLog = typeof auditLogTable.$inferInsert
+export type EditalSignatureToken = typeof editalSignatureTokenTable.$inferSelect
+export type NewEditalSignatureToken = typeof editalSignatureTokenTable.$inferInsert

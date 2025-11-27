@@ -295,6 +295,13 @@
       "when": 1764112576876,
       "tag": "0039_hesitant_nightcrawler",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1764245920646,
+      "tag": "0040_gorgeous_stryfe",
+      "breakpoints": true
     }
   ]
 }

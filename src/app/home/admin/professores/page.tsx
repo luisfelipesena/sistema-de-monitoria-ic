@@ -210,23 +210,25 @@ export default function ProfessoresPage() {
       header: "Ações",
       cell: ({ row }) => {
         const professor = row.original
+        const isAtivo = !!professor.professorProfile?.projetos
         return (
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleViewProfessor(professor)}>
+            <Button
+              variant="outline"
+              size="sm"
+              title="Ver detalhes do professor"
+              onClick={() => handleViewProfessor(professor)}
+            >
               <Eye className="h-4 w-4" />
             </Button>
 
             <Button
-              variant={professor.professorProfile?.projetos ? "destructive" : "default"}
+              variant={isAtivo ? "destructive" : "default"}
               size="sm"
-              onClick={() =>
-                handleToggleStatus(
-                  professor.id,
-                  professor.professorProfile?.projetos ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO
-                )
-              }
+              title={isAtivo ? "Desativar professor" : "Ativar professor"}
+              onClick={() => handleToggleStatus(professor.id, isAtivo ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO)}
             >
-              {professor.professorProfile?.projetos ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+              {isAtivo ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
             </Button>
           </div>
         )

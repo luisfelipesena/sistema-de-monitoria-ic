@@ -16,19 +16,12 @@ import {
   getSemestreNumero,
 } from '@/types'
 
-const getCurrentSemester = () => {
-  const now = new Date()
-  const currentYear = now.getFullYear().toString()
-  const currentSemester = now.getMonth() < 6 ? SEMESTRE_1 : SEMESTRE_2
-  return { ano: currentYear, semestre: currentSemester }
-}
-
 export function useProjectManagement() {
   const { toast } = useToast()
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  const [filters, setFilters] = useState<FilterValues>(getCurrentSemester())
+  const [filters, setFilters] = useState<FilterValues>({})
   const [groupedView, setGroupedView] = useState(false)
   const [rejectFeedback, setRejectFeedback] = useState('')
   const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
@@ -106,13 +99,18 @@ export function useProjectManagement() {
   const filteredProjetos = useMemo(() => {
     if (!projetos) return []
 
-    return projetos.filter((projeto) => {
-      if (filters.status && projeto.status !== filters.status) return false
-      if (filters.departamento && projeto.departamentoId.toString() !== filters.departamento) return false
-      if (filters.semestre && projeto.semestre !== filters.semestre) return false
-      if (filters.ano && projeto.ano.toString() !== filters.ano) return false
-      return true
-    })
+    return projetos
+      .filter((projeto) => {
+        if (filters.status && projeto.status !== filters.status) return false
+        if (filters.departamento && projeto.departamentoId.toString() !== filters.departamento) return false
+        // Semester and year are optional filters - only apply when both are set
+        if (filters.semestre && filters.ano) {
+          if (projeto.semestre !== filters.semestre) return false
+          if (projeto.ano.toString() !== filters.ano) return false
+        }
+        return true
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [projetos, filters])
 
   const statusCounts = useMemo(() => {

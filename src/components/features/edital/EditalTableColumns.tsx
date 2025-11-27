@@ -10,7 +10,7 @@ interface EditalTableColumnsProps {
   onDelete: (id: number) => void;
   onViewPdf: (id: number) => void;
   onPublish: (id: number) => void;
-  onRequestSignature: (id: number) => void;
+  onRequestSignature: (edital: EditalListItem) => void;
   onUploadSigned: (id: number) => void;
 }
 
@@ -176,8 +176,8 @@ export function createEditalTableColumns({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onRequestSignature(edital.id)}
-                title="Solicitar Assinatura"
+                onClick={() => onRequestSignature(edital)}
+                title="Solicitar Assinatura do Chefe"
               >
                 <Send className="h-4 w-4" />
               </Button>

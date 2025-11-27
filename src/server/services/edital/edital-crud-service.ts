@@ -1,9 +1,23 @@
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
-import { TIPO_EDITAL_DCC, type CreateEditalInput, type EditalWithPeriodoStatus, type UpdateEditalInput } from '@/types'
+import { emailService } from '@/server/lib/email'
+import {
+  TIPO_EDITAL_DCC,
+  SEMESTRE_LABELS,
+  type CreateEditalInput,
+  type EditalWithPeriodoStatus,
+  type UpdateEditalInput,
+} from '@/types'
 import { logger } from '@/utils/logger'
+import { randomBytes } from 'crypto'
 import type { EditalRepository } from './edital-repository'
 
 const log = logger.child({ context: 'EditalCrudService' })
+
+const TOKEN_EXPIRY_HOURS = 72 // Token expires in 72 hours
+
+function generateSecureToken(): string {
+  return randomBytes(32).toString('hex')
+}
 
 export function createEditalCrudService(
   repo: EditalRepository,
@@ -163,9 +177,19 @@ export function createEditalCrudService(
       return updated
     },
 
-    async requestChefeSignature(id: number, _chefeEmail: string | undefined, requestedByUserId: number) {
-      const edital = await repo.findById(id)
-      if (!edital) {
+    async requestChefeSignature(input: {
+      id: number
+      chefeEmail?: string
+      chefeNome?: string
+      requestedByUserId: number
+    }) {
+      const { id, chefeEmail, chefeNome, requestedByUserId } = input
+      if (!chefeEmail) {
+        throw new ValidationError('Email do chefe do departamento é obrigatório')
+      }
+
+      const edital = await repo.findByIdWithRelations(id)
+      if (!edital || !edital.periodoInscricao) {
         throw new NotFoundError('Edital', id)
       }
 
@@ -173,12 +197,54 @@ export function createEditalCrudService(
         throw new ValidationError('Este edital já foi assinado pelo chefe do departamento')
       }
 
-      if (!edital.titulo || !edital.descricaoHtml) {
-        throw new ValidationError('O edital precisa estar completo antes de solicitar assinatura')
+      if (!edital.titulo) {
+        throw new ValidationError('O edital precisa ter um título antes de solicitar assinatura')
       }
 
-      log.info({ editalId: id, requestedBy: requestedByUserId }, 'Assinatura do chefe solicitada')
-      return { success: true, message: 'Solicitação de assinatura enviada com sucesso' }
+      // Check if there's already a pending token
+      const existingToken = await repo.findPendingTokenByEditalId(id)
+      if (existingToken) {
+        // Expire the old token
+        await repo.expireToken(existingToken.id)
+      }
+
+      // Generate new token
+      const token = generateSecureToken()
+      const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000)
+
+      await repo.createSignatureToken({
+        editalId: id,
+        token,
+        chefeEmail,
+        chefeNome: chefeNome || null,
+        expiresAt,
+        requestedByUserId,
+      })
+
+      // Send email to chefe
+      const semestreFormatado = SEMESTRE_LABELS[edital.periodoInscricao.semestre]
+
+      await emailService.sendChefeSignatureRequest({
+        chefeEmail,
+        chefeNome,
+        editalNumero: edital.numeroEdital,
+        editalTitulo: edital.titulo,
+        semestreFormatado,
+        ano: edital.periodoInscricao.ano,
+        signatureToken: token,
+        expiresAt,
+        remetenteUserId: requestedByUserId,
+      })
+
+      log.info(
+        { editalId: id, chefeEmail, requestedBy: requestedByUserId },
+        'Solicitação de assinatura enviada ao chefe'
+      )
+      return {
+        success: true,
+        message: `Link de assinatura enviado para ${chefeEmail}. O link expira em ${TOKEN_EXPIRY_HOURS} horas.`,
+        expiresAt,
+      }
     },
 
     async signAsChefe(id: number, assinatura: string, userId: number) {
@@ -204,6 +270,80 @@ export function createEditalCrudService(
 
       log.info({ editalId: id, chefeDepartamentoId: userId }, 'Edital assinado pelo chefe')
       return updated
+    },
+
+    async getEditalByToken(token: string) {
+      const tokenData = await repo.findSignatureTokenByToken(token)
+
+      if (!tokenData) {
+        throw new NotFoundError('Token', token)
+      }
+
+      if (tokenData.status === 'USED') {
+        throw new ValidationError('Este link de assinatura já foi utilizado')
+      }
+
+      if (tokenData.status === 'EXPIRED' || tokenData.expiresAt < new Date()) {
+        throw new ValidationError('Este link de assinatura expirou. Solicite um novo link ao coordenador.')
+      }
+
+      if (!tokenData.edital) {
+        throw new NotFoundError('Edital', tokenData.editalId)
+      }
+
+      if (tokenData.edital.chefeAssinouEm) {
+        throw new ValidationError('Este edital já foi assinado')
+      }
+
+      return {
+        token: tokenData,
+        edital: tokenData.edital,
+      }
+    },
+
+    async signEditalByToken(token: string, assinatura: string, chefeNome: string) {
+      const tokenData = await repo.findSignatureTokenByToken(token)
+
+      if (!tokenData) {
+        throw new NotFoundError('Token', token)
+      }
+
+      if (tokenData.status === 'USED') {
+        throw new ValidationError('Este link de assinatura já foi utilizado')
+      }
+
+      if (tokenData.status === 'EXPIRED' || tokenData.expiresAt < new Date()) {
+        throw new ValidationError('Este link de assinatura expirou. Solicite um novo link ao coordenador.')
+      }
+
+      const edital = await repo.findById(tokenData.editalId)
+      if (!edital) {
+        throw new NotFoundError('Edital', tokenData.editalId)
+      }
+
+      if (edital.chefeAssinouEm) {
+        throw new ValidationError('Este edital já foi assinado')
+      }
+
+      // Update edital with signature
+      const updated = await repo.update(tokenData.editalId, {
+        chefeAssinatura: assinatura,
+        chefeAssinouEm: new Date(),
+      })
+
+      // Mark token as used
+      await repo.markTokenAsUsed(tokenData.id)
+
+      log.info(
+        { editalId: tokenData.editalId, chefeEmail: tokenData.chefeEmail, chefeNome },
+        'Edital assinado pelo chefe via token'
+      )
+
+      return {
+        success: true,
+        message: 'Edital assinado com sucesso!',
+        edital: updated,
+      }
     },
   }
 }

@@ -14,6 +14,7 @@ import { useMemo, useState } from 'react'
 
 export function useDashboard() {
   const router = useRouter()
+  const utils = api.useUtils()
 
   const { data: projetos, isLoading: loadingProjetos } = api.projeto.getProjetos.useQuery()
   const { data: users, isLoading: loadingUsers } = api.user.getUsers.useQuery({})
@@ -22,24 +23,18 @@ export function useDashboard() {
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({})
   const [groupedView, setGroupedView] = useState(false)
-  const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
 
   const activeFilters = Object.values(filters).filter((v) => v !== undefined && v !== '').length
 
-  const getProjetoPdfMutation = useTRPCMutation(api.file.getProjetoPdfUrl.useMutation, {
-    successMessage: 'PDF aberto em nova aba',
-    errorMessage: 'Não foi possível abrir o documento para visualização.',
-  })
+  const [deletingProjetoId, setDeletingProjetoId] = useState<number | null>(null)
 
-  const handleViewPdf = async (projetoId: number) => {
-    setLoadingPdfProjetoId(projetoId)
-    try {
-      const result = (await getProjetoPdfMutation.mutateAsync({ projetoId })) as { url: string }
-      window.open(result.url, '_blank')
-    } finally {
-      setLoadingPdfProjetoId(null)
-    }
-  }
+  const deleteProjetoMutation = useTRPCMutation(api.projeto.deleteProjeto.useMutation, {
+    successMessage: 'Projeto excluído com sucesso',
+    errorMessage: 'Erro ao excluir projeto',
+    onSuccess: () => {
+      utils.projeto.getProjetos.invalidate()
+    },
+  })
 
   const handleGenerateEditalInterno = () => {
     router.push('/home/admin/edital-management')
@@ -63,6 +58,15 @@ export function useDashboard() {
 
   const handleApplyFilters = (newFilters: FilterValues) => {
     setFilters(newFilters)
+  }
+
+  const handleDeleteProjeto = async (projetoId: number) => {
+    setDeletingProjetoId(projetoId)
+    try {
+      await deleteProjetoMutation.mutateAsync({ id: projetoId })
+    } finally {
+      setDeletingProjetoId(null)
+    }
   }
 
   const actualProjetos = useMemo(
@@ -128,7 +132,6 @@ export function useDashboard() {
     filters,
     groupedView,
     setGroupedView,
-    loadingPdfProjetoId,
     activeFilters,
 
     // Data
@@ -141,13 +144,14 @@ export function useDashboard() {
     // Loading
     loadingProjetos,
     loadingUsers,
+    deletingProjetoId,
 
     // Handlers
-    handleViewPdf,
     handleGenerateEditalInterno,
     handleManageProjectsClick,
     handleAnalisarProjeto,
     handleEditarUsuario,
     handleApplyFilters,
+    handleDeleteProjeto,
   }
 }

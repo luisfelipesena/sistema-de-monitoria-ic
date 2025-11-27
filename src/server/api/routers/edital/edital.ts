@@ -1,4 +1,4 @@
-import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc'
 import { createEditalService } from '@/server/services/edital/edital-service'
 import { NotFoundError, ValidationError, ConflictError, ForbiddenError } from '@/types/errors'
 import { semestreSchema, tipoEditalSchema, periodoInscricaoStatusSchema } from '@/types'
@@ -481,20 +481,26 @@ export const editalRouter = createTRPCRouter({
         path: '/editais/{id}/request-chefe-signature',
         tags: ['editais'],
         summary: 'Request chief signature',
-        description: 'Request department chief to sign the edital',
+        description: 'Request department chief to sign the edital via email link',
       },
     })
     .input(
       z.object({
         id: z.number(),
-        chefeEmail: z.string().email().optional(),
+        chefeEmail: z.string().email(),
+        chefeNome: z.string().optional(),
       })
     )
-    .output(z.object({ success: z.boolean(), message: z.string() }))
+    .output(z.object({ success: z.boolean(), message: z.string(), expiresAt: z.date().optional() }))
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createEditalService(ctx.db)
-        return await service.requestChefeSignature(input.id, input.chefeEmail, ctx.user.id)
+        return await service.requestChefeSignature({
+          id: input.id,
+          chefeEmail: input.chefeEmail,
+          chefeNome: input.chefeNome,
+          requestedByUserId: ctx.user.id,
+        })
       } catch (error) {
         handleServiceError(error)
       }
@@ -542,6 +548,79 @@ export const editalRouter = createTRPCRouter({
       try {
         const service = createEditalService(ctx.db)
         return await service.getEditaisParaAssinar()
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
+  // Public endpoints for token-based signature
+  getEditalByToken: publicProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/editais/by-token/{token}',
+        tags: ['editais'],
+        summary: 'Get edital by signature token',
+        description: 'Get edital details using a signature token (public endpoint for chefe)',
+      },
+    })
+    .input(z.object({ token: z.string() }))
+    .output(
+      z.object({
+        token: z.object({
+          id: z.number(),
+          editalId: z.number(),
+          chefeEmail: z.string(),
+          chefeNome: z.string().nullable(),
+          expiresAt: z.date(),
+        }),
+        edital: z.object({
+          id: z.number(),
+          numeroEdital: z.string(),
+          titulo: z.string(),
+          descricaoHtml: z.string().nullable(),
+          periodoInscricao: z
+            .object({
+              ano: z.number(),
+              semestre: semestreSchema,
+              dataInicio: z.date(),
+              dataFim: z.date(),
+            })
+            .nullable(),
+        }),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      try {
+        const service = createEditalService(ctx.db)
+        return await service.getEditalByToken(input.token)
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
+  signEditalByToken: publicProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/editais/sign-by-token',
+        tags: ['editais'],
+        summary: 'Sign edital using token',
+        description: 'Sign edital as department chief using a signature token',
+      },
+    })
+    .input(
+      z.object({
+        token: z.string(),
+        assinatura: z.string().min(1, 'Assinatura é obrigatória'),
+        chefeNome: z.string().min(1, 'Nome do chefe é obrigatório'),
+      })
+    )
+    .output(z.object({ success: z.boolean(), message: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const service = createEditalService(ctx.db)
+        return await service.signEditalByToken(input.token, input.assinatura, input.chefeNome)
       } catch (error) {
         handleServiceError(error)
       }

@@ -19,7 +19,7 @@ export default function DashboardAdmin() {
     filters,
     groupedView,
     setGroupedView,
-    loadingPdfProjetoId,
+    deletingProjetoId,
     activeFilters,
     projetos,
     professores,
@@ -27,10 +27,10 @@ export default function DashboardAdmin() {
     statusCounts,
     loadingProjetos,
     loadingUsers,
-    handleViewPdf,
     handleAnalisarProjeto,
     handleEditarUsuario,
     handleApplyFilters,
+    handleDeleteProjeto,
   } = useDashboard()
 
   const dashboardActions = (
@@ -64,9 +64,9 @@ export default function DashboardAdmin() {
               <ProjectsTable
                 projetos={projetos}
                 groupedView={groupedView}
-                loadingPdfId={loadingPdfProjetoId}
+                deletingProjetoId={deletingProjetoId}
                 onAnalisarProjeto={handleAnalisarProjeto}
-                onViewPdf={handleViewPdf}
+                onDeleteProjeto={handleDeleteProjeto}
               />
             </>
           )}
