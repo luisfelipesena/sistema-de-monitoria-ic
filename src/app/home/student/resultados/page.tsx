@@ -1,6 +1,7 @@
 "use client"
 
 import { StatusBadge } from "@/components/atoms/StatusBadge"
+import { BankDataModal } from "@/components/features/student"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -60,9 +61,20 @@ export default function ResultadosPage() {
   const [selectedInscricao, setSelectedInscricao] = useState<number | null>(null)
   const [motivoRecusa, setMotivoRecusa] = useState("")
   const [showRejectDialog, setShowRejectDialog] = useState(false)
+  const [showBankModal, setShowBankModal] = useState(false)
+  const [pendingAccept, setPendingAccept] = useState<{ id: number; tipo: TipoVaga } | null>(null)
+
+  // Buscar perfil do aluno (para verificar dados bancários)
+  const { data: userProfile } = api.user.getProfile.useQuery()
 
   // Buscar inscrições do aluno
   const { data: inscricoes, isLoading, refetch } = api.inscricao.getMinhasInscricoes.useQuery()
+
+  // Verificar se dados bancários estão completos
+  const hasBankData = () => {
+    const aluno = userProfile?.studentProfile
+    return !!(aluno?.banco && aluno?.agencia && aluno?.conta)
+  }
 
   // Mutation para aceitar vaga
   const aceitarVagaMutation = api.vagas.acceptVaga.useMutation({
@@ -104,10 +116,28 @@ export default function ResultadosPage() {
   })
 
   const handleAccept = (inscricaoId: number, tipoVagaPretendida: TipoVaga) => {
+    // Se for bolsista e não tiver dados bancários, abrir modal
+    if (tipoVagaPretendida === TIPO_VAGA_BOLSISTA && !hasBankData()) {
+      setPendingAccept({ id: inscricaoId, tipo: tipoVagaPretendida })
+      setShowBankModal(true)
+      return
+    }
+
     aceitarVagaMutation.mutate({
       inscricaoId: inscricaoId.toString(),
       tipoBolsa: tipoVagaPretendida,
     })
+  }
+
+  const handleBankDataSaved = () => {
+    setShowBankModal(false)
+    if (pendingAccept) {
+      aceitarVagaMutation.mutate({
+        inscricaoId: pendingAccept.id.toString(),
+        tipoBolsa: pendingAccept.tipo,
+      })
+      setPendingAccept(null)
+    }
   }
 
   const handleRejectClick = (inscricaoId: number) => {
@@ -451,6 +481,17 @@ export default function ResultadosPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Dados Bancários (para bolsistas) */}
+      <BankDataModal
+        open={showBankModal}
+        onClose={() => {
+          setShowBankModal(false)
+          setPendingAccept(null)
+        }}
+        onSuccess={handleBankDataSaved}
+        currentData={userProfile?.studentProfile}
+      />
     </div>
   )
 }

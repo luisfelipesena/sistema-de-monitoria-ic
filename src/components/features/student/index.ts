@@ -1,0 +1,1 @@
+export { BankDataModal } from './BankDataModal'

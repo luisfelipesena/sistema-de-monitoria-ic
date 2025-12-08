@@ -21,7 +21,7 @@ import {
 } from '@/types'
 import { and, eq, sql } from 'drizzle-orm'
 import { inscricaoTable, projetoTable, vagaTable } from '@/server/db/schema'
-import { NotFoundError, ForbiddenError, BusinessError } from '@/server/lib/errors'
+import { NotFoundError, ForbiddenError, BusinessError, ValidationError } from '@/server/lib/errors'
 import { requireStudent, requireAdminOrProfessor, requireAdmin, isProfessor } from '@/server/lib/auth-helpers'
 
 const log = logger.child({ context: 'VagasService' })
@@ -80,6 +80,14 @@ export function createVagasService(db: Database) {
           throw new BusinessError(
             `Você já possui uma bolsa de monitoria em ${bolsaExistente.projeto.titulo} para este semestre. É permitida apenas uma bolsa por semestre.`,
             'CONFLICT'
+          )
+        }
+
+        // Validar dados bancários para bolsistas
+        const aluno = inscricaoData.aluno
+        if (!aluno.banco || !aluno.agencia || !aluno.conta) {
+          throw new ValidationError(
+            'Dados bancários incompletos. Preencha banco, agência e conta antes de aceitar uma bolsa.'
           )
         }
       }
