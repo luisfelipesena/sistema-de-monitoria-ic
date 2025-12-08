@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -19,21 +19,37 @@ export function useScholarshipAllocation() {
     semestre: SEMESTRE_1,
   })
   const [editingAllocations, setEditingAllocations] = useState<Record<number, number>>({})
+  const [pendingSaveProjectId, setPendingSaveProjectId] = useState<number | null>(null)
 
   const form = useForm<FilterFormData>({
     resolver: zodResolver(filterFormSchema),
     defaultValues: filters,
   })
 
-  const { data: projects, isLoading, refetch } = api.scholarshipAllocation.getApprovedProjects.useQuery(filters)
+  const utils = api.useUtils()
+
+  const { data: projects, isLoading } = api.scholarshipAllocation.getApprovedProjects.useQuery(filters)
   const { data: summary } = api.scholarshipAllocation.getAllocationSummary.useQuery(filters)
-  const { data: progradData, refetch: refetchProgradTotal } =
-    api.scholarshipAllocation.getTotalProgradScholarships.useQuery(filters)
+  const { data: progradData } = api.scholarshipAllocation.getTotalProgradScholarships.useQuery(filters)
+
+  const invalidateAllQueries = useCallback(() => {
+    utils.scholarshipAllocation.getApprovedProjects.invalidate()
+    utils.scholarshipAllocation.getAllocationSummary.invalidate()
+    utils.scholarshipAllocation.getTotalProgradScholarships.invalidate()
+  }, [utils])
 
   const updateAllocationMutation = useTRPCMutation(api.scholarshipAllocation.updateScholarshipAllocation.useMutation, {
     successMessage: 'Alocação atualizada!',
     onSuccess: () => {
-      refetch()
+      if (pendingSaveProjectId !== null) {
+        setEditingAllocations((prev) => {
+          const updated = { ...prev }
+          delete updated[pendingSaveProjectId]
+          return updated
+        })
+        setPendingSaveProjectId(null)
+      }
+      invalidateAllQueries()
     },
   })
 
@@ -41,7 +57,7 @@ export function useScholarshipAllocation() {
     successMessage: 'Alocações atualizadas!',
     onSuccess: () => {
       setEditingAllocations({})
-      refetch()
+      invalidateAllQueries()
     },
   })
 
@@ -50,7 +66,7 @@ export function useScholarshipAllocation() {
     {
       successMessage: 'Candidato selecionado!',
       onSuccess: () => {
-        refetch()
+        invalidateAllQueries()
       },
     }
   )
@@ -60,7 +76,7 @@ export function useScholarshipAllocation() {
     {
       successMessage: (data: { totalBolsas: number }) => `Total de ${data.totalBolsas} bolsas PROGRAD definido.`,
       onSuccess: () => {
-        refetchProgradTotal()
+        invalidateAllQueries()
       },
     }
   )
@@ -87,14 +103,10 @@ export function useScholarshipAllocation() {
   const handleSaveAllocation = (projectId: number) => {
     const newValue = editingAllocations[projectId]
     if (newValue !== undefined) {
+      setPendingSaveProjectId(projectId)
       updateAllocationMutation.mutate({
         projetoId: projectId,
         bolsasDisponibilizadas: newValue,
-      })
-      setEditingAllocations((prev) => {
-        const updated = { ...prev }
-        delete updated[projectId]
-        return updated
       })
     }
   }
