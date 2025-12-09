@@ -1,6 +1,7 @@
 import {
   ColumnDef,
   ColumnFiltersState,
+  FilterFn,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -9,13 +10,23 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
+
+// Custom filter function for multiselect (array of values)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const multiselectFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
+  if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) {
+    return true
+  }
+  const cellValue = row.getValue(columnId)
+  return filterValue.includes(cellValue)
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -25,6 +36,10 @@ interface DataTableProps<TData, TValue> {
   showPagination?: boolean
   isLoading?: boolean
   emptyMessage?: string
+  /** External column filters state (controlled mode) */
+  columnFilters?: ColumnFiltersState
+  /** Callback when column filters change (controlled mode) */
+  onColumnFiltersChange?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>
 }
 
 export function TableComponent<TData, TValue>({
@@ -35,9 +50,15 @@ export function TableComponent<TData, TValue>({
   showPagination = true,
   isLoading = false,
   emptyMessage = "Nenhum resultado encontrado.",
+  columnFilters: externalColumnFilters,
+  onColumnFiltersChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [internalColumnFilters, setInternalColumnFilters] = useState<ColumnFiltersState>([])
+
+  // Use external filters if provided, otherwise use internal state
+  const columnFilters = externalColumnFilters ?? internalColumnFilters
+  const setColumnFilters = onColumnFiltersChange ?? setInternalColumnFilters
 
   const table = useReactTable({
     data,
@@ -48,6 +69,9 @@ export function TableComponent<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    filterFns: {
+      multiselect: multiselectFilterFn,
+    },
     state: {
       sorting,
       columnFilters,

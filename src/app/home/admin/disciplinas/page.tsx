@@ -25,7 +25,6 @@ export default function DisciplinasPage() {
   const [formData, setFormData] = useState({
     codigo: "",
     nome: "",
-    turma: "",
     departamentoId: "",
   })
 
@@ -91,7 +90,6 @@ export default function DisciplinasPage() {
     setFormData({
       codigo: "",
       nome: "",
-      turma: "",
       departamentoId: "",
     })
   }
@@ -100,7 +98,6 @@ export default function DisciplinasPage() {
     createMutation.mutate({
       codigo: formData.codigo,
       nome: formData.nome,
-      turma: formData.turma,
       departamentoId: parseInt(formData.departamentoId),
     })
   }
@@ -111,7 +108,6 @@ export default function DisciplinasPage() {
       id: editingDisciplina.id,
       codigo: formData.codigo,
       nome: formData.nome,
-      turma: formData.turma,
       departamentoId: parseInt(formData.departamentoId),
     })
   }
@@ -121,7 +117,6 @@ export default function DisciplinasPage() {
     setFormData({
       codigo: disciplina.codigo,
       nome: disciplina.nome,
-      turma: disciplina.turma,
       departamentoId: disciplina.departamentoId.toString(),
     })
   }
@@ -137,11 +132,6 @@ export default function DisciplinasPage() {
       header: "Código",
       accessorKey: "codigo",
       cell: ({ row }) => <span className="font-mono font-medium">{row.original.codigo}</span>,
-    },
-    {
-      header: "Turma",
-      accessorKey: "turma",
-      cell: ({ row }) => <span className="font-mono font-medium">{row.original.turma}</span>,
     },
     {
       header: "Nome",
@@ -202,21 +192,6 @@ export default function DisciplinasPage() {
               onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
               placeholder="Ex: Matemática I"
             />
-          </div>
-          <div>
-            <Label htmlFor="turma">Turma</Label>
-            <Select value={formData.turma} onValueChange={(value) => setFormData({ ...formData, turma: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a turma" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
-                  <SelectItem key={`T${num}`} value={`T${num}`}>
-                    T{num}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           <div>
             <Label htmlFor="departamento">Departamento</Label>

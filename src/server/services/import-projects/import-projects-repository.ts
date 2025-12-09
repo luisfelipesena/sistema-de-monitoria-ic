@@ -13,6 +13,7 @@ import {
 import type { InferInsertModel } from 'drizzle-orm'
 import { and, desc, eq, inArray } from 'drizzle-orm'
 import type { Semestre } from '@/types'
+import { findMatchingProfessors } from '@/utils/string-normalization'
 
 type Database = typeof db
 
@@ -185,6 +186,67 @@ export function createImportProjectsRepository(db: Database) {
             },
           },
         },
+      })
+    },
+
+    /**
+     * Find professor by fuzzy first name match
+     * Uses the string normalization utility for accent/case-insensitive matching
+     */
+    async findProfessorByNameFuzzy(searchName: string) {
+      const allProfessors = await db.query.professorTable.findMany({
+        with: {
+          user: {
+            columns: {
+              id: true,
+              email: true,
+              username: true,
+            },
+          },
+        },
+      })
+
+      const matches = findMatchingProfessors(searchName, allProfessors)
+      return matches.length > 0 ? matches[0] : null
+    },
+
+    /**
+     * Find or create a discipline by code within a department
+     */
+    async findOrCreateDisciplina(data: { codigo: string; nome: string; departamentoId: number }) {
+      // First try to find by code and department
+      const existing = await db.query.disciplinaTable.findFirst({
+        where: and(eq(disciplinaTable.codigo, data.codigo), eq(disciplinaTable.departamentoId, data.departamentoId)),
+      })
+
+      if (existing) {
+        return { disciplina: existing, created: false }
+      }
+
+      // Create new discipline
+      const [created] = await db
+        .insert(disciplinaTable)
+        .values({
+          codigo: data.codigo,
+          nome: data.nome,
+          departamentoId: data.departamentoId,
+        })
+        .returning()
+
+      return { disciplina: created, created: true }
+    },
+
+    async findDepartamentoByNome(nome: string) {
+      const { departamentoTable } = await import('@/server/db/schema')
+      return db.query.departamentoTable.findFirst({
+        where: eq(departamentoTable.nome, nome),
+      })
+    },
+
+    async findDepartamentoBySigla(sigla: string) {
+      const { departamentoTable } = await import('@/server/db/schema')
+      return db.query.departamentoTable.findFirst({
+        where: eq(departamentoTable.sigla, sigla),
       })
     },
   }

@@ -1,9 +1,18 @@
 import { StatusBadge } from "@/components/atoms/StatusBadge"
+import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
+import { multiselectFilterFn } from "@/components/layout/TableComponent"
 import { Button } from "@/components/ui/button"
+import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
 import type { ManageProjectItem } from "@/types"
-import { PROJETO_STATUS_SUBMITTED } from "@/types"
+import {
+  PROJETO_STATUS_APPROVED,
+  PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_LABELS,
+  PROJETO_STATUS_REJECTED,
+  PROJETO_STATUS_SUBMITTED,
+} from "@/types"
 import type { ColumnDef } from "@tanstack/react-table"
-import { Download, Eye, Hand, List, Loader, Trash2, Users } from "lucide-react"
+import { Download, Eye, Hand, List, Trash2, Users } from "lucide-react"
 
 interface ColumnActions {
   onPreview: (projeto: ManageProjectItem) => void
@@ -13,6 +22,14 @@ interface ColumnActions {
   loadingPdfProjetoId: number | null
   isDeletingProject: boolean
 }
+
+// Filter options
+const statusFilterOptions = [
+  { value: PROJETO_STATUS_DRAFT, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_DRAFT] },
+  { value: PROJETO_STATUS_SUBMITTED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_SUBMITTED] },
+  { value: PROJETO_STATUS_APPROVED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_APPROVED] },
+  { value: PROJETO_STATUS_REJECTED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_REJECTED] },
+]
 
 export function createProjectColumns(actions: ColumnActions, groupedView: boolean): ColumnDef<ManageProjectItem>[] {
   return [
@@ -39,14 +56,32 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
       },
     },
     {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Loader className="h-5 w-5 text-gray-400" />
-          Status
-        </div>
-      ),
+      header: createFilterableHeader<ManageProjectItem>({
+        title: "Status",
+        filterType: "multiselect",
+        filterOptions: statusFilterOptions,
+      }),
       accessorKey: "status",
+      filterFn: multiselectFilterFn,
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+    {
+      header: createFilterableHeader<ManageProjectItem>({
+        title: "Ano",
+        filterType: "select",
+        filterOptions: createYearFilterOptions(),
+      }),
+      accessorKey: "ano",
+      cell: ({ row }) => <div className="text-center">{row.original.ano}</div>,
+    },
+    {
+      header: createFilterableHeader<ManageProjectItem>({
+        title: "Semestre",
+        filterType: "select",
+        filterOptions: createSemesterFilterOptions(),
+      }),
+      accessorKey: "semestre",
+      cell: ({ row }) => <div className="text-center">{row.original.semestre === "SEMESTRE_1" ? "1º" : "2º"}</div>,
     },
     {
       header: () => (

@@ -23,6 +23,8 @@ interface ProjectFormProps {
   setPublicoAlvoTipo: (tipo: "estudantes_graduacao" | "outro") => void
   publicoAlvoCustom: string
   setPublicoAlvoCustom: (value: string) => void
+  submitButtonText?: string
+  submittingButtonText?: string
 }
 
 export const ProjectForm: React.FC<ProjectFormProps> = ({
@@ -37,6 +39,8 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
   setPublicoAlvoTipo,
   publicoAlvoCustom,
   setPublicoAlvoCustom,
+  submitButtonText = "Salvar Rascunho",
+  submittingButtonText = "Salvando...",
 }) => {
   return (
     <Form {...form}>
@@ -405,10 +409,10 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Salvando...
+                {submittingButtonText}
               </>
             ) : (
-              "Salvar Rascunho"
+              submitButtonText
             )}
           </Button>
         </div>

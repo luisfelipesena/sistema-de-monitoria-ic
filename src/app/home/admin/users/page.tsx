@@ -24,7 +24,6 @@ export default function UsersPage() {
 
   const { data: usersData, isLoading: loadingUsers } = api.user.getUsers.useQuery({})
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
-  const { data: cursos } = api.course.getCourses.useQuery({ includeStats: false })
 
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({})
@@ -165,12 +164,11 @@ export default function UsersPage() {
         }
 
         if (user.role === STUDENT && user.studentProfile) {
-          const curso = cursos?.find((c) => c.id === user.studentProfile?.cursoId)
           return (
             <div className="text-sm">
               <div>Matrícula: {user.studentProfile.matricula || "N/A"}</div>
               <div className="text-xs text-muted-foreground">CR: {user.studentProfile.cr?.toFixed(2) || "N/A"}</div>
-              <div className="text-xs text-muted-foreground">{curso?.nome || "Curso não encontrado"}</div>
+              <div className="text-xs text-muted-foreground">{user.studentProfile.cursoNome || "Curso não informado"}</div>
             </div>
           )
         }

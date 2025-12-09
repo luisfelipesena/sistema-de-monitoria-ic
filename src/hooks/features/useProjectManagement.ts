@@ -2,18 +2,15 @@ import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { useDialogState } from '@/hooks/useDialogState'
+import { useColumnFilters } from '@/hooks/useColumnFilters'
 import { api } from '@/utils/api'
 import { useQueryClient } from '@tanstack/react-query'
 import type { ManageProjectItem } from '@/types'
-import type { FilterValues } from '@/components/ui/FilterModal'
 import {
   PROJETO_STATUS_DRAFT,
   PROJETO_STATUS_SUBMITTED,
   PROJETO_STATUS_APPROVED,
   PROJETO_STATUS_REJECTED,
-  SEMESTRE_1,
-  SEMESTRE_2,
-  getSemestreNumero,
 } from '@/types'
 
 export function useProjectManagement() {
@@ -21,10 +18,14 @@ export function useProjectManagement() {
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  const [filters, setFilters] = useState<FilterValues>({})
   const [groupedView, setGroupedView] = useState(false)
   const [rejectFeedback, setRejectFeedback] = useState('')
   const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
+
+  // Column filters with current semester as default
+  const { columnFilters, setColumnFilters } = useColumnFilters({
+    useCurrentSemester: true,
+  })
 
   const previewDialog = useDialogState<ManageProjectItem>()
   const rejectDialog = useDialogState<ManageProjectItem>()
@@ -96,25 +97,14 @@ export function useProjectManagement() {
     { enabled: filesDialog.isOpen && !!filesDialog.data?.id }
   )
 
-  const filteredProjetos = useMemo(() => {
+  // Sort projetos by createdAt descending
+  const sortedProjetos = useMemo(() => {
     if (!projetos) return []
-
-    return projetos
-      .filter((projeto) => {
-        if (filters.status && projeto.status !== filters.status) return false
-        if (filters.departamento && projeto.departamentoId.toString() !== filters.departamento) return false
-        // Semester and year are optional filters - only apply when both are set
-        if (filters.semestre && filters.ano) {
-          if (projeto.semestre !== filters.semestre) return false
-          if (projeto.ano.toString() !== filters.ano) return false
-        }
-        return true
-      })
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [projetos, filters])
+    return [...projetos].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }, [projetos])
 
   const statusCounts = useMemo(() => {
-    if (!filteredProjetos)
+    if (!sortedProjetos)
       return {
         draft: 0,
         submitted: 0,
@@ -122,7 +112,7 @@ export function useProjectManagement() {
         rejected: 0,
       }
 
-    return filteredProjetos.reduce(
+    return sortedProjetos.reduce(
       (acc, projeto) => {
         switch (projeto.status) {
           case PROJETO_STATUS_DRAFT:
@@ -142,7 +132,7 @@ export function useProjectManagement() {
       },
       { draft: 0, submitted: 0, approved: 0, rejected: 0 }
     )
-  }, [filteredProjetos])
+  }, [sortedProjetos])
 
   const handleViewProjectPDF = async (projetoId: number) => {
     setLoadingPdfProjetoId(projetoId)
@@ -239,29 +229,16 @@ export function useProjectManagement() {
     rejectDialog.open(projeto)
   }
 
-  const getCurrentSemesterLabel = () => {
-    const ano = filters.ano || new Date().getFullYear().toString()
-    const semestreValue = filters.semestre || SEMESTRE_1
-    const semestre = getSemestreNumero(semestreValue as typeof SEMESTRE_1 | typeof SEMESTRE_2)
-    return `${ano}.${semestre}`
-  }
-
-  const handleSemesterChange = (value: string) => {
-    const [ano, semestreNum] = value.split('.')
-    const semestre = semestreNum === '1' ? SEMESTRE_1 : SEMESTRE_2
-    setFilters((prev: FilterValues) => ({ ...prev, ano, semestre }))
-  }
-
   const handleGoToDocumentSigning = () => {
     router.push('/home/admin/assinatura-documentos')
   }
 
   return {
-    projetos: filteredProjetos,
+    projetos: sortedProjetos,
     loadingProjetos,
     statusCounts,
-    filters,
-    setFilters,
+    columnFilters,
+    setColumnFilters,
     groupedView,
     setGroupedView,
     rejectFeedback,
@@ -279,8 +256,6 @@ export function useProjectManagement() {
     handleRejectProject,
     handleDeleteProject,
     handleOpenRejectDialog,
-    getCurrentSemesterLabel,
-    handleSemesterChange,
     handleGoToDocumentSigning,
     isApproving: approveProjectMutation.isPending,
     isRejecting: rejectProjectMutation.isPending,

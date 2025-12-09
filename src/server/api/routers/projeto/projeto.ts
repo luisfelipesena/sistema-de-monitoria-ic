@@ -53,7 +53,8 @@ export const projetoRouter = createTRPCRouter({
     .query(async ({ ctx }) => {
       try {
         const service = createProjetoService(ctx.db)
-        return await service.getProjetos(ctx.user.id, ctx.user.role)
+        // Pass adminType so DCC/DCI admins only see their department's projects
+        return await service.getProjetos(ctx.user.id, ctx.user.role, ctx.user.adminType)
       } catch (error) {
         return handleServiceError(error, 'Erro ao recuperar projetos')
       }
@@ -300,7 +301,6 @@ export const projetoRouter = createTRPCRouter({
             z.object({
               codigo: z.string(),
               nome: nameSchema,
-              turma: z.string(),
             })
           ),
           bolsasDisponibilizadas: z.number(),

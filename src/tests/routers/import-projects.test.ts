@@ -14,6 +14,7 @@ const mockAdminUser: User = {
   username: 'admin',
   email: 'admin@test.com',
   role: 'admin',
+  adminType: 'DCC',
   assinaturaDefault: null,
   dataAssinaturaDefault: null,
   passwordHash: null,

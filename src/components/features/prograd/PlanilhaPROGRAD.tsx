@@ -1,13 +1,15 @@
 import { PDF_PAGE_SIZE_A4 } from "@/constants/pdf"
 import { SEMESTRE_1, TIPO_PROPOSICAO_COLETIVA } from "@/types"
 import { UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
-import { Document, Image, Page, StyleSheet, Text, View, type DocumentProps } from "@react-pdf/renderer"
+import { Document, Image, Link, Page, StyleSheet, Text, View, type DocumentProps } from "@react-pdf/renderer"
 import React, { type ReactElement } from "react"
 
 const styles = StyleSheet.create({
   page: {
     paddingTop: 20,
     paddingBottom: 20,
+    paddingLeft: 15,
+    paddingRight: 15,
     fontSize: 8,
     fontFamily: "Helvetica",
     backgroundColor: "#FFFFFF",
@@ -32,12 +34,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   title: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 15,
     backgroundColor: "#90EE90",
-    padding: 8,
+    padding: 6,
     border: "1pt solid #000",
   },
   table: {
@@ -48,72 +50,84 @@ const styles = StyleSheet.create({
     borderColor: "#000",
   },
   tableRow: {
-    margin: "auto",
     flexDirection: "row",
     borderBottom: "1pt solid #000",
+    minHeight: 18,
   },
   tableRowHeader: {
-    margin: "auto",
     flexDirection: "row",
     backgroundColor: "#90EE90",
     borderBottom: "1pt solid #000",
+    minHeight: 24,
   },
+  // Unidade Universitária
   tableCol1: {
-    width: "15%",
+    width: "12%",
     borderRight: "1pt solid #000",
-    padding: 4,
-    fontSize: 7,
-    textAlign: "center",
+    padding: 3,
+    justifyContent: "center",
   },
+  // Órgão Responsável
   tableCol2: {
-    width: "20%",
+    width: "18%",
     borderRight: "1pt solid #000",
-    padding: 4,
-    fontSize: 7,
-    textAlign: "center",
+    padding: 3,
+    justifyContent: "center",
   },
+  // CÓDIGO
   tableCol3: {
     width: "8%",
     borderRight: "1pt solid #000",
-    padding: 4,
-    fontSize: 7,
-    textAlign: "center",
+    padding: 3,
+    justifyContent: "center",
   },
+  // Componente Curricular
   tableCol4: {
-    width: "25%",
+    width: "20%",
     borderRight: "1pt solid #000",
-    padding: 4,
-    fontSize: 7,
-    textAlign: "left",
+    padding: 3,
+    justifyContent: "center",
   },
+  // Professor Responsável
   tableCol5: {
     width: "16%",
     borderRight: "1pt solid #000",
-    padding: 4,
-    fontSize: 7,
-    textAlign: "left",
+    padding: 3,
+    justifyContent: "center",
   },
+  // Professores participantes
   tableCol6: {
     width: "16%",
     borderRight: "1pt solid #000",
-    padding: 4,
-    fontSize: 7,
-    textAlign: "left",
+    padding: 3,
+    justifyContent: "center",
   },
+  // Link PDF
   tableCol7: {
-    width: "20%",
-    padding: 4,
-    fontSize: 6,
-    textAlign: "left",
+    width: "10%",
+    padding: 3,
+    justifyContent: "center",
   },
   tableCellText: {
     fontSize: 6,
-    lineHeight: 1.2,
+    lineHeight: 1.3,
+    textAlign: "center",
   },
-  departmentHeader: {
-    backgroundColor: "#E0E0E0",
+  tableCellTextLeft: {
+    fontSize: 6,
+    lineHeight: 1.3,
+    textAlign: "left",
+  },
+  headerCellText: {
+    fontSize: 6,
+    lineHeight: 1.2,
+    textAlign: "center",
     fontWeight: "bold",
-    fontSize: 8,
+  },
+  linkText: {
+    fontSize: 5,
+    color: "#0000EE",
+    textDecoration: "underline",
   },
 })
 
@@ -137,14 +151,20 @@ export interface PlanilhaPROGRADProps extends DocumentProps {
 }
 
 export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps): ReactElement<DocumentProps> {
-  // Group projects by department
-  const projetosPorDepartamento = data.projetos.reduce((acc, projeto) => {
-    if (!acc[projeto.departamentoNome]) {
-      acc[projeto.departamentoNome] = []
-    }
-    acc[projeto.departamentoNome].push(projeto)
-    return acc
-  }, {} as Record<string, typeof data.projetos>)
+  // Group projects by department and sort
+  const projetosPorDepartamento = data.projetos.reduce(
+    (acc, projeto) => {
+      if (!acc[projeto.departamentoNome]) {
+        acc[projeto.departamentoNome] = []
+      }
+      acc[projeto.departamentoNome].push(projeto)
+      return acc
+    },
+    {} as Record<string, typeof data.projetos>
+  )
+
+  // Sort departments alphabetically
+  const sortedDepartments = Object.keys(projetosPorDepartamento).sort()
 
   return (
     <Document {...rest}>
@@ -170,88 +190,71 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
           {/* Table Header */}
           <View style={styles.tableRowHeader}>
             <View style={styles.tableCol1}>
-              <Text style={styles.tableCellText}>Unidade Universitária</Text>
+              <Text style={styles.headerCellText}>Unidade Universitária</Text>
             </View>
             <View style={styles.tableCol2}>
-              <Text style={styles.tableCellText}>Órgão Responsável{"\n"}(Dept. ou Coord. Acadêmica)</Text>
+              <Text style={styles.headerCellText}>Órgão Responsável{"\n"}(Dept. ou Coord. Acadêmica)</Text>
             </View>
             <View style={styles.tableCol3}>
-              <Text style={styles.tableCellText}>CÓDIGO</Text>
+              <Text style={styles.headerCellText}>CÓDIGO</Text>
             </View>
             <View style={styles.tableCol4}>
-              <Text style={styles.tableCellText}>Componente(s) Curricular(es): NOME</Text>
+              <Text style={styles.headerCellText}>Componente(s) Curricular(es): NOME</Text>
             </View>
             <View style={styles.tableCol5}>
-              <Text style={styles.tableCellText}>Professor Responsável pelo Projeto{"\n"}(Proponente)</Text>
+              <Text style={styles.headerCellText}>Professor Responsável{"\n"}pelo Projeto (Proponente)</Text>
             </View>
             <View style={styles.tableCol6}>
-              <Text style={styles.tableCellText}>Professores participantes (Projetos coletivos)</Text>
+              <Text style={styles.headerCellText}>Professores participantes{"\n"}(Projetos coletivos)</Text>
             </View>
             <View style={styles.tableCol7}>
-              <Text style={styles.tableCellText}>Link do PDF do Projeto</Text>
+              <Text style={styles.headerCellText}>Link PDF</Text>
             </View>
           </View>
 
-          {/* Table Rows */}
-          {Object.entries(projetosPorDepartamento).map(([departamento, projetos]) => (
-            <React.Fragment key={departamento}>
-              {/* Department Header Row */}
-              <View style={[styles.tableRow, styles.departmentHeader]}>
-                <View style={styles.tableCol1}>
-                  <Text style={styles.tableCellText}>Instituto de Computação</Text>
-                </View>
-                <View style={styles.tableCol2}>
-                  <Text style={styles.tableCellText}>{departamento}</Text>
-                </View>
-                <View style={styles.tableCol3}>
-                  <Text style={styles.tableCellText}></Text>
-                </View>
-                <View style={styles.tableCol4}>
-                  <Text style={styles.tableCellText}></Text>
-                </View>
-                <View style={styles.tableCol5}>
-                  <Text style={styles.tableCellText}></Text>
-                </View>
-                <View style={styles.tableCol6}>
-                  <Text style={styles.tableCellText}></Text>
-                </View>
-                <View style={styles.tableCol7}>
-                  <Text style={styles.tableCellText}></Text>
-                </View>
-              </View>
-
-              {/* Project Rows */}
-              {projetos.map((projeto) => (
-                <View key={projeto.id} style={styles.tableRow}>
-                  <View style={styles.tableCol1}>
-                    <Text style={styles.tableCellText}></Text>
+          {/* Table Rows - grouped by department */}
+          {sortedDepartments.map((departamento) => {
+            const projetos = projetosPorDepartamento[departamento]
+            return (
+              <React.Fragment key={departamento}>
+                {projetos.map((projeto, index) => (
+                  <View key={projeto.id} style={styles.tableRow} wrap={false}>
+                    <View style={styles.tableCol1}>
+                      <Text style={styles.tableCellText}>{index === 0 ? "Instituto de Computação" : ""}</Text>
+                    </View>
+                    <View style={styles.tableCol2}>
+                      <Text style={styles.tableCellText}>{index === 0 ? departamento : ""}</Text>
+                    </View>
+                    <View style={styles.tableCol3}>
+                      <Text style={styles.tableCellText}>{projeto.codigo}</Text>
+                    </View>
+                    <View style={styles.tableCol4}>
+                      <Text style={styles.tableCellTextLeft}>{projeto.disciplinaNome}</Text>
+                    </View>
+                    <View style={styles.tableCol5}>
+                      <Text style={styles.tableCellTextLeft}>{projeto.professorNome}</Text>
+                    </View>
+                    <View style={styles.tableCol6}>
+                      <Text style={styles.tableCellTextLeft}>
+                        {projeto.tipoProposicao === TIPO_PROPOSICAO_COLETIVA
+                          ? projeto.professoresParticipantes || ""
+                          : ""}
+                      </Text>
+                    </View>
+                    <View style={styles.tableCol7}>
+                      {projeto.linkPDF ? (
+                        <Link src={projeto.linkPDF} style={styles.linkText}>
+                          Ver PDF
+                        </Link>
+                      ) : (
+                        <Text style={styles.tableCellText}>-</Text>
+                      )}
+                    </View>
                   </View>
-                  <View style={styles.tableCol2}>
-                    <Text style={styles.tableCellText}></Text>
-                  </View>
-                  <View style={styles.tableCol3}>
-                    <Text style={styles.tableCellText}>{projeto.codigo}</Text>
-                  </View>
-                  <View style={styles.tableCol4}>
-                    <Text style={styles.tableCellText}>{projeto.disciplinaNome}</Text>
-                  </View>
-                  <View style={styles.tableCol5}>
-                    <Text style={styles.tableCellText}>{projeto.professorNome}</Text>
-                  </View>
-                  <View style={styles.tableCol6}>
-                    <Text style={styles.tableCellText}>
-                      {projeto.tipoProposicao === TIPO_PROPOSICAO_COLETIVA
-                        ? projeto.professoresParticipantes || "Não informado"
-                        : ""}
-                    </Text>
-                  </View>
-                  <View style={styles.tableCol7}>
-                    <Text style={styles.tableCellText}>{projeto.linkPDF || ""}</Text>
-                  </View>
-                </View>
-              ))}
-            </React.Fragment>
-          ))}
+                ))}
+              </React.Fragment>
+            )
+          })}
         </View>
       </Page>
     </Document>

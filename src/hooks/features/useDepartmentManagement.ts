@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useDialogState } from '@/hooks/useDialogState'
 import { useTRPCMutation } from '@/hooks/useTRPCMutation'
 import { api } from '@/utils/api'
-import { STATUS_CURSO_ATIVO, type DepartamentoListItem } from '@/types'
+import { DEPARTMENT_STATUS_ATIVO, type DepartamentoListItem } from '@/types'
 import type { DepartmentFormData } from '@/components/features/admin/departamentos/DepartmentFormDialog'
 
 const EMPTY_FORM: DepartmentFormData = {
@@ -67,10 +67,9 @@ export function useDepartmentManagement() {
         email: dept.email || undefined,
         telefone: dept.telefone || undefined,
         professores: 0,
-        cursos: 0,
         disciplinas: 0,
         projetos: 0,
-        status: STATUS_CURSO_ATIVO,
+        status: DEPARTMENT_STATUS_ATIVO,
         criadoEm: dept.createdAt.toISOString(),
         atualizadoEm: dept.updatedAt?.toISOString() || dept.createdAt.toISOString(),
       })) || [],

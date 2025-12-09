@@ -1,18 +1,18 @@
 import {
+  adminTypeEnum,
   generoEnum,
-  modalidadeCursoEnum,
+  professorAccountStatusEnum,
   professorInvitationStatusEnum,
   projetoStatusEnum,
   regimeEnum,
   semestreEnum,
-  statusCursoEnum,
   statusEnvioEnum,
   statusInscricaoEnum,
   tipoAssinaturaEnum,
-  tipoCursoEnum,
   tipoDocumentoProjetoEnum,
   tipoEditalEnum,
   tipoInscricaoEnum,
+  tipoProfessorEnum,
   tipoProposicaoEnum,
   tipoVagaEnum,
   userRoleEnum,
@@ -48,11 +48,20 @@ export type Ano = number
 // User roles (extracted from database userRoleEnum)
 export type UserRole = ExtractEnumValues<typeof userRoleEnum>
 
+// Admin types (DCC or DCI - only applicable when role is 'admin')
+export type AdminType = ExtractEnumValues<typeof adminTypeEnum>
+
 // Gender types
 export type Genero = ExtractEnumValues<typeof generoEnum>
 
 // Professor regime types
 export type Regime = ExtractEnumValues<typeof regimeEnum>
+
+// Professor type (Substituto/Efetivo)
+export type TipoProfessor = ExtractEnumValues<typeof tipoProfessorEnum>
+
+// Professor account status (for invitation flow)
+export type ProfessorAccountStatus = ExtractEnumValues<typeof professorAccountStatusEnum>
 
 // Project types
 export type TipoProposicao = ExtractEnumValues<typeof tipoProposicaoEnum>
@@ -71,15 +80,6 @@ export type TipoInscricao = ExtractEnumValues<typeof tipoInscricaoEnum>
 
 // Inscription status
 export type StatusInscricao = ExtractEnumValues<typeof statusInscricaoEnum>
-
-// Course types
-export type TipoCurso = ExtractEnumValues<typeof tipoCursoEnum>
-
-// Course modality
-export type ModalidadeCurso = ExtractEnumValues<typeof modalidadeCursoEnum>
-
-// Course status
-export type StatusCurso = ExtractEnumValues<typeof statusCursoEnum>
 
 // Document types for projects
 export type TipoDocumentoProjeto = ExtractEnumValues<typeof tipoDocumentoProjetoEnum>
@@ -271,7 +271,11 @@ export const SEMESTRE_2 = 'SEMESTRE_2' as const
 
 // Tipo Edital constants (as const for literal type inference)
 export const TIPO_EDITAL_DCC = 'DCC' as const
-export const TIPO_EDITAL_PROGRAD = 'PROGRAD' as const
+export const TIPO_EDITAL_DCI = 'DCI' as const
+
+// Admin Type constants (as const for literal type inference)
+export const ADMIN_TYPE_DCC = 'DCC' as const
+export const ADMIN_TYPE_DCI = 'DCI' as const
 
 // Projeto Status constants (as const for literal type inference)
 export const PROJETO_STATUS_DRAFT = 'DRAFT' as const
@@ -318,21 +322,14 @@ export const REGIME_20H = '20H' as const
 export const REGIME_40H = '40H' as const
 export const REGIME_DE = 'DE' as const
 
-// Tipo Curso constants (as const for literal type inference)
-export const TIPO_CURSO_BACHARELADO = 'BACHARELADO' as const
-export const TIPO_CURSO_LICENCIATURA = 'LICENCIATURA' as const
-export const TIPO_CURSO_TECNICO = 'TECNICO' as const
-export const TIPO_CURSO_POS_GRADUACAO = 'POS_GRADUACAO' as const
+// Tipo Professor constants (as const for literal type inference)
+export const TIPO_PROFESSOR_SUBSTITUTO = 'SUBSTITUTO' as const
+export const TIPO_PROFESSOR_EFETIVO = 'EFETIVO' as const
 
-// Modalidade Curso constants (as const for literal type inference)
-export const MODALIDADE_CURSO_PRESENCIAL = 'PRESENCIAL' as const
-export const MODALIDADE_CURSO_EAD = 'EAD' as const
-export const MODALIDADE_CURSO_HIBRIDO = 'HIBRIDO' as const
-
-// Status Curso constants (as const for literal type inference)
-export const STATUS_CURSO_ATIVO = 'ATIVO' as const
-export const STATUS_CURSO_INATIVO = 'INATIVO' as const
-export const STATUS_CURSO_EM_REFORMULACAO = 'EM_REFORMULACAO' as const
+// Professor Account Status constants (as const for literal type inference)
+export const PROFESSOR_ACCOUNT_PENDING = 'PENDING' as const
+export const PROFESSOR_ACCOUNT_ACTIVE = 'ACTIVE' as const
+export const PROFESSOR_ACCOUNT_INACTIVE = 'INACTIVE' as const
 
 // Tipo Documento Projeto constants (as const for literal type inference)
 export const TIPO_DOCUMENTO_PROPOSTA_ORIGINAL = 'PROPOSTA_ORIGINAL' as const
@@ -407,6 +404,7 @@ export const VOLUNTARIO = TIPO_VAGA_VOLUNTARIO
 export const USER_ROLE_VALUES = getEnumValues(userRoleEnum)
 export const SEMESTRE_VALUES = getEnumValues(semestreEnum)
 export const TIPO_EDITAL_VALUES = getEnumValues(tipoEditalEnum)
+export const ADMIN_TYPE_VALUES = getEnumValues(adminTypeEnum)
 export const PROJETO_STATUS_VALUES = getEnumValues(projetoStatusEnum)
 export const TIPO_PROPOSICAO_VALUES = getEnumValues(tipoProposicaoEnum)
 export const TIPO_VAGA_VALUES = getEnumValues(tipoVagaEnum)
@@ -414,9 +412,8 @@ export const TIPO_INSCRICAO_VALUES = getEnumValues(tipoInscricaoEnum)
 export const STATUS_INSCRICAO_VALUES = getEnumValues(statusInscricaoEnum)
 export const GENERO_VALUES = getEnumValues(generoEnum)
 export const REGIME_VALUES = getEnumValues(regimeEnum)
-export const TIPO_CURSO_VALUES = getEnumValues(tipoCursoEnum)
-export const MODALIDADE_CURSO_VALUES = getEnumValues(modalidadeCursoEnum)
-export const STATUS_CURSO_VALUES = getEnumValues(statusCursoEnum)
+export const TIPO_PROFESSOR_VALUES = getEnumValues(tipoProfessorEnum)
+export const PROFESSOR_ACCOUNT_STATUS_VALUES = getEnumValues(professorAccountStatusEnum)
 export const TIPO_DOCUMENTO_PROJETO_VALUES = getEnumValues(tipoDocumentoProjetoEnum)
 export const TIPO_ASSINATURA_VALUES = getEnumValues(tipoAssinaturaEnum)
 export const INVITATION_STATUS_VALUES = getEnumValues(professorInvitationStatusEnum)
@@ -432,6 +429,7 @@ export const STATUS_MONITOR_VALUES = STATUS_MONITOR_ENUM
 export const semestreSchema = z.enum(semestreEnum.enumValues)
 export const anoSchema = z.number().int().min(2000).max(2100)
 export const tipoEditalSchema = z.enum(tipoEditalEnum.enumValues)
+export const adminTypeSchema = z.enum(adminTypeEnum.enumValues)
 export const projetoStatusSchema = z.enum(projetoStatusEnum.enumValues)
 export const tipoProposicaoSchema = z.enum(tipoProposicaoEnum.enumValues)
 export const tipoVagaSchema = z.enum(tipoVagaEnum.enumValues)
@@ -439,9 +437,8 @@ export const tipoInscricaoSchema = z.enum(tipoInscricaoEnum.enumValues)
 export const statusInscricaoSchema = z.enum(statusInscricaoEnum.enumValues)
 export const generoSchema = z.enum(generoEnum.enumValues)
 export const regimeSchema = z.enum(regimeEnum.enumValues)
-export const tipoCursoSchema = z.enum(tipoCursoEnum.enumValues)
-export const modalidadeCursoSchema = z.enum(modalidadeCursoEnum.enumValues)
-export const statusCursoSchema = z.enum(statusCursoEnum.enumValues)
+export const tipoProfessorSchema = z.enum(tipoProfessorEnum.enumValues)
+export const professorAccountStatusSchema = z.enum(professorAccountStatusEnum.enumValues)
 export const tipoDocumentoProjetoSchema = z.enum(tipoDocumentoProjetoEnum.enumValues)
 export const tipoAssinaturaSchema = z.enum(tipoAssinaturaEnum.enumValues)
 export const professorInvitationStatusSchema = z.enum(professorInvitationStatusEnum.enumValues)
@@ -459,7 +456,12 @@ export const SEMESTRE_LABELS: Record<Semestre, string> = {
 
 export const TIPO_EDITAL_LABELS: Record<TipoEdital, string> = {
   DCC: 'DCC (Interno)',
-  PROGRAD: 'PROGRAD',
+  DCI: 'DCI (Interno)',
+}
+
+export const ADMIN_TYPE_LABELS: Record<AdminType, string> = {
+  DCC: 'Departamento de Ciência da Computação',
+  DCI: 'Departamento de Ciência da Informação',
 }
 
 export const PROJETO_STATUS_LABELS: Record<ProjetoStatus, string> = {
@@ -503,23 +505,15 @@ export const REGIME_LABELS: Record<Regime, string> = {
   DE: 'Dedicação Exclusiva',
 }
 
-export const TIPO_CURSO_LABELS: Record<TipoCurso, string> = {
-  BACHARELADO: 'Bacharelado',
-  LICENCIATURA: 'Licenciatura',
-  TECNICO: 'Técnico',
-  POS_GRADUACAO: 'Pós-Graduação',
+export const TIPO_PROFESSOR_LABELS: Record<TipoProfessor, string> = {
+  SUBSTITUTO: 'Substituto',
+  EFETIVO: 'Efetivo',
 }
 
-export const MODALIDADE_CURSO_LABELS: Record<ModalidadeCurso, string> = {
-  PRESENCIAL: 'Presencial',
-  EAD: 'EAD',
-  HIBRIDO: 'Híbrido',
-}
-
-export const STATUS_CURSO_LABELS: Record<StatusCurso, string> = {
-  ATIVO: 'Ativo',
-  INATIVO: 'Inativo',
-  EM_REFORMULACAO: 'Em Reformulação',
+export const PROFESSOR_ACCOUNT_STATUS_LABELS: Record<ProfessorAccountStatus, string> = {
+  PENDING: 'Pendente',
+  ACTIVE: 'Ativo',
+  INACTIVE: 'Inativo',
 }
 
 export const STATUS_MONITOR_LABELS: Record<StatusMonitor, string> = {
@@ -602,16 +596,12 @@ export function getRegimeLabel(regime: Regime): string {
   return REGIME_LABELS[regime]
 }
 
-export function getTipoCursoLabel(tipo: TipoCurso): string {
-  return TIPO_CURSO_LABELS[tipo]
+export function getTipoProfessorLabel(tipo: TipoProfessor): string {
+  return TIPO_PROFESSOR_LABELS[tipo]
 }
 
-export function getModalidadeCursoLabel(modalidade: ModalidadeCurso): string {
-  return MODALIDADE_CURSO_LABELS[modalidade]
-}
-
-export function getStatusCursoLabel(status: StatusCurso): string {
-  return STATUS_CURSO_LABELS[status]
+export function getProfessorAccountStatusLabel(status: ProfessorAccountStatus): string {
+  return PROFESSOR_ACCOUNT_STATUS_LABELS[status]
 }
 
 export function getStatusMonitorLabel(status: StatusMonitor): string {

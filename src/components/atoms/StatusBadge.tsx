@@ -5,7 +5,6 @@ import type {
   ProfessorInvitationStatus,
   ProjetoStatus,
   ProjetoTipo,
-  StatusCurso,
   StatusInscricao,
   TermoWorkflowStatus,
   TipoVaga,
@@ -16,7 +15,6 @@ import { CheckCircle2, XCircle, Clock, FileText, AlertCircle } from "lucide-reac
 type StatusType =
   | ProjetoStatus
   | StatusInscricao
-  | StatusCurso
   | TipoVaga
   | AllocationStatus
   | ProfessorInvitationStatus

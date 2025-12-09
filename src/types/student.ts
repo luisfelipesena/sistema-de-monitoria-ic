@@ -24,7 +24,7 @@ export interface Student {
   conta?: string
   digitoConta?: string
   enderecoId?: number
-  cursoId: number
+  cursoNome?: string
   historicoEscolarFileId?: string
   comprovanteMatriculaFileId?: string
   createdAt: Date
@@ -48,7 +48,7 @@ export interface CreateStudentInput {
   conta?: string
   digitoConta?: string
   enderecoId?: number
-  cursoId: number
+  cursoNome?: string
 }
 
 export interface AlunoListItem {
@@ -59,11 +59,7 @@ export interface AlunoListItem {
   cpf: string | null
   telefone?: string
   cr: number | null
-  curso: {
-    id: number | null
-    nome: string
-    departamento: string
-  }
+  cursoNome: string | null
   status: StudentStatus
   inscricoes: number
   bolsasAtivas: number
@@ -94,7 +90,7 @@ export const createStudentSchema = z.object({
   conta: z.string().optional(),
   digitoConta: z.string().optional(),
   enderecoId: z.number().int().positive().optional(),
-  cursoId: z.number().int().positive(),
+  cursoNome: z.string().optional(),
 })
 
 export type CreateStudentData = z.infer<typeof createStudentSchema>

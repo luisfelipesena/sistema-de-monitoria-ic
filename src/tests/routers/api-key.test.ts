@@ -20,6 +20,7 @@ describe('API Key Router', () => {
     username: 'testuser',
     email: 'test@example.com',
     role: 'admin',
+    adminType: 'DCC',
     assinaturaDefault: null,
     dataAssinaturaDefault: null,
     passwordHash: null,

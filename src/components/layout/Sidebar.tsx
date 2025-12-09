@@ -69,7 +69,8 @@ const isMenuGroup = (item: MenuConfig): item is MenuGroupConfig => {
 }
 
 const menuConfig: MenuConfig[] = [
-  // Dashboard
+  // ============ ADMIN MENU ============
+  // 1. Dashboard
   {
     label: "Dashboard",
     href: (role) => `/home/${role}/dashboard`,
@@ -77,18 +78,12 @@ const menuConfig: MenuConfig[] = [
     roles: ["admin", "student"],
   },
 
-  // Admin - Projetos
+  // 2. Projetos
   {
     label: "Projetos",
     icon: FileText,
     roles: ["admin"],
     items: [
-      {
-        label: "Gerenciar Projetos",
-        href: "/home/admin/manage-projects",
-        icon: FileText,
-        roles: ["admin"],
-      },
       {
         label: "Importar Planejamento",
         href: "/home/admin/import-projects",
@@ -96,23 +91,8 @@ const menuConfig: MenuConfig[] = [
         roles: ["admin"],
       },
       {
-        label: "Alocação de Bolsas",
-        href: "/home/admin/scholarship-allocation",
-        icon: Award,
-        roles: ["admin"],
-      },
-    ],
-  },
-
-  // Admin - Editais e Períodos
-  {
-    label: "Editais",
-    icon: FileText,
-    roles: ["admin"],
-    items: [
-      {
-        label: "Gerenciar Editais",
-        href: "/home/admin/edital-management",
+        label: "Gerenciar Projetos",
+        href: "/home/admin/manage-projects",
         icon: FileText,
         roles: ["admin"],
       },
@@ -125,22 +105,97 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
-  // Admin - Documentos e Assinaturas
+  // 3. Editais
   {
-    label: "Documentos",
-    icon: FileSignature,
+    label: "Editais",
+    icon: FileText,
     roles: ["admin"],
     items: [
       {
-        label: "Gerenciar Arquivos",
-        href: "/home/admin/files",
+        label: "Gerenciar Editais",
+        href: "/home/admin/edital-management",
+        icon: FileText,
+        roles: ["admin"],
+      },
+      {
+        label: "Alocação de Bolsas",
+        href: "/home/admin/scholarship-allocation",
+        icon: Award,
+        roles: ["admin"],
+      },
+    ],
+  },
+
+  // 4. Inscrições
+  {
+    label: "Inscrições",
+    icon: FilePlus,
+    roles: ["admin"],
+    items: [
+      {
+        label: "Visualizar Inscrições",
+        href: "/home/admin/inscricoes",
+        icon: FilePlus,
+        roles: ["admin"],
+      },
+    ],
+  },
+
+  // 5. Seleção
+  {
+    label: "Seleção",
+    icon: ClipboardCheck,
+    roles: ["admin"],
+    items: [
+      {
+        label: "Gerenciar Seleções",
+        href: "/home/admin/selecao",
+        icon: ClipboardCheck,
+        roles: ["admin"],
+      },
+      {
+        label: "Atas de Seleção",
+        href: "/home/admin/atas-selecao",
         icon: FileText,
         roles: ["admin"],
       },
     ],
   },
 
-  // Admin - Usuários
+  // 6. Relatórios
+  {
+    label: "Relatórios",
+    icon: FileSpreadsheet,
+    roles: ["admin"],
+    items: [
+      {
+        label: "Planilha PROGRAD",
+        href: "/home/admin/planilha-prograd",
+        icon: FileSpreadsheet,
+        roles: ["admin"],
+      },
+      {
+        label: "Consolidação PROGRAD",
+        href: "/home/admin/consolidacao-prograd",
+        icon: FileSpreadsheet,
+        roles: ["admin"],
+      },
+      {
+        label: "Relatório por Disciplina",
+        href: "/home/admin/relatorio-disciplina",
+        icon: BookOpen,
+        roles: ["admin"],
+      },
+      {
+        label: "Relatório por Monitor",
+        href: "/home/admin/relatorio-monitor",
+        icon: Users,
+        roles: ["admin"],
+      },
+    ],
+  },
+
+  // 7. Usuários
   {
     label: "Usuários",
     icon: Users,
@@ -173,18 +228,12 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
-  // Admin - Configurações Acadêmicas
+  // 8. Configurações
   {
     label: "Configurações",
     icon: Settings,
     roles: ["admin"],
     items: [
-      {
-        label: "Cursos",
-        href: "/home/admin/cursos",
-        icon: GraduationCap,
-        roles: ["admin"],
-      },
       {
         label: "Departamentos",
         href: "/home/admin/departamentos",
@@ -212,7 +261,7 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
-  // Admin - Sistema
+  // 9. Sistema
   {
     label: "Sistema",
     icon: TrendingUp,
@@ -236,27 +285,10 @@ const menuConfig: MenuConfig[] = [
         icon: ScrollText,
         roles: ["admin"],
       },
-      {
-        label: "Relatórios PROGRAD",
-        href: "/home/admin/relatorios",
-        icon: FileSpreadsheet,
-        roles: ["admin"],
-      },
-      {
-        label: "Consolidação PROGRAD",
-        href: "/home/admin/consolidacao-prograd",
-        icon: FileSpreadsheet,
-        roles: ["admin"],
-      },
-      {
-        label: "Validação Relatórios",
-        href: "/home/admin/validacao-relatorios",
-        icon: FileCheck,
-        roles: ["admin"],
-      },
     ],
   },
 
+  // ============ PROFESSOR MENU ============
   // Professor - Meus Projetos
   {
     label: "Meus Projetos",
@@ -347,6 +379,7 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
+  // ============ STUDENT MENU ============
   // Student - Monitoria
   {
     label: "Monitoria",
@@ -386,19 +419,13 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
-  // Perfil e Configurações - sempre último
+  // ============ COMMON (TODOS) ============
+  // 10. Perfil - sempre último
   {
-    label: "Perfil & Configurações",
+    label: "Perfil",
+    href: "/home/common/profile",
     icon: User,
     roles: ["admin", "professor", "student"],
-    items: [
-      {
-        label: "Meu Perfil",
-        href: "/home/common/profile",
-        icon: User,
-        roles: ["admin", "professor", "student"],
-      },
-    ],
   },
 ]
 

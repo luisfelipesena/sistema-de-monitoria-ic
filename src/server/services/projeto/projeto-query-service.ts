@@ -1,6 +1,6 @@
 import { isAdmin, isProfessor } from '@/server/lib/auth-helpers'
 import { ForbiddenError, NotFoundError } from '@/server/lib/errors'
-import { ACCEPTED_VOLUNTARIO, SEMESTRE_1, SEMESTRE_2, VAGA_STATUS_ATIVO, type UserRole } from '@/types'
+import { ACCEPTED_VOLUNTARIO, SEMESTRE_1, SEMESTRE_2, VAGA_STATUS_ATIVO, type AdminType, type UserRole } from '@/types'
 import { logger } from '@/utils/logger'
 import type { ProjetoRepository } from './projeto-repository'
 
@@ -8,12 +8,12 @@ const log = logger.child({ context: 'ProjetoQueryService' })
 
 export function createProjetoQueryService(repo: ProjetoRepository) {
   return {
-    async getProjetos(userId: number, userRole: UserRole) {
+    async getProjetos(userId: number, userRole: UserRole, adminType?: AdminType | null) {
       let projetosRaw: Awaited<ReturnType<typeof repo.findByProfessorId | typeof repo.findAll>>
 
       if (isAdmin(userRole)) {
-        // Admin sees all projects
-        projetosRaw = await repo.findAll()
+        // Admin sees projects from their department (DCC or DCI)
+        projetosRaw = await repo.findAll(adminType)
       } else if (isProfessor(userRole)) {
         // Professor sees only their own projects
         const professor = await repo.findProfessorByUserId(userId)
@@ -152,7 +152,6 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
             disciplinas: disciplinas.map((d) => ({
               codigo: d.codigo,
               nome: d.nome,
-              turma: d.turma,
             })),
             bolsasDisponibilizadas: projeto.bolsasDisponibilizadas || 0,
             voluntariosSolicitados: projeto.voluntariosSolicitados || 0,

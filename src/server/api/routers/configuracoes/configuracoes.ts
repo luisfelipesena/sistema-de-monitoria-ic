@@ -7,15 +7,28 @@ export const configuracoesRouter = createTRPCRouter({
     return await configuracoesService.getDepartamentos()
   }),
 
-  updateEmails: adminProtectedProcedure
+  updateDepartamentoEmail: adminProtectedProcedure
     .input(
       z.object({
         departamentoId: z.number().int().positive(),
-        emailInstituto: z.string().email('Email do instituto inválido.').nullish(),
-        emailChefeDepartamento: z.string().email('Email do chefe inválido.').nullish(),
+        email: z.string().email('Email inválido.').nullish(),
       })
     )
     .mutation(async ({ input }) => {
-      return await configuracoesService.updateEmails(input)
+      return await configuracoesService.updateDepartamentoEmail(input)
+    }),
+
+  getEmailIC: adminProtectedProcedure.query(async () => {
+    return await configuracoesService.getEmailIC()
+  }),
+
+  setEmailIC: adminProtectedProcedure
+    .input(
+      z.object({
+        email: z.string().email('Email inválido.').nullish(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await configuracoesService.setEmailIC(input.email ?? null)
     }),
 })

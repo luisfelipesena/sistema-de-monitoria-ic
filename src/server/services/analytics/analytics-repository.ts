@@ -2,16 +2,17 @@ import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm'
 import type { db } from '@/server/db'
 import {
   alunoTable,
-  cursoTable,
+  configuracaoSistemaTable,
   departamentoTable,
   disciplinaTable,
   inscricaoTable,
   periodoInscricaoTable,
   professorTable,
+  projetoDisciplinaTable,
   projetoTable,
   vagaTable,
 } from '@/server/db/schema'
-import type { ProjetoStatus, Semestre } from '@/types'
+import type { AdminType, ProjetoStatus, Semestre } from '@/types'
 import { APPROVED, SUBMITTED } from '@/types'
 
 type Database = typeof db
@@ -26,7 +27,15 @@ export function createAnalyticsRepository(db: Database) {
       return result?.count || 0
     },
 
-    async countTotalProjects() {
+    async countTotalProjects(adminType?: AdminType | null) {
+      if (adminType) {
+        const [result] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(projetoTable)
+          .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+          .where(and(isNull(projetoTable.deletedAt), eq(departamentoTable.sigla, adminType)))
+        return result?.count || 0
+      }
       const [result] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(projetoTable)
@@ -34,7 +43,17 @@ export function createAnalyticsRepository(db: Database) {
       return result?.count || 0
     },
 
-    async countProjectsByStatus(status: ProjetoStatus) {
+    async countProjectsByStatus(status: ProjetoStatus, adminType?: AdminType | null) {
+      if (adminType) {
+        const [result] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(projetoTable)
+          .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+          .where(
+            and(eq(projetoTable.status, status), isNull(projetoTable.deletedAt), eq(departamentoTable.sigla, adminType))
+          )
+        return result?.count || 0
+      }
       const [result] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(projetoTable)
@@ -42,7 +61,16 @@ export function createAnalyticsRepository(db: Database) {
       return result?.count || 0
     },
 
-    async countTotalInscriptions() {
+    async countTotalInscriptions(adminType?: AdminType | null) {
+      if (adminType) {
+        const [result] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(inscricaoTable)
+          .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
+          .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+          .where(eq(departamentoTable.sigla, adminType))
+        return result?.count || 0
+      }
       const [result] = await db.select({ count: sql<number>`count(*)::int` }).from(inscricaoTable)
       return result?.count || 0
     },
@@ -52,22 +80,40 @@ export function createAnalyticsRepository(db: Database) {
       return result?.count || 0
     },
 
-    async countTotalProfessors() {
+    async countTotalProfessors(adminType?: AdminType | null) {
+      if (adminType) {
+        const [result] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(professorTable)
+          .innerJoin(departamentoTable, eq(professorTable.departamentoId, departamentoTable.id))
+          .where(eq(departamentoTable.sigla, adminType))
+        return result?.count || 0
+      }
       const [result] = await db.select({ count: sql<number>`count(*)::int` }).from(professorTable)
       return result?.count || 0
     },
 
-    async countTotalDepartments() {
+    async countTotalDepartments(adminType?: AdminType | null) {
+      if (adminType) {
+        const [result] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(departamentoTable)
+          .where(eq(departamentoTable.sigla, adminType))
+        return result?.count || 0
+      }
       const [result] = await db.select({ count: sql<number>`count(*)::int` }).from(departamentoTable)
       return result?.count || 0
     },
 
-    async countTotalCourses() {
-      const [result] = await db.select({ count: sql<number>`count(*)::int` }).from(cursoTable)
-      return result?.count || 0
-    },
-
-    async countTotalDisciplines() {
+    async countTotalDisciplines(adminType?: AdminType | null) {
+      if (adminType) {
+        const [result] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(disciplinaTable)
+          .innerJoin(departamentoTable, eq(disciplinaTable.departamentoId, departamentoTable.id))
+          .where(and(isNull(disciplinaTable.deletedAt), eq(departamentoTable.sigla, adminType)))
+        return result?.count || 0
+      }
       const [result] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(disciplinaTable)
@@ -75,27 +121,53 @@ export function createAnalyticsRepository(db: Database) {
       return result?.count || 0
     },
 
-    async getVagasStats() {
+    async getVagasStats(adminType?: AdminType | null) {
+      const conditions = [eq(projetoTable.status, APPROVED), isNull(projetoTable.deletedAt)]
+
+      if (adminType) {
+        const [result] = await db
+          .select({
+            bolsas: sql<number>`coalesce(sum(${projetoTable.bolsasDisponibilizadas}), 0)::int`,
+            voluntarios: sql<number>`coalesce(sum(${projetoTable.voluntariosSolicitados}), 0)::int`,
+          })
+          .from(projetoTable)
+          .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+          .where(and(...conditions, eq(departamentoTable.sigla, adminType)))
+        return {
+          bolsas: result?.bolsas || 0,
+          voluntarios: result?.voluntarios || 0,
+        }
+      }
+
       const [result] = await db
         .select({
           bolsas: sql<number>`coalesce(sum(${projetoTable.bolsasDisponibilizadas}), 0)::int`,
           voluntarios: sql<number>`coalesce(sum(${projetoTable.voluntariosSolicitados}), 0)::int`,
         })
         .from(projetoTable)
-        .where(and(eq(projetoTable.status, APPROVED), isNull(projetoTable.deletedAt)))
+        .where(and(...conditions))
       return {
         bolsas: result?.bolsas || 0,
         voluntarios: result?.voluntarios || 0,
       }
     },
 
-    async countOccupiedVagas() {
+    async countOccupiedVagas(adminType?: AdminType | null) {
+      if (adminType) {
+        const [result] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(vagaTable)
+          .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
+          .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+          .where(eq(departamentoTable.sigla, adminType))
+        return result?.count || 0
+      }
       const [result] = await db.select({ count: sql<number>`count(*)::int` }).from(vagaTable)
       return result?.count || 0
     },
 
-    async getProjectsByDepartment() {
-      return db
+    async getProjectsByDepartment(adminType?: AdminType | null) {
+      const query = db
         .select({
           departamento: departamentoTable.nome,
           sigla: departamentoTable.sigla,
@@ -108,11 +180,39 @@ export function createAnalyticsRepository(db: Database) {
           projetoTable,
           and(eq(projetoTable.departamentoId, departamentoTable.id), isNull(projetoTable.deletedAt))
         )
+
+      if (adminType) {
+        return query
+          .where(eq(departamentoTable.sigla, adminType))
+          .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)
+          .orderBy(sql`count(${projetoTable.id}) desc`)
+      }
+
+      return query
         .groupBy(departamentoTable.id, departamentoTable.nome, departamentoTable.sigla)
         .orderBy(sql`count(${projetoTable.id}) desc`)
     },
 
-    async getInscriptionsByPeriod() {
+    async getInscriptionsByPeriod(adminType?: AdminType | null) {
+      if (adminType) {
+        return db
+          .select({
+            periodo: sql<string>`${periodoInscricaoTable.ano} || '.' || ${periodoInscricaoTable.semestre}`,
+            ano: periodoInscricaoTable.ano,
+            semestre: periodoInscricaoTable.semestre,
+            inscricoes: sql<number>`count(${inscricaoTable.id})::int`,
+            projetos: sql<number>`count(distinct ${inscricaoTable.projetoId})::int`,
+          })
+          .from(periodoInscricaoTable)
+          .leftJoin(inscricaoTable, eq(inscricaoTable.periodoInscricaoId, periodoInscricaoTable.id))
+          .leftJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
+          .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+          .where(eq(departamentoTable.sigla, adminType))
+          .groupBy(periodoInscricaoTable.id, periodoInscricaoTable.ano, periodoInscricaoTable.semestre)
+          .orderBy(desc(periodoInscricaoTable.ano), desc(periodoInscricaoTable.semestre))
+          .limit(6)
+      }
+
       return db
         .select({
           periodo: sql<string>`${periodoInscricaoTable.ano} || '.' || ${periodoInscricaoTable.semestre}`,
@@ -128,23 +228,8 @@ export function createAnalyticsRepository(db: Database) {
         .limit(6)
     },
 
-    async getStudentsByCourse() {
-      return db
-        .select({
-          curso: cursoTable.nome,
-          alunos: sql<number>`count(${alunoTable.id})::int`,
-          inscricoes: sql<number>`count(${inscricaoTable.id})::int`,
-        })
-        .from(cursoTable)
-        .leftJoin(alunoTable, eq(alunoTable.cursoId, cursoTable.id))
-        .leftJoin(inscricaoTable, eq(inscricaoTable.alunoId, alunoTable.id))
-        .groupBy(cursoTable.id, cursoTable.nome)
-        .orderBy(sql`count(${alunoTable.id}) desc`)
-        .limit(10)
-    },
-
-    async getProfessorsByDepartment() {
-      return db
+    async getProfessorsByDepartment(adminType?: AdminType | null) {
+      const query = db
         .select({
           departamento: departamentoTable.nome,
           professores: sql<number>`count(${professorTable.id})::int`,
@@ -160,12 +245,19 @@ export function createAnalyticsRepository(db: Database) {
             isNull(projetoTable.deletedAt)
           )
         )
-        .groupBy(departamentoTable.id, departamentoTable.nome)
-        .orderBy(sql`count(${professorTable.id}) desc`)
+
+      if (adminType) {
+        return query
+          .where(eq(departamentoTable.sigla, adminType))
+          .groupBy(departamentoTable.id, departamentoTable.nome)
+          .orderBy(sql`count(${professorTable.id}) desc`)
+      }
+
+      return query.groupBy(departamentoTable.id, departamentoTable.nome).orderBy(sql`count(${professorTable.id}) desc`)
     },
 
-    async getRecentProjects() {
-      return db
+    async getRecentProjects(adminType?: AdminType | null) {
+      const query = db
         .select({
           id: projetoTable.id,
           titulo: projetoTable.titulo,
@@ -177,16 +269,35 @@ export function createAnalyticsRepository(db: Database) {
         .from(projetoTable)
         .leftJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
         .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-        .where(isNull(projetoTable.deletedAt))
-        .orderBy(desc(projetoTable.createdAt))
+
+      if (adminType) {
+        return query
+          .where(and(isNull(projetoTable.deletedAt), eq(departamentoTable.sigla, adminType)))
+          .orderBy(desc(projetoTable.createdAt))
+      }
+
+      return query.where(isNull(projetoTable.deletedAt)).orderBy(desc(projetoTable.createdAt))
     },
 
-    async getApprovedProjectsForPROGRAD(ano: number, semestre: Semestre) {
+    async getApprovedProjectsForPROGRAD(ano: number, semestre: Semestre, adminType?: AdminType | null) {
+      const conditions = [
+        eq(projetoTable.status, APPROVED),
+        eq(projetoTable.ano, ano),
+        eq(projetoTable.semestre, semestre),
+        isNull(projetoTable.deletedAt),
+      ]
+
+      // Filter by department sigla if admin has a specific type
+      if (adminType) {
+        conditions.push(eq(departamentoTable.sigla, adminType))
+      }
+
       return db
         .select({
           id: projetoTable.id,
           titulo: projetoTable.titulo,
           disciplinaNome: projetoTable.disciplinaNome,
+          disciplinaCodigo: disciplinaTable.codigo,
           professorNome: professorTable.nomeCompleto,
           professoresParticipantes: projetoTable.professoresParticipantes,
           departamentoNome: departamentoTable.nome,
@@ -195,14 +306,9 @@ export function createAnalyticsRepository(db: Database) {
         .from(projetoTable)
         .leftJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
         .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-        .where(
-          and(
-            eq(projetoTable.status, APPROVED),
-            eq(projetoTable.ano, ano),
-            eq(projetoTable.semestre, semestre),
-            isNull(projetoTable.deletedAt)
-          )
-        )
+        .leftJoin(projetoDisciplinaTable, eq(projetoTable.id, projetoDisciplinaTable.projetoId))
+        .leftJoin(disciplinaTable, eq(projetoDisciplinaTable.disciplinaId, disciplinaTable.id))
+        .where(and(...conditions))
         .orderBy(departamentoTable.nome, projetoTable.id)
     },
 
@@ -211,9 +317,16 @@ export function createAnalyticsRepository(db: Database) {
         .select({
           id: departamentoTable.id,
           nome: departamentoTable.nome,
+          sigla: departamentoTable.sigla,
           emailInstituto: departamentoTable.emailInstituto,
         })
         .from(departamentoTable)
+    },
+
+    async getConfiguracaoSistema(chave: string) {
+      return db.query.configuracaoSistemaTable.findFirst({
+        where: eq(configuracaoSistemaTable.chave, chave),
+      })
     },
   }
 }

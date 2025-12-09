@@ -80,13 +80,21 @@ export function createProjetoRepository(db: Database) {
         .orderBy(projetoTable.createdAt)
     },
 
-    async findAll() {
+    async findAll(departmentSigla?: string | null) {
+      const conditions = [isNull(projetoTable.deletedAt)]
+
+      // Filter by department sigla if provided (for admin type filtering)
+      if (departmentSigla) {
+        conditions.push(eq(departamentoTable.sigla, departmentSigla))
+      }
+
       return db
         .select({
           id: projetoTable.id,
           titulo: projetoTable.titulo,
           departamentoId: projetoTable.departamentoId,
           departamentoNome: departamentoTable.nome,
+          departamentoSigla: departamentoTable.sigla,
           professorResponsavelId: projetoTable.professorResponsavelId,
           professorResponsavelNome: professorTable.nomeCompleto,
           status: projetoTable.status,
@@ -111,7 +119,7 @@ export function createProjetoRepository(db: Database) {
         .from(projetoTable)
         .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-        .where(isNull(projetoTable.deletedAt))
+        .where(and(...conditions))
         .orderBy(projetoTable.createdAt)
     },
 
@@ -182,7 +190,6 @@ export function createProjetoRepository(db: Database) {
           id: disciplinaTable.id,
           nome: disciplinaTable.nome,
           codigo: disciplinaTable.codigo,
-          turma: disciplinaTable.turma,
         })
         .from(disciplinaTable)
         .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))

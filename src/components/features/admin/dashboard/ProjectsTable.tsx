@@ -1,5 +1,6 @@
 import { StatusBadge } from "@/components/atoms/StatusBadge"
-import { TableComponent } from "@/components/layout/TableComponent"
+import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
+import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,8 +12,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import type { DashboardProjectItem } from "@/types"
-import type { ColumnDef } from "@tanstack/react-table"
+import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
+import {
+  PROJETO_STATUS_APPROVED,
+  PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_LABELS,
+  PROJETO_STATUS_REJECTED,
+  PROJETO_STATUS_SUBMITTED,
+  type DashboardProjectItem,
+} from "@/types"
+import type { ColumnDef, ColumnFiltersState } from "@tanstack/react-table"
 import { Eye, Hand, List, Loader, Trash2, Users } from "lucide-react"
 import { useState } from "react"
 
@@ -22,7 +31,17 @@ interface ProjectsTableProps {
   deletingProjetoId: number | null
   onAnalisarProjeto: (projetoId: number) => void
   onDeleteProjeto: (projetoId: number) => void
+  columnFilters: ColumnFiltersState
+  onColumnFiltersChange: React.Dispatch<React.SetStateAction<ColumnFiltersState>>
 }
+
+// Filter options
+const statusFilterOptions = [
+  { value: PROJETO_STATUS_DRAFT, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_DRAFT] },
+  { value: PROJETO_STATUS_SUBMITTED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_SUBMITTED] },
+  { value: PROJETO_STATUS_APPROVED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_APPROVED] },
+  { value: PROJETO_STATUS_REJECTED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_REJECTED] },
+]
 
 export function ProjectsTable({
   projetos,
@@ -30,6 +49,8 @@ export function ProjectsTable({
   deletingProjetoId,
   onAnalisarProjeto,
   onDeleteProjeto,
+  columnFilters,
+  onColumnFiltersChange,
 }: ProjectsTableProps) {
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null)
   const projetoToDelete = projetos.find((p) => p.id === deleteConfirmId)
@@ -62,14 +83,32 @@ export function ProjectsTable({
       },
     },
     {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Loader className="h-5 w-5 text-gray-400" />
-          Status
-        </div>
-      ),
+      header: createFilterableHeader<DashboardProjectItem>({
+        title: "Status",
+        filterType: "multiselect",
+        filterOptions: statusFilterOptions,
+      }),
       accessorKey: "status",
+      filterFn: multiselectFilterFn,
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+    {
+      header: createFilterableHeader<DashboardProjectItem>({
+        title: "Ano",
+        filterType: "select",
+        filterOptions: createYearFilterOptions(),
+      }),
+      accessorKey: "ano",
+      cell: ({ row }) => <div className="text-center">{row.original.ano}</div>,
+    },
+    {
+      header: createFilterableHeader<DashboardProjectItem>({
+        title: "Semestre",
+        filterType: "select",
+        filterOptions: createSemesterFilterOptions(),
+      }),
+      accessorKey: "semestre",
+      cell: ({ row }) => <div className="text-center">{row.original.semestre === "SEMESTRE_1" ? "1º" : "2º"}</div>,
     },
     {
       header: () => (
@@ -127,7 +166,12 @@ export function ProjectsTable({
 
   return (
     <>
-      <TableComponent columns={columns} data={projetos} />
+      <TableComponent
+        columns={columns}
+        data={projetos}
+        columnFilters={columnFilters}
+        onColumnFiltersChange={onColumnFiltersChange}
+      />
       <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

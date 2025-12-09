@@ -31,7 +31,7 @@ export const createMeService = (database: Database) => {
           where: (table, { eq }) => eq(table.userId, user.id),
           columns: {
             id: true,
-            cursoId: true,
+            cursoNome: true,
             cr: true,
           },
         })

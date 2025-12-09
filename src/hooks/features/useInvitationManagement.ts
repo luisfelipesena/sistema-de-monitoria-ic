@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { api } from '@/utils/api'
 import { useTRPCMutation } from '@/hooks/useTRPCMutation'
-import { inviteFormSchema, type InviteFormData } from '@/types'
+import { inviteFormSchema, TIPO_PROFESSOR_EFETIVO, type InviteFormData } from '@/types'
 import { useToast } from '@/hooks/use-toast'
 
 type InvitationFilterStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'ALL'
@@ -17,6 +17,10 @@ export function useInvitationManagement() {
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
       email: '',
+      nomeCompleto: '',
+      departamentoId: undefined,
+      regime: undefined,
+      tipoProfessor: TIPO_PROFESSOR_EFETIVO,
       expiresInDays: 7,
     },
   })

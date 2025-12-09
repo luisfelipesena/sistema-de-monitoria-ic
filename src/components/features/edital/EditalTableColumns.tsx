@@ -2,11 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EditalListItem, SEMESTRE_1, TIPO_EDITAL_DCC } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { Edit, Eye, FileText, Trash2, Upload, Send } from "lucide-react";
+import { Edit, Eye, FileText, Trash2, Upload, Send, Pencil } from "lucide-react";
 import { EditalStatusBadge, getPeriodStatusBadge } from "./EditalStatusBadge";
 
 interface EditalTableColumnsProps {
   onEdit: (edital: EditalListItem) => void;
+  onEditNumero: (edital: EditalListItem) => void;
   onDelete: (id: number) => void;
   onViewPdf: (id: number) => void;
   onPublish: (id: number) => void;
@@ -16,6 +17,7 @@ interface EditalTableColumnsProps {
 
 export function createEditalTableColumns({
   onEdit,
+  onEditNumero,
   onDelete,
   onViewPdf,
   onPublish,
@@ -38,9 +40,25 @@ export function createEditalTableColumns({
     {
       accessorKey: "numeroEdital",
       header: "Número",
-      cell: ({ row }) => (
-        <div className="font-mono text-sm">{row.getValue("numeroEdital")}</div>
-      ),
+      cell: ({ row }) => {
+        const edital = row.original;
+        return (
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-sm">{row.getValue("numeroEdital")}</span>
+            {!edital.publicado && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => onEditNumero(edital)}
+                title="Editar número"
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "titulo",

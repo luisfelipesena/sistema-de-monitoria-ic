@@ -1,12 +1,11 @@
 import type { db } from '@/server/db'
-import { departamentoTable } from '@/server/db/schema'
+import { configuracaoSistemaTable, departamentoTable } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 
 type Database = typeof db
 
-export interface UpdateEmailsData {
-  emailInstituto?: string | null
-  emailChefeDepartamento?: string | null
+export interface UpdateDepartamentoEmailData {
+  email?: string | null
 }
 
 export const createConfiguracoesRepository = (database: Database) => {
@@ -24,14 +23,24 @@ export const createConfiguracoesRepository = (database: Database) => {
       })
     },
 
-    async updateEmails(departamentoId: number, data: UpdateEmailsData) {
+    async updateDepartamentoEmail(departamentoId: number, email: string | null) {
       await database
         .update(departamentoTable)
-        .set({
-          emailInstituto: data.emailInstituto || null,
-          emailChefeDepartamento: data.emailChefeDepartamento || null,
-        })
+        .set({ emailInstituto: email })
         .where(eq(departamentoTable.id, departamentoId))
+    },
+
+    async getConfiguracaoSistema(chave: string) {
+      return database.query.configuracaoSistemaTable.findFirst({
+        where: eq(configuracaoSistemaTable.chave, chave),
+      })
+    },
+
+    async setConfiguracaoSistema(chave: string, valor: string | null) {
+      await database
+        .update(configuracaoSistemaTable)
+        .set({ valor, updatedAt: new Date() })
+        .where(eq(configuracaoSistemaTable.chave, chave))
     },
   }
 }

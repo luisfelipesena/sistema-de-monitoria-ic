@@ -27,7 +27,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
     matricula: "",
     cpf: "",
     cr: "",
-    cursoId: 0,
+    cursoNome: "",
     telefone: "",
     genero: "" as Genero | "",
     especificacaoGenero: "",
@@ -36,7 +36,6 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { data: cursos } = api.course.getCourses.useQuery({ includeStats: false })
   const createProfileMutation = api.onboarding.createStudentProfile.useMutation()
   const updateDocumentMutation = api.onboarding.updateDocument.useMutation()
   const { refetch: refetchOnboardingStatus } = api.onboarding.getStatus.useQuery()
@@ -53,7 +52,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
       !formData.nomeCompleto ||
       !formData.matricula ||
       !formData.cpf ||
-      !formData.cursoId ||
+      !formData.cursoNome ||
       !formData.genero ||
       !formData.cr
     ) {
@@ -254,22 +253,15 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                   )}
 
                   <div>
-                    <Label htmlFor="curso">Curso *</Label>
-                    <Select
-                      value={formData.cursoId.toString()}
-                      onValueChange={(value) => setFormData({ ...formData, cursoId: parseInt(value) })}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Selecione seu curso" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {cursos?.map((curso) => (
-                          <SelectItem key={curso.id} value={curso.id.toString()}>
-                            {curso.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="cursoNome">Curso *</Label>
+                    <Input
+                      id="cursoNome"
+                      value={formData.cursoNome}
+                      onChange={(e) => setFormData({ ...formData, cursoNome: e.target.value })}
+                      placeholder="Digite o nome do seu curso"
+                      required
+                      className="mt-1"
+                    />
                   </div>
 
                   <div>

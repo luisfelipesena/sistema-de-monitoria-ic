@@ -1,4 +1,4 @@
-import type { FilterValues } from '@/components/ui/FilterModal'
+import { useColumnFilters } from '@/hooks/useColumnFilters'
 import { useTRPCMutation } from '@/hooks/useTRPCMutation'
 import {
   PROJETO_STATUS_APPROVED,
@@ -20,11 +20,12 @@ export function useDashboard() {
   const { data: users, isLoading: loadingUsers } = api.user.getUsers.useQuery({})
 
   const [abaAtiva, setAbaAtiva] = useState<'projetos' | 'professores' | 'alunos'>('projetos')
-  const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [filters, setFilters] = useState<FilterValues>({})
   const [groupedView, setGroupedView] = useState(false)
 
-  const activeFilters = Object.values(filters).filter((v) => v !== undefined && v !== '').length
+  // Column filters with current semester as default
+  const { columnFilters, setColumnFilters, activeFilterCount } = useColumnFilters({
+    useCurrentSemester: true,
+  })
 
   const [deletingProjetoId, setDeletingProjetoId] = useState<number | null>(null)
 
@@ -54,10 +55,6 @@ export function useDashboard() {
     } else {
       router.push('/home/admin/alunos')
     }
-  }
-
-  const handleApplyFilters = (newFilters: FilterValues) => {
-    setFilters(newFilters)
   }
 
   const handleDeleteProjeto = async (projetoId: number) => {
@@ -127,12 +124,13 @@ export function useDashboard() {
     // State
     abaAtiva,
     setAbaAtiva,
-    filterModalOpen,
-    setFilterModalOpen,
-    filters,
     groupedView,
     setGroupedView,
-    activeFilters,
+
+    // Column filters
+    columnFilters,
+    setColumnFilters,
+    activeFilterCount,
 
     // Data
     projetos: actualProjetos,
@@ -151,7 +149,6 @@ export function useDashboard() {
     handleManageProjectsClick,
     handleAnalisarProjeto,
     handleEditarUsuario,
-    handleApplyFilters,
     handleDeleteProjeto,
   }
 }

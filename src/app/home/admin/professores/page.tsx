@@ -81,6 +81,9 @@ export default function ProfessoresPage() {
 
       await inviteProfessorMutation.mutateAsync({
         email: inviteForm.email,
+        nomeCompleto: inviteForm.nomeCompleto,
+        departamentoId: parseInt(inviteForm.departamentoId),
+        regime: inviteForm.regime as Regime,
       })
 
       toast({

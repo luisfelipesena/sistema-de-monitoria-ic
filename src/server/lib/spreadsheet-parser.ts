@@ -6,7 +6,6 @@ const log = logger.child({ context: 'SpreadsheetParser' })
 export interface PlanejamentoRow {
   disciplinaCodigo: string
   disciplinaNome: string
-  turma?: string
   professoresSiapes: string[] // Array de SIAPEs
   vagas?: number
 }
@@ -19,7 +18,7 @@ export interface ParsedPlanejamento {
 
 /**
  * Parser de planilha de planejamento do chefe do departamento
- * Formato esperado: Disciplina | Nome | Turma | Professores (SIAPE) | Vagas
+ * Formato esperado: Disciplina | Nome | Professores (SIAPE) | Vagas
  */
 export async function parsePlanejamentoSpreadsheet(fileBuffer: Buffer): Promise<ParsedPlanejamento> {
   const errors: string[] = []
@@ -76,8 +75,6 @@ export async function parsePlanejamentoSpreadsheet(fileBuffer: Buffer): Promise<
           'Nome',
           'Disciplina',
         ])
-
-        const turma = extractValue(row, ['turma', 'Turma'])
 
         const professoresRaw = extractValue(row, [
           'professores',
@@ -139,7 +136,6 @@ export async function parsePlanejamentoSpreadsheet(fileBuffer: Buffer): Promise<
         rows.push({
           disciplinaCodigo: disciplinaCodigo.toString().trim(),
           disciplinaNome: disciplinaNome.toString().trim(),
-          turma: turma ? turma.toString().trim() : undefined,
           professoresSiapes,
           vagas: vagas && !isNaN(vagas) ? vagas : undefined,
         })

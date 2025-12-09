@@ -9,6 +9,7 @@ const mockStudentUser: User = {
   username: 'student',
   email: 'student@test.com',
   role: 'student',
+  adminType: null,
   assinaturaDefault: null,
   dataAssinaturaDefault: null,
   passwordHash: null,

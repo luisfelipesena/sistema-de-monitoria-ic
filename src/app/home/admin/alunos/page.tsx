@@ -45,21 +45,10 @@ export default function AlunosPage() {
     limit: 100,
   })
 
-  const { data: cursosData } = api.course.getCourses.useQuery({
-    includeStats: false,
-  })
-  const { data: departamentosData } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
-
-  const cursos = cursosData || []
-  const departamentos = departamentosData || []
-
   const alunos: AlunoListItem[] =
     usersData?.users
       .filter((user) => user.studentProfile)
       .map((user) => {
-        const curso = cursos.find((c) => c.id === user.studentProfile!.cursoId)
-        const departamento = departamentos.find((d) => d.id === curso?.departamentoId)
-
         return {
           id: user.id,
           nomeCompleto: user.studentProfile!.nomeCompleto,
@@ -68,11 +57,7 @@ export default function AlunosPage() {
           cpf: user.studentProfile!.cpf,
           telefone: user.studentProfile!.telefone || undefined,
           cr: user.studentProfile!.cr,
-          curso: {
-            id: user.studentProfile!.cursoId,
-            nome: curso?.nome || "N/A",
-            departamento: departamento?.nome || "N/A",
-          },
+          cursoNome: user.studentProfile!.cursoNome || null,
           status: getAlunoStatus(user.studentProfile!),
           inscricoes: user.studentProfile!.inscricoes || 0,
           bolsasAtivas: user.studentProfile!.bolsasAtivas || 0,
@@ -153,12 +138,11 @@ export default function AlunosPage() {
       cell: ({ row }) => <div className="text-muted-foreground">{row.original.emailInstitucional}</div>,
     },
     {
-      accessorKey: "curso.nome",
+      accessorKey: "cursoNome",
       header: "Curso",
       cell: ({ row }) => (
         <div>
-          <div className="font-medium">{row.original.curso.nome}</div>
-          <div className="text-xs text-muted-foreground">{row.original.curso.departamento}</div>
+          <div className="font-medium">{row.original.cursoNome || "N/A"}</div>
         </div>
       ),
     },
@@ -363,12 +347,7 @@ export default function AlunosPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">Curso</Label>
-                      <p className="text-sm">{selectedAluno.curso.nome}</p>
-                    </div>
-
-                    <div>
-                      <Label className="text-sm font-medium text-muted-foreground">Departamento</Label>
-                      <p className="text-sm">{selectedAluno.curso.departamento}</p>
+                      <p className="text-sm">{selectedAluno.cursoNome || "N/A"}</p>
                     </div>
 
                     <div>

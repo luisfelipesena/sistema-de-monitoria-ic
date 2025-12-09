@@ -8,6 +8,7 @@ const mockAdminUser: User = {
   username: 'admin',
   email: 'admin@test.com',
   role: 'admin',
+  adminType: 'DCC',
   assinaturaDefault: null,
   dataAssinaturaDefault: null,
   passwordHash: null,
@@ -23,6 +24,7 @@ const mockProfessorUser: User = {
   username: 'professor',
   email: 'prof@test.com',
   role: 'professor',
+  adminType: null,
   assinaturaDefault: null,
   dataAssinaturaDefault: null,
   passwordHash: null,
@@ -75,8 +77,8 @@ describe('editalRouter', () => {
         titulo: 'Edital Teste',
         ano: 2024,
         semestre: 'SEMESTRE_1' as const,
-        dataInicio: new Date('2024-01-01'),
-        dataFim: new Date('2024-01-31'),
+        dataInicioInscricao: new Date('2024-01-01'),
+        dataFimInscricao: new Date('2024-01-31'),
       }
       await expect(caller.createEdital(input)).rejects.toThrowError('UNAUTHORIZED')
     })
@@ -93,8 +95,8 @@ describe('editalRouter', () => {
         titulo: 'Edital Teste',
         ano: 2024,
         semestre: 'SEMESTRE_1' as const,
-        dataInicio: new Date('2024-01-01'),
-        dataFim: new Date('2024-01-31'),
+        dataInicioInscricao: new Date('2024-01-01'),
+        dataFimInscricao: new Date('2024-01-31'),
       }
       await expect(caller.createEdital(input)).rejects.toThrowError('Este número de edital já está em uso.')
     })
@@ -132,7 +134,7 @@ describe('editalRouter', () => {
         titulo: 'Edital Teste',
         descricaoHtml: '<p>Descrição do edital</p>',
         fileIdAssinado: 'signed-file-id',
-        fileIdProgradOriginal: null,
+        fileIdPdfExterno: null,
         tipo: 'DCC' as const,
         publicado: false,
         numeroEdital: '001/2024',
@@ -142,8 +144,11 @@ describe('editalRouter', () => {
         updatedAt: null,
         dataPublicacao: null,
         periodoInscricaoId: 1,
+        dataInicioSelecao: null,
+        dataFimSelecao: null,
         datasProvasDisponiveis: null,
         dataDivulgacaoResultado: null,
+        linkFormularioInscricao: null,
         chefeAssinouEm: null,
         chefeAssinatura: null,
         chefeDepartamentoId: null,
@@ -165,9 +170,6 @@ describe('editalRouter', () => {
           {
             ...signedEdital,
             publicado: true,
-            chefeAssinouEm: null,
-            chefeAssinatura: null,
-            chefeDepartamentoId: null,
           },
         ]),
         // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste

@@ -1,10 +1,9 @@
 "use client"
 
 import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
-import { ProjectFormFields } from "@/components/features/projects/ProjectFormFields"
+import { ProjectForm } from "@/components/features/projects/ProjectForm"
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Button } from "@/components/ui/button"
-import { Form } from "@/components/ui/form"
 import { useToast } from "@/hooks/use-toast"
 import {
   MonitoriaFormData,
@@ -17,7 +16,7 @@ import {
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PDFViewer } from "@react-pdf/renderer"
-import { ArrowLeft, Eye, FileText, Loader2, RefreshCw, Save } from "lucide-react"
+import { ArrowLeft, Eye, FileText, Loader2, RefreshCw } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import React, { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
@@ -53,8 +52,6 @@ export default function EditProjetoPage() {
   const [pdfKey, setPdfKey] = useState(0)
   const [currentPdfData, setCurrentPdfData] = useState<MonitoriaFormData | null>(null)
 
-  const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
-  const { data: disciplinas } = api.discipline.getDisciplines.useQuery()
   const { data: projeto, isLoading: isLoadingProjeto } = api.projeto.getProjeto.useQuery({ id: projectId })
   const { data: currentUser, isLoading: isLoadingUser } = api.me.getMe.useQuery()
   const updateProjeto = api.projeto.updateProjeto.useMutation()
@@ -162,10 +159,11 @@ export default function EditProjetoPage() {
 
   const generatePdfData = useCallback(
     (formValues: ProjetoFormData): MonitoriaFormData | null => {
-      if (!projeto || !currentUser?.professor || !disciplinas) return null
+      if (!projeto || !currentUser?.professor) return null
 
-      const selectedDisciplinas = disciplinas.filter((d) => formValues.disciplinas.includes(d.id))
       const professor = currentUser.professor
+      // Use disciplinas from the projeto itself (already loaded)
+      const projetoDisciplinas = projeto.disciplinas || []
 
       return {
         titulo: formValues.titulo,
@@ -181,7 +179,7 @@ export default function EditProjetoPage() {
         numeroSemanas: formValues.numeroSemanas,
         publicoAlvo: formValues.publicoAlvo,
         estimativaPessoasBenificiadas: formValues.estimativaPessoasBenificiadas || 0,
-        disciplinas: selectedDisciplinas.map((d) => ({
+        disciplinas: projetoDisciplinas.map((d) => ({
           id: d.id,
           codigo: d.codigo,
           nome: d.nome,
@@ -206,7 +204,7 @@ export default function EditProjetoPage() {
         },
       }
     },
-    [projeto, currentUser, disciplinas, atividades]
+    [projeto, currentUser, atividades]
   )
 
   const handleGeneratePreview = async () => {
@@ -328,34 +326,34 @@ export default function EditProjetoPage() {
           Voltar
         </Button>
 
+        {/* Info sobre disciplinas do projeto */}
+        {projeto.disciplinas && projeto.disciplinas.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              <span className="font-medium">Disciplina(s):</span>{" "}
+              {projeto.disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join(", ")}
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Formulário (Esquerda) */}
           <div className="space-y-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <ProjectFormFields
-                  form={form}
-                  departamentos={departamentos}
-                  disciplinas={disciplinas}
-                  atividades={atividades}
-                  onAtividadeChange={handleAtividadeChange}
-                  onAddAtividade={handleAddAtividade}
-                  onRemoveAtividade={handleRemoveAtividade}
-                  publicoAlvoTipo={publicoAlvoTipo}
-                  setPublicoAlvoTipo={setPublicoAlvoTipo}
-                  publicoAlvoCustom={publicoAlvoCustom}
-                  setPublicoAlvoCustom={setPublicoAlvoCustom}
-                  isEditMode={true}
-                />
-
-                <div className="flex justify-end space-x-4">
-                  <Button type="submit" disabled={updateProjeto.isPending}>
-                    <Save className="w-4 h-4 mr-2" />
-                    {updateProjeto.isPending ? "Salvando..." : "Salvar Alterações"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+            <ProjectForm
+              form={form}
+              onSubmit={onSubmit}
+              isSubmitting={updateProjeto.isPending}
+              atividades={atividades}
+              onAtividadeChange={handleAtividadeChange}
+              onAddAtividade={handleAddAtividade}
+              onRemoveAtividade={handleRemoveAtividade}
+              publicoAlvoTipo={publicoAlvoTipo}
+              setPublicoAlvoTipo={setPublicoAlvoTipo}
+              publicoAlvoCustom={publicoAlvoCustom}
+              setPublicoAlvoCustom={setPublicoAlvoCustom}
+              submitButtonText="Salvar Alterações"
+              submittingButtonText="Salvando..."
+            />
           </div>
 
           {/* Preview (Direita) */}

@@ -16,12 +16,17 @@ export const editalSchema = z.object({
   titulo: z.string().default('Edital Interno de Seleção de Monitores'),
   descricaoHtml: z.string().nullable(),
   fileIdAssinado: z.string().nullable(),
-  fileIdProgradOriginal: z.string().nullable(),
+  fileIdPdfExterno: z.string().nullable(),
   dataPublicacao: z.date().nullable(),
   publicado: z.boolean(),
   valorBolsa: z.string().default('400.00'),
+  // Datas de seleção
+  dataInicioSelecao: z.date().nullable(),
+  dataFimSelecao: z.date().nullable(),
   datasProvasDisponiveis: z.string().nullable(),
   dataDivulgacaoResultado: z.date().nullable(),
+  // Link formulário
+  linkFormularioInscricao: z.string().nullable(),
   chefeAssinouEm: z.date().nullable(),
   chefeAssinatura: z.string().nullable(),
   chefeDepartamentoId: z.number().nullable(),
@@ -39,26 +44,33 @@ export const newEditalSchema = z
     valorBolsa: z.string().default('400.00'),
     ano: z.number().min(2000).max(2050),
     semestre: semestreSchema,
-    dataInicio: z.date(),
-    dataFim: z.date(),
-    fileIdProgradOriginal: z.string().optional(),
-    datasProvasDisponiveis: z.array(z.string()).optional(),
+    // Datas de INSCRIÇÃO
+    dataInicioInscricao: z.date(),
+    dataFimInscricao: z.date(),
+    // Datas de SELEÇÃO (prova) - opcionais
+    dataInicioSelecao: z.date().optional(),
+    dataFimSelecao: z.date().optional(),
+    // Divulgação e link
     dataDivulgacaoResultado: z.date().optional(),
+    linkFormularioInscricao: z.string().url().optional().or(z.literal('')),
+    // Legacy fields
+    fileIdPdfExterno: z.string().optional(),
+    datasProvasDisponiveis: z.array(z.string()).optional(),
   })
-  .refine((data) => data.dataFim > data.dataInicio, {
-    message: 'Data de fim deve ser posterior à data de início',
-    path: ['dataFim'],
+  .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
+    message: 'Data de fim da inscrição deve ser posterior à data de início',
+    path: ['dataFimInscricao'],
   })
   .refine(
     (data) => {
-      if (data.tipo === 'PROGRAD' && !data.fileIdProgradOriginal) {
-        return false
+      if (data.dataInicioSelecao && data.dataFimSelecao) {
+        return data.dataFimSelecao >= data.dataInicioSelecao
       }
       return true
     },
     {
-      message: 'PDF da PROGRAD é obrigatório para editais do tipo PROGRAD',
-      path: ['fileIdProgradOriginal'],
+      message: 'Data de fim da seleção deve ser posterior ou igual à data de início',
+      path: ['dataFimSelecao'],
     }
   )
 
@@ -68,25 +80,50 @@ export const updateEditalSchema = z
     numeroEdital: z.string().optional(),
     titulo: z.string().optional(),
     descricaoHtml: z.string().optional(),
+    valorBolsa: z.string().optional(),
     ano: z.number().min(2000).max(2050).optional(),
     semestre: semestreSchema.optional(),
-    dataInicio: z.date().optional(),
-    dataFim: z.date().optional(),
+    // Datas de INSCRIÇÃO
+    dataInicioInscricao: z.date().optional(),
+    dataFimInscricao: z.date().optional(),
+    // Datas de SELEÇÃO (prova)
+    dataInicioSelecao: z.date().optional().nullable(),
+    dataFimSelecao: z.date().optional().nullable(),
+    // Divulgação e link
+    dataDivulgacaoResultado: z.date().optional().nullable(),
+    linkFormularioInscricao: z.string().url().optional().nullable().or(z.literal('')),
+    // Legacy
     datasProvasDisponiveis: z.array(z.string()).optional(),
-    dataDivulgacaoResultado: z.date().optional(),
   })
   .refine(
     (data) => {
-      if (data.dataInicio && data.dataFim) {
-        return data.dataFim > data.dataInicio
+      if (data.dataInicioInscricao && data.dataFimInscricao) {
+        return data.dataFimInscricao > data.dataInicioInscricao
       }
       return true
     },
     {
-      message: 'Data de fim deve ser posterior à data de início',
-      path: ['dataFim'],
+      message: 'Data de fim da inscrição deve ser posterior à data de início',
+      path: ['dataFimInscricao'],
     }
   )
+  .refine(
+    (data) => {
+      if (data.dataInicioSelecao && data.dataFimSelecao) {
+        return data.dataFimSelecao >= data.dataInicioSelecao
+      }
+      return true
+    },
+    {
+      message: 'Data de fim da seleção deve ser posterior ou igual à data de início',
+      path: ['dataFimSelecao'],
+    }
+  )
+
+export const updateNumeroEditalSchema = z.object({
+  id: z.number().int().positive(),
+  numeroEdital: z.string().min(1, 'Número do edital é obrigatório'),
+})
 
 export const periodoInscricaoComStatusSchema = z.object({
   id: z.number(),
@@ -241,6 +278,27 @@ export const editalRouter = createTRPCRouter({
       try {
         const service = createEditalService(ctx.db)
         return await service.updateEdital(input)
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
+  updateNumeroEdital: adminProtectedProcedure
+    .meta({
+      openapi: {
+        method: 'PATCH',
+        path: '/editais/{id}/numero',
+        tags: ['editais'],
+        summary: 'Update edital number',
+        description: 'Update only the edital number (e.g., 001/2024)',
+      },
+    })
+    .input(updateNumeroEditalSchema)
+    .output(editalSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const service = createEditalService(ctx.db)
+        return await service.updateNumeroEdital(input.id, input.numeroEdital)
       } catch (error) {
         handleServiceError(error)
       }

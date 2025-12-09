@@ -33,8 +33,8 @@ export function createEditalCrudService(
       const periodoSobreposicao = await repo.findOverlappingPeriodo(
         input.ano,
         input.semestre,
-        input.dataInicio,
-        input.dataFim
+        input.dataInicioInscricao,
+        input.dataFimInscricao
       )
 
       if (periodoSobreposicao) {
@@ -44,8 +44,8 @@ export function createEditalCrudService(
       const novoPeriodo = await repo.insertPeriodo({
         ano: input.ano,
         semestre: input.semestre,
-        dataInicio: input.dataInicio,
-        dataFim: input.dataFim,
+        dataInicio: input.dataInicioInscricao,
+        dataFim: input.dataFimInscricao,
       })
 
       const novoEdital = await repo.insert({
@@ -55,7 +55,10 @@ export function createEditalCrudService(
         titulo: input.titulo,
         descricaoHtml: input.descricaoHtml || null,
         valorBolsa: input.valorBolsa || '400.00',
-        fileIdProgradOriginal: input.fileIdProgradOriginal || null,
+        fileIdPdfExterno: input.fileIdPdfExterno || null,
+        dataInicioSelecao: input.dataInicioSelecao || null,
+        dataFimSelecao: input.dataFimSelecao || null,
+        linkFormularioInscricao: input.linkFormularioInscricao || null,
         datasProvasDisponiveis: input.datasProvasDisponiveis ? JSON.stringify(input.datasProvasDisponiveis) : null,
         dataDivulgacaoResultado: input.dataDivulgacaoResultado || null,
         criadoPorUserId: input.criadoPorUserId,
@@ -82,13 +85,13 @@ export function createEditalCrudService(
       if (
         input.ano !== undefined ||
         input.semestre !== undefined ||
-        input.dataInicio !== undefined ||
-        input.dataFim !== undefined
+        input.dataInicioInscricao !== undefined ||
+        input.dataFimInscricao !== undefined
       ) {
         const novoAno = input.ano ?? edital.periodoInscricao?.ano
         const novoSemestre = input.semestre ?? edital.periodoInscricao?.semestre
-        const novaDataInicio = input.dataInicio ?? edital.periodoInscricao?.dataInicio
-        const novaDataFim = input.dataFim ?? edital.periodoInscricao?.dataFim
+        const novaDataInicio = input.dataInicioInscricao ?? edital.periodoInscricao?.dataInicio
+        const novaDataFim = input.dataFimInscricao ?? edital.periodoInscricao?.dataFim
 
         if (!novoAno || !novoSemestre || !novaDataInicio || !novaDataFim) {
           throw new ValidationError('Dados do período de inscrição incompletos')
@@ -118,6 +121,11 @@ export function createEditalCrudService(
       if (input.numeroEdital !== undefined) updateData.numeroEdital = input.numeroEdital
       if (input.titulo !== undefined) updateData.titulo = input.titulo
       if (input.descricaoHtml !== undefined) updateData.descricaoHtml = input.descricaoHtml
+      if (input.valorBolsa !== undefined) updateData.valorBolsa = input.valorBolsa
+      if (input.dataInicioSelecao !== undefined) updateData.dataInicioSelecao = input.dataInicioSelecao
+      if (input.dataFimSelecao !== undefined) updateData.dataFimSelecao = input.dataFimSelecao
+      if (input.linkFormularioInscricao !== undefined)
+        updateData.linkFormularioInscricao = input.linkFormularioInscricao
       if (input.datasProvasDisponiveis !== undefined) {
         updateData.datasProvasDisponiveis = input.datasProvasDisponiveis
           ? JSON.stringify(input.datasProvasDisponiveis)
@@ -128,6 +136,23 @@ export function createEditalCrudService(
       }
 
       const updated = await repo.update(input.id, updateData)
+      return updated
+    },
+
+    async updateNumeroEdital(id: number, numeroEdital: string) {
+      const edital = await repo.findById(id)
+      if (!edital) {
+        throw new NotFoundError('Edital', id)
+      }
+
+      // Check if another edital uses this number
+      const existing = await repo.findByNumeroEdital(numeroEdital)
+      if (existing && existing.id !== id) {
+        throw new ConflictError('Este número de edital já está em uso.')
+      }
+
+      const updated = await repo.update(id, { numeroEdital })
+      log.info({ editalId: id, numeroEdital }, 'Número do edital atualizado')
       return updated
     },
 

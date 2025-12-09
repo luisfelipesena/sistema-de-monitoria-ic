@@ -1,7 +1,7 @@
 import type { db } from '@/server/db'
 import { ConflictError, ForbiddenError, NotFoundError } from '@/server/lib/errors'
-import type { DocumentType, Genero, Regime, UserRole } from '@/types'
-import { ADMIN, PROFESSOR, STUDENT } from '@/types'
+import type { DocumentType, Genero, Regime, TipoProfessor, UserRole } from '@/types'
+import { ADMIN, PROFESSOR, STUDENT, TIPO_PROFESSOR_EFETIVO } from '@/types'
 import { logger } from '@/utils/logger'
 import { createOnboardingRepository } from './onboarding-repository'
 
@@ -29,7 +29,7 @@ interface CreateStudentProfileInput {
   matricula: string
   cpf: string
   cr: number
-  cursoId: number
+  cursoNome: string
   telefone?: string
   genero: Genero
   especificacaoGenero?: string
@@ -44,6 +44,7 @@ interface CreateProfessorProfileInput {
   telefone?: string
   telefoneInstitucional?: string
   regime: Regime
+  tipoProfessor?: TipoProfessor
   departamentoId: number
   genero: Genero
   especificacaoGenero?: string
@@ -163,7 +164,7 @@ export function createOnboardingService(db: Database) {
         matricula: input.matricula,
         cpf: input.cpf,
         cr: input.cr,
-        cursoId: input.cursoId,
+        cursoNome: input.cursoNome,
         telefone: input.telefone,
         genero: input.genero,
         especificacaoGenero: input.especificacaoGenero,
@@ -200,6 +201,7 @@ export function createOnboardingService(db: Database) {
         telefone: input.telefone,
         telefoneInstitucional: input.telefoneInstitucional,
         regime: input.regime,
+        tipoProfessor: input.tipoProfessor || TIPO_PROFESSOR_EFETIVO,
         departamentoId: input.departamentoId,
         genero: input.genero,
         especificacaoGenero: input.especificacaoGenero,

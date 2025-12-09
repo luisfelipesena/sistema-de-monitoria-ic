@@ -1,26 +1,33 @@
 import { db } from '@/server/db'
 import { createConfiguracoesRepository } from './configuracoes-repository'
 
-export interface UpdateEmailsInput {
+export const EMAIL_IC_CHAVE = 'EMAIL_INSTITUTO_COMPUTACAO'
+
+export interface UpdateDepartamentoEmailInput {
   departamentoId: number
-  emailInstituto?: string | null
-  emailChefeDepartamento?: string | null
+  email?: string | null
 }
 
 export const createConfiguracoesService = (database: typeof db) => {
-  const configuracoesRepository = createConfiguracoesRepository(database)
+  const repo = createConfiguracoesRepository(database)
 
   return {
     async getDepartamentos() {
-      return await configuracoesRepository.getDepartamentos()
+      return await repo.getDepartamentos()
     },
 
-    async updateEmails(input: UpdateEmailsInput) {
-      await configuracoesRepository.updateEmails(input.departamentoId, {
-        emailInstituto: input.emailInstituto,
-        emailChefeDepartamento: input.emailChefeDepartamento,
-      })
+    async updateDepartamentoEmail(input: UpdateDepartamentoEmailInput) {
+      await repo.updateDepartamentoEmail(input.departamentoId, input.email ?? null)
+      return { success: true }
+    },
 
+    async getEmailIC() {
+      const config = await repo.getConfiguracaoSistema(EMAIL_IC_CHAVE)
+      return config?.valor ?? null
+    },
+
+    async setEmailIC(email: string | null) {
+      await repo.setConfiguracaoSistema(EMAIL_IC_CHAVE, email)
       return { success: true }
     },
   }

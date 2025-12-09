@@ -39,7 +39,6 @@ export interface DepartamentoListItem {
   email?: string
   telefone?: string
   professores: number
-  cursos: number
   disciplinas: number
   projetos: number
   status: DepartmentStatus

@@ -14,7 +14,6 @@ export function createDepartamentoService(repository: DepartamentoRepository) {
         departamentos.map(async (departamento) => ({
           ...departamento,
           professores: await repository.countProfessores(departamento.id),
-          cursos: await repository.countCursos(departamento.id),
           disciplinas: await repository.countDisciplinas(departamento.id),
           projetos: await repository.countProjetos(departamento.id),
         }))

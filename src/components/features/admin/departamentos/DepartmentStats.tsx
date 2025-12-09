@@ -1,7 +1,7 @@
 import { DataCard } from '@/components/molecules/DataCard'
-import { Building, Users, GraduationCap } from 'lucide-react'
+import { Building, Users } from 'lucide-react'
 import type { DepartamentoListItem } from '@/types'
-import { STATUS_CURSO_ATIVO } from '@/types'
+import { DEPARTMENT_STATUS_ATIVO } from '@/types'
 
 interface DepartmentStatsProps {
   departamentos: DepartamentoListItem[]
@@ -10,16 +10,15 @@ interface DepartmentStatsProps {
 export function DepartmentStats({ departamentos }: DepartmentStatsProps) {
   const totalDepartamentos = departamentos.length
   const departamentosAtivos = departamentos.filter(
-    (d) => d.status === STATUS_CURSO_ATIVO
+    (d) => d.status === DEPARTMENT_STATUS_ATIVO
   ).length
   const totalProfessores = departamentos.reduce(
     (sum, d) => sum + d.professores,
     0
   )
-  const totalCursos = departamentos.reduce((sum, d) => sum + d.cursos, 0)
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <DataCard
         icon={Building}
         label="Total de Departamentos"
@@ -36,12 +35,6 @@ export function DepartmentStats({ departamentos }: DepartmentStatsProps) {
         icon={Users}
         label="Total de Professores"
         value={totalProfessores}
-        variant="primary"
-      />
-      <DataCard
-        icon={GraduationCap}
-        label="Total de Cursos"
-        value={totalCursos}
         variant="primary"
       />
     </div>

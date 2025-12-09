@@ -181,10 +181,16 @@ export const projetoEmailService = {
 
         <p>Informamos que o planejamento de monitoria do <strong>${semestreFormatado}/${data.ano}</strong> foi importado e seus projetos foram criados automaticamente no sistema.</p>
 
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+          <p style="margin: 0; font-size: 16px;"><strong>🔔 Ação Necessária:</strong></p>
+          <p style="margin: 10px 0;">Entre no sistema para criar ou revisar os projetos de monitoria sob sua responsabilidade.</p>
+        </div>
+
         <div style="background-color: #e6f3ff; border-left: 4px solid #0066cc; padding: 15px; margin: 20px 0;">
           <p style="margin: 0;"><strong>Próximos passos:</strong></p>
           <ol style="margin: 10px 0;">
-            <li>Acesse o sistema e revise seus projetos criados</li>
+            <li>Acesse o sistema clicando no botão abaixo</li>
+            <li>Revise seus projetos criados e complete as informações</li>
             <li>Verifique se os dados estão corretos (objetivos, atividades, carga horária)</li>
             <li>Assine digitalmente seus projetos para submissão</li>
           </ol>

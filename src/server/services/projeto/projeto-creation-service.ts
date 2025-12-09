@@ -61,12 +61,12 @@ export function createProjetoCreationService(repo: ProjetoRepository) {
 
         if (projetoExistente) {
           const disciplinaConflito = projetoExistente.disciplinas.find(
-            (pd) => pd.disciplina.codigo === disciplina.codigo && pd.disciplina.turma === disciplina.turma
+            (pd) => pd.disciplina.codigo === disciplina.codigo
           )
 
           if (disciplinaConflito) {
             throw new BusinessError(
-              `Já existe um projeto para a disciplina ${disciplina.codigo} (${disciplina.turma}) no período ${input.ano}.${input.semestre}`,
+              `Já existe um projeto para a disciplina ${disciplina.codigo} no período ${input.ano}.${input.semestre}`,
               'CONFLICT'
             )
           }

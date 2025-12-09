@@ -3,7 +3,6 @@ import {
   alunoTable,
   assinaturaDocumentoTable,
   ataSelecaoTable,
-  cursoTable,
   departamentoTable,
   disciplinaProfessorResponsavelTable,
   disciplinaTable,
@@ -29,12 +28,6 @@ import {
   userTable,
   vagaTable,
 } from '@/server/db/schema'
-import {
-  MODALIDADE_CURSO_PRESENCIAL,
-  STATUS_CURSO_ATIVO,
-  TIPO_CURSO_BACHARELADO,
-  TIPO_CURSO_LICENCIATURA,
-} from '@/types'
 import { logger } from '@/utils/logger'
 
 const log = logger.child({ context: 'DatabaseSeed' })
@@ -85,7 +78,6 @@ async function seedDatabase() {
     await db.delete(userTable)
     // Base tables
     await db.delete(disciplinaTable)
-    await db.delete(cursoTable)
     await db.delete(enderecoTable)
     await db.delete(departamentoTable)
 
@@ -142,93 +134,7 @@ async function seedDatabase() {
       ])
       .returning()
 
-    // 3. Criar Cursos
-    log.info('🎓 Criando cursos...')
-    const cursos = await db
-      .insert(cursoTable)
-      .values([
-        {
-          nome: 'Ciência da Computação',
-          codigo: 500001,
-          tipo: TIPO_CURSO_BACHARELADO,
-          modalidade: MODALIDADE_CURSO_PRESENCIAL,
-          duracao: 8,
-          departamentoId: departamentos[0].id,
-          cargaHoraria: 3000,
-          descricao: 'Curso de Bacharelado em Ciência da Computação',
-          coordenador: 'Prof. Dr. Carlos Silva',
-          emailCoordenacao: 'coord.cc@ufba.br',
-          status: STATUS_CURSO_ATIVO,
-        },
-        {
-          nome: 'Sistemas de Informação',
-          codigo: 500002,
-          tipo: TIPO_CURSO_BACHARELADO,
-          modalidade: MODALIDADE_CURSO_PRESENCIAL,
-          duracao: 8,
-          departamentoId: departamentos[0].id,
-          cargaHoraria: 3000,
-          descricao: 'Curso de Bacharelado em Sistemas de Informação',
-          coordenador: 'Prof. Dr. Ana Pereira',
-          emailCoordenacao: 'coord.si@ufba.br',
-          status: STATUS_CURSO_ATIVO,
-        },
-        {
-          nome: 'Matemática',
-          codigo: 500003,
-          tipo: TIPO_CURSO_LICENCIATURA,
-          modalidade: MODALIDADE_CURSO_PRESENCIAL,
-          duracao: 8,
-          departamentoId: departamentos[1].id,
-          cargaHoraria: 3200,
-          descricao: 'Curso de Licenciatura em Matemática',
-          coordenador: 'Prof. Dr. Ana Santos',
-          emailCoordenacao: 'coord.mat@ufba.br',
-          status: STATUS_CURSO_ATIVO,
-        },
-        {
-          nome: 'Estatística',
-          codigo: 500004,
-          tipo: TIPO_CURSO_BACHARELADO,
-          modalidade: MODALIDADE_CURSO_PRESENCIAL,
-          duracao: 8,
-          departamentoId: departamentos[2].id,
-          cargaHoraria: 3000,
-          descricao: 'Curso de Bacharelado em Estatística',
-          coordenador: 'Prof. Dr. João Oliveira',
-          emailCoordenacao: 'coord.est@ufba.br',
-          status: STATUS_CURSO_ATIVO,
-        },
-        {
-          nome: 'Física',
-          codigo: 500005,
-          tipo: TIPO_CURSO_BACHARELADO,
-          modalidade: MODALIDADE_CURSO_PRESENCIAL,
-          duracao: 8,
-          departamentoId: departamentos[3].id,
-          cargaHoraria: 3000,
-          descricao: 'Curso de Bacharelado em Física',
-          coordenador: 'Prof. Dr. Maria Costa',
-          emailCoordenacao: 'coord.fis@ufba.br',
-          status: STATUS_CURSO_ATIVO,
-        },
-        {
-          nome: 'Engenharia de Computação',
-          codigo: 500006,
-          tipo: TIPO_CURSO_BACHARELADO,
-          modalidade: MODALIDADE_CURSO_PRESENCIAL,
-          duracao: 10,
-          departamentoId: departamentos[4].id,
-          cargaHoraria: 3600,
-          descricao: 'Curso de Bacharelado em Engenharia de Computação',
-          coordenador: 'Prof. Dr. Pedro Almeida',
-          emailCoordenacao: 'coord.engcomp@ufba.br',
-          status: STATUS_CURSO_ATIVO,
-        },
-      ])
-      .returning()
-
-    // 4. Criar Disciplinas
+    // 3. Criar Disciplinas
     log.info('📚 Criando disciplinas...')
     const disciplinas = await db
       .insert(disciplinaTable)
@@ -272,7 +178,7 @@ async function seedDatabase() {
       ])
       .returning()
 
-    // 5. Criar Endereços
+    // 4. Criar Endereços
     log.info('🏠 Criando endereços...')
     const enderecos = await db
       .insert(enderecoTable)
@@ -307,7 +213,7 @@ async function seedDatabase() {
       ])
       .returning()
 
-    // 6. Criar Usuários
+    // 5. Criar Usuários
     log.info('👤 Criando usuários...')
 
     const usuarios = await db
@@ -362,7 +268,7 @@ async function seedDatabase() {
       ])
       .returning()
 
-    // 7. Criar Professores
+    // 6. Criar Professores
     log.info('👨‍🏫 Criando professores...')
     const professores = await db
       .insert(professorTable)
@@ -414,7 +320,7 @@ async function seedDatabase() {
       ])
       .returning()
 
-    // 8. Criar Alunos
+    // 7. Criar Alunos
     log.info('👨‍🎓 Criando alunos...')
     const alunos = await db
       .insert(alunoTable)
@@ -428,7 +334,7 @@ async function seedDatabase() {
           cpf: '123.456.789-05',
           cr: 8.5,
           telefone: '(71) 99999-2001',
-          cursoId: cursos[0].id,
+          cursoNome: 'Ciência da Computação',
           enderecoId: enderecos[0].id,
         },
         {
@@ -440,7 +346,7 @@ async function seedDatabase() {
           cpf: '123.456.789-06',
           cr: 9.0,
           telefone: '(71) 99999-2002',
-          cursoId: cursos[0].id,
+          cursoNome: 'Ciência da Computação',
           enderecoId: enderecos[1].id,
         },
         {
@@ -452,7 +358,7 @@ async function seedDatabase() {
           cpf: '123.456.789-07',
           cr: 7.8,
           telefone: '(71) 99999-2003',
-          cursoId: cursos[1].id,
+          cursoNome: 'Sistemas de Informação',
           enderecoId: enderecos[2].id,
         },
         {
@@ -464,13 +370,13 @@ async function seedDatabase() {
           cpf: '123.456.789-08',
           cr: 8.2,
           telefone: '(71) 99999-2004',
-          cursoId: cursos[2].id,
+          cursoNome: 'Matemática',
           enderecoId: enderecos[0].id,
         },
       ])
       .returning()
 
-    // 9. Criar Período de Inscrição
+    // 8. Criar Período de Inscrição
     log.info('📅 Criando período de inscrição...')
     const periodos = await db
       .insert(periodoInscricaoTable)
@@ -490,7 +396,7 @@ async function seedDatabase() {
       ])
       .returning()
 
-    // 10. Criar Responsabilidades de Disciplina
+    // 9. Criar Responsabilidades de Disciplina
     log.info('📋 Criando responsabilidades de disciplina...')
     await db.insert(disciplinaProfessorResponsavelTable).values([
       {
@@ -525,7 +431,7 @@ async function seedDatabase() {
       },
     ])
 
-    // 11. Criar Projetos de Monitoria
+    // 10. Criar Projetos de Monitoria
     log.info('📋 Criando projetos de monitoria...')
     const projetos = await db
       .insert(projetoTable)
@@ -601,7 +507,7 @@ async function seedDatabase() {
       ])
       .returning()
 
-    // 12. Associar Disciplinas aos Projetos
+    // 11. Associar Disciplinas aos Projetos
     log.info('🔗 Associando disciplinas aos projetos...')
     await db.insert(projetoDisciplinaTable).values([
       {
@@ -625,7 +531,6 @@ async function seedDatabase() {
     log.info('✅ Seed concluído com sucesso!')
     log.info(`📊 Dados criados:
       - ${departamentos.length} departamentos
-      - ${cursos.length} cursos
       - ${disciplinas.length} disciplinas
       - ${usuarios.length} usuários
       - ${professores.length} professores

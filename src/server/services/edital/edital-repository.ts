@@ -278,6 +278,15 @@ export function createEditalRepository(db: Database) {
         .returning()
       return token
     },
+
+    async findAllEquivalencias() {
+      return db.query.equivalenciaDisciplinasTable.findMany({
+        with: {
+          disciplinaOrigem: true,
+          disciplinaEquivalente: true,
+        },
+      })
+    },
   }
 }
 

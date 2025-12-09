@@ -29,7 +29,7 @@ export function useConsolidacaoPrograd() {
   const { data: departamentos } = api.configuracoes.getDepartamentos.useQuery()
 
   const emailsDepartamento = (departamentos || [])
-    .map((departamento) => departamento.emailChefeDepartamento)
+    .map((departamento) => departamento.emailInstituto)
     .filter((email): email is string => Boolean(email))
 
   const handleYearChange = (year: string) => {
@@ -48,7 +48,7 @@ export function useConsolidacaoPrograd() {
     if (!emailsDepartamento.length) {
       toast({
         title: 'Configuração pendente',
-        description: 'Cadastre o email do chefe do departamento nas configurações antes de enviar.',
+        description: 'Cadastre o email do departamento nas configurações antes de enviar.',
         variant: 'destructive',
       })
       return

@@ -7,7 +7,6 @@ const HEADER_DISCIPLINA_MARKER = 'DISCIPLINA' as const
 export interface PlanejamentoDCCRow {
   disciplinaCodigo: string
   disciplinaNome: string
-  turma: string
   professorNome: string
   cargaHoraria?: number
 }
@@ -76,7 +75,6 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
 
     // Identificar índices das colunas importantes
     const disciplinaIdx = headers.findIndex((h) => String(h).toUpperCase().includes('DISCIPLINA'))
-    const turmaIdx = headers.findIndex((h) => String(h).toUpperCase().includes('TURMA'))
     const nomeIdx = headers.findIndex((h) => {
       const h_upper = String(h).toUpperCase()
       return h_upper.includes('NOME') && h_upper.includes('DISCIPLINA')
@@ -84,17 +82,14 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
     const docenteIdx = headers.length - 1 // Última coluna
     const chIdx = headers.findIndex((h) => String(h).toUpperCase() === 'CH')
 
-    if (disciplinaIdx === -1 || turmaIdx === -1 || docenteIdx === -1) {
-      errors.push(
-        `Colunas obrigatórias não encontradas. Disciplina: ${disciplinaIdx}, Turma: ${turmaIdx}, Docente: ${docenteIdx}`
-      )
+    if (disciplinaIdx === -1 || docenteIdx === -1) {
+      errors.push(`Colunas obrigatórias não encontradas. Disciplina: ${disciplinaIdx}, Docente: ${docenteIdx}`)
       return { rows, errors, warnings }
     }
 
     log.info(
       {
         disciplinaIdx,
-        turmaIdx,
         nomeIdx,
         chIdx,
         docenteIdx,
@@ -102,9 +97,8 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
       'Índices das colunas identificados'
     )
 
-    // Variáveis para rastrear disciplina/turma atual (linhas vazias são continuações)
+    // Variáveis para rastrear disciplina atual (linhas vazias são continuações)
     let currentDisciplina = ''
-    let currentTurma = ''
     let currentNome = ''
     let currentCH: number | undefined
 
@@ -117,7 +111,6 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
 
       try {
         const disciplinaRaw = String(row[disciplinaIdx] || '').trim()
-        const turmaRaw = String(row[turmaIdx] || '').trim()
         const nomeRaw = nomeIdx !== -1 ? String(row[nomeIdx] || '').trim() : ''
         const docenteRaw = String(row[docenteIdx] || '').trim()
         const chRaw = chIdx !== -1 ? String(row[chIdx] || '').trim() : ''
@@ -131,16 +124,15 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
           continue
         }
 
-        // Se disciplina estiver preenchida, é uma nova disciplina/turma
+        // Se disciplina estiver preenchida, é uma nova disciplina
         if (disciplinaRaw) {
           currentDisciplina = disciplinaRaw
-          currentTurma = turmaRaw
           currentNome = nomeRaw || currentDisciplina
           currentCH = chRaw ? parseInt(chRaw, 10) : undefined
         }
 
         // Processar docente se existir
-        if (docenteRaw && currentDisciplina && currentTurma) {
+        if (docenteRaw && currentDisciplina) {
           // Limpar nome do docente (remover observações)
           let professorNome = docenteRaw
 
@@ -173,19 +165,15 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
 
           // Para cada professor, criar entrada
           for (const prof of professores) {
-            // Verificar se já foi adicionado (evitar duplicatas)
+            // Verificar se já foi adicionado (evitar duplicatas por disciplina+professor)
             const exists = rows.some(
-              (r) =>
-                r.disciplinaCodigo === currentDisciplina &&
-                r.turma === currentTurma &&
-                r.professorNome.toLowerCase() === prof.toLowerCase()
+              (r) => r.disciplinaCodigo === currentDisciplina && r.professorNome.toLowerCase() === prof.toLowerCase()
             )
 
             if (!exists) {
               rows.push({
                 disciplinaCodigo: currentDisciplina,
                 disciplinaNome: currentNome,
-                turma: currentTurma,
                 professorNome: prof,
                 cargaHoraria: currentCH && !isNaN(currentCH) ? currentCH : undefined,
               })
@@ -194,7 +182,6 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
                 {
                   linha: lineNumber,
                   disciplina: currentDisciplina,
-                  turma: currentTurma,
                   professor: prof,
                 },
                 'Linha processada'
@@ -209,15 +196,8 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
       }
     }
 
-    // Agrupar por disciplina+turma para detectar projetos coletivos
-    const grouped = new Map<string, PlanejamentoDCCRow[]>()
-    for (const row of rows) {
-      const key = `${row.disciplinaCodigo}-${row.turma}`
-      if (!grouped.has(key)) {
-        grouped.set(key, [])
-      }
-      grouped.get(key)?.push(row)
-    }
+    // Agrupar por disciplina para detectar projetos coletivos
+    const grouped = groupByDisciplina(rows)
 
     // Avisar sobre projetos coletivos
     for (const [key, entries] of grouped.entries()) {
@@ -225,7 +205,7 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
         const professores = entries.map((e) => e.professorNome).join(', ')
         log.info(
           { key, professores },
-          `Disciplina ${entries[0].disciplinaCodigo} turma ${entries[0].turma} tem ${entries.length} professores (COLETIVO)`
+          `Disciplina ${entries[0].disciplinaCodigo} tem ${entries.length} professores (COLETIVO)`
         )
       }
     }
@@ -249,13 +229,13 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
 }
 
 /**
- * Agrupa linhas por disciplina+turma
+ * Agrupa linhas por disciplina (código)
  */
-export function groupByDisciplinaTurma(rows: PlanejamentoDCCRow[]): Map<string, PlanejamentoDCCRow[]> {
+export function groupByDisciplina(rows: PlanejamentoDCCRow[]): Map<string, PlanejamentoDCCRow[]> {
   const grouped = new Map<string, PlanejamentoDCCRow[]>()
 
   for (const row of rows) {
-    const key = `${row.disciplinaCodigo}-${row.turma}`
+    const key = row.disciplinaCodigo
     if (!grouped.has(key)) {
       grouped.set(key, [])
     }

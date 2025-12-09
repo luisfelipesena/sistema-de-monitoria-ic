@@ -16,8 +16,12 @@ import {
   REGIME_20H,
   REGIME_40H,
   REGIME_DE,
+  TIPO_PROFESSOR_EFETIVO,
+  TIPO_PROFESSOR_LABELS,
+  TIPO_PROFESSOR_SUBSTITUTO,
   type Genero,
   type Regime,
+  type TipoProfessor,
 } from "@/types"
 import { api } from "@/utils/api"
 import { formatUsernameToProperName } from "@/utils/username-formatter"
@@ -41,6 +45,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
     telefone: "",
     telefoneInstitucional: "",
     regime: "" as Regime | "",
+    tipoProfessor: TIPO_PROFESSOR_EFETIVO as TipoProfessor,
     departamentoId: 0,
     genero: "" as Genero | "",
     especificacaoGenero: "",
@@ -330,6 +335,26 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                         <SelectItem value={REGIME_20H}>20 horas</SelectItem>
                         <SelectItem value={REGIME_40H}>40 horas</SelectItem>
                         <SelectItem value={REGIME_DE}>Dedicação Exclusiva</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="tipoProfessor">Tipo de Professor *</Label>
+                    <Select
+                      value={formData.tipoProfessor}
+                      onValueChange={(value: TipoProfessor) => setFormData({ ...formData, tipoProfessor: value })}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecione o tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={TIPO_PROFESSOR_EFETIVO}>
+                          {TIPO_PROFESSOR_LABELS[TIPO_PROFESSOR_EFETIVO]}
+                        </SelectItem>
+                        <SelectItem value={TIPO_PROFESSOR_SUBSTITUTO}>
+                          {TIPO_PROFESSOR_LABELS[TIPO_PROFESSOR_SUBSTITUTO]}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

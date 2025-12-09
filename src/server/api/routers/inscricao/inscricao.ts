@@ -59,7 +59,6 @@ export const inscricaoRouter = createTRPCRouter({
                 z.object({
                   codigo: z.string(),
                   nome: z.string(),
-                  turma: z.string(),
                 })
               ),
               professorResponsavelNome: z.string(),
@@ -158,7 +157,6 @@ export const inscricaoRouter = createTRPCRouter({
               z.object({
                 codigo: z.string(),
                 nome: z.string(),
-                turma: z.string(),
               })
             ),
             professorResponsavelNome: z.string(),
@@ -183,7 +181,6 @@ export const inscricaoRouter = createTRPCRouter({
             disciplinas: Array<{
               codigo: string
               nome: string
-              turma: string
             }>
             professorResponsavelNome: string
           }

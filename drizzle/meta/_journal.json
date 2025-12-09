@@ -316,6 +316,55 @@
       "when": 1765299690648,
       "tag": "0042_solid_maria_hill",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1765316664302,
+      "tag": "0043_nebulous_maginty",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1765317208444,
+      "tag": "0044_colossal_valeria_richards",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1765318000000,
+      "tag": "0045_remove_curso_entity",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1765320000000,
+      "tag": "0046_edital_new_fields",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1765320293792,
+      "tag": "0047_solid_ravenous",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1765320471662,
+      "tag": "0048_sudden_sunspot",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1765321000000,
+      "tag": "0049_add_configuracao_sistema",
+      "breakpoints": true
     }
   ]
 }

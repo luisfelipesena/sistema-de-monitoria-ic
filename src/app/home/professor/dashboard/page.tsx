@@ -1,7 +1,8 @@
 "use client"
 
+import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
+import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,12 +15,13 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { FilterModal, FilterValues } from "@/components/ui/FilterModal"
 import { useToast } from "@/hooks/use-toast"
+import { createSemesterFilterOptions, createYearFilterOptions, useColumnFilters } from "@/hooks/useColumnFilters"
 import {
   DashboardProjectItem,
   PROJETO_STATUS_APPROVED,
   PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_LABELS,
   PROJETO_STATUS_PENDING_SIGNATURE,
   PROJETO_STATUS_REJECTED,
   PROJETO_STATUS_SUBMITTED,
@@ -27,36 +29,33 @@ import {
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 
-import { Download, Edit, Eye, FileSignature, Filter, Hand, List, Loader, Plus, Trash2, Users } from "lucide-react"
+import { Download, Edit, Eye, FileSignature, Hand, List, Loader, Plus, Trash2, Users } from "lucide-react"
+
+// Filter options for status
+const statusFilterOptions = [
+  { value: PROJETO_STATUS_DRAFT, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_DRAFT] },
+  { value: PROJETO_STATUS_SUBMITTED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_SUBMITTED] },
+  { value: PROJETO_STATUS_APPROVED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_APPROVED] },
+  { value: PROJETO_STATUS_REJECTED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_REJECTED] },
+  { value: PROJETO_STATUS_PENDING_SIGNATURE, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_PENDING_SIGNATURE] },
+]
 
 export default function DashboardProfessor() {
   const { toast } = useToast()
   const { data: projetos, isLoading: loadingProjetos } = api.projeto.getProjetos.useQuery()
   const deleteProjeto = api.projeto.deleteProjeto.useMutation()
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
-  const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [filters, setFilters] = useState<FilterValues>({})
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [projetoToDelete, setProjetoToDelete] = useState<DashboardProjectItem | null>(null)
   const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
   const apiUtils = api.useUtils()
-  // Aplicar filtros aos projetos
-  const projetosFiltrados = useMemo(() => {
-    if (!projetos) return []
 
-    return projetos.filter((projeto) => {
-      if (filters.status && projeto.status !== filters.status) return false
-      if (filters.semestre && projeto.semestre !== filters.semestre) return false
-      if (filters.ano && projeto.ano.toString() !== filters.ano) return false
-      return true
-    })
-  }, [projetos, filters])
-
-  const handleApplyFilters = (newFilters: FilterValues) => {
-    setFilters(newFilters)
-  }
+  // Column filters with current semester as default
+  const { columnFilters, setColumnFilters } = useColumnFilters({
+    useCurrentSemester: true,
+  })
 
   const handleDeleteProjeto = (projeto: DashboardProjectItem) => {
     setProjetoToDelete(projeto)
@@ -140,13 +139,13 @@ export default function DashboardProfessor() {
       },
     },
     {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Loader className="h-5 w-5 text-gray-400" />
-          Status
-        </div>
-      ),
+      header: createFilterableHeader<DashboardProjectItem>({
+        title: "Status",
+        filterType: "multiselect",
+        filterOptions: statusFilterOptions,
+      }),
       accessorKey: "status",
+      filterFn: multiselectFilterFn,
       cell: ({ row }) => {
         const status = row.original.status
         if (status === PROJETO_STATUS_APPROVED) {
@@ -170,6 +169,24 @@ export default function DashboardProfessor() {
         }
         return <Badge variant="outline">{status}</Badge>
       },
+    },
+    {
+      header: createFilterableHeader<DashboardProjectItem>({
+        title: "Ano",
+        filterType: "select",
+        filterOptions: createYearFilterOptions(),
+      }),
+      accessorKey: "ano",
+      cell: ({ row }) => <div className="text-center">{row.original.ano}</div>,
+    },
+    {
+      header: createFilterableHeader<DashboardProjectItem>({
+        title: "Semestre",
+        filterType: "select",
+        filterOptions: createSemesterFilterOptions(),
+      }),
+      accessorKey: "semestre",
+      cell: ({ row }) => <div className="text-center">{row.original.semestre === "SEMESTRE_1" ? "1º" : "2º"}</div>,
     },
     {
       header: () => (
@@ -290,18 +307,12 @@ export default function DashboardProfessor() {
 
   // Action buttons
   const dashboardActions = (
-    <>
-      <Link href="/home/professor/projetos/novo">
-        <Button variant="primary" className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors">
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Projeto
-        </Button>
-      </Link>
-      <Button variant="outline" className="text-gray-600" onClick={() => setFilterModalOpen(true)}>
-        <Filter className="w-4 h-4 mr-1" />
-        Filtros
+    <Link href="/home/professor/projetos/novo">
+      <Button variant="primary" className="bg-[#1B2A50] text-white hover:bg-[#24376c] transition-colors">
+        <Plus className="w-4 h-4 mr-2" />
+        Novo Projeto
       </Button>
-    </>
+    </Link>
   )
 
   return (
@@ -311,45 +322,25 @@ export default function DashboardProfessor() {
           <Loader className="h-8 w-8 animate-spin" />
           <span className="ml-2">Carregando projetos...</span>
         </div>
-      ) : projetosFiltrados && projetosFiltrados.length > 0 ? (
-        <>
-          {filters.status || filters.semestre || filters.ano ? (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-blue-700">
-                  Filtros ativos: {Object.values(filters).filter(Boolean).length}
-                </span>
-                <Button variant="outline" size="sm" onClick={() => setFilters({})}>
-                  Limpar filtros
-                </Button>
-              </div>
-            </div>
-          ) : null}
-          <TableComponent columns={colunasProjetos} data={projetosFiltrados} />
-        </>
+      ) : projetos && projetos.length > 0 ? (
+        <TableComponent
+          columns={colunasProjetos}
+          data={projetos}
+          columnFilters={columnFilters}
+          onColumnFiltersChange={setColumnFilters}
+        />
       ) : (
         <div className="text-center py-12 border rounded-md bg-muted/20">
           <List className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium">Nenhum projeto encontrado</h3>
           <p className="text-muted-foreground mb-4">
-            {projetos && projetos.length === 0
-              ? "Você ainda não criou nenhum projeto de monitoria."
-              : "Nenhum projeto corresponde aos filtros selecionados."}
+            Você ainda não criou nenhum projeto de monitoria.
           </p>
           <Link href="/home/professor/projetos/novo">
-            <Button>{projetos && projetos.length === 0 ? "Criar Primeiro Projeto" : "Criar Novo Projeto"}</Button>
+            <Button>Criar Primeiro Projeto</Button>
           </Link>
         </div>
       )}
-
-      {/* Modal de Filtros */}
-      <FilterModal
-        open={filterModalOpen}
-        onOpenChange={setFilterModalOpen}
-        type="professor"
-        onApplyFilters={handleApplyFilters}
-        initialFilters={filters}
-      />
 
       {/* Modal de Confirmação de Exclusão */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

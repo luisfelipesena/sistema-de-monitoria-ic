@@ -68,7 +68,6 @@ export class StudentInscricaoService {
           disciplinas: monitoriaAtiva.projeto.disciplinas.map((pd) => ({
             codigo: pd.disciplina.codigo,
             nome: pd.disciplina.nome,
-            turma: pd.disciplina.turma,
           })),
           professorResponsavelNome: monitoriaAtiva.projeto.professorResponsavel.nomeCompleto,
         },
@@ -246,7 +245,6 @@ export class StudentInscricaoService {
           disciplinas: inscricao.projeto.disciplinas.map((pd) => ({
             codigo: pd.disciplina.codigo,
             nome: pd.disciplina.nome,
-            turma: pd.disciplina.turma,
           })),
           professorResponsavelNome: inscricao.projeto.professorResponsavel.nomeCompleto,
         },

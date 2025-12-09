@@ -209,6 +209,7 @@ export interface EditalInternoData {
     bibliografia?: string[]
     dataSelecao?: string
     horarioSelecao?: string
+    localSelecao?: string
   }>
   observacoes?: string
   equivalencias?: Array<{
@@ -319,8 +320,7 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                 <View key={index} style={rowStyle}>
                   <View style={styles.colComponente}>
                     <Text style={styles.tableCol}>
-                      {disciplina.codigo}
-                      {disciplina.turma ? ` - T${disciplina.turma}` : ""} - {disciplina.nome}
+                      {disciplina.codigo} - {disciplina.nome}
                     </Text>
                   </View>
                   <View style={styles.colVagas}>
@@ -403,14 +403,41 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
           </Text>
         </View>
 
-        {/* 6. DISPOSIÇÕES FINAIS */}
+        {/* 6. DAS EQUIVALÊNCIAS */}
+        {data.equivalencias && data.equivalencias.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>6. DAS EQUIVALÊNCIAS DE DISCIPLINAS</Text>
+            <Text style={styles.text}>
+              6.1. Para fins de inscrição na monitoria, serão aceitas as seguintes equivalências de disciplinas:
+            </Text>
+            <View style={styles.list}>
+              {data.equivalencias.map((eq, index) => (
+                <Text key={index} style={styles.listItem}>
+                  • {eq.disciplina1} ↔ {eq.disciplina2}
+                </Text>
+              ))}
+            </View>
+            <Text style={styles.text}>
+              6.2. O aluno que cursou disciplina equivalente poderá se inscrever para monitoria da disciplina
+              correspondente, desde que atenda aos demais requisitos do edital.
+            </Text>
+          </View>
+        )}
+
+        {/* 7. DISPOSIÇÕES FINAIS */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>6. DISPOSIÇÕES FINAIS</Text>
-          <Text style={styles.text}>
-            6.1. A inscrição do candidato implicará o conhecimento e a tácita aceitação das normas e condições
-            estabelecidas neste Edital, em relação às quais não poderá alegar desconhecimento.
+          <Text style={styles.sectionTitle}>
+            {data.equivalencias && data.equivalencias.length > 0 ? "7" : "6"}. DISPOSIÇÕES FINAIS
           </Text>
-          <Text style={styles.text}>6.2. Os casos omissos serão resolvidos pelo Chefe do Departamento.</Text>
+          <Text style={styles.text}>
+            {data.equivalencias && data.equivalencias.length > 0 ? "7" : "6"}.1. A inscrição do candidato implicará o
+            conhecimento e a tácita aceitação das normas e condições estabelecidas neste Edital, em relação às quais não
+            poderá alegar desconhecimento.
+          </Text>
+          <Text style={styles.text}>
+            {data.equivalencias && data.equivalencias.length > 0 ? "7" : "6"}.2. Os casos omissos serão resolvidos pelo
+            Chefe do Departamento.
+          </Text>
         </View>
 
         {/* Signature */}
@@ -473,7 +500,7 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                 }}
               >
                 <Text style={{ fontSize: 10, fontWeight: "bold", marginBottom: 2 }}>
-                  {disciplina.codigo} - {disciplina.nome} {disciplina.turma ? `(Turma ${disciplina.turma})` : ""}
+                  {disciplina.codigo} - {disciplina.nome}
                 </Text>
                 <Text style={{ fontSize: 10, marginBottom: 4 }}>Professor: {disciplina.professor.nome}</Text>
 
@@ -481,6 +508,7 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                   <Text style={{ fontSize: 10, marginBottom: 2 }}>
                     Data da Seleção: {formatDate(disciplina.dataSelecao)}{" "}
                     {disciplina.horarioSelecao ? `às ${disciplina.horarioSelecao}` : ""}
+                    {disciplina.localSelecao ? ` - Local: ${disciplina.localSelecao}` : ""}
                   </Text>
                 )}
 

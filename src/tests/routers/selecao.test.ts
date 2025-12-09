@@ -30,6 +30,7 @@ const mockProfessorUser: User = {
   username: 'professor',
   email: 'prof@test.com',
   role: 'professor',
+  adminType: null,
   assinaturaDefault: null,
   dataAssinaturaDefault: null,
   passwordHash: null,

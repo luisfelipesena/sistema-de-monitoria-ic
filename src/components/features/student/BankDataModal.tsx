@@ -28,7 +28,7 @@ interface StudentProfile {
   matricula: string | null
   cpf: string | null
   cr: number | null
-  cursoId: number | null
+  cursoNome: string | null
   telefone?: string | null
   banco?: string | null
   agencia?: string | null
@@ -108,7 +108,7 @@ export function BankDataModal({ open, onClose, onSuccess, currentData }: BankDat
         matricula: currentData.matricula || "",
         cpf: currentData.cpf || "",
         cr: currentData.cr || 0,
-        cursoId: currentData.cursoId || 0,
+        cursoNome: currentData.cursoNome || undefined,
         telefone: currentData.telefone || undefined,
         banco: formData.banco,
         agencia: formData.agencia,

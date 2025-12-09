@@ -115,7 +115,7 @@ export const userRouter = createTRPCRouter({
             matricula: z.string().min(1),
             cpf: cpfSchema,
             cr: crSchema,
-            cursoId: idSchema,
+            cursoNome: z.string().optional(),
             telefone: phoneSchema,
             banco: z.string().optional(),
             agencia: z.string().optional(),

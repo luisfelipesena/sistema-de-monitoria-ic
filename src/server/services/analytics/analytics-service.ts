@@ -1,14 +1,13 @@
-import { PlanilhaPROGRADDocument } from '@/components/features/prograd/PlanilhaPROGRAD'
 import type { db } from '@/server/db'
 import { sendPlanilhaPROGRADEmail } from '@/server/lib/email'
 import { NotFoundError, UnauthorizedError, ValidationError } from '@/server/lib/errors'
-import type { DashboardMetrics, Semestre, UserRole } from '@/types'
-import { ADMIN, APPROVED, DRAFT, SUBMITTED, TIPO_PROPOSICAO_INDIVIDUAL } from '@/types'
+import type { AdminType, DashboardMetrics, Semestre, UserRole } from '@/types'
+import { ADMIN, APPROVED, DRAFT, SUBMITTED, TIPO_PROPOSICAO_COLETIVA, TIPO_PROPOSICAO_INDIVIDUAL } from '@/types'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
-import { DocumentProps, renderToBuffer } from '@react-pdf/renderer'
-import React, { type ReactElement } from 'react'
 import { createAnalyticsRepository } from './analytics-repository'
+
+const EMAIL_IC_CHAVE = 'EMAIL_INSTITUTO_COMPUTACAO'
 
 type Database = typeof db
 const log = logger.child({ context: 'AnalyticsService' })
@@ -17,13 +16,14 @@ export function createAnalyticsService(db: Database) {
   const repo = createAnalyticsRepository(db)
 
   return {
-    async getDashboardMetrics(userRole: UserRole): Promise<DashboardMetrics> {
+    async getDashboardMetrics(userRole: UserRole, adminType?: AdminType | null): Promise<DashboardMetrics> {
       if (userRole !== ADMIN) {
         throw new UnauthorizedError('Acesso permitido apenas para administradores')
       }
 
       const now = new Date()
 
+      // Pass adminType to filter metrics by department (DCC or DCI)
       const [
         periodosAtivos,
         totalProjetos,
@@ -34,34 +34,30 @@ export function createAnalyticsService(db: Database) {
         totalAlunos,
         totalProfessores,
         totalDepartamentos,
-        totalCursos,
         totalDisciplinas,
         vagasStats,
         vagasOcupadas,
         projetosPorDepartamento,
         inscricoesPorPeriodo,
-        alunosPorCurso,
         professoresPorDepartamento,
         projetosRecentes,
       ] = await Promise.all([
         repo.countActivePeriods(now),
-        repo.countTotalProjects(),
-        repo.countProjectsByStatus(APPROVED),
-        repo.countProjectsByStatus(SUBMITTED),
-        repo.countProjectsByStatus(DRAFT),
-        repo.countTotalInscriptions(),
+        repo.countTotalProjects(adminType),
+        repo.countProjectsByStatus(APPROVED, adminType),
+        repo.countProjectsByStatus(SUBMITTED, adminType),
+        repo.countProjectsByStatus(DRAFT, adminType),
+        repo.countTotalInscriptions(adminType),
         repo.countTotalStudents(),
-        repo.countTotalProfessors(),
-        repo.countTotalDepartments(),
-        repo.countTotalCourses(),
-        repo.countTotalDisciplines(),
-        repo.getVagasStats(),
-        repo.countOccupiedVagas(),
-        repo.getProjectsByDepartment(),
-        repo.getInscriptionsByPeriod(),
-        repo.getStudentsByCourse(),
-        repo.getProfessorsByDepartment(),
-        repo.getRecentProjects(),
+        repo.countTotalProfessors(adminType),
+        repo.countTotalDepartments(adminType),
+        repo.countTotalDisciplines(adminType),
+        repo.getVagasStats(adminType),
+        repo.countOccupiedVagas(adminType),
+        repo.getProjectsByDepartment(adminType),
+        repo.getInscriptionsByPeriod(adminType),
+        repo.getProfessorsByDepartment(adminType),
+        repo.getRecentProjects(adminType),
       ])
 
       const totalVagas = vagasStats.bolsas + vagasStats.voluntarios
@@ -84,7 +80,6 @@ export function createAnalyticsService(db: Database) {
         totalAlunos,
         totalProfessores,
         totalDepartamentos,
-        totalCursos,
         totalDisciplinas,
 
         departamentos: projetosPorDepartamento.map((item, index) => ({
@@ -129,12 +124,6 @@ export function createAnalyticsService(db: Database) {
           taxaOcupacao: Math.round(taxaOcupacao * 100) / 100,
         },
 
-        alunosPorCurso: alunosPorCurso.map((item) => ({
-          curso: item.curso || 'Curso não especificado',
-          alunos: Number(item.alunos),
-          inscricoes: Number(item.inscricoes),
-        })),
-
         professoresPorDepartamento: professoresPorDepartamento.map((item) => ({
           departamento: item.departamento || 'Departamento não especificado',
           professores: Number(item.professores),
@@ -167,12 +156,17 @@ export function createAnalyticsService(db: Database) {
       return metrics
     },
 
-    async getApprovedProjectsPROGRAD(ano: number, semestre: Semestre, userRole: UserRole) {
+    async getApprovedProjectsPROGRAD(
+      ano: number,
+      semestre: Semestre,
+      userRole: UserRole,
+      adminType?: AdminType | null
+    ) {
       if (userRole !== ADMIN) {
         throw new UnauthorizedError('Acesso permitido apenas para administradores')
       }
 
-      const projetos = await repo.getApprovedProjectsForPROGRAD(ano, semestre)
+      const projetos = await repo.getApprovedProjectsForPROGRAD(ano, semestre, adminType)
 
       log.info({ ano, semestre, totalProjetos: projetos.length }, 'Projetos aprovados para planilha PROGRAD obtidos')
 
@@ -181,7 +175,7 @@ export function createAnalyticsService(db: Database) {
         ano,
         projetos: projetos.map((p) => ({
           id: p.id,
-          codigo: p.disciplinaNome || p.titulo || 'N/A',
+          codigo: p.disciplinaCodigo || 'N/A',
           disciplinaNome: p.disciplinaNome || p.titulo || '',
           professorNome: p.professorNome || '',
           professoresParticipantes: p.professoresParticipantes || '',
@@ -192,46 +186,42 @@ export function createAnalyticsService(db: Database) {
       }
     },
 
-    async sendPlanilhaPROGRAD(ano: number, semestre: Semestre, userRole: UserRole, userId: number) {
+    async sendPlanilhaPROGRAD(
+      ano: number,
+      semestre: Semestre,
+      userRole: UserRole,
+      userId: number,
+      adminType?: AdminType | null
+    ) {
       if (userRole !== ADMIN) {
         throw new UnauthorizedError('Acesso permitido apenas para administradores')
       }
 
-      const projetos = await repo.getApprovedProjectsForPROGRAD(ano, semestre)
+      const projetos = await repo.getApprovedProjectsForPROGRAD(ano, semestre, adminType)
 
       if (projetos.length === 0) {
         throw new NotFoundError('Projeto', 'Nenhum projeto aprovado encontrado para o período especificado')
       }
 
-      const planilhaData = {
-        semestre,
-        ano,
-        projetos: projetos.map((p) => ({
-          id: p.id,
-          codigo: p.disciplinaNome || p.titulo || 'N/A',
-          disciplinaNome: p.disciplinaNome || p.titulo || '',
-          professorNome: p.professorNome || '',
-          professoresParticipantes: p.professoresParticipantes || '',
-          departamentoNome: p.departamentoNome || '',
-          tipoProposicao: p.tipoProposicao || TIPO_PROPOSICAO_INDIVIDUAL,
-        })),
-      }
+      // Generate CSV content
+      const csvContent = this.generateCSV(projetos)
+      const csvBuffer = Buffer.from(csvContent, 'utf-8')
 
-      const pdfElement: ReactElement<DocumentProps> = React.createElement(PlanilhaPROGRADDocument, {
-        data: planilhaData,
-      })
-      const pdfBuffer = await renderToBuffer(pdfElement)
+      // Get IC email (global config)
+      const icEmailConfig = await repo.getConfiguracaoSistema(EMAIL_IC_CHAVE)
+      const icEmail = icEmailConfig?.valor
 
+      // Get department email based on adminType
       const departamentos = await repo.getDepartmentsWithEmails()
+      const departamentoEmail = adminType ? departamentos.find((d) => d.sigla === adminType)?.emailInstituto : null
 
-      const destinatarios = departamentos
-        .map((d) => ({ nome: d.nome, email: d.emailInstituto }))
-        .filter((item): item is { nome: string; email: string } => Boolean(item.email))
-        .map((item) => item.email)
+      const destinatarios: string[] = []
+      if (icEmail) destinatarios.push(icEmail)
+      if (departamentoEmail) destinatarios.push(departamentoEmail)
 
       if (destinatarios.length === 0) {
         throw new ValidationError(
-          'Nenhum email institucional configurado para o Instituto. Atualize as configurações de departamento antes de enviar a planilha.'
+          'Nenhum email configurado. Configure o email do IC e/ou do departamento antes de enviar.'
         )
       }
 
@@ -239,10 +229,11 @@ export function createAnalyticsService(db: Database) {
         destinatarios.map((email) =>
           sendPlanilhaPROGRADEmail({
             progradEmail: email,
-            planilhaPDFBuffer: pdfBuffer,
+            planilhaPDFBuffer: csvBuffer,
             semestre,
             ano,
             remetenteUserId: userId,
+            isCSV: true,
           })
         )
       )
@@ -254,14 +245,70 @@ export function createAnalyticsService(db: Database) {
           semestre,
           totalProjetos: projetos.length,
         },
-        'Planilha PROGRAD enviada por email com sucesso ao Instituto'
+        'Planilha PROGRAD enviada por email com sucesso'
       )
 
       return {
         success: true,
-        message: 'Planilha PROGRAD enviada aos emails institucionais configurados',
+        message: 'Planilha PROGRAD enviada aos emails configurados',
         totalProjetos: projetos.length,
         destinatarios,
+      }
+    },
+
+    generateCSV(
+      projetos: Array<{
+        id: number
+        titulo: string
+        disciplinaNome: string | null
+        disciplinaCodigo: string | null
+        professorNome: string | null
+        professoresParticipantes: string | null
+        departamentoNome: string | null
+        tipoProposicao: string | null
+      }>
+    ): string {
+      const headers = [
+        'Unidade Universitária',
+        'Órgão Responsável',
+        'CÓDIGO',
+        'Componente Curricular: NOME',
+        'Professor Responsável',
+        'Professores Participantes',
+        'Link PDF',
+      ]
+
+      const escapeCSV = (value: string) => {
+        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+          return `"${value.replace(/"/g, '""')}"`
+        }
+        return value
+      }
+
+      const rows = projetos.map((p) => [
+        escapeCSV('Instituto de Computação'),
+        escapeCSV(p.departamentoNome || ''),
+        escapeCSV(p.disciplinaCodigo || 'N/A'),
+        escapeCSV(p.disciplinaNome || p.titulo || ''),
+        escapeCSV(p.professorNome || ''),
+        escapeCSV(p.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? p.professoresParticipantes || '' : ''),
+        escapeCSV(`${env.CLIENT_URL}/api/projeto/${p.id}/pdf`),
+      ])
+
+      return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n')
+    },
+
+    async getEmailDestinatarios(adminType?: AdminType | null) {
+      const icEmailConfig = await repo.getConfiguracaoSistema(EMAIL_IC_CHAVE)
+      const icEmail = icEmailConfig?.valor
+
+      const departamentos = await repo.getDepartmentsWithEmails()
+      const departamentoEmail = adminType ? departamentos.find((d) => d.sigla === adminType)?.emailInstituto : null
+
+      return {
+        icEmail: icEmail || null,
+        departamentoEmail: departamentoEmail || null,
+        departamentoNome: adminType ? departamentos.find((d) => d.sigla === adminType)?.nome || null : null,
       }
     },
   }

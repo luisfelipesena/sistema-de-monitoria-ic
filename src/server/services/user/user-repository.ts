@@ -42,7 +42,7 @@ export interface UpdateProfileData {
     matricula: string
     cpf: string
     cr: number
-    cursoId: number
+    cursoNome?: string
     telefone?: string
     banco?: string
     agencia?: string
@@ -78,11 +78,7 @@ export const createUserRepository = (db: Database) => {
               departamento: true,
             },
           },
-          studentProfile: {
-            with: {
-              curso: true,
-            },
-          },
+          studentProfile: true,
         },
         limit: filters.limit || 50,
         offset: filters.offset || 0,
@@ -119,11 +115,7 @@ export const createUserRepository = (db: Database) => {
               departamento: true,
             },
           },
-          studentProfile: {
-            with: {
-              curso: true,
-            },
-          },
+          studentProfile: true,
         },
       })
     },
@@ -221,7 +213,7 @@ export const createUserRepository = (db: Database) => {
               matricula: data.studentData.matricula,
               cpf: data.studentData.cpf,
               cr: data.studentData.cr,
-              cursoId: data.studentData.cursoId,
+              cursoNome: data.studentData.cursoNome,
               telefone: data.studentData.telefone,
               banco: data.studentData.banco,
               agencia: data.studentData.agencia,

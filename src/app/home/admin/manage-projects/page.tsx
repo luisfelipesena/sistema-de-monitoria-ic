@@ -1,12 +1,10 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { TableComponent } from "@/components/layout/TableComponent"
 import { LoadingSpinner } from "@/components/atoms/LoadingSpinner"
 import { Button } from "@/components/ui/button"
-import { FilterModal } from "@/components/ui/FilterModal"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ProjectsStatsCards } from "@/components/features/admin/manage-projects/ProjectsStatsCards"
 import { createProjectColumns } from "@/components/features/admin/manage-projects/ProjectTableColumns"
 import { ProjectAnalysisDialog } from "@/components/features/admin/manage-projects/ProjectAnalysisDialog"
@@ -14,17 +12,15 @@ import { ProjectRejectDialog } from "@/components/features/admin/manage-projects
 import { ProjectDeleteDialog } from "@/components/features/admin/manage-projects/ProjectDeleteDialog"
 import { ProjectFilesDialog } from "@/components/features/admin/manage-projects/ProjectFilesDialog"
 import { useProjectManagement } from "@/hooks/features/useProjectManagement"
-import { Filter, FileSignature } from "lucide-react"
+import { FileSignature } from "lucide-react"
 
 export default function ManageProjectsPage() {
-  const [filterModalOpen, setFilterModalOpen] = useState(false)
-
   const {
     projetos,
     loadingProjetos,
     statusCounts,
-    filters,
-    setFilters,
+    columnFilters,
+    setColumnFilters,
     groupedView,
     setGroupedView,
     rejectFeedback,
@@ -42,8 +38,6 @@ export default function ManageProjectsPage() {
     handleRejectProject,
     handleDeleteProject,
     handleOpenRejectDialog,
-    getCurrentSemesterLabel,
-    handleSemesterChange,
     handleGoToDocumentSigning,
     isApproving,
     isRejecting,
@@ -76,32 +70,12 @@ export default function ManageProjectsPage() {
 
   const dashboardActions = (
     <>
-      <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-        <span className="text-sm font-medium text-blue-800">Semestre:</span>
-        <Select value={getCurrentSemesterLabel()} onValueChange={handleSemesterChange}>
-          <SelectTrigger className="w-28 h-8 bg-white border-blue-300">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="2024.1">2024.1</SelectItem>
-            <SelectItem value="2024.2">2024.2</SelectItem>
-            <SelectItem value="2025.1">2025.1</SelectItem>
-            <SelectItem value="2025.2">2025.2</SelectItem>
-            <SelectItem value="2026.1">2026.1</SelectItem>
-            <SelectItem value="2026.2">2026.2</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
       <Button variant="secondary" onClick={handleGoToDocumentSigning} className="flex items-center gap-2">
         <FileSignature className="h-4 w-4" />
         Assinatura de Documentos
       </Button>
       <Button variant={groupedView ? "secondary" : "primary"} onClick={() => setGroupedView(!groupedView)}>
         {groupedView ? "Visão Normal" : "Agrupar por Departamento"}
-      </Button>
-      <Button variant="outline" onClick={() => setFilterModalOpen(true)}>
-        <Filter className="w-4 h-4 mr-1" />
-        Filtros
       </Button>
     </>
   )
@@ -124,7 +98,12 @@ export default function ManageProjectsPage() {
             rejected={statusCounts.rejected}
           />
 
-          <TableComponent columns={columns} data={projetos} />
+          <TableComponent
+            columns={columns}
+            data={projetos}
+            columnFilters={columnFilters}
+            onColumnFiltersChange={setColumnFilters}
+          />
         </>
       )}
 
@@ -166,13 +145,6 @@ export default function ManageProjectsPage() {
         onDownload={handleDownloadFile}
       />
 
-      <FilterModal
-        open={filterModalOpen}
-        onOpenChange={setFilterModalOpen}
-        type="admin"
-        onApplyFilters={setFilters}
-        initialFilters={filters}
-      />
     </PagesLayout>
   )
 }

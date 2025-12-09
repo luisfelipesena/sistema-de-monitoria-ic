@@ -73,7 +73,6 @@ export const dashboardMetricsSchema = z.object({
   totalVoluntarios: z.number(),
   periodosAtivos: z.number(),
   totalDepartamentos: z.number(),
-  totalCursos: z.number(),
   totalDisciplinas: z.number(),
   vagasOcupadas: z.number(),
   taxaAprovacao: z.number(),
@@ -110,13 +109,6 @@ export const dashboardMetricsSchema = z.object({
       semestre: z.string(),
       inscricoes: z.number(),
       projetos: z.number(),
-    })
-  ),
-  alunosPorCurso: z.array(
-    z.object({
-      curso: z.string(),
-      alunos: z.number(),
-      inscricoes: z.number(),
     })
   ),
   professoresPorDepartamento: z.array(

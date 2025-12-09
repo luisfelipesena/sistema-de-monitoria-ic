@@ -5,7 +5,6 @@ import { authRouter } from '@/server/api/routers/auth/auth'
 import { meRouter } from '@/server/api/routers/auth/me/me'
 import { certificadoRouter } from '@/server/api/routers/certificado/certificado'
 import { configuracoesRouter } from '@/server/api/routers/configuracoes/configuracoes'
-import { courseRouter } from '@/server/api/routers/course/course'
 import { departamentoRouter } from '@/server/api/routers/departamento/departamento'
 import { disciplineRouter } from '@/server/api/routers/discipline/discipline'
 import { editalRouter } from '@/server/api/routers/edital/edital'
@@ -31,7 +30,6 @@ import { createTRPCRouter } from './trpc'
 export const appRouter = createTRPCRouter({
   auth: authRouter,
   me: meRouter,
-  course: courseRouter,
   discipline: disciplineRouter,
   file: fileRouter,
   onboarding: onboardingRouter,

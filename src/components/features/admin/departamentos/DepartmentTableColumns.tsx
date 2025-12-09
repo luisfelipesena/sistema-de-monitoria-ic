@@ -41,15 +41,6 @@ export function getDepartmentColumns({ onEdit, onDelete }: GetColumnsProps): Col
       ),
     },
     {
-      accessorKey: 'cursos',
-      header: 'Cursos',
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Badge variant="outline">{row.original.cursos}</Badge>
-        </div>
-      ),
-    },
-    {
       accessorKey: 'disciplinas',
       header: 'Disciplinas',
       cell: ({ row }) => (

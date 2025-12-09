@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Genero, registrationRoleSchema, Regime, regimeSchema, UserRole, userRoleSchema } from './enums'
+import { AdminType, Genero, registrationRoleSchema, Regime, regimeSchema, UserRole, userRoleSchema } from './enums'
 import {
   crSchema,
   emailSchema,
@@ -32,6 +32,7 @@ export type AppUser = {
   username: string
   email: string
   role: UserRole
+  adminType: AdminType | null // DCC or DCI - only for admins
   assinaturaDefault: string | null
   dataAssinaturaDefault: Date | null
   passwordHash: string | null
@@ -55,7 +56,7 @@ export type AppUser = {
   } | null
   aluno?: {
     id: number
-    cursoId: number | null
+    cursoNome: string | null
     cr: number | null
   } | null
 }
@@ -88,7 +89,7 @@ export interface UserListItem {
     matricula: string | null
     cpf: string | null
     cr: number | null
-    cursoId: number | null
+    cursoNome: string | null
     telefone?: string | null
     emailInstitucional: string | null
     historicoEscolarFileId?: string | null
@@ -145,7 +146,7 @@ export const userListItemSchema = z.object({
       matricula: z.string().nullable(),
       cpf: z.string().nullable(),
       cr: crSchema.nullable(),
-      cursoId: idSchema.nullable(),
+      cursoNome: z.string().nullable(),
       telefone: z.string().nullable().optional(),
       emailInstitucional: emailSchema.nullable(),
       historicoEscolarFileId: z.string().nullable().optional(),

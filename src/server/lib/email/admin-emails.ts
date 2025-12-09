@@ -12,14 +12,25 @@ export const adminEmailService = {
     ano: number
     remetenteUserId?: number
     isExcel?: boolean
+    isCSV?: boolean
   }): Promise<void> {
     const semestreDisplay = SEMESTRE_LABELS[data.semestre as Semestre]
-    const fileExtension = data.isExcel ? 'xlsx' : 'pdf'
+
+    let fileExtension = 'pdf'
+    let contentType = 'application/pdf'
+    let formatoTexto = 'PDF'
+
+    if (data.isExcel) {
+      fileExtension = 'xlsx'
+      contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      formatoTexto = 'Excel'
+    } else if (data.isCSV || (!data.isExcel && data.planilhaPDFBuffer.toString().startsWith('Unidade'))) {
+      fileExtension = 'csv'
+      contentType = 'text/csv'
+      formatoTexto = 'CSV'
+    }
+
     const filename = `Planilha_PROGRAD_${data.ano}_${semestreDisplay}.${fileExtension}`
-    const contentType = data.isExcel
-      ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      : 'application/pdf'
-    const formatoTexto = data.isExcel ? 'Excel' : 'PDF'
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

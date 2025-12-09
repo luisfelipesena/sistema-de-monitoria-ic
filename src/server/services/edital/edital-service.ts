@@ -43,6 +43,7 @@ export function createEditalService(db: Database) {
     // CRUD operations
     createEdital: crudService.createEdital,
     updateEdital: crudService.updateEdital,
+    updateNumeroEdital: crudService.updateNumeroEdital,
     deleteEdital: crudService.deleteEdital,
     uploadSignedEdital: crudService.uploadSignedEdital,
     setAvailableExamDates: crudService.setAvailableExamDates,

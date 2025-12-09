@@ -1,7 +1,7 @@
 import { and, eq, isNull, sql } from 'drizzle-orm'
 import type { InferInsertModel } from 'drizzle-orm'
 import type { db } from '@/server/db'
-import { cursoTable, departamentoTable, disciplinaTable, professorTable, projetoTable } from '@/server/db/schema'
+import { departamentoTable, disciplinaTable, professorTable, projetoTable } from '@/server/db/schema'
 
 export type DepartamentoInsert = InferInsertModel<typeof departamentoTable>
 type Database = typeof db
@@ -25,14 +25,6 @@ export function createDepartamentoRepository(db: Database) {
         .select({ count: sql<number>`count(*)::int` })
         .from(professorTable)
         .where(eq(professorTable.departamentoId, departamentoId))
-      return result?.count || 0
-    },
-
-    async countCursos(departamentoId: number) {
-      const [result] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(cursoTable)
-        .where(eq(cursoTable.departamentoId, departamentoId))
       return result?.count || 0
     },
 

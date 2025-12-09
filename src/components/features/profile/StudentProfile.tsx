@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import { api } from "@/utils/api"
@@ -14,7 +13,7 @@ interface StudentFormData {
   nomeCompleto: string
   matricula: string
   cpf: string
-  cursoId: number
+  cursoNome: string
   cr: number
   banco: string
   agencia: string
@@ -30,7 +29,7 @@ export function StudentProfile() {
     nomeCompleto: "",
     matricula: "",
     cpf: "",
-    cursoId: 0,
+    cursoNome: "",
     cr: 0,
     banco: "",
     agencia: "",
@@ -39,7 +38,6 @@ export function StudentProfile() {
   })
 
   const { data: userProfile } = api.user.getProfile.useQuery()
-  const { data: cursos } = api.course.getCourses.useQuery({ includeStats: false })
   const updateProfileMutation = api.user.updateProfile.useMutation()
 
   const aluno = userProfile?.studentProfile
@@ -50,7 +48,7 @@ export function StudentProfile() {
         nomeCompleto: aluno.nomeCompleto || "",
         matricula: aluno.matricula || "",
         cpf: aluno.cpf || "",
-        cursoId: aluno.cursoId || 0,
+        cursoNome: aluno.cursoNome || "",
         cr: aluno.cr || 0,
         banco: aluno.banco || "",
         agencia: aluno.agencia || "",
@@ -67,7 +65,7 @@ export function StudentProfile() {
           nomeCompleto: formData.nomeCompleto,
           matricula: formData.matricula,
           cpf: formData.cpf,
-          cursoId: formData.cursoId,
+          cursoNome: formData.cursoNome,
           cr: formData.cr,
           banco: formData.banco,
           agencia: formData.agencia,
@@ -97,7 +95,7 @@ export function StudentProfile() {
         nomeCompleto: aluno.nomeCompleto || "",
         matricula: aluno.matricula || "",
         cpf: aluno.cpf || "",
-        cursoId: aluno.cursoId || 0,
+        cursoNome: aluno.cursoNome || "",
         cr: aluno.cr || 0,
         banco: aluno.banco || "",
         agencia: aluno.agencia || "",
@@ -164,22 +162,14 @@ export function StudentProfile() {
             </div>
 
             <div>
-              <Label htmlFor="curso">Curso</Label>
-              <Select
-                value={formData.cursoId.toString()}
-                onValueChange={(value) => setFormData({ ...formData, cursoId: parseInt(value) })}
-              >
-                <SelectTrigger disabled={!isEditing}>
-                  <SelectValue placeholder="Selecione seu curso" />
-                </SelectTrigger>
-                <SelectContent>
-                  {cursos?.map((curso) => (
-                    <SelectItem key={curso.id} value={curso.id.toString()}>
-                      {curso.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="cursoNome">Curso</Label>
+              <Input
+                id="cursoNome"
+                value={formData.cursoNome}
+                onChange={(e) => setFormData({ ...formData, cursoNome: e.target.value })}
+                disabled={!isEditing}
+                placeholder="Digite o nome do seu curso"
+              />
             </div>
 
             <div>

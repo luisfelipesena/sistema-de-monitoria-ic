@@ -322,7 +322,7 @@ export default function ResultadosPage() {
                             </p>
                             <p className="text-sm text-muted-foreground mb-2">
                               Disciplinas:{" "}
-                              {inscricao.projeto.disciplinas.map((d) => `${d.codigo} (${d.turma})`).join(", ")}
+                              {inscricao.projeto.disciplinas.map((d) => d.codigo).join(", ")}
                             </p>
                             <div className="flex items-center gap-2 mb-3">
                               <StatusBadge status={status} />

@@ -1,6 +1,5 @@
 "use client"
 
-import { PlanilhaPROGRADDocument } from "@/components/features/prograd/PlanilhaPROGRAD"
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -8,18 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { SEMESTRE_1, SEMESTRE_2, Semestre, TIPO_PROPOSICAO_COLETIVA } from "@/types"
 import { api } from "@/utils/api"
-import { PDFViewer } from "@react-pdf/renderer"
-import { AlertTriangle, Eye, FileSpreadsheet, Mail, Send } from "lucide-react"
+import { AlertTriangle, Download, FileSpreadsheet, Mail, Send } from "lucide-react"
 import { useState } from "react"
 
 export default function PlanilhaPROGRADPage() {
   const { toast } = useToast()
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
   const [selectedSemester, setSelectedSemester] = useState<Semestre>(SEMESTRE_1)
-  const [showPreview, setShowPreview] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
 
   const {
@@ -34,26 +32,63 @@ export default function PlanilhaPROGRADPage() {
     { enabled: false }
   )
 
+  const { data: emailDestinatarios } = api.analytics.getEmailDestinatarios.useQuery()
   const sendPlanilhaMutation = api.analytics.sendPlanilhaPROGRAD.useMutation()
-  const { data: departamentos } = api.configuracoes.getDepartamentos.useQuery()
-  const emailsInstituto = (departamentos || [])
-    .map((dep) => dep.emailInstituto)
-    .filter((email): email is string => Boolean(email))
 
   const handleLoadData = () => {
     refetch()
   }
 
-  const handlePreview = () => {
+  const handleDownloadCSV = () => {
     if (!planilhaData?.projetos?.length) {
       toast({
         title: "Aviso",
-        description: "Carregue os dados primeiro para visualizar a planilha.",
+        description: "Carregue os dados primeiro para baixar o CSV.",
         variant: "destructive",
       })
       return
     }
-    setShowPreview(true)
+
+    const headers = [
+      "Unidade Universitária",
+      "Órgão Responsável",
+      "CÓDIGO",
+      "Componente Curricular: NOME",
+      "Professor Responsável",
+      "Professores Participantes",
+      "Link PDF",
+    ]
+
+    const escapeCSV = (value: string) => {
+      if (value.includes(",") || value.includes('"') || value.includes("\n")) {
+        return `"${value.replace(/"/g, '""')}"`
+      }
+      return value
+    }
+
+    const rows = planilhaData.projetos.map((p) => [
+      escapeCSV("Instituto de Computação"),
+      escapeCSV(p.departamentoNome),
+      escapeCSV(p.codigo),
+      escapeCSV(p.disciplinaNome),
+      escapeCSV(p.professorNome),
+      escapeCSV(p.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? p.professoresParticipantes : ""),
+      escapeCSV(p.linkPDF),
+    ])
+
+    const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `Planilha_PROGRAD_${selectedYear}_${selectedSemester === SEMESTRE_1 ? "1" : "2"}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+
+    toast({
+      title: "Download iniciado",
+      description: "O arquivo CSV está sendo baixado.",
+    })
   }
 
   const handleSendEmail = async () => {
@@ -66,10 +101,11 @@ export default function PlanilhaPROGRADPage() {
       return
     }
 
-    if (!emailsInstituto.length) {
+    const hasEmails = emailDestinatarios?.icEmail || emailDestinatarios?.departamentoEmail
+    if (!hasEmails) {
       toast({
         title: "Configuração pendente",
-        description: "Cadastre o email institucional na página de configurações antes de enviar.",
+        description: "Configure os emails na página de configurações antes de enviar.",
         variant: "destructive",
       })
       return
@@ -98,6 +134,7 @@ export default function PlanilhaPROGRADPage() {
 
   const semestreDisplay = selectedSemester === SEMESTRE_1 ? "1" : "2"
   const totalProjetos = planilhaData?.projetos?.length || 0
+  const hasEmails = emailDestinatarios?.icEmail || emailDestinatarios?.departamentoEmail
 
   return (
     <PagesLayout title="Planilha para Instituto" subtitle="Gere a planilha oficial e envie ao Instituto (IC)">
@@ -181,13 +218,13 @@ export default function PlanilhaPROGRADPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button onClick={handlePreview} variant="outline">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Visualizar Planilha
+                    <Button onClick={handleDownloadCSV} variant="outline">
+                      <Download className="h-4 w-4 mr-2" />
+                      Baixar CSV
                     </Button>
                     <Button onClick={() => setShowEmailModal(true)} className="bg-blue-600 hover:bg-blue-700">
                       <Mail className="h-4 w-4 mr-2" />
-                      Enviar ao Instituto
+                      Enviar por Email
                     </Button>
                   </div>
                 </div>
@@ -203,44 +240,102 @@ export default function PlanilhaPROGRADPage() {
           </Card>
         )}
 
-        {/* Modal de Visualização */}
-        <Dialog open={showPreview} onOpenChange={setShowPreview}>
-          <DialogContent className="max-w-6xl max-h-[90vh]">
-            <DialogHeader>
-              <DialogTitle>
-                Planilha para Instituto - {selectedYear}.{semestreDisplay}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="h-[80vh] w-full">
-              {planilhaData && (
-                <PDFViewer width="100%" height="100%">
-                  <PlanilhaPROGRADDocument data={planilhaData} />
-                </PDFViewer>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Preview da Planilha */}
+        {planilhaData && planilhaData.projetos.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Prévia da Planilha</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[120px]">Unidade</TableHead>
+                      <TableHead className="min-w-[150px]">Órgão Responsável</TableHead>
+                      <TableHead className="min-w-[80px]">Código</TableHead>
+                      <TableHead className="min-w-[200px]">Componente Curricular</TableHead>
+                      <TableHead className="min-w-[150px]">Professor Responsável</TableHead>
+                      <TableHead className="min-w-[150px]">Prof. Participantes</TableHead>
+                      <TableHead className="min-w-[80px]">PDF</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {planilhaData.projetos.map((projeto, idx) => (
+                      <TableRow key={projeto.id}>
+                        <TableCell className="text-sm">Instituto de Computação</TableCell>
+                        <TableCell className="text-sm">{projeto.departamentoNome}</TableCell>
+                        <TableCell className="text-sm font-mono">{projeto.codigo}</TableCell>
+                        <TableCell className="text-sm">{projeto.disciplinaNome}</TableCell>
+                        <TableCell className="text-sm">{projeto.professorNome}</TableCell>
+                        <TableCell className="text-sm">
+                          {projeto.tipoProposicao === TIPO_PROPOSICAO_COLETIVA
+                            ? projeto.professoresParticipantes
+                            : "-"}
+                        </TableCell>
+                        <TableCell>
+                          <a
+                            href={projeto.linkPDF}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline text-sm"
+                          >
+                            Ver
+                          </a>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Modal de Envio por Email */}
         <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Enviar Planilha ao Instituto</DialogTitle>
+              <DialogTitle>Enviar Planilha por Email</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <Alert variant={emailsInstituto.length ? "default" : "destructive"}>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  {emailsInstituto.length
-                    ? `A planilha será enviada para: ${emailsInstituto.join(", ")}`
-                    : "Nenhum email institucional configurado. Atualize as configurações antes de prosseguir."}
-                </AlertDescription>
-              </Alert>
+              <div className="p-4 bg-blue-50 rounded-lg space-y-2">
+                <p className="text-sm font-medium text-blue-900">Destinatários:</p>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  {emailDestinatarios?.icEmail && (
+                    <li className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span>Instituto de Computação: <strong>{emailDestinatarios.icEmail}</strong></span>
+                    </li>
+                  )}
+                  {emailDestinatarios?.departamentoEmail && (
+                    <li className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span>
+                        {emailDestinatarios.departamentoNome || "Departamento"}:{" "}
+                        <strong>{emailDestinatarios.departamentoEmail}</strong>
+                      </span>
+                    </li>
+                  )}
+                </ul>
+              </div>
 
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  A planilha será gerada com {totalProjetos} projeto(s) aprovados referentes a {selectedYear}.
-                  {semestreDisplay}.
+              {!hasEmails && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Nenhum email configurado. Acesse a página de Configurações para definir os emails.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  A planilha com <strong>{totalProjetos} projeto(s)</strong> aprovados referentes a{" "}
+                  <strong>
+                    {selectedYear}.{semestreDisplay}
+                  </strong>{" "}
+                  será enviada em formato CSV.
                 </p>
               </div>
 
@@ -250,7 +345,7 @@ export default function PlanilhaPROGRADPage() {
                 </Button>
                 <Button
                   onClick={handleSendEmail}
-                  disabled={sendPlanilhaMutation.isPending || emailsInstituto.length === 0}
+                  disabled={sendPlanilhaMutation.isPending || !hasEmails}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   <Send className="h-4 w-4 mr-2" />

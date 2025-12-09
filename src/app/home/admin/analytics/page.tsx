@@ -15,7 +15,6 @@ import {
   Building,
   ClipboardList,
   FileText,
-  GraduationCap,
   PieChart,
   TrendingUp,
   UserCheck,
@@ -137,7 +136,7 @@ export default function AnalyticsPage() {
         {/* Métricas de Usuários */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Usuários do Sistema</h2>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start">
@@ -169,18 +168,6 @@ export default function AnalyticsPage() {
                   <div className="ml-2">
                     <p className="text-sm font-medium text-muted-foreground">Departamentos</p>
                     <div className="text-2xl font-bold text-orange-600">{metrics.totalDepartamentos}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-start">
-                  <GraduationCap className="h-4 w-4 text-purple-600" />
-                  <div className="ml-2">
-                    <p className="text-sm font-medium text-muted-foreground">Cursos</p>
-                    <div className="text-2xl font-bold text-purple-600">{metrics.totalCursos}</div>
                   </div>
                 </div>
               </CardContent>
@@ -322,29 +309,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Métricas de Engajamento */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Alunos por Curso (Top 5)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {metrics.alunosPorCurso.slice(0, 5).map((curso, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{curso.curso}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">{curso.inscricoes} inscrições</span>
-                      <Badge variant="default">{curso.alunos} alunos</Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

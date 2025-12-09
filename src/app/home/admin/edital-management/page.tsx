@@ -10,6 +10,16 @@ import { RequestChefeSignatureDialog } from "@/components/features/edital/Reques
 import { PagesLayout } from "@/components/layout/PagesLayout";
 import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useEditalPdf } from "@/hooks/use-files";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -18,26 +28,39 @@ import {
   SEMESTRE_1,
   SEMESTRE_2,
   TIPO_EDITAL_DCC,
-  TIPO_EDITAL_PROGRAD,
+  TIPO_EDITAL_DCI,
 } from "@/types";
 import { api } from "@/utils/api";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-const editalFormSchema = z.object({
-  tipo: z.enum([TIPO_EDITAL_DCC, TIPO_EDITAL_PROGRAD]),
-  numeroEdital: z.string().min(1, "Número do edital é obrigatório"),
-  titulo: z.string().min(1, "Título é obrigatório"),
-  descricaoHtml: z.string().optional(),
-  valorBolsa: z.string(),
-  ano: z.number().int().min(2000).max(2100),
-  semestre: z.enum([SEMESTRE_1, SEMESTRE_2]),
-  dataInicio: z.date(),
-  dataFim: z.date(),
-});
+const editalFormSchema = z
+  .object({
+    tipo: z.enum([TIPO_EDITAL_DCC, TIPO_EDITAL_DCI]),
+    numeroEdital: z.string().min(1, "Número do edital é obrigatório"),
+    titulo: z.string().min(1, "Título é obrigatório"),
+    descricaoHtml: z.string().optional(),
+    valorBolsa: z.string(),
+    ano: z.number().int().min(2000).max(2100),
+    semestre: z.enum([SEMESTRE_1, SEMESTRE_2]),
+    // Datas de INSCRIÇÃO
+    dataInicioInscricao: z.date(),
+    dataFimInscricao: z.date(),
+    // Datas de SELEÇÃO (prova) - opcionais
+    dataInicioSelecao: z.date().optional(),
+    dataFimSelecao: z.date().optional(),
+    // Data divulgação
+    dataDivulgacaoResultado: z.date().optional(),
+    // Link formulário
+    linkFormularioInscricao: z.string().url().optional().or(z.literal("")),
+  })
+  .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
+    message: "Data fim de inscrição deve ser posterior à data início",
+    path: ["dataFimInscricao"],
+  });
 
 export default function EditalManagementPage() {
   const { toast } = useToast();
@@ -45,7 +68,9 @@ export default function EditalManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSignatureDialogOpen, setIsSignatureDialogOpen] = useState(false);
+  const [isEditNumeroDialogOpen, setIsEditNumeroDialogOpen] = useState(false);
   const [selectedEdital, setSelectedEdital] = useState<EditalListItem | null>(null);
+  const [numeroEditalEdit, setNumeroEditalEdit] = useState("");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
 
   const { data: editais, isLoading, refetch } = api.edital.getEditais.useQuery();
@@ -77,6 +102,26 @@ export default function EditalManagementPage() {
       });
       setIsEditDialogOpen(false);
       setSelectedEdital(null);
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: `Erro: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateNumeroEditalMutation = api.edital.updateNumeroEdital.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Sucesso!",
+        description: "Número do edital atualizado!",
+      });
+      setIsEditNumeroDialogOpen(false);
+      setSelectedEdital(null);
+      setNumeroEditalEdit("");
       refetch();
     },
     onError: (error) => {
@@ -172,8 +217,12 @@ export default function EditalManagementPage() {
       valorBolsa: "400.00",
       ano: new Date().getFullYear(),
       semestre: SEMESTRE_1,
-      dataInicio: new Date(),
-      dataFim: new Date(new Date().setDate(new Date().getDate() + 30)),
+      dataInicioInscricao: new Date(),
+      dataFimInscricao: new Date(new Date().setDate(new Date().getDate() + 30)),
+      dataInicioSelecao: undefined,
+      dataFimSelecao: undefined,
+      dataDivulgacaoResultado: undefined,
+      linkFormularioInscricao: "",
     },
   });
 
@@ -187,18 +236,58 @@ export default function EditalManagementPage() {
       valorBolsa: "400.00",
       ano: new Date().getFullYear(),
       semestre: SEMESTRE_1,
-      dataInicio: new Date(),
-      dataFim: new Date(new Date().setDate(new Date().getDate() + 30)),
+      dataInicioInscricao: new Date(),
+      dataFimInscricao: new Date(new Date().setDate(new Date().getDate() + 30)),
+      dataInicioSelecao: undefined,
+      dataFimSelecao: undefined,
+      dataDivulgacaoResultado: undefined,
+      linkFormularioInscricao: "",
     },
   });
 
   const handleCreate = (data: EditalFormData) => {
-    createEditalMutation.mutate(data);
+    createEditalMutation.mutate({
+      tipo: data.tipo,
+      numeroEdital: data.numeroEdital,
+      titulo: data.titulo,
+      descricaoHtml: data.descricaoHtml,
+      valorBolsa: data.valorBolsa,
+      ano: data.ano,
+      semestre: data.semestre,
+      dataInicioInscricao: data.dataInicioInscricao,
+      dataFimInscricao: data.dataFimInscricao,
+      dataInicioSelecao: data.dataInicioSelecao,
+      dataFimSelecao: data.dataFimSelecao,
+      dataDivulgacaoResultado: data.dataDivulgacaoResultado,
+      linkFormularioInscricao: data.linkFormularioInscricao || undefined,
+    });
   };
 
   const handleEdit = (data: EditalFormData) => {
     if (!selectedEdital) return;
-    updateEditalMutation.mutate({ id: selectedEdital.id, ...data });
+    updateEditalMutation.mutate({
+      id: selectedEdital.id,
+      numeroEdital: data.numeroEdital,
+      titulo: data.titulo,
+      descricaoHtml: data.descricaoHtml,
+      valorBolsa: data.valorBolsa,
+      ano: data.ano,
+      semestre: data.semestre,
+      dataInicioInscricao: data.dataInicioInscricao,
+      dataFimInscricao: data.dataFimInscricao,
+      dataInicioSelecao: data.dataInicioSelecao,
+      dataFimSelecao: data.dataFimSelecao,
+      dataDivulgacaoResultado: data.dataDivulgacaoResultado,
+      linkFormularioInscricao: data.linkFormularioInscricao || null,
+    });
+  };
+
+  const handleEditNumero = () => {
+    if (!selectedEdital || !numeroEditalEdit.trim()) return;
+    updateNumeroEditalMutation.mutate({
+      id: selectedEdital.id,
+      numeroEdital: numeroEditalEdit,
+    });
   };
 
   const handleDelete = (id: number) => {
@@ -216,7 +305,6 @@ export default function EditalManagementPage() {
   };
 
   const handleUploadSigned = async (editalId: number) => {
-    // This would open a file picker dialog in a real implementation
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "application/pdf";
@@ -289,25 +377,38 @@ export default function EditalManagementPage() {
   const openEditDialog = (edital: EditalListItem) => {
     setSelectedEdital(edital);
     editForm.reset({
-      tipo: (edital.tipo as typeof TIPO_EDITAL_DCC | typeof TIPO_EDITAL_PROGRAD) || TIPO_EDITAL_DCC,
+      tipo: (edital.tipo as typeof TIPO_EDITAL_DCC | typeof TIPO_EDITAL_DCI) || TIPO_EDITAL_DCC,
       numeroEdital: edital.numeroEdital,
       titulo: edital.titulo,
       descricaoHtml: edital.descricaoHtml || "",
-      valorBolsa: "400.00", // Default value since EditalListItem doesn't have valorBolsa
+      valorBolsa: "400.00",
       ano: edital.periodoInscricao?.ano || new Date().getFullYear(),
       semestre: edital.periodoInscricao?.semestre || SEMESTRE_1,
-      dataInicio: edital.periodoInscricao?.dataInicio
+      dataInicioInscricao: edital.periodoInscricao?.dataInicio
         ? new Date(edital.periodoInscricao.dataInicio)
         : new Date(),
-      dataFim: edital.periodoInscricao?.dataFim
+      dataFimInscricao: edital.periodoInscricao?.dataFim
         ? new Date(edital.periodoInscricao.dataFim)
         : new Date(),
+      dataInicioSelecao: edital.dataInicioSelecao ? new Date(edital.dataInicioSelecao) : undefined,
+      dataFimSelecao: edital.dataFimSelecao ? new Date(edital.dataFimSelecao) : undefined,
+      dataDivulgacaoResultado: edital.dataDivulgacaoResultado
+        ? new Date(edital.dataDivulgacaoResultado)
+        : undefined,
+      linkFormularioInscricao: edital.linkFormularioInscricao || "",
     });
     setIsEditDialogOpen(true);
   };
 
+  const openEditNumeroDialog = (edital: EditalListItem) => {
+    setSelectedEdital(edital);
+    setNumeroEditalEdit(edital.numeroEdital);
+    setIsEditNumeroDialogOpen(true);
+  };
+
   const columns = createEditalTableColumns({
     onEdit: openEditDialog,
+    onEditNumero: openEditNumeroDialog,
     onDelete: handleDelete,
     onViewPdf: handleViewPdf,
     onPublish: handlePublish,
@@ -375,6 +476,47 @@ export default function EditalManagementPage() {
           description="Atualize as informações do edital"
           submitLabel="Salvar Alterações"
         />
+
+        {/* Dialog para editar apenas o número do edital */}
+        <Dialog open={isEditNumeroDialogOpen} onOpenChange={setIsEditNumeroDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar Número do Edital</DialogTitle>
+              <DialogDescription>
+                Altere apenas o número do edital sem modificar outras informações.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="numeroEdital">Número do Edital</Label>
+                <Input
+                  id="numeroEdital"
+                  value={numeroEditalEdit}
+                  onChange={(e) => setNumeroEditalEdit(e.target.value)}
+                  placeholder="Ex: 001/2024"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsEditNumeroDialogOpen(false);
+                  setSelectedEdital(null);
+                  setNumeroEditalEdit("");
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleEditNumero}
+                disabled={updateNumeroEditalMutation.isPending || !numeroEditalEdit.trim()}
+              >
+                {updateNumeroEditalMutation.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <RequestChefeSignatureDialog
           open={isSignatureDialogOpen}

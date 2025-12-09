@@ -40,7 +40,6 @@ export * from './selecao-inputs'
 export * from './auth'
 
 // Academic structure
-export * from './course'
 export * from './department'
 export * from './discipline'
 

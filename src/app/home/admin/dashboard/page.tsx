@@ -6,7 +6,6 @@ import { DashboardTabs } from "@/components/features/admin/dashboard/DashboardTa
 import { ProfessoresTable } from "@/components/features/admin/dashboard/ProfessoresTable"
 import { ProjectsTable } from "@/components/features/admin/dashboard/ProjectsTable"
 import { PagesLayout } from "@/components/layout/PagesLayout"
-import { FilterModal } from "@/components/ui/FilterModal"
 import { useDashboard } from "@/hooks/features/useDashboard"
 import { useProactiveRemindersBackground } from "@/hooks/use-proactive-reminders"
 import { Loader } from "lucide-react"
@@ -17,13 +16,11 @@ export default function DashboardAdmin() {
   const {
     abaAtiva,
     setAbaAtiva,
-    filterModalOpen,
-    setFilterModalOpen,
-    filters,
     groupedView,
     setGroupedView,
+    columnFilters,
+    setColumnFilters,
     deletingProjetoId,
-    activeFilters,
     projetos,
     professores,
     alunos,
@@ -32,7 +29,6 @@ export default function DashboardAdmin() {
     loadingUsers,
     handleAnalisarProjeto,
     handleEditarUsuario,
-    handleApplyFilters,
     handleDeleteProjeto,
   } = useDashboard()
 
@@ -40,13 +36,11 @@ export default function DashboardAdmin() {
     <DashboardActions
       abaAtiva={abaAtiva}
       groupedView={groupedView}
-      activeFilters={activeFilters}
       onToggleGroupedView={() => {
         if (abaAtiva === "projetos") {
           setGroupedView(!groupedView)
         }
       }}
-      onOpenFilters={() => setFilterModalOpen(true)}
     />
   )
 
@@ -70,6 +64,8 @@ export default function DashboardAdmin() {
                 deletingProjetoId={deletingProjetoId}
                 onAnalisarProjeto={handleAnalisarProjeto}
                 onDeleteProjeto={handleDeleteProjeto}
+                columnFilters={columnFilters}
+                onColumnFiltersChange={setColumnFilters}
               />
             </>
           )}
@@ -102,13 +98,6 @@ export default function DashboardAdmin() {
         </>
       )}
 
-      <FilterModal
-        open={filterModalOpen}
-        onOpenChange={setFilterModalOpen}
-        type="admin"
-        onApplyFilters={handleApplyFilters}
-        initialFilters={filters}
-      />
     </PagesLayout>
   )
 }

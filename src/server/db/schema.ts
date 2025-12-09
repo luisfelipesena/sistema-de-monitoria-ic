@@ -25,11 +25,15 @@ export const userRoleEnum = pgEnum('user_role', [
   // 'monitor', // Monitor is an implicit role based on 'vaga' association, not a direct user role initially
 ])
 
+// Admin type - DCC or DCI (only applicable when role is 'admin')
+export const adminTypeEnum = pgEnum('admin_type_enum', ['DCC', 'DCI'])
+
 export const userTable = pgTable('user', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(), // UFBA Login
   email: text('email').notNull().unique(), // UFBA Email
   role: userRoleEnum('role').notNull().default('student'), // Default to student
+  adminType: adminTypeEnum('admin_type'), // DCC or DCI - only for admins, null for others
   // Assinatura padrão para admins
   assinaturaDefault: text('assinatura_default'), // Base64 data URL da assinatura
   dataAssinaturaDefault: timestamp('data_assinatura_default', {
@@ -93,7 +97,7 @@ export const tipoProposicaoEnum = pgEnum('tipo_proposicao_enum', ['INDIVIDUAL', 
 
 export const tipoVagaEnum = pgEnum('tipo_vaga_enum', ['BOLSISTA', 'VOLUNTARIO'])
 
-export const tipoEditalEnum = pgEnum('tipo_edital_enum', ['DCC', 'PROGRAD'])
+export const tipoEditalEnum = pgEnum('tipo_edital_enum', ['DCC', 'DCI'])
 
 export const projetoStatusEnum = pgEnum('projeto_status_enum', [
   'DRAFT', // Professor creating the project
@@ -106,6 +110,12 @@ export const projetoStatusEnum = pgEnum('projeto_status_enum', [
 export const generoEnum = pgEnum('genero_enum', ['MASCULINO', 'FEMININO', 'OUTRO'])
 
 export const regimeEnum = pgEnum('regime_enum', ['20H', '40H', 'DE'])
+
+// Tipo do professor: substituto ou efetivo
+export const tipoProfessorEnum = pgEnum('tipo_professor_enum', ['SUBSTITUTO', 'EFETIVO'])
+
+// Status da conta do professor (para fluxo de convite)
+export const professorAccountStatusEnum = pgEnum('professor_account_status_enum', ['PENDING', 'ACTIVE', 'INACTIVE'])
 
 export const tipoInscricaoEnum = pgEnum('tipo_inscricao_enum', [
   'BOLSISTA',
@@ -193,6 +203,9 @@ export const projetoTable = pgTable('projeto', {
   editalInternoId: integer('edital_interno_id').references(() => editalTable.id), // Optional reference to internal DCC edital
   dataSelecaoEscolhida: date('data_selecao_escolhida', { mode: 'date' }), // Data escolhida pelo professor dentre as disponíveis
   horarioSelecao: varchar('horario_selecao', { length: 20 }), // Horário da seleção (ex: "14:00-16:00")
+  localSelecao: varchar('local_selecao', { length: 255 }), // Local da seleção (ex: "Sala 101, PAF I")
+  bibliografia: text('bibliografia'), // Bibliografia para seleção
+  pontosProva: text('pontos_prova'), // Pontos/tópicos da prova de seleção
   status: projetoStatusEnum('status').notNull().default('DRAFT'),
   assinaturaProfessor: text('assinatura_professor'), // base64 data URL
   // analiseSubmissao: text('analise_submissao'), // Renamed/Repurposed
@@ -311,6 +324,8 @@ export const professorTable = pgTable('professor', {
   matriculaSiape: varchar('matricula_siape'),
   genero: generoEnum('genero'),
   regime: regimeEnum('regime'),
+  tipoProfessor: tipoProfessorEnum('tipo_professor').notNull().default('EFETIVO'),
+  accountStatus: professorAccountStatusEnum('account_status').notNull().default('ACTIVE'),
   especificacaoGenero: varchar('especificacao_genero'),
   cpf: varchar('cpf'), // Unique?
   telefone: varchar('telefone'),
@@ -344,10 +359,9 @@ export const disciplinaTable = pgTable(
     id: serial('id').primaryKey(),
     nome: varchar('nome').notNull(),
     codigo: varchar('codigo').notNull(),
-    turma: varchar('turma').notNull().default('T1'), // T1, T2, etc.
     departamentoId: integer('departamento_id')
       .references(() => departamentoTable.id)
-      .notNull(), // Add department link
+      .notNull(),
     createdAt: timestamp('created_at', {
       withTimezone: true,
       mode: 'date',
@@ -365,10 +379,7 @@ export const disciplinaTable = pgTable(
   },
   (table) => {
     return {
-      codigoUnicoPorDepartamento: uniqueIndex('codigo_unico_por_departamento_idx').on(
-        table.codigo,
-        table.departamentoId
-      ),
+      codigoUnicoPorDepartamento: uniqueIndex('codigo_departamento_idx').on(table.codigo, table.departamentoId),
     }
   }
 )
@@ -395,7 +406,7 @@ export const alunoTable = pgTable('aluno', {
   conta: varchar('conta', { length: 30 }),
   digitoConta: varchar('digito_conta', { length: 2 }),
   enderecoId: integer('endereco_id').references(() => enderecoTable.id), // Nullable
-  cursoId: integer('curso_id').references(() => cursoTable.id),
+  cursoNome: varchar('curso_nome', { length: 255 }), // Nome do curso por extenso
   // Document file IDs for student documents
   historicoEscolarFileId: text('historico_escolar_file_id'),
   comprovanteMatriculaFileId: text('comprovante_matricula_file_id'),
@@ -435,38 +446,6 @@ export const enderecoTable = pgTable('endereco', {
   //   withTimezone: true,
   //   mode: 'date',
   // }), // Usually not soft deleted
-})
-
-// Enums para curso
-export const tipoCursoEnum = pgEnum('tipo_curso_enum', ['BACHARELADO', 'LICENCIATURA', 'TECNICO', 'POS_GRADUACAO'])
-export const modalidadeCursoEnum = pgEnum('modalidade_curso_enum', ['PRESENCIAL', 'EAD', 'HIBRIDO'])
-export const statusCursoEnum = pgEnum('status_curso_enum', ['ATIVO', 'INATIVO', 'EM_REFORMULACAO'])
-
-export const cursoTable = pgTable('curso', {
-  id: serial('id').primaryKey(),
-  nome: varchar('nome').notNull(),
-  codigo: integer('codigo').notNull(),
-  tipo: tipoCursoEnum('tipo').notNull(),
-  modalidade: modalidadeCursoEnum('modalidade').notNull(),
-  duracao: integer('duracao').notNull(), // em semestres
-  departamentoId: integer('departamento_id')
-    .references(() => departamentoTable.id)
-    .notNull(),
-  cargaHoraria: integer('carga_horaria').notNull(),
-  descricao: text('descricao'),
-  coordenador: varchar('coordenador'),
-  emailCoordenacao: varchar('email_coordenacao'),
-  status: statusCursoEnum('status').notNull().default('ATIVO'),
-  createdAt: timestamp('created_at', {
-    withTimezone: true,
-    mode: 'date',
-  })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', {
-    withTimezone: true,
-    mode: 'date',
-  }).$onUpdate(() => new Date()),
 })
 
 export const notaAlunoTable = pgTable('nota_aluno', {
@@ -633,16 +612,6 @@ export const departamentoRelations = relations(departamentoTable, ({ many }) => 
   projetos: many(projetoTable),
   professores: many(professorTable),
   disciplinas: many(disciplinaTable),
-  cursos: many(cursoTable),
-}))
-
-export const cursoRelations = relations(cursoTable, ({ one, many }) => ({
-  departamento: one(departamentoTable, {
-    fields: [cursoTable.departamentoId],
-    references: [departamentoTable.id],
-  }),
-  disciplinas: many(disciplinaTable),
-  alunos: many(alunoTable),
 }))
 
 export const projetoRelations = relations(projetoTable, ({ one, many }) => ({
@@ -732,10 +701,6 @@ export const alunoRelations = relations(alunoTable, ({ one, many }) => ({
   endereco: one(enderecoTable, {
     fields: [alunoTable.enderecoId],
     references: [enderecoTable.id],
-  }),
-  curso: one(cursoTable, {
-    fields: [alunoTable.cursoId],
-    references: [cursoTable.id],
   }),
   user: one(userTable, {
     fields: [alunoTable.userId],
@@ -924,18 +889,24 @@ export const editalTable = pgTable('edital', {
     .references(() => periodoInscricaoTable.id)
     .notNull()
     .unique(),
-  tipo: tipoEditalEnum('tipo').notNull().default('DCC'), // Tipo do edital: DCC (interno) ou PROGRAD
+  tipo: tipoEditalEnum('tipo').notNull().default('DCC'), // Tipo do edital: DCC ou DCI
   numeroEdital: varchar('numero_edital', { length: 50 }).notNull().unique(),
   titulo: varchar('titulo', { length: 255 }).notNull().default('Edital Interno de Seleção de Monitores'),
   descricaoHtml: text('descricao_html'),
   fileIdAssinado: text('file_id_assinado'), // PDF do edital assinado
-  fileIdProgradOriginal: text('file_id_prograd_original'), // PDF original da PROGRAD (quando tipo = PROGRAD)
+  fileIdPdfExterno: text('file_id_pdf_externo'), // PDF externo (ex: PROGRAD gera externamente e faz upload)
   dataPublicacao: date('data_publicacao', { mode: 'date' }),
   publicado: boolean('publicado').default(false).notNull(),
   valorBolsa: numeric('valor_bolsa', { precision: 10, scale: 2 }).default('400.00').notNull(), // Valor da bolsa para este edital
-  // Campos específicos para edital interno DCC
+  // Datas de inscrição (já existem no periodoInscricao, mas referenciadas aqui para clareza)
+  // Datas de seleção (prova)
+  dataInicioSelecao: date('data_inicio_selecao', { mode: 'date' }), // Data início da seleção/prova
+  dataFimSelecao: date('data_fim_selecao', { mode: 'date' }), // Data fim da seleção/prova
   datasProvasDisponiveis: text('datas_provas_disponiveis'), // JSON array de datas disponíveis para provas
-  dataDivulgacaoResultado: date('data_divulgacao_resultado', { mode: 'date' }), // Data limite para divulgação
+  dataDivulgacaoResultado: date('data_divulgacao_resultado', { mode: 'date' }), // Data limite para divulgação dos resultados
+  // Link para formulário de inscrição
+  linkFormularioInscricao: text('link_formulario_inscricao'), // URL do formulário de inscrição
+  // Campos específicos para edital interno
   pontosProva: text('pontos_prova'), // Pontos/tópicos específicos da prova para este edital
   bibliografia: text('bibliografia'), // Bibliografia específica para este edital
   // Campos de assinatura do chefe do departamento
@@ -986,6 +957,12 @@ export const professorInvitationTable = pgTable('professor_invitation', {
     // Usuário que aceitou (após criação/login)
     () => userTable.id
   ),
+  // Campos para pré-criação do professor (preenchidos no convite)
+  nomeCompleto: varchar('nome_completo', { length: 255 }),
+  departamentoId: integer('departamento_id').references(() => departamentoTable.id),
+  regime: regimeEnum('regime'),
+  tipoProfessor: tipoProfessorEnum('tipo_professor').default('EFETIVO'),
+  professorId: integer('professor_id').references(() => professorTable.id), // Professor criado ao enviar convite
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
 })
@@ -1000,6 +977,14 @@ export const professorInvitationRelations = relations(professorInvitationTable, 
     fields: [professorInvitationTable.acceptedByUserId],
     references: [userTable.id],
     relationName: 'acceptedByUser',
+  }),
+  departamento: one(departamentoTable, {
+    fields: [professorInvitationTable.departamentoId],
+    references: [departamentoTable.id],
+  }),
+  professor: one(professorTable, {
+    fields: [professorInvitationTable.professorId],
+    references: [professorTable.id],
   }),
 }))
 
@@ -1349,6 +1334,17 @@ export const reminderExecutionLogRelations = relations(reminderExecutionLogTable
   }),
 }))
 
+// --- System Configuration ---
+
+export const configuracaoSistemaTable = pgTable('configuracao_sistema', {
+  id: serial('id').primaryKey(),
+  chave: varchar('chave', { length: 100 }).notNull().unique(),
+  valor: text('valor'),
+  descricao: text('descricao'),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+})
+
 // Export all table and relation types for use across the app
 export type User = typeof userTable.$inferSelect
 export type NewUser = typeof userTable.$inferInsert
@@ -1362,8 +1358,6 @@ export type Departamento = typeof departamentoTable.$inferSelect
 export type NewDepartamento = typeof departamentoTable.$inferInsert
 export type Disciplina = typeof disciplinaTable.$inferSelect
 export type NewDisciplina = typeof disciplinaTable.$inferInsert
-export type Curso = typeof cursoTable.$inferSelect
-export type NewCurso = typeof cursoTable.$inferInsert
 export type PeriodoInscricao = typeof periodoInscricaoTable.$inferSelect
 export type NewPeriodoInscricao = typeof periodoInscricaoTable.$inferInsert
 export type Inscricao = typeof inscricaoTable.$inferSelect
@@ -1388,3 +1382,5 @@ export type EditalSignatureToken = typeof editalSignatureTokenTable.$inferSelect
 export type NewEditalSignatureToken = typeof editalSignatureTokenTable.$inferInsert
 export type ReminderExecutionLog = typeof reminderExecutionLogTable.$inferSelect
 export type NewReminderExecutionLog = typeof reminderExecutionLogTable.$inferInsert
+export type ConfiguracaoSistema = typeof configuracaoSistemaTable.$inferSelect
+export type NewConfiguracaoSistema = typeof configuracaoSistemaTable.$inferInsert

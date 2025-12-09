@@ -340,7 +340,6 @@ export class InscricaoRepository {
         id: disciplinaTable.id,
         nome: disciplinaTable.nome,
         codigo: disciplinaTable.codigo,
-        turma: disciplinaTable.turma,
       })
       .from(disciplinaTable)
       .innerJoin(projetoDisciplinaTable, eq(disciplinaTable.id, projetoDisciplinaTable.disciplinaId))

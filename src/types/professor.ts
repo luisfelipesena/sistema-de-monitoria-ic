@@ -2,6 +2,7 @@ import { z } from 'zod'
 import {
   Genero,
   generoSchema,
+  ProfessorAccountStatus,
   ProfessorInvitationStatus,
   professorInvitationStatusSchema,
   ProjetoStatus,
@@ -9,6 +10,8 @@ import {
   Regime,
   regimeSchema,
   Semestre,
+  TipoProfessor,
+  tipoProfessorSchema,
 } from './enums'
 import { cpfSchema } from './schemas'
 
@@ -25,6 +28,8 @@ export interface Professor {
   matriculaSiape?: string
   genero: Genero
   regime: Regime
+  tipoProfessor: TipoProfessor
+  accountStatus: ProfessorAccountStatus
   especificacaoGenero?: string
   cpf: string
   telefone?: string
@@ -46,6 +51,7 @@ export interface CreateProfessorInput {
   matriculaSiape?: string
   genero: Genero
   regime: Regime
+  tipoProfessor?: TipoProfessor
   especificacaoGenero?: string
   cpf: string
   telefone?: string
@@ -63,6 +69,12 @@ export interface ProfessorInvitation {
   expiresAt: Date
   invitedByUserId: number
   acceptedByUserId?: number
+  // Fields for pre-creating professor on invitation
+  nomeCompleto?: string
+  departamentoId?: number
+  regime?: Regime
+  tipoProfessor?: TipoProfessor
+  professorId?: number
   createdAt: Date
   updatedAt?: Date
 }
@@ -131,6 +143,13 @@ export interface InvitationItem {
     username: string
     email: string
   } | null
+  // Pre-created professor data
+  nomeCompleto?: string | null
+  departamentoId?: number | null
+  departamentoNome?: string | null
+  regime?: Regime | null
+  tipoProfessor?: TipoProfessor | null
+  professorId?: number | null
 }
 
 // ========================================
@@ -145,6 +164,7 @@ export const createProfessorSchema = z.object({
   matriculaSiape: z.string().optional(),
   genero: generoSchema,
   regime: regimeSchema,
+  tipoProfessor: tipoProfessorSchema.optional().default('EFETIVO'),
   especificacaoGenero: z.string().optional(),
   cpf: cpfSchema,
   telefone: z.string().optional(),
@@ -168,12 +188,19 @@ export const professorInvitationSchema = z.object({
 
 export const inviteFormSchema = z.object({
   email: z.string().email(),
-  message: z.string().optional(),
+  nomeCompleto: z.string().min(1, 'Nome é obrigatório'),
+  departamentoId: z.number().int().positive('Departamento é obrigatório'),
+  regime: regimeSchema,
+  tipoProfessor: tipoProfessorSchema,
   expiresInDays: z.number().int().min(1).max(30),
 })
 
 export const sendInvitationSchema = z.object({
   email: z.string().email(),
+  nomeCompleto: z.string().min(1),
+  departamentoId: z.number().int().positive(),
+  regime: regimeSchema,
+  tipoProfessor: tipoProfessorSchema.default('EFETIVO'),
   expiresInDays: z.number().int().min(1).max(30).default(7),
 })
 

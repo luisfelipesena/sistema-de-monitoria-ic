@@ -1,21 +1,17 @@
 import { Button } from '@/components/ui/button'
-import { Download, Filter, FileSignature, FolderKanban, User } from 'lucide-react'
+import { Download, FileSignature, FolderKanban, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 interface DashboardActionsProps {
   abaAtiva: 'projetos' | 'professores' | 'alunos'
   groupedView: boolean
-  activeFilters: number
   onToggleGroupedView: () => void
-  onOpenFilters: () => void
 }
 
 export function DashboardActions({
   abaAtiva,
   groupedView,
-  activeFilters,
   onToggleGroupedView,
-  onOpenFilters,
 }: DashboardActionsProps) {
   const router = useRouter()
 
@@ -78,20 +74,6 @@ export function DashboardActions({
         <FolderKanban className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
         <span className="hidden sm:inline">{groupedView ? 'Visão Normal' : 'Agrupar por Departamento'}</span>
         <span className="sm:hidden">{groupedView ? 'Normal' : 'Agrupar'}</span>
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onOpenFilters}
-        className="relative text-xs sm:text-sm px-2 sm:px-4"
-      >
-        <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-        Filtros
-        {activeFilters > 0 && (
-          <span className="absolute -top-1 -right-1 bg-blue-600 text-white sm:text-xs rounded-full px-1.5 sm:px-2 py-0.5">
-            {activeFilters}
-          </span>
-        )}
       </Button>
     </div>
   )

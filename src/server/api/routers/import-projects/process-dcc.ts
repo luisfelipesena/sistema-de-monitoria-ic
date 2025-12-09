@@ -1,6 +1,7 @@
 import type { TRPCContext } from '@/server/api/trpc'
 import {
   atividadeProjetoTable,
+  departamentoTable,
   disciplinaProfessorResponsavelTable,
   disciplinaTable,
   importacaoPlanejamentoTable,
@@ -12,7 +13,7 @@ import {
 } from '@/server/db/schema'
 import { sendProjectCreationNotification } from '@/server/lib/email'
 import minioClient, { bucketName as MINIO_BUCKET } from '@/server/lib/minio'
-import { groupByDisciplinaTurma, parsePlanejamentoDCC } from '@/server/lib/planejamento-dcc-parser'
+import { groupByDisciplina, parsePlanejamentoDCC } from '@/server/lib/planejamento-dcc-parser'
 import {
   IMPORT_STATUS_CONCLUIDO,
   IMPORT_STATUS_CONCLUIDO_COM_ERROS,
@@ -23,6 +24,7 @@ import {
   type ImportStatus,
 } from '@/types'
 import { logger } from '@/utils/logger'
+import { findMatchingProfessors } from '@/utils/string-normalization'
 import { TRPCError } from '@trpc/server'
 import { and, eq, inArray } from 'drizzle-orm'
 
@@ -76,10 +78,32 @@ export async function processImportedFileDCC(importacaoId: number, ctx: TRPCCont
       'Planilha DCC parseada'
     )
 
-    // Agrupar por disciplina+turma
-    const grouped = groupByDisciplinaTurma(parsed.rows)
+    // Agrupar por disciplina (código)
+    const grouped = groupByDisciplina(parsed.rows)
 
-    // Processar cada disciplina+turma
+    // Buscar departamento DCC para auto-criação de disciplinas
+    const dccDepartamento = await ctx.db.query.departamentoTable.findFirst({
+      where: eq(departamentoTable.sigla, 'DCC'),
+    })
+
+    if (!dccDepartamento) {
+      erros.push('Departamento DCC não encontrado no sistema. Certifique-se de que existe.')
+    }
+
+    // Cache de professores para busca fuzzy
+    const allProfessors = await ctx.db.query.professorTable.findMany({
+      with: {
+        user: {
+          columns: {
+            id: true,
+            email: true,
+            username: true,
+          },
+        },
+      },
+    })
+
+    // Processar cada disciplina
     for (const [_key, entries] of grouped.entries()) {
       if (Date.now() - startTime > TIMEOUT_MS) {
         erros.push('Timeout: Importação cancelada devido ao tempo limite excedido')
@@ -89,51 +113,69 @@ export async function processImportedFileDCC(importacaoId: number, ctx: TRPCCont
       try {
         const firstEntry = entries[0]
 
-        // Buscar disciplina
-        const disciplina = await ctx.db.query.disciplinaTable.findFirst({
+        // Buscar ou criar disciplina
+        let disciplina = await ctx.db.query.disciplinaTable.findFirst({
           where: eq(disciplinaTable.codigo, firstEntry.disciplinaCodigo),
         })
 
         if (!disciplina) {
-          erros.push(
-            `Disciplina ${firstEntry.disciplinaCodigo} (${firstEntry.disciplinaNome}) não encontrada no sistema`
-          )
-          projetosComErro++
-          continue
+          // Auto-criar disciplina se departamento DCC existe
+          if (dccDepartamento) {
+            const [novaDisciplina] = await ctx.db
+              .insert(disciplinaTable)
+              .values({
+                codigo: firstEntry.disciplinaCodigo,
+                nome: firstEntry.disciplinaNome,
+                departamentoId: dccDepartamento.id,
+              })
+              .returning()
+
+            disciplina = novaDisciplina
+            warnings.push(
+              `Disciplina ${firstEntry.disciplinaCodigo} (${firstEntry.disciplinaNome}) criada automaticamente`
+            )
+            log.info(
+              { disciplinaId: disciplina.id, codigo: firstEntry.disciplinaCodigo },
+              'Disciplina criada automaticamente'
+            )
+          } else {
+            erros.push(
+              `Disciplina ${firstEntry.disciplinaCodigo} (${firstEntry.disciplinaNome}) não encontrada e não foi possível criar (DCC não existe)`
+            )
+            projetosComErro++
+            continue
+          }
         }
 
-        // Buscar professores por NOME
+        // Buscar professores por NOME usando fuzzy matching
         const professoresNomes = entries.map((e) => e.professorNome)
-        const professores = []
+        const professores: typeof allProfessors = []
 
         for (const nomeProf of professoresNomes) {
-          const professor = await ctx.db.query.professorTable.findFirst({
-            where: (prof, { ilike, or, eq: eqOp }) =>
-              or(
-                ilike(prof.nomeCompleto, `%${nomeProf}%`),
-                ilike(prof.nomeCompleto, `${nomeProf}%`),
-                eqOp(prof.nomeCompleto, nomeProf)
-              ),
-            with: {
-              user: {
-                columns: {
-                  id: true,
-                  email: true,
-                  username: true,
-                },
-              },
-            },
-          })
+          // Use fuzzy matching by first name
+          const matches = findMatchingProfessors(nomeProf, allProfessors)
 
-          if (professor) {
-            professores.push(professor)
+          if (matches.length > 0) {
+            // Take the first match (alphabetically sorted)
+            const professor = matches[0]
+            // Avoid duplicates
+            if (!professores.find((p) => p.id === professor.id)) {
+              professores.push(professor)
+            }
+            if (matches.length > 1) {
+              warnings.push(
+                `Professor "${nomeProf}" tem ${matches.length} possíveis matches. Usando: ${professor.nomeCompleto}`
+              )
+            }
           } else {
             warnings.push(`Professor "${nomeProf}" não encontrado no sistema para ${firstEntry.disciplinaCodigo}`)
           }
         }
 
         if (professores.length === 0) {
-          erros.push(`Nenhum professor encontrado para ${firstEntry.disciplinaCodigo}: ${professoresNomes.join(', ')}`)
+          warnings.push(
+            `Nenhum professor encontrado para ${firstEntry.disciplinaCodigo}: ${professoresNomes.join(', ')} - projeto não criado`
+          )
           projetosComErro++
           continue
         }
@@ -243,7 +285,6 @@ export async function processImportedFileDCC(importacaoId: number, ctx: TRPCCont
           {
             projetoId: projeto.id,
             disciplina: firstEntry.disciplinaCodigo,
-            turma: firstEntry.turma,
             tipo: tipoProposicao,
             professores: professores.length,
           },

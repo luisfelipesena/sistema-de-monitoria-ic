@@ -35,30 +35,24 @@ export interface Edital {
   titulo: string
   descricaoHtml?: string
   fileIdAssinado?: string
-  fileIdProgradOriginal?: string
+  fileIdPdfExterno?: string
   dataPublicacao?: Date
   publicado: boolean
   valorBolsa: string
+  // Datas de seleção
+  dataInicioSelecao?: Date
+  dataFimSelecao?: Date
+  datasProvasDisponiveis?: string
+  dataDivulgacaoResultado?: Date
+  // Link para formulário
+  linkFormularioInscricao?: string
+  // Campos específicos
+  pontosProva?: string
+  bibliografia?: string
   criadoPorUserId: number
   createdAt: Date
   updatedAt?: Date
 }
-
-// NOTE: CreateEditalInput is now defined in edital-inputs.ts
-// Keeping this as a reference but commented out to avoid duplicate exports
-// export interface CreateEditalInput {
-//   periodoInscricaoId: number
-//   tipo: TipoEdital
-//   numeroEdital: string
-//   titulo: string
-//   descricaoHtml?: string
-//   fileIdAssinado?: string
-//   fileIdProgradOriginal?: string
-//   dataPublicacao?: Date
-//   publicado?: boolean
-//   valorBolsa?: string
-//   criadoPorUserId: number
-// }
 
 export interface EditalListItem {
   id: number
@@ -66,9 +60,17 @@ export interface EditalListItem {
   titulo: string
   descricaoHtml: string | null
   fileIdAssinado: string | null
+  fileIdPdfExterno: string | null
   dataPublicacao: Date | null
   publicado: boolean
   tipo?: TipoEdital
+  // Datas de seleção
+  dataInicioSelecao?: Date | null
+  dataFimSelecao?: Date | null
+  dataDivulgacaoResultado?: Date | null
+  // Link formulário
+  linkFormularioInscricao?: string | null
+  // Assinatura
   chefeAssinouEm?: Date | null
   chefeAssinatura?: string | null
   chefeDepartamentoId?: number | null
@@ -77,8 +79,8 @@ export interface EditalListItem {
     id: number
     semestre: Semestre
     ano: number
-    dataInicio: Date
-    dataFim: Date
+    dataInicio: Date // Data início INSCRIÇÃO
+    dataFim: Date // Data fim INSCRIÇÃO
     status: PeriodoInscricaoStatus
     totalProjetos: number
     totalInscricoes: number
@@ -101,12 +103,20 @@ export interface EditalWithPeriodoStatus {
   numeroEdital: string
   descricaoHtml: string | null
   fileIdAssinado: string | null
-  fileIdProgradOriginal: string | null
+  fileIdPdfExterno: string | null
   dataPublicacao: Date | null
   publicado: boolean
   valorBolsa: string
+  // Datas de seleção
+  dataInicioSelecao: Date | null
+  dataFimSelecao: Date | null
   datasProvasDisponiveis: string | null
   dataDivulgacaoResultado: Date | null
+  // Link formulário
+  linkFormularioInscricao: string | null
+  // Campos específicos
+  pontosProva: string | null
+  bibliografia: string | null
   chefeAssinouEm: Date | null
   chefeAssinatura: string | null
   chefeDepartamentoId: number | null
@@ -117,8 +127,8 @@ export interface EditalWithPeriodoStatus {
     updatedAt: Date | null
     ano: number
     semestre: Semestre
-    dataInicio: Date
-    dataFim: Date
+    dataInicio: Date // Data início INSCRIÇÃO
+    dataFim: Date // Data fim INSCRIÇÃO
     totalBolsasPrograd: number | null
     status: PeriodoInscricaoStatus
     totalProjetos: number
@@ -149,30 +159,63 @@ export const createEditalSchema = z.object({
   titulo: z.string().min(1),
   descricaoHtml: z.string().optional(),
   fileIdAssinado: z.string().optional(),
-  fileIdProgradOriginal: z.string().optional(),
+  fileIdPdfExterno: z.string().optional(),
   dataPublicacao: z.date().optional(),
   publicado: z.boolean().default(false),
   valorBolsa: z.string().default('400.00'),
+  // Datas de seleção
+  dataInicioSelecao: z.date().optional(),
+  dataFimSelecao: z.date().optional(),
+  dataDivulgacaoResultado: z.date().optional(),
+  // Link formulário
+  linkFormularioInscricao: z.string().url().optional().or(z.literal('')),
   criadoPorUserId: z.number().int().positive(),
 })
 
 export const editalFormSchema = z
   .object({
     tipo: tipoEditalSchema.default('DCC'),
-    numeroEdital: z.string().min(1),
-    titulo: z.string().min(1),
+    numeroEdital: z.string().min(1, 'Número do edital é obrigatório'),
+    titulo: z.string().min(1, 'Título é obrigatório'),
     descricaoHtml: z.string().optional(),
     valorBolsa: z.string().default('400.00'),
     ano: z.number().int().min(2000).max(2100),
     semestre: semestreSchema,
-    dataInicio: z.date(),
-    dataFim: z.date(),
+    // Datas de INSCRIÇÃO
+    dataInicioInscricao: z.date(),
+    dataFimInscricao: z.date(),
+    // Datas de SELEÇÃO
+    dataInicioSelecao: z.date().optional(),
+    dataFimSelecao: z.date().optional(),
+    // Data de divulgação dos resultados
+    dataDivulgacaoResultado: z.date().optional(),
+    // Link para formulário de inscrição
+    linkFormularioInscricao: z.string().url().optional().or(z.literal('')),
   })
-  .refine((data) => data.dataFim > data.dataInicio, {
-    message: 'Data de fim deve ser posterior à data de início',
-    path: ['dataFim'],
+  .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
+    message: 'Data fim de inscrição deve ser posterior à data início',
+    path: ['dataFimInscricao'],
   })
+  .refine(
+    (data) => {
+      if (data.dataInicioSelecao && data.dataFimSelecao) {
+        return data.dataFimSelecao >= data.dataInicioSelecao
+      }
+      return true
+    },
+    {
+      message: 'Data fim de seleção deve ser posterior ou igual à data início',
+      path: ['dataFimSelecao'],
+    }
+  )
+
+// Schema para editar apenas o número do edital
+export const updateNumeroEditalSchema = z.object({
+  id: z.number().int().positive(),
+  numeroEdital: z.string().min(1, 'Número do edital é obrigatório'),
+})
 
 export type CreatePeriodoInscricaoData = z.infer<typeof createPeriodoInscricaoSchema>
 export type CreateEditalData = z.infer<typeof createEditalSchema>
 export type EditalFormData = z.infer<typeof editalFormSchema>
+export type UpdateNumeroEditalData = z.infer<typeof updateNumeroEditalSchema>

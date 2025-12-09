@@ -24,7 +24,8 @@ export const analyticsRouter = createTRPCRouter({
     .query(async ({ ctx }) => {
       try {
         const service = createAnalyticsService(ctx.db)
-        return await service.getDashboardMetrics(ctx.user.role)
+        // Pass adminType so DCC/DCI admins see department-specific metrics
+        return await service.getDashboardMetrics(ctx.user.role, ctx.user.adminType)
       } catch (error) {
         if (error instanceof UnauthorizedError) {
           throw new TRPCError({
@@ -77,7 +78,7 @@ export const analyticsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       try {
         const service = createAnalyticsService(ctx.db)
-        return await service.getApprovedProjectsPROGRAD(input.ano, input.semestre, ctx.user.role)
+        return await service.getApprovedProjectsPROGRAD(input.ano, input.semestre, ctx.user.role, ctx.user.adminType)
       } catch (error) {
         if (error instanceof UnauthorizedError) {
           throw new TRPCError({
@@ -120,7 +121,13 @@ export const analyticsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         const service = createAnalyticsService(ctx.db)
-        return await service.sendPlanilhaPROGRAD(input.ano, input.semestre, ctx.user.role, ctx.user.id)
+        return await service.sendPlanilhaPROGRAD(
+          input.ano,
+          input.semestre,
+          ctx.user.role,
+          ctx.user.id,
+          ctx.user.adminType
+        )
       } catch (error) {
         if (error instanceof UnauthorizedError) {
           throw new TRPCError({
@@ -152,5 +159,19 @@ export const analyticsRouter = createTRPCRouter({
           message: 'Erro interno ao enviar planilha',
         })
       }
+    }),
+
+  getEmailDestinatarios: protectedProcedure
+    .input(z.void())
+    .output(
+      z.object({
+        icEmail: z.string().nullable(),
+        departamentoEmail: z.string().nullable(),
+        departamentoNome: z.string().nullable(),
+      })
+    )
+    .query(async ({ ctx }) => {
+      const service = createAnalyticsService(ctx.db)
+      return await service.getEmailDestinatarios(ctx.user.adminType)
     }),
 })

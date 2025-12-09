@@ -91,7 +91,7 @@ export interface SelecaoCandidato {
     conta: string | null
     digitoConta: string | null
     enderecoId: number | null
-    cursoId: number | null
+    cursoNome: string | null
     historicoEscolarFileId: string | null
     comprovanteMatriculaFileId: string | null
     createdAt: Date
@@ -241,7 +241,6 @@ export const inscriptionDetailSchema = z.object({
         id: idSchema,
         nome: z.string(),
         codigo: z.string(),
-        turma: z.string(),
       })
     ),
   }),
