@@ -1,10 +1,5 @@
-import { TableComponent } from '@/components/layout/TableComponent'
-import { StatusBadge } from '@/components/atoms/StatusBadge'
-import { Button } from '@/components/ui/button'
-import type { DashboardProjectItem } from '@/types'
-import type { ColumnDef } from '@tanstack/react-table'
-import { Eye, Hand, List, Loader, Trash2, Users } from 'lucide-react'
-import { useState } from 'react'
+import { StatusBadge } from "@/components/atoms/StatusBadge"
+import { TableComponent } from "@/components/layout/TableComponent"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +9,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import type { DashboardProjectItem } from "@/types"
+import type { ColumnDef } from "@tanstack/react-table"
+import { Eye, Hand, List, Loader, Trash2, Users } from "lucide-react"
+import { useState } from "react"
 
 interface ProjectsTableProps {
   projetos: DashboardProjectItem[]
@@ -49,10 +49,10 @@ export function ProjectsTable({
           Componente curricular
         </div>
       ),
-      accessorKey: 'titulo',
+      accessorKey: "titulo",
       cell: ({ row }) => {
         const disciplinas = row.original.disciplinas
-        const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : 'N/A'
+        const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
         return (
           <div>
             <span className="font-semibold text-base text-gray-900">{codigoDisciplina}</span>
@@ -68,7 +68,7 @@ export function ProjectsTable({
           Status
         </div>
       ),
-      accessorKey: 'status',
+      accessorKey: "status",
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
@@ -78,7 +78,7 @@ export function ProjectsTable({
           Voluntários
         </div>
       ),
-      accessorKey: 'voluntariosSolicitados',
+      accessorKey: "voluntariosSolicitados",
       cell: ({ row }) => <div className="text-center">{row.original.voluntariosSolicitados || 0}</div>,
     },
     {
@@ -88,7 +88,7 @@ export function ProjectsTable({
           Inscritos
         </div>
       ),
-      accessorKey: 'totalInscritos',
+      accessorKey: "totalInscritos",
       cell: ({ row }) => <div className="text-center text-base">{row.original.totalInscritos}</div>,
     },
     {
@@ -98,7 +98,7 @@ export function ProjectsTable({
           Ações
         </div>
       ),
-      accessorKey: 'acoes',
+      accessorKey: "acoes",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Button
@@ -108,7 +108,7 @@ export function ProjectsTable({
             onClick={() => onAnalisarProjeto(row.original.id)}
           >
             <Eye className="h-4 w-4" />
-            Analisar
+            Detalhes
           </Button>
           <Button
             variant="destructive"
@@ -118,7 +118,7 @@ export function ProjectsTable({
             disabled={deletingProjetoId === row.original.id}
           >
             <Trash2 className="h-4 w-4" />
-            {deletingProjetoId === row.original.id ? 'Excluindo...' : 'Excluir'}
+            {deletingProjetoId === row.original.id ? "Excluindo..." : "Excluir"}
           </Button>
         </div>
       ),
@@ -133,7 +133,7 @@ export function ProjectsTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o projeto{' '}
+              Tem certeza que deseja excluir o projeto{" "}
               <strong>{projetoToDelete?.disciplinas?.[0]?.codigo || projetoToDelete?.titulo}</strong>?
               <br />
               <br />

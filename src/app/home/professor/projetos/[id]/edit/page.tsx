@@ -10,6 +10,7 @@ import {
   MonitoriaFormData,
   projectFormSchema,
   PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_PENDING_SIGNATURE,
   SEMESTRE_1,
   TIPO_PROPOSICAO_INDIVIDUAL,
 } from "@/types"
@@ -80,7 +81,8 @@ export default function EditProjetoPage() {
   })
 
   useEffect(() => {
-    if (projeto?.status !== PROJETO_STATUS_DRAFT) {
+    // Allow editing for DRAFT and PENDING_PROFESSOR_SIGNATURE statuses
+    if (projeto && projeto.status !== PROJETO_STATUS_DRAFT && projeto.status !== PROJETO_STATUS_PENDING_SIGNATURE) {
       router.back()
     }
     if (projeto) {

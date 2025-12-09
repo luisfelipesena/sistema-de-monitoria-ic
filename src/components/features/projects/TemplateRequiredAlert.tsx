@@ -27,10 +27,6 @@ export const TemplateRequiredAlert: React.FC<TemplateRequiredAlertProps> = ({ on
             O template define valores padrão que serão reutilizados em todos os projetos futuros desta disciplina,
             facilitando a criação.
           </p>
-          <Button onClick={onCreateTemplate} className="w-full bg-amber-600 hover:bg-amber-700">
-            <Settings className="h-4 w-4 mr-2" />
-            Criar Template Padrão
-          </Button>
         </CardContent>
       </Card>
     )

@@ -10,6 +10,7 @@ import {
 import { api } from '@/utils/api'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
+import { parseAsBoolean, parseAsInteger, useQueryState } from 'nuqs'
 import { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -38,9 +39,11 @@ export function useProjectCreation() {
   const router = useRouter()
   const apiUtils = api.useUtils()
 
-  // State management
-  const [selectedDisciplinaId, setSelectedDisciplinaId] = useState<number | null>(null)
-  const [isEditingTemplate, setIsEditingTemplate] = useState(false)
+  // URL State management with nuqs
+  const [selectedDisciplinaId, setSelectedDisciplinaId] = useQueryState('disciplina', parseAsInteger)
+  const [isEditingTemplate, setIsEditingTemplate] = useQueryState('template', parseAsBoolean.withDefault(false))
+
+  // Local state
   const [showPreview, setShowPreview] = useState(false)
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false)
   const [pdfKey, setPdfKey] = useState(0)
@@ -311,15 +314,15 @@ export function useProjectCreation() {
   )
 
   // Handlers
-  const handleDisciplinaSelect = (disciplinaId: string) => {
-    setSelectedDisciplinaId(parseInt(disciplinaId))
-    setIsEditingTemplate(false)
+  const handleDisciplinaSelect = async (disciplinaId: string) => {
+    await setSelectedDisciplinaId(parseInt(disciplinaId))
+    await setIsEditingTemplate(false)
     setShowPreview(false)
   }
 
-  const handleBackToSelect = () => {
-    setSelectedDisciplinaId(null)
-    setIsEditingTemplate(false)
+  const handleBackToSelect = async () => {
+    await setSelectedDisciplinaId(null)
+    await setIsEditingTemplate(false)
     setShowPreview(false)
   }
 
@@ -488,7 +491,7 @@ export function useProjectCreation() {
       onSubmitProject,
       handleGeneratePreview,
       handleUpdatePreview,
-      setIsEditingTemplate,
+      setIsEditingTemplate: (value: boolean) => setIsEditingTemplate(value),
       setPublicoAlvoTipo,
       setPublicoAlvoCustom,
     },

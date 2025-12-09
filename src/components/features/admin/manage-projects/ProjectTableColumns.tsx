@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button"
 import { StatusBadge } from "@/components/atoms/StatusBadge"
+import { Button } from "@/components/ui/button"
 import type { ManageProjectItem } from "@/types"
 import { PROJETO_STATUS_SUBMITTED } from "@/types"
 import type { ColumnDef } from "@tanstack/react-table"
-import { List, Loader, Users, Hand, Eye, FileText, Download, Trash2 } from "lucide-react"
+import { Download, Eye, Hand, List, Loader, Trash2, Users } from "lucide-react"
 
 interface ColumnActions {
   onPreview: (projeto: ManageProjectItem) => void
@@ -14,10 +14,7 @@ interface ColumnActions {
   isDeletingProject: boolean
 }
 
-export function createProjectColumns(
-  actions: ColumnActions,
-  groupedView: boolean
-): ColumnDef<ManageProjectItem>[] {
+export function createProjectColumns(actions: ColumnActions, groupedView: boolean): ColumnDef<ManageProjectItem>[] {
   return [
     {
       header: () => (
@@ -103,11 +100,11 @@ export function createProjectColumns(
                 onClick={() => actions.onPreview(projeto)}
               >
                 <Eye className="h-4 w-4" />
-                Analisar
+                Analisar Projeto
               </Button>
             )}
 
-            <Button
+            {/* <Button
               variant="outline"
               size="sm"
               className="rounded-full flex items-center gap-1"
@@ -116,7 +113,7 @@ export function createProjectColumns(
             >
               <FileText className="h-4 w-4" />
               {isLoadingPdf ? "Carregando..." : "Ver PDF"}
-            </Button>
+            </Button> */}
 
             <Button
               variant="outline"

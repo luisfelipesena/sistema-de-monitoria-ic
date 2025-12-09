@@ -3,6 +3,7 @@ import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@
 import {
   ACCEPTED_VOLUNTARIO,
   PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_PENDING_SIGNATURE,
   VOLUNTARIO_STATUS_ATIVO,
   VOLUNTARIO_STATUS_INATIVO,
   type CreateProjetoInput,
@@ -167,8 +168,8 @@ export function createProjetoCreationService(repo: ProjetoRepository) {
           throw new ForbiddenError('Acesso negado a este projeto')
         }
 
-        if (projeto.status !== PROJETO_STATUS_DRAFT) {
-          throw new BusinessError('Só é possível editar projetos em rascunho', 'BAD_REQUEST')
+        if (projeto.status !== PROJETO_STATUS_DRAFT && projeto.status !== PROJETO_STATUS_PENDING_SIGNATURE) {
+          throw new BusinessError('Só é possível editar projetos em rascunho ou aguardando assinatura', 'BAD_REQUEST')
         }
       }
 

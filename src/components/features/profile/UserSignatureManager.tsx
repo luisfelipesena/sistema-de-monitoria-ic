@@ -2,11 +2,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
-import { 
-  PenTool, 
-  CheckCircle, 
-  Trash2, 
-  Eye 
+import {
+  PenTool,
+  CheckCircle,
+  Trash2,
+  Eye,
+  Upload,
+  FileSignature,
+  Info
 } from 'lucide-react'
 import { useState, useRef } from 'react'
 import { Input } from '@/components/ui/input'
@@ -14,11 +17,15 @@ import { Label } from '@/components/ui/label'
 import SignatureCanvas from 'react-signature-canvas'
 import { api } from '@/utils/api'
 
+type SignatureMode = 'draw' | 'upload'
+
 export function UserSignatureManager() {
   const { toast } = useToast()
   const sigPadRef = useRef<SignatureCanvas>(null)
-  
-  const [showSignaturePad, setShowSignaturePad] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [showSignatureEditor, setShowSignatureEditor] = useState(false)
+  const [signatureMode, setSignatureMode] = useState<SignatureMode>('draw')
   const [previewSignature, setPreviewSignature] = useState<string | null>(null)
   const [isSigned, setIsSigned] = useState(false)
 
@@ -29,12 +36,13 @@ export function UserSignatureManager() {
   const handleSaveSignature = async (signatureData: string) => {
     try {
       await saveSignatureMutation.mutateAsync({ signatureData })
-      
+
       toast({
         title: 'Assinatura salva',
         description: 'Sua assinatura foi salva com sucesso!',
       })
-      setShowSignaturePad(false)
+      setShowSignatureEditor(false)
+      setSignatureMode('draw')
       refetch()
     } catch (error: any) {
       toast({
@@ -48,7 +56,7 @@ export function UserSignatureManager() {
   const handleDeleteSignature = async () => {
     try {
       await deleteSignatureMutation.mutateAsync()
-      
+
       toast({
         title: 'Assinatura removida',
         description: 'Sua assinatura foi removida com sucesso',
@@ -146,7 +154,7 @@ export function UserSignatureManager() {
         <Alert>
           <CheckCircle className="h-4 w-4" />
           <AlertDescription>
-            Configure sua assinatura digital para usar nos projetos de monitoria. 
+            Configure sua assinatura digital para usar nos projetos de monitoria.
             Você pode desenhar sua assinatura ou fazer upload de uma imagem.
           </AlertDescription>
         </Alert>
@@ -159,8 +167,8 @@ export function UserSignatureManager() {
                 <div>
                   <p className="font-medium text-green-900">Assinatura configurada</p>
                   <p className="text-sm text-green-700">
-                    Salva em: {signature?.dataAssinatura ? 
-                      new Date(signature.dataAssinatura).toLocaleString('pt-BR') : 
+                    Salva em: {signature?.dataAssinatura ?
+                      new Date(signature.dataAssinatura).toLocaleString('pt-BR') :
                       'Data não disponível'}
                   </p>
                 </div>
@@ -188,7 +196,7 @@ export function UserSignatureManager() {
             <div className="flex justify-center">
               <Button
                 variant="outline"
-                onClick={() => setShowSignaturePad(true)}
+                onClick={() => setShowSignatureEditor(true)}
               >
                 <PenTool className="h-4 w-4 mr-2" />
                 Alterar Assinatura
@@ -210,12 +218,12 @@ export function UserSignatureManager() {
                   Formatos aceitos: PNG, JPG, JPEG
                 </p>
               </div>
-              
+
               <div className="flex items-center justify-center">
                 <div className="text-center space-y-2">
                   <p className="text-sm text-muted-foreground">ou</p>
                   <Button
-                    onClick={() => setShowSignaturePad(true)}
+                    onClick={() => setShowSignatureEditor(true)}
                   >
                     <PenTool className="h-4 w-4 mr-2" />
                     Desenhar Assinatura
@@ -226,45 +234,107 @@ export function UserSignatureManager() {
           </div>
         )}
 
-        {showSignaturePad && (
+        {showSignatureEditor && (
           <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <PenTool className="h-5 w-5" />
-                  Desenhe Sua Assinatura
+                  {hasSignature ? 'Alterar Assinatura' : 'Configure sua Assinatura'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Alert>
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Desenhe sua assinatura no campo abaixo. Você pode limpar e redesenhar quantas vezes quiser.
-                  </AlertDescription>
-                </Alert>
+                {/* Mode Toggle */}
+                <div className="flex gap-2 border-b pb-2">
+                  <Button
+                    variant={signatureMode === 'draw' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSignatureMode('draw')}
+                  >
+                    Desenhar
+                  </Button>
+                  <Button
+                    variant={signatureMode === 'upload' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSignatureMode('upload')}
+                  >
+                    Fazer Upload
+                  </Button>
+                </div>
 
-                <div className="border rounded-md bg-gray-50 p-2">
-                  <SignatureCanvas
-                    ref={sigPadRef}
-                    penColor="black"
-                    canvasProps={{
-                      className: 'w-full h-40 rounded-md',
-                    }}
-                    onBegin={handleBeginStroke}
-                  />
-                </div>
-                
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={handleClearSignature}>
-                    Limpar
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowSignaturePad(false)}>
-                    Cancelar
-                  </Button>
-                  <Button onClick={handleSaveFromPad} disabled={!isSigned}>
-                    Salvar Assinatura
-                  </Button>
-                </div>
+                {signatureMode === 'draw' ? (
+                  <>
+                    <Alert>
+                      <Info className="h-4 w-4" />
+                      <AlertDescription>
+                        Desenhe sua assinatura no campo abaixo. Você pode limpar e redesenhar quantas vezes quiser.
+                      </AlertDescription>
+                    </Alert>
+
+                    <div className="border rounded-md bg-gray-50 p-2">
+                      <SignatureCanvas
+                        ref={sigPadRef}
+                        penColor="black"
+                        canvasProps={{
+                          className: 'w-full h-40 rounded-md bg-white',
+                        }}
+                        backgroundColor="white"
+                        onBegin={handleBeginStroke}
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={handleClearSignature}>
+                        Limpar
+                      </Button>
+                      <Button variant="outline" onClick={() => {
+                        setShowSignatureEditor(false)
+                        setSignatureMode('draw')
+                      }}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleSaveFromPad} disabled={!isSigned}>
+                        Salvar Assinatura
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Alert>
+                      <Info className="h-4 w-4" />
+                      <AlertDescription>
+                        Selecione uma imagem clara da sua assinatura em fundo branco para melhor resultado.
+                      </AlertDescription>
+                    </Alert>
+
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 bg-gray-50 text-center">
+                      <Input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        id="signature-upload-editor"
+                      />
+                      <Label htmlFor="signature-upload-editor" className="cursor-pointer">
+                        <div className="flex flex-col items-center gap-2">
+                          <FileSignature className="h-12 w-12 text-gray-400" />
+                          <span className="text-sm font-medium">Clique para selecionar uma imagem</span>
+                          <span className="text-xs text-muted-foreground">PNG, JPG ou JPEG</span>
+                        </div>
+                      </Label>
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => {
+                        setShowSignatureEditor(false)
+                        setSignatureMode('draw')
+                      }}>
+                        Cancelar
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -275,9 +345,9 @@ export function UserSignatureManager() {
             <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
               <h3 className="text-lg font-semibold mb-4">Prévia da Assinatura</h3>
               <div className="border rounded-lg p-4 bg-gray-50 flex justify-center">
-                <img 
-                  src={previewSignature} 
-                  alt="Assinatura" 
+                <img
+                  src={previewSignature}
+                  alt="Assinatura"
                   className="max-w-full max-h-32 object-contain"
                 />
               </div>
