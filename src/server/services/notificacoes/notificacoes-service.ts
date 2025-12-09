@@ -50,6 +50,18 @@ export function createNotificacoesService(db: Database) {
           notificacoesEnviadas = await reminderService.sendAcceptanceReminders(diasLimite, userId)
           break
 
+        case 'periodo_inscricao_proximo_fim':
+          notificacoesEnviadas = await reminderService.sendInscriptionDeadlineReminders(diasLimite, userId)
+          break
+
+        case 'relatorio_final_pendente':
+          notificacoesEnviadas = await reminderService.sendFinalReportReminders(diasLimite, userId)
+          break
+
+        case 'relatorio_monitor_pendente':
+          notificacoesEnviadas = await reminderService.sendMonitorReportReminders(diasLimite, userId)
+          break
+
         default:
           throw new BusinessError('Tipo de lembrete não implementado', 'INVALID_REMINDER_TYPE')
       }

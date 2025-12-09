@@ -1,8 +1,9 @@
 import { analyticsRouter } from '@/server/api/routers/analytics/analytics'
-import { auditRouter } from '@/server/api/routers/audit/audit'
 import { apiKeyRouter } from '@/server/api/routers/api-key/api-key'
+import { auditRouter } from '@/server/api/routers/audit/audit'
 import { authRouter } from '@/server/api/routers/auth/auth'
 import { meRouter } from '@/server/api/routers/auth/me/me'
+import { certificadoRouter } from '@/server/api/routers/certificado/certificado'
 import { configuracoesRouter } from '@/server/api/routers/configuracoes/configuracoes'
 import { courseRouter } from '@/server/api/routers/course/course'
 import { departamentoRouter } from '@/server/api/routers/departamento/departamento'
@@ -16,8 +17,9 @@ import { notificacoesRouter } from '@/server/api/routers/notificacoes/notificaco
 import { onboardingRouter } from '@/server/api/routers/onboarding/onboarding'
 import { projetoTemplatesRouter } from '@/server/api/routers/projeto-templates/projeto-templates'
 import { projetoRouter } from '@/server/api/routers/projeto/projeto'
-import { relatoriosRouter } from '@/server/api/routers/relatorios/relatorios'
+import { publicPdfRouter } from '@/server/api/routers/public-pdf/public-pdf'
 import { relatoriosFinaisRouter } from '@/server/api/routers/relatorios-finais/relatorios-finais'
+import { relatoriosRouter } from '@/server/api/routers/relatorios/relatorios'
 import { scholarshipAllocationRouter } from '@/server/api/routers/scholarship-allocation/scholarship-allocation'
 import { selecaoRouter } from '@/server/api/routers/selecao/selecao'
 import { signatureRouter } from '@/server/api/routers/signature/signature'
@@ -53,6 +55,8 @@ export const appRouter = createTRPCRouter({
   notificacoes: notificacoesRouter,
   configuracoes: configuracoesRouter,
   audit: auditRouter,
+  publicPdf: publicPdfRouter,
+  certificado: certificadoRouter,
 })
 
 export type AppRouter = typeof appRouter

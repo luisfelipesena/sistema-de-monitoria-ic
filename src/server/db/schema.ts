@@ -1297,6 +1297,34 @@ export const editalSignatureTokenRelations = relations(editalSignatureTokenTable
   }),
 }))
 
+// --- Token para Acesso Público a PDFs de Projeto ---
+
+export const publicPdfTokenTable = pgTable('public_pdf_token', {
+  id: serial('id').primaryKey(),
+  projetoId: integer('projeto_id')
+    .references(() => projetoTable.id, { onDelete: 'cascade' })
+    .notNull(),
+  token: varchar('token', { length: 255 }).notNull().unique(),
+  expiresAt: timestamp('expires_at', { withTimezone: true, mode: 'date' }).notNull(),
+  lastAccessedAt: timestamp('last_accessed_at', { withTimezone: true, mode: 'date' }),
+  revokedAt: timestamp('revoked_at', { withTimezone: true, mode: 'date' }),
+  createdByUserId: integer('created_by_user_id')
+    .references(() => userTable.id)
+    .notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+})
+
+export const publicPdfTokenRelations = relations(publicPdfTokenTable, ({ one }) => ({
+  projeto: one(projetoTable, {
+    fields: [publicPdfTokenTable.projetoId],
+    references: [projetoTable.id],
+  }),
+  createdBy: one(userTable, {
+    fields: [publicPdfTokenTable.createdByUserId],
+    references: [userTable.id],
+  }),
+}))
+
 // Export all table and relation types for use across the app
 export type User = typeof userTable.$inferSelect
 export type NewUser = typeof userTable.$inferInsert

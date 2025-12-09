@@ -1,6 +1,7 @@
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { notificationTypeSchema, notificationPrioritySchema, statsPeriodSchema } from '@/types'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { createNotificacoesService } from '@/server/services/notificacoes/notificacoes-service'
+import { createReminderService } from '@/server/services/notificacoes/reminder-service'
+import { notificationPrioritySchema, notificationTypeSchema, semestreSchema, statsPeriodSchema } from '@/types'
 import { z } from 'zod'
 
 export const notificacoesRouter = createTRPCRouter({
@@ -20,6 +21,65 @@ export const notificacoesRouter = createTRPCRouter({
       const service = createNotificacoesService(ctx.db)
       return service.sendReminders(input, ctx.user.id, ctx.user.role)
     }),
+
+  /**
+   * Send certificate availability notifications for a specific period.
+   * Admin only - used after semester ends.
+   */
+  sendCertificateNotifications: adminProtectedProcedure
+    .input(
+      z.object({
+        ano: z.number().min(2020).max(2100),
+        semestre: semestreSchema,
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const reminderService = createReminderService(ctx.db)
+      const count = await reminderService.sendCertificateAvailableNotifications(input.ano, input.semestre, ctx.user.id)
+      return {
+        success: true,
+        notificacoesEnviadas: count,
+        tipo: 'certificado_disponivel',
+      }
+    }),
+
+  /**
+   * Get available reminder types with descriptions.
+   */
+  getReminderTypes: protectedProcedure.query(() => {
+    return [
+      {
+        tipo: 'assinatura_projeto_pendente',
+        descricao: 'Projetos aguardando assinatura do admin',
+        diasDefault: 7,
+      },
+      {
+        tipo: 'assinatura_termo_pendente',
+        descricao: 'Termos de compromisso pendentes de assinatura',
+        diasDefault: 7,
+      },
+      {
+        tipo: 'aceite_vaga_pendente',
+        descricao: 'Alunos selecionados que não confirmaram o aceite',
+        diasDefault: 3,
+      },
+      {
+        tipo: 'periodo_inscricao_proximo_fim',
+        descricao: 'Aviso sobre fim do período de inscrições',
+        diasDefault: 3,
+      },
+      {
+        tipo: 'relatorio_final_pendente',
+        descricao: 'Relatórios finais de projeto pendentes',
+        diasDefault: 14,
+      },
+      {
+        tipo: 'relatorio_monitor_pendente',
+        descricao: 'Relatórios individuais de monitores pendentes',
+        diasDefault: 14,
+      },
+    ]
+  }),
 
   getHistory: protectedProcedure
     .input(

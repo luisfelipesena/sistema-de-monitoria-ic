@@ -302,6 +302,13 @@
       "when": 1764245920646,
       "tag": "0040_gorgeous_stryfe",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1765297739103,
+      "tag": "0041_add-public-pdf-token",
+      "breakpoints": true
     }
   ]
 }

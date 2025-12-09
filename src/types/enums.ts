@@ -663,6 +663,11 @@ export const NOTIFICATION_TYPE = [
   'assinatura_termo_pendente',
   'aceite_vaga_pendente',
   'documentos_incompletos',
+  'periodo_inscricao_proximo_fim', // 3 days before inscription period ends
+  'periodo_inscricao_iniciado', // Inscription period started
+  'relatorio_final_pendente', // Final report pending for professor
+  'relatorio_monitor_pendente', // Monitor report pending for student
+  'certificado_disponivel', // Certificate available for generation
 ] as const
 export type NotificationType = (typeof NOTIFICATION_TYPE)[number]
 export const notificationTypeSchema = z.enum(NOTIFICATION_TYPE)
