@@ -283,7 +283,12 @@ export default function UsersPage() {
             ))}
           </div>
 
-          <TableComponent columns={colunasUsuarios} data={filteredUsers || []} />
+          <TableComponent
+            columns={colunasUsuarios}
+            data={filteredUsers || []}
+            searchableColumn="username"
+            searchPlaceholder="Buscar por nome ou username..."
+          />
         </>
       )}
 

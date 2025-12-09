@@ -1,12 +1,13 @@
-import * as React from 'react';
+import * as React from "react"
 
 const BREAKPOINTS = {
   sm: 640,
   md: 768,
   lg: 1024,
   xl: 1280,
-  '2xl': 1400,
-};
+  "2xl": 1400,
+  "3xl": 1600,
+}
 
 export function useBreakpoints() {
   const [breakpoints, setBreakpoints] = React.useState({
@@ -19,17 +20,17 @@ export function useBreakpoints() {
     isTablet: false,
     isMediumDesktop: false,
     isDesktop: false,
-    isLessThanMediumDesktop: false,
-  });
+    isLessThan3xl: false,
+  })
 
   React.useEffect(() => {
     function update() {
-      const width = window.innerWidth;
-      const isSm = width < BREAKPOINTS.sm;
-      const isMd = width >= BREAKPOINTS.sm && width < BREAKPOINTS.md;
-      const isLg = width >= BREAKPOINTS.md && width < BREAKPOINTS.lg;
-      const isXl = width >= BREAKPOINTS.lg && width < BREAKPOINTS.xl;
-      const is2xl = width >= BREAKPOINTS.xl;
+      const width = window.innerWidth
+      const isSm = width < BREAKPOINTS.sm
+      const isMd = width >= BREAKPOINTS.sm && width < BREAKPOINTS.md
+      const isLg = width >= BREAKPOINTS.md && width < BREAKPOINTS.lg
+      const isXl = width >= BREAKPOINTS.lg && width < BREAKPOINTS.xl
+      const is2xl = width >= BREAKPOINTS.xl
       setBreakpoints({
         isSm,
         isMd,
@@ -38,16 +39,15 @@ export function useBreakpoints() {
         is2xl,
         isMobile: width < BREAKPOINTS.md,
         isTablet: width >= BREAKPOINTS.md && width < BREAKPOINTS.lg,
-        isMediumDesktop:
-          width >= BREAKPOINTS['xl'] && width < BREAKPOINTS['2xl'],
-        isDesktop: width >= BREAKPOINTS['2xl'],
-        isLessThanMediumDesktop: width < BREAKPOINTS['xl'],
-      });
+        isMediumDesktop: width >= BREAKPOINTS["xl"] && width < BREAKPOINTS["2xl"],
+        isDesktop: width >= BREAKPOINTS["2xl"],
+        isLessThan3xl: width < BREAKPOINTS["3xl"],
+      })
     }
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
+    update()
+    window.addEventListener("resize", update)
+    return () => window.removeEventListener("resize", update)
+  }, [])
 
-  return breakpoints;
+  return breakpoints
 }

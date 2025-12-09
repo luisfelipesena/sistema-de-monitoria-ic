@@ -35,7 +35,7 @@ import {
   UserCog,
   UserPlus,
   Users,
-  type LucideIcon
+  type LucideIcon,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -393,13 +393,13 @@ const SIDEBAR_OPEN_GROUPS_KEY = "sidebar_open_groups"
 
 export function SidebarLayout({ pathname }: SidebarLayoutProps) {
   const { user } = useAuth()
-  const { isLessThanMediumDesktop, setOpenCompactSidebarView } = useSidebar()
+  const { isLessThan3xl, setOpenCompactSidebarView } = useSidebar()
   const router = useRouter()
   const [openGroups, setOpenGroups] = useLocalStorage<string[]>(SIDEBAR_OPEN_GROUPS_KEY, [])
 
   function handleNavigate(to: string) {
     router.push(to)
-    if (isLessThanMediumDesktop) setOpenCompactSidebarView(false)
+    if (isLessThan3xl) setOpenCompactSidebarView(false)
   }
 
   function toggleGroup(groupLabel: string) {

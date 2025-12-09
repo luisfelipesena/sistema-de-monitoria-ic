@@ -39,7 +39,8 @@ export function createEditalPdfService(repo: EditalRepository) {
         },
         disciplinas: projetos.map((projeto) => ({
           codigo: projeto.disciplinas[0]?.disciplina.codigo || 'MON',
-          nome: projeto.titulo,
+          nome: projeto.disciplinas[0]?.disciplina.nome || projeto.titulo,
+          turma: projeto.disciplinas[0]?.disciplina.turma || undefined,
           professor: {
             nome: projeto.professorResponsavel.nomeCompleto,
             email: projeto.professorResponsavel.user.email,
