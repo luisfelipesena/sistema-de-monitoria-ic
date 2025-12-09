@@ -148,7 +148,7 @@ export default function InscricaoMonitoria() {
     return (
       <div className="container mx-auto p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight">Inscrição em Monitoria</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Inscrição em Projeto de Monitoria</h1>
           <p className="text-muted-foreground">Encontre e inscreva-se em projetos de monitoria disponíveis.</p>
         </div>
         <LoadingSkeleton />
@@ -160,7 +160,7 @@ export default function InscricaoMonitoria() {
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">Inscrição em Monitoria</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Inscrição em Projeto de Monitoria</h1>
         <p className="text-muted-foreground">Encontre e inscreva-se em projetos de monitoria disponíveis.</p>
 
         {/* Period Status */}
@@ -249,6 +249,7 @@ export default function InscricaoMonitoria() {
 
       {/* Results Summary */}
       <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Projetos de Monitoria</h2>
         <p className="text-sm text-muted-foreground">
           {filteredProjetos.length} projeto{filteredProjetos.length !== 1 ? "s" : ""} encontrado
           {filteredProjetos.length !== 1 ? "s" : ""}

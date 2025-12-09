@@ -26,11 +26,21 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
         return []
       }
 
-      const inscricoesCount = await repo.getInscricoesCount()
+      const [inscricoesCount, editais] = await Promise.all([repo.getInscricoesCount(), repo.findEditaisByPeriodos()])
+
       const inscricoesMap = new Map<string, number>()
       inscricoesCount.forEach((item) => {
         const key = `${item.projetoId}_${item.tipoVagaPretendida}`
         inscricoesMap.set(key, Number(item.count))
+      })
+
+      // Create map of ano_semestre -> edital info
+      const editalMap = new Map<string, { numeroEdital: string; publicado: boolean }>()
+      editais.forEach((edital) => {
+        if (edital.periodoInscricao) {
+          const key = `${edital.periodoInscricao.ano}_${edital.periodoInscricao.semestre}`
+          editalMap.set(key, { numeroEdital: edital.numeroEdital, publicado: edital.publicado })
+        }
       })
 
       const projetosComDisciplinas = await Promise.all(
@@ -42,6 +52,10 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
           const inscritosAny = inscricoesMap.get(`${projeto.id}_ANY`) || 0
           const totalInscritos = inscritosBolsista + inscritosVoluntario + inscritosAny
 
+          // Get edital info for this project's semester
+          const editalKey = `${projeto.ano}_${projeto.semestre}`
+          const editalInfo = editalMap.get(editalKey)
+
           return {
             ...projeto,
             bolsasDisponibilizadas: projeto.bolsasDisponibilizadas ?? undefined,
@@ -49,6 +63,8 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
             totalInscritos,
             inscritosBolsista,
             inscritosVoluntario,
+            editalNumero: editalInfo?.numeroEdital ?? null,
+            editalPublicado: editalInfo?.publicado ?? false,
           }
         })
       )

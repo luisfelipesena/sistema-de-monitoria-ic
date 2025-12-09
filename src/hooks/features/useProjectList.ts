@@ -20,7 +20,7 @@ export function useProjectList() {
   const projetos: ProfessorProjetoListItem[] =
     projetosData
       ?.filter((projeto) => projeto.professorResponsavelId === user?.id)
-      .map((projeto: ProjectListItemData) => ({
+      .map((projeto: ProjectListItemData & { editalNumero?: string | null; editalPublicado?: boolean }) => ({
         id: projeto.id,
         titulo: projeto.titulo,
         descricao: projeto.descricao,
@@ -43,6 +43,8 @@ export function useProjectList() {
         estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || 0,
         disciplinas: projeto.disciplinas.map((d) => ({ id: d.id, nome: d.nome })),
         assinaturaProfessor: projeto.assinaturaProfessor || undefined,
+        editalNumero: projeto.editalNumero,
+        editalPublicado: projeto.editalPublicado,
         criadoEm: projeto.createdAt.toISOString(),
         atualizadoEm: projeto.updatedAt?.toISOString() || projeto.createdAt.toISOString(),
       })) || []

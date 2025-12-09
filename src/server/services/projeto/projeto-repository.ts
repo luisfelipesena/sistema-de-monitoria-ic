@@ -68,6 +68,7 @@ export function createProjetoRepository(db: Database) {
           descricao: projetoTable.descricao,
           assinaturaProfessor: projetoTable.assinaturaProfessor,
           feedbackAdmin: projetoTable.feedbackAdmin,
+          editalInternoId: projetoTable.editalInternoId,
           createdAt: projetoTable.createdAt,
           updatedAt: projetoTable.updatedAt,
           deletedAt: projetoTable.deletedAt,
@@ -102,6 +103,7 @@ export function createProjetoRepository(db: Database) {
           descricao: projetoTable.descricao,
           assinaturaProfessor: projetoTable.assinaturaProfessor,
           feedbackAdmin: projetoTable.feedbackAdmin,
+          editalInternoId: projetoTable.editalInternoId,
           createdAt: projetoTable.createdAt,
           updatedAt: projetoTable.updatedAt,
           deletedAt: projetoTable.deletedAt,
@@ -374,6 +376,24 @@ export function createProjetoRepository(db: Database) {
             columns: {
               numeroEdital: true,
               publicado: true,
+            },
+          },
+        },
+      })
+    },
+
+    async findEditaisByPeriodos() {
+      return db.query.editalTable.findMany({
+        columns: {
+          id: true,
+          numeroEdital: true,
+          publicado: true,
+        },
+        with: {
+          periodoInscricao: {
+            columns: {
+              ano: true,
+              semestre: true,
             },
           },
         },

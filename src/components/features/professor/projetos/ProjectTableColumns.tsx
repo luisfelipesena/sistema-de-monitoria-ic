@@ -107,6 +107,12 @@ export const createProjectColumns = (handlers: ProjectColumnsHandlers): ColumnDe
         <div className="text-sm text-muted-foreground">
           {row.original.departamento.nome} • {row.original.ano}.{getSemestreNumero(row.original.semestre as Semestre)}
         </div>
+        {row.original.editalNumero && (
+          <div className="text-xs text-blue-600">
+            Edital: {row.original.editalNumero}
+            {row.original.editalPublicado && " (Publicado)"}
+          </div>
+        )}
       </div>
     ),
   },
