@@ -2,6 +2,7 @@
 
 import { StatusBadge } from "@/components/atoms/StatusBadge"
 import { BankDataModal } from "@/components/features/student"
+import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -217,12 +218,11 @@ export default function ResultadosPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Resultados</h1>
-          <p className="text-muted-foreground">Carregando resultados...</p>
+      <PagesLayout title="Resultados da Seleção" subtitle="Carregando resultados...">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
         </div>
-      </div>
+      </PagesLayout>
     )
   }
 
@@ -236,262 +236,262 @@ export default function ResultadosPage() {
   const inscricoesRejeitadas = inscricoesComResultado.filter((i) => REJECTED_STATUSES.has(i.status as StatusInscricao))
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Resultados da Seleção</h1>
-        <p className="text-muted-foreground">Acompanhe os resultados das suas inscrições em projetos de monitoria</p>
-      </div>
-
-      {/* Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="h-8 w-8 text-green-500" />
-              <div>
-                <div className="text-2xl font-bold">{inscricoesSelecionadas.length}</div>
-                <div className="text-sm text-muted-foreground">Selecionado(a)</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-2">
-              <Award className="h-8 w-8 text-yellow-500" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {inscricoesSelecionadas.filter((i) => BOLSISTA_STATUSES.has(i.status as StatusInscricao)).length}
+    <PagesLayout
+      title="Resultados da Seleção"
+      subtitle="Acompanhe os resultados das suas inscrições em projetos de monitoria"
+    >
+      <div className="space-y-6">
+        {/* Estatísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-8 w-8 text-green-500" />
+                <div>
+                  <div className="text-2xl font-bold">{inscricoesSelecionadas.length}</div>
+                  <div className="text-sm text-muted-foreground">Selecionado(a)</div>
                 </div>
-                <div className="text-sm text-muted-foreground">Bolsas</div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-2">
-              <Users className="h-8 w-8 text-blue-500" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {inscricoesSelecionadas.filter((i) => VOLUNTARIO_STATUSES.has(i.status as StatusInscricao)).length}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <Award className="h-8 w-8 text-yellow-500" />
+                <div>
+                  <div className="text-2xl font-bold">
+                    {inscricoesSelecionadas.filter((i) => BOLSISTA_STATUSES.has(i.status as StatusInscricao)).length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Bolsas</div>
                 </div>
-                <div className="text-sm text-muted-foreground">Voluntário</div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-8 w-8 text-gray-500" />
-              <div>
-                <div className="text-2xl font-bold">{inscricoesComResultado.length}</div>
-                <div className="text-sm text-muted-foreground">Total</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <Users className="h-8 w-8 text-blue-500" />
+                <div>
+                  <div className="text-2xl font-bold">
+                    {inscricoesSelecionadas.filter((i) => VOLUNTARIO_STATUSES.has(i.status as StatusInscricao)).length}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Voluntário</div>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center p-6">
+              <div className="flex items-center space-x-2">
+                <Clock className="h-8 w-8 text-gray-500" />
+                <div>
+                  <div className="text-2xl font-bold">{inscricoesComResultado.length}</div>
+                  <div className="text-sm text-muted-foreground">Total</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Resultados Positivos */}
-      {inscricoesSelecionadas.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-700">
-              <CheckCircle className="h-5 w-5" />
-              Parabéns! Você foi selecionado(a)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {inscricoesSelecionadas.map((inscricao) => (
-                <div key={inscricao.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
-                  {(() => {
-                    const status = inscricao.status as StatusInscricao
-                    const tipoVaga = inscricao.tipoVagaPretendida as TipoVaga | null
-                    return (
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            {getStatusIcon(status)}
-                            <h3 className="font-semibold text-lg">{inscricao.projeto.titulo}</h3>
-                            {getTipoVagaIcon(tipoVaga)}
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
-                          </p>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Disciplinas:{" "}
-                            {inscricao.projeto.disciplinas.map((d) => `${d.codigo} (${d.turma})`).join(", ")}
-                          </p>
-                          <div className="flex items-center gap-2 mb-3">
-                            <StatusBadge status={status} />
-                            {inscricao.notaFinal && (
-                              <span className="text-sm text-green-700 font-medium">
-                                Nota Final: {Number(inscricao.notaFinal).toFixed(1)}
-                              </span>
+        {/* Resultados Positivos */}
+        {inscricoesSelecionadas.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-green-700">
+                <CheckCircle className="h-5 w-5" />
+                Parabéns! Você foi selecionado(a)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {inscricoesSelecionadas.map((inscricao) => (
+                  <div key={inscricao.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
+                    {(() => {
+                      const status = inscricao.status as StatusInscricao
+                      const tipoVaga = inscricao.tipoVagaPretendida as TipoVaga | null
+                      return (
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              {getStatusIcon(status)}
+                              <h3 className="font-semibold text-lg">{inscricao.projeto.titulo}</h3>
+                              {getTipoVagaIcon(tipoVaga)}
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
+                            </p>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Disciplinas:{" "}
+                              {inscricao.projeto.disciplinas.map((d) => `${d.codigo} (${d.turma})`).join(", ")}
+                            </p>
+                            <div className="flex items-center gap-2 mb-3">
+                              <StatusBadge status={status} />
+                              {inscricao.notaFinal && (
+                                <span className="text-sm text-green-700 font-medium">
+                                  Nota Final: {Number(inscricao.notaFinal).toFixed(1)}
+                                </span>
+                              )}
+                            </div>
+                            {inscricao.feedbackProfessor && (
+                              <div className="bg-white p-3 rounded border border-green-200">
+                                <p className="text-sm font-medium text-green-800 mb-1">Mensagem do Professor:</p>
+                                <p className="text-sm text-green-700">{inscricao.feedbackProfessor}</p>
+                              </div>
                             )}
                           </div>
-                          {inscricao.feedbackProfessor && (
-                            <div className="bg-white p-3 rounded border border-green-200">
-                              <p className="text-sm font-medium text-green-800 mb-1">Mensagem do Professor:</p>
-                              <p className="text-sm text-green-700">{inscricao.feedbackProfessor}</p>
+
+                          {/* Botões de Ação */}
+                          {canAcceptOrReject(status) && (
+                            <div className="flex gap-2 ml-4">
+                              <Button
+                                onClick={() => handleAccept(inscricao.id, tipoVaga ?? TIPO_VAGA_BOLSISTA)}
+                                disabled={aceitarVagaMutation.isPending}
+                                className="bg-green-600 hover:bg-green-700"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Aceitar
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={() => handleRejectClick(inscricao.id)}
+                                disabled={recusarVagaMutation.isPending}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Recusar
+                              </Button>
+                            </div>
+                          )}
+
+                          {ACCEPTED_STATUSES.has(status) && (
+                            <div className="ml-4 space-y-2">
+                              <Badge className="bg-green-600">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Vaga Aceita
+                              </Badge>
+                              <div>
+                                <TermoCompromissoDownload inscricaoId={inscricao.id} />
+                              </div>
                             </div>
                           )}
                         </div>
+                      )
+                    })()}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-                        {/* Botões de Ação */}
-                        {canAcceptOrReject(status) && (
-                          <div className="flex gap-2 ml-4">
-                            <Button
-                              onClick={() => handleAccept(inscricao.id, tipoVaga ?? TIPO_VAGA_BOLSISTA)}
-                              disabled={aceitarVagaMutation.isPending}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Aceitar
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              onClick={() => handleRejectClick(inscricao.id)}
-                              disabled={recusarVagaMutation.isPending}
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Recusar
-                            </Button>
-                          </div>
-                        )}
-
-                        {ACCEPTED_STATUSES.has(status) && (
-                          <div className="ml-4 space-y-2">
-                            <Badge className="bg-green-600">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Vaga Aceita
-                            </Badge>
-                            <div>
-                              <TermoCompromissoDownload inscricaoId={inscricao.id} />
+        {/* Resultados Negativos */}
+        {inscricoesRejeitadas.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-gray-700">
+                <MessageSquare className="h-5 w-5" />
+                Outras Inscrições
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {inscricoesRejeitadas.map((inscricao) => (
+                  <div key={inscricao.id} className="border rounded-lg p-4">
+                    {(() => {
+                      const status = inscricao.status as StatusInscricao
+                      const tipoVaga = inscricao.tipoVagaPretendida as TipoVaga | null
+                      return (
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              {getStatusIcon(status)}
+                              <h3 className="font-semibold">{inscricao.projeto.titulo}</h3>
+                              {getTipoVagaIcon(tipoVaga)}
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })()}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Resultados Negativos */}
-      {inscricoesRejeitadas.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-700">
-              <MessageSquare className="h-5 w-5" />
-              Outras Inscrições
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {inscricoesRejeitadas.map((inscricao) => (
-                <div key={inscricao.id} className="border rounded-lg p-4">
-                  {(() => {
-                    const status = inscricao.status as StatusInscricao
-                    const tipoVaga = inscricao.tipoVagaPretendida as TipoVaga | null
-                    return (
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            {getStatusIcon(status)}
-                            <h3 className="font-semibold">{inscricao.projeto.titulo}</h3>
-                            {getTipoVagaIcon(tipoVaga)}
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
-                          </p>
-                          <div className="flex items-center gap-2 mb-2">
-                            <StatusBadge status={status} />
-                            {inscricao.notaFinal && (
-                              <span className="text-sm text-muted-foreground">
-                                Nota Final: {Number(inscricao.notaFinal).toFixed(1)}
-                              </span>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
+                            </p>
+                            <div className="flex items-center gap-2 mb-2">
+                              <StatusBadge status={status} />
+                              {inscricao.notaFinal && (
+                                <span className="text-sm text-muted-foreground">
+                                  Nota Final: {Number(inscricao.notaFinal).toFixed(1)}
+                                </span>
+                              )}
+                            </div>
+                            {inscricao.feedbackProfessor && (
+                              <div className="bg-gray-50 p-3 rounded border">
+                                <p className="text-sm font-medium text-gray-700 mb-1">Feedback:</p>
+                                <p className="text-sm text-gray-600">{inscricao.feedbackProfessor}</p>
+                              </div>
                             )}
                           </div>
-                          {inscricao.feedbackProfessor && (
-                            <div className="bg-gray-50 p-3 rounded border">
-                              <p className="text-sm font-medium text-gray-700 mb-1">Feedback:</p>
-                              <p className="text-sm text-gray-600">{inscricao.feedbackProfessor}</p>
-                            </div>
-                          )}
                         </div>
-                      </div>
-                    )
-                  })()}
-                </div>
-              ))}
+                      )
+                    })()}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {inscricoesComResultado.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-8">
+              <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Nenhum resultado disponível</h3>
+              <p className="text-muted-foreground">
+                Os resultados das suas inscrições aparecerão aqui quando a seleção for concluída.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Dialog de Recusa */}
+        <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Recusar Vaga</DialogTitle>
+              <DialogDescription>
+                Tem certeza que deseja recusar esta vaga? Esta ação não pode ser desfeita.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="motivo">Motivo da recusa (opcional)</Label>
+                <Textarea
+                  id="motivo"
+                  value={motivoRecusa}
+                  onChange={(e) => setMotivoRecusa(e.target.value)}
+                  placeholder="Ex: Conflito de horários, encontrei outra oportunidade..."
+                  rows={3}
+                />
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
 
-      {inscricoesComResultado.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8">
-            <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Nenhum resultado disponível</h3>
-            <p className="text-muted-foreground">
-              Os resultados das suas inscrições aparecerão aqui quando a seleção for concluída.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
+                Cancelar
+              </Button>
+              <Button variant="destructive" onClick={handleRejectConfirm} disabled={recusarVagaMutation.isPending}>
+                Confirmar Recusa
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-      {/* Dialog de Recusa */}
-      <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Recusar Vaga</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja recusar esta vaga? Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="motivo">Motivo da recusa (opcional)</Label>
-              <Textarea
-                id="motivo"
-                value={motivoRecusa}
-                onChange={(e) => setMotivoRecusa(e.target.value)}
-                placeholder="Ex: Conflito de horários, encontrei outra oportunidade..."
-                rows={3}
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleRejectConfirm} disabled={recusarVagaMutation.isPending}>
-              Confirmar Recusa
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Dados Bancários (para bolsistas) */}
-      <BankDataModal
-        open={showBankModal}
-        onClose={() => {
-          setShowBankModal(false)
-          setPendingAccept(null)
-        }}
-        onSuccess={handleBankDataSaved}
-        currentData={userProfile?.studentProfile}
-      />
-    </div>
+        {/* Modal de Dados Bancários (para bolsistas) */}
+        <BankDataModal
+          open={showBankModal}
+          onClose={() => {
+            setShowBankModal(false)
+            setPendingAccept(null)
+          }}
+          onSuccess={handleBankDataSaved}
+          currentData={userProfile?.studentProfile}
+        />
+      </div>
+    </PagesLayout>
   )
 }

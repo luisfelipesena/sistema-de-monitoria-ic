@@ -1325,6 +1325,30 @@ export const publicPdfTokenRelations = relations(publicPdfTokenTable, ({ one }) 
   }),
 }))
 
+// --- Reminder Execution Log (para rastrear envios proativos) ---
+
+export const reminderExecutionLogTable = pgTable(
+  'reminder_execution_log',
+  {
+    id: serial('id').primaryKey(),
+    reminderType: varchar('reminder_type', { length: 100 }).notNull(),
+    executedAt: timestamp('executed_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+    executedByUserId: integer('executed_by_user_id').references(() => userTable.id),
+    isProactive: boolean('is_proactive').notNull().default(false),
+    notificationsSent: integer('notifications_sent').notNull().default(0),
+    details: text('details'), // JSON with additional info
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow(),
+  },
+  (table) => [index('idx_reminder_execution_type_date').on(table.reminderType, table.executedAt)]
+)
+
+export const reminderExecutionLogRelations = relations(reminderExecutionLogTable, ({ one }) => ({
+  executedBy: one(userTable, {
+    fields: [reminderExecutionLogTable.executedByUserId],
+    references: [userTable.id],
+  }),
+}))
+
 // Export all table and relation types for use across the app
 export type User = typeof userTable.$inferSelect
 export type NewUser = typeof userTable.$inferInsert
@@ -1362,3 +1386,5 @@ export type AuditLog = typeof auditLogTable.$inferSelect
 export type NewAuditLog = typeof auditLogTable.$inferInsert
 export type EditalSignatureToken = typeof editalSignatureTokenTable.$inferSelect
 export type NewEditalSignatureToken = typeof editalSignatureTokenTable.$inferInsert
+export type ReminderExecutionLog = typeof reminderExecutionLogTable.$inferSelect
+export type NewReminderExecutionLog = typeof reminderExecutionLogTable.$inferInsert

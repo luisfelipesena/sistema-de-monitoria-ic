@@ -276,16 +276,16 @@ export default function InscricaoMonitoria() {
                   <div className="space-y-1">
                     <CardTitle className="text-xl">{projeto.titulo}</CardTitle>
                     <CardDescription className="text-base">
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-1">
+                      <span className="flex items-center gap-4 text-sm">
+                        <span className="flex items-center gap-1">
                           <User className="h-4 w-4" />
                           {projeto.professorResponsavelNome}
-                        </div>
-                        <div className="flex items-center gap-1">
+                        </span>
+                        <span className="flex items-center gap-1">
                           <MapPin className="h-4 w-4" />
                           {projeto.departamentoNome}
-                        </div>
-                      </div>
+                        </span>
+                      </span>
                     </CardDescription>
                   </div>
                   <Badge variant="default">Ativo</Badge>

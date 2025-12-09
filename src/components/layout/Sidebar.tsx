@@ -28,6 +28,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   Mail,
+  ScrollText,
   Settings,
   TrendingUp,
   Upload,
@@ -221,6 +222,18 @@ const menuConfig: MenuConfig[] = [
         label: "Analytics",
         href: "/home/admin/analytics",
         icon: TrendingUp,
+        roles: ["admin"],
+      },
+      {
+        label: "Notificações",
+        href: "/home/admin/notificacoes",
+        icon: Mail,
+        roles: ["admin"],
+      },
+      {
+        label: "Logs de Auditoria",
+        href: "/home/admin/audit-logs",
+        icon: ScrollText,
         roles: ["admin"],
       },
       {

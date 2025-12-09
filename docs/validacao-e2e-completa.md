@@ -155,7 +155,13 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 
 - [ ] Selecionar período 2025.1
 - [ ] Gerar planilha Excel com projetos aprovados
-- [ ] Planilha contém links para PDFs
+- [ ] Planilha contém links públicos para PDFs (tokens de acesso)
+
+**Funcionalidade de Links Públicos (GAP-001):**
+- Sistema gera tokens únicos para acesso aos PDFs
+- Links funcionam sem autenticação (para PROGRAD/Instituto)
+- Tokens expiram após 30 dias
+- Admin pode gerar links em lote via `/home/admin/relatorios`
 
 ---
 
@@ -358,14 +364,12 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 
 ## FASE 6: Relatórios Finais e Certificados
 
-> **Nota**: Módulo especificado mas implementação parcial (trabalho futuro conforme TCC)
-
 ### 6.1 Admin - Iniciar Relatórios
 
 > **Rota**: `/home/admin/validacao-relatorios`
 
 - [ ] Clicar "Gerar Relatórios"
-- [ ] Professores notificados
+- [ ] Professores notificados automaticamente (sistema proativo)
 
 ### 6.2 Professor - Gerar Relatórios
 
@@ -382,9 +386,60 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 - [ ] Ver relatório pendente
 - [ ] Assinar digitalmente
 
+### 6.4 Admin - Gerar Certificados (GAP-002)
+
+> **Rota**: `/home/admin/consolidacao-prograd`
+
+**Funcionalidade de Certificados:**
+- [ ] Selecionar período finalizado
+- [ ] Clicar "Notificar sobre Certificados"
+- [ ] Sistema envia email para monitores com certificado disponível
+- [ ] Aluno pode baixar PDF do certificado
+
+**Dados no certificado:**
+- Nome completo do aluno
+- Matrícula
+- Projeto e disciplina
+- Período (ano/semestre)
+- Tipo (Bolsista/Voluntário)
+- Carga horária
+- Assinatura digital do sistema
+
 ---
 
 ## Funcionalidades Auxiliares
+
+### A0. Sistema de Notificações Proativas (GAP-003)
+
+> **Rota**: `/home/admin/notificacoes`
+> **Sidebar**: Sistema → Notificações
+
+**Funcionamento:**
+O sistema envia lembretes **automaticamente** quando o admin acessa o Dashboard, sem necessidade de cron jobs.
+
+**Tipos de lembretes automáticos:**
+| Tipo | Intervalo | Descrição |
+|------|-----------|-----------|
+| `assinatura_projeto_pendente` | 24h | Projetos aguardando assinatura admin |
+| `assinatura_termo_pendente` | 24h | Termos de compromisso pendentes |
+| `aceite_vaga_pendente` | 12h | Alunos com aceite pendente |
+| `periodo_inscricao_proximo_fim` | 24h | 3 dias antes do fim das inscrições |
+| `relatorio_final_pendente` | 48h | Relatórios finais pendentes |
+| `relatorio_monitor_pendente` | 48h | Relatórios de monitores pendentes |
+
+**Passos de validação:**
+- [ ] Login como admin
+- [ ] Acessar Dashboard → Sistema executa lembretes automaticamente
+- [ ] Toast aparece: "📬 X lembretes automáticos enviados"
+- [ ] Verificar histórico em Sistema → Notificações
+- [ ] Testar execução manual clicando "Executar Pendentes"
+
+**Verificar no banco:**
+```sql
+SELECT * FROM reminder_execution_log ORDER BY executed_at DESC LIMIT 10;
+```
+
+---
 
 ### A1. Equivalências de Disciplinas
 
@@ -493,6 +548,18 @@ docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_
 # Período ativo
 docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_ic \
   -c "SELECT * FROM periodo_inscricao WHERE data_fim > NOW();"
+
+# Tokens de PDF público (GAP-001)
+docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_ic \
+  -c "SELECT id, projeto_id, token, expires_at FROM public_pdf_token ORDER BY id DESC LIMIT 5;"
+
+# Execuções de lembretes proativos (GAP-003)
+docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_ic \
+  -c "SELECT id, reminder_type, is_proactive, notifications_sent, executed_at FROM reminder_execution_log ORDER BY id DESC LIMIT 10;"
+
+# Logs de auditoria
+docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_ic \
+  -c "SELECT id, action, entity_type, timestamp FROM audit_log ORDER BY id DESC LIMIT 10;"
 ```
 
 ---
@@ -517,6 +584,8 @@ docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_
 | Equivalências | `/home/admin/equivalencias` |
 | Config. Email | `/home/admin/configuracoes` |
 | Analytics | `/home/admin/analytics` |
+| **Notificações (NOVO)** | `/home/admin/notificacoes` |
+| **Logs de Auditoria (NOVO)** | `/home/admin/audit-logs` |
 | Relatórios PROGRAD | `/home/admin/relatorios` |
 | Consolidação PROGRAD | `/home/admin/consolidacao-prograd` |
 | Validação Relatórios | `/home/admin/validacao-relatorios` |

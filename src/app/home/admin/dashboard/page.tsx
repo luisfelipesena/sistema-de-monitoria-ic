@@ -1,16 +1,19 @@
-'use client'
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { FilterModal } from '@/components/ui/FilterModal'
-import { useDashboard } from '@/hooks/features/useDashboard'
-import { Loader } from 'lucide-react'
-import { DashboardStatsCards } from '@/components/features/admin/dashboard/DashboardStatsCards'
-import { DashboardTabs } from '@/components/features/admin/dashboard/DashboardTabs'
-import { ProjectsTable } from '@/components/features/admin/dashboard/ProjectsTable'
-import { ProfessoresTable } from '@/components/features/admin/dashboard/ProfessoresTable'
-import { AlunosTable } from '@/components/features/admin/dashboard/AlunosTable'
-import { DashboardActions } from '@/components/features/admin/dashboard/DashboardActions'
+"use client"
+import { AlunosTable } from "@/components/features/admin/dashboard/AlunosTable"
+import { DashboardActions } from "@/components/features/admin/dashboard/DashboardActions"
+import { DashboardStatsCards } from "@/components/features/admin/dashboard/DashboardStatsCards"
+import { DashboardTabs } from "@/components/features/admin/dashboard/DashboardTabs"
+import { ProfessoresTable } from "@/components/features/admin/dashboard/ProfessoresTable"
+import { ProjectsTable } from "@/components/features/admin/dashboard/ProjectsTable"
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { FilterModal } from "@/components/ui/FilterModal"
+import { useDashboard } from "@/hooks/features/useDashboard"
+import { useProactiveRemindersBackground } from "@/hooks/use-proactive-reminders"
+import { Loader } from "lucide-react"
 
 export default function DashboardAdmin() {
+  // Execute proactive reminders in background when admin accesses dashboard
+  useProactiveRemindersBackground()
   const {
     abaAtiva,
     setAbaAtiva,
@@ -39,7 +42,7 @@ export default function DashboardAdmin() {
       groupedView={groupedView}
       activeFilters={activeFilters}
       onToggleGroupedView={() => {
-        if (abaAtiva === 'projetos') {
+        if (abaAtiva === "projetos") {
           setGroupedView(!groupedView)
         }
       }}
@@ -51,7 +54,7 @@ export default function DashboardAdmin() {
     <PagesLayout title="Dashboard" actions={dashboardActions}>
       <DashboardTabs activeTab={abaAtiva} onTabChange={setAbaAtiva} />
 
-      {abaAtiva === 'projetos' && (
+      {abaAtiva === "projetos" && (
         <>
           {loadingProjetos ? (
             <div className="flex justify-center items-center py-8">
@@ -73,7 +76,7 @@ export default function DashboardAdmin() {
         </>
       )}
 
-      {abaAtiva === 'professores' && (
+      {abaAtiva === "professores" && (
         <>
           {loadingUsers ? (
             <div className="flex justify-center items-center py-8">
@@ -86,7 +89,7 @@ export default function DashboardAdmin() {
         </>
       )}
 
-      {abaAtiva === 'alunos' && (
+      {abaAtiva === "alunos" && (
         <>
           {loadingUsers ? (
             <div className="flex justify-center items-center py-8">
