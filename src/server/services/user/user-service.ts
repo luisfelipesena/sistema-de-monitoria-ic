@@ -1,7 +1,7 @@
 import { db } from '@/server/db'
-import { NotFoundError, ValidationError } from '@/server/lib/errors'
-import type { Regime, UserRole } from '@/types'
-import { PROFESSOR, PROFESSOR_STATUS_ATIVO, PROFESSOR_STATUS_INATIVO, STUDENT } from '@/types'
+import { BusinessError, NotFoundError, ValidationError } from '@/server/lib/errors'
+import type { AdminType, Regime, TipoProfessor, UserRole } from '@/types'
+import { ADMIN, PROFESSOR, PROFESSOR_STATUS_ATIVO, PROFESSOR_STATUS_INATIVO, STUDENT } from '@/types'
 import { createUserRepository, type UpdateProfileData, type UserFilters } from './user-repository'
 
 export const createUserService = (database: typeof db) => {
@@ -27,6 +27,7 @@ export const createUserService = (database: typeof db) => {
               emailInstitucional: user.professorProfile.emailInstitucional,
               matriculaSiape: user.professorProfile.matriculaSiape,
               regime: user.professorProfile.regime as Regime,
+              tipoProfessor: user.professorProfile.tipoProfessor as TipoProfessor | null,
               departamentoId: user.professorProfile.departamentoId,
               assinaturaDefault: user.professorProfile.assinaturaDefault,
               dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
@@ -97,6 +98,7 @@ export const createUserService = (database: typeof db) => {
               emailInstitucional: user.professorProfile.emailInstitucional,
               matriculaSiape: user.professorProfile.matriculaSiape,
               regime: user.professorProfile.regime as Regime,
+              tipoProfessor: user.professorProfile.tipoProfessor as TipoProfessor | null,
               departamentoId: user.professorProfile.departamentoId,
               curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
               comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
@@ -194,6 +196,72 @@ export const createUserService = (database: typeof db) => {
       return {
         success: true,
         message: `Professor ${status === PROFESSOR_STATUS_ATIVO ? 'ativado' : 'desativado'} com sucesso`,
+      }
+    },
+
+    async updateAdminType(userId: number, adminType: AdminType) {
+      const user = await userRepository.findById(userId)
+
+      if (!user) {
+        throw new NotFoundError('User', userId)
+      }
+
+      if (user.role !== ADMIN) {
+        throw new ValidationError('Usuário não é administrador')
+      }
+
+      await userRepository.updateAdminType(userId, adminType)
+
+      return {
+        success: true,
+        message: 'Tipo de administrador atualizado com sucesso',
+      }
+    },
+
+    async deleteUser(userId: number, currentUserId: number) {
+      const user = await userRepository.findById(userId)
+
+      if (!user) {
+        throw new NotFoundError('User', userId)
+      }
+
+      // Prevent self-deletion
+      if (userId === currentUserId) {
+        throw new BusinessError('Não é possível excluir seu próprio usuário', 'SELF_DELETION')
+      }
+
+      // Prevent deletion of admins
+      if (user.role === ADMIN) {
+        throw new BusinessError('Não é possível excluir usuários administradores', 'ADMIN_DELETION')
+      }
+
+      // Check if professor has active projects
+      if (user.professorProfile) {
+        const hasProjects = await userRepository.hasActiveProjects(user.professorProfile.id)
+        if (hasProjects) {
+          throw new BusinessError(
+            'Não é possível excluir professor com projetos ativos. Exclua ou transfira os projetos primeiro.',
+            'HAS_ACTIVE_PROJECTS'
+          )
+        }
+      }
+
+      // Check if student has active inscricoes
+      if (user.studentProfile) {
+        const hasInscricoes = await userRepository.hasActiveInscricoes(user.studentProfile.id)
+        if (hasInscricoes) {
+          throw new BusinessError(
+            'Não é possível excluir aluno com inscrições ativas. Cancele as inscrições primeiro.',
+            'HAS_ACTIVE_INSCRICOES'
+          )
+        }
+      }
+
+      await userRepository.deleteUser(userId)
+
+      return {
+        success: true,
+        message: 'Usuário excluído com sucesso',
       }
     },
   }

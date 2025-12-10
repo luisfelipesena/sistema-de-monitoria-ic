@@ -50,9 +50,8 @@ export const newEditalSchema = z
     // Datas de SELEÇÃO (prova) - opcionais
     dataInicioSelecao: z.date().optional(),
     dataFimSelecao: z.date().optional(),
-    // Divulgação e link
+    // Divulgação
     dataDivulgacaoResultado: z.date().optional(),
-    linkFormularioInscricao: z.string().url().optional().or(z.literal('')),
     // Legacy fields
     fileIdPdfExterno: z.string().optional(),
     datasProvasDisponiveis: z.array(z.string()).optional(),
@@ -89,9 +88,8 @@ export const updateEditalSchema = z
     // Datas de SELEÇÃO (prova)
     dataInicioSelecao: z.date().optional().nullable(),
     dataFimSelecao: z.date().optional().nullable(),
-    // Divulgação e link
+    // Divulgação
     dataDivulgacaoResultado: z.date().optional().nullable(),
-    linkFormularioInscricao: z.string().url().optional().nullable().or(z.literal('')),
     // Legacy
     datasProvasDisponiveis: z.array(z.string()).optional(),
   })

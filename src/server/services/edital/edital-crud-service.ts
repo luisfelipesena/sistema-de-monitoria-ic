@@ -8,15 +8,22 @@ import {
   type UpdateEditalInput,
 } from '@/types'
 import { logger } from '@/utils/logger'
+import { env } from '@/utils/env'
 import { randomBytes } from 'crypto'
 import type { EditalRepository } from './edital-repository'
 
 const log = logger.child({ context: 'EditalCrudService' })
 
 const TOKEN_EXPIRY_HOURS = 72 // Token expires in 72 hours
+const INSCRICAO_PATH = '/home/student/inscricao-monitoria'
 
 function generateSecureToken(): string {
   return randomBytes(32).toString('hex')
+}
+
+function generateInscricaoLink(): string {
+  const baseUrl = env.CLIENT_URL || 'http://localhost:3000'
+  return `${baseUrl}${INSCRICAO_PATH}`
 }
 
 export function createEditalCrudService(
@@ -58,7 +65,7 @@ export function createEditalCrudService(
         fileIdPdfExterno: input.fileIdPdfExterno || null,
         dataInicioSelecao: input.dataInicioSelecao || null,
         dataFimSelecao: input.dataFimSelecao || null,
-        linkFormularioInscricao: input.linkFormularioInscricao || null,
+        linkFormularioInscricao: generateInscricaoLink(),
         datasProvasDisponiveis: input.datasProvasDisponiveis ? JSON.stringify(input.datasProvasDisponiveis) : null,
         dataDivulgacaoResultado: input.dataDivulgacaoResultado || null,
         criadoPorUserId: input.criadoPorUserId,
@@ -124,8 +131,6 @@ export function createEditalCrudService(
       if (input.valorBolsa !== undefined) updateData.valorBolsa = input.valorBolsa
       if (input.dataInicioSelecao !== undefined) updateData.dataInicioSelecao = input.dataInicioSelecao
       if (input.dataFimSelecao !== undefined) updateData.dataFimSelecao = input.dataFimSelecao
-      if (input.linkFormularioInscricao !== undefined)
-        updateData.linkFormularioInscricao = input.linkFormularioInscricao
       if (input.datasProvasDisponiveis !== undefined) {
         updateData.datasProvasDisponiveis = input.datasProvasDisponiveis
           ? JSON.stringify(input.datasProvasDisponiveis)

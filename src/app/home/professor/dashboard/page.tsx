@@ -16,7 +16,8 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import { createSemesterFilterOptions, createYearFilterOptions, useColumnFilters } from "@/hooks/useColumnFilters"
+import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
+import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
 import {
   DashboardProjectItem,
   PROJETO_STATUS_APPROVED,
@@ -52,8 +53,8 @@ export default function DashboardProfessor() {
   const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
   const apiUtils = api.useUtils()
 
-  // Column filters with current semester as default
-  const { columnFilters, setColumnFilters } = useColumnFilters({
+  // Column filters with URL state persistence and current semester as default
+  const { columnFilters, setColumnFilters } = useUrlColumnFilters({
     useCurrentSemester: true,
   })
 
@@ -173,19 +174,21 @@ export default function DashboardProfessor() {
     {
       header: createFilterableHeader<DashboardProjectItem>({
         title: "Ano",
-        filterType: "select",
+        filterType: "multiselect",
         filterOptions: createYearFilterOptions(),
       }),
       accessorKey: "ano",
+      filterFn: multiselectFilterFn,
       cell: ({ row }) => <div className="text-center">{row.original.ano}</div>,
     },
     {
       header: createFilterableHeader<DashboardProjectItem>({
         title: "Semestre",
-        filterType: "select",
+        filterType: "multiselect",
         filterOptions: createSemesterFilterOptions(),
       }),
       accessorKey: "semestre",
+      filterFn: multiselectFilterFn,
       cell: ({ row }) => <div className="text-center">{row.original.semestre === "SEMESTRE_1" ? "1º" : "2º"}</div>,
     },
     {

@@ -1,7 +1,17 @@
-import { and, eq, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import type { InferInsertModel } from 'drizzle-orm'
 import type { db } from '@/server/db'
-import { departamentoTable, disciplinaTable, professorTable, projetoTable } from '@/server/db/schema'
+import {
+  departamentoTable,
+  disciplinaProfessorResponsavelTable,
+  disciplinaTable,
+  equivalenciaDisciplinasTable,
+  notaAlunoTable,
+  professorTable,
+  projetoDisciplinaTable,
+  projetoTable,
+  projetoTemplateTable,
+} from '@/server/db/schema'
 
 export type DepartamentoInsert = InferInsertModel<typeof departamentoTable>
 type Database = typeof db
@@ -60,6 +70,59 @@ export function createDepartamentoRepository(db: Database) {
 
     async delete(id: number) {
       await db.delete(departamentoTable).where(eq(departamentoTable.id, id))
+    },
+
+    async getDisciplinaIdsByDepartamento(departamentoId: number) {
+      const disciplinas = await db
+        .select({ id: disciplinaTable.id })
+        .from(disciplinaTable)
+        .where(eq(disciplinaTable.departamentoId, departamentoId))
+      return disciplinas.map((d) => d.id)
+    },
+
+    async deleteProjetoDisciplinasByDisciplinaIds(disciplinaIds: number[]) {
+      if (disciplinaIds.length === 0) return
+      await db.delete(projetoDisciplinaTable).where(inArray(projetoDisciplinaTable.disciplinaId, disciplinaIds))
+    },
+
+    async deleteDisciplinaProfessorResponsavelByDisciplinaIds(disciplinaIds: number[]) {
+      if (disciplinaIds.length === 0) return
+      await db
+        .delete(disciplinaProfessorResponsavelTable)
+        .where(inArray(disciplinaProfessorResponsavelTable.disciplinaId, disciplinaIds))
+    },
+
+    async deleteNotaAlunoByDisciplinaIds(disciplinaIds: number[]) {
+      if (disciplinaIds.length === 0) return
+      await db.delete(notaAlunoTable).where(inArray(notaAlunoTable.disciplinaId, disciplinaIds))
+    },
+
+    async deleteEquivalenciaDisciplinasByDisciplinaIds(disciplinaIds: number[]) {
+      if (disciplinaIds.length === 0) return
+      // Delete where disciplina is either origem or equivalente
+      await db
+        .delete(equivalenciaDisciplinasTable)
+        .where(inArray(equivalenciaDisciplinasTable.disciplinaOrigemId, disciplinaIds))
+      await db
+        .delete(equivalenciaDisciplinasTable)
+        .where(inArray(equivalenciaDisciplinasTable.disciplinaEquivalenteId, disciplinaIds))
+    },
+
+    async deleteProjetoTemplatesByDisciplinaIds(disciplinaIds: number[]) {
+      if (disciplinaIds.length === 0) return
+      await db.delete(projetoTemplateTable).where(inArray(projetoTemplateTable.disciplinaId, disciplinaIds))
+    },
+
+    async deleteDisciplinasByDepartamento(departamentoId: number) {
+      await db.delete(disciplinaTable).where(eq(disciplinaTable.departamentoId, departamentoId))
+    },
+
+    async countProjetosAtivos(departamentoId: number) {
+      const [result] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(projetoTable)
+        .where(and(eq(projetoTable.departamentoId, departamentoId), isNull(projetoTable.deletedAt)))
+      return result?.count || 0
     },
   }
 }

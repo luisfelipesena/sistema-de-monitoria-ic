@@ -1,6 +1,6 @@
 import { getCurrentSemester } from '@/utils/utils'
 import type { ColumnFiltersState } from '@tanstack/react-table'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 export interface UseColumnFiltersOptions {
   /** Default filters to initialize with */
@@ -30,17 +30,22 @@ export interface UseColumnFiltersReturn {
 
 /**
  * Hook for managing column filters with optional current semester initialization
+ * Uses arrays for multiselect compatibility
  */
 export function useColumnFilters(options?: UseColumnFiltersOptions): UseColumnFiltersReturn {
+  // Track if user explicitly cleared to prevent re-applying defaults
+  const hasBeenCleared = useRef(false)
+
   const defaultValue = useMemo(() => {
     if (options?.defaultFilters && options.defaultFilters.length > 0) {
       return options.defaultFilters
     }
     if (options?.useCurrentSemester) {
       const { year, semester } = getCurrentSemester()
+      // Use arrays for multiselect filter compatibility
       return [
-        { id: 'ano', value: String(year) },
-        { id: 'semestre', value: semester },
+        { id: 'ano', value: [String(year)] },
+        { id: 'semestre', value: [semester] },
       ]
     }
     return []

@@ -1,5 +1,15 @@
 import { z } from 'zod'
-import { AdminType, Genero, registrationRoleSchema, Regime, regimeSchema, UserRole, userRoleSchema } from './enums'
+import {
+  AdminType,
+  Genero,
+  registrationRoleSchema,
+  Regime,
+  regimeSchema,
+  TipoProfessor,
+  tipoProfessorSchema,
+  UserRole,
+  userRoleSchema,
+} from './enums'
 import {
   crSchema,
   emailSchema,
@@ -75,6 +85,7 @@ export interface UserListItem {
     emailInstitucional: string | null
     matriculaSiape?: string | null
     regime: Regime | null
+    tipoProfessor?: TipoProfessor | null
     departamentoId: number | null
     curriculumVitaeFileId?: string | null
     comprovanteVinculoFileId?: string | null
@@ -129,6 +140,7 @@ export const userListItemSchema = z.object({
       emailInstitucional: emailSchema.nullable(),
       matriculaSiape: z.string().nullable().optional(),
       regime: regimeSchema.nullable(),
+      tipoProfessor: tipoProfessorSchema.nullable().optional(),
       departamentoId: idSchema.nullable(),
       curriculumVitaeFileId: z.string().nullable().optional(),
       comprovanteVinculoFileId: z.string().nullable().optional(),

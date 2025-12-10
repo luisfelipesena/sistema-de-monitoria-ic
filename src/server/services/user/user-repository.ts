@@ -3,12 +3,14 @@ import {
   alunoTable,
   inscricaoDocumentoTable,
   inscricaoTable,
+  professorInvitationTable,
   professorTable,
   projetoTable,
+  sessionTable,
   userTable,
   vagaTable,
 } from '@/server/db/schema'
-import type { Regime, UserRole } from '@/types'
+import type { AdminType, Regime, UserRole } from '@/types'
 import {
   PROFESSOR,
   PROFESSOR_STATUS_ATIVO,
@@ -255,6 +257,51 @@ export const createUserRepository = (db: Database) => {
         where: eq(userTable.id, userId),
       })
       return user?.role === STUDENT
+    },
+
+    async updateAdminType(userId: number, adminType: AdminType) {
+      await db.update(userTable).set({ adminType }).where(eq(userTable.id, userId))
+    },
+
+    async hasActiveProjects(professorId: number): Promise<boolean> {
+      const [count] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(projetoTable)
+        .where(and(eq(projetoTable.professorResponsavelId, professorId), isNull(projetoTable.deletedAt)))
+
+      return (count?.count || 0) > 0
+    },
+
+    async hasActiveInscricoes(alunoId: number): Promise<boolean> {
+      const [count] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(inscricaoTable)
+        .where(eq(inscricaoTable.alunoId, alunoId))
+
+      return (count?.count || 0) > 0
+    },
+
+    async deleteUser(userId: number) {
+      await db.transaction(async (tx) => {
+        // Delete sessions first
+        await tx.delete(sessionTable).where(eq(sessionTable.userId, userId))
+
+        // Delete professor invitation if exists
+        const professor = await tx.query.professorTable.findFirst({
+          where: eq(professorTable.userId, userId),
+        })
+
+        if (professor) {
+          await tx.delete(professorInvitationTable).where(eq(professorInvitationTable.professorId, professor.id))
+        }
+
+        // The cascade should handle professor/aluno tables, but let's be explicit
+        await tx.delete(professorTable).where(eq(professorTable.userId, userId))
+        await tx.delete(alunoTable).where(eq(alunoTable.userId, userId))
+
+        // Finally delete the user
+        await tx.delete(userTable).where(eq(userTable.id, userId))
+      })
     },
   }
 }

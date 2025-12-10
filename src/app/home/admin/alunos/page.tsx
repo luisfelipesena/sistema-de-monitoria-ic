@@ -1,32 +1,77 @@
 "use client"
 
+import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
+import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
+import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
 import {
   STUDENT,
   STUDENT_STATUS_ATIVO,
   STUDENT_STATUS_GRADUADO,
   STUDENT_STATUS_INATIVO,
+  STUDENT_STATUS_LABELS,
   STUDENT_STATUS_TRANSFERIDO,
   type AlunoListItem,
   type StudentStatus,
 } from "@/types"
 import { api } from "@/utils/api"
-import { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, FilterFn } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { Award, Eye, GraduationCap, UserCheck, UserX, Users } from "lucide-react"
-import { useState } from "react"
+import { Award, Eye, GraduationCap, Pencil, Trash2, UserCheck, UserX, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useMemo, useState } from "react"
+
+// Custom filter function for student name
+const nomeFilterFn: FilterFn<AlunoListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+  const nomeCompleto = row.original.nomeCompleto || ""
+  const matricula = row.original.matricula || ""
+  const searchValue = String(filterValue).toLowerCase()
+  return nomeCompleto.toLowerCase().includes(searchValue) || matricula.toLowerCase().includes(searchValue)
+}
+
+// Custom filter function for email
+const emailFilterFn: FilterFn<AlunoListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+  const email = row.original.emailInstitucional || ""
+  const searchValue = String(filterValue).toLowerCase()
+  return email.toLowerCase().includes(searchValue)
+}
+
+// Custom filter function for curso
+const cursoFilterFn: FilterFn<AlunoListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+  const curso = row.original.cursoNome || ""
+  const searchValue = String(filterValue).toLowerCase()
+  return curso.toLowerCase().includes(searchValue)
+}
 
 export default function AlunosPage() {
   const { toast } = useToast()
+  const router = useRouter()
   const [selectedAluno, setSelectedAluno] = useState<AlunoListItem | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const [alunoToDelete, setAlunoToDelete] = useState<AlunoListItem | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
+  // URL-based column filters
+  const { columnFilters, setColumnFilters } = useUrlColumnFilters()
 
   // Helper function - must be declared before use to avoid TDZ
   const getAlunoStatus = (profile: {
@@ -40,10 +85,12 @@ export default function AlunosPage() {
   }
 
   // Fetch students data
-  const { data: usersData, isLoading } = api.user.getUsers.useQuery({
+  const { data: usersData, isLoading, refetch } = api.user.getUsers.useQuery({
     role: STUDENT,
     limit: 100,
   })
+
+  const deleteUserMutation = api.user.deleteUser.useMutation()
 
   const alunos: AlunoListItem[] =
     usersData?.users
@@ -68,6 +115,49 @@ export default function AlunosPage() {
         }
       }) || []
 
+  // Generate filter options for autocomplete
+  const nomeFilterOptions = useMemo(() => {
+    return alunos
+      .filter((a) => a.nomeCompleto)
+      .map((a) => ({
+        value: a.nomeCompleto,
+        label: `${a.nomeCompleto} (${a.matricula || "N/A"})`,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [alunos])
+
+  const emailFilterOptions = useMemo(() => {
+    return alunos
+      .filter((a) => a.emailInstitucional)
+      .map((a) => ({
+        value: a.emailInstitucional!,
+        label: a.emailInstitucional!,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [alunos])
+
+  const cursoFilterOptions = useMemo(() => {
+    const uniqueCursos = new Map<string, string>()
+    alunos.forEach((a) => {
+      if (a.cursoNome && !uniqueCursos.has(a.cursoNome)) {
+        uniqueCursos.set(a.cursoNome, a.cursoNome)
+      }
+    })
+    return Array.from(uniqueCursos.entries())
+      .map(([curso]) => ({
+        value: curso,
+        label: curso,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [alunos])
+
+  const statusFilterOptions = [
+    { value: STUDENT_STATUS_ATIVO, label: STUDENT_STATUS_LABELS[STUDENT_STATUS_ATIVO] },
+    { value: STUDENT_STATUS_INATIVO, label: STUDENT_STATUS_LABELS[STUDENT_STATUS_INATIVO] },
+    { value: STUDENT_STATUS_GRADUADO, label: STUDENT_STATUS_LABELS[STUDENT_STATUS_GRADUADO] },
+    { value: STUDENT_STATUS_TRANSFERIDO, label: STUDENT_STATUS_LABELS[STUDENT_STATUS_TRANSFERIDO] },
+  ]
+
   const handleViewAluno = (aluno: AlunoListItem) => {
     setSelectedAluno(aluno)
     setIsDetailDialogOpen(true)
@@ -88,6 +178,29 @@ export default function AlunosPage() {
       toast({
         title: "Erro ao atualizar status",
         description: error.message || "Não foi possível atualizar o status",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteAluno = async () => {
+    if (!alunoToDelete) return
+
+    try {
+      await deleteUserMutation.mutateAsync({ id: alunoToDelete.id })
+
+      await refetch()
+      setIsDeleteDialogOpen(false)
+      setAlunoToDelete(null)
+
+      toast({
+        title: "Aluno excluído",
+        description: "O aluno foi excluído com sucesso",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir aluno",
+        description: error.message || "Não foi possível excluir o aluno",
         variant: "destructive",
       })
     }
@@ -121,106 +234,151 @@ export default function AlunosPage() {
     }
   }
 
-  const columns: ColumnDef<AlunoListItem>[] = [
-    {
-      accessorKey: "nomeCompleto",
-      header: "Nome",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.nomeCompleto}</div>
-          <div className="text-sm text-muted-foreground">{row.original.matricula}</div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "emailInstitucional",
-      header: "Email",
-      cell: ({ row }) => <div className="text-muted-foreground">{row.original.emailInstitucional}</div>,
-    },
-    {
-      accessorKey: "cursoNome",
-      header: "Curso",
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.cursoNome || "N/A"}</div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "cr",
-      header: "CR",
-      cell: ({ row }) => renderCrBadge(row.original.cr),
-    },
-    {
-      accessorKey: "bolsasAtivas",
-      header: "Bolsas",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Badge variant={row.original.bolsasAtivas > 0 ? "default" : "outline"}>{row.original.bolsasAtivas}</Badge>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "voluntariadosAtivos",
-      header: "Voluntariados",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Badge variant={row.original.voluntariadosAtivos > 0 ? "secondary" : "outline"}>
-            {row.original.voluntariadosAtivos}
-          </Badge>
-        </div>
-      ),
-    },
-    {
-      id: "documentos",
-      header: "Documentos",
-      cell: ({ row }) => {
-        const { documentosValidados, totalDocumentos } = row.original
-        const percentage = totalDocumentos > 0 ? (documentosValidados / totalDocumentos) * 100 : 0
-        return (
+  const columns: ColumnDef<AlunoListItem>[] = useMemo(
+    () => [
+      {
+        id: "nomeCompleto",
+        accessorKey: "nomeCompleto",
+        header: createFilterableHeader<AlunoListItem>({
+          title: "Nome",
+          filterType: "text",
+          filterPlaceholder: "Buscar nome ou matrícula...",
+          wide: true,
+          autocompleteOptions: nomeFilterOptions,
+        }),
+        filterFn: nomeFilterFn,
+        cell: ({ row }) => (
+          <div>
+            <div className="font-medium">{row.original.nomeCompleto}</div>
+            <div className="text-sm text-muted-foreground">{row.original.matricula}</div>
+          </div>
+        ),
+      },
+      {
+        id: "emailInstitucional",
+        accessorKey: "emailInstitucional",
+        header: createFilterableHeader<AlunoListItem>({
+          title: "Email",
+          filterType: "text",
+          filterPlaceholder: "Buscar email...",
+          wide: true,
+          autocompleteOptions: emailFilterOptions,
+        }),
+        filterFn: emailFilterFn,
+        cell: ({ row }) => <div className="text-muted-foreground">{row.original.emailInstitucional}</div>,
+      },
+      {
+        id: "cursoNome",
+        accessorKey: "cursoNome",
+        header: createFilterableHeader<AlunoListItem>({
+          title: "Curso",
+          filterType: "text",
+          filterPlaceholder: "Buscar curso...",
+          wide: true,
+          autocompleteOptions: cursoFilterOptions,
+        }),
+        filterFn: cursoFilterFn,
+        cell: ({ row }) => (
+          <div>
+            <div className="font-medium">{row.original.cursoNome || "N/A"}</div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "cr",
+        header: "CR",
+        cell: ({ row }) => renderCrBadge(row.original.cr),
+      },
+      {
+        accessorKey: "bolsasAtivas",
+        header: "Bolsas",
+        cell: ({ row }) => (
           <div className="text-center">
-            <Badge variant={percentage === 100 ? "default" : percentage >= 50 ? "secondary" : "destructive"}>
-              {documentosValidados}/{totalDocumentos}
+            <Badge variant={row.original.bolsasAtivas > 0 ? "default" : "outline"}>{row.original.bolsasAtivas}</Badge>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "voluntariadosAtivos",
+        header: "Voluntariados",
+        cell: ({ row }) => (
+          <div className="text-center">
+            <Badge variant={row.original.voluntariadosAtivos > 0 ? "secondary" : "outline"}>
+              {row.original.voluntariadosAtivos}
             </Badge>
           </div>
-        )
+        ),
       },
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => renderStatusBadge(row.original.status),
-    },
-    {
-      id: "actions",
-      header: "Ações",
-      cell: ({ row }) => {
-        const aluno = row.original
-        const isAtivo = aluno.status === STUDENT_STATUS_ATIVO
-        return (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              title="Ver detalhes do aluno"
-              onClick={() => handleViewAluno(aluno)}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
+      {
+        id: "documentos",
+        header: "Documentos",
+        cell: ({ row }) => {
+          const { documentosValidados, totalDocumentos } = row.original
+          const percentage = totalDocumentos > 0 ? (documentosValidados / totalDocumentos) * 100 : 0
+          return (
+            <div className="text-center">
+              <Badge variant={percentage === 100 ? "default" : percentage >= 50 ? "secondary" : "destructive"}>
+                {documentosValidados}/{totalDocumentos}
+              </Badge>
+            </div>
+          )
+        },
+      },
+      {
+        id: "status",
+        accessorKey: "status",
+        header: createFilterableHeader<AlunoListItem>({
+          title: "Status",
+          filterType: "multiselect",
+          filterOptions: statusFilterOptions,
+        }),
+        filterFn: multiselectFilterFn,
+        cell: ({ row }) => renderStatusBadge(row.original.status),
+      },
+      {
+        id: "actions",
+        header: "Ações",
+        cell: ({ row }) => {
+          const aluno = row.original
+          const isAtivo = aluno.status === STUDENT_STATUS_ATIVO
+          return (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                title="Ver detalhes do aluno"
+                onClick={() => handleViewAluno(aluno)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
 
-            <Button
-              variant={isAtivo ? "destructive" : "default"}
-              size="sm"
-              title={isAtivo ? "Desativar aluno" : "Ativar aluno"}
-              onClick={() => handleToggleStatus(aluno.id, aluno.status)}
-            >
-              {isAtivo ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-            </Button>
-          </div>
-        )
+              <Button
+                variant={isAtivo ? "destructive" : "default"}
+                size="sm"
+                title={isAtivo ? "Desativar aluno" : "Ativar aluno"}
+                onClick={() => handleToggleStatus(aluno.id, aluno.status)}
+              >
+                {isAtivo ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+              </Button>
+
+              <Button
+                variant="destructive"
+                size="sm"
+                title="Excluir aluno"
+                onClick={() => {
+                  setAlunoToDelete(aluno)
+                  setIsDeleteDialogOpen(true)
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          )
+        },
       },
-    },
-  ]
+    ],
+    [nomeFilterOptions, emailFilterOptions, cursoFilterOptions]
+  )
 
   const totalAlunos = alunos.length
   const alunosAtivos = alunos.filter((a) => a.status === STUDENT_STATUS_ATIVO).length
@@ -290,8 +448,8 @@ export default function AlunosPage() {
             <TableComponent
               columns={columns}
               data={alunos}
-              searchableColumn="nomeCompleto"
-              searchPlaceholder="Buscar por nome ou matrícula..."
+              columnFilters={columnFilters}
+              onColumnFiltersChange={setColumnFilters}
             />
           </CardContent>
         </Card>
@@ -397,19 +555,55 @@ export default function AlunosPage() {
                 Fechar
               </Button>
               {selectedAluno && (
-                <Button
-                  variant={selectedAluno.status === STUDENT_STATUS_ATIVO ? "destructive" : "default"}
-                  onClick={() => {
-                    handleToggleStatus(selectedAluno.id, selectedAluno.status)
-                    setIsDetailDialogOpen(false)
-                  }}
-                >
-                  {selectedAluno.status === STUDENT_STATUS_ATIVO ? "Desativar" : "Ativar"} Aluno
-                </Button>
+                <>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setIsDetailDialogOpen(false)
+                      router.push(`/home/admin/users/${selectedAluno.id}/edit`)
+                    }}
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant={selectedAluno.status === STUDENT_STATUS_ATIVO ? "destructive" : "default"}
+                    onClick={() => {
+                      handleToggleStatus(selectedAluno.id, selectedAluno.status)
+                      setIsDetailDialogOpen(false)
+                    }}
+                  >
+                    {selectedAluno.status === STUDENT_STATUS_ATIVO ? "Desativar" : "Ativar"} Aluno
+                  </Button>
+                </>
               )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o aluno{" "}
+                <span className="font-semibold">{alunoToDelete?.nomeCompleto}</span>?
+                Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setAlunoToDelete(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteAluno}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={deleteUserMutation.isPending}
+              >
+                {deleteUserMutation.isPending ? "Excluindo..." : "Excluir"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PagesLayout>
   )

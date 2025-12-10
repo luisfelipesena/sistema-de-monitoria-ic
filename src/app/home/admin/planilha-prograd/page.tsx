@@ -11,13 +11,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast"
 import { SEMESTRE_1, SEMESTRE_2, Semestre, TIPO_PROPOSICAO_COLETIVA } from "@/types"
 import { api } from "@/utils/api"
+import { getCurrentSemester } from "@/utils/utils"
 import { AlertTriangle, Download, FileSpreadsheet, Mail, Send } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 export default function PlanilhaPROGRADPage() {
   const { toast } = useToast()
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear())
-  const [selectedSemester, setSelectedSemester] = useState<Semestre>(SEMESTRE_1)
+
+  // Use current semester as default
+  const defaults = useMemo(() => getCurrentSemester(), [])
+  const [selectedYear, setSelectedYear] = useState<number>(defaults.year)
+  const [selectedSemester, setSelectedSemester] = useState<Semestre>(defaults.semester)
   const [showEmailModal, setShowEmailModal] = useState(false)
 
   const {

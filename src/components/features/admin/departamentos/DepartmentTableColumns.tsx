@@ -1,20 +1,27 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { StatusBadge } from '@/components/atoms/StatusBadge'
-import type { DepartamentoListItem } from '@/types'
+import { createFilterableHeader } from '@/components/layout/DataTableFilterHeader'
+import type { DepartamentoListItem, FilterOption } from '@/types'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Edit, Trash2 } from 'lucide-react'
 
 interface GetColumnsProps {
   onEdit: (departamento: DepartamentoListItem) => void
   onDelete: (departamento: DepartamentoListItem) => void
+  nomeFilterOptions?: FilterOption[]
 }
 
-export function getDepartmentColumns({ onEdit, onDelete }: GetColumnsProps): ColumnDef<DepartamentoListItem>[] {
+export function getDepartmentColumns({ onEdit, onDelete, nomeFilterOptions }: GetColumnsProps): ColumnDef<DepartamentoListItem>[] {
   return [
     {
       accessorKey: 'nome',
-      header: 'Departamento',
+      header: createFilterableHeader<DepartamentoListItem>({
+        title: 'Departamento',
+        filterType: 'text',
+        autocompleteOptions: nomeFilterOptions,
+      }),
+      filterFn: 'includesString',
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.nome}</div>

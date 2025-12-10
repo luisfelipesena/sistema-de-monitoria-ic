@@ -54,3 +54,43 @@ export function findMatchingProfessors<T extends { nomeCompleto: string }>(searc
     .filter((p) => matchProfessorByFirstName(searchName, p.nomeCompleto))
     .sort((a, b) => a.nomeCompleto.localeCompare(b.nomeCompleto))
 }
+
+/**
+ * Sanitizes a title by:
+ * - Trimming whitespace
+ * - Collapsing multiple spaces into one
+ * - Capitalizing first letter of each word (except common prepositions)
+ */
+export function sanitizeTitle(title: string): string {
+  return title
+    .trim()
+    .replace(/\s+/g, ' ')
+    .replace(/\t+/g, ' ')
+    .replace(/[""]/g, '"')
+    .replace(/['']/g, "'")
+    .replace(/–/g, '-')
+    .replace(/…/g, '...')
+    .split(' ')
+    .map((word) => {
+      const lowerWords = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'a', 'o', 'com', 'por', 'na', 'no']
+      const upperWord = word.toUpperCase()
+      if (word === upperWord && word.length <= 4) return word
+      if (lowerWords.includes(word.toLowerCase())) return word.toLowerCase()
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    })
+    .join(' ')
+}
+
+/**
+ * Sanitizes a discipline code
+ */
+export function sanitizeDisciplineCode(code: string): string {
+  return code.trim().toUpperCase().replace(/\s+/g, '')
+}
+
+/**
+ * Sanitizes a SIAPE number (removes non-digits)
+ */
+export function sanitizeSiape(siape: string): string {
+  return siape.trim().replace(/\D/g, '')
+}

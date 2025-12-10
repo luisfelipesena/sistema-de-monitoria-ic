@@ -1,64 +1,80 @@
 "use client"
 
+import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
+import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FilterModal, type FilterValues } from "@/components/ui/FilterModal"
-import { useToast } from "@/hooks/use-toast"
-import { ADMIN, PROFESSOR, STUDENT, type UserRole, UserListItem } from "@/types"
+import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
+import { ADMIN, PROFESSOR, STUDENT, type UserListItem } from "@/types"
 import { api } from "@/utils/api"
 import { formatUsernameToProperName } from "@/utils/username-formatter"
-import { useQueryClient } from "@tanstack/react-query"
-import { ColumnDef } from "@tanstack/react-table"
-import { BookOpen, Filter, GraduationCap, Loader, Mail, Pencil, User, UserCheck, UserPlus, Users } from "lucide-react"
+import type { ColumnDef, FilterFn } from "@tanstack/react-table"
+import { BookOpen, GraduationCap, Loader, Mail, Pencil, User, UserCheck, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
+
+// Role filter options
+const roleFilterOptions = [
+  { value: ADMIN, label: "Administrador" },
+  { value: PROFESSOR, label: "Professor" },
+  { value: STUDENT, label: "Estudante" },
+]
+
+// Custom filter function for username (searches displayName too)
+const usernameFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+  const user = row.original
+  const displayName =
+    user.professorProfile?.nomeCompleto ||
+    user.studentProfile?.nomeCompleto ||
+    formatUsernameToProperName(user.username)
+  const searchValue = String(filterValue).toLowerCase()
+  return (
+    user.username.toLowerCase().includes(searchValue) ||
+    displayName.toLowerCase().includes(searchValue) ||
+    user.email.toLowerCase().includes(searchValue)
+  )
+}
+
+// Custom filter function for email
+const emailFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+  const user = row.original
+  const email = user.email || ""
+  const institutionalEmail = user.professorProfile?.emailInstitucional || user.studentProfile?.emailInstitucional || ""
+  const searchValue = String(filterValue).toLowerCase()
+  return email.toLowerCase().includes(searchValue) || institutionalEmail.toLowerCase().includes(searchValue)
+}
+
+// Custom filter function for departamento (multiselect by departamento id)
+const departamentoFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return true
+  const departamentoId = row.original.professorProfile?.departamentoId?.toString()
+  return departamentoId ? filterValue.includes(departamentoId) : false
+}
+
+// Custom filter function for curso
+const cursoFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+  const cursoNome = row.original.studentProfile?.cursoNome || ""
+  const searchValue = String(filterValue).toLowerCase()
+  return cursoNome.toLowerCase().includes(searchValue)
+}
 
 export default function UsersPage() {
-  const { toast } = useToast()
-
   const router = useRouter()
-  const queryClient = useQueryClient()
 
   const { data: usersData, isLoading: loadingUsers } = api.user.getUsers.useQuery({})
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
 
-  const [filterModalOpen, setFilterModalOpen] = useState(false)
-  const [filters, setFilters] = useState<FilterValues>({})
-  const [selectedRole, setSelectedRole] = useState<"all" | UserRole>("all")
+  // URL-based column filters
+  const { columnFilters, setColumnFilters } = useUrlColumnFilters()
 
-  const handleApplyFilters = (newFilters: FilterValues) => {
-    setFilters(newFilters)
-  }
-
-  const handleEditUser = (userId: number, role: string) => {
+  const handleEditUser = (userId: number) => {
     router.push(`/home/admin/users/${userId}/edit`)
   }
-
-  const handleInviteProfessor = () => {
-    router.push("/home/admin/invite-professor")
-  }
-
-  // Filtrar usuários baseado nos filtros aplicados
-  const filteredUsers = useMemo(() => {
-    if (!usersData?.users) return []
-
-    let filtered = usersData.users
-
-    // Filtro por role
-    if (selectedRole !== "all") {
-      filtered = filtered.filter((user) => user.role === selectedRole)
-    }
-
-    // Outros filtros
-    if (filters.departamento) {
-      filtered = filtered.filter((user) => user.professorProfile?.departamentoId?.toString() === filters.departamento)
-    }
-
-    return filtered
-  }, [usersData?.users, selectedRole, filters])
 
   // Calcular estatísticas
   const userStats = useMemo(() => {
@@ -76,135 +92,229 @@ export default function UsersPage() {
     )
   }, [usersData?.users])
 
-  // Column definitions for users table
-  const colunasUsuarios: ColumnDef<UserListItem>[] = [
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <User className="h-5 w-5 text-gray-400" />
-          Usuário
-        </div>
-      ),
-      accessorKey: "username",
-      cell: ({ row }) => {
-        const user = row.original
+  // Generate filter options for autocomplete
+  const nomeFilterOptions = useMemo(() => {
+    if (!usersData?.users) return []
+    return usersData.users
+      .map((user) => {
         const displayName =
           user.professorProfile?.nomeCompleto ||
           user.studentProfile?.nomeCompleto ||
           formatUsernameToProperName(user.username)
-
-        return (
-          <div>
-            <span className="font-semibold text-base text-gray-900">{displayName}</span>
-            <div className="text-xs text-muted-foreground">@{user.username}</div>
-          </div>
-        )
-      },
-    },
-    {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Mail className="h-5 w-5 text-gray-400" />
-          Email
-        </div>
-      ),
-      accessorKey: "email",
-      cell: ({ row }) => {
-        const user = row.original
-        const institutionalEmail = user.professorProfile?.emailInstitucional || user.studentProfile?.emailInstitucional
-
-        return (
-          <div>
-            <div className="text-sm">{user.email}</div>
-            {institutionalEmail && institutionalEmail !== user.email && (
-              <div className="text-xs text-muted-foreground">{institutionalEmail}</div>
-            )}
-          </div>
-        )
-      },
-    },
-    {
-      header: "Papel",
-      accessorKey: "role",
-      cell: ({ row }) => {
-        const role = row.original.role
-        const roleConfig = {
-          admin: { label: "Administrador", variant: "default" as const, icon: UserCheck },
-          professor: { label: "Professor", variant: "secondary" as const, icon: GraduationCap },
-          student: { label: "Estudante", variant: "outline" as const, icon: BookOpen },
+        return {
+          value: displayName,
+          label: `${displayName} (@${user.username})`,
         }
+      })
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [usersData?.users])
 
-        const config = roleConfig[role]
-        const Icon = config.icon
+  const emailFilterOptions = useMemo(() => {
+    if (!usersData?.users) return []
+    const emails = new Set<string>()
+    usersData.users.forEach((user) => {
+      if (user.email) emails.add(user.email)
+      if (user.professorProfile?.emailInstitucional) emails.add(user.professorProfile.emailInstitucional)
+      if (user.studentProfile?.emailInstitucional) emails.add(user.studentProfile.emailInstitucional)
+    })
+    return Array.from(emails)
+      .map((email) => ({ value: email, label: email }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [usersData?.users])
 
-        return (
-          <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
-            <Icon className="h-3 w-3" />
-            {config.label}
-          </Badge>
-        )
-      },
-    },
-    {
-      header: "Informações Adicionais",
-      cell: ({ row }) => {
-        const user = row.original
+  const departamentoFilterOptions = useMemo(() => {
+    if (!departamentos) return []
+    return departamentos.map((d) => ({
+      value: d.id.toString(),
+      label: d.nome,
+    }))
+  }, [departamentos])
 
-        if (user.role === PROFESSOR && user.professorProfile) {
-          const dept = departamentos?.find((d) => d.id === user.professorProfile?.departamentoId)
+  const cursoFilterOptions = useMemo(() => {
+    if (!usersData?.users) return []
+    const uniqueCursos = new Map<string, string>()
+    usersData.users.forEach((user) => {
+      if (user.studentProfile?.cursoNome && !uniqueCursos.has(user.studentProfile.cursoNome)) {
+        uniqueCursos.set(user.studentProfile.cursoNome, user.studentProfile.cursoNome)
+      }
+    })
+    return Array.from(uniqueCursos.entries())
+      .map(([curso]) => ({
+        value: curso,
+        label: curso,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [usersData?.users])
+
+  // Column definitions for users table
+  const colunasUsuarios: ColumnDef<UserListItem>[] = useMemo(
+    () => [
+      {
+        id: "username",
+        header: createFilterableHeader<UserListItem>({
+          title: "Usuário",
+          filterType: "text",
+          filterPlaceholder: "Buscar nome, username ou email...",
+          wide: true,
+          autocompleteOptions: nomeFilterOptions,
+        }),
+        accessorKey: "username",
+        filterFn: usernameFilterFn,
+        cell: ({ row }) => {
+          const user = row.original
+          const displayName =
+            user.professorProfile?.nomeCompleto ||
+            user.studentProfile?.nomeCompleto ||
+            formatUsernameToProperName(user.username)
+
           return (
-            <div className="text-sm">
-              <div>Regime: {user.professorProfile.regime}</div>
-              <div className="text-xs text-muted-foreground">{dept?.nome || "Depto. não encontrado"}</div>
-              {user.professorProfile.matriculaSiape && (
-                <div className="text-xs text-muted-foreground">SIAPE: {user.professorProfile.matriculaSiape}</div>
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
+              <div>
+                <span className="font-semibold text-base text-gray-900">{displayName}</span>
+                <div className="text-xs text-muted-foreground">@{user.username}</div>
+              </div>
+            </div>
+          )
+        },
+      },
+      {
+        id: "email",
+        header: createFilterableHeader<UserListItem>({
+          title: "Email",
+          filterType: "text",
+          filterPlaceholder: "Buscar email...",
+          wide: true,
+          autocompleteOptions: emailFilterOptions,
+        }),
+        accessorKey: "email",
+        filterFn: emailFilterFn,
+        cell: ({ row }) => {
+          const user = row.original
+          const institutionalEmail = user.professorProfile?.emailInstitucional || user.studentProfile?.emailInstitucional
+
+          return (
+            <div>
+              <div className="text-sm">{user.email}</div>
+              {institutionalEmail && institutionalEmail !== user.email && (
+                <div className="text-xs text-muted-foreground">{institutionalEmail}</div>
               )}
             </div>
           )
-        }
-
-        if (user.role === STUDENT && user.studentProfile) {
-          return (
-            <div className="text-sm">
-              <div>Matrícula: {user.studentProfile.matricula || "N/A"}</div>
-              <div className="text-xs text-muted-foreground">CR: {user.studentProfile.cr?.toFixed(2) || "N/A"}</div>
-              <div className="text-xs text-muted-foreground">{user.studentProfile.cursoNome || "Curso não informado"}</div>
-            </div>
-          )
-        }
-
-        return <span className="text-muted-foreground">-</span>
+        },
       },
-    },
-    {
-      header: "Ações",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => handleEditUser(row.original.id, row.original.role)}>
-            <Pencil className="h-4 w-4 mr-1" />
-            Editar
-          </Button>
-        </div>
-      ),
-    },
-  ]
+      {
+        id: "role",
+        header: createFilterableHeader<UserListItem>({
+          title: "Papel",
+          filterType: "multiselect",
+          filterOptions: roleFilterOptions,
+        }),
+        accessorKey: "role",
+        filterFn: multiselectFilterFn,
+        cell: ({ row }) => {
+          const role = row.original.role
+          const roleConfig = {
+            admin: { label: "Administrador", variant: "default" as const, icon: UserCheck },
+            professor: { label: "Professor", variant: "secondary" as const, icon: GraduationCap },
+            student: { label: "Estudante", variant: "outline" as const, icon: BookOpen },
+          }
 
-  // Action buttons
-  const dashboardActions = (
-    <>
-      <Button variant="outline" onClick={handleInviteProfessor}>
-        <UserPlus className="w-4 h-4 mr-2" />
-        Convidar Professor
-      </Button>
-      <Button variant="outline" onClick={() => setFilterModalOpen(true)}>
-        <Filter className="w-4 h-4 mr-1" />
-        Filtros
-      </Button>
-    </>
+          const config = roleConfig[role]
+          const Icon = config.icon
+
+          return (
+            <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
+              <Icon className="h-3 w-3" />
+              {config.label}
+            </Badge>
+          )
+        },
+      },
+      {
+        id: "departamento",
+        header: createFilterableHeader<UserListItem>({
+          title: "Departamento",
+          filterType: "multiselect",
+          filterOptions: departamentoFilterOptions,
+        }),
+        accessorKey: "professorProfile.departamentoId",
+        filterFn: departamentoFilterFn,
+        cell: ({ row }) => {
+          const user = row.original
+          if (user.role !== PROFESSOR || !user.professorProfile) {
+            return <span className="text-muted-foreground">-</span>
+          }
+          const dept = departamentos?.find((d) => d.id === user.professorProfile?.departamentoId)
+          return <span className="text-sm">{dept?.nome || "N/A"}</span>
+        },
+      },
+      {
+        id: "cursoNome",
+        header: createFilterableHeader<UserListItem>({
+          title: "Curso",
+          filterType: "text",
+          filterPlaceholder: "Buscar curso...",
+          wide: true,
+          autocompleteOptions: cursoFilterOptions,
+        }),
+        accessorKey: "studentProfile.cursoNome",
+        filterFn: cursoFilterFn,
+        cell: ({ row }) => {
+          const user = row.original
+          if (user.role !== STUDENT || !user.studentProfile) {
+            return <span className="text-muted-foreground">-</span>
+          }
+          return <span className="text-sm">{user.studentProfile.cursoNome || "N/A"}</span>
+        },
+      },
+      {
+        id: "infoAdicional",
+        header: "Info Adicional",
+        cell: ({ row }) => {
+          const user = row.original
+
+          if (user.role === PROFESSOR && user.professorProfile) {
+            return (
+              <div className="text-sm">
+                <div>Regime: {user.professorProfile.regime || "N/A"}</div>
+                {user.professorProfile.matriculaSiape && (
+                  <div className="text-xs text-muted-foreground">SIAPE: {user.professorProfile.matriculaSiape}</div>
+                )}
+              </div>
+            )
+          }
+
+          if (user.role === STUDENT && user.studentProfile) {
+            return (
+              <div className="text-sm">
+                <div>Matrícula: {user.studentProfile.matricula || "N/A"}</div>
+                <div className="text-xs text-muted-foreground">CR: {user.studentProfile.cr?.toFixed(2) || "N/A"}</div>
+              </div>
+            )
+          }
+
+          return <span className="text-muted-foreground">-</span>
+        },
+      },
+      {
+        id: "actions",
+        header: "Ações",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => handleEditUser(row.original.id)}>
+              <Pencil className="h-4 w-4 mr-1" />
+              Editar
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [departamentos, nomeFilterOptions, emailFilterOptions, departamentoFilterOptions, cursoFilterOptions]
   )
 
   return (
-    <PagesLayout title="Gerenciar Usuários" subtitle="Administração de usuários do sistema" actions={dashboardActions}>
+    <PagesLayout title="Gerenciar Usuários" subtitle="Administração de usuários do sistema">
       {loadingUsers ? (
         <div className="flex justify-center items-center py-8">
           <Loader className="h-8 w-8 animate-spin" />
@@ -259,44 +369,14 @@ export default function UsersPage() {
             </Card>
           </div>
 
-          {/* Filter Tabs */}
-          <div className="mb-6 flex gap-2 border-b border-gray-200">
-            {[
-              { id: "all", label: "Todos os Usuários", count: userStats.total },
-              { id: "professor", label: "Professores", count: userStats.professors },
-              { id: "student", label: "Estudantes", count: userStats.students },
-              { id: "admin", label: "Administradores", count: userStats.admins },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setSelectedRole(tab.id as "all" | UserRole)}
-                className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                  selectedRole === tab.id
-                    ? "border-black text-black"
-                    : "border-transparent text-gray-500 hover:text-black hover:border-gray-300"
-                }`}
-              >
-                {tab.label} ({tab.count})
-              </button>
-            ))}
-          </div>
-
           <TableComponent
             columns={colunasUsuarios}
-            data={filteredUsers || []}
-            searchableColumn="username"
-            searchPlaceholder="Buscar por nome ou username..."
+            data={usersData?.users || []}
+            columnFilters={columnFilters}
+            onColumnFiltersChange={setColumnFilters}
           />
         </>
       )}
-
-      <FilterModal
-        open={filterModalOpen}
-        onOpenChange={setFilterModalOpen}
-        type="admin"
-        onApplyFilters={handleApplyFilters}
-        initialFilters={filters}
-      />
     </PagesLayout>
   )
 }

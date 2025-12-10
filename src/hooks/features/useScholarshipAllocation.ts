@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { api } from '@/utils/api'
 import { useTRPCMutation } from '@/hooks/useTRPCMutation'
 import { SEMESTRE_1, SEMESTRE_2 } from '@/types'
+import { getCurrentSemester } from '@/utils/utils'
 
 const filterFormSchema = z.object({
   ano: z.number().int().min(2000).max(2100),
@@ -14,10 +15,13 @@ const filterFormSchema = z.object({
 export type FilterFormData = z.infer<typeof filterFormSchema>
 
 export function useScholarshipAllocation() {
-  const [filters, setFilters] = useState<FilterFormData>({
-    ano: new Date().getFullYear(),
-    semestre: SEMESTRE_1,
-  })
+  // Use current semester as default
+  const defaultFilters = useMemo(() => {
+    const { year, semester } = getCurrentSemester()
+    return { ano: year, semestre: semester }
+  }, [])
+
+  const [filters, setFilters] = useState<FilterFormData>(defaultFilters)
   const [editingAllocations, setEditingAllocations] = useState<Record<number, number>>({})
   const [pendingSaveProjectId, setPendingSaveProjectId] = useState<number | null>(null)
 

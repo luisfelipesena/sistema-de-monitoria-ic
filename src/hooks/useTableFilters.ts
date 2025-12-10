@@ -40,5 +40,15 @@ export function useTableFilters(config: TableFiltersConfig = {}) {
     })
   }
 
-  return { filters, updateFilter, resetFilters }
+  // Clear all filters (no defaults - show all data)
+  const clearFilters = () => {
+    setFilters({
+      year: 0, // 0 means "all years"
+      semester: '' as Semestre, // empty means "all semesters"
+      status: 'all',
+      search: '',
+    })
+  }
+
+  return { filters, updateFilter, resetFilters, clearFilters }
 }

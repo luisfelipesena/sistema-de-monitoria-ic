@@ -1,12 +1,11 @@
-import { TableComponent } from '@/components/layout/TableComponent'
-import { Button } from '@/components/ui/button'
-import type { UserListItem } from '@/types'
-import type { ColumnDef } from '@tanstack/react-table'
-import { Mail, Pencil, User } from 'lucide-react'
+import { TableComponent } from "@/components/layout/TableComponent"
+import type { UserListItem } from "@/types"
+import type { ColumnDef } from "@tanstack/react-table"
+import { Mail, User } from "lucide-react"
 
 interface AlunosTableProps {
   alunos: UserListItem[]
-  onEditarUsuario: (userId: number, tipo: 'professor' | 'aluno') => void
+  onEditarUsuario: (userId: number, tipo: "professor" | "aluno") => void
 }
 
 export function AlunosTable({ alunos, onEditarUsuario }: AlunosTableProps) {
@@ -18,7 +17,7 @@ export function AlunosTable({ alunos, onEditarUsuario }: AlunosTableProps) {
           Nome do Aluno
         </div>
       ),
-      accessorKey: 'username',
+      accessorKey: "username",
     },
     {
       header: () => (
@@ -27,16 +26,7 @@ export function AlunosTable({ alunos, onEditarUsuario }: AlunosTableProps) {
           Email
         </div>
       ),
-      accessorKey: 'email',
-    },
-    {
-      header: 'Ações',
-      cell: ({ row }) => (
-        <Button variant="outline" size="sm" onClick={() => onEditarUsuario(row.original.id, 'aluno')}>
-          <Pencil className="h-4 w-4 mr-1" />
-          Editar
-        </Button>
-      ),
+      accessorKey: "email",
     },
   ]
 

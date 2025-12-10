@@ -167,8 +167,6 @@ export const createEditalSchema = z.object({
   dataInicioSelecao: z.date().optional(),
   dataFimSelecao: z.date().optional(),
   dataDivulgacaoResultado: z.date().optional(),
-  // Link formulário
-  linkFormularioInscricao: z.string().url().optional().or(z.literal('')),
   criadoPorUserId: z.number().int().positive(),
 })
 
@@ -189,8 +187,6 @@ export const editalFormSchema = z
     dataFimSelecao: z.date().optional(),
     // Data de divulgação dos resultados
     dataDivulgacaoResultado: z.date().optional(),
-    // Link para formulário de inscrição
-    linkFormularioInscricao: z.string().url().optional().or(z.literal('')),
   })
   .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
     message: 'Data fim de inscrição deve ser posterior à data início',

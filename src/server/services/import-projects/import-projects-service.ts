@@ -3,6 +3,7 @@ import type { NewProjeto } from '@/server/db/schema'
 import { sendProjectCreationNotification } from '@/server/lib/email'
 import { BusinessError, NotFoundError } from '@/server/lib/errors'
 import minioClient, { bucketName as MINIO_BUCKET } from '@/server/lib/minio'
+import { groupByDisciplina, parsePlanejamentoDCC } from '@/server/lib/planejamento-dcc-parser'
 import { parsePlanejamentoSpreadsheet, validateSpreadsheetStructure } from '@/server/lib/spreadsheet-parser'
 import type { Semestre } from '@/types'
 import {
@@ -16,6 +17,7 @@ import {
   type ImportStatus,
 } from '@/types'
 import { logger } from '@/utils/logger'
+import { findMatchingProfessors, sanitizeDisciplineCode, sanitizeSiape, sanitizeTitle } from '@/utils/string-normalization'
 import { createImportProjectsRepository } from './import-projects-repository'
 
 const log = logger.child({ context: 'ImportProjectsService' })
@@ -122,30 +124,56 @@ export function createImportProjectsService(db: Database) {
         }
 
         try {
-          const disciplina = await repo.findDisciplinaByCodigo(row.disciplinaCodigo)
+          // Sanitize discipline code
+          const codigoSanitizado = sanitizeDisciplineCode(row.disciplinaCodigo)
+          const nomeSanitizado = sanitizeTitle(row.disciplinaNome)
 
-          if (!disciplina) {
-            erros.push(`Disciplina ${row.disciplinaCodigo} (${row.disciplinaNome}) não encontrada no sistema`)
-            projetosComErro++
-            continue
+          // Try to find discipline by code
+          let disciplina = await repo.findDisciplinaByCodigo(codigoSanitizado)
+
+          // Sanitize SIAPE numbers
+          const siapesSanitizados = row.professoresSiapes.map(sanitizeSiape).filter((s) => s.length > 0)
+
+          // Find professors by SIAPE first
+          const professores = await repo.findProfessoresBySiapes(siapesSanitizados)
+
+          // If no professors found by SIAPE, try fuzzy name matching
+          if (professores.length === 0 && row.professoresSiapes.length > 0) {
+            log.info(
+              { siapes: siapesSanitizados },
+              'Nenhum professor encontrado por SIAPE, tentando busca por nome fuzzy'
+            )
+
+            // Try each SIAPE as a potential name match
+            for (const possibleName of row.professoresSiapes) {
+              const fuzzyMatch = await repo.findProfessorByNameFuzzy(possibleName)
+              if (fuzzyMatch) {
+                professores.push(fuzzyMatch)
+                warnings.push(
+                  `Disciplina ${codigoSanitizado}: Professor "${possibleName}" encontrado por correspondência fuzzy como "${fuzzyMatch.nomeCompleto}"`
+                )
+              }
+            }
           }
 
-          const professores = await repo.findProfessoresBySiapes(row.professoresSiapes)
-
           if (professores.length === 0) {
-            erros.push(
-              `Nenhum professor encontrado para ${row.disciplinaCodigo}: SIAPEs ${row.professoresSiapes.join(', ')}`
+            warnings.push(
+              `⚠️ Disciplina ${codigoSanitizado} (${nomeSanitizado}): NENHUM PROFESSOR ENCONTRADO. ` +
+              `SIAPEs informados: ${row.professoresSiapes.join(', ')}. ` +
+              `Verifique se o professor foi cadastrado previamente no sistema.`
             )
             projetosComErro++
             continue
           }
 
           if (professores.length < row.professoresSiapes.length) {
-            const encontrados = professores.map((p) => p.matriculaSiape)
-            const naoEncontrados = row.professoresSiapes.filter((s) => !encontrados.includes(s))
-            warnings.push(
-              `Disciplina ${row.disciplinaCodigo}: Professores não encontrados: ${naoEncontrados.join(', ')}`
-            )
+            const encontrados = professores.map((p) => p.matriculaSiape).filter(Boolean)
+            const naoEncontrados = siapesSanitizados.filter((s) => !encontrados.includes(s))
+            if (naoEncontrados.length > 0) {
+              warnings.push(
+                `Disciplina ${codigoSanitizado}: Alguns professores não encontrados: ${naoEncontrados.join(', ')}`
+              )
+            }
           }
 
           const tipoProposicao = professores.length > 1 ? TIPO_PROPOSICAO_COLETIVA : TIPO_PROPOSICAO_INDIVIDUAL
@@ -153,16 +181,37 @@ export function createImportProjectsService(db: Database) {
 
           if (!professorResponsavel.departamentoId) {
             erros.push(
-              `Disciplina ${row.disciplinaCodigo}: Professor ${professorResponsavel.nomeCompleto} não possui departamento associado`
+              `Disciplina ${codigoSanitizado}: Professor ${professorResponsavel.nomeCompleto} não possui departamento associado`
             )
             projetosComErro++
             continue
           }
 
+          // If discipline doesn't exist, create it in the professor's department
+          if (!disciplina) {
+            const result = await repo.findOrCreateDisciplina({
+              codigo: codigoSanitizado,
+              nome: nomeSanitizado,
+              departamentoId: professorResponsavel.departamentoId,
+            })
+            disciplina = result.disciplina
+
+            if (result.created) {
+              warnings.push(
+                `Disciplina ${codigoSanitizado} (${nomeSanitizado}) não existia e foi criada automaticamente`
+              )
+              log.info(
+                { disciplinaId: disciplina.id, codigo: codigoSanitizado, nome: nomeSanitizado },
+                'Disciplina criada automaticamente'
+              )
+            }
+          }
+
           const template = await repo.findTemplatePorDisciplina(disciplina.id)
 
-          let titulo = row.disciplinaNome
-          let descricao = `Projeto de monitoria para ${row.disciplinaNome}`
+          // Sanitize title from spreadsheet or template
+          let titulo = sanitizeTitle(nomeSanitizado)
+          let descricao = `Projeto de monitoria para ${titulo}`
           let cargaHorariaSemana = 12
           let numeroSemanas = 17
           let publicoAlvo = 'Estudantes do curso'
@@ -170,7 +219,7 @@ export function createImportProjectsService(db: Database) {
           let professoresParticipantes: string | null = null
 
           if (template) {
-            titulo = template.tituloDefault || titulo
+            titulo = sanitizeTitle(template.tituloDefault || titulo)
             descricao = template.descricaoDefault || descricao
             cargaHorariaSemana = template.cargaHorariaSemanaDefault || cargaHorariaSemana
             numeroSemanas = template.numeroSemanasDefault || numeroSemanas
@@ -186,7 +235,7 @@ export function createImportProjectsService(db: Database) {
 
             log.info({ disciplinaId: disciplina.id, templateId: template.id }, 'Template encontrado e aplicado')
           } else {
-            warnings.push(`Disciplina ${row.disciplinaCodigo}: Sem template cadastrado, usando valores padrão`)
+            warnings.push(`Disciplina ${codigoSanitizado}: Sem template cadastrado, usando valores padrão`)
           }
 
           if (tipoProposicao === TIPO_PROPOSICAO_COLETIVA) {
@@ -198,7 +247,7 @@ export function createImportProjectsService(db: Database) {
             descricao,
             professorResponsavelId: professorResponsavel.id,
             departamentoId: professorResponsavel.departamentoId,
-            disciplinaNome: row.disciplinaNome,
+            disciplinaNome: titulo, // Use sanitized title
             ano: importacao.ano,
             semestre: importacao.semestre,
             cargaHorariaSemana,
@@ -245,7 +294,8 @@ export function createImportProjectsService(db: Database) {
           log.info(
             {
               projetoId: projeto.id,
-              disciplina: row.disciplinaCodigo,
+              disciplina: codigoSanitizado,
+              titulo,
               tipo: tipoProposicao,
               professores: professores.length,
             },
@@ -364,6 +414,309 @@ export function createImportProjectsService(db: Database) {
 
     async getDisciplinas() {
       return repo.findAllDisciplinas()
+    },
+
+    /**
+     * Processa arquivo de planejamento DCC (formato específico com nomes de professores)
+     */
+    async processImportedFileDCC(importacaoId: number) {
+      const TIMEOUT_MS = 5 * 60 * 1000
+      const startTime = Date.now()
+
+      let projetosCriados = 0
+      let projetosComErro = 0
+      const erros: string[] = []
+      const warnings: string[] = []
+      const professoresNotificar = new Set<number>()
+
+      const importacao = await repo.findImportacao(importacaoId)
+
+      if (!importacao) {
+        throw new NotFoundError('Importação', importacaoId)
+      }
+
+      if (importacao.status !== IMPORT_STATUS_PROCESSANDO) {
+        throw new BusinessError('Importação não está em processamento', 'INVALID_STATUS')
+      }
+
+      const stream = await minioClient.getObject(MINIO_BUCKET, importacao.fileId)
+      const chunks: Buffer[] = []
+
+      await new Promise<void>((resolve, reject) => {
+        stream.on('data', (chunk) => chunks.push(chunk))
+        stream.on('end', () => resolve())
+        stream.on('error', reject)
+      })
+
+      const fileBuffer = Buffer.concat(chunks)
+      const parsed = await parsePlanejamentoDCC(fileBuffer)
+
+      warnings.push(...parsed.warnings)
+      erros.push(...parsed.errors)
+
+      log.info(
+        {
+          totalLinhas: parsed.rows.length,
+          warnings: parsed.warnings.length,
+          errors: parsed.errors.length,
+        },
+        'Planilha DCC parseada'
+      )
+
+      // Agrupar por disciplina (código)
+      const grouped = groupByDisciplina(parsed.rows)
+
+      // Buscar departamento DCC para auto-criação de disciplinas
+      const dccDepartamento = await repo.findDepartamentoBySigla('DCC')
+
+      if (!dccDepartamento) {
+        erros.push('Departamento DCC não encontrado no sistema. Certifique-se de que existe.')
+      }
+
+      // Cache de professores para busca fuzzy
+      const allProfessors = await repo.findAllProfessoresComUsuario()
+
+      // Processar cada disciplina
+      for (const [_key, entries] of grouped.entries()) {
+        if (Date.now() - startTime > TIMEOUT_MS) {
+          erros.push('Timeout: Importação cancelada devido ao tempo limite excedido')
+          break
+        }
+
+        try {
+          const firstEntry = entries[0]
+          const codigoSanitizado = sanitizeDisciplineCode(firstEntry.disciplinaCodigo)
+          const nomeSanitizado = sanitizeTitle(firstEntry.disciplinaNome)
+
+          // Buscar ou criar disciplina
+          let disciplina = await repo.findDisciplinaByCodigo(codigoSanitizado)
+
+          if (!disciplina && dccDepartamento) {
+            const result = await repo.findOrCreateDisciplina({
+              codigo: codigoSanitizado,
+              nome: nomeSanitizado,
+              departamentoId: dccDepartamento.id,
+            })
+            disciplina = result.disciplina
+
+            if (result.created) {
+              warnings.push(`Disciplina ${codigoSanitizado} (${nomeSanitizado}) criada automaticamente`)
+              log.info({ disciplinaId: disciplina.id, codigo: codigoSanitizado }, 'Disciplina criada automaticamente')
+            }
+          }
+
+          if (!disciplina) {
+            erros.push(
+              `Disciplina ${codigoSanitizado} (${nomeSanitizado}) não encontrada e não foi possível criar (DCC não existe)`
+            )
+            projetosComErro++
+            continue
+          }
+
+          // Buscar professores por NOME usando fuzzy matching
+          const professoresNomes = entries.map((e) => e.professorNome)
+          const professores: typeof allProfessors = []
+
+          for (const nomeProf of professoresNomes) {
+            const matches = findMatchingProfessors(nomeProf, allProfessors)
+
+            if (matches.length > 0) {
+              const professor = matches[0]
+              if (!professores.find((p) => p.id === professor.id)) {
+                professores.push(professor)
+              }
+              if (matches.length > 1) {
+                warnings.push(
+                  `Professor "${nomeProf}" tem ${matches.length} possíveis matches. Usando: ${professor.nomeCompleto}`
+                )
+              }
+            } else {
+              warnings.push(
+                `⚠️ Professor "${nomeProf}" NÃO ENCONTRADO no sistema para ${codigoSanitizado}. ` +
+                  `Verifique se o professor foi cadastrado previamente.`
+              )
+            }
+          }
+
+          if (professores.length === 0) {
+            warnings.push(
+              `⚠️ Disciplina ${codigoSanitizado}: NENHUM PROFESSOR ENCONTRADO. ` +
+                `Nomes informados: ${professoresNomes.join(', ')}. Projeto não criado.`
+            )
+            projetosComErro++
+            continue
+          }
+
+          const tipoProposicao = professores.length > 1 ? TIPO_PROPOSICAO_COLETIVA : TIPO_PROPOSICAO_INDIVIDUAL
+          const professorResponsavel = professores[0]
+
+          if (!professorResponsavel.departamentoId) {
+            erros.push(
+              `Disciplina ${codigoSanitizado}: Professor ${professorResponsavel.nomeCompleto} não possui departamento associado`
+            )
+            projetosComErro++
+            continue
+          }
+
+          // Buscar template
+          const template = await repo.findTemplatePorDisciplina(disciplina.id)
+
+          let titulo = sanitizeTitle(nomeSanitizado)
+          let descricao = `Projeto de monitoria para ${titulo}`
+          let cargaHorariaSemana = firstEntry.cargaHoraria || 12
+          let numeroSemanas = 17
+          let publicoAlvo = 'Estudantes do curso'
+          let atividades: string[] = []
+          let professoresParticipantes: string | null = null
+
+          if (template) {
+            titulo = sanitizeTitle(template.tituloDefault || titulo)
+            descricao = template.descricaoDefault || descricao
+            cargaHorariaSemana = template.cargaHorariaSemanaDefault || cargaHorariaSemana
+            numeroSemanas = template.numeroSemanasDefault || numeroSemanas
+            publicoAlvo = template.publicoAlvoDefault || publicoAlvo
+
+            if (template.atividadesDefault) {
+              try {
+                atividades = JSON.parse(template.atividadesDefault)
+              } catch {
+                atividades = template.atividadesDefault.split(';').filter((a) => a.trim().length > 0)
+              }
+            }
+          } else {
+            warnings.push(`Disciplina ${codigoSanitizado}: Sem template cadastrado, usando valores padrão`)
+          }
+
+          if (tipoProposicao === TIPO_PROPOSICAO_COLETIVA) {
+            professoresParticipantes = professores.map((p) => p.nomeCompleto).join(', ')
+          }
+
+          const novoProjeto: NewProjeto = {
+            titulo,
+            descricao,
+            professorResponsavelId: professorResponsavel.id,
+            departamentoId: professorResponsavel.departamentoId,
+            disciplinaNome: titulo,
+            ano: importacao.ano,
+            semestre: importacao.semestre,
+            cargaHorariaSemana,
+            numeroSemanas,
+            publicoAlvo,
+            bolsasSolicitadas: 0,
+            voluntariosSolicitados: 0,
+            tipoProposicao,
+            professoresParticipantes,
+            status: PROJETO_STATUS_PENDING_SIGNATURE,
+          }
+
+          const projeto = await repo.createProjeto(novoProjeto)
+
+          await repo.associateProjetoDisciplina(projeto.id, disciplina.id)
+
+          const existingAssociation = await repo.findAssociacaoProfessorDisciplina(
+            disciplina.id,
+            professorResponsavel.id,
+            importacao.ano,
+            importacao.semestre
+          )
+
+          if (!existingAssociation) {
+            await repo.createAssociacaoProfessorDisciplina(
+              disciplina.id,
+              professorResponsavel.id,
+              importacao.ano,
+              importacao.semestre
+            )
+          }
+
+          if (atividades.length > 0) {
+            const atividadesData = atividades.map((descricao) => ({
+              projetoId: projeto.id,
+              descricao,
+            }))
+            await repo.insertAtividades(atividadesData)
+          }
+
+          professores.forEach((p) => professoresNotificar.add(p.userId))
+
+          projetosCriados++
+          log.info(
+            {
+              projetoId: projeto.id,
+              disciplina: codigoSanitizado,
+              titulo,
+              tipo: tipoProposicao,
+              professores: professores.length,
+            },
+            'Projeto criado'
+          )
+        } catch (error) {
+          erros.push(
+            `Erro ao criar projeto para ${entries[0].disciplinaCodigo}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+          )
+          projetosComErro++
+        }
+      }
+
+      let finalStatus: ImportStatus = IMPORT_STATUS_CONCLUIDO
+      if (erros.some((erro) => erro.includes('Timeout'))) {
+        finalStatus = IMPORT_STATUS_ERRO
+      } else if (projetosComErro > 0 && projetosCriados === 0) {
+        finalStatus = IMPORT_STATUS_ERRO
+      } else if (projetosComErro > 0) {
+        finalStatus = IMPORT_STATUS_CONCLUIDO_COM_ERROS
+      }
+
+      await repo.updateImportacao(importacaoId, {
+        totalProjetos: grouped.size,
+        projetosCriados,
+        projetosComErro,
+        status: finalStatus,
+        erros: erros.length > 0 || warnings.length > 0 ? JSON.stringify({ erros, warnings }) : null,
+      })
+
+      // Enviar emails
+      if (projetosCriados > 0 && professoresNotificar.size > 0) {
+        try {
+          const professoresParaNotificar = await repo.findProfessoresByIds(Array.from(professoresNotificar))
+
+          for (const professor of professoresParaNotificar) {
+            try {
+              await sendProjectCreationNotification({
+                to: professor.user.email,
+                professorName: professor.nomeCompleto,
+                ano: importacao.ano,
+                semestre: importacao.semestre,
+              })
+
+              log.info({ professorId: professor.id, email: professor.user.email }, 'Email enviado')
+            } catch (emailError) {
+              log.error(emailError, 'Erro ao enviar email para professor')
+              warnings.push(`Erro ao enviar email para ${professor.user.email}`)
+            }
+          }
+        } catch (error) {
+          log.error(error, 'Erro ao enviar emails de notificação')
+        }
+      }
+
+      log.info(
+        {
+          importacaoId,
+          projetosCriados,
+          projetosComErro,
+          emailsEnviados: professoresNotificar.size,
+        },
+        'Importação DCC finalizada'
+      )
+
+      return {
+        projetosCriados,
+        projetosComErro,
+        erros,
+        warnings,
+        emailsEnviados: professoresNotificar.size,
+      }
     },
   }
 }

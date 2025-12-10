@@ -45,8 +45,6 @@ export interface EditalFormData {
   dataFimSelecao?: Date;
   // Data de divulgação dos resultados
   dataDivulgacaoResultado?: Date;
-  // Link para formulário de inscrição
-  linkFormularioInscricao?: string;
 }
 
 interface EditalFormDialogProps {
@@ -310,49 +308,26 @@ export function EditalFormDialog({
 
             <Separator />
 
-            {/* Divulgação e Link */}
+            {/* Divulgação */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-muted-foreground">Divulgação</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="dataDivulgacaoResultado"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Data de Divulgação dos Resultados</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="date"
-                          value={field.value?.toISOString().split("T")[0] || ""}
-                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="linkFormularioInscricao"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Link do Formulário de Inscrição</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="url"
-                          {...field}
-                          placeholder="https://forms.gle/..."
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        URL do formulário externo de inscrição
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="dataDivulgacaoResultado"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data de Divulgação dos Resultados</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        value={field.value?.toISOString().split("T")[0] || ""}
+                        onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <DialogFooter>

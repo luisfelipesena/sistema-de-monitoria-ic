@@ -219,12 +219,6 @@ const menuConfig: MenuConfig[] = [
         icon: UserPlus,
         roles: ["admin"],
       },
-      {
-        label: "Convidar Professor",
-        href: "/home/admin/invite-professor",
-        icon: UserPlus,
-        roles: ["admin"],
-      },
     ],
   },
 

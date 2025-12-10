@@ -1,18 +1,17 @@
 "use client"
 
-import { useMemo } from "react"
-import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
 import { LoadingSpinner } from "@/components/atoms/LoadingSpinner"
-import { Button } from "@/components/ui/button"
-import { ProjectsStatsCards } from "@/components/features/admin/manage-projects/ProjectsStatsCards"
-import { createProjectColumns } from "@/components/features/admin/manage-projects/ProjectTableColumns"
 import { ProjectAnalysisDialog } from "@/components/features/admin/manage-projects/ProjectAnalysisDialog"
-import { ProjectRejectDialog } from "@/components/features/admin/manage-projects/ProjectRejectDialog"
 import { ProjectDeleteDialog } from "@/components/features/admin/manage-projects/ProjectDeleteDialog"
 import { ProjectFilesDialog } from "@/components/features/admin/manage-projects/ProjectFilesDialog"
+import { ProjectRejectDialog } from "@/components/features/admin/manage-projects/ProjectRejectDialog"
+import { ProjectsStatsCards } from "@/components/features/admin/manage-projects/ProjectsStatsCards"
+import { createProjectColumns } from "@/components/features/admin/manage-projects/ProjectTableColumns"
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { TableComponent } from "@/components/layout/TableComponent"
 import { useProjectManagement } from "@/hooks/features/useProjectManagement"
-import { FileSignature } from "lucide-react"
+import { api } from "@/utils/api"
+import { useMemo } from "react"
 
 export default function ManageProjectsPage() {
   const {
@@ -44,6 +43,34 @@ export default function ManageProjectsPage() {
     isDeleting,
   } = useProjectManagement()
 
+  // Fetch disciplinas for autocomplete filter
+  const { data: disciplinas } = api.discipline.getDisciplines.useQuery()
+
+  const disciplinaFilterOptions = useMemo(() => {
+    if (!disciplinas) return []
+    return disciplinas.map((d) => ({
+      value: d.codigo,
+      label: `${d.codigo} - ${d.nome}`,
+    }))
+  }, [disciplinas])
+
+  // Generate professor filter options from unique professors in projects
+  const professorFilterOptions = useMemo(() => {
+    if (!projetos) return []
+    const uniqueProfessors = new Map<string, string>()
+    projetos.forEach((p) => {
+      if (p.professorResponsavelNome && !uniqueProfessors.has(p.professorResponsavelNome)) {
+        uniqueProfessors.set(p.professorResponsavelNome, p.professorResponsavelNome)
+      }
+    })
+    return Array.from(uniqueProfessors.entries())
+      .map(([nome]) => ({
+        value: nome,
+        label: nome,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [projetos])
+
   const columns = useMemo(
     () =>
       createProjectColumns(
@@ -54,6 +81,8 @@ export default function ManageProjectsPage() {
           onDelete: deleteDialog.open,
           loadingPdfProjetoId,
           isDeletingProject: isDeleting,
+          disciplinaFilterOptions,
+          professorFilterOptions,
         },
         groupedView
       ),
@@ -65,27 +94,13 @@ export default function ManageProjectsPage() {
       loadingPdfProjetoId,
       isDeleting,
       groupedView,
+      disciplinaFilterOptions,
+      professorFilterOptions,
     ]
   )
 
-  const dashboardActions = (
-    <>
-      <Button variant="secondary" onClick={handleGoToDocumentSigning} className="flex items-center gap-2">
-        <FileSignature className="h-4 w-4" />
-        Assinatura de Documentos
-      </Button>
-      <Button variant={groupedView ? "secondary" : "primary"} onClick={() => setGroupedView(!groupedView)}>
-        {groupedView ? "Visão Normal" : "Agrupar por Departamento"}
-      </Button>
-    </>
-  )
-
   return (
-    <PagesLayout
-      title="Gerenciar Projetos"
-      subtitle="Administração de projetos de monitoria"
-      actions={dashboardActions}
-    >
+    <PagesLayout title="Gerenciar Projetos" subtitle="Administração de projetos de monitoria">
       {loadingProjetos ? (
         <LoadingSpinner message="Carregando projetos..." />
       ) : (
@@ -144,7 +159,6 @@ export default function ManageProjectsPage() {
         isLoading={loadingProjectFiles}
         onDownload={handleDownloadFile}
       />
-
     </PagesLayout>
   )
 }

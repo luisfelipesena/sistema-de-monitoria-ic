@@ -19,6 +19,7 @@ import { DepartmentStats } from '@/components/features/admin/departamentos/Depar
 import { getDepartmentColumns } from '@/components/features/admin/departamentos/DepartmentTableColumns'
 import { DepartmentFormDialog } from '@/components/features/admin/departamentos/DepartmentFormDialog'
 import { useDepartmentManagement } from '@/hooks/features/useDepartmentManagement'
+import { useMemo } from 'react'
 
 export default function DepartamentosPage() {
   const {
@@ -39,9 +40,15 @@ export default function DepartamentosPage() {
     isDeleting,
   } = useDepartmentManagement()
 
+  // Filter options for autocomplete
+  const nomeFilterOptions = useMemo(() => {
+    return departamentos.map((d) => ({ value: d.nome, label: d.nome }))
+  }, [departamentos])
+
   const columns = getDepartmentColumns({
     onEdit: handleEdit,
     onDelete: (dept) => deleteDialog.open(dept),
+    nomeFilterOptions,
   })
 
   return (
@@ -66,8 +73,6 @@ export default function DepartamentosPage() {
             <TableComponent
               columns={columns}
               data={departamentos}
-              searchableColumn="nome"
-              searchPlaceholder="Buscar por nome do departamento..."
             />
           </CardContent>
         </Card>

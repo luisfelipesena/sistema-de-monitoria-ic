@@ -1,5 +1,5 @@
-import { useColumnFilters } from '@/hooks/useColumnFilters'
 import { useTRPCMutation } from '@/hooks/useTRPCMutation'
+import { useUrlColumnFilters } from '@/hooks/useUrlColumnFilters'
 import {
   PROJETO_STATUS_APPROVED,
   PROJETO_STATUS_DRAFT,
@@ -22,8 +22,8 @@ export function useDashboard() {
   const [abaAtiva, setAbaAtiva] = useState<'projetos' | 'professores' | 'alunos'>('projetos')
   const [groupedView, setGroupedView] = useState(false)
 
-  // Column filters with current semester as default
-  const { columnFilters, setColumnFilters, activeFilterCount } = useColumnFilters({
+  // Column filters with URL state persistence and current semester as default
+  const { columnFilters, setColumnFilters, activeFilterCount } = useUrlColumnFilters({
     useCurrentSemester: true,
   })
 

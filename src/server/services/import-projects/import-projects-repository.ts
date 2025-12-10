@@ -249,6 +249,23 @@ export function createImportProjectsRepository(db: Database) {
         where: eq(departamentoTable.sigla, sigla),
       })
     },
+
+    /**
+     * Finds all professors with user info (for fuzzy name matching)
+     */
+    async findAllProfessoresComUsuario() {
+      return db.query.professorTable.findMany({
+        with: {
+          user: {
+            columns: {
+              id: true,
+              email: true,
+              username: true,
+            },
+          },
+        },
+      })
+    },
   }
 }
 

@@ -1,4 +1,4 @@
-import { NotFoundError } from '@/server/lib/errors'
+import { BusinessError, NotFoundError } from '@/server/lib/errors'
 import type { DepartamentoRepository } from './departamento-repository'
 
 export function createDepartamentoService(repository: DepartamentoRepository) {
@@ -66,6 +66,39 @@ export function createDepartamentoService(repository: DepartamentoRepository) {
         throw new NotFoundError('Departamento', id)
       }
 
+      // Check for active projetos - can't delete if there are active projects
+      const projetosAtivos = await repository.countProjetosAtivos(id)
+      if (projetosAtivos > 0) {
+        throw new BusinessError(
+          `Não é possível excluir o departamento pois existem ${projetosAtivos} projeto(s) ativo(s) associado(s). Exclua os projetos primeiro.`,
+          'CONFLICT'
+        )
+      }
+
+      // Cascade deletion: handle all FK dependencies in correct order
+      // 1. Get all disciplina IDs for this departamento
+      const disciplinaIds = await repository.getDisciplinaIdsByDepartamento(id)
+
+      // 2. Delete all FK references to disciplinas (order matters!)
+      // 2.1 Delete disciplina_professor_responsavel references
+      await repository.deleteDisciplinaProfessorResponsavelByDisciplinaIds(disciplinaIds)
+
+      // 2.2 Delete projeto_disciplina references
+      await repository.deleteProjetoDisciplinasByDisciplinaIds(disciplinaIds)
+
+      // 2.3 Delete nota_aluno references
+      await repository.deleteNotaAlunoByDisciplinaIds(disciplinaIds)
+
+      // 2.4 Delete equivalencia_disciplinas references
+      await repository.deleteEquivalenciaDisciplinasByDisciplinaIds(disciplinaIds)
+
+      // 2.5 Delete projeto_template references
+      await repository.deleteProjetoTemplatesByDisciplinaIds(disciplinaIds)
+
+      // 3. Delete disciplinas
+      await repository.deleteDisciplinasByDepartamento(id)
+
+      // 4. Finally delete the departamento
       await repository.delete(id)
       return { success: true }
     },

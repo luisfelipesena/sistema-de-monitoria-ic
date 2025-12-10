@@ -64,7 +64,7 @@ export default function EditUserPage() {
       setFormData({
         username: user.username,
         email: user.email,
-        role: user.role as UserRole,
+        role: (user.role as UserRole) || STUDENT,
       })
     }
   }, [user])
@@ -80,7 +80,7 @@ export default function EditUserPage() {
   }
 
   const handleBack = () => {
-    router.push('/home/admin/users')
+    router.back()
   }
 
   if (isLoading) {
@@ -115,7 +115,7 @@ export default function EditUserPage() {
       <div className="mb-4">
         <Button variant="outline" onClick={handleBack}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Voltar para Usuários
+          Voltar
         </Button>
       </div>
 
@@ -152,16 +152,16 @@ export default function EditUserPage() {
             <div>
               <Label htmlFor="role">Papel</Label>
               <Select
-                value={formData.role}
+                value={formData.role || undefined}
                 onValueChange={(value) => setFormData({ ...formData, role: value as UserRole })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um papel" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="professor">Professor</SelectItem>
-                  <SelectItem value="student">Estudante</SelectItem>
+                  <SelectItem value={ADMIN}>Administrador</SelectItem>
+                  <SelectItem value={PROFESSOR}>Professor</SelectItem>
+                  <SelectItem value={STUDENT}>Estudante</SelectItem>
                 </SelectContent>
               </Select>
             </div>

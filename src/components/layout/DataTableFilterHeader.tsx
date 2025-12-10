@@ -9,9 +9,13 @@ interface DataTableFilterHeaderProps<TData, TValue> {
   column: Column<TData, TValue>
   title: string
   sortable?: boolean
-  filterType?: 'text' | 'select' | 'multiselect'
+  filterType?: 'text' | 'select' | 'multiselect' | 'number'
   filterOptions?: FilterOption[]
   filterPlaceholder?: string
+  /** When true, uses a wider dropdown (good for disciplina filters) */
+  wide?: boolean
+  /** Autocomplete options for text filter (shows suggestions) */
+  autocompleteOptions?: FilterOption[]
 }
 
 export function DataTableFilterHeader<TData, TValue>({
@@ -21,6 +25,8 @@ export function DataTableFilterHeader<TData, TValue>({
   filterType,
   filterOptions,
   filterPlaceholder,
+  wide,
+  autocompleteOptions,
 }: DataTableFilterHeaderProps<TData, TValue>) {
   const isSorted = column.getIsSorted()
 
@@ -52,6 +58,8 @@ export function DataTableFilterHeader<TData, TValue>({
           type={filterType}
           options={filterOptions}
           placeholder={filterPlaceholder}
+          wide={wide}
+          autocompleteOptions={autocompleteOptions}
         />
       )}
     </div>
@@ -64,9 +72,13 @@ export function DataTableFilterHeader<TData, TValue>({
 export function createFilterableHeader<TData>(config: {
   title: string
   sortable?: boolean
-  filterType?: 'text' | 'select' | 'multiselect'
+  filterType?: 'text' | 'select' | 'multiselect' | 'number'
   filterOptions?: FilterOption[]
   filterPlaceholder?: string
+  /** When true, uses a wider dropdown (good for disciplina filters) */
+  wide?: boolean
+  /** Autocomplete options for text filter (shows suggestions) */
+  autocompleteOptions?: FilterOption[]
 }) {
   return ({ column }: { column: Column<TData, unknown> }) => (
     <DataTableFilterHeader
@@ -76,6 +88,8 @@ export function createFilterableHeader<TData>(config: {
       filterType={config.filterType}
       filterOptions={config.filterOptions}
       filterPlaceholder={config.filterPlaceholder}
+      wide={config.wide}
+      autocompleteOptions={config.autocompleteOptions}
     />
   )
 }

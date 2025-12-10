@@ -1,10 +1,21 @@
 "use client"
 
+import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
+import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import {
   Dialog,
   DialogContent,
@@ -19,6 +30,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
 import {
   PROFESSOR,
   PROFESSOR_STATUS_ATIVO,
@@ -26,20 +38,51 @@ import {
   REGIME_20H,
   REGIME_40H,
   REGIME_DE,
+  REGIME_LABELS,
+  TIPO_PROFESSOR_EFETIVO,
+  TIPO_PROFESSOR_LABELS,
+  TIPO_PROFESSOR_SUBSTITUTO,
   type Regime,
   type UserListItem,
 } from "@/types"
 import { api } from "@/utils/api"
-import { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, FilterFn } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { Eye, Mail, Plus, UserCheck, Users, UserX } from "lucide-react"
-import { useState } from "react"
+import { Eye, Mail, Pencil, Plus, Trash2, UserCheck, Users, UserX } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useMemo, useState } from "react"
+
+// Custom filter function for professor name (searches nomeCompleto)
+const nomeFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+  const nomeCompleto = row.original.professorProfile?.nomeCompleto || ""
+  const searchValue = String(filterValue).toLowerCase()
+  return nomeCompleto.toLowerCase().includes(searchValue)
+}
+
+// Custom filter function for email
+const emailFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+  const email = row.original.professorProfile?.emailInstitucional || row.original.email || ""
+  const searchValue = String(filterValue).toLowerCase()
+  return email.toLowerCase().includes(searchValue)
+}
+
+// Custom filter function for departamento (multiselect by departamento id)
+const departamentoFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return true
+  const departamentoId = row.original.professorProfile?.departamentoId?.toString()
+  return departamentoId ? filterValue.includes(departamentoId) : false
+}
 
 export default function ProfessoresPage() {
   const { toast } = useToast()
+  const router = useRouter()
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
   const [selectedProfessor, setSelectedProfessor] = useState<UserListItem | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const [professorToDelete, setProfessorToDelete] = useState<UserListItem | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [inviteForm, setInviteForm] = useState({
     email: "",
     nomeCompleto: "",
@@ -49,6 +92,9 @@ export default function ProfessoresPage() {
   })
 
   const PROFESSOR_STATUS_PENDING = "PENDENTE" as const
+
+  // URL-based column filters
+  const { columnFilters, setColumnFilters } = useUrlColumnFilters()
 
   // Fetch professors data
   const {
@@ -63,10 +109,50 @@ export default function ProfessoresPage() {
   const { data: departamentosData } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
   const inviteProfessorMutation = api.inviteProfessor.sendInvitation.useMutation()
   const updateProfessorStatusMutation = api.user.updateProfessorStatus.useMutation()
+  const deleteUserMutation = api.user.deleteUser.useMutation()
 
   const departamentos = departamentosData || []
 
   const professores = usersData?.users.filter((u) => u.role === PROFESSOR) || []
+
+  // Generate filter options for autocomplete
+  const nomeFilterOptions = useMemo(() => {
+    return professores
+      .filter((p) => p.professorProfile?.nomeCompleto)
+      .map((p) => ({
+        value: p.professorProfile!.nomeCompleto,
+        label: p.professorProfile!.nomeCompleto,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [professores])
+
+  const emailFilterOptions = useMemo(() => {
+    return professores
+      .filter((p) => p.professorProfile?.emailInstitucional)
+      .map((p) => ({
+        value: p.professorProfile!.emailInstitucional!,
+        label: p.professorProfile!.emailInstitucional!,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [professores])
+
+  const departamentoFilterOptions = useMemo(() => {
+    return departamentos.map((d) => ({
+      value: d.id.toString(),
+      label: d.nome,
+    }))
+  }, [departamentos])
+
+  const regimeFilterOptions = [
+    { value: REGIME_20H, label: REGIME_LABELS[REGIME_20H] },
+    { value: REGIME_40H, label: REGIME_LABELS[REGIME_40H] },
+    { value: REGIME_DE, label: REGIME_LABELS[REGIME_DE] },
+  ]
+
+  const tipoProfessorFilterOptions = [
+    { value: TIPO_PROFESSOR_EFETIVO, label: TIPO_PROFESSOR_LABELS[TIPO_PROFESSOR_EFETIVO] },
+    { value: TIPO_PROFESSOR_SUBSTITUTO, label: TIPO_PROFESSOR_LABELS[TIPO_PROFESSOR_SUBSTITUTO] },
+  ]
 
   const handleInviteProfessor = async () => {
     try {
@@ -140,6 +226,29 @@ export default function ProfessoresPage() {
     }
   }
 
+  const handleDeleteProfessor = async () => {
+    if (!professorToDelete) return
+
+    try {
+      await deleteUserMutation.mutateAsync({ id: professorToDelete.id })
+
+      await refetch()
+      setIsDeleteDialogOpen(false)
+      setProfessorToDelete(null)
+
+      toast({
+        title: "Professor excluído",
+        description: "O professor foi excluído com sucesso",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Erro ao excluir professor",
+        description: error.message || "Não foi possível excluir o professor",
+        variant: "destructive",
+      })
+    }
+  }
+
   const renderStatusBadge = (status?: string | null) => {
     switch (status) {
       case PROFESSOR_STATUS_ATIVO:
@@ -153,91 +262,152 @@ export default function ProfessoresPage() {
     }
   }
 
-  const columns: ColumnDef<UserListItem>[] = [
-    {
-      id: "nomeCompleto",
-      accessorKey: "professorProfile.nomeCompleto",
-      header: "Nome",
-      cell: ({ row }) => <div className="font-medium">{row.original.professorProfile?.nomeCompleto}</div>,
-    },
-    {
-      accessorKey: "professorProfile.emailInstitucional",
-      header: "Email",
-      cell: ({ row }) => (
-        <div className="text-muted-foreground">{row.original.professorProfile?.emailInstitucional}</div>
-      ),
-    },
-    {
-      accessorKey: "professorProfile.departamento.nome",
-      header: "Departamento",
-      cell: ({ row }) => {
-        const dept = departamentos.find((d) => d.id === row.original.professorProfile?.departamentoId)
-        return dept?.nome || "N/A"
+  const columns: ColumnDef<UserListItem>[] = useMemo(
+    () => [
+      {
+        id: "nomeCompleto",
+        accessorKey: "professorProfile.nomeCompleto",
+        header: createFilterableHeader<UserListItem>({
+          title: "Nome",
+          filterType: "text",
+          filterPlaceholder: "Buscar nome...",
+          wide: true,
+          autocompleteOptions: nomeFilterOptions,
+        }),
+        filterFn: nomeFilterFn,
+        cell: ({ row }) => <div className="font-medium">{row.original.professorProfile?.nomeCompleto}</div>,
       },
-    },
-    {
-      accessorKey: "professorProfile.regime",
-      header: "Regime",
-      cell: ({ row }) => (
-        <div>
-          {row.original.professorProfile?.regime ? (
-            <Badge variant="outline">{row.original.professorProfile.regime}</Badge>
-          ) : (
-            <span className="text-muted-foreground">-</span>
-          )}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "professorProfile.projetos",
-      header: "Projetos",
-      cell: ({ row }) => <div className="text-center">{row.original.professorProfile?.projetos || 0}</div>,
-    },
-    {
-      accessorKey: "professorProfile.status",
-      header: "Status",
-      cell: ({ row }) =>
-        renderStatusBadge(row.original.professorProfile?.projetos ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO),
-    },
-    {
-      accessorKey: "createdAt",
-      header: "Cadastrado em",
-      cell: ({ row }) => (
-        <div className="text-sm text-muted-foreground">
-          {row.original.createdAt ? format(new Date(row.original.createdAt), "dd/MM/yyyy") : "N/A"}
-        </div>
-      ),
-    },
-    {
-      id: "actions",
-      header: "Ações",
-      cell: ({ row }) => {
-        const professor = row.original
-        const isAtivo = !!professor.professorProfile?.projetos
-        return (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              title="Ver detalhes do professor"
-              onClick={() => handleViewProfessor(professor)}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant={isAtivo ? "destructive" : "default"}
-              size="sm"
-              title={isAtivo ? "Desativar professor" : "Ativar professor"}
-              onClick={() => handleToggleStatus(professor.id, isAtivo ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO)}
-            >
-              {isAtivo ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-            </Button>
+      {
+        id: "emailInstitucional",
+        accessorKey: "professorProfile.emailInstitucional",
+        header: createFilterableHeader<UserListItem>({
+          title: "Email",
+          filterType: "text",
+          filterPlaceholder: "Buscar email...",
+          wide: true,
+          autocompleteOptions: emailFilterOptions,
+        }),
+        filterFn: emailFilterFn,
+        cell: ({ row }) => (
+          <div className="text-muted-foreground">{row.original.professorProfile?.emailInstitucional}</div>
+        ),
+      },
+      {
+        id: "departamentoId",
+        accessorKey: "professorProfile.departamentoId",
+        header: createFilterableHeader<UserListItem>({
+          title: "Departamento",
+          filterType: "multiselect",
+          filterOptions: departamentoFilterOptions,
+        }),
+        filterFn: departamentoFilterFn,
+        cell: ({ row }) => {
+          const dept = departamentos.find((d) => d.id === row.original.professorProfile?.departamentoId)
+          return dept?.nome || "N/A"
+        },
+      },
+      {
+        id: "regime",
+        accessorKey: "professorProfile.regime",
+        header: createFilterableHeader<UserListItem>({
+          title: "Regime",
+          filterType: "multiselect",
+          filterOptions: regimeFilterOptions,
+        }),
+        filterFn: multiselectFilterFn,
+        cell: ({ row }) => (
+          <div>
+            {row.original.professorProfile?.regime ? (
+              <Badge variant="outline">{REGIME_LABELS[row.original.professorProfile.regime as Regime]}</Badge>
+            ) : (
+              <span className="text-muted-foreground">-</span>
+            )}
           </div>
-        )
+        ),
       },
-    },
-  ]
+      {
+        id: "tipoProfessor",
+        accessorKey: "professorProfile.tipoProfessor",
+        header: createFilterableHeader<UserListItem>({
+          title: "Tipo",
+          filterType: "multiselect",
+          filterOptions: tipoProfessorFilterOptions,
+        }),
+        filterFn: multiselectFilterFn,
+        cell: ({ row }) => {
+          const tipoProfessor = row.original.professorProfile?.tipoProfessor
+          if (!tipoProfessor) return <span className="text-muted-foreground">-</span>
+          return (
+            <Badge variant={tipoProfessor === TIPO_PROFESSOR_EFETIVO ? "default" : "secondary"}>
+              {TIPO_PROFESSOR_LABELS[tipoProfessor]}
+            </Badge>
+          )
+        },
+      },
+      {
+        accessorKey: "professorProfile.projetos",
+        header: "Projetos",
+        cell: ({ row }) => <div className="text-center">{row.original.professorProfile?.projetos || 0}</div>,
+      },
+      {
+        accessorKey: "professorProfile.status",
+        header: "Status",
+        cell: ({ row }) =>
+          renderStatusBadge(row.original.professorProfile?.projetos ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO),
+      },
+      {
+        accessorKey: "createdAt",
+        header: "Cadastrado em",
+        cell: ({ row }) => (
+          <div className="text-sm text-muted-foreground">
+            {row.original.createdAt ? format(new Date(row.original.createdAt), "dd/MM/yyyy") : "N/A"}
+          </div>
+        ),
+      },
+      {
+        id: "actions",
+        header: "Ações",
+        cell: ({ row }) => {
+          const professor = row.original
+          const isAtivo = !!professor.professorProfile?.projetos
+          return (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                title="Ver detalhes do professor"
+                onClick={() => handleViewProfessor(professor)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+
+              <Button
+                variant={isAtivo ? "destructive" : "default"}
+                size="sm"
+                title={isAtivo ? "Desativar professor" : "Ativar professor"}
+                onClick={() => handleToggleStatus(professor.id, isAtivo ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO)}
+              >
+                {isAtivo ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+              </Button>
+
+              <Button
+                variant="destructive"
+                size="sm"
+                title="Excluir professor"
+                onClick={() => {
+                  setProfessorToDelete(professor)
+                  setIsDeleteDialogOpen(true)
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          )
+        },
+      },
+    ],
+    [departamentos, nomeFilterOptions, emailFilterOptions, departamentoFilterOptions]
+  )
 
   return (
     <PagesLayout title="Gerenciamento de Professores" subtitle="Gerencie professores e envie convites">
@@ -412,8 +582,8 @@ export default function ProfessoresPage() {
             <TableComponent
               columns={columns}
               data={professores}
-              searchableColumn="nomeCompleto"
-              searchPlaceholder="Buscar por nome do professor..."
+              columnFilters={columnFilters}
+              onColumnFiltersChange={setColumnFilters}
             />
           </CardContent>
         </Card>
@@ -493,9 +663,45 @@ export default function ProfessoresPage() {
               <Button variant="outline" onClick={() => setIsDetailDialogOpen(false)}>
                 Fechar
               </Button>
+              {selectedProfessor && (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setIsDetailDialogOpen(false)
+                    router.push(`/home/admin/users/${selectedProfessor.id}/edit`)
+                  }}
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o professor{" "}
+                <span className="font-semibold">{professorToDelete?.professorProfile?.nomeCompleto}</span>?
+                Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setProfessorToDelete(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteProfessor}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={deleteUserMutation.isPending}
+              >
+                {deleteUserMutation.isPending ? "Excluindo..." : "Excluir"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PagesLayout>
   )

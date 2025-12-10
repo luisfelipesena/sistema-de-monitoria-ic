@@ -16,8 +16,6 @@ export default function DashboardAdmin() {
   const {
     abaAtiva,
     setAbaAtiva,
-    groupedView,
-    setGroupedView,
     columnFilters,
     setColumnFilters,
     deletingProjetoId,
@@ -32,17 +30,7 @@ export default function DashboardAdmin() {
     handleDeleteProjeto,
   } = useDashboard()
 
-  const dashboardActions = (
-    <DashboardActions
-      abaAtiva={abaAtiva}
-      groupedView={groupedView}
-      onToggleGroupedView={() => {
-        if (abaAtiva === "projetos") {
-          setGroupedView(!groupedView)
-        }
-      }}
-    />
-  )
+  const dashboardActions = <DashboardActions abaAtiva={abaAtiva} />
 
   return (
     <PagesLayout title="Dashboard" actions={dashboardActions}>
@@ -60,7 +48,6 @@ export default function DashboardAdmin() {
               <DashboardStatsCards statusCounts={statusCounts} />
               <ProjectsTable
                 projetos={projetos}
-                groupedView={groupedView}
                 deletingProjetoId={deletingProjetoId}
                 onAnalisarProjeto={handleAnalisarProjeto}
                 onDeleteProjeto={handleDeleteProjeto}
@@ -97,7 +84,6 @@ export default function DashboardAdmin() {
           )}
         </>
       )}
-
     </PagesLayout>
   )
 }

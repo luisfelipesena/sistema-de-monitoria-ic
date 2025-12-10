@@ -1,5 +1,5 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { NotFoundError } from '@/server/lib/errors'
+import { BusinessError, NotFoundError } from '@/server/lib/errors'
 import { createDepartamentoRepository } from '@/server/services/departamento/departamento-repository'
 import { createDepartamentoService } from '@/server/services/departamento/departamento-service'
 import { createDepartmentSchema, departamentoSchema, updateDepartmentSchema } from '@/types'
@@ -133,6 +133,9 @@ export const departamentoRouter = createTRPCRouter({
       } catch (error) {
         if (error instanceof NotFoundError) {
           throw new TRPCError({ code: 'NOT_FOUND', message: error.message })
+        }
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: 'CONFLICT', message: error.message })
         }
         log.error(error, 'Erro ao deletar departamento')
         throw new TRPCError({

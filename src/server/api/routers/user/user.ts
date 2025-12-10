@@ -1,6 +1,7 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { userService } from '@/server/services/user/user-service'
 import {
+  adminTypeSchema,
   cpfSchema,
   crSchema,
   emailSchema,
@@ -16,7 +17,7 @@ import {
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
-import { NotFoundError, ValidationError } from '@/server/lib/errors'
+import { BusinessError, NotFoundError, ValidationError } from '@/server/lib/errors'
 
 const log = logger.child({ context: 'UserRouter' })
 
@@ -254,6 +255,91 @@ export const userRouter = createTRPCRouter({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Erro ao atualizar status do professor',
+        })
+      }
+    }),
+
+  updateAdminType: protectedProcedure
+    .input(
+      z.object({
+        adminType: adminTypeSchema,
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        message: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const result = await userService.updateAdminType(ctx.user.id, input.adminType)
+        log.info({ userId: ctx.user.id, adminType: input.adminType }, 'Admin type updated')
+        return result
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: error.message,
+          })
+        }
+        if (error instanceof ValidationError) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: error.message,
+          })
+        }
+        log.error(error, 'Error updating admin type')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao atualizar tipo de administrador',
+        })
+      }
+    }),
+
+  deleteUser: adminProtectedProcedure
+    .meta({
+      openapi: {
+        method: 'DELETE',
+        path: '/users/{id}',
+        tags: ['users'],
+        summary: 'Delete user',
+        description: 'Delete a user (professor or student)',
+      },
+    })
+    .input(
+      z.object({
+        id: idSchema,
+      })
+    )
+    .output(
+      z.object({
+        success: z.boolean(),
+        message: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const result = await userService.deleteUser(input.id, ctx.user.id)
+        log.info({ userId: input.id, deletedBy: ctx.user.id }, 'User deleted successfully')
+        return result
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: error.message,
+          })
+        }
+        if (error instanceof BusinessError) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: error.message,
+          })
+        }
+        log.error(error, 'Error deleting user')
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erro ao excluir usuário',
         })
       }
     }),

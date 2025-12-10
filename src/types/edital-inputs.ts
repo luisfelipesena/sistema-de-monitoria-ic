@@ -14,9 +14,8 @@ export type CreateEditalInput = {
   // Datas de SELEÇÃO (prova) - opcionais
   dataInicioSelecao?: Date
   dataFimSelecao?: Date
-  // Divulgação e link
+  // Divulgação
   dataDivulgacaoResultado?: Date
-  linkFormularioInscricao?: string
   // Legacy/external
   fileIdPdfExterno?: string
   datasProvasDisponiveis?: string[]
@@ -37,9 +36,8 @@ export type UpdateEditalInput = {
   // Datas de SELEÇÃO (prova)
   dataInicioSelecao?: Date | null
   dataFimSelecao?: Date | null
-  // Divulgação e link
+  // Divulgação
   dataDivulgacaoResultado?: Date | null
-  linkFormularioInscricao?: string | null
   // Legacy
   datasProvasDisponiveis?: string[]
 }

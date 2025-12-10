@@ -31,6 +31,7 @@ import {
   TIPO_EDITAL_DCI,
 } from "@/types";
 import { api } from "@/utils/api";
+import { getCurrentSemester } from "@/utils/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Pencil } from "lucide-react";
 import { useState } from "react";
@@ -54,8 +55,6 @@ const editalFormSchema = z
     dataFimSelecao: z.date().optional(),
     // Data divulgação
     dataDivulgacaoResultado: z.date().optional(),
-    // Link formulário
-    linkFormularioInscricao: z.string().url().optional().or(z.literal("")),
   })
   .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
     message: "Data fim de inscrição deve ser posterior à data início",
@@ -64,6 +63,7 @@ const editalFormSchema = z
 
 export default function EditalManagementPage() {
   const { toast } = useToast();
+  const { year: currentYear, semester: currentSemester } = getCurrentSemester();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -215,14 +215,13 @@ export default function EditalManagementPage() {
       titulo: "Edital Interno de Seleção de Monitores",
       descricaoHtml: "",
       valorBolsa: "400.00",
-      ano: new Date().getFullYear(),
-      semestre: SEMESTRE_1,
+      ano: currentYear,
+      semestre: currentSemester,
       dataInicioInscricao: new Date(),
       dataFimInscricao: new Date(new Date().setDate(new Date().getDate() + 30)),
       dataInicioSelecao: undefined,
       dataFimSelecao: undefined,
       dataDivulgacaoResultado: undefined,
-      linkFormularioInscricao: "",
     },
   });
 
@@ -234,14 +233,13 @@ export default function EditalManagementPage() {
       titulo: "",
       descricaoHtml: "",
       valorBolsa: "400.00",
-      ano: new Date().getFullYear(),
-      semestre: SEMESTRE_1,
+      ano: currentYear,
+      semestre: currentSemester,
       dataInicioInscricao: new Date(),
       dataFimInscricao: new Date(new Date().setDate(new Date().getDate() + 30)),
       dataInicioSelecao: undefined,
       dataFimSelecao: undefined,
       dataDivulgacaoResultado: undefined,
-      linkFormularioInscricao: "",
     },
   });
 
@@ -259,7 +257,6 @@ export default function EditalManagementPage() {
       dataInicioSelecao: data.dataInicioSelecao,
       dataFimSelecao: data.dataFimSelecao,
       dataDivulgacaoResultado: data.dataDivulgacaoResultado,
-      linkFormularioInscricao: data.linkFormularioInscricao || undefined,
     });
   };
 
@@ -278,7 +275,6 @@ export default function EditalManagementPage() {
       dataInicioSelecao: data.dataInicioSelecao,
       dataFimSelecao: data.dataFimSelecao,
       dataDivulgacaoResultado: data.dataDivulgacaoResultado,
-      linkFormularioInscricao: data.linkFormularioInscricao || null,
     });
   };
 
@@ -382,8 +378,8 @@ export default function EditalManagementPage() {
       titulo: edital.titulo,
       descricaoHtml: edital.descricaoHtml || "",
       valorBolsa: "400.00",
-      ano: edital.periodoInscricao?.ano || new Date().getFullYear(),
-      semestre: edital.periodoInscricao?.semestre || SEMESTRE_1,
+      ano: edital.periodoInscricao?.ano || currentYear,
+      semestre: edital.periodoInscricao?.semestre || currentSemester,
       dataInicioInscricao: edital.periodoInscricao?.dataInicio
         ? new Date(edital.periodoInscricao.dataInicio)
         : new Date(),
@@ -395,7 +391,6 @@ export default function EditalManagementPage() {
       dataDivulgacaoResultado: edital.dataDivulgacaoResultado
         ? new Date(edital.dataDivulgacaoResultado)
         : undefined,
-      linkFormularioInscricao: edital.linkFormularioInscricao || "",
     });
     setIsEditDialogOpen(true);
   };

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { useDialogState } from '@/hooks/useDialogState'
-import { useColumnFilters } from '@/hooks/useColumnFilters'
+import { useUrlColumnFilters } from '@/hooks/useUrlColumnFilters'
 import { api } from '@/utils/api'
 import { useQueryClient } from '@tanstack/react-query'
 import type { ManageProjectItem } from '@/types'
@@ -22,8 +22,8 @@ export function useProjectManagement() {
   const [rejectFeedback, setRejectFeedback] = useState('')
   const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
 
-  // Column filters with current semester as default
-  const { columnFilters, setColumnFilters } = useColumnFilters({
+  // Column filters with URL state persistence and current semester as default
+  const { columnFilters, setColumnFilters } = useUrlColumnFilters({
     useCurrentSemester: true,
   })
 

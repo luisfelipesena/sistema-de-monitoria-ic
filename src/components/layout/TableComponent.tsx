@@ -95,7 +95,7 @@ export function TableComponent<TData, TValue>({
       )}
 
       <div className="rounded-md border overflow-hidden bg-card">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-scroll">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
