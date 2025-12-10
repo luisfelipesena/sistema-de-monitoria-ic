@@ -18,8 +18,13 @@ export default function ManageProjectsPage() {
     projetos,
     loadingProjetos,
     statusCounts,
+    totalCount,
     columnFilters,
     setColumnFilters,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
     groupedView,
     setGroupedView,
     rejectFeedback,
@@ -106,7 +111,7 @@ export default function ManageProjectsPage() {
       ) : (
         <>
           <ProjectsStatsCards
-            total={projetos.length}
+            total={totalCount}
             draft={statusCounts.draft}
             submitted={statusCounts.submitted}
             approved={statusCounts.approved}
@@ -118,6 +123,14 @@ export default function ManageProjectsPage() {
             data={projetos}
             columnFilters={columnFilters}
             onColumnFiltersChange={setColumnFilters}
+            isLoading={loadingProjetos}
+            serverPagination={{
+              totalCount,
+              pageIndex: page,
+              pageSize,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            }}
           />
         </>
       )}

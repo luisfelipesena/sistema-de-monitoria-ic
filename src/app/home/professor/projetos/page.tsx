@@ -15,9 +15,11 @@ export default function ProfessorProjetosPage() {
   const { projetos, selectedProjeto, isDetailDialogOpen, loadingPdfProjetoId, handlers } = useProjectList()
 
   const columns = createProjectColumns({
-    onViewProjeto: handlers.handleViewProjeto,
-    onViewPdf: handlers.handleViewPdf,
-    loadingPdfProjetoId,
+    handlers: {
+      onViewProjeto: handlers.handleViewProjeto,
+      onViewPdf: handlers.handleViewPdf,
+      loadingPdfProjetoId,
+    },
   })
 
   return (

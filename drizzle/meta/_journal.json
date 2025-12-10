@@ -365,6 +365,13 @@
       "when": 1765321000000,
       "tag": "0049_add_configuracao_sistema",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1765400000000,
+      "tag": "0050_make_projeto_departamento_nullable",
+      "breakpoints": true
     }
   ]
 }

@@ -29,7 +29,7 @@ export function useDepartmentManagement() {
   const createMutation = useTRPCMutation(api.departamento.createDepartamento.useMutation, {
     successMessage: 'Departamento criado com sucesso',
     errorMessage: 'Não foi possível criar o departamento',
-    invalidateQueries: ['departamento.getDepartamentos'],
+    invalidateQueries: true,
     onSuccess: () => {
       createDialog.close()
       resetForm()
@@ -39,7 +39,7 @@ export function useDepartmentManagement() {
   const updateMutation = useTRPCMutation(api.departamento.updateDepartamento.useMutation, {
     successMessage: 'Departamento atualizado com sucesso',
     errorMessage: 'Não foi possível atualizar o departamento',
-    invalidateQueries: ['departamento.getDepartamentos'],
+    invalidateQueries: true,
     onSuccess: () => {
       editDialog.close()
       resetForm()
@@ -49,7 +49,7 @@ export function useDepartmentManagement() {
   const deleteMutation = useTRPCMutation(api.departamento.deleteDepartamento.useMutation, {
     successMessage: 'Departamento excluído com sucesso',
     errorMessage: 'Não foi possível excluir o departamento',
-    invalidateQueries: ['departamento.getDepartamentos'],
+    invalidateQueries: true,
     onSuccess: () => {
       deleteDialog.close()
     },

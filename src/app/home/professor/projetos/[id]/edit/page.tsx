@@ -95,7 +95,7 @@ export default function EditProjetoPage() {
       const formData: ProjetoFormData = {
         titulo: projeto.titulo,
         descricao: projeto.descricao,
-        departamentoId: projeto.departamentoId,
+        departamentoId: projeto.departamentoId ?? 0,
         ano: projeto.ano,
         semestre: projeto.semestre,
         tipoProposicao: projeto.tipoProposicao,

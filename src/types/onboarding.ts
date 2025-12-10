@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { UserRole, userRoleSchema } from './enums'
+import { generoSchema, regimeSchema, tipoProfessorSchema, UserRole, userRoleSchema } from './enums'
 
 // ========================================
 // ONBOARDING TYPES
@@ -19,11 +19,41 @@ export interface OnboardingStatus {
   signature?: {
     configured: boolean
   }
+  isInactive?: boolean
+  existingProfileData?: {
+    nomeCompleto?: string
+    matriculaSiape?: string
+    cpf?: string
+    telefone?: string
+    telefoneInstitucional?: string
+    regime?: string
+    tipoProfessor?: string
+    departamentoId?: number
+    genero?: string
+    especificacaoGenero?: string
+    nomeSocial?: string
+  }
 }
 
 // ========================================
 // VALIDATION SCHEMAS
 // ========================================
+
+export const existingProfessorProfileDataSchema = z
+  .object({
+    nomeCompleto: z.string().optional(),
+    matriculaSiape: z.string().optional(),
+    cpf: z.string().optional(),
+    telefone: z.string().optional(),
+    telefoneInstitucional: z.string().optional(),
+    regime: regimeSchema.optional(),
+    tipoProfessor: tipoProfessorSchema.optional(),
+    departamentoId: z.number().optional(),
+    genero: generoSchema.optional(),
+    especificacaoGenero: z.string().optional(),
+    nomeSocial: z.string().optional(),
+  })
+  .optional()
 
 export const onboardingStatusResponseSchema = z.object({
   pending: z.boolean(),
@@ -41,6 +71,8 @@ export const onboardingStatusResponseSchema = z.object({
       configured: z.boolean(),
     })
     .optional(),
+  isInactive: z.boolean().optional(),
+  existingProfileData: existingProfessorProfileDataSchema,
 })
 
 export type OnboardingStatusResponse = z.infer<typeof onboardingStatusResponseSchema>

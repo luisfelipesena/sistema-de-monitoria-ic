@@ -85,8 +85,8 @@ export interface DashboardProjectItem {
   id: number
   titulo: string
   status: string
-  departamentoId: number
-  departamentoNome: string
+  departamentoId: number | null
+  departamentoNome: string | null
   semestre: string
   ano: number
   bolsasDisponibilizadas?: number | null | undefined
@@ -99,8 +99,8 @@ export interface ManageProjectItem {
   id: number
   titulo: string
   status: string
-  departamentoId: number
-  departamentoNome: string
+  departamentoId: number | null
+  departamentoNome: string | null
   semestre: string
   ano: number
   bolsasDisponibilizadas?: number | null | undefined
@@ -350,7 +350,7 @@ export const projectDetailSchema = z.object({
   id: z.number().int().positive(),
   titulo: z.string().min(1),
   descricao: z.string(),
-  departamentoId: z.number().int().positive(),
+  departamentoId: z.number().int().positive().nullable(),
   ano: z.number().int().min(2000).max(2100),
   semestre: semestreSchema,
   tipoProposicao: tipoProposicaoSchema,
@@ -374,6 +374,7 @@ export const projectDetailSchema = z.object({
       nome: z.string(),
       sigla: z.string().nullable().optional(),
     })
+    .nullable()
     .optional(),
   professorResponsavel: z
     .object({
@@ -414,8 +415,8 @@ export const projectDetailSchema = z.object({
 export const projectListItemSchema = z.object({
   id: z.number().int().positive(),
   titulo: z.string(),
-  departamentoId: z.number().int().positive(),
-  departamentoNome: z.string(),
+  departamentoId: z.number().int().positive().nullable(),
+  departamentoNome: z.string().nullable(),
   professorResponsavelId: z.number().int().positive(),
   professorResponsavelNome: z.string(),
   status: z.string(),

@@ -84,6 +84,7 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
       },
     },
     {
+      id: "professorNome",
       header: createFilterableHeader<ManageProjectItem>({
         title: "Professor",
         filterType: "text",

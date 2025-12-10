@@ -54,8 +54,8 @@ export function createProjetoSelectionService(repo: ProjetoRepository) {
           ano: projeto.ano,
           semestre: projeto.semestre,
           departamento: {
-            nome: projeto.departamento.nome,
-            sigla: projeto.departamento.sigla,
+            nome: projeto.departamento?.nome || 'N/A',
+            sigla: projeto.departamento?.sigla ?? null,
           },
           professorResponsavel: {
             nomeCompleto: projeto.professorResponsavel.nomeCompleto,

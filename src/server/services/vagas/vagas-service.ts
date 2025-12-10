@@ -215,7 +215,7 @@ Sistema de Monitoria IC
           titulo: vaga.projeto.titulo,
           ano: vaga.projeto.ano,
           semestre: vaga.projeto.semestre,
-          departamento: vaga.projeto.departamento.nome,
+          departamento: vaga.projeto.departamento?.nome || 'N/A',
           professor: vaga.projeto.professorResponsavel.nomeCompleto,
         },
         status: VAGA_STATUS_ATIVA,

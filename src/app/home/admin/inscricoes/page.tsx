@@ -27,8 +27,6 @@ export default function InscricoesAdminPage() {
             columns={columns}
             columnFilters={columnFilters}
             onColumnFiltersChange={setColumnFilters}
-            searchableColumn="aluno.nomeCompleto"
-            searchPlaceholder="Buscar por aluno..."
           />
         </div>
       )}

@@ -31,6 +31,7 @@ export const createUserService = (database: typeof db) => {
               departamentoId: user.professorProfile.departamentoId,
               assinaturaDefault: user.professorProfile.assinaturaDefault,
               dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
+              accountStatus: user.professorProfile.accountStatus as 'PENDING' | 'ACTIVE' | 'INACTIVE' | null,
               ...stats,
             }
           }
@@ -235,26 +236,14 @@ export const createUserService = (database: typeof db) => {
         throw new BusinessError('Não é possível excluir usuários administradores', 'ADMIN_DELETION')
       }
 
-      // Check if professor has active projects
+      // Soft delete professor's projects before deleting user
       if (user.professorProfile) {
-        const hasProjects = await userRepository.hasActiveProjects(user.professorProfile.id)
-        if (hasProjects) {
-          throw new BusinessError(
-            'Não é possível excluir professor com projetos ativos. Exclua ou transfira os projetos primeiro.',
-            'HAS_ACTIVE_PROJECTS'
-          )
-        }
+        await userRepository.softDeleteProfessorProjects(user.professorProfile.id)
       }
 
-      // Check if student has active inscricoes
+      // Delete student's inscricoes before deleting user
       if (user.studentProfile) {
-        const hasInscricoes = await userRepository.hasActiveInscricoes(user.studentProfile.id)
-        if (hasInscricoes) {
-          throw new BusinessError(
-            'Não é possível excluir aluno com inscrições ativas. Cancele as inscrições primeiro.',
-            'HAS_ACTIVE_INSCRICOES'
-          )
-        }
+        await userRepository.deleteStudentInscricoes(user.studentProfile.id)
       }
 
       await userRepository.deleteUser(userId)

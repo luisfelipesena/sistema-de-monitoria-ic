@@ -1,20 +1,41 @@
 "use client"
 
+import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { PagesLayout } from "@/components/layout/PagesLayout"
-import { TableComponent } from "@/components/layout/TableComponent"
+import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
+import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
 import { DisciplinaListItem } from "@/types"
 import { api } from "@/utils/api"
 import { useQueryClient } from "@tanstack/react-query"
-import { ColumnDef } from "@tanstack/react-table"
+import { ColumnDef, FilterFn } from "@tanstack/react-table"
 import { BookOpen, Edit, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
-import { useToast } from "@/hooks/use-toast"
+import { useMemo, useState } from "react"
+
+// Custom filter functions
+const codigoFilterFn: FilterFn<DisciplinaListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+  const codigo = row.original.codigo.toLowerCase()
+  return codigo.includes(String(filterValue).toLowerCase())
+}
+
+const nomeFilterFn: FilterFn<DisciplinaListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+  const nome = row.original.nome.toLowerCase()
+  return nome.includes(String(filterValue).toLowerCase())
+}
+
+const departamentoFilterFn: FilterFn<DisciplinaListItem> = (row, _columnId, filterValue) => {
+  if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return true
+  const departamentoId = row.original.departamentoId?.toString()
+  return departamentoId ? filterValue.includes(departamentoId) : false
+}
 
 export default function DisciplinasPage() {
   const { toast } = useToast()
@@ -27,6 +48,9 @@ export default function DisciplinasPage() {
     nome: "",
     departamentoId: "",
   })
+
+  // URL-based column filters
+  const { columnFilters, setColumnFilters } = useUrlColumnFilters()
 
   const { data: disciplinas, isLoading } = api.discipline.getDisciplines.useQuery()
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
@@ -127,40 +151,87 @@ export default function DisciplinasPage() {
     }
   }
 
-  const columns: ColumnDef<DisciplinaListItem>[] = [
-    {
-      header: "Código",
-      accessorKey: "codigo",
-      cell: ({ row }) => <span className="font-mono font-medium">{row.original.codigo}</span>,
-    },
-    {
-      header: "Nome",
-      accessorKey: "nome",
-      cell: ({ row }) => <span className="font-medium">{row.original.nome}</span>,
-    },
-    {
-      header: "Departamento",
-      accessorKey: "departamentoId",
-      cell: ({ row }) => {
-        const dept = departamentos?.find((d) => d.id === row.original.departamentoId)
-        return dept?.nome || "N/A"
+  // Generate filter options
+  const codigoFilterOptions = useMemo(() => {
+    if (!disciplinas) return []
+    return disciplinas
+      .map((d) => ({ value: d.codigo, label: d.codigo }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [disciplinas])
+
+  const nomeFilterOptions = useMemo(() => {
+    if (!disciplinas) return []
+    return disciplinas
+      .map((d) => ({ value: d.nome, label: d.nome }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  }, [disciplinas])
+
+  const departamentoFilterOptions = useMemo(() => {
+    if (!departamentos) return []
+    return departamentos.map((d) => ({
+      value: d.id.toString(),
+      label: d.nome,
+    }))
+  }, [departamentos])
+
+  const columns: ColumnDef<DisciplinaListItem>[] = useMemo(
+    () => [
+      {
+        id: "codigo",
+        accessorKey: "codigo",
+        header: createFilterableHeader<DisciplinaListItem>({
+          title: "Código",
+          filterType: "text",
+          filterPlaceholder: "Buscar código...",
+          autocompleteOptions: codigoFilterOptions,
+        }),
+        filterFn: codigoFilterFn,
+        cell: ({ row }) => <span className="font-mono font-medium">{row.original.codigo}</span>,
       },
-    },
-    {
-      header: "Ações",
-      id: "actions",
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => handleEdit(row.original)}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button variant="destructive" size="sm" onClick={() => handleDelete(row.original.id)}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ]
+      {
+        id: "nome",
+        accessorKey: "nome",
+        header: createFilterableHeader<DisciplinaListItem>({
+          title: "Nome",
+          filterType: "text",
+          filterPlaceholder: "Buscar nome...",
+          wide: true,
+          autocompleteOptions: nomeFilterOptions,
+        }),
+        filterFn: nomeFilterFn,
+        cell: ({ row }) => <span className="font-medium">{row.original.nome}</span>,
+      },
+      {
+        id: "departamentoId",
+        accessorKey: "departamentoId",
+        header: createFilterableHeader<DisciplinaListItem>({
+          title: "Departamento",
+          filterType: "multiselect",
+          filterOptions: departamentoFilterOptions,
+        }),
+        filterFn: departamentoFilterFn,
+        cell: ({ row }) => {
+          const dept = departamentos?.find((d) => d.id === row.original.departamentoId)
+          return dept?.nome || "N/A"
+        },
+      },
+      {
+        header: "Ações",
+        id: "actions",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => handleEdit(row.original)}>
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button variant="destructive" size="sm" onClick={() => handleDelete(row.original.id)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [departamentos, codigoFilterOptions, nomeFilterOptions, departamentoFilterOptions]
+  )
 
   const actions = (
     <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -240,8 +311,8 @@ export default function DisciplinasPage() {
             <TableComponent
               columns={columns}
               data={disciplinas || []}
-              searchableColumn="nome"
-              searchPlaceholder="Buscar por nome da disciplina..."
+              columnFilters={columnFilters}
+              onColumnFiltersChange={setColumnFilters}
             />
           )}
         </CardContent>

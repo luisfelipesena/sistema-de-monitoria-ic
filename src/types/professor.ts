@@ -104,8 +104,8 @@ export interface ProfessorProjetoListItem {
   titulo: string
   descricao: string
   departamento: {
-    id: number
-    nome: string
+    id: number | null
+    nome: string | null
   }
   ano: number
   semestre: Semestre

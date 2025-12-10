@@ -279,7 +279,7 @@ export class ProfessorInscricaoService {
           matriculaSiape: inscricao.projeto.professorResponsavel.matriculaSiape,
         }),
         email: inscricao.projeto.professorResponsavel.emailInstitucional,
-        departamento: inscricao.projeto.departamento.nome,
+        departamento: inscricao.projeto.departamento?.nome || 'N/A',
       },
       projeto: {
         titulo: inscricao.projeto.titulo,

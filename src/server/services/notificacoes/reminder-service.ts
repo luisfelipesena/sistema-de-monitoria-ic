@@ -28,7 +28,7 @@ export function createReminderService(db: Database) {
             html: `
 Olá ${admin.username},<br><br>
 
-O projeto de monitoria "${proj.titulo}" (${proj.departamento.nome}) está pendente de sua assinatura há ${diasLimite} dias.<br><br>
+O projeto de monitoria "${proj.titulo}" (${proj.departamento?.nome || 'Departamento não informado'}) está pendente de sua assinatura há ${diasLimite} dias.<br><br>
 
 Professor: ${proj.professorResponsavel.nomeCompleto}<br>
 Data de submissão: ${proj.updatedAt?.toLocaleDateString('pt-BR')}<br><br>
@@ -197,7 +197,7 @@ Olá ${projeto.professorResponsavel.nomeCompleto},<br><br>
 O relatório final do projeto de monitoria "<strong>${projeto.titulo}</strong>" está pendente há ${diasLimite} dias.<br><br>
 
 Período: ${projeto.ano}.${SEMESTRE_LABELS[projeto.semestre as keyof typeof SEMESTRE_LABELS]}<br>
-Departamento: ${projeto.departamento.nome}<br><br>
+Departamento: ${projeto.departamento?.nome || 'N/A'}<br><br>
 
 Por favor, acesse o sistema para preencher e submeter o relatório final.<br><br>
 

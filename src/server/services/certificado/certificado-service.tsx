@@ -69,7 +69,9 @@ export function createCertificadoService(db: Database) {
       }
 
       // Get department head info
-      const chefeDepartamento = await repo.findChefeDepartamento(vaga.projeto.departamentoId)
+      const chefeDepartamento = vaga.projeto.departamentoId
+        ? await repo.findChefeDepartamento(vaga.projeto.departamentoId)
+        : null
 
       // Build certificate data
       const certificadoNumero = `${vaga.projeto.ano}${getSemestreNumero(vaga.projeto.semestre as Semestre)}-${vagaId
@@ -102,8 +104,8 @@ export function createCertificadoService(db: Database) {
           matriculaSiape: vaga.projeto.professorResponsavel.matriculaSiape || undefined,
         },
         departamento: {
-          nome: vaga.projeto.departamento.nome,
-          sigla: vaga.projeto.departamento.sigla || undefined,
+          nome: vaga.projeto.departamento?.nome || 'N/A',
+          sigla: vaga.projeto.departamento?.sigla || undefined,
         },
         monitoria: {
           tipo: vaga.tipo as "BOLSISTA" | "VOLUNTARIO",
@@ -172,7 +174,7 @@ export function createCertificadoService(db: Database) {
           semestre: vaga.projeto.semestre,
         },
         professor: vaga.projeto.professorResponsavel.nomeCompleto,
-        departamento: vaga.projeto.departamento.nome,
+        departamento: vaga.projeto.departamento?.nome || 'N/A',
         tipo: vaga.tipo,
         dataInicio: vaga.dataInicio,
         dataFim: vaga.dataFim,
@@ -263,7 +265,7 @@ export function createCertificadoService(db: Database) {
           cargaHorariaTotal: vaga.projeto.cargaHorariaSemana * vaga.projeto.numeroSemanas,
         },
         professor: vaga.projeto.professorResponsavel.nomeCompleto,
-        departamento: vaga.projeto.departamento.nome,
+        departamento: vaga.projeto.departamento?.nome || 'N/A',
         tipo: vaga.tipo,
         periodo: {
           inicio: vaga.dataInicio,

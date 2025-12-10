@@ -41,19 +41,41 @@ export function DataTableColumnFilter<TData, TValue>({
 }: DataTableColumnFilterProps<TData, TValue>) {
   const filterValue = column.getFilterValue()
   const hasActiveFilter = checkHasActiveFilter(filterValue, type)
+  const [isOpen, setIsOpen] = useState(false)
+
+  // Local state for multiselect to buffer changes until popover closes
+  const [localMultiselectValue, setLocalMultiselectValue] = useState<string[]>([])
 
   // Determine if we use multiselect (select type is now multiselect too)
   const useMultiselect = type === 'select' || type === 'multiselect'
 
+  // Sync local multiselect value when popover opens or external value changes
+  useEffect(() => {
+    if (useMultiselect) {
+      const currentValue = Array.isArray(filterValue) ? filterValue : filterValue ? [String(filterValue)] : []
+      setLocalMultiselectValue(currentValue)
+    }
+  }, [filterValue, useMultiselect, isOpen])
+
   // Handle clear filter
   const handleClearFilter = () => {
     column.setFilterValue(undefined)
+    setLocalMultiselectValue([])
+  }
+
+  // Apply multiselect changes when popover closes
+  const handleOpenChange = (open: boolean) => {
+    if (!open && useMultiselect) {
+      // Apply buffered multiselect changes
+      column.setFilterValue(localMultiselectValue.length > 0 ? localMultiselectValue : undefined)
+    }
+    setIsOpen(open)
   }
 
   const popoverWidth = wide ? 'w-[320px]' : 'w-[200px]'
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -68,8 +90,20 @@ export function DataTableColumnFilter<TData, TValue>({
         </Button>
       </PopoverTrigger>
       <PopoverContent className={cn(popoverWidth, 'p-0')} align="start">
-        <div className="p-2">
-          <p className="text-sm font-medium mb-2">Filtrar {title}</p>
+        <div className="flex items-center justify-between p-2">
+          <p className="text-sm font-medium">Filtrar {title}</p>
+          {hasActiveFilter && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+              onClick={handleClearFilter}
+              title="Limpar filtro"
+            >
+              <X className="h-3 w-3 mr-1" />
+              Limpar
+            </Button>
+          )}
         </div>
         <Separator />
         {type === 'text' && autocompleteOptions && autocompleteOptions.length > 0 ? (
@@ -96,27 +130,11 @@ export function DataTableColumnFilter<TData, TValue>({
         )}
         {useMultiselect && (
           <MultiselectFilter
-            value={Array.isArray(filterValue) ? filterValue : filterValue ? [String(filterValue)] : []}
-            onChange={(value) => column.setFilterValue(value.length > 0 ? value : undefined)}
+            value={localMultiselectValue}
+            onChange={setLocalMultiselectValue}
             options={options}
             placeholder={placeholder ?? `Buscar ${title.toLowerCase()}...`}
           />
-        )}
-        {hasActiveFilter && (
-          <>
-            <Separator />
-            <div className="p-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start text-muted-foreground"
-                onClick={handleClearFilter}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Limpar filtro
-              </Button>
-            </div>
-          </>
         )}
       </PopoverContent>
     </Popover>

@@ -232,7 +232,7 @@ export default function UsersPage() {
         },
       },
       {
-        id: "departamento",
+        id: "departamentoId",
         header: createFilterableHeader<UserListItem>({
           title: "Departamento",
           filterType: "multiselect",

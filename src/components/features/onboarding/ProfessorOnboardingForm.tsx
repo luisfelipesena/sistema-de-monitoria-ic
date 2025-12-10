@@ -38,18 +38,23 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const { toast } = useToast()
   const router = useRouter()
   const { user } = useAuth()
+
+  // Get existing profile data for pre-filling (if professor was INACTIVE)
+  const existingData = onboardingStatus.existingProfileData
+  const isReactivation = onboardingStatus.isInactive
+
   const [formData, setFormData] = useState({
-    nomeCompleto: "",
-    matriculaSiape: "",
-    cpf: "",
-    telefone: "",
-    telefoneInstitucional: "",
-    regime: "" as Regime | "",
-    tipoProfessor: TIPO_PROFESSOR_EFETIVO as TipoProfessor,
-    departamentoId: 0,
-    genero: "" as Genero | "",
-    especificacaoGenero: "",
-    nomeSocial: "",
+    nomeCompleto: existingData?.nomeCompleto || "",
+    matriculaSiape: existingData?.matriculaSiape || "",
+    cpf: existingData?.cpf || "",
+    telefone: existingData?.telefone || "",
+    telefoneInstitucional: existingData?.telefoneInstitucional || "",
+    regime: (existingData?.regime || "") as Regime | "",
+    tipoProfessor: (existingData?.tipoProfessor || TIPO_PROFESSOR_EFETIVO) as TipoProfessor,
+    departamentoId: existingData?.departamentoId || 0,
+    genero: (existingData?.genero || "") as Genero | "",
+    especificacaoGenero: existingData?.especificacaoGenero || "",
+    nomeSocial: existingData?.nomeSocial || "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSignatureDialog, setShowSignatureDialog] = useState(false)
@@ -63,15 +68,15 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const saveSignatureMutation = api.signature.saveDefaultSignature.useMutation()
   const { refetch: refetchOnboardingStatus } = api.onboarding.getStatus.useQuery()
 
-  // Pre-populate name from user data
+  // Pre-populate name from user data only if no existing data
   useEffect(() => {
-    if (user?.username && !formData.nomeCompleto) {
+    if (user?.username && !formData.nomeCompleto && !existingData?.nomeCompleto) {
       setFormData((prev) => ({
         ...prev,
         nomeCompleto: formatUsernameToProperName(user.username),
       }))
     }
-  }, [user, formData.nomeCompleto])
+  }, [user, formData.nomeCompleto, existingData?.nomeCompleto])
 
   const hasProfile = onboardingStatus.profile.exists
   const hasSignature = onboardingStatus.signature?.configured || false
@@ -122,7 +127,9 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
 
       toast({
         title: "Sucesso!",
-        description: "Perfil e assinatura criados com sucesso!",
+        description: isReactivation
+          ? "Conta reativada com sucesso!"
+          : "Perfil e assinatura criados com sucesso!",
       })
       await refetchOnboardingStatus()
     } catch (error: any) {
@@ -195,14 +202,18 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   return (
     <section className="w-full">
       <div className="space-y-8">
-        {!hasProfile && (
+        {(!hasProfile || isReactivation) && (
           <Card className="shadow-lg">
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center gap-2 text-xl">
                 <UserCheck className="h-5 w-5" />
-                Informações do Perfil
+                {isReactivation ? "Reativar Conta" : "Informações do Perfil"}
               </CardTitle>
-              <p className="text-sm text-gray-600">Complete suas informações pessoais e profissionais</p>
+              <p className="text-sm text-gray-600">
+                {isReactivation
+                  ? "Sua conta foi desativada. Confirme seus dados para reativá-la."
+                  : "Complete suas informações pessoais e profissionais"}
+              </p>
             </CardHeader>
             <CardContent className="p-8">
               <form onSubmit={handleSubmitProfile} className="space-y-6">
@@ -422,7 +433,13 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     size="lg"
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
-                    {isSubmitting ? "Criando perfil..." : "Criar Perfil"}
+                    {isSubmitting
+                      ? isReactivation
+                        ? "Reativando conta..."
+                        : "Criando perfil..."
+                      : isReactivation
+                        ? "Reativar Conta"
+                        : "Criar Perfil"}
                   </Button>
                 </div>
               </form>

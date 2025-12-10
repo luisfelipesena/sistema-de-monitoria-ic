@@ -21,6 +21,7 @@ export function createProjetoService(db: Database) {
   return {
     // Query operations
     getProjetos: queryService.getProjetos,
+    getProjetosFiltered: queryService.getProjetosFiltered,
     getProjeto: queryService.getProjeto,
     getAvailableProjects: queryService.getAvailableProjects,
     getVolunteers: queryService.getVolunteers,

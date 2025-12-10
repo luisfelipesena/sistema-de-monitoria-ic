@@ -236,13 +236,12 @@ export const createUserRepository = (db: Database) => {
       userId: number,
       status: typeof PROFESSOR_STATUS_ATIVO | typeof PROFESSOR_STATUS_INATIVO
     ) {
-      const newRole = status === PROFESSOR_STATUS_ATIVO ? PROFESSOR : PROFESSOR
+      const accountStatus = status === PROFESSOR_STATUS_ATIVO ? 'ACTIVE' : 'INACTIVE'
 
-      await db.transaction(async (tx) => {
-        await tx.update(userTable).set({ role: newRole }).where(eq(userTable.id, userId))
-
-        await tx.update(professorTable).set({ updatedAt: new Date() }).where(eq(professorTable.userId, userId))
-      })
+      await db
+        .update(professorTable)
+        .set({ accountStatus: accountStatus as 'ACTIVE' | 'INACTIVE', updatedAt: new Date() })
+        .where(eq(professorTable.userId, userId))
     },
 
     async isProfessor(userId: number): Promise<boolean> {
@@ -263,22 +262,32 @@ export const createUserRepository = (db: Database) => {
       await db.update(userTable).set({ adminType }).where(eq(userTable.id, userId))
     },
 
-    async hasActiveProjects(professorId: number): Promise<boolean> {
-      const [count] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(projetoTable)
+    async softDeleteProfessorProjects(professorId: number) {
+      await db
+        .update(projetoTable)
+        .set({ deletedAt: new Date() })
         .where(and(eq(projetoTable.professorResponsavelId, professorId), isNull(projetoTable.deletedAt)))
-
-      return (count?.count || 0) > 0
     },
 
-    async hasActiveInscricoes(alunoId: number): Promise<boolean> {
-      const [count] = await db
-        .select({ count: sql<number>`count(*)::int` })
+    async deleteStudentInscricoes(alunoId: number) {
+      // First delete related vagas
+      await db.delete(vagaTable).where(eq(vagaTable.alunoId, alunoId))
+
+      // Delete inscricao documents
+      const inscricoes = await db
+        .select({ id: inscricaoTable.id })
         .from(inscricaoTable)
         .where(eq(inscricaoTable.alunoId, alunoId))
 
-      return (count?.count || 0) > 0
+      if (inscricoes.length > 0) {
+        const inscricaoIds = inscricoes.map((i) => i.id)
+        await db
+          .delete(inscricaoDocumentoTable)
+          .where(sql`${inscricaoDocumentoTable.inscricaoId} IN (${sql.join(inscricaoIds, sql`, `)})`)
+      }
+
+      // Delete inscricoes
+      await db.delete(inscricaoTable).where(eq(inscricaoTable.alunoId, alunoId))
     },
 
     async deleteUser(userId: number) {

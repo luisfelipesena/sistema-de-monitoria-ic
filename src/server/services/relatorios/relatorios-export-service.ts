@@ -261,7 +261,7 @@ export function createRelatoriosExportService(
               Disciplinas: disciplinasTexto,
               'Professor Responsável': vaga.projeto.professorResponsavel.nomeCompleto,
               'SIAPE Professor': vaga.projeto.professorResponsavel.matriculaSiape || 'N/A',
-              Departamento: vaga.projeto.departamento.nome,
+              Departamento: vaga.projeto.departamento?.nome || 'N/A',
               'Carga Horária Semanal': vaga.projeto.cargaHorariaSemana || 12,
               'Total Horas': (vaga.projeto.cargaHorariaSemana || 12) * (vaga.projeto.numeroSemanas || 17),
               'Data Início': vaga.dataInicio?.toLocaleDateString('pt-BR') || 'N/A',
@@ -400,7 +400,7 @@ export function createRelatoriosExportService(
               nome: vaga.projeto.professorResponsavel.nomeCompleto,
               matriculaSiape: vaga.projeto.professorResponsavel.matriculaSiape,
               email: vaga.projeto.professorResponsavel.emailInstitucional,
-              departamento: vaga.projeto.departamento.nome,
+              departamento: vaga.projeto.departamento?.nome || 'N/A',
             },
             projeto: {
               titulo: vaga.projeto.titulo,

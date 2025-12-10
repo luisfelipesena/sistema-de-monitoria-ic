@@ -105,7 +105,7 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
       const pdfData = {
         titulo: projeto.titulo,
         descricao: projeto.descricao,
-        departamento: projeto.departamento,
+        departamento: projeto.departamento ?? undefined,
         professorResponsavel: {
           ...projeto.professorResponsavel,
           nomeSocial: projeto.professorResponsavel.nomeSocial || undefined,

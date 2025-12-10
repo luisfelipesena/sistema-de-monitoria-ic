@@ -47,6 +47,15 @@ export function createOnboardingRepository(db: Database) {
     async updateProfessorDocument(userId: number, data: ProfessorUpdate) {
       await db.update(professorTable).set(data).where(eq(professorTable.userId, userId))
     },
+
+    async updateProfessorProfile(userId: number, data: ProfessorUpdate) {
+      const [profile] = await db
+        .update(professorTable)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(professorTable.userId, userId))
+        .returning({ id: professorTable.id })
+      return profile
+    },
   }
 }
 

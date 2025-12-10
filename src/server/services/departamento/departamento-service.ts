@@ -1,4 +1,4 @@
-import { BusinessError, NotFoundError } from '@/server/lib/errors'
+import { NotFoundError } from '@/server/lib/errors'
 import type { DepartamentoRepository } from './departamento-repository'
 
 export function createDepartamentoService(repository: DepartamentoRepository) {
@@ -66,39 +66,36 @@ export function createDepartamentoService(repository: DepartamentoRepository) {
         throw new NotFoundError('Departamento', id)
       }
 
-      // Check for active projetos - can't delete if there are active projects
-      const projetosAtivos = await repository.countProjetosAtivos(id)
-      if (projetosAtivos > 0) {
-        throw new BusinessError(
-          `Não é possível excluir o departamento pois existem ${projetosAtivos} projeto(s) ativo(s) associado(s). Exclua os projetos primeiro.`,
-          'CONFLICT'
-        )
-      }
-
       // Cascade deletion: handle all FK dependencies in correct order
-      // 1. Get all disciplina IDs for this departamento
+      // 1. Soft delete all projetos referencing this departamento
+      await repository.softDeleteProjetosByDepartamento(id)
+
+      // 2. Get all disciplina IDs for this departamento
       const disciplinaIds = await repository.getDisciplinaIdsByDepartamento(id)
 
-      // 2. Delete all FK references to disciplinas (order matters!)
-      // 2.1 Delete disciplina_professor_responsavel references
+      // 3. Delete all FK references to disciplinas (order matters!)
+      // 3.1 Delete disciplina_professor_responsavel references
       await repository.deleteDisciplinaProfessorResponsavelByDisciplinaIds(disciplinaIds)
 
-      // 2.2 Delete projeto_disciplina references
+      // 3.2 Delete projeto_disciplina references
       await repository.deleteProjetoDisciplinasByDisciplinaIds(disciplinaIds)
 
-      // 2.3 Delete nota_aluno references
+      // 3.3 Delete nota_aluno references
       await repository.deleteNotaAlunoByDisciplinaIds(disciplinaIds)
 
-      // 2.4 Delete equivalencia_disciplinas references
+      // 3.4 Delete equivalencia_disciplinas references
       await repository.deleteEquivalenciaDisciplinasByDisciplinaIds(disciplinaIds)
 
-      // 2.5 Delete projeto_template references
+      // 3.5 Delete projeto_template references
       await repository.deleteProjetoTemplatesByDisciplinaIds(disciplinaIds)
 
-      // 3. Delete disciplinas
+      // 4. Delete disciplinas
       await repository.deleteDisciplinasByDepartamento(id)
 
-      // 4. Finally delete the departamento
+      // 5. Nullify departamentoId on professors (don't delete professors)
+      await repository.nullifyProfessorsDepartamento(id)
+
+      // 6. Finally delete the departamento
       await repository.delete(id)
       return { success: true }
     },

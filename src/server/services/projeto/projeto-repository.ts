@@ -14,10 +14,10 @@ import {
   projetoTable,
   userTable,
 } from '@/server/db/schema'
-import type { Semestre, StatusInscricao } from '@/types'
+import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
 import { ADMIN, PROJETO_STATUS_APPROVED } from '@/types'
-import type { InferInsertModel } from 'drizzle-orm'
-import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm'
+import type { InferInsertModel, SQL } from 'drizzle-orm'
+import { and, desc, eq, gte, inArray, isNull, like, lte, or, sql } from 'drizzle-orm'
 
 export type ProjetoInsert = InferInsertModel<typeof projetoTable>
 export type AtividadeProjetoInsert = InferInsertModel<typeof atividadeProjetoTable>
@@ -25,6 +25,17 @@ export type ProjetoDisciplinaInsert = InferInsertModel<typeof projetoDisciplinaT
 export type DisciplinaProfessorInsert = InferInsertModel<typeof disciplinaProfessorResponsavelTable>
 
 type Database = typeof db
+
+export interface ProjetoFilters {
+  ano?: number[]
+  semestre?: Semestre[]
+  status?: ProjetoStatus[]
+  disciplina?: string // LIKE search on disciplina codigo or nome
+  professorNome?: string // LIKE search on professor name
+  departamentoId?: number
+  limit?: number
+  offset?: number
+}
 
 export function createProjetoRepository(db: Database) {
   return {
@@ -121,6 +132,179 @@ export function createProjetoRepository(db: Database) {
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
         .where(and(...conditions))
         .orderBy(projetoTable.createdAt)
+    },
+
+    /**
+     * Find projects with server-side filtering and pagination
+     */
+    async findAllFiltered(filters: ProjetoFilters, departmentSigla?: string | null) {
+      const conditions: SQL[] = [isNull(projetoTable.deletedAt)]
+
+      // Admin type filtering by department sigla
+      if (departmentSigla) {
+        conditions.push(eq(departamentoTable.sigla, departmentSigla))
+      }
+
+      // Filter by ano (multiple values)
+      if (filters.ano && filters.ano.length > 0) {
+        conditions.push(inArray(projetoTable.ano, filters.ano))
+      }
+
+      // Filter by semestre (multiple values)
+      if (filters.semestre && filters.semestre.length > 0) {
+        conditions.push(inArray(projetoTable.semestre, filters.semestre))
+      }
+
+      // Filter by status (multiple values)
+      if (filters.status && filters.status.length > 0) {
+        conditions.push(inArray(projetoTable.status, filters.status))
+      }
+
+      // Filter by professor name (LIKE search)
+      if (filters.professorNome) {
+        conditions.push(like(professorTable.nomeCompleto, `%${filters.professorNome}%`))
+      }
+
+      // Filter by departamento ID
+      if (filters.departamentoId) {
+        conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
+      }
+
+      // Build base query
+      let query = db
+        .select({
+          id: projetoTable.id,
+          titulo: projetoTable.titulo,
+          departamentoId: projetoTable.departamentoId,
+          departamentoNome: departamentoTable.nome,
+          departamentoSigla: departamentoTable.sigla,
+          professorResponsavelId: projetoTable.professorResponsavelId,
+          professorResponsavelNome: professorTable.nomeCompleto,
+          status: projetoTable.status,
+          ano: projetoTable.ano,
+          semestre: projetoTable.semestre,
+          tipoProposicao: projetoTable.tipoProposicao,
+          bolsasSolicitadas: projetoTable.bolsasSolicitadas,
+          voluntariosSolicitados: projetoTable.voluntariosSolicitados,
+          bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
+          cargaHorariaSemana: projetoTable.cargaHorariaSemana,
+          numeroSemanas: projetoTable.numeroSemanas,
+          publicoAlvo: projetoTable.publicoAlvo,
+          estimativaPessoasBenificiadas: projetoTable.estimativaPessoasBenificiadas,
+          descricao: projetoTable.descricao,
+          assinaturaProfessor: projetoTable.assinaturaProfessor,
+          feedbackAdmin: projetoTable.feedbackAdmin,
+          editalInternoId: projetoTable.editalInternoId,
+          createdAt: projetoTable.createdAt,
+          updatedAt: projetoTable.updatedAt,
+          deletedAt: projetoTable.deletedAt,
+        })
+        .from(projetoTable)
+        .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .where(and(...conditions))
+        .orderBy(desc(projetoTable.createdAt))
+
+      // Apply pagination
+      if (filters.limit) {
+        query = query.limit(filters.limit) as typeof query
+      }
+      if (filters.offset) {
+        query = query.offset(filters.offset) as typeof query
+      }
+
+      const results = await query
+
+      // If disciplina filter is provided, we need to filter post-query
+      // because disciplinas are in a separate table
+      if (filters.disciplina) {
+        const projetoIds = results.map((p) => p.id)
+        if (projetoIds.length === 0) return []
+
+        // Get disciplinas for these projects that match the filter
+        const matchingDisciplinas = await db
+          .select({
+            projetoId: projetoDisciplinaTable.projetoId,
+          })
+          .from(projetoDisciplinaTable)
+          .innerJoin(disciplinaTable, eq(projetoDisciplinaTable.disciplinaId, disciplinaTable.id))
+          .where(
+            and(
+              inArray(projetoDisciplinaTable.projetoId, projetoIds),
+              or(
+                like(disciplinaTable.codigo, `%${filters.disciplina}%`),
+                like(disciplinaTable.nome, `%${filters.disciplina}%`)
+              )
+            )
+          )
+
+        const matchingProjetoIds = new Set(matchingDisciplinas.map((d) => d.projetoId))
+        return results.filter((p) => matchingProjetoIds.has(p.id))
+      }
+
+      return results
+    },
+
+    /**
+     * Count projects with server-side filtering (same WHERE conditions as findAllFiltered)
+     */
+    async countFiltered(filters: ProjetoFilters, departmentSigla?: string | null): Promise<number> {
+      const conditions: SQL[] = [isNull(projetoTable.deletedAt)]
+
+      if (departmentSigla) {
+        conditions.push(eq(departamentoTable.sigla, departmentSigla))
+      }
+
+      if (filters.ano && filters.ano.length > 0) {
+        conditions.push(inArray(projetoTable.ano, filters.ano))
+      }
+
+      if (filters.semestre && filters.semestre.length > 0) {
+        conditions.push(inArray(projetoTable.semestre, filters.semestre))
+      }
+
+      if (filters.status && filters.status.length > 0) {
+        conditions.push(inArray(projetoTable.status, filters.status))
+      }
+
+      if (filters.professorNome) {
+        conditions.push(like(professorTable.nomeCompleto, `%${filters.professorNome}%`))
+      }
+
+      if (filters.departamentoId) {
+        conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
+      }
+
+      // For disciplina filter, we need to count differently
+      if (filters.disciplina) {
+        // First get all matching projeto IDs
+        const matchingProjetos = await db
+          .selectDistinct({ id: projetoTable.id })
+          .from(projetoTable)
+          .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+          .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+          .innerJoin(projetoDisciplinaTable, eq(projetoTable.id, projetoDisciplinaTable.projetoId))
+          .innerJoin(disciplinaTable, eq(projetoDisciplinaTable.disciplinaId, disciplinaTable.id))
+          .where(
+            and(
+              ...conditions,
+              or(
+                like(disciplinaTable.codigo, `%${filters.disciplina}%`),
+                like(disciplinaTable.nome, `%${filters.disciplina}%`)
+              )
+            )
+          )
+        return matchingProjetos.length
+      }
+
+      const [result] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(projetoTable)
+        .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .where(and(...conditions))
+
+      return result?.count || 0
     },
 
     async findApprovedByPeriod(ano: number, semestre: Semestre) {

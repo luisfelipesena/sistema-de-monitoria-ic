@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  24 NOV 2025 16:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  10 DEC 2025 08:18
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1201,130 +1201,102 @@ Underfull \hbox (badness 5832) in paragraph at lines 511--512
 \T1/qtm/m/n/10 (+20) pa-ra-lelo por múl-ti-plos de-sen-vol-ve-do-res sem con-fli-tos
  []
 
-<images/monitoria/landing.png, id=314, 3181.8875pt x 3478.9975pt>
+<images/monitoria/landing.png, id=314, 3163.82pt x 3503.0875pt>
 File: images/monitoria/landing.png Graphic file (type png)
 <use images/monitoria/landing.png>
 Package pdftex.def Info: images/monitoria/landing.png  used on input line 519.
-(pdftex.def)             Requested size: 240.0pt x 262.39993pt.
+(pdftex.def)             Requested size: 240.0pt x 265.71358pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/login.png, id=315, 3175.865pt x 1662.21pt>
+<images/monitoria/login.png, id=315, 3163.82pt x 1864.9675pt>
 File: images/monitoria/login.png Graphic file (type png)
 <use images/monitoria/login.png>
 Package pdftex.def Info: images/monitoria/login.png  used on input line 526.
-(pdftex.def)             Requested size: 240.0pt x 125.5988pt.
+(pdftex.def)             Requested size: 240.0pt x 141.46011pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 
-<images/monitoria/admin-dashboard.png, id=318, 4611.2275pt x 2266.4675pt>
+<images/monitoria/admin-dashboard.png, id=318, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-dashboard.png Graphic file (type png)
 <use images/monitoria/admin-dashboard.png>
 Package pdftex.def Info: images/monitoria/admin-dashboard.png  used on input line 535.
-(pdftex.def)             Requested size: 240.0pt x 117.92961pt.
-<images/monitoria/professor-assinatura-documentos.png, id=319, 3472.975pt x 2635.8475pt>
+(pdftex.def)             Requested size: 240.0pt x 142.89906pt.
+<images/monitoria/professor-assinatura-documentos.png, id=319, 3513.125pt x 2091.815pt>
 File: images/monitoria/professor-assinatura-documentos.png Graphic file (type png)
 <use images/monitoria/professor-assinatura-documentos.png>
 Package pdftex.def Info: images/monitoria/professor-assinatura-documentos.png  used on input line 542.
-(pdftex.def)             Requested size: 240.0pt x 182.11499pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-<images/monitoria/student-inscricao-monitoria.png, id=322, 3458.9225pt x 2635.8475pt>
-File: images/monitoria/student-inscricao-monitoria.png Graphic file (type png)
-<use images/monitoria/student-inscricao-monitoria.png>
-Package pdftex.def Info: images/monitoria/student-inscricao-monitoria.png  used on input line 551.
-(pdftex.def)             Requested size: 240.0pt x 182.87917pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-<images/monitoria/student-resultados.png, id=323, 3458.9225pt x 2635.8475pt>
-File: images/monitoria/student-resultados.png Graphic file (type png)
-<use images/monitoria/student-resultados.png>
-Package pdftex.def Info: images/monitoria/student-resultados.png  used on input line 558.
-(pdftex.def)             Requested size: 240.0pt x 182.87917pt.
+(pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 
 [14 <./images/monitoria/landing.png (PNG copy)> <./images/monitoria/login.png (PNG copy)> <./images/monitoria/admin-dashboard.png (PNG copy)>]
-<images/monitoria/admin-manage-projects.png, id=338, 4611.2275pt x 2266.4675pt>
+<images/monitoria/student-inscricao-monitoria.png, id=332, 3513.125pt x 2091.815pt>
+File: images/monitoria/student-inscricao-monitoria.png Graphic file (type png)
+<use images/monitoria/student-inscricao-monitoria.png>
+Package pdftex.def Info: images/monitoria/student-inscricao-monitoria.png  used on input line 551.
+(pdftex.def)             Requested size: 240.0pt x 142.89906pt.
+<images/monitoria/student-resultados.png, id=333, 3513.125pt x 2091.815pt>
+File: images/monitoria/student-resultados.png Graphic file (type png)
+<use images/monitoria/student-resultados.png>
+Package pdftex.def Info: images/monitoria/student-resultados.png  used on input line 558.
+(pdftex.def)             Requested size: 240.0pt x 142.89906pt.
+<images/monitoria/admin-manage-projects.png, id=337, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-manage-projects.png Graphic file (type png)
 <use images/monitoria/admin-manage-projects.png>
 Package pdftex.def Info: images/monitoria/admin-manage-projects.png  used on input line 567.
-(pdftex.def)             Requested size: 240.0pt x 117.92961pt.
+(pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-edital-management.png, id=339, 4611.2275pt x 2266.4675pt>
+<images/monitoria/admin-edital-management.png, id=338, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-edital-management.png Graphic file (type png)
 <use images/monitoria/admin-edital-management.png>
 Package pdftex.def Info: images/monitoria/admin-edital-management.png  used on input line 574.
-(pdftex.def)             Requested size: 240.0pt x 117.92961pt.
+(pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-scholarship-allocation.png, id=340, 4611.2275pt x 2266.4675pt>
+<images/monitoria/admin-scholarship-allocation.png, id=339, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-scholarship-allocation.png Graphic file (type png)
 <use images/monitoria/admin-scholarship-allocation.png>
 Package pdftex.def Info: images/monitoria/admin-scholarship-allocation.png  used on input line 581.
-(pdftex.def)             Requested size: 240.0pt x 117.92961pt.
+(pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 
-<images/monitoria/admin-users.png, id=346, 2860.6875pt x 2915.89375pt>
+<images/monitoria/admin-users.png, id=344, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-users.png Graphic file (type png)
 <use images/monitoria/admin-users.png>
 Package pdftex.def Info: images/monitoria/admin-users.png  used on input line 590.
-(pdftex.def)             Requested size: 240.0pt x 244.62196pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-<images/monitoria/admin-files.png, id=347, 4611.2275pt x 2266.4675pt>
-File: images/monitoria/admin-files.png Graphic file (type png)
-<use images/monitoria/admin-files.png>
-Package pdftex.def Info: images/monitoria/admin-files.png  used on input line 597.
-(pdftex.def)             Requested size: 240.0pt x 117.92961pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-<images/monitoria/admin-import-projects.png, id=348, 2847.63875pt x 2559.5625pt>
+(pdftex.def)             Requested size: 240.0pt x 142.89906pt.
+<images/monitoria/admin-import-projects.png, id=345, 3513.125pt x 2866.71pt>
 File: images/monitoria/admin-import-projects.png Graphic file (type png)
 <use images/monitoria/admin-import-projects.png>
-Package pdftex.def Info: images/monitoria/admin-import-projects.png  used on input line 604.
-(pdftex.def)             Requested size: 240.0pt x 215.70479pt.
+Package pdftex.def Info: images/monitoria/admin-import-projects.png  used on input line 597.
+(pdftex.def)             Requested size: 240.0pt x 195.8348pt.
 
-LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-cursos.png, id=349, 3111.625pt x 2549.525pt>
-File: images/monitoria/admin-cursos.png Graphic file (type png)
-<use images/monitoria/admin-cursos.png>
-Package pdftex.def Info: images/monitoria/admin-cursos.png  used on input line 611.
-(pdftex.def)             Requested size: 240.0pt x 196.61359pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-<images/monitoria/admin-departamentos.png, id=350, 3111.625pt x 2549.525pt>
+[15 <./images/monitoria/professor-assinatura-documentos.png (PNG copy)> <./images/monitoria/student-inscricao-monitoria.png (PNG copy)> <./images/monitoria/student-resultados.png (PNG copy)> <./images/monitoria/admin-manage-projects.png (PNG copy)> <./images/monitoria/admin-edital-management.png (PNG copy)> <./images/monitoria/admin-scholarship-allocation.png (PNG copy)> <./images/monitoria/admin-users.png (PNG copy)>]
+<images/monitoria/admin-departamentos.png, id=357, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-departamentos.png Graphic file (type png)
 <use images/monitoria/admin-departamentos.png>
-Package pdftex.def Info: images/monitoria/admin-departamentos.png  used on input line 618.
-(pdftex.def)             Requested size: 240.0pt x 196.61359pt.
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-
-
-[15 <./images/monitoria/professor-assinatura-documentos.png> <./images/monitoria/student-inscricao-monitoria.png> <./images/monitoria/student-resultados.png> <./images/monitoria/admin-manage-projects.png (PNG copy)> <./images/monitoria/admin-edital-management.png (PNG copy)> <./images/monitoria/admin-scholarship-allocation.png (PNG copy)>]
-
+Package pdftex.def Info: images/monitoria/admin-departamentos.png  used on input line 604.
+(pdftex.def)             Requested size: 240.0pt x 142.89906pt.
+<images/monitoria/admin-planilha-prograd.png, id=358, 3513.125pt x 2091.815pt>
+File: images/monitoria/admin-planilha-prograd.png Graphic file (type png)
+<use images/monitoria/admin-planilha-prograd.png>
+Package pdftex.def Info: images/monitoria/admin-planilha-prograd.png  used on input line 611.
+(pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 
-[16 <./images/monitoria/admin-users.png (PNG copy)> <./images/monitoria/admin-files.png (PNG copy)> <./images/monitoria/admin-import-projects.png (PNG copy)> <./images/monitoria/admin-cursos.png (PNG copy)> <./images/monitoria/admin-departamentos.png (PNG copy)>]
 > Step: init table outer spec.
 > Step: parse table options.
 > Step: split table.
@@ -1335,11 +1307,14 @@ LaTeX Warning: `!h' float specifier changed to `!ht'.
 > Step: build the whole table.
 
 
-<images/TODO.jpeg, id=373, 277.035pt x 183.68625pt>
+[16 <./images/monitoria/admin-import-projects.png (PNG copy)> <./images/monitoria/admin-departamentos.png (PNG copy)> <./images/monitoria/admin-planilha-prograd.png (PNG copy)>]
+<images/TODO.jpeg, id=371, 277.035pt x 183.68625pt>
 File: images/TODO.jpeg Graphic file (type jpg)
 <use images/TODO.jpeg>
-Package pdftex.def Info: images/TODO.jpeg  used on input line 675.
+Package pdftex.def Info: images/TODO.jpeg  used on input line 668.
 (pdftex.def)             Requested size: 120.0pt x 79.56372pt.
+
+
 
 
 [17 <./images/TODO.jpeg>]
@@ -1365,18 +1340,18 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: F8A340B488D7E29ABE370F6DB22F5539;4592.
  ) 
 Here is how much of TeX's memory you used:
- 35352 strings out of 473190
- 672030 string characters out of 5715801
- 1111442 words of memory out of 5000000
- 57624 multiletter control sequences out of 15000+600000
+ 35343 strings out of 473190
+ 671798 string characters out of 5715801
+ 1115474 words of memory out of 5000000
+ 57616 multiletter control sequences out of 15000+600000
  828904 words of font info for 254 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  132i,16n,135p,2725b,1263s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Bold.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BoldItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Book.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BookItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmb.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmr.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmri.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb>
-Output written on main.pdf (19 pages, 6417062 bytes).
+Output written on main.pdf (19 pages, 5186306 bytes).
 PDF statistics:
- 461 PDF objects out of 1000 (max. 8388607)
- 389 compressed objects within 4 object streams
- 95 named destinations out of 1000 (max. 500000)
- 79669 words of extra memory for PDF output out of 89155 (max. 10000000)
+ 458 PDF objects out of 1000 (max. 8388607)
+ 387 compressed objects within 4 object streams
+ 94 named destinations out of 1000 (max. 500000)
+ 79664 words of extra memory for PDF output out of 89155 (max. 10000000)
 

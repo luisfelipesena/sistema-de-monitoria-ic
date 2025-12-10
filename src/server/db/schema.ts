@@ -178,9 +178,7 @@ export const departamentoTable = pgTable('departamento', {
 export const projetoTable = pgTable('projeto', {
   id: serial('id').primaryKey(),
   // dataAprovacao: date('data_aprovacao', { mode: 'date' }), // Approval date might be inferred from status change
-  departamentoId: integer('departamento_id')
-    .references(() => departamentoTable.id)
-    .notNull(),
+  departamentoId: integer('departamento_id').references(() => departamentoTable.id),
   ano: integer('ano').notNull(),
   semestre: semestreEnum('semestre').notNull(),
   tipoProposicao: tipoProposicaoEnum('tipo_proposicao').notNull(),

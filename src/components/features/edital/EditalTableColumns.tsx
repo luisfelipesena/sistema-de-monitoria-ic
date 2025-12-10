@@ -179,16 +179,14 @@ export function createEditalTableColumns({
               <Eye className="h-4 w-4" />
             </Button>
 
-            {!edital.publicado && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEdit(edital)}
-                title="Editar"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(edital)}
+              title="Editar"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
 
             {canRequestSignature && (
               <Button
@@ -223,16 +221,14 @@ export function createEditalTableColumns({
               </Button>
             )}
 
-            {!edital.publicado && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => onDelete(edital.id)}
-                title="Excluir"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onDelete(edital.id)}
+              title="Excluir"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         );
       },

@@ -10,13 +10,14 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from "lucide-react"
 
 // Custom filter function for multiselect (array of values)
 // Handles both string and number comparisons by converting to strings
@@ -31,6 +32,21 @@ export const multiselectFilterFn: FilterFn<any> = (row, columnId, filterValue) =
   return filterValue.some((v) => String(v) === cellValueStr)
 }
 
+export interface ServerPaginationConfig {
+  /** Total number of items across all pages */
+  totalCount: number
+  /** Current page index (0-based) */
+  pageIndex: number
+  /** Number of items per page */
+  pageSize: number
+  /** Callback when page changes */
+  onPageChange: (page: number) => void
+  /** Callback when page size changes */
+  onPageSizeChange?: (size: number) => void
+  /** Available page size options */
+  pageSizeOptions?: number[]
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
@@ -43,6 +59,8 @@ interface DataTableProps<TData, TValue> {
   columnFilters?: ColumnFiltersState
   /** Callback when column filters change (controlled mode) */
   onColumnFiltersChange?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>
+  /** Server-side pagination config. When provided, uses server pagination instead of client-side. */
+  serverPagination?: ServerPaginationConfig
 }
 
 export function TableComponent<TData, TValue>({
@@ -55,6 +73,7 @@ export function TableComponent<TData, TValue>({
   emptyMessage = "Nenhum resultado encontrado.",
   columnFilters: externalColumnFilters,
   onColumnFiltersChange,
+  serverPagination,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [internalColumnFilters, setInternalColumnFilters] = useState<ColumnFiltersState>([])
@@ -63,23 +82,87 @@ export function TableComponent<TData, TValue>({
   const columnFilters = externalColumnFilters ?? internalColumnFilters
   const setColumnFilters = onColumnFiltersChange ?? setInternalColumnFilters
 
+  const isServerPagination = !!serverPagination
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    // Only use client-side pagination/filtering if not server-side
+    ...(isServerPagination
+      ? {
+          manualPagination: true,
+          manualFiltering: true,
+          pageCount: Math.ceil(serverPagination.totalCount / serverPagination.pageSize),
+          state: {
+            sorting,
+            columnFilters,
+            pagination: {
+              pageIndex: serverPagination.pageIndex,
+              pageSize: serverPagination.pageSize,
+            },
+          },
+        }
+      : {
+          getPaginationRowModel: getPaginationRowModel(),
+          getFilteredRowModel: getFilteredRowModel(),
+          state: {
+            sorting,
+            columnFilters,
+          },
+        }),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
     filterFns: {
       multiselect: multiselectFilterFn,
     },
-    state: {
-      sorting,
-      columnFilters,
-    },
   })
+
+  // Server pagination helpers
+  const totalPages = serverPagination
+    ? Math.ceil(serverPagination.totalCount / serverPagination.pageSize)
+    : table.getPageCount()
+  const currentPage = serverPagination ? serverPagination.pageIndex : table.getState().pagination.pageIndex
+  const canPreviousPage = serverPagination ? serverPagination.pageIndex > 0 : table.getCanPreviousPage()
+  const canNextPage = serverPagination
+    ? serverPagination.pageIndex < totalPages - 1
+    : table.getCanNextPage()
+
+  const handlePreviousPage = () => {
+    if (serverPagination) {
+      serverPagination.onPageChange(serverPagination.pageIndex - 1)
+    } else {
+      table.previousPage()
+    }
+  }
+
+  const handleNextPage = () => {
+    if (serverPagination) {
+      serverPagination.onPageChange(serverPagination.pageIndex + 1)
+    } else {
+      table.nextPage()
+    }
+  }
+
+  const handleFirstPage = () => {
+    if (serverPagination) {
+      serverPagination.onPageChange(0)
+    } else {
+      table.setPageIndex(0)
+    }
+  }
+
+  const handleLastPage = () => {
+    if (serverPagination) {
+      serverPagination.onPageChange(totalPages - 1)
+    } else {
+      table.setPageIndex(totalPages - 1)
+    }
+  }
+
+  const totalItems = serverPagination ? serverPagination.totalCount : table.getFilteredRowModel().rows.length
+  const pageSizeOptions = serverPagination?.pageSizeOptions ?? [10, 20, 50, 100]
 
   return (
     <div className="w-full space-y-4">
@@ -98,12 +181,12 @@ export function TableComponent<TData, TValue>({
       )}
 
       <div className="rounded-md border overflow-hidden bg-card">
-        <div className="overflow-x-scroll">
+        <div className="overflow-x-auto scrollbar-visible">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="bg-muted/50 hover:bg-muted/50">
-                  {headerGroup.headers.map((header, index) => (
+                  {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
                       className="h-12 px-2 sm:px-4 text-left align-middle font-medium text-slate-500 text-xs sm:text-sm whitespace-nowrap"
@@ -156,33 +239,79 @@ export function TableComponent<TData, TValue>({
 
       {showPagination && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2 sm:py-4">
-          <div className="text-sm text-muted-foreground order-2 sm:order-1">
-            {table.getFilteredRowModel().rows.length} {table.getFilteredRowModel().rows.length === 1 ? "item" : "itens"}
+          <div className="flex items-center gap-4 order-2 sm:order-1">
+            <div className="text-sm text-muted-foreground">
+              {totalItems} {totalItems === 1 ? "item" : "itens"}
+            </div>
+            {serverPagination?.onPageSizeChange && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Mostrar</span>
+                <Select
+                  value={String(serverPagination.pageSize)}
+                  onValueChange={(value) => serverPagination.onPageSizeChange?.(Number(value))}
+                >
+                  <SelectTrigger className="h-8 w-[70px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pageSizeOptions.map((size) => (
+                      <SelectItem key={size} value={String(size)}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
           <div className="flex items-center space-x-2 order-1 sm:order-2">
+            {serverPagination && totalPages > 2 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleFirstPage}
+                disabled={!canPreviousPage}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              onClick={handlePreviousPage}
+              disabled={!canPreviousPage}
               className="text-xs sm:text-sm px-2 sm:px-4"
             >
+              <ChevronLeft className="h-4 w-4 mr-1" />
               Anterior
             </Button>
             <div className="flex items-center space-x-1 px-2">
               <span className="text-xs sm:text-sm text-muted-foreground">
-                {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
+                {currentPage + 1} de {totalPages || 1}
               </span>
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              onClick={handleNextPage}
+              disabled={!canNextPage}
               className="text-xs sm:text-sm px-2 sm:px-4"
             >
               Próximo
+              <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
+            {serverPagination && totalPages > 2 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLastPage}
+                disabled={!canNextPage}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       )}

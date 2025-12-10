@@ -418,3 +418,216 @@ await repo.findById(id)                      // CORRECT
 throw new BusinessError('Invalid')           // WRONG
 throw new BusinessError('Invalid', 'BAD_REQUEST')  // CORRECT
 ```
+
+---
+
+## Frontend Table Filters - Senior-Level Pattern
+
+### Architecture Overview
+
+```
+useUrlFilters (base)
+    ├── useUrlColumnFilters  → Client-side filtering + URL persistence
+    └── useServerPagination  → Server-side pagination + filtering + URL persistence
+```
+
+### Hook Selection Guide
+
+| Scenario | Hook | When to Use |
+|----------|------|-------------|
+| < 500 rows, complex client filtering | `useUrlColumnFilters` | Most admin pages |
+| > 500 rows, scalability needed | `useServerPagination` | Large datasets |
+| No URL persistence needed | `useColumnFilters` | Dialogs, modals |
+
+### File Structure
+
+```
+src/hooks/
+├── useUrlFilters.ts        # Base hook (shared logic) - DO NOT USE DIRECTLY
+├── useUrlColumnFilters.ts  # Client-side filtering with URL state
+├── useServerPagination.ts  # Server-side pagination with URL state
+└── useColumnFilters.ts     # Simple state (no URL persistence)
+```
+
+### Usage Pattern - Client-Side Filtering
+
+```typescript
+// Page component
+import { useUrlColumnFilters } from '@/hooks/useUrlColumnFilters'
+import { TableComponent, multiselectFilterFn } from '@/components/layout/TableComponent'
+
+export default function AdminPage() {
+  // Hook provides URL-synced filters with optional current semester defaults
+  const { columnFilters, setColumnFilters } = useUrlColumnFilters({
+    useCurrentSemester: true  // Auto-applies ano + semestre on first visit
+  })
+
+  const columns = useMemo(() => createColumns(), [])
+
+  return (
+    <TableComponent
+      columns={columns}
+      data={data}
+      columnFilters={columnFilters}
+      onColumnFiltersChange={setColumnFilters}
+    />
+  )
+}
+```
+
+### Usage Pattern - Server-Side Pagination
+
+```typescript
+import { useServerPagination } from '@/hooks/useServerPagination'
+
+export default function LargeDatasetPage() {
+  const {
+    page, pageSize, setPage, setPageSize,
+    columnFilters, setColumnFilters,
+    apiFilters  // Ready-to-use object for API calls
+  } = useServerPagination({ defaultPageSize: 20, useCurrentSemester: true })
+
+  const { data, isLoading } = api.entity.list.useQuery({
+    ...apiFilters,  // Contains limit, offset, and all filter values
+  })
+
+  return (
+    <TableComponent
+      columns={columns}
+      data={data?.items || []}
+      columnFilters={columnFilters}
+      onColumnFiltersChange={setColumnFilters}
+      isLoading={isLoading}
+      serverPagination={{
+        totalCount: data?.total ?? 0,
+        pageIndex: page,
+        pageSize: pageSize,
+        onPageChange: setPage,
+        onPageSizeChange: setPageSize,
+      }}
+    />
+  )
+}
+```
+
+### Column Definition Pattern
+
+```typescript
+import { createFilterableHeader } from '@/components/layout/DataTableFilterHeader'
+import { multiselectFilterFn } from '@/components/layout/TableComponent'
+import { SEMESTRE_1, SEMESTRE_2, PROJETO_STATUS_APPROVED } from '@/types'
+
+// ✅ CORRECT: Use typed enum constants for filter options
+const statusOptions = [
+  { value: PROJETO_STATUS_APPROVED, label: 'Aprovado' },
+  { value: PROJETO_STATUS_DRAFT, label: 'Rascunho' },
+]
+
+const semestreOptions = [
+  { value: SEMESTRE_1, label: '1º Semestre' },
+  { value: SEMESTRE_2, label: '2º Semestre' },
+]
+
+// ❌ WRONG: Hard-coded strings
+const badOptions = [
+  { value: 'APPROVED', label: 'Aprovado' },  // Never do this!
+]
+
+export const columns: ColumnDef<MyType>[] = [
+  {
+    id: 'status',
+    accessorKey: 'status',
+    header: createFilterableHeader<MyType>({
+      title: 'Status',
+      filterType: 'multiselect',  // or 'text', 'number'
+      filterOptions: statusOptions,
+    }),
+    filterFn: multiselectFilterFn,  // Required for array-based filters
+    cell: ({ row }) => <StatusBadge status={row.original.status} />,
+  },
+  {
+    id: 'nome',
+    accessorKey: 'nome',
+    header: createFilterableHeader<MyType>({
+      title: 'Nome',
+      filterType: 'text',
+      filterPlaceholder: 'Buscar nome...',
+      wide: true,  // Wider dropdown for long text
+      autocompleteOptions: nomeOptions,  // Optional autocomplete suggestions
+    }),
+    filterFn: customTextFilterFn,  // Custom filter function
+  },
+]
+```
+
+### Filter Types
+
+| Type | URL Format | Use Case |
+|------|------------|----------|
+| `multiselect` | `?status=A&status=B` | Enum values, multiple selection |
+| `text` | `?nome=value` | Free text search |
+| `number` | `?ano=2024&ano=2025` | Year selection, numeric multiselect |
+
+### Supported Filter Keys
+
+**Array Filters (multiselect):**
+- `ano`, `semestre`, `status`, `role`, `departamentoId`, `regime`, `tipoProfessor`
+
+**String Filters (text):**
+- `disciplina`, `username`, `email`, `cursoNome`, `professorNome`, `nomeCompleto`, `emailInstitucional`, `codigo`, `nome`, `titulo`
+
+### Adding New Filter Keys
+
+1. Add to `ARRAY_FILTER_KEYS` or `STRING_FILTER_KEYS` in `useUrlFilters.ts`
+2. Add to URL state definition in `useUrlFilters.ts`
+3. Add to `hasExistingFilters` check
+4. Add to `columnFilters` builder
+5. (Server-side only) Add to `apiFilters` builder in `useServerPagination.ts`
+
+### Anti-Patterns
+
+❌ **Using legacy hooks for new features**
+```typescript
+import { useTableFilters } from '@/hooks/useTableFilters'  // DELETED - don't use
+```
+
+❌ **Hard-coded filter values**
+```typescript
+const options = [{ value: 'SEMESTRE_1', label: '1º' }]  // WRONG
+const options = [{ value: SEMESTRE_1, label: '1º' }]    // CORRECT
+```
+
+❌ **Missing filterFn for multiselect columns**
+```typescript
+{
+  id: 'status',
+  accessorKey: 'status',
+  header: createFilterableHeader({ filterType: 'multiselect', ... }),
+  // filterFn: multiselectFilterFn,  // MISSING - filter won't work!
+}
+```
+
+❌ **Using useUrlFilters directly**
+```typescript
+import { useUrlFilters } from '@/hooks/useUrlFilters'  // WRONG - internal hook
+import { useUrlColumnFilters } from '@/hooks/useUrlColumnFilters'  // CORRECT
+```
+
+### DataTableColumnFilter UI
+
+The filter dropdown (`DataTableColumnFilter`) provides:
+- Header button with filter icon + active indicator (red dot)
+- Clear button inline with title (avoids autocomplete overlap)
+- Filter-specific input: text, multiselect, number with suggestions
+
+```typescript
+// Used internally by createFilterableHeader
+<DataTableColumnFilter
+  column={column}
+  title="Status"
+  type="multiselect"
+  options={statusOptions}
+  wide={false}  // true for wider dropdown
+  autocompleteOptions={[]}  // Text filter suggestions
+/>
+```

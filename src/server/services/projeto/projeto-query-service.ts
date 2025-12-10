@@ -2,7 +2,7 @@ import { isAdmin, isProfessor } from '@/server/lib/auth-helpers'
 import { ForbiddenError, NotFoundError } from '@/server/lib/errors'
 import { ACCEPTED_VOLUNTARIO, SEMESTRE_1, SEMESTRE_2, VAGA_STATUS_ATIVO, type AdminType, type UserRole } from '@/types'
 import { logger } from '@/utils/logger'
-import type { ProjetoRepository } from './projeto-repository'
+import type { ProjetoFilters, ProjetoRepository } from './projeto-repository'
 
 const log = logger.child({ context: 'ProjetoQueryService' })
 
@@ -192,6 +192,61 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
 
       log.info('Voluntários recuperados com sucesso')
       return voluntarios
+    },
+
+    /**
+     * Get projects with server-side filtering and pagination (admin only)
+     */
+    async getProjetosFiltered(filters: ProjetoFilters, adminType?: AdminType | null) {
+      const [projetos, total] = await Promise.all([
+        repo.findAllFiltered(filters, adminType),
+        repo.countFiltered(filters, adminType),
+      ])
+
+      // Get inscricoes count and disciplinas for each project
+      const [inscricoesCount, editais] = await Promise.all([repo.getInscricoesCount(), repo.findEditaisByPeriodos()])
+
+      const inscricoesMap = new Map<string, number>()
+      inscricoesCount.forEach((item) => {
+        const key = `${item.projetoId}_${item.tipoVagaPretendida}`
+        inscricoesMap.set(key, Number(item.count))
+      })
+
+      const editalMap = new Map<string, { numeroEdital: string; publicado: boolean }>()
+      editais.forEach((edital) => {
+        if (edital.periodoInscricao) {
+          const key = `${edital.periodoInscricao.ano}_${edital.periodoInscricao.semestre}`
+          editalMap.set(key, { numeroEdital: edital.numeroEdital, publicado: edital.publicado })
+        }
+      })
+
+      const projetosEnriquecidos = await Promise.all(
+        projetos.map(async (projeto) => {
+          const disciplinas = await repo.findDisciplinasByProjetoId(projeto.id)
+
+          const inscritosBolsista = inscricoesMap.get(`${projeto.id}_BOLSISTA`) || 0
+          const inscritosVoluntario = inscricoesMap.get(`${projeto.id}_VOLUNTARIO`) || 0
+          const inscritosAny = inscricoesMap.get(`${projeto.id}_ANY`) || 0
+          const totalInscritos = inscritosBolsista + inscritosVoluntario + inscritosAny
+
+          const editalKey = `${projeto.ano}_${projeto.semestre}`
+          const editalInfo = editalMap.get(editalKey)
+
+          return {
+            ...projeto,
+            bolsasDisponibilizadas: projeto.bolsasDisponibilizadas ?? undefined,
+            disciplinas,
+            totalInscritos,
+            inscritosBolsista,
+            inscritosVoluntario,
+            editalNumero: editalInfo?.numeroEdital ?? null,
+            editalPublicado: editalInfo?.publicado ?? false,
+          }
+        })
+      )
+
+      log.info({ total, count: projetos.length }, 'Projetos filtrados recuperados com sucesso')
+      return { projetos: projetosEnriquecidos, total }
     },
   }
 }

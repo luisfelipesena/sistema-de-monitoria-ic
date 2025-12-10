@@ -36,7 +36,7 @@ export type VagaData = {
     departamento: {
       nome: string
       sigla: string | null
-    }
+    } | null
     professorResponsavel: {
       nomeCompleto: string
       user: {
@@ -82,8 +82,8 @@ export function createPdfGenerator() {
               nome: disciplinaPrincipal.nome,
               codigo: disciplinaPrincipal.codigo,
               departamento: {
-                nome: vagaData.projeto.departamento.nome,
-                sigla: vagaData.projeto.departamento.sigla || "IC",
+                nome: vagaData.projeto.departamento?.nome || "N/A",
+                sigla: vagaData.projeto.departamento?.sigla || "IC",
               },
             },
             professor: {

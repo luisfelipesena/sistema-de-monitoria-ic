@@ -67,6 +67,20 @@ export function createOnboardingService(db: Database) {
       let hasProfile = false
       let profileData: StudentProfile | ProfessorProfile | null = null
       let hasSignature = false
+      let isInactive = false
+      let existingProfileData: {
+        nomeCompleto?: string
+        matriculaSiape?: string
+        cpf?: string
+        telefone?: string
+        telefoneInstitucional?: string
+        regime?: Regime
+        tipoProfessor?: TipoProfessor
+        departamentoId?: number
+        genero?: Genero
+        especificacaoGenero?: string
+        nomeSocial?: string
+      } | null = null
 
       if (userRole === STUDENT) {
         const alunoProfile = await repo.findStudentProfile(userId)
@@ -87,6 +101,24 @@ export function createOnboardingService(db: Database) {
           : null
         hasProfile = professorProfile != null
         hasSignature = !!userSignature
+        isInactive = professorProfile?.accountStatus === 'INACTIVE'
+
+        // If professor exists, provide data for pre-filling the form
+        if (professorProfile) {
+          existingProfileData = {
+            nomeCompleto: professorProfile.nomeCompleto,
+            matriculaSiape: professorProfile.matriculaSiape ?? undefined,
+            cpf: professorProfile.cpf ?? undefined,
+            telefone: professorProfile.telefone ?? undefined,
+            telefoneInstitucional: professorProfile.telefoneInstitucional ?? undefined,
+            regime: (professorProfile.regime as Regime) ?? undefined,
+            tipoProfessor: (professorProfile.tipoProfessor as TipoProfessor) ?? undefined,
+            departamentoId: professorProfile.departamentoId ?? undefined,
+            genero: (professorProfile.genero as Genero) ?? undefined,
+            especificacaoGenero: professorProfile.especificacaoGenero ?? undefined,
+            nomeSocial: professorProfile.nomeSocial ?? undefined,
+          }
+        }
       }
 
       const requiredDocs = userRole === STUDENT ? [...REQUIRED_DOCUMENTS.student] : [...REQUIRED_DOCUMENTS.professor]
@@ -116,7 +148,8 @@ export function createOnboardingService(db: Database) {
 
       let pending = !hasProfile || missingDocs.length > 0
       if (userRole === PROFESSOR) {
-        pending = pending || !hasSignature
+        // Professor INACTIVE must go through onboarding again
+        pending = pending || !hasSignature || isInactive
       }
 
       const result = {
@@ -136,6 +169,8 @@ export function createOnboardingService(db: Database) {
         return {
           ...result,
           signature: { configured: hasSignature },
+          isInactive,
+          existingProfileData: existingProfileData ?? undefined,
         }
       }
 
@@ -189,8 +224,27 @@ export function createOnboardingService(db: Database) {
 
       const existingProfile = await repo.findProfessorProfile(userId)
 
+      // If profile exists (e.g., created via invitation or reactivating), update it instead of creating
       if (existingProfile) {
-        throw new ConflictError('Professor profile already exists')
+        const updatedProfile = await repo.updateProfessorProfile(userId, {
+          nomeCompleto: input.nomeCompleto,
+          matriculaSiape: input.matriculaSiape,
+          cpf: input.cpf,
+          telefone: input.telefone,
+          telefoneInstitucional: input.telefoneInstitucional,
+          regime: input.regime,
+          tipoProfessor: input.tipoProfessor || existingProfile.tipoProfessor || TIPO_PROFESSOR_EFETIVO,
+          departamentoId: input.departamentoId,
+          genero: input.genero,
+          especificacaoGenero: input.especificacaoGenero,
+          nomeSocial: input.nomeSocial,
+          emailInstitucional: userEmail,
+          // Reactivate professor when completing onboarding
+          accountStatus: 'ACTIVE',
+        })
+
+        log.info({ userId, profileId: updatedProfile.id }, 'Professor profile updated during onboarding (reactivated)')
+        return { success: true, profileId: updatedProfile.id }
       }
 
       const newProfile = await repo.createProfessorProfile({

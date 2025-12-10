@@ -70,6 +70,10 @@ export default function AtasSelecaoPage() {
 
     return {
       ...dadosAta,
+      projeto: {
+        ...dadosAta.projeto,
+        departamento: dadosAta.projeto.departamento || { nome: 'N/A', sigla: null },
+      },
       candidatos: candidatos,
       ataInfo: {
         dataSelecao: new Date().toLocaleDateString("pt-BR"),
@@ -114,7 +118,7 @@ export default function AtasSelecaoPage() {
         titulo: dadosAta.projeto.titulo,
         ano: dadosAta.projeto.ano,
         semestre: dadosAta.projeto.semestre,
-        departamento: dadosAta.projeto.departamento,
+        departamento: dadosAta.projeto.departamento || { nome: 'N/A', sigla: null },
         professorResponsavel: dadosAta.projeto.professorResponsavel,
         disciplinas: dadosAta.projeto.disciplinas,
       },

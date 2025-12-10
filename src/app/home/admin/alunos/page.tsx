@@ -340,7 +340,6 @@ export default function AlunosPage() {
         header: "Ações",
         cell: ({ row }) => {
           const aluno = row.original
-          const isAtivo = aluno.status === STUDENT_STATUS_ATIVO
           return (
             <div className="flex items-center gap-2">
               <Button
@@ -350,15 +349,6 @@ export default function AlunosPage() {
                 onClick={() => handleViewAluno(aluno)}
               >
                 <Eye className="h-4 w-4" />
-              </Button>
-
-              <Button
-                variant={isAtivo ? "destructive" : "default"}
-                size="sm"
-                title={isAtivo ? "Desativar aluno" : "Ativar aluno"}
-                onClick={() => handleToggleStatus(aluno.id, aluno.status)}
-              >
-                {isAtivo ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
               </Button>
 
               <Button
@@ -565,15 +555,6 @@ export default function AlunosPage() {
                   >
                     <Pencil className="h-4 w-4 mr-2" />
                     Editar
-                  </Button>
-                  <Button
-                    variant={selectedAluno.status === STUDENT_STATUS_ATIVO ? "destructive" : "default"}
-                    onClick={() => {
-                      handleToggleStatus(selectedAluno.id, selectedAluno.status)
-                      setIsDetailDialogOpen(false)
-                    }}
-                  >
-                    {selectedAluno.status === STUDENT_STATUS_ATIVO ? "Desativar" : "Ativar"} Aluno
                   </Button>
                 </>
               )}

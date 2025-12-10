@@ -43,6 +43,7 @@ import {
   TIPO_PROFESSOR_LABELS,
   TIPO_PROFESSOR_SUBSTITUTO,
   type Regime,
+  type TipoProfessor,
   type UserListItem,
 } from "@/types"
 import { api } from "@/utils/api"
@@ -83,11 +84,14 @@ export default function ProfessoresPage() {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [professorToDelete, setProfessorToDelete] = useState<UserListItem | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [professorToToggle, setProfessorToToggle] = useState<{ professor: UserListItem; isAtivo: boolean } | null>(null)
+  const [isToggleDialogOpen, setIsToggleDialogOpen] = useState(false)
   const [inviteForm, setInviteForm] = useState({
     email: "",
     nomeCompleto: "",
     departamentoId: "",
     regime: "" as Regime | "",
+    tipoProfessor: TIPO_PROFESSOR_EFETIVO as TipoProfessor,
     mensagem: "",
   })
 
@@ -170,6 +174,7 @@ export default function ProfessoresPage() {
         nomeCompleto: inviteForm.nomeCompleto,
         departamentoId: parseInt(inviteForm.departamentoId),
         regime: inviteForm.regime as Regime,
+        tipoProfessor: inviteForm.tipoProfessor,
       })
 
       toast({
@@ -183,6 +188,7 @@ export default function ProfessoresPage() {
         nomeCompleto: "",
         departamentoId: "",
         regime: "",
+        tipoProfessor: TIPO_PROFESSOR_EFETIVO,
         mensagem: "",
       })
     } catch (error: any) {
@@ -199,19 +205,20 @@ export default function ProfessoresPage() {
     setIsDetailDialogOpen(true)
   }
 
-  const handleToggleStatus = async (
-    professorId: number,
-    currentStatus: typeof PROFESSOR_STATUS_ATIVO | typeof PROFESSOR_STATUS_INATIVO
-  ) => {
+  const handleToggleStatus = async () => {
+    if (!professorToToggle) return
+
     try {
-      const newStatus = currentStatus === PROFESSOR_STATUS_ATIVO ? PROFESSOR_STATUS_INATIVO : PROFESSOR_STATUS_ATIVO
+      const newStatus = professorToToggle.isAtivo ? PROFESSOR_STATUS_INATIVO : PROFESSOR_STATUS_ATIVO
 
       await updateProfessorStatusMutation.mutateAsync({
-        id: professorId,
+        id: professorToToggle.professor.id,
         status: newStatus,
       })
 
       await refetch()
+      setIsToggleDialogOpen(false)
+      setProfessorToToggle(null)
 
       toast({
         title: "Status atualizado",
@@ -350,10 +357,15 @@ export default function ProfessoresPage() {
         cell: ({ row }) => <div className="text-center">{row.original.professorProfile?.projetos || 0}</div>,
       },
       {
-        accessorKey: "professorProfile.status",
+        accessorKey: "professorProfile.accountStatus",
         header: "Status",
-        cell: ({ row }) =>
-          renderStatusBadge(row.original.professorProfile?.projetos ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO),
+        cell: ({ row }) => {
+          const status = row.original.professorProfile?.accountStatus
+          if (status === "ACTIVE") return renderStatusBadge(PROFESSOR_STATUS_ATIVO)
+          if (status === "INACTIVE") return renderStatusBadge(PROFESSOR_STATUS_INATIVO)
+          if (status === "PENDING") return renderStatusBadge(PROFESSOR_STATUS_PENDING)
+          return renderStatusBadge(PROFESSOR_STATUS_ATIVO) // Default to ATIVO for null/undefined
+        },
       },
       {
         accessorKey: "createdAt",
@@ -369,7 +381,8 @@ export default function ProfessoresPage() {
         header: "Ações",
         cell: ({ row }) => {
           const professor = row.original
-          const isAtivo = !!professor.professorProfile?.projetos
+          const accountStatus = professor.professorProfile?.accountStatus
+          const isAtivo = accountStatus === "ACTIVE" || accountStatus === null || accountStatus === undefined
           return (
             <div className="flex items-center gap-2">
               <Button
@@ -382,10 +395,13 @@ export default function ProfessoresPage() {
               </Button>
 
               <Button
-                variant={isAtivo ? "destructive" : "default"}
+                variant={isAtivo ? "secondary" : "default"}
                 size="sm"
-                title={isAtivo ? "Desativar professor" : "Ativar professor"}
-                onClick={() => handleToggleStatus(professor.id, isAtivo ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO)}
+                title={isAtivo ? "Desativar professor (temporário)" : "Reativar professor"}
+                onClick={() => {
+                  setProfessorToToggle({ professor, isAtivo })
+                  setIsToggleDialogOpen(true)
+                }}
               >
                 {isAtivo ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
               </Button>
@@ -393,7 +409,7 @@ export default function ProfessoresPage() {
               <Button
                 variant="destructive"
                 size="sm"
-                title="Excluir professor"
+                title="Excluir professor (permanente)"
                 onClick={() => {
                   setProfessorToDelete(professor)
                   setIsDeleteDialogOpen(true)
@@ -433,7 +449,10 @@ export default function ProfessoresPage() {
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Ativos</p>
                   <div className="text-2xl font-bold text-green-600">
-                    {professores.filter((p) => p.professorProfile?.projetos).length}
+                    {professores.filter((p) => {
+                      const status = p.professorProfile?.accountStatus
+                      return status === "ACTIVE" || status === null || status === undefined
+                    }).length}
                   </div>
                 </div>
               </div>
@@ -446,7 +465,9 @@ export default function ProfessoresPage() {
                 <Mail className="h-4 w-4 text-yellow-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
-                  <div className="text-2xl font-bold text-yellow-600">{0}</div>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {professores.filter((p) => p.professorProfile?.accountStatus === "PENDING").length}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -459,7 +480,7 @@ export default function ProfessoresPage() {
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Inativos</p>
                   <div className="text-2xl font-bold text-red-600">
-                    {professores.filter((p) => !p.professorProfile?.projetos).length}
+                    {professores.filter((p) => p.professorProfile?.accountStatus === "INACTIVE").length}
                   </div>
                 </div>
               </div>
@@ -552,6 +573,22 @@ export default function ProfessoresPage() {
                 </div>
 
                 <div>
+                  <Label htmlFor="tipoProfessor">Tipo de Professor</Label>
+                  <Select
+                    value={inviteForm.tipoProfessor}
+                    onValueChange={(value: TipoProfessor) => setInviteForm({ ...inviteForm, tipoProfessor: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={TIPO_PROFESSOR_EFETIVO}>{TIPO_PROFESSOR_LABELS[TIPO_PROFESSOR_EFETIVO]}</SelectItem>
+                      <SelectItem value={TIPO_PROFESSOR_SUBSTITUTO}>{TIPO_PROFESSOR_LABELS[TIPO_PROFESSOR_SUBSTITUTO]}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <Label htmlFor="mensagem">Mensagem Personalizada (Opcional)</Label>
                   <Textarea
                     id="mensagem"
@@ -632,29 +669,44 @@ export default function ProfessoresPage() {
 
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Regime de Trabalho</Label>
-                    <p className="text-sm">{selectedProfessor.professorProfile.regime || "-"}</p>
+                    <p className="text-sm">{selectedProfessor.professorProfile.regime ? REGIME_LABELS[selectedProfessor.professorProfile.regime as Regime] : "-"}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                    <div>
-                      {renderStatusBadge(
-                        selectedProfessor.professorProfile?.projetos ? PROFESSOR_STATUS_ATIVO : PROFESSOR_STATUS_INATIVO
-                      )}
-                    </div>
+                    <Label className="text-sm font-medium text-muted-foreground">Tipo de Professor</Label>
+                    <p className="text-sm">
+                      {selectedProfessor.professorProfile.tipoProfessor
+                        ? TIPO_PROFESSOR_LABELS[selectedProfessor.professorProfile.tipoProfessor]
+                        : "-"}
+                    </p>
                   </div>
 
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                    <div>
+                      {(() => {
+                        const status = selectedProfessor.professorProfile?.accountStatus
+                        if (status === "ACTIVE" || status === null || status === undefined) return renderStatusBadge(PROFESSOR_STATUS_ATIVO)
+                        if (status === "INACTIVE") return renderStatusBadge(PROFESSOR_STATUS_INATIVO)
+                        if (status === "PENDING") return renderStatusBadge(PROFESSOR_STATUS_PENDING)
+                        return renderStatusBadge(PROFESSOR_STATUS_ATIVO)
+                      })()}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Projetos Ativos</Label>
                     <p className="text-sm">{selectedProfessor.professorProfile.projetos || 0}</p>
                   </div>
-                </div>
 
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Cadastrado em</Label>
-                  <p className="text-sm">{format(new Date(selectedProfessor.createdAt!), "dd/MM/yyyy 'às' HH:mm")}</p>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Cadastrado em</Label>
+                    <p className="text-sm">{format(new Date(selectedProfessor.createdAt!), "dd/MM/yyyy 'às' HH:mm")}</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -679,15 +731,92 @@ export default function ProfessoresPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Toggle Status Confirmation Dialog */}
+        <AlertDialog open={isToggleDialogOpen} onOpenChange={setIsToggleDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {professorToToggle?.isAtivo ? "Desativar Professor" : "Reativar Professor"}
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  {professorToToggle?.isAtivo ? (
+                    <>
+                      <p>
+                        Deseja desativar o professor{" "}
+                        <span className="font-semibold">{professorToToggle?.professor.professorProfile?.nomeCompleto}</span>?
+                      </p>
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-800 text-sm">
+                        <p className="font-medium mb-1">O que acontece ao desativar:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>O professor não poderá acessar o sistema</li>
+                          <li>Seus projetos e dados serão preservados</li>
+                          <li>Ao fazer login, será direcionado para confirmar seus dados</li>
+                          <li>Esta ação pode ser revertida a qualquer momento</li>
+                        </ul>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        Deseja reativar o professor{" "}
+                        <span className="font-semibold">{professorToToggle?.professor.professorProfile?.nomeCompleto}</span>?
+                      </p>
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-green-800 text-sm">
+                        <p className="font-medium mb-1">O que acontece ao reativar:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>O professor poderá acessar o sistema normalmente</li>
+                          <li>Todos os dados e projetos serão restaurados</li>
+                        </ul>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setProfessorToToggle(null)}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleToggleStatus}
+                className={professorToToggle?.isAtivo
+                  ? "bg-amber-600 hover:bg-amber-700"
+                  : "bg-green-600 hover:bg-green-700"}
+                disabled={updateProfessorStatusMutation.isPending}
+              >
+                {updateProfessorStatusMutation.isPending
+                  ? "Processando..."
+                  : professorToToggle?.isAtivo
+                    ? "Desativar"
+                    : "Reativar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja excluir o professor{" "}
-                <span className="font-semibold">{professorToDelete?.professorProfile?.nomeCompleto}</span>?
-                Esta ação não pode ser desfeita.
+              <AlertDialogTitle>Excluir Professor Permanentemente</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    Deseja excluir permanentemente o professor{" "}
+                    <span className="font-semibold">{professorToDelete?.professorProfile?.nomeCompleto}</span>?
+                  </p>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-800 text-sm">
+                    <p className="font-medium mb-1">⚠️ Atenção - Esta ação é irreversível:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Todos os projetos do professor serão arquivados</li>
+                      <li>O registro do professor será removido do sistema</li>
+                      <li>A conta de usuário será excluída</li>
+                      <li><strong>Esta ação não pode ser desfeita</strong></li>
+                    </ul>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    💡 Dica: Se você quer apenas bloquear temporariamente o acesso, considere <strong>desativar</strong> o professor ao invés de excluir.
+                  </p>
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -697,7 +826,7 @@ export default function ProfessoresPage() {
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 disabled={deleteUserMutation.isPending}
               >
-                {deleteUserMutation.isPending ? "Excluindo..." : "Excluir"}
+                {deleteUserMutation.isPending ? "Excluindo..." : "Excluir Permanentemente"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { useDialogState } from '@/hooks/useDialogState'
-import { useUrlColumnFilters } from '@/hooks/useUrlColumnFilters'
+import { useServerPagination } from '@/hooks/useServerPagination'
 import { api } from '@/utils/api'
 import { useQueryClient } from '@tanstack/react-query'
 import type { ManageProjectItem } from '@/types'
@@ -11,6 +11,8 @@ import {
   PROJETO_STATUS_SUBMITTED,
   PROJETO_STATUS_APPROVED,
   PROJETO_STATUS_REJECTED,
+  type ProjetoStatus,
+  type Semestre,
 } from '@/types'
 
 export function useProjectManagement() {
@@ -22,9 +24,10 @@ export function useProjectManagement() {
   const [rejectFeedback, setRejectFeedback] = useState('')
   const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
 
-  // Column filters with URL state persistence and current semester as default
-  const { columnFilters, setColumnFilters } = useUrlColumnFilters({
+  // Server-side pagination with URL state persistence
+  const { page, pageSize, setPage, setPageSize, columnFilters, setColumnFilters, apiFilters } = useServerPagination({
     useCurrentSemester: true,
+    defaultPageSize: 20,
   })
 
   const previewDialog = useDialogState<ManageProjectItem>()
@@ -32,7 +35,19 @@ export function useProjectManagement() {
   const deleteDialog = useDialogState<ManageProjectItem>()
   const filesDialog = useDialogState<ManageProjectItem>()
 
-  const { data: projetos, isLoading: loadingProjetos } = api.projeto.getProjetos.useQuery()
+  // Use filtered endpoint with server-side pagination
+  const { data, isLoading: loadingProjetos } = api.projeto.getProjetosFiltered.useQuery({
+    ano: apiFilters.ano,
+    semestre: apiFilters.semestre as Semestre[] | undefined,
+    status: apiFilters.status as ProjetoStatus[] | undefined,
+    disciplina: apiFilters.disciplina,
+    professorNome: apiFilters.professorNome,
+    limit: apiFilters.limit,
+    offset: apiFilters.offset,
+  })
+
+  const projetos = data?.projetos ?? []
+  const totalCount = data?.total ?? 0
 
   const approveProjectMutation = api.projeto.approveProjeto.useMutation({
     onSuccess: () => {
@@ -97,21 +112,14 @@ export function useProjectManagement() {
     { enabled: filesDialog.isOpen && !!filesDialog.data?.id }
   )
 
-  // Sort projetos by createdAt descending
+  // Sort projetos by createdAt descending (already sorted by backend, but keeping for safety)
   const sortedProjetos = useMemo(() => {
-    if (!projetos) return []
     return [...projetos].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [projetos])
 
+  // Status counts from current page data (for stats cards)
+  // Note: These are counts from current filtered results, not total counts
   const statusCounts = useMemo(() => {
-    if (!sortedProjetos)
-      return {
-        draft: 0,
-        submitted: 0,
-        approved: 0,
-        rejected: 0,
-      }
-
     return sortedProjetos.reduce(
       (acc, projeto) => {
         switch (projeto.status) {
@@ -237,8 +245,14 @@ export function useProjectManagement() {
     projetos: sortedProjetos,
     loadingProjetos,
     statusCounts,
+    totalCount,
     columnFilters,
     setColumnFilters,
+    // Server pagination
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
     groupedView,
     setGroupedView,
     rejectFeedback,

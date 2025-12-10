@@ -124,6 +124,21 @@ export function createDepartamentoRepository(db: Database) {
         .where(and(eq(projetoTable.departamentoId, departamentoId), isNull(projetoTable.deletedAt)))
       return result?.count || 0
     },
+
+    async softDeleteProjetosByDepartamento(departamentoId: number) {
+      // Soft delete and nullify departamentoId to remove FK constraint
+      await db
+        .update(projetoTable)
+        .set({ deletedAt: new Date(), departamentoId: null })
+        .where(eq(projetoTable.departamentoId, departamentoId))
+    },
+
+    async nullifyProfessorsDepartamento(departamentoId: number) {
+      await db
+        .update(professorTable)
+        .set({ departamentoId: null, updatedAt: new Date() })
+        .where(eq(professorTable.departamentoId, departamentoId))
+    },
   }
 }
 

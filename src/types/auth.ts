@@ -91,6 +91,7 @@ export interface UserListItem {
     comprovanteVinculoFileId?: string | null
     assinaturaDefault?: string | null
     dataAssinaturaDefault?: Date | null
+    accountStatus?: 'PENDING' | 'ACTIVE' | 'INACTIVE' | null
     projetos?: number
     projetosAtivos?: number
   } | null
@@ -146,6 +147,7 @@ export const userListItemSchema = z.object({
       comprovanteVinculoFileId: z.string().nullable().optional(),
       assinaturaDefault: z.string().nullable().optional(),
       dataAssinaturaDefault: z.date().nullable().optional(),
+      accountStatus: z.enum(['PENDING', 'ACTIVE', 'INACTIVE']).nullable().optional(),
       projetos: z.number().optional(),
       projetosAtivos: z.number().optional(),
     })

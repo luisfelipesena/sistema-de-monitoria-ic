@@ -8,6 +8,7 @@ import {
   projectDetailSchema,
   projectFormSchema,
   projectListItemSchema,
+  projetoStatusSchema,
   semestreSchema,
   voluntarioStatusSchema,
 } from '@/types'
@@ -57,6 +58,58 @@ export const projetoRouter = createTRPCRouter({
         return await service.getProjetos(ctx.user.id, ctx.user.role, ctx.user.adminType)
       } catch (error) {
         return handleServiceError(error, 'Erro ao recuperar projetos')
+      }
+    }),
+
+  getProjetosFiltered: adminProtectedProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/projetos/filtered',
+        tags: ['projetos'],
+        summary: 'Get projetos with filters',
+        description: 'Retrieve projetos with server-side filtering and pagination (admin only)',
+      },
+    })
+    .input(
+      z.object({
+        ano: z.array(z.number()).optional(),
+        semestre: z.array(semestreSchema).optional(),
+        status: z.array(projetoStatusSchema).optional(),
+        disciplina: z.string().optional(),
+        professorNome: z.string().optional(),
+        limit: z.number().min(1).max(100).default(20),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .output(
+      z.object({
+        projetos: z.array(
+          projectListItemSchema.extend({
+            editalNumero: z.string().nullable(),
+            editalPublicado: z.boolean(),
+          })
+        ),
+        total: z.number(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      try {
+        const service = createProjetoService(ctx.db)
+        return await service.getProjetosFiltered(
+          {
+            ano: input.ano,
+            semestre: input.semestre,
+            status: input.status,
+            disciplina: input.disciplina,
+            professorNome: input.professorNome,
+            limit: input.limit,
+            offset: input.offset,
+          },
+          ctx.user.adminType
+        )
+      } catch (error) {
+        return handleServiceError(error, 'Erro ao recuperar projetos filtrados')
       }
     }),
 

@@ -26,7 +26,7 @@
 
 ### Departamentos
 - DCC (id: 12) - Departamento de Ciência da Computação
-- MAT (id: 13), EST (id: 14), FIS (id: 15), COMP (id: 16)
+- MAT (id: 13), FIS (id: 15), COMP (id: 16)
 
 ### Disciplinas DCC
 - MATC99 - Introdução à Programação
@@ -64,9 +64,14 @@
 - [ ] Clicar "Importar"
 - [ ] Aguardar processamento
 - [ ] Verificar resultado:
-  - Projetos criados: 5 (MATC02, MATC99, MATC04, MATC05, MATC06)
-  - Professores notificados por email
-  - Status dos projetos: `PENDING_PROFESSOR_SIGNATURE`
+  - Projetos criados: 1 (MATC02)
+  - Professor Demo notificado por email
+  - Status do projeto: `PENDING_PROFESSOR_SIGNATURE`
+
+**Comportamento do sistema:**
+- Identifica automaticamente projetos individuais (1 professor) vs coletivos (múltiplos)
+- Cria projetos com base em templates de semestres anteriores (se existirem)
+- Envia emails automáticos aos professores
 
 **Validação no banco:**
 ```sql
@@ -75,11 +80,8 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 ```
 
 **Lógica de busca de professores:**
-- Sistema busca por `nome_completo` usando `ILIKE %nome%`
+- Sistema busca por `nome_completo` usando fuzzy matching
 - "Professor Demo" → encontra professor id=24
-- "Carlos Silva" → encontra professor id=20
-- "Ana Pereira" → encontra professor id=21
-- "João Santos" → encontra professor id=22
 
 ---
 
@@ -90,13 +92,23 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 
 - [ ] Login como `demo.professor@ufba.br`
 - [ ] Visualizar projetos com status "Aguardando Assinatura"
-- [ ] Ver projetos importados: MATC02, MATC99
+- [ ] Ver projeto importado: MATC02
 
 ---
 
-### 1.3 Professor - Editar Projeto
+### 1.3 Professor - Criar/Editar Template (se necessário)
 
-- [ ] Selecionar projeto (ex: MATC02 - Estruturas de Dados)
+> **Rota**: `/home/professor/dashboard`
+
+Para disciplinas sem template:
+- [ ] Criar template padrão (título, descrição, atividades, carga horária)
+- [ ] Template será usado em importações futuras
+
+---
+
+### 1.4 Professor - Editar e Assinar Projeto
+
+- [ ] Selecionar projeto MATC02
 - [ ] Clicar "Editar"
 - [ ] Ajustar campos:
   - Título
@@ -105,12 +117,6 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
   - Voluntários solicitados (ex: 1)
   - Atividades do monitor
 - [ ] Salvar alterações
-
----
-
-### 1.4 Professor - Assinar e Submeter Projeto
-
-- [ ] Localizar projeto editado
 - [ ] Clicar "Assinar e Submeter"
 - [ ] Desenhar assinatura no canvas digital
 - [ ] Confirmar assinatura
@@ -123,7 +129,7 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 
 ---
 
-## FASE 2: Aprovação e Envio para PROGRAD
+## FASE 2: Aprovação e Envio para Instituto
 
 ### 2.1 Admin - Listar Projetos Submetidos
 
@@ -136,12 +142,11 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 
 ---
 
-### 2.2 Admin - Visualizar e Aprovar Projeto
+### 2.2 Admin - Aprovar/Rejeitar Projeto
 
 - [ ] Clicar no projeto para detalhes
 - [ ] Visualizar PDF com assinatura do professor
-- [ ] Clicar "Aprovar"
-- [ ] Adicionar feedback (opcional)
+- [ ] Clicar "Aprovar" (ou "Rejeitar" com feedback)
 - [ ] Status muda para `APPROVED`
 
 **Resultado esperado:** Projeto visível em "Vagas Disponíveis" para alunos.
@@ -150,18 +155,15 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 
 ### 2.3 Admin - Gerar Planilha para Instituto
 
-> **Rota**: `/home/admin/relatorios`
-> **Sidebar**: Sistema → Relatórios PROGRAD
+> **Rota**: `/home/admin/planilha-prograd`
+> **Sidebar**: Sistema → Planilha PROGRAD
 
 - [ ] Selecionar período 2025.1
 - [ ] Gerar planilha Excel com projetos aprovados
 - [ ] Planilha contém links públicos para PDFs (tokens de acesso)
+- [ ] Enviar planilha por email ao INSTITUTO (IC)
 
-**Funcionalidade de Links Públicos (GAP-001):**
-- Sistema gera tokens únicos para acesso aos PDFs
-- Links funcionam sem autenticação (para PROGRAD/Instituto)
-- Tokens expiram após 30 dias
-- Admin pode gerar links em lote via `/home/admin/relatorios`
+**Nota:** Instituto encaminha para PROGRAD solicitando bolsas. PROGRAD responde via email geral com total de bolsas por instituto.
 
 ---
 
@@ -173,15 +175,15 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 > **Sidebar**: Projetos → Alocação de Bolsas
 
 - [ ] Selecionar período 2025.1
-- [ ] Definir total de bolsas (ex: 10)
+- [ ] Definir total de bolsas informado pela PROGRAD (ex: 10)
 - [ ] Sistema atualiza `periodo_inscricao.total_bolsas_prograd`
 
 ---
 
 ### 3.2 Admin - Alocar Bolsas por Projeto
 
-- [ ] Ver projetos aprovados
-- [ ] Alocar bolsas (ex: MATC02 = 2 bolsas, MATC99 = 2 bolsas)
+- [ ] Ver todos os projetos aprovados
+- [ ] Alocar bolsas conforme decisão da comissão (ex: MATC02 = 2 bolsas)
 - [ ] Sistema valida: soma ≤ total PROGRAD
 - [ ] Salvar alocação
 
@@ -192,50 +194,49 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 ### 3.3 Admin - Notificar Professores
 
 - [ ] Clicar "Notificar Professores"
-- [ ] Email enviado com tabela de bolsas alocadas
+- [ ] Email enviado a TODOS os professores que submeteram projetos
+- [ ] Email contém tabela de bolsas alocadas
 
 ---
 
-### 3.4 Admin - Criar Edital Interno DCC
+### 3.4 Professor - Configurar Projeto para Edital
+
+> **Rota**: `/home/professor/dashboard`
+
+- [ ] Ver bolsas alocadas (campo NÃO editável)
+- [ ] Definir voluntários adicionais (campo editável)
+- [ ] Escolher data/horário da seleção (entre 2-3 opções do admin)
+- [ ] Editar/confirmar pontos da prova (modelo sugerido)
+- [ ] Editar/confirmar bibliografia (modelo sugerido)
+
+---
+
+### 3.5 Admin - Criar Edital Interno DCC
 
 > **Rota**: `/home/admin/edital-management`
 > **Sidebar**: Editais → Gerenciar Editais
 
 - [ ] Clicar "Novo Edital"
 - [ ] Preencher:
-  - Número: "001/2025"
+  - Número do edital: "001/2025"
   - Período de inscrição
-  - Datas de provas (2-3 opções)
-  - Data divulgação resultado
+  - 2-3 datas possíveis para provas
+  - Data limite divulgação resultado
   - Valor bolsa: R$ 700,00
 - [ ] Salvar
 
 ---
 
-### 3.5 Professor - Configurar Projeto para Edital
-
-> **Rota**: `/home/professor/dashboard`
-
-- [ ] Ver bolsas alocadas (campo não editável)
-- [ ] Definir voluntários adicionais
-- [ ] Escolher data/horário da seleção
-- [ ] Editar pontos da prova
-- [ ] Editar bibliografia
-
----
-
 ### 3.6 Admin - Solicitar Assinatura do Chefe
 
-- [ ] Selecionar edital
+- [ ] Selecionar edital criado
 - [ ] Clicar "Solicitar Assinatura"
 - [ ] Informar email do chefe do departamento
-- [ ] Email enviado com link + token
-
-**Configurar email do chefe em:** `/home/admin/configuracoes`
+- [ ] Email enviado com link + token (expira em 72h)
 
 ---
 
-### 3.7 Chefe - Assinar Edital (via link)
+### 3.7 Chefe do Departamento - Assinar Edital
 
 - [ ] Acessar link recebido por email
 - [ ] Visualizar preview do edital
@@ -249,19 +250,22 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 - [ ] Verificar assinatura do chefe
 - [ ] Clicar "Publicar"
 - [ ] `edital.publicado = true`
-- [ ] Email enviado para estudantes e professores
+- [ ] Sistema envia PDF automaticamente para:
+  - Todos os estudantes do instituto
+  - Todos os professores do instituto
 
 ---
 
 ## FASE 4: Inscrições e Seleção de Monitores
 
-### 4.1 Aluno - Ver Vagas Disponíveis
+### 4.1 Aluno - Receber Edital e Ver Vagas
 
 > **Rota**: `/home/student/vagas`
 > **Sidebar**: Monitoria → Vagas Disponíveis
 
+- [ ] Receber email com PDF do edital
 - [ ] Login como `demo.student@ufba.br`
-- [ ] Ver projetos aprovados com vagas abertas
+- [ ] Ver projetos com bolsas e vagas de voluntário
 - [ ] Filtrar por departamento, tipo de vaga
 
 ---
@@ -273,13 +277,13 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 
 - [ ] Selecionar projeto
 - [ ] Clicar "Inscrever-se"
-- [ ] Escolher tipo: BOLSISTA, VOLUNTARIO ou ANY
+- [ ] Escolher tipo: BOLSISTA, VOLUNTARIO ou AMBOS
 - [ ] Confirmar inscrição
 
 **Sistema captura automaticamente:**
-- Nota na disciplina (ou equivalente)
-- CR do aluno
-- Considera equivalências configuradas
+- Nota na disciplina (do histórico)
+- CR (Coeficiente de Rendimento) do aluno
+- Considera disciplinas equivalentes (ex: MATA37 LP = MATE045)
 
 ---
 
@@ -298,8 +302,8 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 > **Rota**: `/home/professor/grade-applications`
 > **Sidebar**: Processo Seletivo → Avaliar Candidatos
 
-- [ ] Atribuir nota de seleção (prova/entrevista)
-- [ ] Sistema calcula nota final
+- [ ] Atribuir notas (prova e/ou entrevista)
+- [ ] Sistema calcula nota final automaticamente
 - [ ] Campos: `inscricao.nota_selecao`, `inscricao.nota_final`
 
 ---
@@ -310,8 +314,8 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 > **Sidebar**: Processo Seletivo → Selecionar Monitores
 
 - [ ] Ver ranking por nota final
-- [ ] Selecionar bolsistas (até limite)
-- [ ] Selecionar voluntários
+- [ ] Selecionar bolsistas (até limite alocado)
+- [ ] Selecionar voluntários (até limite definido)
 - [ ] Status: `SELECTED_BOLSISTA` ou `SELECTED_VOLUNTARIO`
 
 ---
@@ -323,42 +327,38 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 
 - [ ] Revisar seleção
 - [ ] Clicar "Publicar Resultados"
-- [ ] Alunos notificados por email
+- [ ] Sistema notifica alunos por email
 
 ---
 
-### 4.7 Aluno - Ver Resultado
+### 4.7 Aluno - Ver Resultado e Aceitar/Rejeitar
 
 > **Rota**: `/home/student/resultados`
 > **Sidebar**: Monitoria → Resultados das Seleções
 
+- [ ] Receber email com resultado
 - [ ] Ver status: selecionado, lista de espera, não selecionado
-- [ ] Se selecionado: botões "Aceitar" / "Rejeitar"
-
----
-
-### 4.8 Aluno - Aceitar Monitoria
-
-- [ ] Clicar "Aceitar"
-- [ ] Se bolsista, preencher dados bancários:
-  - Banco, Agência, Conta, Dígito
+- [ ] Se selecionado: clicar "Aceitar" ou "Rejeitar"
+- [ ] Se bolsista e aceitar: preencher dados bancários (banco, agência, conta, dígito)
 - [ ] Status: `ACCEPTED_BOLSISTA` ou `ACCEPTED_VOLUNTARIO`
 - [ ] Registro criado em tabela `vaga`
 
 ---
 
-## FASE 5: Consolidação Final
+## FASE 5: Consolidação Final e Relatório PROGRAD
 
 ### 5.1 Admin - Consolidação PROGRAD
 
 > **Rota**: `/home/admin/consolidacao-prograd`
 > **Sidebar**: Sistema → Consolidação PROGRAD
 
-- [ ] Selecionar período
-- [ ] Validar dados (todos bolsistas com dados bancários?)
-- [ ] Gerar planilha BOLSISTAS
-- [ ] Gerar planilha VOLUNTÁRIOS
-- [ ] Enviar ao Departamento → PROGRAD
+- [ ] Selecionar período (ano/semestre)
+- [ ] Validar dados (todos bolsistas com dados bancários completos?)
+- [ ] Gerar planilha Excel BOLSISTAS (com dados de pagamento)
+- [ ] Gerar planilha Excel VOLUNTÁRIOS (separada)
+- [ ] Enviar planilhas ao DEPARTAMENTO (DCC)
+
+**Nota:** Chefe do departamento encaminha para PROGRAD que processa os pagamentos.
 
 ---
 
@@ -366,56 +366,65 @@ WHERE ano = 2025 AND semestre = 'SEMESTRE_1' ORDER BY id DESC;
 
 ### 6.1 Admin - Iniciar Relatórios
 
-> **Rota**: `/home/admin/validacao-relatorios`
+> **Rota**: `/home/admin/relatorio-disciplina`
+> **Sidebar**: Relatórios → Relatórios Disciplina
 
 - [ ] Clicar "Gerar Relatórios"
-- [ ] Professores notificados automaticamente (sistema proativo)
+- [ ] Sistema notifica professores por email
+
+---
 
 ### 6.2 Professor - Gerar Relatórios
 
 > **Rota**: `/home/professor/relatorios-finais`
 
-- [ ] Relatório da disciplina
-- [ ] Relatório individual por monitor
-- [ ] Assinar digitalmente
+- [ ] Receber notificação
+- [ ] Gerar relatório final da disciplina:
+  - Pode usar template de semestres anteriores
+  - Editar conforme necessário
+  - Assinar digitalmente
+- [ ] Gerar relatório individual para cada monitor:
+  - Sistema pré-preenche com dados do aluno
+  - Revisar e assinar
+- [ ] Sistema notifica alunos automaticamente
+
+---
 
 ### 6.3 Aluno - Assinar Relatório
 
 > **Rota**: `/home/student/relatorios`
 
-- [ ] Ver relatório pendente
+- [ ] Receber notificação: "Relatório pendente de assinatura"
+- [ ] Visualizar relatório
 - [ ] Assinar digitalmente
 
-### 6.4 Admin - Gerar Certificados (GAP-002)
+---
+
+### 6.4 Admin - Validação e Certificados
 
 > **Rota**: `/home/admin/consolidacao-prograd`
 
-**Funcionalidade de Certificados:**
-- [ ] Selecionar período finalizado
-- [ ] Clicar "Notificar sobre Certificados"
-- [ ] Sistema envia email para monitores com certificado disponível
-- [ ] Aluno pode baixar PDF do certificado
-
-**Dados no certificado:**
-- Nome completo do aluno
-- Matrícula
-- Projeto e disciplina
-- Período (ano/semestre)
-- Tipo (Bolsista/Voluntário)
-- Carga horária
-- Assinatura digital do sistema
+- [ ] Validar que todos os relatórios estão assinados
+- [ ] Gerar texto padrão para ata do departamento:
+  - "Professor X solicita aprovação do relatório de monitoria do aluno Y, nota Z, semestre W, disciplina V"
+- [ ] Gerar 3 planilhas com links PDF:
+  - Certificados de monitores bolsistas
+  - Certificados de monitores voluntários
+  - Relatórios finais das disciplinas
+- [ ] Enviar planilhas ao DEPARTAMENTO
+- [ ] Departamento encaminha certificados para NUMOP
 
 ---
 
 ## Funcionalidades Auxiliares
 
-### A0. Sistema de Notificações Proativas (GAP-003)
+### A0. Sistema de Notificações Proativas
 
 > **Rota**: `/home/admin/notificacoes`
 > **Sidebar**: Sistema → Notificações
 
 **Funcionamento:**
-O sistema envia lembretes **automaticamente** quando o admin acessa o Dashboard, sem necessidade de cron jobs.
+O sistema envia lembretes **automaticamente** quando o admin acessa o Dashboard.
 
 **Tipos de lembretes automáticos:**
 | Tipo | Intervalo | Descrição |
@@ -427,18 +436,6 @@ O sistema envia lembretes **automaticamente** quando o admin acessa o Dashboard,
 | `relatorio_final_pendente` | 48h | Relatórios finais pendentes |
 | `relatorio_monitor_pendente` | 48h | Relatórios de monitores pendentes |
 
-**Passos de validação:**
-- [ ] Login como admin
-- [ ] Acessar Dashboard → Sistema executa lembretes automaticamente
-- [ ] Toast aparece: "📬 X lembretes automáticos enviados"
-- [ ] Verificar histórico em Sistema → Notificações
-- [ ] Testar execução manual clicando "Executar Pendentes"
-
-**Verificar no banco:**
-```sql
-SELECT * FROM reminder_execution_log ORDER BY executed_at DESC LIMIT 10;
-```
-
 ---
 
 ### A1. Equivalências de Disciplinas
@@ -446,65 +443,23 @@ SELECT * FROM reminder_execution_log ORDER BY executed_at DESC LIMIT 10;
 > **Rota**: `/home/admin/equivalencias`
 > **Sidebar**: Configurações → Equivalências de Disciplinas
 
-**Propósito:** Quando aluno se inscreve, sistema busca nota na disciplina. Se não encontrar, verifica equivalentes (ex: MATA37 = MATE045).
-
-**Passos:**
-- [ ] Clicar "Nova Equivalência"
-- [ ] Disciplina A: MATA37 (Cálculo I)
-- [ ] Disciplina B: MATA38 (Cálculo II) - exemplo fictício
-- [ ] Criar equivalência
-
-**Funcionamento:**
-1. Aluno se inscreve em projeto da disciplina X
-2. Sistema busca nota em X
-3. Se não encontrar, consulta `disc_equiv`
-4. Usa nota da disciplina equivalente
-
-**Verificar no banco:**
-```sql
-SELECT e.id, d1.codigo as origem, d2.codigo as equivalente
-FROM disc_equiv e
-JOIN disciplina d1 ON e.disc_origem_id = d1.id
-JOIN disciplina d2 ON e.disc_equiv_id = d2.id;
-```
+**Propósito:** Quando aluno se inscreve, sistema busca nota na disciplina. Se não encontrar, verifica equivalentes (ex: MATA37 LP = MATE045).
 
 ---
 
-### A2. Configuração de Emails do Departamento
-
-> **Rota**: `/home/admin/configuracoes`
-> **Sidebar**: Configurações → Email
-
-**Propósito:** Definir emails para comunicações oficiais.
-
-**Campos por departamento:**
-- **Email do Instituto**: Recebe planilha de projetos (FASE 2)
-- **Email do Chefe Depto.**: Recebe link para assinar edital (FASE 3)
-
-**Passos:**
-- [ ] Localizar DCC na tabela
-- [ ] Clicar engrenagem
-- [ ] Preencher emails
-- [ ] Salvar
-
----
-
-### A3. Templates de Projeto
+### A2. Templates de Projeto
 
 > **Rota**: `/home/admin/projeto-templates`
 > **Sidebar**: Editais → Templates de Projeto
 
 **Propósito:** Pré-preencher projetos na importação.
 
-- [ ] Criar template para MATC02
-- [ ] Definir: título, descrição, atividades, pontos da prova, bibliografia
-- [ ] Na próxima importação, projeto MATC02 virá pré-preenchido
-
 ---
 
-### A4. Atas de Seleção
+### A3. Atas de Seleção
 
-> **Rota**: `/home/professor/atas-selecao`
+> **Rota Admin**: `/home/admin/atas-selecao`
+> **Rota Professor**: `/home/professor/atas-selecao`
 
 - [ ] Selecionar projeto com seleção concluída
 - [ ] Gerar ata em PDF
@@ -512,7 +467,7 @@ JOIN disciplina d2 ON e.disc_equiv_id = d2.id;
 
 ---
 
-### A5. Termos de Compromisso
+### A4. Termos de Compromisso
 
 > **Rota**: `/home/professor/termos-compromisso`
 
@@ -548,18 +503,6 @@ docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_
 # Período ativo
 docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_ic \
   -c "SELECT * FROM periodo_inscricao WHERE data_fim > NOW();"
-
-# Tokens de PDF público (GAP-001)
-docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_ic \
-  -c "SELECT id, projeto_id, token, expires_at FROM public_pdf_token ORDER BY id DESC LIMIT 5;"
-
-# Execuções de lembretes proativos (GAP-003)
-docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_ic \
-  -c "SELECT id, reminder_type, is_proactive, notifications_sent, executed_at FROM reminder_execution_log ORDER BY id DESC LIMIT 10;"
-
-# Logs de auditoria
-docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_ic \
-  -c "SELECT id, action, entity_type, timestamp FROM audit_log ORDER BY id DESC LIMIT 10;"
 ```
 
 ---
@@ -578,17 +521,18 @@ docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_
 | Todos os Usuários | `/home/admin/users` |
 | Professores | `/home/admin/professores` |
 | Alunos | `/home/admin/alunos` |
-| Cursos | `/home/admin/cursos` |
 | Departamentos | `/home/admin/departamentos` |
 | Disciplinas | `/home/admin/disciplinas` |
 | Equivalências | `/home/admin/equivalencias` |
-| Config. Email | `/home/admin/configuracoes` |
-| Analytics | `/home/admin/analytics` |
-| **Notificações (NOVO)** | `/home/admin/notificacoes` |
-| **Logs de Auditoria (NOVO)** | `/home/admin/audit-logs` |
-| Relatórios PROGRAD | `/home/admin/relatorios` |
+| Notificações | `/home/admin/notificacoes` |
+| Logs de Auditoria | `/home/admin/audit-logs` |
+| Planilha PROGRAD | `/home/admin/planilha-prograd` |
 | Consolidação PROGRAD | `/home/admin/consolidacao-prograd` |
-| Validação Relatórios | `/home/admin/validacao-relatorios` |
+| **Atas de Seleção** | `/home/admin/atas-selecao` |
+| **Inscrições** | `/home/admin/inscricoes` |
+| **Seleção** | `/home/admin/selecao` |
+| **Relatório Disciplina** | `/home/admin/relatorio-disciplina` |
+| **Relatório Monitor** | `/home/admin/relatorio-monitor` |
 
 ### Professor
 | Funcionalidade | Rota |
@@ -624,20 +568,33 @@ docker exec sistema-de-monitoria-ic-db psql -U postgres -d sistema_de_monitoria_
 
 **Localização:** `docs/test-import-2025-1.csv`
 
-**Conteúdo:**
+**Conteúdo atual (1 item para teste):**
 ```csv
 DISCIPLINA,TURMA,NOME DISCIPLINA,...,DOCENTE
 MATC02,1,ESTRUTURAS DE DADOS,...,Professor Demo
-MATC99,1,INTRODUÇÃO À PROGRAMAÇÃO,...,Professor Demo
-MATC04,1,BANCO DE DADOS,...,Carlos Silva
-MATC05,1,ENGENHARIA DE SOFTWARE,...,Ana Pereira
-MATC06,1,REDES DE COMPUTADORES,...,João Santos
 ```
 
-**Professores mapeados:**
+**Professor mapeado:**
 - Professor Demo → id=24 (DCC)
-- Carlos Silva → id=20 (DCC)
-- Ana Pereira → id=21 (DCC)
-- João Santos → id=22 (DCC)
 
-**Resultado esperado:** 5 projetos criados com status `PENDING_PROFESSOR_SIGNATURE`
+**Resultado esperado:** 1 projeto criado com status `PENDING_PROFESSOR_SIGNATURE`
+
+---
+
+## Atores Externos (não interagem com sistema)
+
+### Instituto (IC)
+- Recebe planilha de projetos do admin
+- Encaminha para PROGRAD
+- Conversa com departamentos sobre divisão de bolsas
+
+### PROGRAD
+- Recebe planilha de projetos (via Instituto) - MANUAL
+- Define e publica total de bolsas via email geral - MANUAL
+- Recebe consolidação final (via Departamento) - MANUAL
+- Processa pagamentos - MANUAL
+- **IMPORTANTE:** PROGRAD não tem acesso ao sistema
+
+### NUMOP
+- Recebe planilhas de certificados (via Departamento)
+- Emite certificados oficiais de monitoria
