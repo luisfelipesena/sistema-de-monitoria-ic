@@ -88,8 +88,7 @@ export function useUrlColumnFilters(options?: UseUrlColumnFiltersOptions): UseUr
 
     // Use URL values if they exist, otherwise use defaults if applicable
     const anoValue = urlState.ano.length > 0 ? urlState.ano : shouldShowDefaults ? [String(currentYear)] : []
-    const semestreValue =
-      urlState.semestre.length > 0 ? urlState.semestre : shouldShowDefaults ? [currentSemester] : []
+    const semestreValue = urlState.semestre.length > 0 ? urlState.semestre : shouldShowDefaults ? [currentSemester] : []
 
     if (anoValue.length > 0) {
       filters.push({ id: 'ano', value: anoValue })

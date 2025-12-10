@@ -1,18 +1,22 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
   acceptInscriptionSchema,
+  anoSchema,
   candidateEvaluationSchema,
   candidateResultStatusSchema,
   idSchema,
   inscriptionDetailSchema,
   inscriptionFormSchema,
   rejectInscriptionSchema,
+  semestreSchema,
+  statusInscricaoSchema,
   tipoVagaSchema,
   type TipoVaga,
 } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
 import { createInscricaoService } from '@/server/services/inscricao/inscricao-service'
+import { createInscricaoRepository } from '@/server/services/inscricao/inscricao-repository'
 import { BusinessError } from '@/types/errors'
 
 const transformError = (error: unknown): TRPCError => {
@@ -491,4 +495,26 @@ export const inscricaoRouter = createTRPCRouter({
         }
       }
     ),
+
+  // ========================================
+  // ADMIN ENDPOINTS
+  // ========================================
+
+  getAllForAdmin: protectedProcedure
+    .input(
+      z.object({
+        ano: anoSchema.optional(),
+        semestre: semestreSchema.optional(),
+        status: statusInscricaoSchema.optional(),
+        departamentoId: z.number().int().positive().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'admin') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso restrito a administradores' })
+      }
+
+      const repo = createInscricaoRepository(ctx.db)
+      return await repo.findAllForAdmin(input)
+    }),
 })

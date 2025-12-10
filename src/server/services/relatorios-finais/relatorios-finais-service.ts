@@ -1,6 +1,8 @@
 import type { db } from '@/server/db'
+import type { Semestre } from '@/types'
 import { createDisciplinaRelatorioService } from './disciplina-relatorio-service'
 import { createMonitorRelatorioService } from './monitor-relatorio-service'
+import { createRelatoriosFinaisRepository } from './relatorios-finais-repository'
 
 type Database = typeof db
 
@@ -11,6 +13,7 @@ type Database = typeof db
 export function createRelatoriosFinaisService(database: Database) {
   const disciplinaService = createDisciplinaRelatorioService(database)
   const monitorService = createMonitorRelatorioService(database)
+  const repository = createRelatoriosFinaisRepository(database)
 
   return {
     // ========================================
@@ -36,6 +39,17 @@ export function createRelatoriosFinaisService(database: Database) {
     listRelatoriosPendentesParaAluno: monitorService.listRelatoriosPendentesParaAluno,
     getRelatorioMonitorParaAluno: monitorService.getRelatorioMonitorParaAluno,
     signRelatorioMonitorAsAluno: monitorService.signRelatorioMonitorAsAluno,
+
+    // ========================================
+    // ADMIN METHODS
+    // ========================================
+    async listAllDisciplinaReportsForAdmin(filters: { ano?: number; semestre?: Semestre; departamentoId?: number }) {
+      return repository.listAllDisciplinaReportsForAdmin(filters)
+    },
+
+    async listAllMonitorReportsForAdmin(filters: { ano?: number; semestre?: Semestre; departamentoId?: number }) {
+      return repository.listAllMonitorReportsForAdmin(filters)
+    },
   }
 }
 

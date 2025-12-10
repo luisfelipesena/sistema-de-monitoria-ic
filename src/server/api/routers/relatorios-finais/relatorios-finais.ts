@@ -242,4 +242,42 @@ export const relatoriosFinaisRouter = createTRPCRouter({
         mapDomainErrorToTRPC(error)
       }
     }),
+
+  // ========================================
+  // ADMIN ENDPOINTS
+  // ========================================
+
+  listAllDisciplinaReportsForAdmin: protectedProcedure
+    .input(
+      z.object({
+        ano: anoSchema.optional(),
+        semestre: semestreSchema.optional(),
+        departamentoId: z.number().int().positive().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'admin') {
+        throw new ForbiddenError('Acesso restrito a administradores')
+      }
+
+      const service = createRelatoriosFinaisService(ctx.db)
+      return await service.listAllDisciplinaReportsForAdmin(input)
+    }),
+
+  listAllMonitorReportsForAdmin: protectedProcedure
+    .input(
+      z.object({
+        ano: anoSchema.optional(),
+        semestre: semestreSchema.optional(),
+        departamentoId: z.number().int().positive().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'admin') {
+        throw new ForbiddenError('Acesso restrito a administradores')
+      }
+
+      const service = createRelatoriosFinaisService(ctx.db)
+      return await service.listAllMonitorReportsForAdmin(input)
+    }),
 })

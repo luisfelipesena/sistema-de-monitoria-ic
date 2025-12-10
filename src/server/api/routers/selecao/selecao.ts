@@ -3,6 +3,7 @@ import { createSelecaoService } from '@/server/services/selecao/selecao-service'
 import { NotFoundError, ForbiddenError, ValidationError, BusinessError } from '@/types/errors'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
+import { anoSchema, semestreSchema } from '@/types'
 
 function handleServiceError(error: unknown): never {
   if (error instanceof NotFoundError) {
@@ -143,4 +144,51 @@ export const selecaoRouter = createTRPCRouter({
       handleServiceError(error)
     }
   }),
+
+  // ========================================
+  // ADMIN ENDPOINTS
+  // ========================================
+
+  getAllProjectsWithSelectionStatus: protectedProcedure
+    .input(
+      z.object({
+        ano: anoSchema.optional(),
+        semestre: semestreSchema.optional(),
+        departamentoId: z.number().int().positive().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'admin') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso restrito a administradores' })
+      }
+
+      const service = createSelecaoService(ctx.db)
+      try {
+        return await service.getAllProjectsWithSelectionStatus(input)
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
+  getAllAtasForAdmin: protectedProcedure
+    .input(
+      z.object({
+        ano: anoSchema.optional(),
+        semestre: semestreSchema.optional(),
+        departamentoId: z.number().int().positive().optional(),
+        status: z.enum(['DRAFT', 'SIGNED']).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'admin') {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso restrito a administradores' })
+      }
+
+      const service = createSelecaoService(ctx.db)
+      try {
+        return await service.getAllAtasForAdmin(input)
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
 })

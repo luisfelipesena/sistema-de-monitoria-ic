@@ -34,7 +34,7 @@ export interface UseColumnFiltersReturn {
  */
 export function useColumnFilters(options?: UseColumnFiltersOptions): UseColumnFiltersReturn {
   // Track if user explicitly cleared to prevent re-applying defaults
-  const hasBeenCleared = useRef(false)
+  const _hasBeenCleared = useRef(false)
 
   const defaultValue = useMemo(() => {
     if (options?.defaultFilters && options.defaultFilters.length > 0) {

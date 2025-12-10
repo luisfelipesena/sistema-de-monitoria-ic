@@ -7,6 +7,7 @@ import type {
   GenerateAtaDataInput,
   PublishResultsInput,
   SelectMonitorsInput,
+  Semestre,
   SignAtaInput,
   UserRole,
 } from '@/types'
@@ -332,6 +333,27 @@ export function createSelecaoService(db: Database) {
       const atasFiltradas = atas.filter((ata) => ata.projeto.professorResponsavel.userId === userId)
 
       return atasFiltradas
+    },
+
+    // ========================================
+    // ADMIN METHODS
+    // ========================================
+
+    async getAllProjectsWithSelectionStatus(filters: {
+      ano?: number
+      semestre?: Semestre
+      departamentoId?: number
+    }) {
+      return repo.findAllProjectsWithSelectionStatus(filters)
+    },
+
+    async getAllAtasForAdmin(filters: {
+      ano?: number
+      semestre?: Semestre
+      departamentoId?: number
+      status?: 'DRAFT' | 'SIGNED'
+    }) {
+      return repo.findAllAtasForAdmin(filters)
     },
   }
 }

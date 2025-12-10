@@ -26,8 +26,8 @@ export async function parsePlanejamentoSpreadsheet(fileBuffer: Buffer): Promise<
   const rows: PlanejamentoRow[] = []
 
   try {
-    // Ler workbook
-    const workbook = XLSX.read(fileBuffer, { type: 'buffer' })
+    // Ler workbook com codepage UTF-8 para preservar caracteres acentuados
+    const workbook = XLSX.read(fileBuffer, { type: 'buffer', codepage: 65001 })
 
     // Pegar primeira sheet
     const sheetName = workbook.SheetNames[0]
@@ -180,7 +180,7 @@ function extractValue(obj: Record<string, unknown>, possibleKeys: string[]): str
  */
 export function validateSpreadsheetStructure(fileBuffer: Buffer): { valid: boolean; message: string } {
   try {
-    const workbook = XLSX.read(fileBuffer, { type: 'buffer' })
+    const workbook = XLSX.read(fileBuffer, { type: 'buffer', codepage: 65001 })
 
     if (workbook.SheetNames.length === 0) {
       return { valid: false, message: 'Planilha sem abas' }

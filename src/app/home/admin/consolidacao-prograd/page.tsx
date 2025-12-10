@@ -38,46 +38,53 @@ export default function ConsolidacaoPROGRADPage() {
       title="Consolidação PROGRAD"
       subtitle="Relatório consolidado enviado primeiro ao departamento (DCC) para posterior encaminhamento à PROGRAD"
     >
-      <ConsolidacaoFilters
-        selectedYear={selectedYear}
-        selectedSemester={selectedSemester}
-        incluirBolsistas={incluirBolsistas}
-        incluirVoluntarios={incluirVoluntarios}
-        isLoading={isLoading}
-        loadingValidation={loadingValidation}
-        onYearChange={handleYearChange}
-        onSemesterChange={handleSemesterChange}
-        onIncluirBolsistasChange={setIncluirBolsistas}
-        onIncluirVoluntariosChange={setIncluirVoluntarios}
-        onRefetch={refetch}
-        onValidate={handleValidateData}
-      />
+      <div className="space-y-6">
+        {/* Stats overview first */}
+        {consolidationData && consolidationData.length > 0 && <ConsolidacaoStatsCards data={consolidationData} />}
 
-      <ValidationDialog validationData={validationData} showValidation={showValidation} />
+        {/* Filters */}
+        <ConsolidacaoFilters
+          selectedYear={selectedYear}
+          selectedSemester={selectedSemester}
+          incluirBolsistas={incluirBolsistas}
+          incluirVoluntarios={incluirVoluntarios}
+          isLoading={isLoading}
+          loadingValidation={loadingValidation}
+          onYearChange={handleYearChange}
+          onSemesterChange={handleSemesterChange}
+          onIncluirBolsistasChange={setIncluirBolsistas}
+          onIncluirVoluntariosChange={setIncluirVoluntarios}
+          onRefetch={refetch}
+          onValidate={handleValidateData}
+        />
 
-      {consolidationData && consolidationData.length > 0 && <ConsolidacaoStatsCards data={consolidationData} />}
+        {/* Validation results */}
+        <ValidationDialog validationData={validationData} showValidation={showValidation} />
 
-      <ExportSection
-        data={consolidationData}
-        isLoading={isLoading}
-        emailsDepartamento={emailsDepartamento}
-        selectedYear={selectedYear}
-        selectedSemester={selectedSemester}
-        incluirBolsistas={incluirBolsistas}
-        incluirVoluntarios={incluirVoluntarios}
-        showEmailDialog={showEmailDialog}
-        setShowEmailDialog={setShowEmailDialog}
-        isPendingExport={isPendingExport}
-        onSendEmail={handleSendEmail}
-        onGenerateCSV={generateCSVSpreadsheet}
-      />
+        {/* Export actions */}
+        <ExportSection
+          data={consolidationData}
+          isLoading={isLoading}
+          emailsDepartamento={emailsDepartamento}
+          selectedYear={selectedYear}
+          selectedSemester={selectedSemester}
+          incluirBolsistas={incluirBolsistas}
+          incluirVoluntarios={incluirVoluntarios}
+          showEmailDialog={showEmailDialog}
+          setShowEmailDialog={setShowEmailDialog}
+          isPendingExport={isPendingExport}
+          onSendEmail={handleSendEmail}
+          onGenerateCSV={generateCSVSpreadsheet}
+        />
 
-      <ConsolidacaoTable
-        data={consolidationData}
-        selectedYear={selectedYear}
-        selectedSemester={selectedSemester}
-        isLoading={isLoading}
-      />
+        {/* Main table */}
+        <ConsolidacaoTable
+          data={consolidationData}
+          selectedYear={selectedYear}
+          selectedSemester={selectedSemester}
+          isLoading={isLoading}
+        />
+      </div>
     </PagesLayout>
   )
 }

@@ -17,7 +17,12 @@ import {
   type ImportStatus,
 } from '@/types'
 import { logger } from '@/utils/logger'
-import { findMatchingProfessors, sanitizeDisciplineCode, sanitizeSiape, sanitizeTitle } from '@/utils/string-normalization'
+import {
+  findMatchingProfessors,
+  sanitizeDisciplineCode,
+  sanitizeSiape,
+  sanitizeTitle,
+} from '@/utils/string-normalization'
 import { createImportProjectsRepository } from './import-projects-repository'
 
 const log = logger.child({ context: 'ImportProjectsService' })
@@ -158,9 +163,7 @@ export function createImportProjectsService(db: Database) {
 
           if (professores.length === 0) {
             warnings.push(
-              `⚠️ Disciplina ${codigoSanitizado} (${nomeSanitizado}): NENHUM PROFESSOR ENCONTRADO. ` +
-              `SIAPEs informados: ${row.professoresSiapes.join(', ')}. ` +
-              `Verifique se o professor foi cadastrado previamente no sistema.`
+              `⚠️ Disciplina ${codigoSanitizado} (${nomeSanitizado}): NENHUM PROFESSOR ENCONTRADO. SIAPEs informados: ${row.professoresSiapes.join(', ')}. Verifique se o professor foi cadastrado previamente no sistema.`
             )
             projetosComErro++
             continue
@@ -532,8 +535,7 @@ export function createImportProjectsService(db: Database) {
               }
             } else {
               warnings.push(
-                `⚠️ Professor "${nomeProf}" NÃO ENCONTRADO no sistema para ${codigoSanitizado}. ` +
-                  `Verifique se o professor foi cadastrado previamente.`
+                `⚠️ Professor "${nomeProf}" NÃO ENCONTRADO no sistema para ${codigoSanitizado}. Verifique se o professor foi cadastrado previamente.`
               )
             }
           }

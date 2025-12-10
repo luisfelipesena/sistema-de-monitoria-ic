@@ -27,8 +27,8 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
   const rows: PlanejamentoDCCRow[] = []
 
   try {
-    // Ler workbook
-    const workbook = XLSX.read(fileBuffer, { type: 'buffer' })
+    // Ler workbook com codepage UTF-8 para preservar caracteres acentuados
+    const workbook = XLSX.read(fileBuffer, { type: 'buffer', codepage: 65001 })
 
     // Pegar primeira sheet
     const sheetName = workbook.SheetNames[0]

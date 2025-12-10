@@ -376,6 +376,78 @@ export class InscricaoRepository {
       },
     })
   }
+
+  async findAllForAdmin(filters: {
+    ano?: number
+    semestre?: Semestre
+    status?: StatusInscricao
+    departamentoId?: number
+  }) {
+    const conditions = []
+
+    if (filters.ano) {
+      conditions.push(eq(projetoTable.ano, filters.ano))
+    }
+    if (filters.semestre) {
+      conditions.push(eq(projetoTable.semestre, filters.semestre))
+    }
+    if (filters.status) {
+      conditions.push(eq(inscricaoTable.status, filters.status))
+    }
+    if (filters.departamentoId) {
+      conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
+    }
+
+    return this.db
+      .select({
+        id: inscricaoTable.id,
+        projetoId: inscricaoTable.projetoId,
+        alunoId: inscricaoTable.alunoId,
+        tipoVagaPretendida: inscricaoTable.tipoVagaPretendida,
+        status: inscricaoTable.status,
+        notaDisciplina: inscricaoTable.notaDisciplina,
+        notaSelecao: inscricaoTable.notaSelecao,
+        coeficienteRendimento: inscricaoTable.coeficienteRendimento,
+        notaFinal: inscricaoTable.notaFinal,
+        feedbackProfessor: inscricaoTable.feedbackProfessor,
+        createdAt: inscricaoTable.createdAt,
+        updatedAt: inscricaoTable.updatedAt,
+        projeto: {
+          id: projetoTable.id,
+          titulo: projetoTable.titulo,
+          ano: projetoTable.ano,
+          semestre: projetoTable.semestre,
+          status: projetoTable.status,
+        },
+        professorResponsavel: {
+          id: professorTable.id,
+          nomeCompleto: professorTable.nomeCompleto,
+        },
+        departamento: {
+          id: departamentoTable.id,
+          nome: departamentoTable.nome,
+          sigla: departamentoTable.sigla,
+        },
+        aluno: {
+          id: alunoTable.id,
+          nomeCompleto: alunoTable.nomeCompleto,
+          matricula: alunoTable.matricula,
+          cr: alunoTable.cr,
+        },
+        alunoUser: {
+          id: userTable.id,
+          email: userTable.email,
+        },
+      })
+      .from(inscricaoTable)
+      .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
+      .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+      .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
+      .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
+      .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(inscricaoTable.createdAt)
+  }
 }
 
 export const createInscricaoRepository = (db: Database) => new InscricaoRepository(db)

@@ -1,7 +1,7 @@
 "use client"
 
 import { PagesLayout } from "@/components/layout/PagesLayout"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Info } from "lucide-react"
@@ -52,17 +52,11 @@ export default function ScholarshipAllocationPage() {
   )
 
   const handleAllocationChange = (projectId: number, value: number) => {
-    setEditingAllocations((prev) => ({
-      ...prev,
-      [projectId]: value,
-    }))
+    setEditingAllocations((prev) => ({ ...prev, [projectId]: value }))
   }
 
   const handleAllocateCandidate = (inscricaoId: number, tipo: TipoVaga) => {
-    allocateCandidateMutation.mutate({
-      inscricaoId,
-      tipo,
-    })
+    allocateCandidateMutation.mutate({ inscricaoId, tipo })
   }
 
   return (
@@ -72,7 +66,7 @@ export default function ScholarshipAllocationPage() {
       actions={
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Informações sobre o processo de distribuição de bolsas">
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Informações sobre o processo">
               <Info className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
@@ -80,15 +74,10 @@ export default function ScholarshipAllocationPage() {
             <div className="space-y-3">
               <h4 className="font-semibold text-sm">Processo de Distribuição de Bolsas</h4>
               <p className="text-sm text-muted-foreground">
-                O processo de distribuição segue o fluxo institucional: PROGRAD publica resultado → Diretor do Instituto conversa com chefe de departamento → Chefe conversa com comissão → Admin replica os números no sistema.
+                PROGRAD publica resultado → Diretor do IC conversa com chefe de departamento → Chefe conversa com
+                comissão → Admin replica os números no sistema.
               </p>
-              <p className="text-sm text-muted-foreground">
-                O sistema valida que a alocação não exceda o total oficial de bolsas PROGRAD.
-              </p>
-              <Link
-                href="/home/admin/processo-distribuicao-bolsas"
-                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
-              >
+              <Link href="/home/admin/processo-distribuicao-bolsas" className="text-sm text-primary hover:underline">
                 Ver documentação completa →
               </Link>
             </div>
@@ -97,8 +86,10 @@ export default function ScholarshipAllocationPage() {
       }
     >
       <div className="space-y-6">
-        <FilterForm form={form} onSubmit={handleFilterSubmit} />
+        {/* Stats overview first */}
+        {summary && <AllocationStats summary={summary} />}
 
+        {/* PROGRAD management */}
         <ProgradManagementCard
           totalPrograd={totalPrograd}
           totalAlocadas={totalAlocadas}
@@ -110,17 +101,18 @@ export default function ScholarshipAllocationPage() {
           isNotifying={notifyProfessorsMutation.isPending}
         />
 
+        {/* Filters */}
+        <FilterForm form={form} onSubmit={handleFilterSubmit} />
+
+        {/* Info alert */}
         <Alert className="bg-blue-50 border-blue-200">
-          <AlertTitle>Fluxo institucional</AlertTitle>
-          <AlertDescription>
-            1) A PROGRAD divulga o total de bolsas para o Instituto; 2) o Instituto (IC) repassa a planilha aos
-            departamentos; 3) o chefe e a comissão definem a distribuição e o admin replica os números aqui. Esse
-            cartão mantém o limite para garantir que não ultrapassamos o total oficial.
+          <AlertDescription className="text-sm">
+            <strong>Fluxo institucional:</strong> 1) PROGRAD divulga total de bolsas → 2) IC repassa aos departamentos →
+            3) Chefe e comissão definem distribuição → 4) Admin registra aqui.
           </AlertDescription>
         </Alert>
 
-        {summary && <AllocationStats summary={summary} />}
-
+        {/* Main table */}
         <AllocationTable
           projects={projects}
           isLoading={isLoading}
@@ -134,6 +126,7 @@ export default function ScholarshipAllocationPage() {
           isBulkUpdating={bulkUpdateMutation.isPending}
         />
 
+        {/* Dialogs */}
         <ProgradDialog
           isOpen={progradDialog.isOpen}
           onClose={progradDialog.close}

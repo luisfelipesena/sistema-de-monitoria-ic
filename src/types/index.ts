@@ -64,6 +64,7 @@ export * from './analytics'
 export * from './prograd'
 export * from './relatorios'
 export * from './relatorios-finais'
+export * from './pdf-templates'
 
 // System features
 export * from './import'

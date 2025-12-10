@@ -8,9 +8,14 @@ import {
   projetoDisciplinaTable,
   projetoTable,
 } from '@/server/db/schema'
-import { PROJETO_STATUS_APPROVED, STATUS_INSCRICAO_SUBMITTED, TIPO_ASSINATURA_ATA_SELECAO } from '@/types'
+import {
+  PROJETO_STATUS_APPROVED,
+  STATUS_INSCRICAO_SUBMITTED,
+  TIPO_ASSINATURA_ATA_SELECAO,
+  type Semestre,
+} from '@/types'
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
-import { and, desc, eq, isNotNull } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm'
 
 export type AtaSelecaoInsert = InferInsertModel<typeof ataSelecaoTable>
 export type AssinaturaDocumentoInsert = InferInsertModel<typeof assinaturaDocumentoTable>
@@ -183,6 +188,134 @@ export function createSelecaoRepository(db: Database) {
 
     async getAllInscricaoIdsByProjetoId(projetoId: number) {
       return db.select({ id: inscricaoTable.id }).from(inscricaoTable).where(eq(inscricaoTable.projetoId, projetoId))
+    },
+
+    // ========================================
+    // ADMIN QUERIES
+    // ========================================
+
+    async findAllProjectsWithSelectionStatus(filters: { ano?: number; semestre?: Semestre; departamentoId?: number }) {
+      const conditions = [eq(projetoTable.status, PROJETO_STATUS_APPROVED)]
+
+      if (filters.ano) {
+        conditions.push(eq(projetoTable.ano, filters.ano))
+      }
+      if (filters.semestre) {
+        conditions.push(eq(projetoTable.semestre, filters.semestre))
+      }
+      if (filters.departamentoId) {
+        conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
+      }
+
+      const projetos = await db.query.projetoTable.findMany({
+        where: and(...conditions),
+        with: {
+          departamento: true,
+          professorResponsavel: true,
+          inscricoes: {
+            columns: {
+              id: true,
+              status: true,
+              tipoVagaPretendida: true,
+            },
+          },
+        },
+        orderBy: [desc(projetoTable.createdAt)],
+      })
+
+      // Fetch all atas for these projects in a single query
+      const projetoIds = projetos.map((p) => p.id)
+      const atas =
+        projetoIds.length > 0
+          ? await db.query.ataSelecaoTable.findMany({
+              where: inArray(ataSelecaoTable.projetoId, projetoIds),
+            })
+          : []
+
+      // Create a map for quick lookup
+      const atasByProjetoId = new Map(atas.map((a) => [a.projetoId, a]))
+
+      return projetos.map((projeto) => {
+        const ata = atasByProjetoId.get(projeto.id)
+        return {
+          id: projeto.id,
+          titulo: projeto.titulo,
+          ano: projeto.ano,
+          semestre: projeto.semestre,
+          professorResponsavel: projeto.professorResponsavel.nomeCompleto,
+          departamento: projeto.departamento?.sigla || projeto.departamento?.nome,
+          totalInscritos: projeto.inscricoes.length,
+          bolsistasDisponibilizados: projeto.bolsasDisponibilizadas || 0,
+          bolsistasSelecionados: projeto.inscricoes.filter((i) => i.status?.startsWith('SELECTED_BOLSISTA')).length,
+          voluntariosSelecionados: projeto.inscricoes.filter((i) => i.status?.startsWith('SELECTED_VOLUNTARIO')).length,
+          hasAta: !!ata,
+          ataAssinada: ata?.assinado ?? false,
+          selecaoStatus: ata?.assinado
+            ? 'ASSINADO'
+            : ata
+              ? 'RASCUNHO'
+              : projeto.inscricoes.some((i) => i.status?.startsWith('SELECTED_'))
+                ? 'EM_SELECAO'
+                : 'PENDENTE',
+        }
+      })
+    },
+
+    async findAllAtasForAdmin(filters: {
+      ano?: number
+      semestre?: Semestre
+      departamentoId?: number
+      status?: 'DRAFT' | 'SIGNED'
+    }) {
+      const atas = await db.query.ataSelecaoTable.findMany({
+        with: {
+          projeto: {
+            with: {
+              professorResponsavel: true,
+              departamento: true,
+            },
+          },
+          geradoPor: true,
+        },
+        orderBy: [desc(ataSelecaoTable.dataGeracao)],
+      })
+
+      let filtered = atas
+
+      // Filter by projeto attributes
+      if (filters.ano) {
+        filtered = filtered.filter((a) => a.projeto.ano === filters.ano)
+      }
+      if (filters.semestre) {
+        filtered = filtered.filter((a) => a.projeto.semestre === filters.semestre)
+      }
+      if (filters.departamentoId) {
+        filtered = filtered.filter((a) => a.projeto.departamentoId === filters.departamentoId)
+      }
+
+      // Filter by ata status (only DRAFT and SIGNED since no publicado column)
+      if (filters.status) {
+        if (filters.status === 'SIGNED') {
+          filtered = filtered.filter((a) => a.assinado)
+        } else if (filters.status === 'DRAFT') {
+          filtered = filtered.filter((a) => !a.assinado)
+        }
+      }
+
+      return filtered.map((ata) => ({
+        id: ata.id,
+        projetoId: ata.projetoId,
+        projetoTitulo: ata.projeto.titulo,
+        professorResponsavel: ata.projeto.professorResponsavel.nomeCompleto,
+        departamento: ata.projeto.departamento?.sigla || ata.projeto.departamento?.nome,
+        ano: ata.projeto.ano,
+        semestre: ata.projeto.semestre,
+        geradoPor: ata.geradoPor?.username,
+        dataGeracao: ata.dataGeracao,
+        assinado: ata.assinado,
+        dataAssinatura: ata.dataAssinatura,
+        status: ata.assinado ? 'ASSINADO' : 'RASCUNHO',
+      }))
     },
   }
 }

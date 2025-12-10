@@ -19,13 +19,16 @@ import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
 
 // Custom filter function for multiselect (array of values)
+// Handles both string and number comparisons by converting to strings
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const multiselectFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
   if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) {
     return true
   }
   const cellValue = row.getValue(columnId)
-  return filterValue.includes(cellValue)
+  // Convert both to strings for comparison (handles number vs string mismatch)
+  const cellValueStr = String(cellValue)
+  return filterValue.some((v) => String(v) === cellValueStr)
 }
 
 interface DataTableProps<TData, TValue> {

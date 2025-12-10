@@ -358,6 +358,111 @@ export function createRelatoriosFinaisRepository(database: Database) {
 
       return vagas
     },
+
+    // ========================================
+    // ADMIN QUERIES
+    // ========================================
+
+    async listAllDisciplinaReportsForAdmin(filters: { ano?: number; semestre?: Semestre; departamentoId?: number }) {
+      const conditions = [isNull(projetoTable.deletedAt)]
+
+      if (filters.ano) conditions.push(eq(projetoTable.ano, filters.ano))
+      if (filters.semestre) conditions.push(eq(projetoTable.semestre, filters.semestre))
+      if (filters.departamentoId) conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
+
+      const projetos = await database.query.projetoTable.findMany({
+        where: and(...conditions),
+        with: {
+          professorResponsavel: true,
+          departamento: true,
+          relatorioFinal: {
+            with: {
+              relatoriosMonitores: true,
+            },
+          },
+        },
+        orderBy: [desc(projetoTable.ano), desc(projetoTable.createdAt)],
+      })
+
+      return projetos.map((projeto) => {
+        const relatorio = projeto.relatorioFinal
+        return {
+          projetoId: projeto.id,
+          projetoTitulo: projeto.titulo,
+          disciplinaNome: projeto.disciplinaNome,
+          professorNome: projeto.professorResponsavel.nomeCompleto,
+          departamento: projeto.departamento?.sigla || projeto.departamento?.nome,
+          ano: projeto.ano,
+          semestre: projeto.semestre,
+          relatorioId: relatorio?.id || null,
+          status: relatorio?.status || 'NOT_CREATED',
+          professorAssinouEm: relatorio?.professorAssinouEm,
+          totalMonitores: relatorio?.relatoriosMonitores.length || 0,
+          createdAt: relatorio?.createdAt,
+        }
+      })
+    },
+
+    async listAllMonitorReportsForAdmin(filters: { ano?: number; semestre?: Semestre; departamentoId?: number }) {
+      const projetos = await database.query.projetoTable.findMany({
+        where: isNull(projetoTable.deletedAt),
+        with: {
+          professorResponsavel: true,
+          departamento: true,
+        },
+      })
+
+      // Filter projects
+      let filteredProjetos = projetos
+      if (filters.ano) filteredProjetos = filteredProjetos.filter((p) => p.ano === filters.ano)
+      if (filters.semestre) filteredProjetos = filteredProjetos.filter((p) => p.semestre === filters.semestre)
+      if (filters.departamentoId)
+        filteredProjetos = filteredProjetos.filter((p) => p.departamentoId === filters.departamentoId)
+
+      const projetoIds = filteredProjetos.map((p) => p.id)
+      if (projetoIds.length === 0) return []
+
+      // Get all monitor reports for these projects
+      const relatorios = await database.query.relatorioFinalMonitorTable.findMany({
+        with: {
+          inscricao: {
+            with: {
+              aluno: true,
+              projeto: {
+                with: {
+                  professorResponsavel: true,
+                  departamento: true,
+                },
+              },
+              vaga: true,
+            },
+          },
+          relatorioDisciplina: true,
+        },
+        orderBy: desc(relatorioFinalMonitorTable.createdAt),
+      })
+
+      // Filter by project IDs
+      const filteredRelatorios = relatorios.filter((r) => projetoIds.includes(r.inscricao.projetoId))
+
+      return filteredRelatorios.map((r) => ({
+        id: r.id,
+        monitorNome: r.inscricao.aluno.nomeCompleto,
+        monitorMatricula: r.inscricao.aluno.matricula,
+        projetoId: r.inscricao.projetoId,
+        projetoTitulo: r.inscricao.projeto.titulo,
+        disciplinaNome: r.inscricao.projeto.disciplinaNome,
+        professorNome: r.inscricao.projeto.professorResponsavel.nomeCompleto,
+        departamento: r.inscricao.projeto.departamento?.sigla || r.inscricao.projeto.departamento?.nome,
+        tipo: r.inscricao.vaga?.tipo || r.inscricao.tipoVagaPretendida,
+        ano: r.inscricao.projeto.ano,
+        semestre: r.inscricao.projeto.semestre,
+        status: r.status,
+        alunoAssinouEm: r.alunoAssinouEm,
+        professorAssinouEm: r.professorAssinouEm,
+        createdAt: r.createdAt,
+      }))
+    },
   }
 }
 
