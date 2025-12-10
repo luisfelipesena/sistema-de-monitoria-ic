@@ -9,7 +9,16 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import { api } from "@/utils/api"
 import { useEffect, useState } from "react"
-import { REGIME_20H, REGIME_40H, REGIME_DE, type Regime } from "@/types"
+import {
+  REGIME_20H,
+  REGIME_40H,
+  REGIME_DE,
+  TIPO_PROFESSOR_EFETIVO,
+  TIPO_PROFESSOR_SUBSTITUTO,
+  TIPO_PROFESSOR_LABELS,
+  type Regime,
+  type TipoProfessor,
+} from "@/types"
 
 interface ProfessorFormData {
   nomeCompleto: string
@@ -18,6 +27,7 @@ interface ProfessorFormData {
   telefone: string
   telefoneInstitucional: string
   regime: Regime | ""
+  tipoProfessor: TipoProfessor | ""
 }
 
 export function ProfessorProfile() {
@@ -31,6 +41,7 @@ export function ProfessorProfile() {
     telefone: "",
     telefoneInstitucional: "",
     regime: "",
+    tipoProfessor: "",
   })
 
   const { data: userProfile } = api.user.getProfile.useQuery()
@@ -47,6 +58,7 @@ export function ProfessorProfile() {
         telefone: professor.telefone || "",
         telefoneInstitucional: professor.telefoneInstitucional || "",
         regime: professor.regime || "",
+        tipoProfessor: professor.tipoProfessor || "",
       })
     }
   }, [professor])
@@ -69,6 +81,7 @@ export function ProfessorProfile() {
           telefone: formData.telefone,
           telefoneInstitucional: formData.telefoneInstitucional,
           regime: formData.regime,
+          tipoProfessor: formData.tipoProfessor || undefined,
         },
       })
 
@@ -96,6 +109,7 @@ export function ProfessorProfile() {
         telefone: professor.telefone || "",
         telefoneInstitucional: professor.telefoneInstitucional || "",
         regime: professor.regime || "",
+        tipoProfessor: professor.tipoProfessor || "",
       })
     }
     setIsEditing(false)
@@ -190,6 +204,26 @@ export function ProfessorProfile() {
                 <SelectItem value={REGIME_20H}>20 horas</SelectItem>
                 <SelectItem value={REGIME_40H}>40 horas</SelectItem>
                 <SelectItem value={REGIME_DE}>Dedicação Exclusiva</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="tipoProfessor">Tipo de Professor</Label>
+            <Select
+              value={formData.tipoProfessor}
+              onValueChange={(value: TipoProfessor) => setFormData({ ...formData, tipoProfessor: value })}
+            >
+              <SelectTrigger disabled={!isEditing}>
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TIPO_PROFESSOR_EFETIVO}>
+                  {TIPO_PROFESSOR_LABELS[TIPO_PROFESSOR_EFETIVO]}
+                </SelectItem>
+                <SelectItem value={TIPO_PROFESSOR_SUBSTITUTO}>
+                  {TIPO_PROFESSOR_LABELS[TIPO_PROFESSOR_SUBSTITUTO]}
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -10,6 +10,7 @@ import {
   phoneSchema,
   professorStatusSchema,
   regimeSchema,
+  tipoProfessorSchema,
   userListItemSchema,
   usernameSchema,
   userRoleSchema,
@@ -108,6 +109,7 @@ export const userRouter = createTRPCRouter({
             telefone: phoneSchema,
             telefoneInstitucional: phoneSchema,
             regime: regimeSchema,
+            tipoProfessor: tipoProfessorSchema.optional(),
           })
           .optional(),
         studentData: z

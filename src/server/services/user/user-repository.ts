@@ -10,7 +10,7 @@ import {
   userTable,
   vagaTable,
 } from '@/server/db/schema'
-import type { AdminType, Regime, UserRole } from '@/types'
+import type { AdminType, Regime, TipoProfessor, UserRole } from '@/types'
 import {
   PROFESSOR,
   PROFESSOR_STATUS_ATIVO,
@@ -38,6 +38,7 @@ export interface UpdateProfileData {
     telefone?: string
     telefoneInstitucional?: string
     regime: Regime
+    tipoProfessor?: TipoProfessor
   }
   studentData?: {
     nomeCompleto: string
@@ -202,6 +203,7 @@ export const createUserRepository = (db: Database) => {
               telefone: data.professorData.telefone,
               telefoneInstitucional: data.professorData.telefoneInstitucional,
               regime: data.professorData.regime as Regime,
+              tipoProfessor: data.professorData.tipoProfessor,
               updatedAt: new Date(),
             })
             .where(eq(professorTable.userId, userId))
