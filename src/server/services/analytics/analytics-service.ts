@@ -1,16 +1,60 @@
 import type { db } from '@/server/db'
 import { sendPlanilhaPROGRADEmail } from '@/server/lib/email'
 import { NotFoundError, UnauthorizedError, ValidationError } from '@/server/lib/errors'
+import minioClient, { bucketName } from '@/server/lib/minio'
 import type { AdminType, DashboardMetrics, Semestre, UserRole } from '@/types'
 import { ADMIN, APPROVED, DRAFT, SUBMITTED, TIPO_PROPOSICAO_COLETIVA, TIPO_PROPOSICAO_INDIVIDUAL } from '@/types'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
+import { v4 as uuidv4 } from 'uuid'
 import { createAnalyticsRepository } from './analytics-repository'
 
 const EMAIL_IC_CHAVE = 'EMAIL_INSTITUTO_COMPUTACAO'
 
 type Database = typeof db
 const log = logger.child({ context: 'AnalyticsService' })
+
+/**
+ * Check if a project has a signed PDF in MinIO
+ * PDFs are stored at: projetos/{projetoId}/propostas_assinadas/proposta_{projetoId}_*.pdf
+ */
+async function checkProjectHasPdfInMinio(projetoId: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const prefix = `projetos/${projetoId}/propostas_assinadas/`
+    const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
+
+    let found = false
+
+    objectsStream.on('data', (obj) => {
+      if (obj.name?.endsWith('.pdf') && obj.name.includes(`proposta_${projetoId}_`)) {
+        found = true
+      }
+    })
+
+    objectsStream.on('error', (err) => {
+      log.warn({ projetoId, error: err }, 'Error checking MinIO for project PDF')
+      resolve(false)
+    })
+
+    objectsStream.on('end', () => {
+      resolve(found)
+    })
+  })
+}
+
+/**
+ * Check multiple projects for PDFs in MinIO in parallel
+ */
+async function checkProjectsHavePdfsInMinio(projetoIds: number[]): Promise<Set<number>> {
+  const results = await Promise.all(
+    projetoIds.map(async (id) => {
+      const hasPdf = await checkProjectHasPdfInMinio(id)
+      return { id, hasPdf }
+    })
+  )
+
+  return new Set(results.filter((r) => r.hasPdf).map((r) => r.id))
+}
 
 export function createAnalyticsService(db: Database) {
   const repo = createAnalyticsRepository(db)
@@ -160,7 +204,8 @@ export function createAnalyticsService(db: Database) {
       ano: number,
       semestre: Semestre,
       userRole: UserRole,
-      adminType?: AdminType | null
+      adminType?: AdminType | null,
+      userId?: number
     ) {
       if (userRole !== ADMIN) {
         throw new UnauthorizedError('Acesso permitido apenas para administradores')
@@ -168,21 +213,74 @@ export function createAnalyticsService(db: Database) {
 
       const projetos = await repo.getApprovedProjectsForPROGRAD(ano, semestre, adminType)
 
+      if (projetos.length === 0) {
+        log.info({ ano, semestre }, 'Nenhum projeto aprovado para planilha PROGRAD')
+        return { semestre, ano, projetos: [] }
+      }
+
+      const projetoIds = projetos.map((p) => p.id)
+
+      // Fetch existing valid tokens
+      const existingTokens = await repo.findActiveTokensForProjects(projetoIds)
+      const tokenByProjetoId = new Map(existingTokens.map((t) => [t.projetoId, t.token]))
+
+      // Check MinIO directly for signed PDFs (not the database table)
+      const projectsWithPdfInMinio = await checkProjectsHavePdfsInMinio(projetoIds)
+
+      log.info(
+        { totalProjetos: projetoIds.length, projectsWithPdf: projectsWithPdfInMinio.size },
+        'Checked MinIO for project PDFs'
+      )
+
+      // Generate tokens for projects that have signed PDFs but no valid token
+      const baseUrl = env.CLIENT_URL || 'http://localhost:3000'
+
+      // Use 10-year expiration for PROGRAD tokens to ensure permanent access
+      const PROGRAD_TOKEN_EXPIRATION_YEARS = 10
+
+      for (const projeto of projetos) {
+        if (projectsWithPdfInMinio.has(projeto.id) && !tokenByProjetoId.has(projeto.id) && userId) {
+          // Generate new token with long expiration for permanent access
+          const token = uuidv4()
+          const expiresAt = new Date()
+          expiresAt.setFullYear(expiresAt.getFullYear() + PROGRAD_TOKEN_EXPIRATION_YEARS)
+
+          try {
+            await repo.createPublicPdfToken({
+              projetoId: projeto.id,
+              token,
+              expiresAt,
+              createdByUserId: userId,
+            })
+            tokenByProjetoId.set(projeto.id, token)
+            log.debug({ projetoId: projeto.id }, 'Generated permanent public PDF token for PROGRAD')
+          } catch (error) {
+            log.warn({ projetoId: projeto.id, error }, 'Failed to generate public PDF token')
+          }
+        }
+      }
+
       log.info({ ano, semestre, totalProjetos: projetos.length }, 'Projetos aprovados para planilha PROGRAD obtidos')
 
       return {
         semestre,
         ano,
-        projetos: projetos.map((p) => ({
-          id: p.id,
-          codigo: p.disciplinaCodigo || 'N/A',
-          disciplinaNome: p.disciplinaNome || p.titulo || '',
-          professorNome: p.professorNome || '',
-          professoresParticipantes: p.professoresParticipantes || '',
-          departamentoNome: p.departamentoNome || '',
-          tipoProposicao: p.tipoProposicao || TIPO_PROPOSICAO_INDIVIDUAL,
-          linkPDF: `${env.CLIENT_URL}/api/projeto/${p.id}/pdf`,
-        })),
+        projetos: projetos.map((p) => {
+          const token = tokenByProjetoId.get(p.id)
+          // Use public PDF URL if token exists, otherwise fallback to empty
+          const linkPDF = token ? `${baseUrl}/api/public/projeto-pdf/${token}` : ''
+
+          return {
+            id: p.id,
+            codigo: p.disciplinaCodigo || 'N/A',
+            disciplinaNome: p.disciplinaNome || p.titulo || '',
+            professorNome: p.professorNome || '',
+            professoresParticipantes: p.professoresParticipantes || '',
+            departamentoNome: p.departamentoNome || '',
+            tipoProposicao: p.tipoProposicao || TIPO_PROPOSICAO_INDIVIDUAL,
+            linkPDF,
+          }
+        }),
       }
     },
 
@@ -203,8 +301,42 @@ export function createAnalyticsService(db: Database) {
         throw new NotFoundError('Projeto', 'Nenhum projeto aprovado encontrado para o período especificado')
       }
 
-      // Generate CSV content
-      const csvContent = this.generateCSV(projetos)
+      // Get public PDF URLs for CSV
+      const projetoIds = projetos.map((p) => p.id)
+      const existingTokens = await repo.findActiveTokensForProjects(projetoIds)
+      const tokenByProjetoId = new Map(existingTokens.map((t) => [t.projetoId, t.token]))
+
+      // Check MinIO directly for signed PDFs (not the database table)
+      const projectsWithPdfInMinio = await checkProjectsHavePdfsInMinio(projetoIds)
+
+      const baseUrl = env.CLIENT_URL || 'http://localhost:3000'
+
+      // Use 10-year expiration for PROGRAD tokens to ensure permanent access
+      const PROGRAD_TOKEN_EXPIRATION_YEARS = 10
+
+      // Generate tokens for projects without valid tokens
+      for (const projeto of projetos) {
+        if (projectsWithPdfInMinio.has(projeto.id) && !tokenByProjetoId.has(projeto.id)) {
+          const token = uuidv4()
+          const expiresAt = new Date()
+          expiresAt.setFullYear(expiresAt.getFullYear() + PROGRAD_TOKEN_EXPIRATION_YEARS)
+
+          try {
+            await repo.createPublicPdfToken({
+              projetoId: projeto.id,
+              token,
+              expiresAt,
+              createdByUserId: userId,
+            })
+            tokenByProjetoId.set(projeto.id, token)
+          } catch (error) {
+            log.warn({ projetoId: projeto.id, error }, 'Failed to generate public PDF token for email')
+          }
+        }
+      }
+
+      // Generate CSV content with proper PDF URLs
+      const csvContent = this.generateCSVWithUrls(projetos, tokenByProjetoId, baseUrl)
       const csvBuffer = Buffer.from(csvContent, 'utf-8')
 
       // Get IC email (global config)
@@ -256,7 +388,7 @@ export function createAnalyticsService(db: Database) {
       }
     },
 
-    generateCSV(
+    generateCSVWithUrls(
       projetos: Array<{
         id: number
         titulo: string
@@ -266,7 +398,9 @@ export function createAnalyticsService(db: Database) {
         professoresParticipantes: string | null
         departamentoNome: string | null
         tipoProposicao: string | null
-      }>
+      }>,
+      tokenByProjetoId: Map<number, string>,
+      baseUrl: string
     ): string {
       const headers = [
         'Unidade Universitária',
@@ -285,15 +419,20 @@ export function createAnalyticsService(db: Database) {
         return value
       }
 
-      const rows = projetos.map((p) => [
-        escapeCSV('Instituto de Computação'),
-        escapeCSV(p.departamentoNome || ''),
-        escapeCSV(p.disciplinaCodigo || 'N/A'),
-        escapeCSV(p.disciplinaNome || p.titulo || ''),
-        escapeCSV(p.professorNome || ''),
-        escapeCSV(p.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? p.professoresParticipantes || '' : ''),
-        escapeCSV(`${env.CLIENT_URL}/api/projeto/${p.id}/pdf`),
-      ])
+      const rows = projetos.map((p) => {
+        const token = tokenByProjetoId.get(p.id)
+        const linkPDF = token ? `${baseUrl}/api/public/projeto-pdf/${token}` : ''
+
+        return [
+          escapeCSV('Instituto de Computação'),
+          escapeCSV(p.departamentoNome || ''),
+          escapeCSV(p.disciplinaCodigo || 'N/A'),
+          escapeCSV(p.disciplinaNome || p.titulo || ''),
+          escapeCSV(p.professorNome || ''),
+          escapeCSV(p.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? p.professoresParticipantes || '' : ''),
+          escapeCSV(linkPDF),
+        ]
+      })
 
       return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n')
     },

@@ -26,11 +26,17 @@ export function normalizeForMatch(str: string): string {
 }
 
 /**
- * Checks if a search name matches the beginning of a full name
+ * Checks if a search name matches a full name using multiple strategies:
+ * 1. Exact match (highest priority)
+ * 2. First name match (search term equals first word of full name)
+ * 3. Prefix match (full name starts with search term)
+ *
  * Uses normalized comparison (no accents, case-insensitive)
  *
- * @example matchProfessorByFirstName("Gustavo", "Gustavo Silva Santos") // true
- * @example matchProfessorByFirstName("José", "Jose Andre Silva") // true
+ * @example matchProfessorByFirstName("Professor Demo", "Professor Demo") // true (exact)
+ * @example matchProfessorByFirstName("Gustavo", "Gustavo Silva Santos") // true (first name)
+ * @example matchProfessorByFirstName("José", "Jose Andre Silva") // true (first name)
+ * @example matchProfessorByFirstName("Gustavo Silva", "Gustavo Silva Santos") // true (prefix)
  * @example matchProfessorByFirstName("Silva", "Gustavo Silva") // false
  */
 export function matchProfessorByFirstName(searchName: string, fullName: string): boolean {
@@ -40,9 +46,17 @@ export function matchProfessorByFirstName(searchName: string, fullName: string):
   // Empty search should not match
   if (!normalizedSearch) return false
 
-  // Match exact first word or full name starts with search term
+  // 1. Exact match (highest priority - covers cases like "Professor Demo" = "Professor Demo")
+  if (normalizedFull === normalizedSearch) return true
+
+  // 2. Match exact first word (e.g., "Gustavo" matches "Gustavo Silva Santos")
   const firstWordFull = normalizedFull.split(' ')[0]
-  return firstWordFull === normalizedSearch || normalizedFull.startsWith(`${normalizedSearch} `)
+  if (firstWordFull === normalizedSearch) return true
+
+  // 3. Prefix match (e.g., "Gustavo Silva" matches "Gustavo Silva Santos")
+  if (normalizedFull.startsWith(`${normalizedSearch} `)) return true
+
+  return false
 }
 
 /**

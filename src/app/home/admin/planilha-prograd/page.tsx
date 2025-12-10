@@ -278,14 +278,18 @@ export default function PlanilhaPROGRADPage() {
                             : "-"}
                         </TableCell>
                         <TableCell>
-                          <a
-                            href={projeto.linkPDF}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline text-sm"
-                          >
-                            Ver
-                          </a>
+                          {projeto.linkPDF ? (
+                            <a
+                              href={projeto.linkPDF}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline text-sm"
+                            >
+                              Ver
+                            </a>
+                          ) : (
+                            <span className="text-gray-400 text-sm">-</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

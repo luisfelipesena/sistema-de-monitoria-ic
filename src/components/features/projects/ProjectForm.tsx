@@ -121,10 +121,13 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Semestre</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Selecione o semestre" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -143,10 +146,13 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipo</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Selecione o tipo" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

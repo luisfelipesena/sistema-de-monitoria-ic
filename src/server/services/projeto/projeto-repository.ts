@@ -423,6 +423,10 @@ export function createProjetoRepository(db: Database) {
       await db.insert(atividadeProjetoTable).values(values)
     },
 
+    async deleteAtividadesByProjetoId(projetoId: number) {
+      await db.delete(atividadeProjetoTable).where(eq(atividadeProjetoTable.projetoId, projetoId))
+    },
+
     // Professores Participantes
     async findProfessoresParticipantes(projetoId: number) {
       return db

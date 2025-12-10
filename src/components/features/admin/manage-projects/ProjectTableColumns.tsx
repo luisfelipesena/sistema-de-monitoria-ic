@@ -13,7 +13,7 @@ import {
   PROJETO_STATUS_SUBMITTED,
 } from "@/types"
 import type { ColumnDef, FilterFn } from "@tanstack/react-table"
-import { Download, Eye, Hand, List, Trash2, Users } from "lucide-react"
+import { Download, Eye, FileText, Hand, List, Trash2, Users } from "lucide-react"
 
 // Custom filter function for disciplina (matches any disciplina code in the array)
 const disciplinaFilterFn: FilterFn<ManageProjectItem> = (row, columnId, filterValue) => {
@@ -185,16 +185,18 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
               </Button>
             )}
 
-            {/* <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full flex items-center gap-1"
-              onClick={() => actions.onViewPDF(projeto.id)}
-              disabled={isLoadingPdf}
-            >
-              <FileText className="h-4 w-4" />
-              {isLoadingPdf ? "Carregando..." : "Ver PDF"}
-            </Button> */}
+            {projeto.status === PROJETO_STATUS_APPROVED && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full flex items-center gap-1"
+                onClick={() => actions.onViewPDF(projeto.id)}
+                disabled={isLoadingPdf}
+              >
+                <FileText className="h-4 w-4" />
+                {isLoadingPdf ? "Carregando..." : "Ver PDF"}
+              </Button>
+            )}
 
             <Button
               variant="outline"

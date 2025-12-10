@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm'
+import { and, desc, eq, gt, gte, isNull, lte, sql } from 'drizzle-orm'
 import type { db } from '@/server/db'
 import {
   alunoTable,
@@ -8,12 +8,19 @@ import {
   inscricaoTable,
   periodoInscricaoTable,
   professorTable,
+  projetoDocumentoTable,
   projetoDisciplinaTable,
   projetoTable,
+  publicPdfTokenTable,
   vagaTable,
 } from '@/server/db/schema'
 import type { AdminType, ProjetoStatus, Semestre } from '@/types'
-import { APPROVED, SUBMITTED } from '@/types'
+import {
+  APPROVED,
+  SUBMITTED,
+  TIPO_DOCUMENTO_PROPOSTA_ASSINADA_ADMIN,
+  TIPO_DOCUMENTO_PROPOSTA_ASSINADA_PROFESSOR,
+} from '@/types'
 
 type Database = typeof db
 
@@ -327,6 +334,61 @@ export function createAnalyticsRepository(db: Database) {
       return db.query.configuracaoSistemaTable.findFirst({
         where: eq(configuracaoSistemaTable.chave, chave),
       })
+    },
+
+    /**
+     * Find valid (non-expired, non-revoked) public PDF tokens for a list of project IDs
+     */
+    async findActiveTokensForProjects(projetoIds: number[]) {
+      if (projetoIds.length === 0) return []
+
+      return db
+        .select({
+          projetoId: publicPdfTokenTable.projetoId,
+          token: publicPdfTokenTable.token,
+          expiresAt: publicPdfTokenTable.expiresAt,
+        })
+        .from(publicPdfTokenTable)
+        .where(
+          and(
+            sql`${publicPdfTokenTable.projetoId} = ANY(ARRAY[${sql.raw(projetoIds.join(','))}]::int[])`,
+            gt(publicPdfTokenTable.expiresAt, new Date()),
+            isNull(publicPdfTokenTable.revokedAt)
+          )
+        )
+    },
+
+    /**
+     * Find signed documents for a list of project IDs
+     */
+    async findSignedDocumentsForProjects(projetoIds: number[]) {
+      if (projetoIds.length === 0) return []
+
+      return db
+        .select({
+          projetoId: projetoDocumentoTable.projetoId,
+          fileId: projetoDocumentoTable.fileId,
+          tipoDocumento: projetoDocumentoTable.tipoDocumento,
+        })
+        .from(projetoDocumentoTable)
+        .where(
+          and(
+            sql`${projetoDocumentoTable.projetoId} = ANY(ARRAY[${sql.raw(projetoIds.join(','))}]::int[])`,
+            sql`${projetoDocumentoTable.tipoDocumento} IN (${TIPO_DOCUMENTO_PROPOSTA_ASSINADA_ADMIN}, ${TIPO_DOCUMENTO_PROPOSTA_ASSINADA_PROFESSOR})`
+          )
+        )
+    },
+
+    /**
+     * Create a public PDF token
+     */
+    async createPublicPdfToken(data: {
+      projetoId: number
+      token: string
+      expiresAt: Date
+      createdByUserId: number
+    }) {
+      await db.insert(publicPdfTokenTable).values(data)
     },
   }
 }

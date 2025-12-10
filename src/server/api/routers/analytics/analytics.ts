@@ -78,7 +78,13 @@ export const analyticsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       try {
         const service = createAnalyticsService(ctx.db)
-        return await service.getApprovedProjectsPROGRAD(input.ano, input.semestre, ctx.user.role, ctx.user.adminType)
+        return await service.getApprovedProjectsPROGRAD(
+          input.ano,
+          input.semestre,
+          ctx.user.role,
+          ctx.user.adminType,
+          ctx.user.id
+        )
       } catch (error) {
         if (error instanceof UnauthorizedError) {
           throw new TRPCError({

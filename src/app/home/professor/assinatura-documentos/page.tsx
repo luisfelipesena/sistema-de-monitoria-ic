@@ -1,54 +1,84 @@
 "use client"
 
 import { InteractiveProjectPDF } from "@/components/features/projects/InteractiveProjectPDF"
+import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { PagesLayout } from "@/components/layout/PagesLayout"
+import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useAuth } from "@/hooks/use-auth"
+import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
+import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
 import {
+  DashboardProjectItem,
   GENERO_OUTRO,
   MonitoriaFormData,
   PROFESSOR,
-  PROJETO_STATUS_APPROVED,
   PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_LABELS,
   PROJETO_STATUS_PENDING_SIGNATURE,
-  PROJETO_STATUS_REJECTED,
-  PROJETO_STATUS_SUBMITTED,
   REGIME_20H,
   SEMESTRE_1,
   SIGNING_MODE_PROFESSOR,
 } from "@/types"
 import { api } from "@/utils/api"
-import { ArrowLeft, CheckCircle, FileSignature } from "lucide-react"
-import { useSearchParams } from "next/navigation"
-import { Suspense, useMemo, useState } from "react"
+import { ColumnDef } from "@tanstack/react-table"
+import { ArrowLeft, CheckCircle, FileSignature, List, Loader, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { parseAsInteger, useQueryState } from "nuqs"
+import { Suspense, useEffect, useMemo, useRef } from "react"
+
+// Filter options for status - only show statuses that need signing
+const statusFilterOptions = [
+  { value: PROJETO_STATUS_DRAFT, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_DRAFT] },
+  { value: PROJETO_STATUS_PENDING_SIGNATURE, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_PENDING_SIGNATURE] },
+]
 
 function DocumentSigningContent() {
   const { user } = useAuth()
-  const searchParams = useSearchParams()
-  const projectId = searchParams.get("projetoId")
+  const router = useRouter()
+  const referrerRef = useRef<string | null>(null)
+
+  // Capture referrer on mount
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      referrerRef.current = document.referrer
+    }
+  }, [])
+
+  // Use nuqs for projetoId URL state
+  const [selectedProjectId, setSelectedProjectId] = useQueryState("projetoId", parseAsInteger)
+
   const { data: projetos, isLoading: loadingProjetos, refetch } = api.projeto.getProjetos.useQuery()
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(projectId ? parseInt(projectId) : null)
 
   const { data: selectedProject, isLoading: loadingProject } = api.projeto.getProjeto.useQuery(
     { id: selectedProjectId || 0 },
-    { enabled: !!selectedProjectId }
+    { enabled: !!selectedProjectId, refetchOnMount: true, staleTime: 0 }
   )
 
-  // Filter projects that are DRAFT or PENDING_PROFESSOR_SIGNATURE (need professor signing)
+  // Column filters with URL state persistence
+  const { columnFilters, setColumnFilters } = useUrlColumnFilters({
+    useCurrentSemester: true,
+  })
+
+  // Filter projects that need professor signing
   const pendingSignatureProjetos = useMemo(() => {
     if (!projetos || !user) return []
 
     return projetos.filter((projeto) => {
-      // For professors, show only projects that need professor signature
       return projeto.status === PROJETO_STATUS_DRAFT || projeto.status === PROJETO_STATUS_PENDING_SIGNATURE
     })
   }, [projetos, user])
 
   const templateData = useMemo((): MonitoriaFormData | null => {
     if (!selectedProject) return null
+
+    // Extract atividades descriptions from the project
+    const atividadesFromProject = selectedProject.atividades || []
+    const atividades: string[] = atividadesFromProject.map((a: { descricao: string } | string) => {
+      if (typeof a === "string") return a
+      return a.descricao
+    })
 
     return {
       titulo: selectedProject.titulo,
@@ -82,6 +112,7 @@ function DocumentSigningContent() {
       publicoAlvo: selectedProject.publicoAlvo,
       estimativaPessoasBenificiadas: selectedProject.estimativaPessoasBenificiadas || 0,
       disciplinas: selectedProject.disciplinas || [],
+      atividades,
       user: {
         username: user?.username,
         email: user?.email,
@@ -96,7 +127,15 @@ function DocumentSigningContent() {
   }, [selectedProject, user])
 
   const handleBackToList = () => {
-    setSelectedProjectId(null)
+    // Check if user came from dashboard
+    const cameFromDashboard = referrerRef.current?.includes("/home/professor/dashboard")
+
+    if (cameFromDashboard) {
+      router.push("/home/professor/dashboard")
+    } else {
+      // Just clear the selection to show the list
+      setSelectedProjectId(null)
+    }
   }
 
   const handleSignComplete = () => {
@@ -104,22 +143,102 @@ function DocumentSigningContent() {
     setSelectedProjectId(null)
   }
 
-  const renderStatusBadge = (status: string) => {
-    switch (status) {
-      case PROJETO_STATUS_DRAFT:
-        return <Badge variant="outline">Aguardando Assinatura Professor</Badge>
-      case PROJETO_STATUS_PENDING_SIGNATURE:
-        return <Badge variant="outline">Aguardando Assinatura Professor</Badge>
-      case PROJETO_STATUS_SUBMITTED:
-        return <Badge variant="secondary">Submetido para Análise</Badge>
-      case PROJETO_STATUS_APPROVED:
-        return <Badge className="bg-green-100 text-green-800">Aprovado</Badge>
-      case PROJETO_STATUS_REJECTED:
-        return <Badge variant="destructive">Rejeitado</Badge>
-      default:
-        return <Badge>{status}</Badge>
-    }
+  const handleSelectProject = (projetoId: number) => {
+    setSelectedProjectId(projetoId)
   }
+
+  // Column definitions for the projects table
+  const colunasProjetos: ColumnDef<DashboardProjectItem>[] = [
+    {
+      header: () => (
+        <div className="flex items-center gap-2">
+          <List className="h-5 w-5 text-gray-400" />
+          Componente Curricular
+        </div>
+      ),
+      accessorKey: "titulo",
+      cell: ({ row }) => {
+        const disciplinas = row.original.disciplinas
+        const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
+        const nomeDisciplina = disciplinas.length > 0 ? disciplinas[0].nome : row.original.titulo
+        return (
+          <div>
+            <span className="font-semibold text-base text-gray-900">{codigoDisciplina}</span>
+            <p className="text-sm text-gray-500">{nomeDisciplina}</p>
+          </div>
+        )
+      },
+    },
+    {
+      header: createFilterableHeader<DashboardProjectItem>({
+        title: "Status",
+        filterType: "multiselect",
+        filterOptions: statusFilterOptions,
+      }),
+      accessorKey: "status",
+      filterFn: multiselectFilterFn,
+      cell: ({ row }) => {
+        const status = row.original.status
+        if (status === PROJETO_STATUS_DRAFT) {
+          return <Badge variant="outline">Rascunho</Badge>
+        } else if (status === PROJETO_STATUS_PENDING_SIGNATURE) {
+          return (
+            <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+              Aguardando Assinatura
+            </Badge>
+          )
+        }
+        return <Badge variant="outline">{status}</Badge>
+      },
+    },
+    {
+      header: createFilterableHeader<DashboardProjectItem>({
+        title: "Ano",
+        filterType: "multiselect",
+        filterOptions: createYearFilterOptions(),
+      }),
+      accessorKey: "ano",
+      filterFn: multiselectFilterFn,
+      cell: ({ row }) => <div className="text-center">{row.original.ano}</div>,
+    },
+    {
+      header: createFilterableHeader<DashboardProjectItem>({
+        title: "Semestre",
+        filterType: "multiselect",
+        filterOptions: createSemesterFilterOptions(),
+      }),
+      accessorKey: "semestre",
+      filterFn: multiselectFilterFn,
+      cell: ({ row }) => <div className="text-center">{row.original.semestre === SEMESTRE_1 ? "1º" : "2º"}</div>,
+    },
+    {
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-gray-400" />
+          Voluntários
+        </div>
+      ),
+      accessorKey: "voluntariosSolicitados",
+      cell: ({ row }) => {
+        const voluntarios = row.original.voluntariosSolicitados ?? 0
+        return <div className="text-center text-green-600 font-medium">{voluntarios}</div>
+      },
+    },
+    {
+      header: "Ações",
+      accessorKey: "acoes",
+      cell: ({ row }) => {
+        const projeto = row.original
+
+        return (
+          <Button variant="primary" size="sm" onClick={() => handleSelectProject(projeto.id)}>
+            <FileSignature className="h-4 w-4 mr-2" />
+            Assinar Projeto
+          </Button>
+        )
+      },
+    },
+  ]
 
   if (user?.role !== PROFESSOR) {
     return (
@@ -134,139 +253,99 @@ function DocumentSigningContent() {
   // Show signing interface if a project is selected
   if (selectedProjectId && templateData) {
     return (
-      <PagesLayout title="Assinatura de Projeto - Professor" subtitle={`Assine o projeto: ${templateData.titulo}`}>
+      <PagesLayout title="Assinatura de Projeto" subtitle={`Assine o projeto: ${templateData.titulo}`}>
         <div className="mb-4">
           <Button variant="outline" onClick={handleBackToList}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar para Lista
+            Voltar
           </Button>
         </div>
 
         {loadingProject ? (
           <div className="flex justify-center items-center py-8">
-            <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-              <p className="mt-2">Carregando projeto...</p>
-            </div>
+            <Loader className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Carregando projeto...</span>
           </div>
         ) : (
-          <InteractiveProjectPDF
-            formData={templateData}
-            userRole="professor"
-            onSignatureComplete={handleSignComplete}
-          />
+          <InteractiveProjectPDF formData={templateData} userRole="professor" onSignatureComplete={handleSignComplete} />
         )}
       </PagesLayout>
     )
   }
 
   return (
-    <PagesLayout title="Assinatura de Documentos - Professor" subtitle="Visualize e assine seus projetos de monitoria">
+    <PagesLayout
+      title="Assinatura de Documentos"
+      subtitle="Visualize e assine seus projetos de monitoria"
+    >
       {loadingProjetos ? (
         <div className="flex justify-center items-center py-8">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            <p className="mt-2">Carregando projetos...</p>
-          </div>
+          <Loader className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Carregando projetos...</span>
         </div>
+      ) : pendingSignatureProjetos.length > 0 ? (
+        <TableComponent
+          columns={colunasProjetos}
+          data={pendingSignatureProjetos}
+          columnFilters={columnFilters}
+          onColumnFiltersChange={setColumnFilters}
+        />
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileSignature className="h-5 w-5" />
-              Meus Projetos Aguardando Assinatura
-              {pendingSignatureProjetos.length > 0 && (
-                <Badge variant="outline" className="ml-2">
-                  {pendingSignatureProjetos.length} projeto(s)
-                </Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {pendingSignatureProjetos.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <CheckCircle className="mx-auto h-12 w-12 mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhum projeto aguardando assinatura</h3>
-                <p>Todos os seus projetos foram assinados ou não há projetos em rascunho aguardando sua assinatura.</p>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Departamento</TableHead>
-                    <TableHead>Semestre</TableHead>
-                    <TableHead>Bolsas</TableHead>
-                    <TableHead>Voluntários</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingSignatureProjetos.map((projeto) => (
-                    <TableRow key={projeto.id}>
-                      <TableCell className="font-medium">{projeto.titulo}</TableCell>
-                      <TableCell>{projeto.departamentoNome}</TableCell>
-                      <TableCell>
-                        {projeto.ano}.{projeto.semestre === SEMESTRE_1 ? 1 : 2}
-                      </TableCell>
-                      <TableCell>{projeto.bolsasSolicitadas || 0}</TableCell>
-                      <TableCell>{projeto.voluntariosSolicitados || 0}</TableCell>
-                      <TableCell>{renderStatusBadge(projeto.status)}</TableCell>
-                      <TableCell>
-                        <Button variant="primary" size="sm" onClick={() => setSelectedProjectId(projeto.id)}>
-                          <FileSignature className="h-4 w-4 mr-2" />
-                          Assinar Projeto
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+        <div className="text-center py-12 border rounded-md bg-muted/20">
+          <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
+          <h3 className="text-lg font-medium mb-2">Nenhum projeto aguardando assinatura</h3>
+          <p className="text-muted-foreground">
+            Todos os seus projetos foram assinados ou não há projetos em rascunho.
+          </p>
+        </div>
       )}
 
       {/* Instructions Card */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-lg">Como Funciona o Processo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-muted-foreground">
-          <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
+      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-blue-900 mb-4">Como Funciona o Processo</h3>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="flex items-start gap-3">
+            <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
               1
             </span>
-            <p>Visualize o PDF do seu projeto clicando em "Assinar Projeto"</p>
+            <p className="text-sm text-blue-800">Clique em "Assinar Projeto" para visualizar o PDF</p>
           </div>
-          <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
+          <div className="flex items-start gap-3">
+            <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
               2
             </span>
-            <p>Clique em "Assinar como Professor" para abrir o modal de assinatura</p>
+            <p className="text-sm text-blue-800">Clique em "Assinar como Professor" para abrir o modal</p>
           </div>
-          <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
+          <div className="flex items-start gap-3">
+            <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
               3
             </span>
-            <p>Desenhe sua assinatura e clique em "Salvar Assinatura"</p>
+            <p className="text-sm text-blue-800">Desenhe sua assinatura e clique em "Salvar"</p>
           </div>
-          <div className="flex items-start gap-2">
-            <span className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs font-medium">
+          <div className="flex items-start gap-3">
+            <span className="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
               4
             </span>
-            <p>O documento será automaticamente assinado e submetido para análise do administrador</p>
+            <p className="text-sm text-green-800">O documento será submetido para análise do administrador</p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </PagesLayout>
   )
 }
 
 export default function DocumentSigningPage() {
   return (
-    <Suspense fallback={<div>Carregando...</div>}>
+    <Suspense
+      fallback={
+        <PagesLayout title="Assinatura de Documentos">
+          <div className="flex justify-center items-center py-8">
+            <Loader className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Carregando...</span>
+          </div>
+        </PagesLayout>
+      }
+    >
       <DocumentSigningContent />
     </Suspense>
   )

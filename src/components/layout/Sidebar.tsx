@@ -295,6 +295,18 @@ const menuConfig: MenuConfig[] = [
         icon: LayoutDashboard,
         roles: ["professor"],
       },
+      {
+        label: "Novo Projeto",
+        href: "/home/professor/projetos/novo",
+        icon: FilePlus,
+        roles: ["professor"],
+      },
+      {
+        label: "Assinar Documentos",
+        href: "/home/professor/assinatura-documentos",
+        icon: FileSignature,
+        roles: ["professor"],
+      },
     ],
   },
 

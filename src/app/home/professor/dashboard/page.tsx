@@ -253,7 +253,7 @@ export default function DashboardProfessor() {
 
         return (
           <div className="flex gap-2">
-            {(projeto.status === PROJETO_STATUS_DRAFT || projeto.status === PROJETO_STATUS_PENDING_SIGNATURE) && (
+            {projeto.status === PROJETO_STATUS_DRAFT && (
               <>
                 <Link href={`/home/professor/projetos/${projeto.id}/edit`}>
                   <Button variant="outline" size="sm" className="rounded-full flex items-center gap-1">
@@ -278,6 +278,19 @@ export default function DashboardProfessor() {
                   Excluir
                 </Button>
               </>
+            )}
+
+            {projeto.status === PROJETO_STATUS_PENDING_SIGNATURE && (
+              <Link href={`/home/professor/projetos/${projeto.id}/edit`}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="rounded-full flex items-center gap-1 bg-amber-100 text-amber-800 hover:bg-amber-200 border-amber-300"
+                >
+                  <Edit className="h-4 w-4" />
+                  Revisar
+                </Button>
+              </Link>
             )}
 
             {(projeto.status === PROJETO_STATUS_SUBMITTED || projeto.status === PROJETO_STATUS_APPROVED || projeto.status === PROJETO_STATUS_REJECTED) && (

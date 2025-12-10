@@ -10,6 +10,44 @@ const log = logger.child({ context: 'PublicPdfService' })
 type Database = typeof db
 
 /**
+ * Find the latest signed PDF for a project directly from MinIO.
+ * PDFs are stored at: projetos/{projetoId}/propostas_assinadas/proposta_{projetoId}_*.pdf
+ */
+async function findLatestPdfInMinio(projetoId: number): Promise<string | null> {
+  return new Promise((resolve) => {
+    const prefix = `projetos/${projetoId}/propostas_assinadas/`
+    const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
+
+    const projectFiles: Array<{ name: string; lastModified: Date }> = []
+
+    objectsStream.on('data', (obj) => {
+      if (obj.name?.endsWith('.pdf') && obj.name.includes(`proposta_${projetoId}_`)) {
+        projectFiles.push({
+          name: obj.name,
+          lastModified: obj.lastModified || new Date(),
+        })
+      }
+    })
+
+    objectsStream.on('error', (err) => {
+      log.warn({ projetoId, error: err }, 'Error listing PDFs in MinIO')
+      resolve(null)
+    })
+
+    objectsStream.on('end', () => {
+      if (projectFiles.length === 0) {
+        resolve(null)
+        return
+      }
+
+      // Get the most recent file
+      const latestFile = projectFiles.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())[0]
+      resolve(latestFile?.name || null)
+    })
+  })
+}
+
+/**
  * Service for generating and validating public PDF access tokens.
  * These tokens allow external users (PROGRAD, department heads) to access
  * project PDFs without authentication.
@@ -33,9 +71,9 @@ export function createPublicPdfService(db: Database) {
         throw new NotFoundError('Projeto', projetoId)
       }
 
-      // Check if project has signed document
-      const signedDoc = await repo.findSignedDocumentByProjetoId(projetoId)
-      if (!signedDoc) {
+      // Check if project has signed document in MinIO
+      const pdfObjectName = await findLatestPdfInMinio(projetoId)
+      if (!pdfObjectName) {
         throw new BusinessError(
           'Projeto não possui documento PDF assinado. O projeto precisa estar assinado para gerar link público.',
           'NO_SIGNED_PDF'
@@ -84,19 +122,19 @@ export function createPublicPdfService(db: Database) {
       // Update last access time
       await repo.updateTokenAccessTime(token)
 
-      // Find the signed PDF file
-      const signedDoc = await repo.findSignedDocumentByProjetoId(tokenData.projetoId)
-      if (!signedDoc || !signedDoc.fileId) {
+      // Find the signed PDF file directly in MinIO (not in database table)
+      const pdfObjectName = await findLatestPdfInMinio(tokenData.projetoId)
+      if (!pdfObjectName) {
         throw new NotFoundError('PDF do projeto', tokenData.projetoId)
       }
 
       // Generate presigned URL with extended expiration (1 hour for download)
-      const presignedUrl = await minioClient.presignedGetObject(bucketName, signedDoc.fileId, 60 * 60, {
+      const presignedUrl = await minioClient.presignedGetObject(bucketName, pdfObjectName, 60 * 60, {
         'Content-Disposition': 'inline',
         'Content-Type': 'application/pdf',
       })
 
-      log.info({ projetoId: tokenData.projetoId, token }, 'Public PDF accessed via token')
+      log.info({ projetoId: tokenData.projetoId, token, pdfObjectName }, 'Public PDF accessed via token')
 
       return {
         url: presignedUrl,

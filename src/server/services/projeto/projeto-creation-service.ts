@@ -48,6 +48,13 @@ export function createProjetoCreationService(repo: ProjetoRepository) {
         throw new ValidationError('Um projeto pode ter apenas uma disciplina vinculada, conforme edital')
       }
 
+      // Validate at least one vacancy is requested
+      const bolsas = input.bolsasSolicitadas ?? 0
+      const voluntarios = input.voluntariosSolicitados ?? 0
+      if (bolsas === 0 && voluntarios === 0) {
+        throw new ValidationError('É necessário solicitar pelo menos 1 vaga (bolsista ou voluntário)')
+      }
+
       // Verificar duplicação de disciplina-turma no período
       if (disciplinaIdsToUse && disciplinaIdsToUse.length > 0) {
         const disciplinaId = disciplinaIdsToUse[0]
@@ -173,7 +180,21 @@ export function createProjetoCreationService(repo: ProjetoRepository) {
         }
       }
 
+      // Validate at least one vacancy is requested
+      const bolsas = input.bolsasSolicitadas ?? projeto.bolsasSolicitadas ?? 0
+      const voluntarios = input.voluntariosSolicitados ?? projeto.voluntariosSolicitados ?? 0
+      if (bolsas === 0 && voluntarios === 0) {
+        throw new ValidationError('É necessário solicitar pelo menos 1 vaga (bolsista ou voluntário)')
+      }
+
       const updateData: Record<string, unknown> = {}
+
+      // If project was PENDING_SIGNATURE and is being edited, reset to DRAFT
+      // This allows the professor to properly review, edit and then sign again
+      if (projeto.status === PROJETO_STATUS_PENDING_SIGNATURE) {
+        updateData.status = PROJETO_STATUS_DRAFT
+        log.info({ projetoId: input.id }, 'Project status reset from PENDING_SIGNATURE to DRAFT for editing')
+      }
       if (input.titulo !== undefined) updateData.titulo = input.titulo
       if (input.descricao !== undefined) updateData.descricao = input.descricao
       if (input.departamentoId !== undefined) updateData.departamentoId = input.departamentoId
@@ -190,6 +211,21 @@ export function createProjetoCreationService(repo: ProjetoRepository) {
       if (input.status !== undefined) updateData.status = input.status
 
       await repo.update(input.id, updateData)
+
+      // Update atividades if provided - delete existing and insert new ones
+      if (input.atividades !== undefined) {
+        await repo.deleteAtividadesByProjetoId(input.id)
+
+        if (input.atividades.length > 0) {
+          const atividadeValues = input.atividades.map((descricao) => ({
+            projetoId: input.id,
+            descricao,
+          }))
+          await repo.insertAtividades(atividadeValues)
+        }
+
+        log.info({ projetoId: input.id, atividadesCount: input.atividades.length }, 'Atividades do projeto atualizadas')
+      }
 
       const projetoCompleto = await repo.findByIdWithRelations(input.id)
       if (!projetoCompleto) {
