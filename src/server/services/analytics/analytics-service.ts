@@ -2,10 +2,12 @@ import type { db } from '@/server/db'
 import { sendPlanilhaPROGRADEmail } from '@/server/lib/email'
 import { NotFoundError, UnauthorizedError, ValidationError } from '@/server/lib/errors'
 import minioClient, { bucketName } from '@/server/lib/minio'
+import { PDFService } from '@/server/lib/pdf-service'
 import type { AdminType, DashboardMetrics, Semestre, UserRole } from '@/types'
 import { ADMIN, APPROVED, DRAFT, SUBMITTED, TIPO_PROPOSICAO_COLETIVA, TIPO_PROPOSICAO_INDIVIDUAL } from '@/types'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
+import { sanitizeForFilename } from '@/utils/string-normalization'
 import { v4 as uuidv4 } from 'uuid'
 import { createAnalyticsRepository } from './analytics-repository'
 
@@ -16,7 +18,9 @@ const log = logger.child({ context: 'AnalyticsService' })
 
 /**
  * Check if a project has a signed PDF in MinIO
- * PDFs are stored at: projetos/{projetoId}/propostas_assinadas/proposta_{projetoId}_*.pdf
+ * Searches for both patterns:
+ * - New: {codigo}_{professor}_{ano}_{semestre}.pdf (e.g., MATA37_JOSE_SILVA_2024_SEMESTRE_1.pdf)
+ * - Old: proposta_{projetoId}_*.pdf (backward compatibility)
  */
 async function checkProjectHasPdfInMinio(projetoId: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -26,8 +30,15 @@ async function checkProjectHasPdfInMinio(projetoId: number): Promise<boolean> {
     let found = false
 
     objectsStream.on('data', (obj) => {
-      if (obj.name?.endsWith('.pdf') && obj.name.includes(`proposta_${projetoId}_`)) {
-        found = true
+      if (obj.name?.endsWith('.pdf')) {
+        // Check for new pattern: {codigo}_{professor}_{ano}_{semestre}.pdf
+        const isNewPattern = /_\d{4}_SEMESTRE_[12]\.pdf$/.test(obj.name || '')
+        // Check for old pattern: proposta_{projetoId}_*.pdf
+        const isOldPattern = obj.name.includes(`proposta_${projetoId}_`)
+
+        if (isNewPattern || isOldPattern) {
+          found = true
+        }
       }
     })
 
@@ -339,6 +350,35 @@ export function createAnalyticsService(db: Database) {
       const csvContent = this.generateCSVWithUrls(projetos, tokenByProjetoId, baseUrl)
       const csvBuffer = Buffer.from(csvContent, 'utf-8')
 
+      // Fetch individual project PDFs for attachments
+      const pdfAttachments: Array<{ filename: string; content: Buffer; contentType: string }> = []
+      for (const projeto of projetos) {
+        if (projectsWithPdfInMinio.has(projeto.id)) {
+          try {
+            const pdfData = await PDFService.getLatestProjetoPDF(projeto.id)
+            if (pdfData) {
+              const codigo = projeto.disciplinaCodigo || 'PROJETO'
+              const professorNome = projeto.professorNome || 'PROFESSOR'
+              const filename = `${codigo}_${sanitizeForFilename(professorNome)}.pdf`
+              pdfAttachments.push({
+                filename,
+                content: pdfData.buffer,
+                contentType: 'application/pdf',
+              })
+              log.debug({ projetoId: projeto.id, filename }, 'PDF attachment prepared for email')
+            }
+          } catch (error) {
+            log.warn({ projetoId: projeto.id, error }, 'Failed to fetch PDF for email attachment')
+            // Continue with other projects even if one fails
+          }
+        }
+      }
+
+      log.info(
+        { totalProjetos: projetos.length, pdfAttachments: pdfAttachments.length },
+        'PDF attachments prepared for PROGRAD email'
+      )
+
       // Get IC email (global config)
       const icEmailConfig = await repo.getConfiguracaoSistema(EMAIL_IC_CHAVE)
       const icEmail = icEmailConfig?.valor
@@ -366,6 +406,7 @@ export function createAnalyticsService(db: Database) {
             ano,
             remetenteUserId: userId,
             isCSV: true,
+            projectPdfAttachments: pdfAttachments,
           })
         )
       )

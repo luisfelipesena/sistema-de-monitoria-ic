@@ -108,3 +108,26 @@ export function sanitizeDisciplineCode(code: string): string {
 export function sanitizeSiape(siape: string): string {
   return siape.trim().replace(/\D/g, '')
 }
+
+/**
+ * Sanitizes a name for use in filenames:
+ * - Removes accents/diacritics
+ * - Converts to uppercase
+ * - Replaces spaces with underscores
+ * - Removes special characters (keeps only alphanumeric and underscores)
+ *
+ * @example sanitizeForFilename("José André Silva") // "JOSE_ANDRE_SILVA"
+ * @example sanitizeForFilename("Maria da Silva") // "MARIA_DA_SILVA"
+ */
+export function sanitizeForFilename(name: string): string {
+  return (
+    name
+      .normalize('NFD')
+      // biome-ignore lint/suspicious/noMisleadingCharacterClass: Standard Unicode diacritic removal pattern
+      .replace(/[\u0300-\u036f]/g, '') // remove diacritics
+      .toUpperCase()
+      .trim()
+      .replace(/\s+/g, '_') // Replace spaces with underscores
+      .replace(/[^A-Z0-9_]/g, '') // Remove special characters, keep only alphanumeric and underscores
+  )
+}

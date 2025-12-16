@@ -83,28 +83,21 @@ const styles = StyleSheet.create({
   },
   // Componente Curricular
   tableCol4: {
-    width: "20%",
+    width: "27%",
     borderRight: "1pt solid #000",
     padding: 3,
     justifyContent: "center",
   },
   // Professor Responsável
   tableCol5: {
-    width: "16%",
+    width: "18%",
     borderRight: "1pt solid #000",
     padding: 3,
     justifyContent: "center",
   },
   // Professores participantes
   tableCol6: {
-    width: "16%",
-    borderRight: "1pt solid #000",
-    padding: 3,
-    justifyContent: "center",
-  },
-  // Link PDF
-  tableCol7: {
-    width: "10%",
+    width: "18%",
     padding: 3,
     justifyContent: "center",
   },
@@ -152,16 +145,13 @@ export interface PlanilhaPROGRADProps extends DocumentProps {
 
 export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps): ReactElement<DocumentProps> {
   // Group projects by department and sort
-  const projetosPorDepartamento = data.projetos.reduce(
-    (acc, projeto) => {
-      if (!acc[projeto.departamentoNome]) {
-        acc[projeto.departamentoNome] = []
-      }
-      acc[projeto.departamentoNome].push(projeto)
-      return acc
-    },
-    {} as Record<string, typeof data.projetos>
-  )
+  const projetosPorDepartamento = data.projetos.reduce((acc, projeto) => {
+    if (!acc[projeto.departamentoNome]) {
+      acc[projeto.departamentoNome] = []
+    }
+    acc[projeto.departamentoNome].push(projeto)
+    return acc
+  }, {} as Record<string, typeof data.projetos>)
 
   // Sort departments alphabetically
   const sortedDepartments = Object.keys(projetosPorDepartamento).sort()
@@ -207,9 +197,6 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
             <View style={styles.tableCol6}>
               <Text style={styles.headerCellText}>Professores participantes{"\n"}(Projetos coletivos)</Text>
             </View>
-            <View style={styles.tableCol7}>
-              <Text style={styles.headerCellText}>Link PDF</Text>
-            </View>
           </View>
 
           {/* Table Rows - grouped by department */}
@@ -229,7 +216,13 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
                       <Text style={styles.tableCellText}>{projeto.codigo}</Text>
                     </View>
                     <View style={styles.tableCol4}>
-                      <Text style={styles.tableCellTextLeft}>{projeto.disciplinaNome}</Text>
+                      {projeto.linkPDF ? (
+                        <Link src={projeto.linkPDF} style={styles.linkText}>
+                          <Text style={styles.tableCellTextLeft}>{projeto.disciplinaNome}</Text>
+                        </Link>
+                      ) : (
+                        <Text style={styles.tableCellTextLeft}>{projeto.disciplinaNome}</Text>
+                      )}
                     </View>
                     <View style={styles.tableCol5}>
                       <Text style={styles.tableCellTextLeft}>{projeto.professorNome}</Text>
@@ -240,15 +233,6 @@ export function PlanilhaPROGRADDocument({ data, ...rest }: PlanilhaPROGRADProps)
                           ? projeto.professoresParticipantes || ""
                           : ""}
                       </Text>
-                    </View>
-                    <View style={styles.tableCol7}>
-                      {projeto.linkPDF ? (
-                        <Link src={projeto.linkPDF} style={styles.linkText}>
-                          Ver PDF
-                        </Link>
-                      ) : (
-                        <Text style={styles.tableCellText}>-</Text>
-                      )}
                     </View>
                   </View>
                 ))}

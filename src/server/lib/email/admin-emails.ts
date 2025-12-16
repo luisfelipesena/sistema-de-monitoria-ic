@@ -13,6 +13,7 @@ export const adminEmailService = {
     remetenteUserId?: number
     isExcel?: boolean
     isCSV?: boolean
+    projectPdfAttachments?: Array<{ filename: string; content: Buffer; contentType: string }>
   }): Promise<void> {
     const semestreDisplay = SEMESTRE_LABELS[data.semestre as Semestre]
 
@@ -32,6 +33,16 @@ export const adminEmailService = {
 
     const filename = `Planilha_PROGRAD_${data.ano}_${semestreDisplay}.${fileExtension}`
 
+    const totalPdfAttachments = data.projectPdfAttachments?.length || 0
+    const pdfAttachmentsText =
+      totalPdfAttachments > 0
+        ? `<p><strong>📎 Anexos incluídos:</strong></p>
+        <ul>
+          <li>Planilha consolidada (${formatoTexto})</li>
+          <li>${totalPdfAttachments} PDF(s) individual(is) de projeto(s) aprovado(s)</li>
+        </ul>`
+        : ''
+
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1976d2; text-align: center;">Planilha para Instituto - ${data.ano}.${semestreDisplay}</h2>
@@ -50,6 +61,8 @@ export const adminEmailService = {
           <li>Departamentos e códigos das disciplinas</li>
         </ul>
 
+        ${pdfAttachmentsText}
+
         <p>Esta planilha será encaminhada pelo Instituto de Computação à PROGRAD para processamento.</p>
 
         <p>Para dúvidas ou esclarecimentos, entrar em contato através do Sistema de Monitoria IC.</p>
@@ -60,17 +73,21 @@ export const adminEmailService = {
       </div>
     `
 
+    // Combine CSV attachment with project PDF attachments
+    const attachments = [
+      {
+        filename,
+        content: data.planilhaPDFBuffer,
+        contentType,
+      },
+      ...(data.projectPdfAttachments || []),
+    ]
+
     await emailSender.send({
       to: data.progradEmail,
       subject: `[Monitoria IC] Consolidação para Instituto - ${data.ano}.${semestreDisplay}`,
       html,
-      attachments: [
-        {
-          filename,
-          content: data.planilhaPDFBuffer,
-          contentType,
-        },
-      ],
+      attachments,
       tipoNotificacao: 'PLANILHA_PROGRAD_ENVIADA',
       remetenteUserId: data.remetenteUserId,
     })

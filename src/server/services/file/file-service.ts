@@ -274,18 +274,22 @@ export function createFileService(db: Database) {
       const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
 
       return new Promise<{ url: string }>((resolve, reject) => {
-        const projectFiles: Array<{ name: string; lastModified: Date }> = []
+        const projectFiles: Array<{ name: string; lastModified: Date; isNewPattern: boolean }> = []
 
         objectsStream.on('data', (obj: Minio.BucketItem) => {
-          if (
-            obj.name?.includes('propostas_assinadas') &&
-            obj.name.endsWith('.pdf') &&
-            obj.name.includes(`proposta_${projetoId}_`)
-          ) {
-            projectFiles.push({
-              name: obj.name,
-              lastModified: obj.lastModified || new Date(),
-            })
+          if (obj.name?.includes('propostas_assinadas') && obj.name.endsWith('.pdf')) {
+            // Check for new pattern: {codigo}_{professor}_{ano}_{semestre}.pdf
+            const isNewPattern = /_\d{4}_SEMESTRE_[12]\.pdf$/.test(obj.name || '')
+            // Check for old pattern: proposta_{projetoId}_*.pdf
+            const isOldPattern = obj.name.includes(`proposta_${projetoId}_`)
+
+            if (isNewPattern || isOldPattern) {
+              projectFiles.push({
+                name: obj.name,
+                lastModified: obj.lastModified || new Date(),
+                isNewPattern,
+              })
+            }
           }
         })
 
@@ -309,7 +313,15 @@ export function createFileService(db: Database) {
               return
             }
 
-            const latestFile = projectFiles.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())[0]
+            // Prioritize new pattern files, then sort by lastModified
+            const sortedFiles = projectFiles.sort((a, b) => {
+              // New pattern files first
+              if (a.isNewPattern && !b.isNewPattern) return -1
+              if (!a.isNewPattern && b.isNewPattern) return 1
+              // Then by lastModified (most recent first)
+              return b.lastModified.getTime() - a.lastModified.getTime()
+            })
+            const latestFile = sortedFiles[0]
 
             if (!latestFile) {
               reject(new NotFoundError('PDF do projeto', 'não encontrado'))

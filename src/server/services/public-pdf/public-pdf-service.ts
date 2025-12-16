@@ -11,21 +11,31 @@ type Database = typeof db
 
 /**
  * Find the latest signed PDF for a project directly from MinIO.
- * PDFs are stored at: projetos/{projetoId}/propostas_assinadas/proposta_{projetoId}_*.pdf
+ * Searches for both patterns:
+ * - New: {codigo}_{professor}_{ano}_{semestre}.pdf (e.g., MATA37_JOSE_SILVA_2024_SEMESTRE_1.pdf)
+ * - Old: proposta_{projetoId}_*.pdf (backward compatibility)
  */
 async function findLatestPdfInMinio(projetoId: number): Promise<string | null> {
   return new Promise((resolve) => {
     const prefix = `projetos/${projetoId}/propostas_assinadas/`
     const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
 
-    const projectFiles: Array<{ name: string; lastModified: Date }> = []
+    const projectFiles: Array<{ name: string; lastModified: Date; isNewPattern: boolean }> = []
 
     objectsStream.on('data', (obj) => {
-      if (obj.name?.endsWith('.pdf') && obj.name.includes(`proposta_${projetoId}_`)) {
-        projectFiles.push({
-          name: obj.name,
-          lastModified: obj.lastModified || new Date(),
-        })
+      if (obj.name?.endsWith('.pdf')) {
+        // Check if it matches new pattern: {codigo}_{professor}_{ano}_{semestre}.pdf
+        const isNewPattern = /_\d{4}_SEMESTRE_[12]\.pdf$/.test(obj.name || '')
+        // Also accept old pattern: proposta_{projetoId}_*.pdf
+        const isOldPattern = obj.name.includes(`proposta_${projetoId}_`)
+
+        if (isNewPattern || isOldPattern) {
+          projectFiles.push({
+            name: obj.name,
+            lastModified: obj.lastModified || new Date(),
+            isNewPattern,
+          })
+        }
       }
     })
 
@@ -40,8 +50,16 @@ async function findLatestPdfInMinio(projetoId: number): Promise<string | null> {
         return
       }
 
-      // Get the most recent file
-      const latestFile = projectFiles.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())[0]
+      // Prioritize new pattern files, then sort by lastModified
+      const sortedFiles = projectFiles.sort((a, b) => {
+        // New pattern files first
+        if (a.isNewPattern && !b.isNewPattern) return -1
+        if (!a.isNewPattern && b.isNewPattern) return 1
+        // Then by lastModified (most recent first)
+        return b.lastModified.getTime() - a.lastModified.getTime()
+      })
+
+      const latestFile = sortedFiles[0]
       resolve(latestFile?.name || null)
     })
   })

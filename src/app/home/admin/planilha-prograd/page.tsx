@@ -60,7 +60,6 @@ export default function PlanilhaPROGRADPage() {
       "Componente Curricular: NOME",
       "Professor Responsável",
       "Professores Participantes",
-      "Link PDF",
     ]
 
     const escapeCSV = (value: string) => {
@@ -74,10 +73,10 @@ export default function PlanilhaPROGRADPage() {
       escapeCSV("Instituto de Computação"),
       escapeCSV(p.departamentoNome),
       escapeCSV(p.codigo),
-      escapeCSV(p.disciplinaNome),
+      // Embed PDF link in discipline name if available
+      escapeCSV(p.linkPDF ? `${p.disciplinaNome} (${p.linkPDF})` : p.disciplinaNome),
       escapeCSV(p.professorNome),
       escapeCSV(p.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? p.professoresParticipantes : ""),
-      escapeCSV(p.linkPDF),
     ])
 
     const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n")
@@ -261,7 +260,6 @@ export default function PlanilhaPROGRADPage() {
                       <TableHead className="min-w-[200px]">Componente Curricular</TableHead>
                       <TableHead className="min-w-[150px]">Professor Responsável</TableHead>
                       <TableHead className="min-w-[150px]">Prof. Participantes</TableHead>
-                      <TableHead className="min-w-[80px]">PDF</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -270,26 +268,23 @@ export default function PlanilhaPROGRADPage() {
                         <TableCell className="text-sm">Instituto de Computação</TableCell>
                         <TableCell className="text-sm">{projeto.departamentoNome}</TableCell>
                         <TableCell className="text-sm font-mono">{projeto.codigo}</TableCell>
-                        <TableCell className="text-sm">{projeto.disciplinaNome}</TableCell>
-                        <TableCell className="text-sm">{projeto.professorNome}</TableCell>
                         <TableCell className="text-sm">
-                          {projeto.tipoProposicao === TIPO_PROPOSICAO_COLETIVA
-                            ? projeto.professoresParticipantes
-                            : "-"}
-                        </TableCell>
-                        <TableCell>
                           {projeto.linkPDF ? (
                             <a
                               href={projeto.linkPDF}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline text-sm"
+                              className="text-blue-600 hover:underline"
                             >
-                              Ver
+                              {projeto.disciplinaNome}
                             </a>
                           ) : (
-                            <span className="text-gray-400 text-sm">-</span>
+                            <span>{projeto.disciplinaNome}</span>
                           )}
+                        </TableCell>
+                        <TableCell className="text-sm">{projeto.professorNome}</TableCell>
+                        <TableCell className="text-sm">
+                          {projeto.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? projeto.professoresParticipantes : "-"}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -313,7 +308,9 @@ export default function PlanilhaPROGRADPage() {
                   {emailDestinatarios?.icEmail && (
                     <li className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      <span>Instituto de Computação: <strong>{emailDestinatarios.icEmail}</strong></span>
+                      <span>
+                        Instituto de Computação: <strong>{emailDestinatarios.icEmail}</strong>
+                      </span>
                     </li>
                   )}
                   {emailDestinatarios?.departamentoEmail && (

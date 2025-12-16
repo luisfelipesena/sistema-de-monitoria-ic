@@ -2,8 +2,9 @@ import { MonitoriaFormTemplate } from '@/components/features/projects/MonitoriaF
 import minioClient, { bucketName } from '@/server/lib/minio'
 import { AtaSelecaoTemplate } from '@/server/lib/pdfTemplates/ata-selecao'
 import { EditalInternoTemplate } from '@/server/lib/pdfTemplates/edital-interno'
-import { AtaSelecaoData, MonitoriaFormData } from '@/types'
+import { AtaSelecaoData, MonitoriaFormData, type Semestre } from '@/types'
 import { logger } from '@/utils/logger'
+import { sanitizeForFilename } from '@/utils/string-normalization'
 import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import { PDFDocument } from 'pdf-lib'
 import React, { type ReactElement } from 'react'
@@ -37,19 +38,47 @@ export class PDFService {
 
   /**
    * Saves or updates a project PDF in MinIO
+   * @param projetoId - Project ID
+   * @param pdfBuffer - PDF buffer to save
+   * @param filename - Optional custom filename (if not provided, will generate based on metadata)
+   * @param metadata - Optional metadata for generating filename: {disciplinaCodigo, professorNome, ano, semestre}
    */
-  static async saveProjetoPDF(projetoId: number, pdfBuffer: Buffer, filename?: string): Promise<string> {
+  static async saveProjetoPDF(
+    projetoId: number,
+    pdfBuffer: Buffer,
+    filename?: string,
+    metadata?: {
+      disciplinaCodigo?: string
+      professorNome?: string
+      ano?: number
+      semestre?: Semestre
+    }
+  ): Promise<string> {
     try {
       const baseDirectory = `projetos/${projetoId}/propostas_assinadas`
-      const objectName = filename || `${baseDirectory}/proposta_${projetoId}_${Date.now()}.pdf`
 
-      const metadata = {
+      let objectName: string
+      if (filename) {
+        objectName = filename.startsWith(baseDirectory) ? filename : `${baseDirectory}/${filename}`
+      } else if (metadata?.disciplinaCodigo && metadata?.professorNome && metadata?.ano && metadata?.semestre) {
+        // Generate filename using new pattern: {codigo}_{professor}_{ano}_{semestre}.pdf
+        const codigoSanitizado = metadata.disciplinaCodigo.trim().toUpperCase().replace(/\s+/g, '')
+        const professorSanitizado = sanitizeForFilename(metadata.professorNome)
+        const semestreDisplay = metadata.semestre === 'SEMESTRE_1' ? 'SEMESTRE_1' : 'SEMESTRE_2'
+        const filenameNew = `${codigoSanitizado}_${professorSanitizado}_${metadata.ano}_${semestreDisplay}.pdf`
+        objectName = `${baseDirectory}/${filenameNew}`
+      } else {
+        // Fallback to old pattern for backward compatibility
+        objectName = `${baseDirectory}/proposta_${projetoId}_${Date.now()}.pdf`
+      }
+
+      const minioMetadata = {
         'Content-Type': 'application/pdf',
         'X-Amz-Meta-Projeto-Id': projetoId.toString(),
         'X-Amz-Meta-Generated-At': new Date().toISOString(),
       }
 
-      await minioClient.putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, metadata)
+      await minioClient.putObject(bucketName, objectName, pdfBuffer, pdfBuffer.length, minioMetadata)
 
       log.info({ projetoId, objectName, size: pdfBuffer.length }, 'PDF saved to MinIO successfully')
       return objectName
@@ -61,6 +90,7 @@ export class PDFService {
 
   /**
    * Gets the latest PDF for a project from MinIO
+   * Searches for both new pattern ({codigo}_{professor}_{ano}_{semestre}.pdf) and old pattern (proposta_{projetoId}_*.pdf)
    */
   static async getLatestProjetoPDF(projetoId: number): Promise<{ objectName: string; buffer: Buffer } | null> {
     try {
@@ -68,13 +98,17 @@ export class PDFService {
       const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
 
       return new Promise((resolve, reject) => {
-        const projectFiles: Array<{ name: string; lastModified: Date }> = []
+        const projectFiles: Array<{ name: string; lastModified: Date; isNewPattern: boolean }> = []
 
         objectsStream.on('data', (obj) => {
           if (obj.name?.endsWith('.pdf')) {
+            // Check if it matches new pattern: {codigo}_{professor}_{ano}_{semestre}.pdf
+            // Pattern: ends with _{ano}_SEMESTRE_{1|2}.pdf
+            const isNewPattern = /_\d{4}_SEMESTRE_[12]\.pdf$/.test(obj.name || '')
             projectFiles.push({
               name: obj.name,
               lastModified: obj.lastModified || new Date(),
+              isNewPattern,
             })
           }
         })
@@ -91,8 +125,16 @@ export class PDFService {
             return
           }
 
-          // Get the most recent file
-          const latestFile = projectFiles.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())[0]
+          // Prioritize new pattern files, then sort by lastModified
+          const sortedFiles = projectFiles.sort((a, b) => {
+            // New pattern files first
+            if (a.isNewPattern && !b.isNewPattern) return -1
+            if (!a.isNewPattern && b.isNewPattern) return 1
+            // Then by lastModified (most recent first)
+            return b.lastModified.getTime() - a.lastModified.getTime()
+          })
+
+          const latestFile = sortedFiles[0]
 
           if (!latestFile) {
             resolve(null)
@@ -209,7 +251,23 @@ export class PDFService {
         throw new Error('Projeto ID inválido para salvar PDF assinado')
       }
 
-      const objectName = await PDFService.saveProjetoPDF(data.projetoId, pdfBuffer)
+      // Extract metadata for filename generation
+      const disciplinaCodigo = data.disciplinas && data.disciplinas.length > 0 ? data.disciplinas[0].codigo : undefined
+      const professorNome = data.professorResponsavel?.nomeCompleto
+
+      const objectName = await PDFService.saveProjetoPDF(
+        data.projetoId,
+        pdfBuffer,
+        undefined,
+        disciplinaCodigo && professorNome
+          ? {
+              disciplinaCodigo,
+              professorNome,
+              ano: data.ano,
+              semestre: data.semestre,
+            }
+          : undefined
+      )
 
       log.info({ projetoId: data.projetoId, objectName }, 'Signed project PDF generated and saved')
       return objectName
