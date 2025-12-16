@@ -188,21 +188,21 @@ export function createAnalyticsService(db: Database) {
         alertas: [
           ...(projetosRecentes.filter((p) => p.status === DRAFT).length > 5
             ? [
-                {
-                  tipo: 'warning' as const,
-                  titulo: 'Projetos pendentes',
-                  descricao: `${projetosRecentes.filter((p) => p.status === DRAFT).length} projetos ainda em rascunho`,
-                },
-              ]
+              {
+                tipo: 'warning' as const,
+                titulo: 'Projetos pendentes',
+                descricao: `${projetosRecentes.filter((p) => p.status === DRAFT).length} projetos ainda em rascunho`,
+              },
+            ]
             : []),
           ...(taxaOcupacao < 0.3
             ? [
-                {
-                  tipo: 'info' as const,
-                  titulo: 'Baixa ocupação',
-                  descricao: `Taxa de ocupação das vagas está em ${Math.round(taxaOcupacao * 100)}%`,
-                },
-              ]
+              {
+                tipo: 'info' as const,
+                titulo: 'Baixa ocupação',
+                descricao: `Taxa de ocupação das vagas está em ${Math.round(taxaOcupacao * 100)}%`,
+              },
+            ]
             : []),
         ],
       }

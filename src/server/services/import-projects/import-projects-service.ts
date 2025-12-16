@@ -714,7 +714,7 @@ export function createImportProjectsService(db: Database) {
           if (professores.length === 0) {
             warnings.push(
               `⚠️ Disciplina ${codigoSanitizado}: NENHUM PROFESSOR ENCONTRADO. ` +
-                `Nomes informados: ${professoresNomes.join(', ')}. Projeto não criado.`
+              `Nomes informados: ${professoresNomes.join(', ')}. Projeto não criado.`
             )
             projetosComErro++
             continue

@@ -299,7 +299,7 @@ export function createFileService(db: Database) {
         })
 
         objectsStream.on('end', () => {
-          ;(async () => {
+          ; (async () => {
             log.info({ projetoId, filesFound: projectFiles.length }, 'Arquivos encontrados para o projeto')
 
             if (projectFiles.length === 0) {
