@@ -8,13 +8,24 @@ import { useAtasAdmin } from '@/hooks/features/useAtasAdmin'
 import { Loader } from 'lucide-react'
 
 export default function AtasSelecaoAdminPage() {
-  const { atas, isLoading, stats, columnFilters, setColumnFilters } = useAtasAdmin()
+  const {
+    atas,
+    isLoading,
+    stats,
+    total,
+    columnFilters,
+    setColumnFilters,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+  } = useAtasAdmin()
 
   const columns = useMemo(() => createAtasColumns(), [])
 
   return (
     <PagesLayout title="Atas de Seleção">
-      {isLoading ? (
+      {isLoading && atas.length === 0 ? (
         <div className="flex justify-center items-center py-8">
           <Loader className="h-8 w-8 animate-spin" />
           <span className="ml-2">Carregando atas...</span>
@@ -27,8 +38,14 @@ export default function AtasSelecaoAdminPage() {
             columns={columns}
             columnFilters={columnFilters}
             onColumnFiltersChange={setColumnFilters}
-            searchableColumn="projetoTitulo"
-            searchPlaceholder="Buscar por projeto..."
+            isLoading={isLoading}
+            serverPagination={{
+              totalCount: total,
+              pageIndex: page,
+              pageSize,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            }}
           />
         </div>
       )}

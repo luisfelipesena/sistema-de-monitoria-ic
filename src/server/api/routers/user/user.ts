@@ -36,8 +36,14 @@ export const userRouter = createTRPCRouter({
     .input(
       z.object({
         search: z.string().optional(),
-        role: userRoleSchema.optional(),
-        limit: z.number().min(1).max(100).default(50),
+        role: z.array(userRoleSchema).optional(),
+        nomeCompleto: z.string().optional(),
+        emailInstitucional: z.string().optional(),
+        departamentoId: z.array(z.number()).optional(),
+        cursoNome: z.string().optional(),
+        regime: z.array(regimeSchema).optional(),
+        tipoProfessor: z.array(tipoProfessorSchema).optional(),
+        limit: z.number().min(1).max(100).default(20),
         offset: z.number().min(0).default(0),
       })
     )

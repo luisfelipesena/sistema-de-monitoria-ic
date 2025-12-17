@@ -1,4 +1,4 @@
-import { and, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNull, lte, or, sql } from 'drizzle-orm'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import type * as schema from '@/server/db/schema'
 import {
@@ -19,6 +19,23 @@ import type { ACCEPTED_BOLSISTA, Semestre, StatusInscricao, TipoInscricao } from
 import { logger } from '@/utils/logger'
 
 const log = logger.child({ context: 'InscricaoRepository' })
+
+// Types for pagination filters
+export interface InscricaoAdminFilters {
+  ano?: number
+  semestre?: Semestre
+  status?: StatusInscricao
+  departamentoId?: number
+  limit?: number
+  offset?: number
+}
+
+export interface InscricaoAdminStats {
+  total: number
+  submitted: number
+  selected: number
+  rejected: number
+}
 
 export type Database = PostgresJsDatabase<typeof schema>
 
@@ -377,13 +394,8 @@ export class InscricaoRepository {
     })
   }
 
-  async findAllForAdmin(filters: {
-    ano?: number
-    semestre?: Semestre
-    status?: StatusInscricao
-    departamentoId?: number
-  }) {
-    const conditions = []
+  async findAllForAdmin(filters: InscricaoAdminFilters) {
+    const conditions: ReturnType<typeof eq>[] = []
 
     if (filters.ano) {
       conditions.push(eq(projetoTable.ano, filters.ano))
@@ -398,7 +410,10 @@ export class InscricaoRepository {
       conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
     }
 
-    return this.db
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    // Build base query
+    const baseQuery = this.db
       .select({
         id: inscricaoTable.id,
         projetoId: inscricaoTable.projetoId,
@@ -445,8 +460,77 @@ export class InscricaoRepository {
       .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
       .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
       .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
-      .orderBy(inscricaoTable.createdAt)
+      .where(whereClause)
+      .orderBy(desc(inscricaoTable.createdAt))
+
+    // Apply pagination
+    const paginatedQuery =
+      filters.limit !== undefined
+        ? baseQuery.limit(filters.limit).offset(filters.offset ?? 0)
+        : baseQuery
+
+    // Parallel queries: items + total + stats
+    const [items, totalResult, stats] = await Promise.all([
+      paginatedQuery,
+      this.countForAdmin(conditions),
+      this.getInscricaoAdminStats(conditions),
+    ])
+
+    return {
+      items,
+      total: totalResult,
+      stats,
+    }
+  }
+
+  private async countForAdmin(conditions: ReturnType<typeof eq>[]): Promise<number> {
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    const result = await this.db
+      .select({ count: count() })
+      .from(inscricaoTable)
+      .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
+      .where(whereClause)
+
+    return result[0]?.count ?? 0
+  }
+
+  private async getInscricaoAdminStats(conditions: ReturnType<typeof eq>[]): Promise<InscricaoAdminStats> {
+    // Base conditions without status filter for accurate stats
+    const baseConditions = conditions.filter(
+      (c) => !(c as { left?: { name?: string } })?.left?.name?.includes('status')
+    )
+    const whereClause = baseConditions.length > 0 ? and(...baseConditions) : undefined
+
+    const baseQuery = this.db
+      .select({
+        status: inscricaoTable.status,
+        count: count(),
+      })
+      .from(inscricaoTable)
+      .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
+      .where(whereClause)
+      .groupBy(inscricaoTable.status)
+
+    const statusCounts = await baseQuery
+
+    let total = 0
+    let submitted = 0
+    let selected = 0
+    let rejected = 0
+
+    for (const row of statusCounts) {
+      total += row.count
+      if (row.status === 'SUBMITTED') {
+        submitted += row.count
+      } else if (row.status?.startsWith('SELECTED_') || row.status?.startsWith('ACCEPTED_')) {
+        selected += row.count
+      } else if (row.status?.startsWith('REJECTED_')) {
+        rejected += row.count
+      }
+    }
+
+    return { total, submitted, selected, rejected }
   }
 }
 

@@ -30,7 +30,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
+import { useServerPagination } from "@/hooks/useServerPagination"
 import {
   PROFESSOR,
   PROFESSOR_STATUS_ATIVO,
@@ -47,34 +47,11 @@ import {
   type UserListItem,
 } from "@/types"
 import { api } from "@/utils/api"
-import type { ColumnDef, FilterFn } from "@tanstack/react-table"
+import type { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { Eye, Mail, Pencil, Plus, Trash2, UserCheck, Users, UserX } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
-
-// Custom filter function for professor name (searches nomeCompleto)
-const nomeFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || filterValue === "") return true
-  const nomeCompleto = row.original.professorProfile?.nomeCompleto || ""
-  const searchValue = String(filterValue).toLowerCase()
-  return nomeCompleto.toLowerCase().includes(searchValue)
-}
-
-// Custom filter function for email
-const emailFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || filterValue === "") return true
-  const email = row.original.professorProfile?.emailInstitucional || row.original.email || ""
-  const searchValue = String(filterValue).toLowerCase()
-  return email.toLowerCase().includes(searchValue)
-}
-
-// Custom filter function for departamento (multiselect by departamento id)
-const departamentoFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return true
-  const departamentoId = row.original.professorProfile?.departamentoId?.toString()
-  return departamentoId ? filterValue.includes(departamentoId) : false
-}
 
 export default function ProfessoresPage() {
   const { toast } = useToast()
@@ -97,17 +74,25 @@ export default function ProfessoresPage() {
 
   const PROFESSOR_STATUS_PENDING = "PENDENTE" as const
 
-  // URL-based column filters
-  const { columnFilters, setColumnFilters } = useUrlColumnFilters()
+  // Server-side pagination with URL state persistence
+  const { page, pageSize, setPage, setPageSize, columnFilters, setColumnFilters, apiFilters } = useServerPagination({
+    defaultPageSize: 20,
+  })
 
-  // Fetch professors data
+  // Fetch professors with server-side filtering (role is always PROFESSOR)
   const {
     data: usersData,
     isLoading,
     refetch,
   } = api.user.getUsers.useQuery({
-    role: PROFESSOR,
-    limit: 100,
+    role: [PROFESSOR],
+    nomeCompleto: apiFilters.nomeCompleto,
+    emailInstitucional: apiFilters.emailInstitucional,
+    departamentoId: apiFilters.departamentoId,
+    regime: apiFilters.regime as Regime[] | undefined,
+    tipoProfessor: apiFilters.tipoProfessor as TipoProfessor[] | undefined,
+    limit: apiFilters.limit,
+    offset: apiFilters.offset,
   })
 
   const { data: departamentosData } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
@@ -116,30 +101,10 @@ export default function ProfessoresPage() {
   const deleteUserMutation = api.user.deleteUser.useMutation()
 
   const departamentos = departamentosData || []
+  const professores = usersData?.users || []
+  const totalCount = usersData?.total ?? 0
 
-  const professores = usersData?.users.filter((u) => u.role === PROFESSOR) || []
-
-  // Generate filter options for autocomplete
-  const nomeFilterOptions = useMemo(() => {
-    return professores
-      .filter((p) => p.professorProfile?.nomeCompleto)
-      .map((p) => ({
-        value: p.professorProfile!.nomeCompleto,
-        label: p.professorProfile!.nomeCompleto,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label))
-  }, [professores])
-
-  const emailFilterOptions = useMemo(() => {
-    return professores
-      .filter((p) => p.professorProfile?.emailInstitucional)
-      .map((p) => ({
-        value: p.professorProfile!.emailInstitucional!,
-        label: p.professorProfile!.emailInstitucional!,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label))
-  }, [professores])
-
+  // Filter options
   const departamentoFilterOptions = useMemo(() => {
     return departamentos.map((d) => ({
       value: d.id.toString(),
@@ -269,6 +234,19 @@ export default function ProfessoresPage() {
     }
   }
 
+  // Stats from current page data
+  const stats = useMemo(() => {
+    return {
+      total: totalCount,
+      ativos: professores.filter((p) => {
+        const status = p.professorProfile?.accountStatus
+        return status === "ACTIVE" || status === null || status === undefined
+      }).length,
+      pendentes: professores.filter((p) => p.professorProfile?.accountStatus === "PENDING").length,
+      inativos: professores.filter((p) => p.professorProfile?.accountStatus === "INACTIVE").length,
+    }
+  }, [professores, totalCount])
+
   const columns: ColumnDef<UserListItem>[] = useMemo(
     () => [
       {
@@ -279,9 +257,7 @@ export default function ProfessoresPage() {
           filterType: "text",
           filterPlaceholder: "Buscar nome...",
           wide: true,
-          autocompleteOptions: nomeFilterOptions,
         }),
-        filterFn: nomeFilterFn,
         cell: ({ row }) => <div className="font-medium">{row.original.professorProfile?.nomeCompleto}</div>,
       },
       {
@@ -292,9 +268,7 @@ export default function ProfessoresPage() {
           filterType: "text",
           filterPlaceholder: "Buscar email...",
           wide: true,
-          autocompleteOptions: emailFilterOptions,
         }),
-        filterFn: emailFilterFn,
         cell: ({ row }) => (
           <div className="text-muted-foreground">{row.original.professorProfile?.emailInstitucional}</div>
         ),
@@ -307,7 +281,7 @@ export default function ProfessoresPage() {
           filterType: "multiselect",
           filterOptions: departamentoFilterOptions,
         }),
-        filterFn: departamentoFilterFn,
+        filterFn: multiselectFilterFn,
         cell: ({ row }) => {
           const dept = departamentos.find((d) => d.id === row.original.professorProfile?.departamentoId)
           return dept?.nome || "N/A"
@@ -422,7 +396,7 @@ export default function ProfessoresPage() {
         },
       },
     ],
-    [departamentos, nomeFilterOptions, emailFilterOptions, departamentoFilterOptions]
+    [departamentos, departamentoFilterOptions]
   )
 
   return (
@@ -436,7 +410,7 @@ export default function ProfessoresPage() {
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Total de Professores</p>
-                  <div className="text-2xl font-bold">{professores.length}</div>
+                  <div className="text-2xl font-bold">{stats.total}</div>
                 </div>
               </div>
             </CardContent>
@@ -448,12 +422,8 @@ export default function ProfessoresPage() {
                 <UserCheck className="h-4 w-4 text-green-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Ativos</p>
-                  <div className="text-2xl font-bold text-green-600">
-                    {professores.filter((p) => {
-                      const status = p.professorProfile?.accountStatus
-                      return status === "ACTIVE" || status === null || status === undefined
-                    }).length}
-                  </div>
+                  <div className="text-2xl font-bold text-green-600">{stats.ativos}</div>
+                  <p className="text-xs text-muted-foreground">Na página atual</p>
                 </div>
               </div>
             </CardContent>
@@ -465,9 +435,8 @@ export default function ProfessoresPage() {
                 <Mail className="h-4 w-4 text-yellow-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
-                  <div className="text-2xl font-bold text-yellow-600">
-                    {professores.filter((p) => p.professorProfile?.accountStatus === "PENDING").length}
-                  </div>
+                  <div className="text-2xl font-bold text-yellow-600">{stats.pendentes}</div>
+                  <p className="text-xs text-muted-foreground">Na página atual</p>
                 </div>
               </div>
             </CardContent>
@@ -479,9 +448,8 @@ export default function ProfessoresPage() {
                 <UserX className="h-4 w-4 text-red-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Inativos</p>
-                  <div className="text-2xl font-bold text-red-600">
-                    {professores.filter((p) => p.professorProfile?.accountStatus === "INACTIVE").length}
-                  </div>
+                  <div className="text-2xl font-bold text-red-600">{stats.inativos}</div>
+                  <p className="text-xs text-muted-foreground">Na página atual</p>
                 </div>
               </div>
             </CardContent>
@@ -621,6 +589,14 @@ export default function ProfessoresPage() {
               data={professores}
               columnFilters={columnFilters}
               onColumnFiltersChange={setColumnFilters}
+              isLoading={isLoading}
+              serverPagination={{
+                totalCount,
+                pageIndex: page,
+                pageSize,
+                onPageChange: setPage,
+                onPageSizeChange: setPageSize,
+              }}
             />
           </CardContent>
         </Card>

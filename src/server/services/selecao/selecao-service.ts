@@ -343,6 +343,8 @@ export function createSelecaoService(db: Database) {
       ano?: number
       semestre?: Semestre
       departamentoId?: number
+      limit?: number
+      offset?: number
     }) {
       return repo.findAllProjectsWithSelectionStatus(filters)
     },
@@ -352,6 +354,8 @@ export function createSelecaoService(db: Database) {
       semestre?: Semestre
       departamentoId?: number
       status?: 'DRAFT' | 'SIGNED'
+      limit?: number
+      offset?: number
     }) {
       return repo.findAllAtasForAdmin(filters)
     },

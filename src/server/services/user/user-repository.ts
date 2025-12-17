@@ -34,12 +34,18 @@ import {
   TIPO_VAGA_BOLSISTA,
   TIPO_VAGA_VOLUNTARIO,
 } from '@/types'
-import { and, eq, isNull, like, or, sql, type SQL } from 'drizzle-orm'
+import { and, eq, inArray, isNull, like, or, sql, type SQL } from 'drizzle-orm'
 type Database = typeof db
 
 export interface UserFilters {
   search?: string
-  role?: UserRole
+  role?: UserRole[]
+  nomeCompleto?: string
+  emailInstitucional?: string
+  departamentoId?: number[]
+  cursoNome?: string
+  regime?: Regime[]
+  tipoProfessor?: TipoProfessor[]
   limit?: number
   offset?: number
 }
@@ -69,14 +75,88 @@ export interface UpdateProfileData {
 }
 
 export const createUserRepository = (db: Database) => {
+  // Build subquery for profile-based filtering
+  const buildProfileFilteredUserIds = async (filters: UserFilters): Promise<number[] | null> => {
+    const hasProfessorFilters =
+      filters.nomeCompleto ||
+      filters.emailInstitucional ||
+      (filters.departamentoId && filters.departamentoId.length > 0) ||
+      (filters.regime && filters.regime.length > 0) ||
+      (filters.tipoProfessor && filters.tipoProfessor.length > 0)
+
+    const hasStudentFilters = filters.nomeCompleto || filters.emailInstitucional || filters.cursoNome
+
+    if (!hasProfessorFilters && !hasStudentFilters) {
+      return null // No profile filters, skip subquery
+    }
+
+    const userIds: Set<number> = new Set()
+    const isProfessorRoleIncluded = !filters.role || filters.role.length === 0 || filters.role.includes(PROFESSOR)
+    const isStudentRoleIncluded = !filters.role || filters.role.length === 0 || filters.role.includes(STUDENT)
+
+    // Query professors if relevant
+    if (hasProfessorFilters && isProfessorRoleIncluded) {
+      const profConditions: SQL[] = []
+      if (filters.nomeCompleto) {
+        profConditions.push(like(professorTable.nomeCompleto, `%${filters.nomeCompleto}%`))
+      }
+      if (filters.emailInstitucional) {
+        profConditions.push(like(professorTable.emailInstitucional, `%${filters.emailInstitucional}%`))
+      }
+      if (filters.departamentoId && filters.departamentoId.length > 0) {
+        profConditions.push(inArray(professorTable.departamentoId, filters.departamentoId))
+      }
+      if (filters.regime && filters.regime.length > 0) {
+        profConditions.push(inArray(professorTable.regime, filters.regime))
+      }
+      if (filters.tipoProfessor && filters.tipoProfessor.length > 0) {
+        profConditions.push(inArray(professorTable.tipoProfessor, filters.tipoProfessor))
+      }
+
+      if (profConditions.length > 0) {
+        const professors = await db
+          .select({ userId: professorTable.userId })
+          .from(professorTable)
+          .where(and(...profConditions))
+        professors.forEach((p) => userIds.add(p.userId))
+      }
+    }
+
+    // Query students if relevant
+    if (hasStudentFilters && isStudentRoleIncluded) {
+      const studentConditions: SQL[] = []
+      if (filters.nomeCompleto) {
+        studentConditions.push(like(alunoTable.nomeCompleto, `%${filters.nomeCompleto}%`))
+      }
+      if (filters.emailInstitucional) {
+        studentConditions.push(like(alunoTable.emailInstitucional, `%${filters.emailInstitucional}%`))
+      }
+      if (filters.cursoNome) {
+        studentConditions.push(like(alunoTable.cursoNome, `%${filters.cursoNome}%`))
+      }
+
+      if (studentConditions.length > 0) {
+        const students = await db
+          .select({ userId: alunoTable.userId })
+          .from(alunoTable)
+          .where(and(...studentConditions))
+        students.forEach((s) => userIds.add(s.userId))
+      }
+    }
+
+    return Array.from(userIds)
+  }
+
   return {
     async findMany(filters: UserFilters) {
       const whereConditions: SQL[] = []
 
-      if (filters.role) {
-        whereConditions.push(eq(userTable.role, filters.role))
+      // Role filter (now array)
+      if (filters.role && filters.role.length > 0) {
+        whereConditions.push(inArray(userTable.role, filters.role))
       }
 
+      // Search filter (username or email)
       if (filters.search) {
         const searchCondition = or(
           like(userTable.username, `%${filters.search}%`),
@@ -85,6 +165,15 @@ export const createUserRepository = (db: Database) => {
         if (searchCondition) {
           whereConditions.push(searchCondition)
         }
+      }
+
+      // Profile-based filters via subquery
+      const profileUserIds = await buildProfileFilteredUserIds(filters)
+      if (profileUserIds !== null) {
+        if (profileUserIds.length === 0) {
+          return [] // No matching profiles found
+        }
+        whereConditions.push(inArray(userTable.id, profileUserIds))
       }
 
       return db.query.userTable.findMany({
@@ -106,10 +195,12 @@ export const createUserRepository = (db: Database) => {
     async count(filters: UserFilters): Promise<number> {
       const whereConditions: SQL[] = []
 
-      if (filters.role) {
-        whereConditions.push(eq(userTable.role, filters.role))
+      // Role filter (now array)
+      if (filters.role && filters.role.length > 0) {
+        whereConditions.push(inArray(userTable.role, filters.role))
       }
 
+      // Search filter
       if (filters.search) {
         const searchCondition = or(
           like(userTable.username, `%${filters.search}%`),
@@ -118,6 +209,15 @@ export const createUserRepository = (db: Database) => {
         if (searchCondition) {
           whereConditions.push(searchCondition)
         }
+      }
+
+      // Profile-based filters via subquery
+      const profileUserIds = await buildProfileFilteredUserIds(filters)
+      if (profileUserIds !== null) {
+        if (profileUserIds.length === 0) {
+          return 0 // No matching profiles found
+        }
+        whereConditions.push(inArray(userTable.id, profileUserIds))
       }
 
       return db.$count(userTable, whereConditions.length > 0 ? and(...whereConditions) : undefined)

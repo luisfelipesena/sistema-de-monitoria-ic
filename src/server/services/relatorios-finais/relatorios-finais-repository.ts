@@ -9,9 +9,32 @@ import {
   vagaTable,
 } from '@/server/db/schema'
 import type { Semestre } from '@/types'
-import { and, eq, isNull, desc, inArray } from 'drizzle-orm'
+import { and, count, eq, isNull, desc, inArray } from 'drizzle-orm'
 
 type Database = typeof db
+
+// Types for admin pagination
+export interface RelatorioAdminFilters {
+  ano?: number
+  semestre?: Semestre
+  departamentoId?: number
+  limit?: number
+  offset?: number
+}
+
+export interface RelatorioDisciplinaAdminStats {
+  total: number
+  notCreated: number
+  draft: number
+  submitted: number
+}
+
+export interface RelatorioMonitorAdminStats {
+  total: number
+  draft: number
+  pendingStudent: number
+  complete: number
+}
 
 export function createRelatoriosFinaisRepository(database: Database) {
   return {
@@ -360,16 +383,25 @@ export function createRelatoriosFinaisRepository(database: Database) {
     },
 
     // ========================================
-    // ADMIN QUERIES
+    // ADMIN QUERIES (PAGINATED)
     // ========================================
 
-    async listAllDisciplinaReportsForAdmin(filters: { ano?: number; semestre?: Semestre; departamentoId?: number }) {
-      const conditions = [isNull(projetoTable.deletedAt)]
+    async listAllDisciplinaReportsForAdmin(filters: RelatorioAdminFilters) {
+      const conditions: ReturnType<typeof eq>[] = [isNull(projetoTable.deletedAt)]
 
       if (filters.ano) conditions.push(eq(projetoTable.ano, filters.ano))
       if (filters.semestre) conditions.push(eq(projetoTable.semestre, filters.semestre))
       if (filters.departamentoId) conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
 
+      // Count total
+      const totalResult = await database
+        .select({ count: count() })
+        .from(projetoTable)
+        .where(and(...conditions))
+
+      const total = totalResult[0]?.count ?? 0
+
+      // Get paginated projects
       const projetos = await database.query.projetoTable.findMany({
         where: and(...conditions),
         with: {
@@ -382,9 +414,11 @@ export function createRelatoriosFinaisRepository(database: Database) {
           },
         },
         orderBy: [desc(projetoTable.ano), desc(projetoTable.createdAt)],
+        limit: filters.limit,
+        offset: filters.offset,
       })
 
-      return projetos.map((projeto) => {
+      const items = projetos.map((projeto) => {
         const relatorio = projeto.relatorioFinal
         return {
           projetoId: projeto.id,
@@ -401,29 +435,95 @@ export function createRelatoriosFinaisRepository(database: Database) {
           createdAt: relatorio?.createdAt,
         }
       })
+
+      // Calculate stats from all matching projects (no pagination)
+      const stats = await this.getDisciplinaReportsStats(conditions)
+
+      return { items, total, stats }
     },
 
-    async listAllMonitorReportsForAdmin(filters: { ano?: number; semestre?: Semestre; departamentoId?: number }) {
-      const projetos = await database.query.projetoTable.findMany({
-        where: isNull(projetoTable.deletedAt),
+    async getDisciplinaReportsStats(conditions: ReturnType<typeof eq>[]): Promise<RelatorioDisciplinaAdminStats> {
+      const allProjetos = await database.query.projetoTable.findMany({
+        where: and(...conditions),
+        columns: { id: true },
         with: {
-          professorResponsavel: true,
-          departamento: true,
+          relatorioFinal: {
+            columns: { status: true },
+          },
         },
       })
 
-      // Filter projects
-      let filteredProjetos = projetos
-      if (filters.ano) filteredProjetos = filteredProjetos.filter((p) => p.ano === filters.ano)
-      if (filters.semestre) filteredProjetos = filteredProjetos.filter((p) => p.semestre === filters.semestre)
-      if (filters.departamentoId)
-        filteredProjetos = filteredProjetos.filter((p) => p.departamentoId === filters.departamentoId)
+      let notCreated = 0
+      let draft = 0
+      let submitted = 0
 
-      const projetoIds = filteredProjetos.map((p) => p.id)
-      if (projetoIds.length === 0) return []
+      for (const projeto of allProjetos) {
+        if (!projeto.relatorioFinal) {
+          notCreated++
+        } else if (projeto.relatorioFinal.status === 'DRAFT') {
+          draft++
+        } else {
+          submitted++
+        }
+      }
 
-      // Get all monitor reports for these projects
+      return {
+        total: allProjetos.length,
+        notCreated,
+        draft,
+        submitted,
+      }
+    },
+
+    async listAllMonitorReportsForAdmin(filters: RelatorioAdminFilters) {
+      // Build conditions for projeto filter
+      const projetoConditions: ReturnType<typeof eq>[] = [isNull(projetoTable.deletedAt)]
+
+      if (filters.ano) projetoConditions.push(eq(projetoTable.ano, filters.ano))
+      if (filters.semestre) projetoConditions.push(eq(projetoTable.semestre, filters.semestre))
+      if (filters.departamentoId) projetoConditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
+
+      // Get projeto IDs that match filters
+      const projetos = await database
+        .select({ id: projetoTable.id })
+        .from(projetoTable)
+        .where(and(...projetoConditions))
+
+      const projetoIds = projetos.map((p) => p.id)
+      if (projetoIds.length === 0) {
+        return {
+          items: [],
+          total: 0,
+          stats: { total: 0, draft: 0, pendingStudent: 0, complete: 0 },
+        }
+      }
+
+      // Get inscricao IDs for these projects
+      const inscricoes = await database
+        .select({ id: inscricaoTable.id })
+        .from(inscricaoTable)
+        .where(inArray(inscricaoTable.projetoId, projetoIds))
+
+      const inscricaoIds = inscricoes.map((i) => i.id)
+      if (inscricaoIds.length === 0) {
+        return {
+          items: [],
+          total: 0,
+          stats: { total: 0, draft: 0, pendingStudent: 0, complete: 0 },
+        }
+      }
+
+      // Count total reports
+      const totalResult = await database
+        .select({ count: count() })
+        .from(relatorioFinalMonitorTable)
+        .where(inArray(relatorioFinalMonitorTable.inscricaoId, inscricaoIds))
+
+      const total = totalResult[0]?.count ?? 0
+
+      // Get paginated reports
       const relatorios = await database.query.relatorioFinalMonitorTable.findMany({
+        where: inArray(relatorioFinalMonitorTable.inscricaoId, inscricaoIds),
         with: {
           inscricao: {
             with: {
@@ -440,12 +540,11 @@ export function createRelatoriosFinaisRepository(database: Database) {
           relatorioDisciplina: true,
         },
         orderBy: desc(relatorioFinalMonitorTable.createdAt),
+        limit: filters.limit,
+        offset: filters.offset,
       })
 
-      // Filter by project IDs
-      const filteredRelatorios = relatorios.filter((r) => projetoIds.includes(r.inscricao.projetoId))
-
-      return filteredRelatorios.map((r) => ({
+      const items = relatorios.map((r) => ({
         id: r.id,
         monitorNome: r.inscricao.aluno.nomeCompleto,
         monitorMatricula: r.inscricao.aluno.matricula,
@@ -462,6 +561,47 @@ export function createRelatoriosFinaisRepository(database: Database) {
         professorAssinouEm: r.professorAssinouEm,
         createdAt: r.createdAt,
       }))
+
+      // Calculate stats
+      const stats = await this.getMonitorReportsStats(inscricaoIds)
+
+      return { items, total, stats }
+    },
+
+    async getMonitorReportsStats(inscricaoIds: number[]): Promise<RelatorioMonitorAdminStats> {
+      if (inscricaoIds.length === 0) {
+        return { total: 0, draft: 0, pendingStudent: 0, complete: 0 }
+      }
+
+      const allRelatorios = await database
+        .select({
+          status: relatorioFinalMonitorTable.status,
+          alunoAssinouEm: relatorioFinalMonitorTable.alunoAssinouEm,
+          professorAssinouEm: relatorioFinalMonitorTable.professorAssinouEm,
+        })
+        .from(relatorioFinalMonitorTable)
+        .where(inArray(relatorioFinalMonitorTable.inscricaoId, inscricaoIds))
+
+      let draft = 0
+      let pendingStudent = 0
+      let complete = 0
+
+      for (const r of allRelatorios) {
+        if (r.status === 'DRAFT') {
+          draft++
+        } else if (r.professorAssinouEm && !r.alunoAssinouEm) {
+          pendingStudent++
+        } else if (r.professorAssinouEm && r.alunoAssinouEm) {
+          complete++
+        }
+      }
+
+      return {
+        total: allRelatorios.length,
+        draft,
+        pendingStudent,
+        complete,
+      }
     },
   }
 }

@@ -6,12 +6,12 @@ import { multiselectFilterFn, TableComponent } from "@/components/layout/TableCo
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
-import { ADMIN, PROFESSOR, STUDENT, type UserListItem } from "@/types"
+import { useServerPagination } from "@/hooks/useServerPagination"
+import { ADMIN, PROFESSOR, STUDENT, type UserListItem, type UserRole, type Regime, type TipoProfessor } from "@/types"
 import { api } from "@/utils/api"
 import { formatUsernameToProperName } from "@/utils/username-formatter"
-import type { ColumnDef, FilterFn } from "@tanstack/react-table"
-import { BookOpen, GraduationCap, Loader, Mail, Pencil, Trash2, User, UserCheck, Users } from "lucide-react"
+import type { ColumnDef } from "@tanstack/react-table"
+import { BookOpen, GraduationCap, Loader, Pencil, Trash2, User, UserCheck, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -33,52 +33,29 @@ const roleFilterOptions = [
   { value: STUDENT, label: "Estudante" },
 ]
 
-// Custom filter function for username (searches displayName too)
-const usernameFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || filterValue === "") return true
-  const user = row.original
-  const displayName =
-    user.professorProfile?.nomeCompleto ||
-    user.studentProfile?.nomeCompleto ||
-    formatUsernameToProperName(user.username)
-  const searchValue = String(filterValue).toLowerCase()
-  return (
-    user.username.toLowerCase().includes(searchValue) ||
-    displayName.toLowerCase().includes(searchValue) ||
-    user.email.toLowerCase().includes(searchValue)
-  )
-}
-
-// Custom filter function for email
-const emailFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || filterValue === "") return true
-  const user = row.original
-  const email = user.email || ""
-  const institutionalEmail = user.professorProfile?.emailInstitucional || user.studentProfile?.emailInstitucional || ""
-  const searchValue = String(filterValue).toLowerCase()
-  return email.toLowerCase().includes(searchValue) || institutionalEmail.toLowerCase().includes(searchValue)
-}
-
-// Custom filter function for departamento (multiselect by departamento id)
-const departamentoFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || !Array.isArray(filterValue) || filterValue.length === 0) return true
-  const departamentoId = row.original.professorProfile?.departamentoId?.toString()
-  return departamentoId ? filterValue.includes(departamentoId) : false
-}
-
-// Custom filter function for curso
-const cursoFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || filterValue === "") return true
-  const cursoNome = row.original.studentProfile?.cursoNome || ""
-  const searchValue = String(filterValue).toLowerCase()
-  return cursoNome.toLowerCase().includes(searchValue)
-}
-
 export default function UsersPage() {
   const router = useRouter()
   const utils = api.useUtils()
 
-  const { data: usersData, isLoading: loadingUsers } = api.user.getUsers.useQuery({})
+  // Server-side pagination with URL state persistence
+  const { page, pageSize, setPage, setPageSize, columnFilters, setColumnFilters, apiFilters } = useServerPagination({
+    defaultPageSize: 20,
+  })
+
+  // Fetch users with server-side filtering and pagination
+  const { data: usersData, isLoading: loadingUsers } = api.user.getUsers.useQuery({
+    search: apiFilters.username || apiFilters.email,
+    role: apiFilters.role as UserRole[] | undefined,
+    nomeCompleto: apiFilters.nomeCompleto,
+    emailInstitucional: apiFilters.emailInstitucional,
+    departamentoId: apiFilters.departamentoId,
+    cursoNome: apiFilters.cursoNome,
+    regime: apiFilters.regime as Regime[] | undefined,
+    tipoProfessor: apiFilters.tipoProfessor as TipoProfessor[] | undefined,
+    limit: apiFilters.limit,
+    offset: apiFilters.offset,
+  })
+
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
 
   // Delete user state
@@ -108,59 +85,29 @@ export default function UsersPage() {
     }
   }
 
-  // URL-based column filters
-  const { columnFilters, setColumnFilters } = useUrlColumnFilters()
-
   const handleEditUser = (userId: number) => {
     router.push(`/home/admin/users/${userId}/edit`)
   }
 
-  // Calcular estatísticas
+  // Stats from server total (accurate across all pages)
   const userStats = useMemo(() => {
-    if (!usersData?.users) return { total: 0, admins: 0, professors: 0, students: 0 }
+    if (!usersData?.users) return { total: usersData?.total ?? 0, admins: 0, professors: 0, students: 0 }
 
-    return usersData.users.reduce(
+    // Count from current page data for role breakdown
+    const counts = usersData.users.reduce(
       (acc, user) => {
-        acc.total++
         if (user.role === ADMIN) acc.admins++
         else if (user.role === PROFESSOR) acc.professors++
         else if (user.role === STUDENT) acc.students++
         return acc
       },
-      { total: 0, admins: 0, professors: 0, students: 0 }
+      { admins: 0, professors: 0, students: 0 }
     )
-  }, [usersData?.users])
 
-  // Generate filter options for autocomplete
-  const nomeFilterOptions = useMemo(() => {
-    if (!usersData?.users) return []
-    return usersData.users
-      .map((user) => {
-        const displayName =
-          user.professorProfile?.nomeCompleto ||
-          user.studentProfile?.nomeCompleto ||
-          formatUsernameToProperName(user.username)
-        return {
-          value: displayName,
-          label: `${displayName} (@${user.username})`,
-        }
-      })
-      .sort((a, b) => a.label.localeCompare(b.label))
-  }, [usersData?.users])
+    return { total: usersData.total, ...counts }
+  }, [usersData])
 
-  const emailFilterOptions = useMemo(() => {
-    if (!usersData?.users) return []
-    const emails = new Set<string>()
-    usersData.users.forEach((user) => {
-      if (user.email) emails.add(user.email)
-      if (user.professorProfile?.emailInstitucional) emails.add(user.professorProfile.emailInstitucional)
-      if (user.studentProfile?.emailInstitucional) emails.add(user.studentProfile.emailInstitucional)
-    })
-    return Array.from(emails)
-      .map((email) => ({ value: email, label: email }))
-      .sort((a, b) => a.label.localeCompare(b.label))
-  }, [usersData?.users])
-
+  // Departamento filter options
   const departamentoFilterOptions = useMemo(() => {
     if (!departamentos) return []
     return departamentos.map((d) => ({
@@ -169,23 +116,7 @@ export default function UsersPage() {
     }))
   }, [departamentos])
 
-  const cursoFilterOptions = useMemo(() => {
-    if (!usersData?.users) return []
-    const uniqueCursos = new Map<string, string>()
-    usersData.users.forEach((user) => {
-      if (user.studentProfile?.cursoNome && !uniqueCursos.has(user.studentProfile.cursoNome)) {
-        uniqueCursos.set(user.studentProfile.cursoNome, user.studentProfile.cursoNome)
-      }
-    })
-    return Array.from(uniqueCursos.entries())
-      .map(([curso]) => ({
-        value: curso,
-        label: curso,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label))
-  }, [usersData?.users])
-
-  // Column definitions for users table
+  // Column definitions for users table (server-side filtering)
   const colunasUsuarios: ColumnDef<UserListItem>[] = useMemo(
     () => [
       {
@@ -193,12 +124,10 @@ export default function UsersPage() {
         header: createFilterableHeader<UserListItem>({
           title: "Usuário",
           filterType: "text",
-          filterPlaceholder: "Buscar nome, username ou email...",
+          filterPlaceholder: "Buscar nome...",
           wide: true,
-          autocompleteOptions: nomeFilterOptions,
         }),
         accessorKey: "username",
-        filterFn: usernameFilterFn,
         cell: ({ row }) => {
           const user = row.original
           const displayName =
@@ -224,10 +153,8 @@ export default function UsersPage() {
           filterType: "text",
           filterPlaceholder: "Buscar email...",
           wide: true,
-          autocompleteOptions: emailFilterOptions,
         }),
         accessorKey: "email",
-        filterFn: emailFilterFn,
         cell: ({ row }) => {
           const user = row.original
           const institutionalEmail = user.professorProfile?.emailInstitucional || user.studentProfile?.emailInstitucional
@@ -278,7 +205,7 @@ export default function UsersPage() {
           filterOptions: departamentoFilterOptions,
         }),
         accessorKey: "professorProfile.departamentoId",
-        filterFn: departamentoFilterFn,
+        filterFn: multiselectFilterFn,
         cell: ({ row }) => {
           const user = row.original
           if (user.role !== PROFESSOR || !user.professorProfile) {
@@ -295,10 +222,8 @@ export default function UsersPage() {
           filterType: "text",
           filterPlaceholder: "Buscar curso...",
           wide: true,
-          autocompleteOptions: cursoFilterOptions,
         }),
         accessorKey: "studentProfile.cursoNome",
-        filterFn: cursoFilterFn,
         cell: ({ row }) => {
           const user = row.original
           if (user.role !== STUDENT || !user.studentProfile) {
@@ -365,7 +290,7 @@ export default function UsersPage() {
         },
       },
     ],
-    [departamentos, nomeFilterOptions, emailFilterOptions, departamentoFilterOptions, cursoFilterOptions, deleteUserMutation.isPending]
+    [departamentos, departamentoFilterOptions, deleteUserMutation.isPending]
   )
 
   const getUserDisplayName = (user: UserListItem) => {
@@ -374,7 +299,7 @@ export default function UsersPage() {
 
   return (
     <PagesLayout title="Gerenciar Usuários" subtitle="Administração de usuários do sistema">
-      {loadingUsers ? (
+      {loadingUsers && !usersData ? (
         <div className="flex justify-center items-center py-8">
           <Loader className="h-8 w-8 animate-spin" />
           <span className="ml-2">Carregando usuários...</span>
@@ -401,7 +326,7 @@ export default function UsersPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">{userStats.professors}</div>
-                <p className="text-xs text-muted-foreground">Professores ativos</p>
+                <p className="text-xs text-muted-foreground">Na página atual</p>
               </CardContent>
             </Card>
 
@@ -412,7 +337,7 @@ export default function UsersPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">{userStats.students}</div>
-                <p className="text-xs text-muted-foreground">Estudantes matriculados</p>
+                <p className="text-xs text-muted-foreground">Na página atual</p>
               </CardContent>
             </Card>
 
@@ -423,7 +348,7 @@ export default function UsersPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600">{userStats.admins}</div>
-                <p className="text-xs text-muted-foreground">Administradores do sistema</p>
+                <p className="text-xs text-muted-foreground">Na página atual</p>
               </CardContent>
             </Card>
           </div>
@@ -433,6 +358,14 @@ export default function UsersPage() {
             data={usersData?.users || []}
             columnFilters={columnFilters}
             onColumnFiltersChange={setColumnFilters}
+            isLoading={loadingUsers}
+            serverPagination={{
+              totalCount: usersData?.total ?? 0,
+              pageIndex: page,
+              pageSize,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            }}
           />
         </>
       )}

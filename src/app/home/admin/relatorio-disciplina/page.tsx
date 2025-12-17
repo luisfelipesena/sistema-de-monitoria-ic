@@ -8,13 +8,24 @@ import { useRelatorioDisciplinaAdmin } from '@/hooks/features/useRelatorioDiscip
 import { Loader } from 'lucide-react'
 
 export default function RelatorioDisciplinaAdminPage() {
-  const { relatorios, isLoading, stats, columnFilters, setColumnFilters } = useRelatorioDisciplinaAdmin()
+  const {
+    relatorios,
+    isLoading,
+    stats,
+    total,
+    columnFilters,
+    setColumnFilters,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+  } = useRelatorioDisciplinaAdmin()
 
   const columns = useMemo(() => createRelatorioDisciplinaColumns(), [])
 
   return (
     <PagesLayout title="Relatórios por Disciplina">
-      {isLoading ? (
+      {isLoading && relatorios.length === 0 ? (
         <div className="flex justify-center items-center py-8">
           <Loader className="h-8 w-8 animate-spin" />
           <span className="ml-2">Carregando relatórios...</span>
@@ -27,8 +38,14 @@ export default function RelatorioDisciplinaAdminPage() {
             columns={columns}
             columnFilters={columnFilters}
             onColumnFiltersChange={setColumnFilters}
-            searchableColumn="disciplinaNome"
-            searchPlaceholder="Buscar por disciplina..."
+            isLoading={isLoading}
+            serverPagination={{
+              totalCount: total,
+              pageIndex: page,
+              pageSize,
+              onPageChange: setPage,
+              onPageSizeChange: setPageSize,
+            }}
           />
         </div>
       )}

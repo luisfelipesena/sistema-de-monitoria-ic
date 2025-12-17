@@ -155,6 +155,8 @@ export const selecaoRouter = createTRPCRouter({
         ano: anoSchema.optional(),
         semestre: semestreSchema.optional(),
         departamentoId: z.number().int().positive().optional(),
+        limit: z.number().min(1).max(100).default(20),
+        offset: z.number().min(0).default(0),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -177,6 +179,8 @@ export const selecaoRouter = createTRPCRouter({
         semestre: semestreSchema.optional(),
         departamentoId: z.number().int().positive().optional(),
         status: z.enum(['DRAFT', 'SIGNED']).optional(),
+        limit: z.number().min(1).max(100).default(20),
+        offset: z.number().min(0).default(0),
       })
     )
     .query(async ({ ctx, input }) => {

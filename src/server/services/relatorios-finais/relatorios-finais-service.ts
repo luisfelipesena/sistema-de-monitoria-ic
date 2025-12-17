@@ -43,11 +43,23 @@ export function createRelatoriosFinaisService(database: Database) {
     // ========================================
     // ADMIN METHODS
     // ========================================
-    async listAllDisciplinaReportsForAdmin(filters: { ano?: number; semestre?: Semestre; departamentoId?: number }) {
+    async listAllDisciplinaReportsForAdmin(filters: {
+      ano?: number
+      semestre?: Semestre
+      departamentoId?: number
+      limit?: number
+      offset?: number
+    }) {
       return repository.listAllDisciplinaReportsForAdmin(filters)
     },
 
-    async listAllMonitorReportsForAdmin(filters: { ano?: number; semestre?: Semestre; departamentoId?: number }) {
+    async listAllMonitorReportsForAdmin(filters: {
+      ano?: number
+      semestre?: Semestre
+      departamentoId?: number
+      limit?: number
+      offset?: number
+    }) {
       return repository.listAllMonitorReportsForAdmin(filters)
     },
   }

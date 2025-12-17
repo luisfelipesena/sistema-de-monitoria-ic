@@ -19,7 +19,7 @@ import {
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
+import { useServerPagination } from "@/hooks/useServerPagination"
 import {
   STUDENT,
   STUDENT_STATUS_ATIVO,
@@ -31,36 +31,11 @@ import {
   type StudentStatus,
 } from "@/types"
 import { api } from "@/utils/api"
-import type { ColumnDef, FilterFn } from "@tanstack/react-table"
+import type { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { Award, Eye, GraduationCap, Pencil, Trash2, UserCheck, UserX, Users } from "lucide-react"
+import { Award, Eye, GraduationCap, Pencil, Trash2, UserCheck, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
-
-// Custom filter function for student name
-const nomeFilterFn: FilterFn<AlunoListItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || filterValue === "") return true
-  const nomeCompleto = row.original.nomeCompleto || ""
-  const matricula = row.original.matricula || ""
-  const searchValue = String(filterValue).toLowerCase()
-  return nomeCompleto.toLowerCase().includes(searchValue) || matricula.toLowerCase().includes(searchValue)
-}
-
-// Custom filter function for email
-const emailFilterFn: FilterFn<AlunoListItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || filterValue === "") return true
-  const email = row.original.emailInstitucional || ""
-  const searchValue = String(filterValue).toLowerCase()
-  return email.toLowerCase().includes(searchValue)
-}
-
-// Custom filter function for curso
-const cursoFilterFn: FilterFn<AlunoListItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || filterValue === "") return true
-  const curso = row.original.cursoNome || ""
-  const searchValue = String(filterValue).toLowerCase()
-  return curso.toLowerCase().includes(searchValue)
-}
 
 export default function AlunosPage() {
   const { toast } = useToast()
@@ -70,8 +45,10 @@ export default function AlunosPage() {
   const [alunoToDelete, setAlunoToDelete] = useState<AlunoListItem | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
-  // URL-based column filters
-  const { columnFilters, setColumnFilters } = useUrlColumnFilters()
+  // Server-side pagination with URL state persistence
+  const { page, pageSize, setPage, setPageSize, columnFilters, setColumnFilters, apiFilters } = useServerPagination({
+    defaultPageSize: 20,
+  })
 
   // Helper function - must be declared before use to avoid TDZ
   const getAlunoStatus = (profile: {
@@ -84,13 +61,19 @@ export default function AlunosPage() {
       : STUDENT_STATUS_INATIVO
   }
 
-  // Fetch students data
+  // Fetch students with server-side filtering (role is always STUDENT)
   const { data: usersData, isLoading, refetch } = api.user.getUsers.useQuery({
-    role: STUDENT,
-    limit: 100,
+    role: [STUDENT],
+    nomeCompleto: apiFilters.nomeCompleto,
+    emailInstitucional: apiFilters.emailInstitucional,
+    cursoNome: apiFilters.cursoNome,
+    limit: apiFilters.limit,
+    offset: apiFilters.offset,
   })
 
   const deleteUserMutation = api.user.deleteUser.useMutation()
+
+  const totalCount = usersData?.total ?? 0
 
   const alunos: AlunoListItem[] =
     usersData?.users
@@ -115,42 +98,6 @@ export default function AlunosPage() {
         }
       }) || []
 
-  // Generate filter options for autocomplete
-  const nomeFilterOptions = useMemo(() => {
-    return alunos
-      .filter((a) => a.nomeCompleto)
-      .map((a) => ({
-        value: a.nomeCompleto,
-        label: `${a.nomeCompleto} (${a.matricula || "N/A"})`,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label))
-  }, [alunos])
-
-  const emailFilterOptions = useMemo(() => {
-    return alunos
-      .filter((a) => a.emailInstitucional)
-      .map((a) => ({
-        value: a.emailInstitucional!,
-        label: a.emailInstitucional!,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label))
-  }, [alunos])
-
-  const cursoFilterOptions = useMemo(() => {
-    const uniqueCursos = new Map<string, string>()
-    alunos.forEach((a) => {
-      if (a.cursoNome && !uniqueCursos.has(a.cursoNome)) {
-        uniqueCursos.set(a.cursoNome, a.cursoNome)
-      }
-    })
-    return Array.from(uniqueCursos.entries())
-      .map(([curso]) => ({
-        value: curso,
-        label: curso,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label))
-  }, [alunos])
-
   const statusFilterOptions = [
     { value: STUDENT_STATUS_ATIVO, label: STUDENT_STATUS_LABELS[STUDENT_STATUS_ATIVO] },
     { value: STUDENT_STATUS_INATIVO, label: STUDENT_STATUS_LABELS[STUDENT_STATUS_INATIVO] },
@@ -161,26 +108,6 @@ export default function AlunosPage() {
   const handleViewAluno = (aluno: AlunoListItem) => {
     setSelectedAluno(aluno)
     setIsDetailDialogOpen(true)
-  }
-
-  const handleToggleStatus = async (alunoId: number, currentStatus: StudentStatus) => {
-    try {
-      const newStatus = currentStatus === STUDENT_STATUS_ATIVO ? STUDENT_STATUS_INATIVO : STUDENT_STATUS_ATIVO
-
-      // This would use actual tRPC mutation when implemented
-      // await updateAlunoStatusMutation.mutateAsync({ id: alunoId, status: newStatus })
-
-      toast({
-        title: "Status atualizado",
-        description: `Aluno ${newStatus === STUDENT_STATUS_ATIVO ? "ativado" : "desativado"} com sucesso`,
-      })
-    } catch (error: any) {
-      toast({
-        title: "Erro ao atualizar status",
-        description: error.message || "Não foi possível atualizar o status",
-        variant: "destructive",
-      })
-    }
   }
 
   const handleDeleteAluno = async () => {
@@ -242,11 +169,9 @@ export default function AlunosPage() {
         header: createFilterableHeader<AlunoListItem>({
           title: "Nome",
           filterType: "text",
-          filterPlaceholder: "Buscar nome ou matrícula...",
+          filterPlaceholder: "Buscar nome...",
           wide: true,
-          autocompleteOptions: nomeFilterOptions,
         }),
-        filterFn: nomeFilterFn,
         cell: ({ row }) => (
           <div>
             <div className="font-medium">{row.original.nomeCompleto}</div>
@@ -262,9 +187,7 @@ export default function AlunosPage() {
           filterType: "text",
           filterPlaceholder: "Buscar email...",
           wide: true,
-          autocompleteOptions: emailFilterOptions,
         }),
-        filterFn: emailFilterFn,
         cell: ({ row }) => <div className="text-muted-foreground">{row.original.emailInstitucional}</div>,
       },
       {
@@ -275,9 +198,7 @@ export default function AlunosPage() {
           filterType: "text",
           filterPlaceholder: "Buscar curso...",
           wide: true,
-          autocompleteOptions: cursoFilterOptions,
         }),
-        filterFn: cursoFilterFn,
         cell: ({ row }) => (
           <div>
             <div className="font-medium">{row.original.cursoNome || "N/A"}</div>
@@ -367,13 +288,18 @@ export default function AlunosPage() {
         },
       },
     ],
-    [nomeFilterOptions, emailFilterOptions, cursoFilterOptions]
+    []
   )
 
-  const totalAlunos = alunos.length
-  const alunosAtivos = alunos.filter((a) => a.status === STUDENT_STATUS_ATIVO).length
-  const totalBolsistas = alunos.reduce((sum, a) => sum + a.bolsasAtivas, 0)
-  const totalVoluntarios = alunos.reduce((sum, a) => sum + a.voluntariadosAtivos, 0)
+  // Stats from current page data
+  const stats = useMemo(() => {
+    return {
+      total: totalCount,
+      ativos: alunos.filter((a) => a.status === STUDENT_STATUS_ATIVO).length,
+      bolsistas: alunos.reduce((sum, a) => sum + a.bolsasAtivas, 0),
+      voluntarios: alunos.reduce((sum, a) => sum + a.voluntariadosAtivos, 0),
+    }
+  }, [alunos, totalCount])
 
   return (
     <PagesLayout title="Gerenciamento de Alunos" subtitle="Visualize e gerencie informações dos estudantes">
@@ -386,7 +312,7 @@ export default function AlunosPage() {
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Total de Alunos</p>
-                  <div className="text-2xl font-bold">{totalAlunos}</div>
+                  <div className="text-2xl font-bold">{stats.total}</div>
                 </div>
               </div>
             </CardContent>
@@ -398,7 +324,8 @@ export default function AlunosPage() {
                 <UserCheck className="h-4 w-4 text-green-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Ativos</p>
-                  <div className="text-2xl font-bold text-green-600">{alunosAtivos}</div>
+                  <div className="text-2xl font-bold text-green-600">{stats.ativos}</div>
+                  <p className="text-xs text-muted-foreground">Na página atual</p>
                 </div>
               </div>
             </CardContent>
@@ -410,7 +337,8 @@ export default function AlunosPage() {
                 <Award className="h-4 w-4 text-blue-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Bolsistas Ativos</p>
-                  <div className="text-2xl font-bold text-blue-600">{totalBolsistas}</div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.bolsistas}</div>
+                  <p className="text-xs text-muted-foreground">Na página atual</p>
                 </div>
               </div>
             </CardContent>
@@ -422,7 +350,8 @@ export default function AlunosPage() {
                 <GraduationCap className="h-4 w-4 text-purple-600" />
                 <div className="ml-2">
                   <p className="text-sm font-medium text-muted-foreground">Voluntários Ativos</p>
-                  <div className="text-2xl font-bold text-purple-600">{totalVoluntarios}</div>
+                  <div className="text-2xl font-bold text-purple-600">{stats.voluntarios}</div>
+                  <p className="text-xs text-muted-foreground">Na página atual</p>
                 </div>
               </div>
             </CardContent>
@@ -440,6 +369,14 @@ export default function AlunosPage() {
               data={alunos}
               columnFilters={columnFilters}
               onColumnFiltersChange={setColumnFilters}
+              isLoading={isLoading}
+              serverPagination={{
+                totalCount,
+                pageIndex: page,
+                pageSize,
+                onPageChange: setPage,
+                onPageSizeChange: setPageSize,
+              }}
             />
           </CardContent>
         </Card>
