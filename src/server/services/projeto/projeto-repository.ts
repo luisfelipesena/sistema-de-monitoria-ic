@@ -17,7 +17,7 @@ import {
 import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
 import { ADMIN, PROJETO_STATUS_APPROVED } from '@/types'
 import type { InferInsertModel, SQL } from 'drizzle-orm'
-import { and, desc, eq, gte, inArray, isNull, like, lte, or, sql } from 'drizzle-orm'
+import { and, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from 'drizzle-orm'
 
 export type ProjetoInsert = InferInsertModel<typeof projetoTable>
 export type AtividadeProjetoInsert = InferInsertModel<typeof atividadeProjetoTable>
@@ -160,9 +160,9 @@ export function createProjetoRepository(db: Database) {
         conditions.push(inArray(projetoTable.status, filters.status))
       }
 
-      // Filter by professor name (LIKE search)
+      // Filter by professor name (ILIKE search - case insensitive)
       if (filters.professorNome) {
-        conditions.push(like(professorTable.nomeCompleto, `%${filters.professorNome}%`))
+        conditions.push(ilike(professorTable.nomeCompleto, `%${filters.professorNome}%`))
       }
 
       // Filter by departamento ID
@@ -221,7 +221,7 @@ export function createProjetoRepository(db: Database) {
         const projetoIds = results.map((p) => p.id)
         if (projetoIds.length === 0) return []
 
-        // Get disciplinas for these projects that match the filter
+        // Get disciplinas for these projects that match the filter (case-insensitive)
         const matchingDisciplinas = await db
           .select({
             projetoId: projetoDisciplinaTable.projetoId,
@@ -232,8 +232,8 @@ export function createProjetoRepository(db: Database) {
             and(
               inArray(projetoDisciplinaTable.projetoId, projetoIds),
               or(
-                like(disciplinaTable.codigo, `%${filters.disciplina}%`),
-                like(disciplinaTable.nome, `%${filters.disciplina}%`)
+                ilike(disciplinaTable.codigo, `%${filters.disciplina}%`),
+                ilike(disciplinaTable.nome, `%${filters.disciplina}%`)
               )
             )
           )
@@ -268,14 +268,14 @@ export function createProjetoRepository(db: Database) {
       }
 
       if (filters.professorNome) {
-        conditions.push(like(professorTable.nomeCompleto, `%${filters.professorNome}%`))
+        conditions.push(ilike(professorTable.nomeCompleto, `%${filters.professorNome}%`))
       }
 
       if (filters.departamentoId) {
         conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
       }
 
-      // For disciplina filter, we need to count differently
+      // For disciplina filter, we need to count differently (case-insensitive)
       if (filters.disciplina) {
         // First get all matching projeto IDs
         const matchingProjetos = await db
@@ -289,8 +289,8 @@ export function createProjetoRepository(db: Database) {
             and(
               ...conditions,
               or(
-                like(disciplinaTable.codigo, `%${filters.disciplina}%`),
-                like(disciplinaTable.nome, `%${filters.disciplina}%`)
+                ilike(disciplinaTable.codigo, `%${filters.disciplina}%`),
+                ilike(disciplinaTable.nome, `%${filters.disciplina}%`)
               )
             )
           )

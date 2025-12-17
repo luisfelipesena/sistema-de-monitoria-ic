@@ -34,7 +34,7 @@ import {
   TIPO_VAGA_BOLSISTA,
   TIPO_VAGA_VOLUNTARIO,
 } from '@/types'
-import { and, eq, inArray, isNull, like, or, sql, type SQL } from 'drizzle-orm'
+import { and, eq, ilike, inArray, isNull, or, sql, type SQL } from 'drizzle-orm'
 type Database = typeof db
 
 export interface UserFilters {
@@ -98,10 +98,10 @@ export const createUserRepository = (db: Database) => {
     if (hasProfessorFilters && isProfessorRoleIncluded) {
       const profConditions: SQL[] = []
       if (filters.nomeCompleto) {
-        profConditions.push(like(professorTable.nomeCompleto, `%${filters.nomeCompleto}%`))
+        profConditions.push(ilike(professorTable.nomeCompleto, `%${filters.nomeCompleto}%`))
       }
       if (filters.emailInstitucional) {
-        profConditions.push(like(professorTable.emailInstitucional, `%${filters.emailInstitucional}%`))
+        profConditions.push(ilike(professorTable.emailInstitucional, `%${filters.emailInstitucional}%`))
       }
       if (filters.departamentoId && filters.departamentoId.length > 0) {
         profConditions.push(inArray(professorTable.departamentoId, filters.departamentoId))
@@ -126,13 +126,13 @@ export const createUserRepository = (db: Database) => {
     if (hasStudentFilters && isStudentRoleIncluded) {
       const studentConditions: SQL[] = []
       if (filters.nomeCompleto) {
-        studentConditions.push(like(alunoTable.nomeCompleto, `%${filters.nomeCompleto}%`))
+        studentConditions.push(ilike(alunoTable.nomeCompleto, `%${filters.nomeCompleto}%`))
       }
       if (filters.emailInstitucional) {
-        studentConditions.push(like(alunoTable.emailInstitucional, `%${filters.emailInstitucional}%`))
+        studentConditions.push(ilike(alunoTable.emailInstitucional, `%${filters.emailInstitucional}%`))
       }
       if (filters.cursoNome) {
-        studentConditions.push(like(alunoTable.cursoNome, `%${filters.cursoNome}%`))
+        studentConditions.push(ilike(alunoTable.cursoNome, `%${filters.cursoNome}%`))
       }
 
       if (studentConditions.length > 0) {
@@ -159,8 +159,8 @@ export const createUserRepository = (db: Database) => {
       // Search filter (username or email)
       if (filters.search) {
         const searchCondition = or(
-          like(userTable.username, `%${filters.search}%`),
-          like(userTable.email, `%${filters.search}%`)
+          ilike(userTable.username, `%${filters.search}%`),
+          ilike(userTable.email, `%${filters.search}%`)
         )
         if (searchCondition) {
           whereConditions.push(searchCondition)
@@ -203,8 +203,8 @@ export const createUserRepository = (db: Database) => {
       // Search filter
       if (filters.search) {
         const searchCondition = or(
-          like(userTable.username, `%${filters.search}%`),
-          like(userTable.email, `%${filters.search}%`)
+          ilike(userTable.username, `%${filters.search}%`),
+          ilike(userTable.email, `%${filters.search}%`)
         )
         if (searchCondition) {
           whereConditions.push(searchCondition)
