@@ -67,7 +67,7 @@ describe('inscricaoRouter', () => {
       const mockContext = createMockContext({ ...mockStudentUser, role: 'professor' })
       const caller = inscricaoRouter.createCaller(mockContext)
       const input = { projetoId: 1, tipo: 'BOLSISTA' as const, motivacao: 'valid motivation' }
-      await expect(caller.createInscricao(input)).rejects.toThrowError(/Acesso permitido apenas para estudantes/)
+      await expect(caller.createInscricao(input)).rejects.toThrowError(/Acesso restrito a estudantes/)
     })
 
     it('should throw BAD_REQUEST if the application period is not active', async () => {

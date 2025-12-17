@@ -48,7 +48,7 @@ describe('userRouter', () => {
 
     const caller = userRouter.createCaller(mockContext)
 
-    await expect(caller.getUsers({ limit: 10, offset: 0 })).rejects.toThrowError('UNAUTHORIZED')
+    await expect(caller.getUsers({ limit: 10, offset: 0 })).rejects.toThrowError('Acesso restrito a administradores')
   })
 
   it('getProfile - unauthenticated user should be forbidden', async () => {

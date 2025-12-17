@@ -117,7 +117,7 @@ describe('departamentoRouter', () => {
         telefone: '(71) 9999-9999',
         descricao: 'Departamento de teste',
       })
-    ).rejects.toThrowError('UNAUTHORIZED')
+    ).rejects.toThrowError('Acesso restrito a administradores')
   })
 
   it('createDepartamento - admin should be able to create a department', async () => {

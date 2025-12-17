@@ -80,7 +80,7 @@ describe('editalRouter', () => {
         dataInicioInscricao: new Date('2024-01-01'),
         dataFimInscricao: new Date('2024-01-31'),
       }
-      await expect(caller.createEdital(input)).rejects.toThrowError('UNAUTHORIZED')
+      await expect(caller.createEdital(input)).rejects.toThrowError('Acesso restrito a administradores')
     })
 
     it('should throw CONFLICT error if edital number already exists', async () => {
