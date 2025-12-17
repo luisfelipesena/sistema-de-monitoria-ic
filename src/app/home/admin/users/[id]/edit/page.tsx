@@ -1,20 +1,19 @@
-'use client'
+"use client"
 
-import { PagesLayout } from '@/components/layout/PagesLayout'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ADMIN, PROFESSOR, STUDENT, type UserRole } from '@/types'
-import { api } from '@/utils/api'
-import { useRouter } from 'next/navigation'
-import { useParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
-import { useToast } from "@/hooks/use-toast"
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/hooks/use-auth"
-import { ArrowLeft, Save, User, Loader } from 'lucide-react'
-import { formatUsernameToProperName } from '@/utils/username-formatter'
+import { useToast } from "@/hooks/use-toast"
+import { ADMIN, PROFESSOR, STUDENT, type UserRole } from "@/types"
+import { api } from "@/utils/api"
+import { formatUsernameToProperName } from "@/utils/username-formatter"
+import { ArrowLeft, Loader, Save, User } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 export default function EditUserPage() {
   const { toast } = useToast()
@@ -29,8 +28,8 @@ export default function EditUserPage() {
     email: string
     role: UserRole
   }>({
-    username: '',
-    email: '',
+    username: "",
+    email: "",
     role: STUDENT,
   })
 
@@ -39,14 +38,14 @@ export default function EditUserPage() {
     onSuccess: () => {
       toast({
         title: "Sucesso!",
-        description: 'Usuário atualizado com sucesso!',
+        description: "Usuário atualizado com sucesso!",
       })
 
       // Se editou o próprio usuário, redireciona para profile
       if (currentUser?.id === userId) {
-        router.push('/home/profile')
+        window.location.href = "/home/profile"
       } else {
-        router.push('/home/admin/users')
+        router.push("/home/admin/users")
       }
     },
     onError: (error) => {
@@ -107,10 +106,7 @@ export default function EditUserPage() {
   }
 
   return (
-    <PagesLayout 
-      title="Editar Usuário" 
-      subtitle={`Editando dados de ${formatUsernameToProperName(user.username)}`}
-    >
+    <PagesLayout title="Editar Usuário" subtitle={`Editando dados de ${formatUsernameToProperName(user.username)}`}>
       <div className="mb-4">
         <Button variant="outline" onClick={handleBack}>
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -166,20 +162,11 @@ export default function EditUserPage() {
             </div>
 
             <div className="flex gap-2 pt-4">
-              <Button 
-                type="submit" 
-                disabled={updateUserMutation.isPending}
-                className="flex-1"
-              >
+              <Button type="submit" disabled={updateUserMutation.isPending} className="flex-1">
                 <Save className="h-4 w-4 mr-2" />
-                {updateUserMutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+                {updateUserMutation.isPending ? "Salvando..." : "Salvar Alterações"}
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={handleBack}
-                className="flex-1"
-              >
+              <Button type="button" variant="outline" onClick={handleBack} className="flex-1">
                 Cancelar
               </Button>
             </div>
