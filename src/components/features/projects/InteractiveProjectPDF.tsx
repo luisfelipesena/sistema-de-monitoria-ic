@@ -31,10 +31,8 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
   const saveDefaultSignature = api.signature.saveDefaultSignature.useMutation()
   const { data: userProfile } = api.user.getProfile.useQuery()
 
+  // Assinatura sempre salva em userTable.assinaturaDefault (não em professorTable)
   const getDefaultSignature = () => {
-    if (userRole === "professor") {
-      return userProfile?.professorProfile?.assinaturaDefault || userProfile?.assinaturaDefault
-    }
     return userProfile?.assinaturaDefault
   }
 

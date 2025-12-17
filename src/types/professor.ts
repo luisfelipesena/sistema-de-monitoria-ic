@@ -37,8 +37,6 @@ export interface Professor {
   emailInstitucional: string
   curriculumVitaeFileId?: string
   comprovanteVinculoFileId?: string
-  assinaturaDefault?: string
-  dataAssinaturaDefault?: Date
   createdAt: Date
   updatedAt?: Date
 }

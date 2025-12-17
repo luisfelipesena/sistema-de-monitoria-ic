@@ -332,12 +332,6 @@ export const professorTable = pgTable('professor', {
   // Document file IDs for professor documents
   curriculumVitaeFileId: text('curriculum_vitae_file_id'),
   comprovanteVinculoFileId: text('comprovante_vinculo_file_id'),
-  // Assinatura padrão do professor
-  assinaturaDefault: text('assinatura_default'), // Base64 data URL da assinatura
-  dataAssinaturaDefault: timestamp('data_assinatura_default', {
-    withTimezone: true,
-    mode: 'date',
-  }),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',

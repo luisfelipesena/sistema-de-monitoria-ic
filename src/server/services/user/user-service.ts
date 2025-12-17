@@ -29,8 +29,6 @@ export const createUserService = (database: typeof db) => {
               regime: user.professorProfile.regime as Regime,
               tipoProfessor: user.professorProfile.tipoProfessor as TipoProfessor | null,
               departamentoId: user.professorProfile.departamentoId,
-              assinaturaDefault: user.professorProfile.assinaturaDefault,
-              dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
               accountStatus: user.professorProfile.accountStatus as 'PENDING' | 'ACTIVE' | 'INACTIVE' | null,
               ...stats,
             }
@@ -103,8 +101,6 @@ export const createUserService = (database: typeof db) => {
               departamentoId: user.professorProfile.departamentoId,
               curriculumVitaeFileId: user.professorProfile.curriculumVitaeFileId,
               comprovanteVinculoFileId: user.professorProfile.comprovanteVinculoFileId,
-              assinaturaDefault: user.professorProfile.assinaturaDefault,
-              dataAssinaturaDefault: user.professorProfile.dataAssinaturaDefault,
             }
           : null,
         studentProfile: user.studentProfile
