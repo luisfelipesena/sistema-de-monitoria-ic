@@ -42,13 +42,12 @@ export default function EditUserPage() {
         description: 'Usuário atualizado com sucesso!',
       })
 
-      // Se editou o próprio usuário, redireciona para /home
+      // Se editou o próprio usuário, redireciona para profile
       if (currentUser?.id === userId) {
-        router.push('/home')
+        router.push('/home/profile')
       } else {
         router.push('/home/admin/users')
       }
-      window.location.reload()
     },
     onError: (error) => {
       toast({
