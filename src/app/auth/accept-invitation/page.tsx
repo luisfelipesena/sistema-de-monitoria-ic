@@ -1,12 +1,13 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Suspense, useState } from "react"
+import { Suspense } from "react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,7 +32,6 @@ function AcceptInvitationContent() {
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
   const router = useRouter()
-  const [isSuccess, setIsSuccess] = useState(false)
 
   const { data: invitation, isLoading, error } = api.inviteProfessor.getInvitationByToken.useQuery(
     { token: token || "" },
@@ -40,7 +40,12 @@ function AcceptInvitationContent() {
 
   const acceptMutation = api.inviteProfessor.acceptInvitation.useMutation({
     onSuccess: () => {
-      setIsSuccess(true)
+      toast.success("Conta ativada com sucesso!", {
+        description: "Redirecionando para o login...",
+      })
+      setTimeout(() => {
+        router.push("/auth/login")
+      }, 1500)
     },
   })
 
@@ -104,29 +109,6 @@ function AcceptInvitationContent() {
                 Ir para login
               </Button>
             </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <CheckCircle className="h-16 w-16 text-green-600" />
-            </div>
-            <CardTitle className="text-green-600">Conta ativada com sucesso!</CardTitle>
-            <CardDescription>
-              Sua conta foi criada. Você pode fazer login e completar seu perfil.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <Button onClick={() => router.push("/auth/login")} className="w-full">
-              Fazer login
-            </Button>
           </CardContent>
         </Card>
       </div>
