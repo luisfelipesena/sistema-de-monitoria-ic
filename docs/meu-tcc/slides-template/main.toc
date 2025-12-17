@@ -1,0 +1,7 @@
+\babel@toc {portuguese}{}\relax 
+\beamer@sectionintoc {1}{Introdução}{3}{0}{1}
+\beamer@sectionintoc {2}{Fundamentação Teórica}{6}{0}{2}
+\beamer@sectionintoc {3}{Estado da Prática}{8}{0}{3}
+\beamer@sectionintoc {4}{O Sistema}{10}{0}{4}
+\beamer@sectionintoc {5}{Avaliação e Conclusão}{17}{0}{5}
+\beamer@sectionintoc {6}{Encerramento}{21}{0}{6}

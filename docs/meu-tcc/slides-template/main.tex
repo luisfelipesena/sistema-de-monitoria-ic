@@ -1,0 +1,562 @@
+\documentclass[aspectratio=169,xcolor=table]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{csquotes}
+\usepackage{xcolor}
+\usepackage[portuguese]{babel}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, calc, mindmap, shadows, matrix}
+
+% ------------------------------------------------
+% Tema e Configurações do Beamer
+% ------------------------------------------------
+\usetheme{DCC}
+
+% Ajuste de margens para evitar overlap com sidebar
+\setbeamersize{text margin left=2.2cm, text margin right=1.0cm}
+
+% Ajuste de espaçamento entre itens
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{itemize subitem}[circle]
+\setlength{\itemsep}{0.6em}
+\setlength{\parskip}{0.4em}
+
+\graphicspath{{imgs/}{./imgs/}}
+
+\author[Luis Felipe Sena]{%
+  \textbf{Luis Felipe Cordeiro Sena}\\
+  \small Orientador: Prof. Frederico Araújo Durão
+}
+\title{Sistema de Monitoria-IC}
+\subtitle{Plataforma Web para Gestão Completa de Monitorias Acadêmicas da UFBA}
+\institute{Universidade Federal da Bahia}
+\date{Dezembro de 2025}
+
+\begin{document}
+
+%-------------------------------------------------
+%  SLIDE DE TÍTULO
+%-------------------------------------------------
+\begin{frame}[plain,noframenumbering]
+    \begin{tikzpicture}[remember picture,overlay]
+        % Título principal
+        \node[anchor=center] at ([yshift=3.2cm]current page.center) {
+            {\fontsize{26}{30}\selectfont\bfseries Sistema de Monitoria-IC}
+        };
+        % Subtítulo
+        \node[anchor=center] at ([yshift=2.2cm]current page.center) {
+            {\fontsize{12}{15}\selectfont Plataforma Web para Gestão Completa de Monitorias Acadêmicas da UFBA}
+        };
+        % Autor
+        \node[anchor=center] at ([yshift=-0.8cm]current page.center) {
+            {\fontsize{14}{17}\selectfont\bfseries Luis Felipe Cordeiro Sena}
+        };
+        % Orientador
+        \node[anchor=center] at ([yshift=-1.6cm]current page.center) {
+            {\fontsize{11}{14}\selectfont Orientador: Prof. Frederico Araújo Durão}
+        };
+        % Instituição
+        \node[anchor=center] at ([yshift=-2.6cm]current page.center) {
+            {\fontsize{9}{11}\selectfont Universidade Federal da Bahia}
+        };
+        % Data
+        \node[anchor=center] at ([yshift=-3.2cm]current page.center) {
+            {\fontsize{9}{11}\selectfont Dezembro de 2025}
+        };
+    \end{tikzpicture}
+\end{frame}
+
+%-------------------------------------------------
+%  SLIDE DE AGENDA
+%-------------------------------------------------
+\begin{frame}{Agenda}
+    \begin{table}
+        \begin{tabularx}{0.95\linewidth}{|l|X|}
+            \hline
+            \textbf{Parte} & \textbf{Conteúdo} \\
+            \hline
+            1 & \textbf{Introdução} -- Motivação, problema identificado e objetivos \\
+            \hline
+            2 & \textbf{Fundamentação} -- Monitoria acadêmica e Sistemas de Informação \\
+            \hline
+            3 & \textbf{Estado da Prática} -- Levantamento em universidades brasileiras \\
+            \hline
+            4 & \textbf{O Sistema} -- Arquitetura, tecnologias e fluxo de processos \\
+            \hline
+            5 & \textbf{Avaliação e Conclusão} -- Resultados e trabalhos futuros \\
+            \hline
+        \end{tabularx}
+    \end{table}
+\end{frame}
+
+\setlength{\parskip}{0.8em}
+
+%=================================================
+\section{Introdução}
+%=================================================
+
+\begin{frame}{Motivação}
+    \begin{columns}[T]
+        \begin{column}{0.52\textwidth}
+            \begin{itemize}
+                \item \textbf{Monitoria acadêmica:} pilar do ensino superior brasileiro (Lei nº 9.394/96)
+                \item \textbf{Benefícios:} desenvolvimento pedagógico, auxílio no ensino-aprendizagem
+                \item \textbf{Fluxo complexo:} múltiplos atores e etapas interdependentes
+                \item \textbf{Realidade atual:} processos manuais e fragmentados
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.40\textwidth}
+            \centering
+            \begin{tikzpicture}[scale=0.65, transform shape]
+                \node[draw, rounded corners, fill=blue!20, minimum width=2.5cm, minimum height=0.8cm] (mon) at (0,0) {\textbf{Monitoria}};
+                \node[draw, rounded corners, fill=green!20, minimum width=2cm, minimum height=0.6cm] (prof) at (-2.5,1.5) {Professor};
+                \node[draw, rounded corners, fill=orange!20, minimum width=2cm, minimum height=0.6cm] (aluno) at (2.5,1.5) {Aluno};
+                \node[draw, rounded corners, fill=red!20, minimum width=2cm, minimum height=0.6cm] (admin) at (-2.5,-1.5) {Admin};
+                \node[draw, rounded corners, fill=purple!20, minimum width=2cm, minimum height=0.6cm] (prograd) at (2.5,-1.5) {PROGRAD};
+                \draw[->, thick] (prof) -- (mon);
+                \draw[->, thick] (aluno) -- (mon);
+                \draw[->, thick] (admin) -- (mon);
+                \draw[->, thick] (mon) -- (prograd);
+            \end{tikzpicture}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Identificação do Problema}
+    \begin{columns}[T]
+        \begin{column}{0.46\textwidth}
+            \textbf{\textcolor{red!70}{Lado Docente}}
+            \begin{itemize}
+                \item Retrabalho sistemático (recriação de projetos a cada semestre)
+                \item Dispersão de documentos (planilhas, PDFs, e-mails)
+                \item Ausência de trilhas de auditoria
+            \end{itemize}
+            \vspace{0.3em}
+            \textbf{\textcolor{orange!70}{Lado Discente}}
+            \begin{itemize}
+                \item Descoberta de vagas imprevisível
+                \item Jornada fragmentada
+                \item Opacidade no processo
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.46\textwidth}
+            \textbf{\textcolor{blue!70}{Administrativo}}
+            \begin{itemize}
+                \item Consolidação de dados heterogêneos
+                \item Dificuldade de conformidade com prazos
+                \item Relatórios custosos
+            \end{itemize}
+            \vspace{0.5cm}
+            \centering
+            \fbox{\parbox{0.9\linewidth}{\centering\small\textbf{Lacuna:} Falta de sistema \textit{fim-a-fim} específico para monitoria}}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Objetivos}
+    \textbf{Objetivo Central:} Desenvolver plataforma Web completa para gestão de monitorias do IC-UFBA
+    \vspace{0.5cm}
+    \begin{columns}[T]
+        \begin{column}{0.46\textwidth}
+            \begin{enumerate}
+                \item Digitalizar ciclo completo de projetos
+                \item Automatizar processo seletivo
+                \item Sistematizar alocação de bolsas
+            \end{enumerate}
+        \end{column}
+        \begin{column}{0.46\textwidth}
+            \begin{enumerate}
+                \setcounter{enumi}{3}
+                \item Eliminar trabalhos manuais repetitivos
+                \item Fornecer base analítica para decisões
+            \end{enumerate}
+        \end{column}
+    \end{columns}
+    \vspace{0.5cm}
+    \centering
+    \textit{Substituir fluxos manuais por sistema único com transparência, rastreabilidade e padronização}
+\end{frame}
+
+%=================================================
+\section{Fundamentação Teórica}
+%=================================================
+
+\begin{frame}{Monitoria Acadêmica na UFBA}
+    \begin{center}
+        \begin{tikzpicture}[scale=0.75, transform shape]
+            \draw[thick, ->, >=stealth] (0,0) -- (13,0) node[right] {\small Fluxo};
+
+            \foreach \x/\fase/\col in {
+                1/Planejamento/gray!40,
+                3.5/Projetos/yellow!40,
+                6/Aprovação/orange!40,
+                8.5/Seleção/blue!40,
+                11/Consolidação/green!40
+            } {
+                \draw[thick] (\x,0.1) -- (\x,-0.1);
+                \node[draw, rounded corners, fill=\col, below, font=\scriptsize, minimum width=1.5cm] at (\x,-0.5) {\fase};
+            }
+        \end{tikzpicture}
+    \end{center}
+    \vspace{0.3cm}
+    \begin{itemize}
+        \item \textbf{Regulamentação:} Lei nº 9.394/96 (LDB) e diretrizes institucionais
+        \item \textbf{Critérios:} Nota na disciplina + Coeficiente de Rendimento (CR)
+        \item \textbf{Modalidades:} Bolsista e Voluntário
+        \item \textbf{Benefícios:} Habilidades didáticas, melhoria de desempenho, apoio docente
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Sistemas de Informação: SPT e SIG}
+    \begin{columns}[T]
+        \begin{column}{0.46\textwidth}
+            \textbf{SPT -- Sistema de Processamento de Transações}
+            \begin{itemize}
+                \item Operações rotineiras e cotidianas
+                \item Alta precisão e confiabilidade
+                \item Auditoria e rastreabilidade
+                \item Alta disponibilidade
+            \end{itemize}
+            \vspace{0.3cm}
+            \small\textit{``Sistemas que realizam e registram transações rotineiras necessárias ao funcionamento organizacional''} (Laudon \& Laudon, 2011)
+        \end{column}
+        \begin{column}{0.46\textwidth}
+            \textbf{SIG -- Sistema de Informações Gerenciais}
+            \begin{itemize}
+                \item Resumos e relatórios consolidados
+                \item Análise de tendências históricas
+                \item Apoio à tomada de decisão
+                \item Distribuição de recursos
+            \end{itemize}
+            \vspace{0.3cm}
+            \centering
+            \fbox{\parbox{0.85\linewidth}{\centering\small O Sistema de Monitoria-IC integra \textbf{SPT + SIG}}}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+%=================================================
+\section{Estado da Prática}
+%=================================================
+
+\begin{frame}{Levantamento em Universidades Brasileiras}
+    \small
+    \begin{center}
+        \begin{tabularx}{0.92\linewidth}{|l|c|X|}
+            \hline
+            \textbf{Universidade} & \textbf{Sistema} & \textbf{Observação} \\
+            \hline
+            USP & Júpiter & Formulários complementares \\
+            \hline
+            UFRJ & SIGA & Documentos administrativos \\
+            \hline
+            UnB & SIGAA & Procedimentos departamentais \\
+            \hline
+            UFSC & CAGR & Editais e orientações externas \\
+            \hline
+            UNIFESP & SEI & Tramitação de documentos \\
+            \hline
+        \end{tabularx}
+    \end{center}
+    \vspace{0.3cm}
+    \begin{itemize}
+        \item \textbf{Padrão observado:} Sistemas acadêmicos genéricos + processos manuais
+        \item \textbf{Fragmentação:} Formulários, e-mails, planilhas dispersas
+        \item \textbf{Lacuna:} Nenhum módulo específico e completo para monitoria identificado
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Diferenciais do Sistema de Monitoria-IC}
+    \begin{center}
+        \begin{tikzpicture}[scale=0.75, transform shape,
+            box/.style={draw, rounded corners, minimum width=3cm, minimum height=1.2cm, align=center, font=\small, drop shadow}]
+
+            \node[box, fill=blue!25] (esp) at (0,1.5) {\textbf{Específico}\\para monitoria};
+            \node[box, fill=green!25] (ciclo) at (4,1.5) {\textbf{Ciclo completo}\\fases 1-5};
+            \node[box, fill=orange!25] (auto) at (8,1.5) {\textbf{Automação}\\PDF, e-mail, assinaturas};
+            \node[box, fill=purple!25] (stack) at (2,-0.8) {\textbf{Stack moderno}\\Next.js, tRPC, PostgreSQL};
+            \node[box, fill=red!25] (audit) at (6,-0.8) {\textbf{Auditabilidade}\\RBAC, histórico};
+        \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+%=================================================
+\section{O Sistema}
+%=================================================
+
+\begin{frame}{Arquitetura em Camadas}
+    \begin{center}
+        \begin{tikzpicture}[scale=0.7, transform shape,
+            layer/.style={rounded corners, draw=gray!60, fill=yellow!10, thick, inner sep=8pt},
+            box/.style={draw=gray!70, rounded corners, fill=yellow!6, text width=3.5cm, align=center, minimum height=0.8cm, font=\scriptsize\bfseries}]
+
+            % Camada de Apresentação
+            \node[box, fill=blue!15] (pres) at (-4,2) {Apresentação\\Next.js + React};
+
+            % Camada de Aplicação
+            \node[box, fill=green!15] (app) at (0,2) {Aplicação\\tRPC + Lucia Auth};
+
+            % Camada de Negócio
+            \node[box, fill=orange!15] (neg) at (4,2) {Negócio\\Services + Repositories};
+
+            % Camada de Dados
+            \node[box, fill=purple!15] (data) at (0,0) {Dados\\PostgreSQL + MinIO + Drizzle ORM};
+
+            % Conectores
+            \draw[->, thick] (pres) -- (app);
+            \draw[->, thick] (app) -- (neg);
+            \draw[->, thick] (app) -- (data);
+            \draw[->, thick] (neg) -- (data);
+        \end{tikzpicture}
+    \end{center}
+    \vspace{0.3cm}
+    \begin{itemize}
+        \item \textbf{Separação clara:} Baixo acoplamento, alta coesão
+        \item \textbf{Type-safety:} TypeScript em toda a stack
+        \item \textbf{Modularidade:} Facilita manutenção e testes
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Stack Tecnológico}
+    \begin{columns}[T]
+        \begin{column}{0.46\textwidth}
+            \textbf{Frontend}
+            \begin{itemize}
+                \item Next.js 15.1.4 (App Router)
+                \item TypeScript 5.x
+                \item Tailwind CSS + shadcn/ui
+                \item React Hook Form + Zod
+                \item React Query (TanStack)
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.46\textwidth}
+            \textbf{Backend}
+            \begin{itemize}
+                \item tRPC v11 (API type-safe)
+                \item Lucia Auth (sessões)
+                \item Drizzle ORM + PostgreSQL
+                \item MinIO (armazenamento S3)
+                \item Nodemailer (e-mails)
+            \end{itemize}
+        \end{column}
+    \end{columns}
+    \vspace{0.5cm}
+    \textbf{DevOps:} Docker, GitHub Actions (CI/CD), Vitest, Playwright (E2E)
+\end{frame}
+
+\begin{frame}{Fluxo de Processos -- Visão Geral}
+    \begin{center}
+        \begin{tikzpicture}[
+            node distance=0.45cm,
+            every node/.style={rounded corners, draw, align=center, minimum width=5.2cm, minimum height=0.5cm, font=\scriptsize},
+            >={Stealth[length=2mm]}
+        ]
+            \node[fill=gray!20] (fase1) {\textbf{Fase 1:} Planejamento \& Criação de Projetos};
+            \node[fill=yellow!20, below=of fase1] (fase2) {\textbf{Fase 2:} Aprovação e Envio para Instituto/PROGRAD};
+            \node[fill=orange!20, below=of fase2] (fase3) {\textbf{Fase 3:} Alocação de Bolsas e Edital Interno};
+            \node[fill=blue!20, below=of fase3] (fase4) {\textbf{Fase 4:} Inscrições e Seleção de Monitores};
+            \node[fill=green!20, below=of fase4] (fase5) {\textbf{Fase 5:} Consolidação Final e Relatório PROGRAD};
+            \node[fill=red!15, below=of fase5, dashed] (fase6) {\textbf{Fase 6:} Relatórios e Certificados {\footnotesize(trabalho futuro)}};
+
+            \draw[->] (fase1) -- (fase2);
+            \draw[->] (fase2) -- (fase3);
+            \draw[->] (fase3) -- (fase4);
+            \draw[->] (fase4) -- (fase5);
+            \draw[->, dashed] (fase5) -- (fase6);
+        \end{tikzpicture}
+    \end{center}
+    \vspace{0.1cm}
+    \small
+    \textbf{Atores:} Admin, Professor, Aluno, Chefe Depto | \textbf{Externos:} Instituto, PROGRAD, NUMOP
+\end{frame}
+
+\begin{frame}{Detalhamento das Fases}
+    \scriptsize
+    \begin{columns}[T]
+        \begin{column}{0.32\textwidth}
+            \textbf{\textcolor{gray!70}{Fases 1-2: Projetos}}
+            \begin{itemize}
+                \item Admin importa planilha SIAPE
+                \item Professor cria/reutiliza template
+                \item Assina digitalmente projeto
+                \item Admin aprova/rejeita
+                \item Gera planilha para Instituto
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.32\textwidth}
+            \textbf{\textcolor{orange!70}{Fase 3: Bolsas \& Edital}}
+            \begin{itemize}
+                \item PROGRAD informa total bolsas
+                \item Admin aloca por projeto
+                \item Professor define voluntários
+                \item Chefe assina edital
+                \item Admin publica e notifica
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.32\textwidth}
+            \textbf{\textcolor{blue!70}{Fases 4-5: Seleção}}
+            \begin{itemize}
+                \item Aluno se inscreve online
+                \item Sistema captura CR + notas
+                \item Considera equivalências
+                \item Professor avalia e seleciona
+                \item Aluno aceita + dados bancários
+                \item Planilha final p/ PROGRAD
+            \end{itemize}
+        \end{column}
+    \end{columns}
+    \vspace{0.4cm}
+    \centering
+    \fbox{\parbox{0.75\linewidth}{\centering\scriptsize\textbf{Nota:} PROGRAD não acessa o sistema -- comunicação via e-mail/planilhas}}
+\end{frame}
+
+\begin{frame}{Funcionalidades por Perfil}
+    \begin{columns}[T]
+        \begin{column}{0.30\textwidth}
+            \textbf{\textcolor{red!70}{Admin}}
+            \begin{itemize}
+                \item Dashboard métricas
+                \item Importar planejamento
+                \item Aprovar projetos
+                \item Alocar bolsas
+                \item Publicar editais
+                \item Gerar planilhas
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.30\textwidth}
+            \textbf{\textcolor{blue!70}{Professor}}
+            \begin{itemize}
+                \item Templates reutilizáveis
+                \item Assinar projetos (PDF)
+                \item Gerenciar candidatos
+                \item Avaliar e selecionar
+                \item Publicar resultados
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.30\textwidth}
+            \textbf{\textcolor{green!70!black}{Estudante}}
+            \begin{itemize}
+                \item Ver vagas disponíveis
+                \item Inscrever-se online
+                \item Acompanhar resultados
+                \item Aceitar/rejeitar vaga
+                \item Preencher dados bancários
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+%=================================================
+\section{Avaliação e Conclusão}
+%=================================================
+
+\begin{frame}{Resultados da Avaliação}
+    \begin{center}
+        \textbf{Avaliação com Professores (Questionário Likert 1-5)}
+        \vspace{0.3cm}
+
+        % TODO: Substituir esta tabela pelos resultados reais
+        \begin{tabularx}{0.95\linewidth}{|l|X|c|}
+            \hline
+            \textbf{Q} & \textbf{Aspecto Avaliado} & \textbf{Média} \\
+            \hline
+            Q1-Q4 & Expectativa (importação, template, PDF, assinatura) & \textit{TODO} \\
+            \hline
+            Q5-Q7 & Avaliação (assinatura, feedback, estados) & \textit{TODO} \\
+            \hline
+            Q8-Q9 & Impacto (planilha PROGRAD, transparência) & \textit{TODO} \\
+            \hline
+            Q10 & Satisfação geral com Fases 1-2 & \textit{TODO} \\
+            \hline
+            Q11-Q12 & Intenção de uso e recomendação (Sim/Não) & \textit{TODO} \\
+            \hline
+        \end{tabularx}
+
+        \vspace{0.5cm}
+        \small
+        \textbf{Validação Técnica:} 57 testes automatizados | 100\% aprovação | 1.07s execução
+    \end{center}
+\end{frame}
+
+\begin{frame}{Contribuições do Trabalho}
+    \begin{enumerate}
+        \item \textbf{Arquitetura especializada:} Três camadas (Router-Service-Repository) para domínio de monitoria com requisitos formais de auditoria
+
+        \item \textbf{Workflow automatizado:} Fases 1-5 do ciclo (templates, assinaturas, equivalências, PDFs) com redução estimada de 80\% em tarefas repetitivas
+
+        \item \textbf{Estudo de caso:} Transformação digital em instituição pública com evidências técnicas (57 testes, 100\% aprovação)
+
+        \item \textbf{Código aberto:} Tecnologias modernas com documentação para replicação em outras universidades
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}{Limitações e Trabalhos Futuros}
+    \begin{columns}[T]
+        \begin{column}{0.46\textwidth}
+            \textbf{Limitações Atuais}
+            \begin{itemize}
+                \item Sem integração automática com SIAC (anexo manual de histórico)
+                \item Escopo restrito ao IC-UFBA
+                \item Módulo de certificados pendente (Fase 6)
+                \item Sem aplicativo móvel nativo
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.46\textwidth}
+            \textbf{Próximos Passos}
+            \begin{itemize}
+                \item Piloto institucional (6 meses)
+                \item Integração com SIAC/SIGAA
+                \item Módulo de certificados digitais
+                \item App móvel (React Native)
+                \item Expansão para outros departamentos
+            \end{itemize}
+        \end{column}
+    \end{columns}
+    \vspace{0.5cm}
+    \centering
+    \textit{Longo prazo: Generalização para outras universidades públicas brasileiras}
+\end{frame}
+
+\begin{frame}{Conclusão}
+    \begin{itemize}
+        \item O Sistema de Monitoria-IC representa um \textbf{avanço significativo} na modernização da gestão acadêmica
+
+        \item \textbf{Digitalização e automação} de processos tradicionalmente manuais
+
+        \item Base sólida para \textbf{transformação digital contínua} das universidades brasileiras
+
+        \item Demonstração de que é possível criar \textbf{soluções tecnológicas específicas} para problemas acadêmicos complexos
+
+        \item Alto \textbf{potencial de replicação} em outras instituições com desafios similares
+    \end{itemize}
+    \vspace{0.5cm}
+    \centering
+    \fbox{\parbox{0.8\linewidth}{\centering\textit{``Substituir fluxos manuais e dispersos por um sistema único que garanta transparência, rastreabilidade e padronização''}}}
+\end{frame}
+
+%=================================================
+\section{Encerramento}
+%=================================================
+\begin{frame}{Perguntas?}
+    \begin{center}
+        \Huge Obrigado!
+        \vspace{1cm}
+
+        \normalsize
+        \textbf{Luis Felipe Cordeiro Sena}\\
+        luis.sena@ufba.br\\
+        \vspace{0.5cm}
+        \textbf{Orientador:} Prof. Frederico Araújo Durão\\
+        fdurao@ufba.br\\
+        \vspace{0.5cm}
+        \small
+        Código disponível em: \url{github.com/luisfelipesena/sistema-de-monitoria-ic}
+    \end{center}
+\end{frame}
+
+\end{document}
