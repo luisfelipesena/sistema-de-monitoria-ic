@@ -271,6 +271,36 @@
     \end{itemize}
 \end{frame}
 
+\begin{frame}{Comparação com Sistemas Existentes}
+    \scriptsize
+    \begin{center}
+        \begin{tabularx}{0.95\linewidth}{|l|c|c|c|}
+            \hline
+            \textbf{Sistema} & \textbf{Workflow fim-a-fim} & \textbf{Específico monitoria} & \textbf{Automação} \\
+            \hline
+            JúpiterWeb (USP) & Não & Não & Parcial \\
+            \hline
+            SIGA (UFRJ) & Não & Não & Parcial \\
+            \hline
+            SIGAA (UnB) & Parcial & Não & Parcial \\
+            \hline
+            CAGR (UFSC) & Não & Não & Parcial \\
+            \hline
+            SEI (UNIFESP) & Não & Não & Não \\
+            \hline
+            \rowcolor{green!20}
+            \textbf{Monitoria-IC} & \textbf{Sim (fases 1-5)} & \textbf{Sim} & \textbf{Sim} \\
+            \hline
+        \end{tabularx}
+    \end{center}
+    \vspace{0.3cm}
+    \begin{itemize}
+        \item \textbf{Workflow fim-a-fim:} Cobertura completa das fases 1-5 do ciclo de monitoria
+        \item \textbf{Específico monitoria:} Módulo dedicado vs funcionalidade genérica
+        \item \textbf{Automação:} PDF, e-mail, assinaturas, equivalências automáticas
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Diferenciais do Sistema de Monitoria-IC}
     \begin{center}
         \begin{tikzpicture}[scale=0.75, transform shape,
@@ -351,27 +381,10 @@
 
 \begin{frame}{Fluxo de Processos -- Visão Geral}
     \begin{center}
-        \begin{tikzpicture}[
-            node distance=0.45cm,
-            every node/.style={rounded corners, draw, align=center, minimum width=5.2cm, minimum height=0.5cm, font=\scriptsize},
-            >={Stealth[length=2mm]}
-        ]
-            \node[fill=gray!20] (fase1) {\textbf{Fase 1:} Planejamento \& Criação de Projetos};
-            \node[fill=yellow!20, below=of fase1] (fase2) {\textbf{Fase 2:} Aprovação e Envio para Instituto/PROGRAD};
-            \node[fill=orange!20, below=of fase2] (fase3) {\textbf{Fase 3:} Alocação de Bolsas e Edital Interno};
-            \node[fill=blue!20, below=of fase3] (fase4) {\textbf{Fase 4:} Inscrições e Seleção de Monitores};
-            \node[fill=green!20, below=of fase4] (fase5) {\textbf{Fase 5:} Consolidação Final e Relatório PROGRAD};
-            \node[fill=red!15, below=of fase5, dashed] (fase6) {\textbf{Fase 6:} Relatórios e Certificados {\footnotesize(trabalho futuro)}};
-
-            \draw[->] (fase1) -- (fase2);
-            \draw[->] (fase2) -- (fase3);
-            \draw[->] (fase3) -- (fase4);
-            \draw[->] (fase4) -- (fase5);
-            \draw[->, dashed] (fase5) -- (fase6);
-        \end{tikzpicture}
+        \includegraphics[height=0.70\textheight]{process-flow.png}
     \end{center}
     \vspace{0.1cm}
-    \small
+    \scriptsize
     \textbf{Atores:} Admin, Professor, Aluno, Chefe Depto | \textbf{Externos:} Instituto, PROGRAD, NUMOP
 \end{frame}
 

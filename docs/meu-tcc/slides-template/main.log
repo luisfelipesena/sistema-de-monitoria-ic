@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  16 DEC 2025 23:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  17 DEC 2025 20:16
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1002,6 +1002,11 @@ LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <10> not available
 [8
 
 ]
+Underfull \hbox (badness 10000) in alignment at lines 302--302
+[][][][] 
+ []
+
+
 
 [9
 
@@ -1018,10 +1023,16 @@ LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <10> not available
 [12
 
 ]
+<imgs/process-flow.png, id=142, 702.625pt x 1101.11375pt>
+File: imgs/process-flow.png Graphic file (type png)
+<use imgs/process-flow.png>
+Package pdftex.def Info: imgs/process-flow.png  used on input line 389.
+(pdftex.def)             Requested size: 108.84142pt x 170.57161pt.
+
 
 [13
 
-]
+ <./imgs/process-flow.png (PNG copy)>]
 
 [14
 
@@ -1046,16 +1057,12 @@ LaTeX Font Info:    Font shape `T1/lmss/m/it' in size <10> not available
 [19
 
 ]
-
-[20
-
-]
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 605.
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 573.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 
-[21
+[20
 
 ]
 \tf@nav=\write6
@@ -1080,18 +1087,18 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 2D503C1FBD7A2BE6C8AE21096DF537C1;753.
  ) 
 Here is how much of TeX's memory you used:
- 30245 strings out of 473190
- 600602 string characters out of 5715801
- 1011398 words of memory out of 5000000
- 52807 multiletter control sequences out of 15000+600000
- 654578 words of font info for 99 fonts, out of 8000000 for 9000
+ 30182 strings out of 473190
+ 599672 string characters out of 5715801
+ 1013398 words of memory out of 5000000
+ 52746 multiletter control sequences out of 15000+600000
+ 654208 words of font info for 98 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  128i,13n,123p,1131b,1117s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss12.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss17.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss8.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss9.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmssbx10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsso10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on main.pdf (21 pages, 327732 bytes).
+</usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss12.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss17.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss8.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss9.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmssbx10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsso10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsy8.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
+Output written on main.pdf (20 pages, 450964 bytes).
 PDF statistics:
  249 PDF objects out of 1000 (max. 8388607)
- 178 compressed objects within 2 object streams
- 49 named destinations out of 1000 (max. 500000)
- 210 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 176 compressed objects within 2 object streams
+ 47 named destinations out of 1000 (max. 500000)
+ 215 words of extra memory for PDF output out of 10000 (max. 10000000)
 

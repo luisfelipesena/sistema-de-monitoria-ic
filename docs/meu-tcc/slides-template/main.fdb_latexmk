@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1765939141.65866 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/slides-template/main.tex" "main.pdf" "main" 1765939143.10488 0
-  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/slides-template/main.tex" 1765939141.39438 24788 c8b0faa27ab5b7ee21c64ba547e2c88c ""
+["pdflatex"] 1766013389.60753 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/slides-template/main.tex" "main.pdf" "main" 1766013390.90239 0
+  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/slides-template/main.tex" 1766013389.39077 23118 85d930a72a5f0b43987f1a1bb1b748e4 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc" 1254269338 2375 baa924870cfb487815765f9094cf3728 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc" 1202520719 2840 216e6e45ad352e2456e1149f28885bee ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc" 1254269338 3031 6c4d3515bf7115d8518af1c9ab97ca44 ""
@@ -46,6 +46,7 @@
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmssbx10.pfb" 1255129361 119663 e82fa1a58f98ccd89bdbd77311ac9cf1 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsso10.pfb" 1255129361 108953 1f7b36ba493bc956ac3c5eab8852ab76 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsy10.pfb" 1254269338 27863 09ce3735688ffde955e72da27c95b61a ""
+  "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsy8.pfb" 1254269338 27802 5c876bb2c4040caaf035d60bd74a86bd ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmtt10.pfb" 1255129361 113227 1010e11451afc2822c95dae77c390042 ""
   "/usr/local/texlive/2025/texmf-dist/tex/context/base/mkii/supp-pdf.mkii" 1461363279 71627 94eb9990bed73c364d7f53f960cc8c5b ""
   "/usr/local/texlive/2025/texmf-dist/tex/generic/atbegshi/atbegshi.sty" 1575674566 24708 5584a51a7101caf7e6bbf1fc27d8f7b1 ""
@@ -269,10 +270,11 @@
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
   "beamerthemeDCC.sty" 1765937833.35989 5174 f773ad73f97b69c58ed3673180d7385f ""
   "imgs/dcc.png" 1765937833.36249 91923 c803d27ecc0925080248c36c5160bd26 ""
-  "main.aux" 1765939143.03307 5066 64f5da740f21ab8f29aa26bc19fd7230 "pdflatex"
-  "main.nav" 1765939143.03425 3123 e1b91a196de3f50f8d6ade39299101fc "pdflatex"
-  "main.out" 1765939143.03406 753 2d503c1fbd7a2be6c8ae21096df537c1 "pdflatex"
-  "main.tex" 1765939141.39438 24788 c8b0faa27ab5b7ee21c64ba547e2c88c ""
+  "imgs/process-flow.png" 1766013016.79834 121877 345fefaa7f348b29ecc20a4a2de772a6 ""
+  "main.aux" 1766013390.83452 4940 6a21a2ee774517b9d814012687aae07d "pdflatex"
+  "main.nav" 1766013390.83557 3033 04a1aed576269dff63de10d9a0ae102b "pdflatex"
+  "main.out" 1766013390.8354 753 2d503c1fbd7a2be6c8ae21096df537c1 "pdflatex"
+  "main.tex" 1766013389.39077 23118 85d930a72a5f0b43987f1a1bb1b748e4 ""
   (generated)
   "main.aux"
   "main.log"
