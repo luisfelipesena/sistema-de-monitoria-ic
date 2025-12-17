@@ -178,7 +178,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                       <FormLabel>Professores Participantes</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Ex: 2 - Professor João Silva e Professora Maria Santos"
+                          placeholder="professor 1, professor 2"
                           rows={2}
                           value={field.value || ""}
                           onChange={field.onChange}
@@ -187,7 +187,9 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                         />
                       </FormControl>
                       <FormMessage />
-                      <p className="text-sm text-blue-600">Informe o número e nome dos professores participantes</p>
+                      <p className="text-sm text-blue-600">
+                        Informe o nome completo dos professores participantes separados por vírgula
+                      </p>
                     </FormItem>
                   )}
                 />

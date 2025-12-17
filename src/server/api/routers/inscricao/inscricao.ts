@@ -1,4 +1,10 @@
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import {
+  adminProtectedProcedure,
+  createTRPCRouter,
+  professorProtectedProcedure,
+  protectedProcedure,
+  studentProtectedProcedure,
+} from '@/server/api/trpc'
 import {
   acceptInscriptionSchema,
   anoSchema,
@@ -39,14 +45,15 @@ const transformError = (error: unknown): TRPCError => {
 }
 
 export const inscricaoRouter = createTRPCRouter({
-  getMyStatus: protectedProcedure
+  // Security: Student-only endpoint
+  getMyStatus: studentProtectedProcedure
     .meta({
       openapi: {
         method: 'GET',
         path: '/inscricao/my-status',
         tags: ['inscricao'],
         summary: 'Get student status',
-        description: 'Get current student status in monitoring program',
+        description: 'Get current student status in monitoring program (students only)',
       },
     })
     .input(z.void())
@@ -104,14 +111,15 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-  createInscricao: protectedProcedure
+  // Security: Student-only endpoint
+  createInscricao: studentProtectedProcedure
     .meta({
       openapi: {
         method: 'POST',
         path: '/inscricao/create',
         tags: ['inscricao'],
         summary: 'Create application',
-        description: 'Create new application for monitoring project',
+        description: 'Create new application for monitoring project (students only)',
       },
     })
     .input(
@@ -139,14 +147,15 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-  getMyResults: protectedProcedure
+  // Security: Student-only endpoint
+  getMyResults: studentProtectedProcedure
     .meta({
       openapi: {
         method: 'GET',
         path: '/inscricao/my-results',
         tags: ['inscricao'],
         summary: 'Get student results',
-        description: 'Get all application results for current student',
+        description: 'Get all application results for current student (students only)',
       },
     })
     .input(z.void())
@@ -204,14 +213,15 @@ export const inscricaoRouter = createTRPCRouter({
       }
     ),
 
-  getMinhasInscricoes: protectedProcedure
+  // Security: Student-only endpoint
+  getMinhasInscricoes: studentProtectedProcedure
     .meta({
       openapi: {
         method: 'GET',
         path: '/inscricoes/minhas',
         tags: ['inscricoes'],
         summary: 'Get my applications',
-        description: 'Get all applications for the authenticated student',
+        description: 'Get all applications for the authenticated student (students only)',
       },
     })
     .input(z.void())
@@ -225,14 +235,15 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-  criarInscricao: protectedProcedure
+  // Security: Student-only endpoint
+  criarInscricao: studentProtectedProcedure
     .meta({
       openapi: {
         method: 'POST',
         path: '/inscricoes',
         tags: ['inscricoes'],
         summary: 'Create application',
-        description: 'Create a new project application',
+        description: 'Create a new project application (students only)',
       },
     })
     .input(inscriptionFormSchema)
@@ -246,14 +257,15 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-  aceitarInscricao: protectedProcedure
+  // Security: Student-only endpoint
+  aceitarInscricao: studentProtectedProcedure
     .meta({
       openapi: {
         method: 'POST',
         path: '/inscricoes/aceitar',
         tags: ['inscricoes'],
         summary: 'Accept application',
-        description: 'Student accepts a selected application',
+        description: 'Student accepts a selected application (students only)',
       },
     })
     .input(acceptInscriptionSchema)
@@ -267,14 +279,15 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-  recusarInscricao: protectedProcedure
+  // Security: Student-only endpoint
+  recusarInscricao: studentProtectedProcedure
     .meta({
       openapi: {
         method: 'POST',
         path: '/inscricoes/recusar',
         tags: ['inscricoes'],
         summary: 'Reject application',
-        description: 'Student rejects a selected application',
+        description: 'Student rejects a selected application (students only)',
       },
     })
     .input(rejectInscriptionSchema)
@@ -288,14 +301,15 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-  avaliarCandidato: protectedProcedure
+  // Security: Professor/Admin only endpoint
+  avaliarCandidato: professorProtectedProcedure
     .meta({
       openapi: {
         method: 'POST',
         path: '/inscricoes/avaliar',
         tags: ['inscricoes'],
         summary: 'Grade candidate',
-        description: 'Professor grades a student application',
+        description: 'Professor grades a student application (professors only)',
       },
     })
     .input(candidateEvaluationSchema)
@@ -309,14 +323,15 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-  getInscricoesProjeto: protectedProcedure
+  // Security: Professor/Admin only endpoint
+  getInscricoesProjeto: professorProtectedProcedure
     .meta({
       openapi: {
         method: 'GET',
         path: '/inscricoes/projeto',
         tags: ['inscricoes'],
         summary: 'Get project applications',
-        description: 'Get all applications for a specific project (professor/admin only)',
+        description: 'Get all applications for a specific project (professors only)',
       },
     })
     .input(z.object({ projetoId: idSchema }))
@@ -330,7 +345,8 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-  evaluateApplications: protectedProcedure
+  // Security: Professor/Admin only endpoint
+  evaluateApplications: professorProtectedProcedure
     .input(
       z.object({
         inscricaoId: idSchema,
@@ -349,14 +365,15 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-  acceptPosition: protectedProcedure
+  // Security: Student-only endpoint
+  acceptPosition: studentProtectedProcedure
     .meta({
       openapi: {
         method: 'POST',
         path: '/inscricoes/{inscricaoId}/accept',
         tags: ['inscricoes'],
         summary: 'Accept position',
-        description: 'Accept offered position (scholarship or volunteer)',
+        description: 'Accept offered position (students only)',
       },
     })
     .input(z.object({ inscricaoId: idSchema }))
@@ -370,14 +387,15 @@ export const inscricaoRouter = createTRPCRouter({
       }
     }),
 
-  rejectPosition: protectedProcedure
+  // Security: Student-only endpoint
+  rejectPosition: studentProtectedProcedure
     .meta({
       openapi: {
         method: 'POST',
         path: '/inscricoes/{inscricaoId}/reject',
         tags: ['inscricoes'],
         summary: 'Reject position',
-        description: 'Reject offered position',
+        description: 'Reject offered position (students only)',
       },
     })
     .input(
@@ -500,7 +518,8 @@ export const inscricaoRouter = createTRPCRouter({
   // ADMIN ENDPOINTS
   // ========================================
 
-  getAllForAdmin: protectedProcedure
+  // Security: Admin-only endpoint
+  getAllForAdmin: adminProtectedProcedure
     .input(
       z.object({
         ano: anoSchema.optional(),
@@ -512,10 +531,6 @@ export const inscricaoRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.user.role !== 'admin') {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso restrito a administradores' })
-      }
-
       const repo = createInscricaoRepository(ctx.db)
       return await repo.findAllForAdmin(input)
     }),

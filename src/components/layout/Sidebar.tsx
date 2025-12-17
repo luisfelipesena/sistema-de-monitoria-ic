@@ -418,7 +418,7 @@ const menuConfig: MenuConfig[] = [
       },
       {
         label: "Meu Status",
-        href: "/home/common/status",
+        href: "/home/student/status",
         icon: FileCheck,
         roles: ["student"],
       },

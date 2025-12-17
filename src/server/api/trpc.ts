@@ -116,7 +116,31 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 
 export const adminProtectedProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (ctx.user.role !== 'admin') {
-    throw new TRPCError({ code: 'UNAUTHORIZED' })
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso restrito a administradores' })
+  }
+
+  return next({ ctx: { ...ctx, user: ctx.user } })
+})
+
+/**
+ * Security: Professor or Admin only procedures
+ * Use for endpoints that professors need (admins can also access)
+ */
+export const professorProtectedProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (ctx.user.role !== 'professor' && ctx.user.role !== 'admin') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso restrito a professores' })
+  }
+
+  return next({ ctx: { ...ctx, user: ctx.user } })
+})
+
+/**
+ * Security: Student only procedures
+ * Use for endpoints that only students should access
+ */
+export const studentProtectedProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (ctx.user.role !== 'student') {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso restrito a estudantes' })
   }
 
   return next({ ctx: { ...ctx, user: ctx.user } })
