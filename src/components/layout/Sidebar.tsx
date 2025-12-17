@@ -429,7 +429,7 @@ const menuConfig: MenuConfig[] = [
   // 10. Perfil - sempre último
   {
     label: "Perfil",
-    href: "/home/common/profile",
+    href: "/home/profile",
     icon: User,
     roles: ["admin", "professor", "student"],
   },
