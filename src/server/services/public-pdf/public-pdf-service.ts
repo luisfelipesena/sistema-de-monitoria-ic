@@ -11,31 +11,21 @@ type Database = typeof db
 
 /**
  * Find the latest signed PDF for a project directly from MinIO.
- * Searches for both patterns:
- * - New: {codigo}_{professor}_{ano}_{semestre}.pdf (e.g., MATA37_JOSE_SILVA_2024_SEMESTRE_1.pdf)
- * - Old: proposta_{projetoId}_*.pdf (backward compatibility)
+ * Searches in propostas_assinadas/ by projetoId metadata
  */
 async function findLatestPdfInMinio(projetoId: number): Promise<string | null> {
   return new Promise((resolve) => {
-    const prefix = `projetos/${projetoId}/propostas_assinadas/`
+    const prefix = 'propostas_assinadas/'
     const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
 
-    const projectFiles: Array<{ name: string; lastModified: Date; isNewPattern: boolean }> = []
+    const pdfFiles: Array<{ name: string; lastModified: Date }> = []
 
     objectsStream.on('data', (obj) => {
       if (obj.name?.endsWith('.pdf')) {
-        // Check if it matches new pattern: {codigo}_{professor}_{ano}_{semestre}.pdf
-        const isNewPattern = /_\d{4}_SEMESTRE_[12]\.pdf$/.test(obj.name || '')
-        // Also accept old pattern: proposta_{projetoId}_*.pdf
-        const isOldPattern = obj.name.includes(`proposta_${projetoId}_`)
-
-        if (isNewPattern || isOldPattern) {
-          projectFiles.push({
-            name: obj.name,
-            lastModified: obj.lastModified || new Date(),
-            isNewPattern,
-          })
-        }
+        pdfFiles.push({
+          name: obj.name,
+          lastModified: obj.lastModified || new Date(),
+        })
       }
     })
 
@@ -44,21 +34,33 @@ async function findLatestPdfInMinio(projetoId: number): Promise<string | null> {
       resolve(null)
     })
 
-    objectsStream.on('end', () => {
-      if (projectFiles.length === 0) {
+    objectsStream.on('end', async () => {
+      if (pdfFiles.length === 0) {
         resolve(null)
         return
       }
 
-      // Prioritize new pattern files, then sort by lastModified
-      const sortedFiles = projectFiles.sort((a, b) => {
-        // New pattern files first
-        if (a.isNewPattern && !b.isNewPattern) return -1
-        if (!a.isNewPattern && b.isNewPattern) return 1
-        // Then by lastModified (most recent first)
-        return b.lastModified.getTime() - a.lastModified.getTime()
-      })
+      // Filter by projetoId metadata
+      const matchingFiles: Array<{ name: string; lastModified: Date }> = []
+      for (const file of pdfFiles) {
+        try {
+          const stat = await minioClient.statObject(bucketName, file.name)
+          const metaProjetoId = stat.metaData?.['projeto-id'] || stat.metaData?.['x-amz-meta-projeto-id']
+          if (metaProjetoId === projetoId.toString()) {
+            matchingFiles.push(file)
+          }
+        } catch {
+          // Skip files we can't stat
+        }
+      }
 
+      if (matchingFiles.length === 0) {
+        resolve(null)
+        return
+      }
+
+      // Sort by lastModified (most recent first)
+      const sortedFiles = matchingFiles.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())
       const latestFile = sortedFiles[0]
       resolve(latestFile?.name || null)
     })

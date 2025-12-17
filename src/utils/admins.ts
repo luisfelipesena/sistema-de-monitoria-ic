@@ -3,7 +3,7 @@ import { userTable } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 
 const ADMIN_EMAILS = [
-  'luis.sena@ufba.br',
+  'luis.sena+admin@ufba.br',
   'rubisleypl@ufba.br',
   'dcc@ufba.br',
 ]

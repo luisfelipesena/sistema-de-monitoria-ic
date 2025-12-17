@@ -221,88 +221,93 @@ export function createFileService(db: Database) {
         throw new ForbiddenError('Acesso negado aos arquivos deste projeto')
       }
 
-      const prefix = `projetos/${projetoId}/`
-      const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
-      const statPromises: Promise<FileListItem | null>[] = []
+      // Search in flat directories by projetoId metadata
+      const directories = ['propostas_assinadas/', 'atas-selecao/']
+      const allFiles: FileListItem[] = []
 
-      return new Promise<FileListItem[]>((resolve, reject) => {
-        objectsStream.on('data', (obj: Minio.BucketItem) => {
-          const objectName = obj.name
-          if (objectName) {
-            statPromises.push(
-              (async () => {
-                try {
-                  const stat = await minioClient.statObject(bucketName, objectName)
-                  return {
-                    objectName,
+      for (const prefix of directories) {
+        const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
+        const files = await new Promise<FileListItem[]>((resolve, reject) => {
+          const pdfFiles: Array<{ name: string; lastModified: Date }> = []
+
+          objectsStream.on('data', (obj: Minio.BucketItem) => {
+            if (obj.name) {
+              pdfFiles.push({ name: obj.name, lastModified: obj.lastModified || new Date() })
+            }
+          })
+
+          objectsStream.on('error', reject)
+
+          objectsStream.on('end', async () => {
+            const matchingFiles: FileListItem[] = []
+            for (const file of pdfFiles) {
+              try {
+                const stat = await minioClient.statObject(bucketName, file.name)
+                const metaProjetoId = stat.metaData?.['projeto-id'] || stat.metaData?.['x-amz-meta-projeto-id']
+                if (metaProjetoId === projetoId.toString()) {
+                  matchingFiles.push({
+                    objectName: file.name,
                     size: stat.size,
                     lastModified: stat.lastModified,
                     metaData: stat.metaData,
-                    originalFilename: decodeFilename(stat.metaData['original-filename']) || objectName,
+                    originalFilename: decodeFilename(stat.metaData['original-filename']) || file.name,
                     mimeType: stat.metaData['content-type'] || 'application/octet-stream',
-                  }
-                } catch (statError) {
-                  log.error({ objectName, error: statError }, 'Erro ao obter metadados do objeto MinIO')
-                  return null
+                  })
                 }
-              })()
-            )
-          }
-        })
-
-        objectsStream.on('error', (err: Error) => {
-          log.error(err, 'Erro ao listar arquivos do projeto')
-          reject(err)
-        })
-
-        objectsStream.on('end', async () => {
-          const results = await Promise.allSettled(statPromises)
-          const files: FileListItem[] = []
-          results.forEach((result) => {
-            if (result.status === 'fulfilled' && result.value) {
-              files.push(result.value)
+              } catch {
+                // Skip files we can't stat
+              }
             }
+            resolve(matchingFiles)
           })
-          log.info({ projetoId, fileCount: files.length }, 'Arquivos do projeto recuperados')
-          resolve(files)
         })
-      })
+        allFiles.push(...files)
+      }
+
+      log.info({ projetoId, fileCount: allFiles.length }, 'Arquivos do projeto recuperados')
+      return allFiles
     },
 
     async getProjetoPdfUrl(projetoId: number, userId: number, userRole: UserRole) {
-      const prefix = `projetos/${projetoId}/`
+      const prefix = 'propostas_assinadas/'
       const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
 
       return new Promise<{ url: string }>((resolve, reject) => {
-        const projectFiles: Array<{ name: string; lastModified: Date; isNewPattern: boolean }> = []
+        const pdfFiles: Array<{ name: string; lastModified: Date }> = []
 
         objectsStream.on('data', (obj: Minio.BucketItem) => {
-          if (obj.name?.includes('propostas_assinadas') && obj.name.endsWith('.pdf')) {
-            // Check for new pattern: {codigo}_{professor}_{ano}_{semestre}.pdf
-            const isNewPattern = /_\d{4}_SEMESTRE_[12]\.pdf$/.test(obj.name || '')
-            // Check for old pattern: proposta_{projetoId}_*.pdf
-            const isOldPattern = obj.name.includes(`proposta_${projetoId}_`)
-
-            if (isNewPattern || isOldPattern) {
-              projectFiles.push({
-                name: obj.name,
-                lastModified: obj.lastModified || new Date(),
-                isNewPattern,
-              })
-            }
+          if (obj.name?.endsWith('.pdf')) {
+            pdfFiles.push({
+              name: obj.name,
+              lastModified: obj.lastModified || new Date(),
+            })
           }
         })
 
         objectsStream.on('error', (err: Error) => {
-          log.error(err, 'Erro ao listar arquivos do projeto')
+          log.error(err, 'Erro ao listar arquivos')
           reject(err)
         })
 
         objectsStream.on('end', () => {
-          ; (async () => {
-            log.info({ projetoId, filesFound: projectFiles.length }, 'Arquivos encontrados para o projeto')
+          ;(async () => {
+            // Filter by projetoId metadata
+            const matchingFiles: Array<{ name: string; lastModified: Date }> = []
+            for (const file of pdfFiles) {
+              try {
+                const stat = await minioClient.statObject(bucketName, file.name)
+                const metaProjetoId = stat.metaData?.['projeto-id'] || stat.metaData?.['x-amz-meta-projeto-id']
+                if (metaProjetoId === projetoId.toString()) {
+                  matchingFiles.push(file)
+                }
+              } catch {
+                // Skip files we can't stat
+              }
+            }
 
-            if (projectFiles.length === 0) {
+            log.info({ projetoId, filesFound: matchingFiles.length }, 'Arquivos encontrados para o projeto')
+
+            if (matchingFiles.length === 0) {
               log.warn({ projetoId, prefix }, 'Nenhum PDF encontrado para o projeto')
               reject(
                 new NotFoundError(
@@ -313,14 +318,8 @@ export function createFileService(db: Database) {
               return
             }
 
-            // Prioritize new pattern files, then sort by lastModified
-            const sortedFiles = projectFiles.sort((a, b) => {
-              // New pattern files first
-              if (a.isNewPattern && !b.isNewPattern) return -1
-              if (!a.isNewPattern && b.isNewPattern) return 1
-              // Then by lastModified (most recent first)
-              return b.lastModified.getTime() - a.lastModified.getTime()
-            })
+            // Sort by lastModified (most recent first)
+            const sortedFiles = matchingFiles.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())
             const latestFile = sortedFiles[0]
 
             if (!latestFile) {

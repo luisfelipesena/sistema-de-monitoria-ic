@@ -18,27 +18,18 @@ const log = logger.child({ context: 'AnalyticsService' })
 
 /**
  * Check if a project has a signed PDF in MinIO
- * Searches for both patterns:
- * - New: {codigo}_{professor}_{ano}_{semestre}.pdf (e.g., MATA37_JOSE_SILVA_2024_SEMESTRE_1.pdf)
- * - Old: proposta_{projetoId}_*.pdf (backward compatibility)
+ * Searches in propostas_assinadas/ by projetoId metadata
  */
 async function checkProjectHasPdfInMinio(projetoId: number): Promise<boolean> {
   return new Promise((resolve) => {
-    const prefix = `projetos/${projetoId}/propostas_assinadas/`
+    const prefix = 'propostas_assinadas/'
     const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
 
-    let found = false
+    const pdfFiles: string[] = []
 
     objectsStream.on('data', (obj) => {
       if (obj.name?.endsWith('.pdf')) {
-        // Check for new pattern: {codigo}_{professor}_{ano}_{semestre}.pdf
-        const isNewPattern = /_\d{4}_SEMESTRE_[12]\.pdf$/.test(obj.name || '')
-        // Check for old pattern: proposta_{projetoId}_*.pdf
-        const isOldPattern = obj.name.includes(`proposta_${projetoId}_`)
-
-        if (isNewPattern || isOldPattern) {
-          found = true
-        }
+        pdfFiles.push(obj.name)
       }
     })
 
@@ -47,8 +38,21 @@ async function checkProjectHasPdfInMinio(projetoId: number): Promise<boolean> {
       resolve(false)
     })
 
-    objectsStream.on('end', () => {
-      resolve(found)
+    objectsStream.on('end', async () => {
+      // Check metadata for matching projetoId
+      for (const fileName of pdfFiles) {
+        try {
+          const stat = await minioClient.statObject(bucketName, fileName)
+          const metaProjetoId = stat.metaData?.['projeto-id'] || stat.metaData?.['x-amz-meta-projeto-id']
+          if (metaProjetoId === projetoId.toString()) {
+            resolve(true)
+            return
+          }
+        } catch {
+          // Skip files we can't stat
+        }
+      }
+      resolve(false)
     })
   })
 }

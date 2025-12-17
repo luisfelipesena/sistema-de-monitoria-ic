@@ -5,8 +5,11 @@ import { BusinessError, NotFoundError } from '@/server/lib/errors'
 import minioClient, { bucketName as MINIO_BUCKET } from '@/server/lib/minio'
 import { groupByDisciplina, parsePlanejamentoDCC } from '@/server/lib/planejamento-dcc-parser'
 import { parsePlanejamentoSpreadsheet, validateSpreadsheetStructure } from '@/server/lib/spreadsheet-parser'
+import { createAuditService } from '@/server/services/audit/audit-service'
 import type { Semestre } from '@/types'
 import {
+  AUDIT_ACTION_CREATE,
+  AUDIT_ENTITY_PROJETO,
   IMPORT_STATUS_CONCLUIDO,
   IMPORT_STATUS_CONCLUIDO_COM_ERROS,
   IMPORT_STATUS_ERRO,
@@ -45,6 +48,7 @@ interface ProcessedRow {
 
 export function createImportProjectsService(db: Database) {
   const repo = createImportProjectsRepository(db)
+  const auditService = createAuditService(db)
 
   // Helper function to create a project for a single professor
   async function createProjetoForProfessor(
@@ -537,6 +541,25 @@ export function createImportProjectsService(db: Database) {
         'Importação finalizada'
       )
 
+      // Audit log for batch import completion
+      if (projetosCriados > 0) {
+        await auditService.logAction(
+          importacao.importadoPorUserId,
+          AUDIT_ACTION_CREATE,
+          AUDIT_ENTITY_PROJETO,
+          importacaoId,
+          {
+            action: 'BATCH_IMPORT',
+            importacaoId,
+            ano: importacao.ano,
+            semestre: importacao.semestre,
+            projetosCriados,
+            projetosComErro,
+            status: finalStatus,
+          }
+        )
+      }
+
       return {
         projetosCriados,
         projetosComErro,
@@ -882,6 +905,25 @@ export function createImportProjectsService(db: Database) {
         },
         'Importação DCC finalizada'
       )
+
+      // Audit log for DCC batch import completion
+      if (projetosCriados > 0) {
+        await auditService.logAction(
+          importacao.importadoPorUserId,
+          AUDIT_ACTION_CREATE,
+          AUDIT_ENTITY_PROJETO,
+          importacaoId,
+          {
+            action: 'BATCH_IMPORT_DCC',
+            importacaoId,
+            ano: importacao.ano,
+            semestre: importacao.semestre,
+            projetosCriados,
+            projetosComErro,
+            status: finalStatus,
+          }
+        )
+      }
 
       return {
         projetosCriados,

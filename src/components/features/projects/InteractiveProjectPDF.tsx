@@ -28,6 +28,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
   const signatureRef = useRef<SignatureCanvas>(null)
 
   const professorSignature = api.projeto.signProfessor.useMutation()
+  const saveDefaultSignature = api.signature.saveDefaultSignature.useMutation()
   const { data: userProfile } = api.user.getProfile.useQuery()
 
   const getDefaultSignature = () => {
@@ -135,6 +136,13 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
             projetoId: formData.projetoId,
             signatureImage: signatureDataURL,
           })
+
+          // Save as user's default signature for future use
+          try {
+            await saveDefaultSignature.mutateAsync({ signatureData: signatureDataURL })
+          } catch (err) {
+            console.warn("Failed to save default signature, but project was signed:", err)
+          }
 
           const updatedFormData = {
             ...formData,

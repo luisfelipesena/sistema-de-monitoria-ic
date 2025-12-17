@@ -14,7 +14,7 @@ type Database = typeof db
 export function createProjetoService(db: Database) {
   const repo = createProjetoRepository(db)
   const queryService = createProjetoQueryService(repo)
-  const creationService = createProjetoCreationService(repo)
+  const creationService = createProjetoCreationService(repo, db)
   const approvalService = createProjetoApprovalService(repo)
   const selectionService = createProjetoSelectionService(repo)
 

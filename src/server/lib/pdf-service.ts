@@ -55,20 +55,20 @@ export class PDFService {
     }
   ): Promise<string> {
     try {
-      const baseDirectory = `projetos/${projetoId}/propostas_assinadas`
+      const baseDirectory = 'propostas_assinadas'
 
       let objectName: string
       if (filename) {
         objectName = filename.startsWith(baseDirectory) ? filename : `${baseDirectory}/${filename}`
       } else if (metadata?.disciplinaCodigo && metadata?.professorNome && metadata?.ano && metadata?.semestre) {
-        // Generate filename using new pattern: {codigo}_{professor}_{ano}_{semestre}.pdf
+        // Generate filename: {codigo}_{professor}_{ano}_{semestre}.pdf
         const codigoSanitizado = metadata.disciplinaCodigo.trim().toUpperCase().replace(/\s+/g, '')
         const professorSanitizado = sanitizeForFilename(metadata.professorNome)
-        const semestreDisplay = metadata.semestre === 'SEMESTRE_1' ? 'SEMESTRE_1' : 'SEMESTRE_2'
+        const semestreDisplay = metadata.semestre === 'SEMESTRE_1' ? '1' : '2'
         const filenameNew = `${codigoSanitizado}_${professorSanitizado}_${metadata.ano}_${semestreDisplay}.pdf`
         objectName = `${baseDirectory}/${filenameNew}`
       } else {
-        // Fallback to old pattern for backward compatibility
+        // Fallback pattern
         objectName = `${baseDirectory}/proposta_${projetoId}_${Date.now()}.pdf`
       }
 
@@ -90,50 +90,59 @@ export class PDFService {
 
   /**
    * Gets the latest PDF for a project from MinIO
-   * Searches for both new pattern ({codigo}_{professor}_{ano}_{semestre}.pdf) and old pattern (proposta_{projetoId}_*.pdf)
+   * Searches in propostas_assinadas/ by projetoId metadata
    */
   static async getLatestProjetoPDF(projetoId: number): Promise<{ objectName: string; buffer: Buffer } | null> {
     try {
-      const prefix = `projetos/${projetoId}/propostas_assinadas/`
+      const prefix = 'propostas_assinadas/'
       const objectsStream = minioClient.listObjectsV2(bucketName, prefix, true)
 
       return new Promise((resolve, reject) => {
-        const projectFiles: Array<{ name: string; lastModified: Date; isNewPattern: boolean }> = []
+        const pdfFiles: Array<{ name: string; lastModified: Date }> = []
 
         objectsStream.on('data', (obj) => {
           if (obj.name?.endsWith('.pdf')) {
-            // Check if it matches new pattern: {codigo}_{professor}_{ano}_{semestre}.pdf
-            // Pattern: ends with _{ano}_SEMESTRE_{1|2}.pdf
-            const isNewPattern = /_\d{4}_SEMESTRE_[12]\.pdf$/.test(obj.name || '')
-            projectFiles.push({
+            pdfFiles.push({
               name: obj.name,
               lastModified: obj.lastModified || new Date(),
-              isNewPattern,
             })
           }
         })
 
         objectsStream.on('error', (err) => {
-          log.error({ error: err, projetoId }, 'Error listing project PDFs')
+          log.error({ error: err, projetoId }, 'Error listing PDFs')
           reject(err)
         })
 
         objectsStream.on('end', async () => {
-          if (projectFiles.length === 0) {
+          if (pdfFiles.length === 0) {
+            log.info({ projetoId }, 'No PDFs found')
+            resolve(null)
+            return
+          }
+
+          // Filter by projetoId metadata
+          const matchingFiles: Array<{ name: string; lastModified: Date }> = []
+          for (const file of pdfFiles) {
+            try {
+              const stat = await minioClient.statObject(bucketName, file.name)
+              const metaProjetoId = stat.metaData?.['projeto-id'] || stat.metaData?.['x-amz-meta-projeto-id']
+              if (metaProjetoId === projetoId.toString()) {
+                matchingFiles.push(file)
+              }
+            } catch {
+              // Skip files we can't stat
+            }
+          }
+
+          if (matchingFiles.length === 0) {
             log.info({ projetoId }, 'No PDFs found for project')
             resolve(null)
             return
           }
 
-          // Prioritize new pattern files, then sort by lastModified
-          const sortedFiles = projectFiles.sort((a, b) => {
-            // New pattern files first
-            if (a.isNewPattern && !b.isNewPattern) return -1
-            if (!a.isNewPattern && b.isNewPattern) return 1
-            // Then by lastModified (most recent first)
-            return b.lastModified.getTime() - a.lastModified.getTime()
-          })
-
+          // Sort by lastModified (most recent first)
+          const sortedFiles = matchingFiles.sort((a, b) => b.lastModified.getTime() - a.lastModified.getTime())
           const latestFile = sortedFiles[0]
 
           if (!latestFile) {
@@ -142,7 +151,6 @@ export class PDFService {
           }
 
           try {
-            // Get the file content
             const stream = await minioClient.getObject(bucketName, latestFile.name)
             const chunks: Buffer[] = []
 
@@ -307,7 +315,7 @@ export class PDFService {
    */
   static async saveEditalInternoPDF(editalId: number, pdfBuffer: Buffer, filename?: string): Promise<string> {
     try {
-      const baseDirectory = `editais-internos/${editalId}`
+      const baseDirectory = 'editais-internos'
       const objectName = filename || `${baseDirectory}/edital_interno_${editalId}_${Date.now()}.pdf`
 
       const metadata = {
@@ -351,7 +359,7 @@ export class PDFService {
    */
   static async saveAtaSelecaoPDF(projetoId: number, pdfBuffer: Buffer, filename?: string): Promise<string> {
     try {
-      const baseDirectory = `projetos/${projetoId}/atas-selecao`
+      const baseDirectory = 'atas-selecao'
       const objectName = filename || `${baseDirectory}/ata_selecao_${projetoId}_${Date.now()}.pdf`
 
       const metadata = {

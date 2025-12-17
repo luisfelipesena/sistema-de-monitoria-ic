@@ -1,7 +1,13 @@
+import type { db } from '@/server/db'
 import { isAdmin, isProfessor, requireAdminOrProfessor } from '@/server/lib/auth-helpers'
 import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
+import { createAuditService } from '@/server/services/audit/audit-service'
 import {
   ACCEPTED_VOLUNTARIO,
+  AUDIT_ACTION_CREATE,
+  AUDIT_ACTION_DELETE,
+  AUDIT_ACTION_UPDATE,
+  AUDIT_ENTITY_PROJETO,
   PROJETO_STATUS_DRAFT,
   PROJETO_STATUS_PENDING_SIGNATURE,
   VOLUNTARIO_STATUS_ATIVO,
@@ -13,9 +19,11 @@ import {
 import { logger } from '@/utils/logger'
 import type { ProjetoRepository } from './projeto-repository'
 
+type Database = typeof db
 const log = logger.child({ context: 'ProjetoCreationService' })
 
-export function createProjetoCreationService(repo: ProjetoRepository) {
+export function createProjetoCreationService(repo: ProjetoRepository, db?: Database) {
+  const auditService = db ? createAuditService(db) : null
   return {
     async createProjeto(input: CreateProjetoInput) {
       requireAdminOrProfessor(input.userRole)
@@ -145,6 +153,23 @@ export function createProjetoCreationService(repo: ProjetoRepository) {
 
       log.info({ projetoId: novoProjeto.id }, 'Projeto criado com sucesso')
 
+      // Audit log for project creation
+      if (auditService) {
+        await auditService.logAction(
+          input.userId,
+          AUDIT_ACTION_CREATE,
+          AUDIT_ENTITY_PROJETO,
+          novoProjeto.id,
+          {
+            titulo: input.titulo,
+            ano: input.ano,
+            semestre: input.semestre,
+            tipoProposicao: input.tipoProposicao,
+            createdBy: isProfessor(input.userRole) ? 'professor' : 'admin',
+          }
+        )
+      }
+
       const projetoCompleto = await repo.findByIdWithRelations(novoProjeto.id)
       if (!projetoCompleto) {
         throw new BusinessError('Falha ao recuperar projeto recém criado', 'INTERNAL_ERROR')
@@ -227,6 +252,20 @@ export function createProjetoCreationService(repo: ProjetoRepository) {
         log.info({ projetoId: input.id, atividadesCount: input.atividades.length }, 'Atividades do projeto atualizadas')
       }
 
+      // Audit log for project update
+      if (auditService && input.userId) {
+        await auditService.logAction(
+          input.userId,
+          AUDIT_ACTION_UPDATE,
+          AUDIT_ENTITY_PROJETO,
+          input.id,
+          {
+            fieldsUpdated: Object.keys(updateData),
+            updatedBy: input.userRole && isProfessor(input.userRole) ? 'professor' : 'admin',
+          }
+        )
+      }
+
       const projetoCompleto = await repo.findByIdWithRelations(input.id)
       if (!projetoCompleto) {
         throw new BusinessError('Erro ao recuperar projeto atualizado', 'INTERNAL_ERROR')
@@ -268,6 +307,20 @@ export function createProjetoCreationService(repo: ProjetoRepository) {
 
       await repo.softDelete(id)
       log.info({ projetoId: id }, 'Projeto excluído com sucesso')
+
+      // Audit log for project deletion
+      if (auditService) {
+        await auditService.logAction(
+          userId,
+          AUDIT_ACTION_DELETE,
+          AUDIT_ENTITY_PROJETO,
+          id,
+          {
+            titulo: projeto.titulo,
+            deletedBy: isAdmin(userRole) ? 'admin' : 'professor',
+          }
+        )
+      }
     },
 
     async updateVolunteerStatus(

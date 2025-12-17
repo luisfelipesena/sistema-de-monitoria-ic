@@ -80,6 +80,12 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
 
   const hasProfile = onboardingStatus.profile.exists
   const hasSignature = onboardingStatus.signature?.configured || false
+  // Check if required fields are present (cpf, genero, matriculaSiape)
+  const hasRequiredFields = !!(existingData?.cpf && existingData?.genero && existingData?.matriculaSiape)
+  // Show full form if: no profile, reactivation, OR missing required fields
+  const needsProfileForm = !hasProfile || isReactivation || (hasProfile && !hasRequiredFields)
+  // Only show signature-only card if profile is complete with all required fields
+  const needsSignatureOnly = hasProfile && hasRequiredFields && !hasSignature && !isReactivation
   const [signatureDataURL, setSignatureDataURL] = useState<string | null>(null)
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
@@ -197,22 +203,24 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
     router.push("/home/professor/dashboard")
   }
 
-  const isOnboardingComplete = hasProfile && hasSignature
+  const isOnboardingComplete = hasProfile && hasRequiredFields && hasSignature
 
   return (
     <section className="w-full">
       <div className="space-y-8">
-        {(!hasProfile || isReactivation) && (
+        {needsProfileForm && (
           <Card className="shadow-lg">
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center gap-2 text-xl">
                 <UserCheck className="h-5 w-5" />
-                {isReactivation ? "Reativar Conta" : "Informações do Perfil"}
+                {isReactivation ? "Reativar Conta" : hasProfile && !hasRequiredFields ? "Complete seu Perfil" : "Informações do Perfil"}
               </CardTitle>
               <p className="text-sm text-gray-600">
                 {isReactivation
                   ? "Sua conta foi desativada. Confirme seus dados para reativá-la."
-                  : "Complete suas informações pessoais e profissionais"}
+                  : hasProfile && !hasRequiredFields
+                    ? "Alguns dados obrigatórios estão faltando. Por favor, complete seu perfil."
+                    : "Complete suas informações pessoais e profissionais"}
               </p>
             </CardHeader>
             <CardContent className="p-8">
@@ -443,6 +451,99 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                   </Button>
                 </div>
               </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {needsSignatureOnly && (
+          <Card className="shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="flex items-center justify-center gap-2 text-xl">
+                <FileSignature className="h-5 w-5" />
+                Configure sua Assinatura Digital
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Seu perfil está completo, mas você precisa configurar sua assinatura digital para continuar.
+              </p>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="space-y-6">
+                {signatureDataURL ? (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2 text-green-800">
+                        <CheckCircle className="h-5 w-5" />
+                        <div>
+                          <p className="font-medium">Assinatura configurada</p>
+                          <p className="text-sm text-green-700">Sua assinatura foi salva com sucesso</p>
+                        </div>
+                      </div>
+                      <Button type="button" variant="outline" size="sm" onClick={() => setShowSignatureDialog(true)}>
+                        Alterar
+                      </Button>
+                    </div>
+                    <div className="mt-3 bg-white rounded border p-2 max-w-xs">
+                      <img src={signatureDataURL} alt="Assinatura" className="w-full h-auto" />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <Info className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="font-medium text-amber-800 mb-2">Assinatura obrigatória</p>
+                        <p className="text-sm text-amber-700 mb-3">
+                          A assinatura digital garante a autenticidade e validade legal dos documentos gerados pelo sistema.
+                        </p>
+                        <Button
+                          type="button"
+                          onClick={() => setShowSignatureDialog(true)}
+                          size="sm"
+                          className="bg-amber-600 hover:bg-amber-700"
+                        >
+                          <FileSignature className="h-4 w-4 mr-2" />
+                          Configurar Assinatura
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Button
+                  onClick={async () => {
+                    if (!signatureDataURL) {
+                      toast({
+                        title: "Assinatura obrigatória",
+                        description: "Por favor, configure sua assinatura antes de continuar",
+                        variant: "destructive",
+                      })
+                      return
+                    }
+                    setIsSubmitting(true)
+                    try {
+                      await saveSignatureMutation.mutateAsync({ signatureData: signatureDataURL })
+                      toast({
+                        title: "Sucesso!",
+                        description: "Assinatura salva com sucesso!",
+                      })
+                      await refetchOnboardingStatus()
+                    } catch (error: any) {
+                      toast({
+                        title: "Erro",
+                        description: error.message || "Erro ao salvar assinatura",
+                        variant: "destructive",
+                      })
+                    } finally {
+                      setIsSubmitting(false)
+                    }
+                  }}
+                  disabled={isSubmitting || !signatureDataURL}
+                  size="lg"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  {isSubmitting ? "Salvando..." : "Salvar Assinatura e Continuar"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
