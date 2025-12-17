@@ -76,7 +76,9 @@ export default function DashboardProfessor() {
           })
           setDeleteDialogOpen(false)
           setProjetoToDelete(null)
+          // Invalidate all project queries to refresh lists across the app
           await apiUtils.projeto.getProjetos.invalidate()
+          await apiUtils.projeto.getProjetosFiltered.invalidate()
         },
         onError: (error) => {
           toast({

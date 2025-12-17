@@ -33,7 +33,9 @@ export function useDashboard() {
     successMessage: 'Projeto excluído com sucesso',
     errorMessage: 'Erro ao excluir projeto',
     onSuccess: () => {
+      // Invalidate all project queries to refresh lists across the app
       utils.projeto.getProjetos.invalidate()
+      utils.projeto.getProjetosFiltered.invalidate()
     },
   })
 

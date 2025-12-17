@@ -24,6 +24,13 @@ export function ImportDialog({ onSuccess }: ImportDialogProps) {
   const { toast } = useToast()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const apiUtils = api.useUtils()
+
+  const invalidateProjectQueries = () => {
+    // Invalidate all project-related queries to refresh lists
+    apiUtils.projeto.getProjetos.invalidate()
+    apiUtils.projeto.getProjetosFiltered.invalidate()
+  }
 
   const uploadFileMutation = api.file.uploadFile.useMutation()
   const importProjectsMutation = api.importProjects.uploadFile.useMutation({
@@ -49,10 +56,12 @@ export function ImportDialog({ onSuccess }: ImportDialogProps) {
       setIsDialogOpen(false)
       setSelectedFile(null)
       form.reset()
+      invalidateProjectQueries()
       onSuccess()
     },
     onError: (error) => {
       toast({ title: "Erro no processamento", description: `Erro ao processar: ${error.message}`, variant: "destructive" })
+      invalidateProjectQueries()
       onSuccess() // Refresh list even on error
     },
   })

@@ -49,7 +49,8 @@ function DocumentSigningContent() {
   // Use nuqs for projetoId URL state
   const [selectedProjectId, setSelectedProjectId] = useQueryState("projetoId", parseAsInteger)
 
-  const { data: projetos, isLoading: loadingProjetos, refetch } = api.projeto.getProjetos.useQuery()
+  const apiUtils = api.useUtils()
+  const { data: projetos, isLoading: loadingProjetos } = api.projeto.getProjetos.useQuery()
 
   const { data: selectedProject, isLoading: loadingProject } = api.projeto.getProjeto.useQuery(
     { id: selectedProjectId || 0 },
@@ -139,7 +140,10 @@ function DocumentSigningContent() {
   }
 
   const handleSignComplete = () => {
-    refetch()
+    // Invalidate all project queries to refresh lists across the app
+    apiUtils.projeto.getProjetos.invalidate()
+    apiUtils.projeto.getProjetosFiltered.invalidate()
+    apiUtils.projeto.getProjeto.invalidate()
     setSelectedProjectId(null)
   }
 
