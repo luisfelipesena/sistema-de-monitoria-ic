@@ -45,7 +45,7 @@ export default function EditUserPage() {
       if (currentUser?.id === userId) {
         window.location.href = "/home/profile"
       } else {
-        router.push("/home/admin/users")
+        router.back()
       }
     },
     onError: (error) => {
