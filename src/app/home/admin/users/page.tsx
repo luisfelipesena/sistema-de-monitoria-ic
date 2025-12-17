@@ -11,9 +11,20 @@ import { ADMIN, PROFESSOR, STUDENT, type UserListItem } from "@/types"
 import { api } from "@/utils/api"
 import { formatUsernameToProperName } from "@/utils/username-formatter"
 import type { ColumnDef, FilterFn } from "@tanstack/react-table"
-import { BookOpen, GraduationCap, Loader, Mail, Pencil, User, UserCheck, Users } from "lucide-react"
+import { BookOpen, GraduationCap, Loader, Mail, Pencil, Trash2, User, UserCheck, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
+import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 // Role filter options
 const roleFilterOptions = [
@@ -65,9 +76,37 @@ const cursoFilterFn: FilterFn<UserListItem> = (row, _columnId, filterValue) => {
 
 export default function UsersPage() {
   const router = useRouter()
+  const utils = api.useUtils()
 
   const { data: usersData, isLoading: loadingUsers } = api.user.getUsers.useQuery({})
   const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
+
+  // Delete user state
+  const [userToDelete, setUserToDelete] = useState<UserListItem | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
+  const deleteUserMutation = api.user.deleteUser.useMutation({
+    onSuccess: () => {
+      toast.success("Usuário excluído com sucesso")
+      setIsDeleteDialogOpen(false)
+      setUserToDelete(null)
+      utils.user.getUsers.invalidate()
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao excluir usuário")
+    },
+  })
+
+  const handleDeleteClick = (user: UserListItem) => {
+    setUserToDelete(user)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (userToDelete) {
+      deleteUserMutation.mutate({ id: userToDelete.id })
+    }
+  }
 
   // URL-based column filters
   const { columnFilters, setColumnFilters } = useUrlColumnFilters()
@@ -300,18 +339,38 @@ export default function UsersPage() {
       {
         id: "actions",
         header: "Ações",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleEditUser(row.original.id)}>
-              <Pencil className="h-4 w-4 mr-1" />
-              Editar
-            </Button>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const user = row.original
+          const isAdmin = user.role === ADMIN
+
+          return (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => handleEditUser(user.id)}>
+                <Pencil className="h-4 w-4 mr-1" />
+                Editar
+              </Button>
+              {!isAdmin && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDeleteClick(user)}
+                  disabled={deleteUserMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Excluir
+                </Button>
+              )}
+            </div>
+          )
+        },
       },
     ],
-    [departamentos, nomeFilterOptions, emailFilterOptions, departamentoFilterOptions, cursoFilterOptions]
+    [departamentos, nomeFilterOptions, emailFilterOptions, departamentoFilterOptions, cursoFilterOptions, deleteUserMutation.isPending]
   )
+
+  const getUserDisplayName = (user: UserListItem) => {
+    return user.professorProfile?.nomeCompleto || user.studentProfile?.nomeCompleto || formatUsernameToProperName(user.username)
+  }
 
   return (
     <PagesLayout title="Gerenciar Usuários" subtitle="Administração de usuários do sistema">
@@ -377,6 +436,32 @@ export default function UsersPage() {
           />
         </>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o usuário{" "}
+              <strong>{userToDelete ? getUserDisplayName(userToDelete) : ""}</strong>?
+              <br />
+              <br />
+              Esta ação não pode ser desfeita. Os projetos do usuário serão arquivados e as inscrições serão removidas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteUserMutation.isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={deleteUserMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteUserMutation.isPending ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PagesLayout>
   )
 }

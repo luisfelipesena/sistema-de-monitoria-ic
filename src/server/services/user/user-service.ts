@@ -236,6 +236,13 @@ export const createUserService = (database: typeof db) => {
         throw new BusinessError('Não é possível excluir usuários administradores', 'ADMIN_DELETION')
       }
 
+      // Check for blocking constraints and transfer ownership to current admin
+      const constraints = await userRepository.checkUserDeletionConstraints(userId)
+      if (constraints.hasEditais || constraints.hasTemplates || constraints.hasImportacoes) {
+        // Transfer ownership to the current user (admin performing deletion)
+        await userRepository.transferUserOwnership(userId, currentUserId)
+      }
+
       // Soft delete professor's projects before deleting user
       if (user.professorProfile) {
         await userRepository.softDeleteProfessorProjects(user.professorProfile.id)

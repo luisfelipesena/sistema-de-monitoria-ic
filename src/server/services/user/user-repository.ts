@@ -1,11 +1,25 @@
 import type { db } from '@/server/db'
 import {
   alunoTable,
+  assinaturaDocumentoTable,
+  ataSelecaoTable,
+  auditLogTable,
+  disciplinaProfessorResponsavelTable,
+  editalSignatureTokenTable,
+  editalTable,
+  importacaoPlanejamentoTable,
   inscricaoDocumentoTable,
   inscricaoTable,
+  notificacaoHistoricoTable,
   professorInvitationTable,
   professorTable,
+  projetoDocumentoTable,
+  projetoProfessorParticipanteTable,
   projetoTable,
+  projetoTemplateTable,
+  publicPdfTokenTable,
+  relatorioTemplateTable,
+  reminderExecutionLogTable,
   sessionTable,
   userTable,
   vagaTable,
@@ -292,25 +306,151 @@ export const createUserRepository = (db: Database) => {
       await db.delete(inscricaoTable).where(eq(inscricaoTable.alunoId, alunoId))
     },
 
+    async checkUserDeletionConstraints(userId: number) {
+      // Check for blocking constraints that would prevent deletion
+      const [editaisCount] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(editalTable)
+        .where(eq(editalTable.criadoPorUserId, userId))
+
+      const [templatesCount] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(projetoTemplateTable)
+        .where(eq(projetoTemplateTable.criadoPorUserId, userId))
+
+      const [importacoesCount] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(importacaoPlanejamentoTable)
+        .where(eq(importacaoPlanejamentoTable.importadoPorUserId, userId))
+
+      return {
+        hasEditais: (editaisCount?.count || 0) > 0,
+        hasTemplates: (templatesCount?.count || 0) > 0,
+        hasImportacoes: (importacoesCount?.count || 0) > 0,
+        editaisCount: editaisCount?.count || 0,
+        templatesCount: templatesCount?.count || 0,
+        importacoesCount: importacoesCount?.count || 0,
+      }
+    },
+
+    async transferUserOwnership(fromUserId: number, toUserId: number) {
+      // Transfer ownership of records to another user (typically admin)
+      await db.transaction(async (tx) => {
+        // Transfer edital ownership
+        await tx
+          .update(editalTable)
+          .set({ criadoPorUserId: toUserId })
+          .where(eq(editalTable.criadoPorUserId, fromUserId))
+
+        // Transfer projetoTemplate ownership
+        await tx
+          .update(projetoTemplateTable)
+          .set({ criadoPorUserId: toUserId })
+          .where(eq(projetoTemplateTable.criadoPorUserId, fromUserId))
+
+        // Transfer importacaoPlanejamento ownership
+        await tx
+          .update(importacaoPlanejamentoTable)
+          .set({ importadoPorUserId: toUserId })
+          .where(eq(importacaoPlanejamentoTable.importadoPorUserId, fromUserId))
+
+        // Transfer ataSelecao ownership
+        await tx
+          .update(ataSelecaoTable)
+          .set({ geradoPorUserId: toUserId })
+          .where(eq(ataSelecaoTable.geradoPorUserId, fromUserId))
+      })
+    },
+
     async deleteUser(userId: number) {
       await db.transaction(async (tx) => {
-        // Delete sessions first
+        // 1. Delete sessions first
         await tx.delete(sessionTable).where(eq(sessionTable.userId, userId))
 
-        // Delete professor invitation if exists
+        // 2. Handle professor-specific FK constraints
         const professor = await tx.query.professorTable.findFirst({
           where: eq(professorTable.userId, userId),
         })
 
         if (professor) {
+          // Delete professor invitation
           await tx.delete(professorInvitationTable).where(eq(professorInvitationTable.professorId, professor.id))
+
+          // Delete professor participation in projects (as participant, not responsible)
+          await tx
+            .delete(projetoProfessorParticipanteTable)
+            .where(eq(projetoProfessorParticipanteTable.professorId, professor.id))
+
+          // Delete professor discipline responsibilities
+          await tx
+            .delete(disciplinaProfessorResponsavelTable)
+            .where(eq(disciplinaProfessorResponsavelTable.professorId, professor.id))
         }
 
-        // The cascade should handle professor/aluno tables, but let's be explicit
+        // 3. Handle user-level FK constraints (set to NULL or delete)
+        // Delete digital signatures by this user
+        await tx.delete(assinaturaDocumentoTable).where(eq(assinaturaDocumentoTable.userId, userId))
+
+        // Set projetoDocumento assinadoPorUserId to NULL
+        await tx
+          .update(projetoDocumentoTable)
+          .set({ assinadoPorUserId: null })
+          .where(eq(projetoDocumentoTable.assinadoPorUserId, userId))
+
+        // For chefeDepartamentoId, set to NULL
+        await tx
+          .update(editalTable)
+          .set({ chefeDepartamentoId: null })
+          .where(eq(editalTable.chefeDepartamentoId, userId))
+
+        // Set projetoTemplate to NULL where possible
+        await tx
+          .update(projetoTemplateTable)
+          .set({ ultimaAtualizacaoUserId: null })
+          .where(eq(projetoTemplateTable.ultimaAtualizacaoUserId, userId))
+
+        // Note: ataSelecao, edital, projetoTemplate, and importacaoPlanejamento
+        // are handled by transferUserOwnership before calling deleteUser
+
+        // Set auditLog userId to NULL (keep audit trail but anonymize)
+        await tx.update(auditLogTable).set({ userId: null }).where(eq(auditLogTable.userId, userId))
+
+        // Delete edital signature tokens requested by this user
+        await tx.delete(editalSignatureTokenTable).where(eq(editalSignatureTokenTable.requestedByUserId, userId))
+
+        // Delete public PDF tokens created by this user
+        await tx.delete(publicPdfTokenTable).where(eq(publicPdfTokenTable.createdByUserId, userId))
+
+        // Set reminder execution log to NULL
+        await tx
+          .update(reminderExecutionLogTable)
+          .set({ executedByUserId: null })
+          .where(eq(reminderExecutionLogTable.executedByUserId, userId))
+
+        // Set notificacao historico to NULL
+        await tx
+          .update(notificacaoHistoricoTable)
+          .set({ remetenteUserId: null })
+          .where(eq(notificacaoHistoricoTable.remetenteUserId, userId))
+
+        // Delete relatorio templates created by this user
+        await tx.delete(relatorioTemplateTable).where(eq(relatorioTemplateTable.criadoPorUserId, userId))
+
+        // Handle professor invitation FK to user (invitedBy, acceptedBy)
+        // Set acceptedByUserId to NULL for invitations accepted by this user
+        await tx
+          .update(professorInvitationTable)
+          .set({ acceptedByUserId: null })
+          .where(eq(professorInvitationTable.acceptedByUserId, userId))
+
+        // Delete invitations sent by this user (admin)
+        await tx.delete(professorInvitationTable).where(eq(professorInvitationTable.invitedByUserId, userId))
+
+        // 4. Delete professor/aluno profiles (cascade should work but being explicit)
         await tx.delete(professorTable).where(eq(professorTable.userId, userId))
         await tx.delete(alunoTable).where(eq(alunoTable.userId, userId))
 
-        // Finally delete the user
+        // 5. Finally delete the user
         await tx.delete(userTable).where(eq(userTable.id, userId))
       })
     },
