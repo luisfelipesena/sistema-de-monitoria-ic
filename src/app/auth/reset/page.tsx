@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -35,6 +35,7 @@ function ResetPasswordContent() {
 }
 
 function ResetPasswordInner({ token }: { token: string }) {
+  const router = useRouter()
   const { resetPassword, errors, clearErrors } = useAuth()
 
   const form = useForm<ResetPasswordFormInput>({
@@ -62,11 +63,17 @@ function ResetPasswordInner({ token }: { token: string }) {
       password: data.password,
     }
 
-    await resetPassword(payload)
-    toast.success("Senha redefinida", {
-      description: "Sua senha foi atualizada. Você já pode fazer login.",
-    })
-    form.reset({ token })
+    try {
+      await resetPassword(payload)
+      toast.success("Senha redefinida com sucesso!", {
+        description: "Redirecionando para o login...",
+      })
+      setTimeout(() => {
+        router.push("/auth/login")
+      }, 1500)
+    } catch {
+      // Error is handled by useAuth hook (sets errors state)
+    }
   }
 
   if (!token) {
