@@ -53,16 +53,25 @@ SLIDE 7 - SISTEMAS DE INFORMAÇÃO: SPT E SIG (1 min)
 - "O Sistema de Monitoria-IC foi projetado integrando ambas as perspectivas: SPT para as transações do dia-a-dia e SIG para dashboards e relatórios gerenciais."
 
 ========================================
-SLIDE 8 - LEVANTAMENTO EM UNIVERSIDADES (1.5 min)
+SLIDE 8 - LEVANTAMENTO EM UNIVERSIDADES (1 min)
 ========================================
-- "Realizei um levantamento documental nas dez universidades públicas mais bem classificadas no Ranking Universitário Folha."
+- "Realizei um levantamento documental nas principais universidades públicas do país."
 - "Analisei fontes públicas: páginas institucionais, editais e documentos de orientação."
 - "O padrão observado foi consistente: sistemas acadêmicos genéricos como Júpiter na USP, SIGA na UFRJ, SIGAA na UnB, combinados com processos manuais complementares."
 - "Em todas as instituições, há fragmentação entre formulários eletrônicos, e-mails e planilhas."
 - "Não identifiquei nenhum módulo específico e completo para monitoria que cobrisse todo o ciclo de vida."
 
 ========================================
-SLIDE 9 - DIFERENCIAIS DO SISTEMA (1 min)
+SLIDE 9 - COMPARAÇÃO COM SISTEMAS EXISTENTES (1 min)
+========================================
+- "Esta tabela resume a comparação entre os sistemas analisados e o Sistema de Monitoria-IC."
+- "Em workflow fim-a-fim, nenhum dos sistemas existentes oferece cobertura completa das fases 1 a 5. O SIGAA da UnB oferece cobertura parcial."
+- "Nenhum dos sistemas é específico para monitoria - todos são módulos genéricos de sistemas acadêmicos maiores."
+- "Quanto à automação, os sistemas existentes oferecem automação parcial ou nenhuma, enquanto o Monitoria-IC automatiza geração de PDFs, envio de e-mails, assinaturas digitais e equivalências curriculares."
+- "Essa comparação evidencia a lacuna que o sistema proposto preenche."
+
+========================================
+SLIDE 10 - DIFERENCIAIS DO SISTEMA (1 min)
 ========================================
 - "O Sistema de Monitoria-IC se diferencia em cinco dimensões."
 - "Primeiro, é específico para o workflow de monitoria, não um módulo genérico."
@@ -72,7 +81,7 @@ SLIDE 9 - DIFERENCIAIS DO SISTEMA (1 min)
 - "Quinto, garante auditabilidade através de controle de acesso RBAC e histórico completo."
 
 ========================================
-SLIDE 10 - ARQUITETURA EM CAMADAS (1 min)
+SLIDE 11 - ARQUITETURA EM CAMADAS (1 min)
 ========================================
 - "A arquitetura segue o padrão de três camadas com separação clara de responsabilidades."
 - "A camada de Apresentação usa Next.js com React para a interface."
@@ -82,14 +91,14 @@ SLIDE 10 - ARQUITETURA EM CAMADAS (1 min)
 - "Essa separação garante baixo acoplamento, type-safety em toda a stack, e facilita manutenção e testes."
 
 ========================================
-SLIDE 11 - STACK TECNOLÓGICO (1 min)
+SLIDE 12 - STACK TECNOLÓGICO (1 min)
 ========================================
 - "No frontend: Next.js 15 com App Router, TypeScript para type-safety, Tailwind CSS com shadcn/ui para interface, React Hook Form com Zod para formulários validados, e React Query para gerenciamento de estado."
 - "No backend: tRPC versão 11 para API completamente tipada, Lucia Auth para autenticação segura, Drizzle ORM com PostgreSQL para persistência, MinIO para armazenamento de arquivos compatível com S3, e Nodemailer para envio de e-mails."
 - "Em DevOps: Docker para containerização, GitHub Actions para CI/CD, Vitest para testes unitários e Playwright para testes end-to-end."
 
 ========================================
-SLIDE 12 - FLUXO DE PROCESSOS - VISÃO GERAL (1.5 min)
+SLIDE 13 - FLUXO DE PROCESSOS - VISÃO GERAL (1.5 min)
 ========================================
 - "O sistema foi planejado para cobrir 6 fases do ciclo de monitoria."
 - "Fase 1: Planejamento e Criação de Projetos - admin importa planilha, sistema cria projetos, professores assinam."
@@ -101,21 +110,15 @@ SLIDE 12 - FLUXO DE PROCESSOS - VISÃO GERAL (1.5 min)
 - "Importante: a PROGRAD não acessa o sistema diretamente - toda comunicação é via e-mail e planilhas Excel."
 
 ========================================
-SLIDE 13 - DETALHAMENTO FASES 1-3 (1.5 min)
+SLIDE 14 - DETALHAMENTO DAS FASES (1.5 min)
 ========================================
 - "Vamos detalhar cada fase."
-- "Na Fase 1, o admin importa a planilha do DCC com disciplinas e códigos SIAPE dos professores. O sistema identifica projetos individuais e coletivos automaticamente e usa templates de semestres anteriores quando disponíveis. Os professores então criam ou editam seus templates, assinam digitalmente e submetem."
-- "Na Fase 2, o admin revisa os projetos submetidos, aprova ou rejeita com feedback. Para os aprovados, o sistema gera automaticamente uma planilha Excel com links para os PDFs dos projetos. Esta planilha é enviada ao Instituto, que encaminha para a PROGRAD solicitando bolsas."
-- "Na Fase 3, após a PROGRAD responder com o total de bolsas, o admin aloca as bolsas por projeto conforme decisão da comissão de monitoria. Os professores definem se terão voluntários adicionais e preenchem dados do edital como datas e pontos de prova. O chefe do departamento assina digitalmente o edital, e o admin publica - o sistema notifica automaticamente todos os professores e alunos."
+- "Nas Fases 1 e 2, o admin importa a planilha do DCC com disciplinas e códigos SIAPE. O sistema usa templates de semestres anteriores. Professores criam ou editam templates, assinam digitalmente e submetem. O admin aprova ou rejeita, e gera planilha Excel com PDFs para o Instituto encaminhar à PROGRAD."
+- "Na Fase 3, após a PROGRAD responder com o total de bolsas, o admin aloca por projeto. Professores definem voluntários e preenchem dados do edital. O chefe assina digitalmente, e o admin publica - notificando automaticamente professores e alunos."
+- "Nas Fases 4 e 5, alunos se inscrevem indicando se querem bolsista, voluntário ou ambos. O sistema captura notas e CR automaticamente, considerando equivalências. Professores avaliam e selecionam. Alunos aceitos preenchem dados bancários, e o admin gera planilhas finais para PROGRAD."
 
 ========================================
-SLIDE 14 - DETALHAMENTO FASES 4-5 (1.5 min)
-========================================
-- "Na Fase 4, os alunos acessam 'Vagas Disponíveis' e se inscrevem indicando se querem concorrer a bolsista, voluntário ou ambos. O sistema captura automaticamente a nota na disciplina e o CR do histórico, considerando inclusive equivalências entre disciplinas. Os professores avaliam os candidatos, atribuem notas de prova e entrevista, e o sistema calcula a nota final automaticamente. Ao publicar resultados, todos os candidatos são notificados por e-mail."
-- "Na Fase 5, os alunos selecionados acessam o sistema para aceitar ou rejeitar a vaga. Se bolsista, preenchem dados bancários obrigatórios. O admin então valida que todos os dados estão completos e gera duas planilhas separadas: uma de bolsistas com dados de pagamento e outra de voluntários. Estas planilhas são enviadas ao Departamento, que encaminha para a PROGRAD processar os pagamentos."
-
-========================================
-SLIDE 15 - INTERFACES POR PERFIL (1 min)
+SLIDE 15 - FUNCIONALIDADES POR PERFIL (1 min)
 ========================================
 - "O sistema oferece interfaces especializadas para cada perfil de usuário."
 - "Para administradores: dashboard com métricas, importação de planejamento, aprovação de projetos, alocação de bolsas, geração de planilhas e publicação de editais."
@@ -123,24 +126,17 @@ SLIDE 15 - INTERFACES POR PERFIL (1 min)
 - "Para estudantes: visualização de vagas disponíveis, inscrição em projetos, acompanhamento de resultados, aceite ou rejeição de vagas, e preenchimento de dados bancários."
 
 ========================================
-SLIDE 16 - FUNCIONALIDADES PRINCIPAIS (1 min)
+SLIDE 16 - RESULTADOS DA AVALIAÇÃO (1 min)
 ========================================
-- "As funcionalidades de automação incluem: importação de planejamento via Excel, templates reutilizáveis que eliminam retrabalho, geração automática de PDFs, assinatura digital integrada, e notificações automáticas por e-mail."
-- "As funcionalidades de inteligência incluem: captura de CR e notas do histórico acadêmico, consideração de equivalências entre disciplinas, cálculo automático da nota final ponderada, validação de limites de bolsas para impedir excedentes, e geração de planilhas consolidadas para PROGRAD."
-
-========================================
-SLIDE 17 - RESULTADOS TÉCNICOS (1 min)
-========================================
-- "A validação técnica foi conduzida através de testes automatizados."
-- "Implementamos 57 testes em 16 arquivos de teste, cobrindo todos os domínios do sistema."
-- "A taxa de sucesso foi de 100% - todos os 57 testes aprovados."
-- "O tempo de execução da suíte completa é de apenas 1.07 segundos."
-- "O servidor Next.js inicializa em 1.34 segundos em ambiente de desenvolvimento."
+- "A avaliação do sistema será realizada com professores através de questionário Likert."
+- "Serão avaliados aspectos de expectativa como importação, templates, PDFs e assinaturas."
+- "Também aspectos de avaliação como feedback e estados do sistema."
+- "E aspectos de impacto como geração de planilhas para PROGRAD e transparência do processo."
+- "A validação técnica foi conduzida através de testes automatizados: 57 testes em 16 arquivos, 100% de aprovação, execução em 1.07 segundos."
 - "A cobertura inclui RBAC, workflow de projetos, processo seletivo, importação de planejamento e publicação de editais."
-- "Não foram identificados erros críticos não tratados."
 
 ========================================
-SLIDE 18 - CONTRIBUIÇÕES DO TRABALHO (1 min)
+SLIDE 17 - CONTRIBUIÇÕES DO TRABALHO (1 min)
 ========================================
 - "Este trabalho apresenta quatro contribuições principais."
 - "Primeira: uma arquitetura especializada em três camadas - Router, Service, Repository - específica para o domínio de monitoria com requisitos formais de auditoria."
@@ -149,7 +145,7 @@ SLIDE 18 - CONTRIBUIÇÕES DO TRABALHO (1 min)
 - "Quarta: disponibilização de código aberto com tecnologias modernas e documentação, permitindo replicação por outras universidades."
 
 ========================================
-SLIDE 19 - LIMITAÇÕES E TRABALHOS FUTUROS (1 min)
+SLIDE 18 - LIMITAÇÕES E TRABALHOS FUTUROS (1 min)
 ========================================
 - "Reconheço algumas limitações atuais."
 - "Não há integração automática com o sistema acadêmico SIAC - estudantes precisam anexar histórico e documentos manualmente."
@@ -160,7 +156,7 @@ SLIDE 19 - LIMITAÇÕES E TRABALHOS FUTUROS (1 min)
 - "No longo prazo, o objetivo é generalizar para outras universidades públicas brasileiras."
 
 ========================================
-SLIDE 20 - CONCLUSÃO (1 min)
+SLIDE 19 - CONCLUSÃO (1 min)
 ========================================
 - "O Sistema de Monitoria-IC representa um avanço significativo na modernização da gestão acadêmica universitária."
 - "Demonstra que a digitalização e automação de processos tradicionalmente manuais é viável e benéfica."
@@ -169,7 +165,7 @@ SLIDE 20 - CONCLUSÃO (1 min)
 - "O sucesso inicial na UFBA indica alto potencial de replicação em outras instituições que enfrentam desafios similares."
 
 ========================================
-SLIDE 21 - PERGUNTAS (30 seg)
+SLIDE 20 - PERGUNTAS (30 seg)
 ========================================
 - "Agradeço pela atenção. O código fonte está disponível no GitHub e estou à disposição para perguntas."
 
