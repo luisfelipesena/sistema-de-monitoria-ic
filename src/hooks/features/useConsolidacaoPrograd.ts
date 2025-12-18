@@ -77,7 +77,7 @@ export function useConsolidacaoPrograd() {
     }
   }
 
-  const generateCSVSpreadsheet = () => {
+  const generateXLSXSpreadsheet = async () => {
     if (!consolidationData || consolidationData.length === 0) {
       toast({
         title: 'Aviso',
@@ -87,64 +87,71 @@ export function useConsolidacaoPrograd() {
       return
     }
 
-    const csvHeader = [
-      'Matrícula Monitor',
-      'Nome Monitor',
-      'Email Monitor',
-      'CR',
-      'Tipo Monitoria',
-      'Valor Bolsa',
-      'Projeto',
-      'Disciplinas',
-      'Professor Responsável',
-      'SIAPE Professor',
-      'Departamento',
-      'Carga Horária Semanal',
-      'Total Horas',
-      'Data Início',
-      'Data Fim',
-      'Status',
-      'Período',
-      'Banco',
-      'Agência',
-      'Conta',
-      'Dígito',
+    const ExcelJS = await import('exceljs')
+    const workbook = new ExcelJS.Workbook()
+    const sheet = workbook.addWorksheet('Consolidação Monitoria')
+
+    const headers = [
+      'Matrícula Monitor', 'Nome Monitor', 'Email Monitor', 'CR', 'Tipo Monitoria', 'Valor Bolsa',
+      'Projeto', 'Disciplinas', 'Professor Responsável', 'SIAPE Professor', 'Departamento',
+      'Carga Horária Semanal', 'Total Horas', 'Data Início', 'Data Fim', 'Status', 'Período',
+      'Banco', 'Agência', 'Conta', 'Dígito',
     ]
 
-    const csvData = consolidationData.map((item) => [
-      item.monitor.matricula || 'N/A',
-      item.monitor.nome,
-      item.monitor.email,
-      item.monitor.cr?.toFixed(2) || 'N/A',
-      item.monitoria.tipo === TIPO_VAGA_BOLSISTA ? 'Bolsista' : 'Voluntário',
-      item.monitoria.valorBolsa ? `R$ ${item.monitoria.valorBolsa.toFixed(2)}` : 'N/A',
-      item.projeto.titulo,
-      item.projeto.disciplinas,
-      item.professor.nome,
-      item.professor.matriculaSiape || 'N/A',
-      item.professor.departamento,
-      item.projeto.cargaHorariaSemana,
-      item.projeto.cargaHorariaSemana * item.projeto.numeroSemanas,
-      item.monitoria.dataInicio,
-      item.monitoria.dataFim,
-      item.monitoria.status,
-      `${item.projeto.ano}.${item.projeto.semestre === SEMESTRE_1 ? '1' : '2'}`,
-      item.monitor.banco || 'N/A',
-      item.monitor.agencia || 'N/A',
-      item.monitor.conta || 'N/A',
-      item.monitor.digitoConta || 'N/A',
-    ])
+    const greenFill = { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FF92D050' } }
+    const thinBorder = {
+      top: { style: 'thin' as const }, left: { style: 'thin' as const }, bottom: { style: 'thin' as const }, right: { style: 'thin' as const },
+    }
 
-    const csvContent = [csvHeader, ...csvData].map((row) => row.map((cell) => `"${cell}"`).join(',')).join('\n')
+    const headerRow = sheet.addRow(headers)
+    headerRow.eachCell((cell) => {
+      cell.fill = greenFill
+      cell.font = { bold: true, size: 10 }
+      cell.border = thinBorder
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }
+    })
+    headerRow.height = 25
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    consolidationData.forEach((item) => {
+      const row = sheet.addRow([
+        item.monitor.matricula || 'N/A',
+        item.monitor.nome,
+        item.monitor.email,
+        item.monitor.cr?.toFixed(2) || 'N/A',
+        item.monitoria.tipo === TIPO_VAGA_BOLSISTA ? 'Bolsista' : 'Voluntário',
+        item.monitoria.valorBolsa ? `R$ ${item.monitoria.valorBolsa.toFixed(2)}` : 'N/A',
+        item.projeto.titulo,
+        item.projeto.disciplinas,
+        item.professor.nome,
+        item.professor.matriculaSiape || 'N/A',
+        item.professor.departamento,
+        item.projeto.cargaHorariaSemana,
+        item.projeto.cargaHorariaSemana * item.projeto.numeroSemanas,
+        item.monitoria.dataInicio,
+        item.monitoria.dataFim,
+        item.monitoria.status,
+        `${item.projeto.ano}.${item.projeto.semestre === SEMESTRE_1 ? '1' : '2'}`,
+        item.monitor.banco || 'N/A',
+        item.monitor.agencia || 'N/A',
+        item.monitor.conta || 'N/A',
+        item.monitor.digitoConta || 'N/A',
+      ])
+      row.eachCell((cell) => {
+        cell.border = thinBorder
+        cell.alignment = { vertical: 'middle', wrapText: true }
+      })
+    })
+
+    const colWidths = [15, 30, 30, 8, 15, 12, 40, 50, 30, 15, 25, 15, 12, 12, 12, 10, 10, 15, 10, 15, 8]
+    headers.forEach((_, idx) => {
+      sheet.getColumn(idx + 1).width = colWidths[idx] || 15
+    })
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
     const link = document.createElement('a')
-    const url = URL.createObjectURL(blob)
-    link.setAttribute('href', url)
-    link.setAttribute(
-      'download',
-      `consolidacao-monitoria-${selectedYear}-${selectedSemester === SEMESTRE_1 ? '1' : '2'}.csv`
-    )
+    link.href = URL.createObjectURL(blob)
+    link.download = `consolidacao-monitoria-${selectedYear}-${selectedSemester === SEMESTRE_1 ? '1' : '2'}.xlsx`
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
@@ -152,7 +159,7 @@ export function useConsolidacaoPrograd() {
 
     toast({
       title: 'Sucesso',
-      description: 'Planilha CSV gerada e baixada com sucesso!',
+      description: 'Planilha Excel gerada e baixada com sucesso!',
     })
   }
 
@@ -176,7 +183,7 @@ export function useConsolidacaoPrograd() {
     handleSemesterChange,
     handleValidateData,
     handleSendEmail,
-    generateCSVSpreadsheet,
+    generateXLSXSpreadsheet,
     refetch,
   }
 }

@@ -123,9 +123,9 @@ export const FileUploader = forwardRef<HTMLInputElement, FileUploaderProps>(
                         'image/jpeg': 'JPEG',
                         'image/jpg': 'JPG',
                         'image/png': 'PNG',
-                        'text/csv': 'CSV',
                         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
-                        'application/vnd.ms-excel': 'XLS'
+                        'application/vnd.ms-excel': 'XLS',
+                        'text/csv': 'CSV'
                       };
                       return extensions[type] || type;
                     }).join(', ')}`

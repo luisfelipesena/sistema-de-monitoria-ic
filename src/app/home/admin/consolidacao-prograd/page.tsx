@@ -29,7 +29,7 @@ export default function ConsolidacaoPROGRADPage() {
     handleSemesterChange,
     handleValidateData,
     handleSendEmail,
-    generateCSVSpreadsheet,
+    generateXLSXSpreadsheet,
     refetch,
   } = useConsolidacaoPrograd()
 
@@ -74,7 +74,7 @@ export default function ConsolidacaoPROGRADPage() {
           setShowEmailDialog={setShowEmailDialog}
           isPendingExport={isPendingExport}
           onSendEmail={handleSendEmail}
-          onGenerateCSV={generateCSVSpreadsheet}
+          onGenerateXLSX={generateXLSXSpreadsheet}
         />
 
         {/* Main table */}

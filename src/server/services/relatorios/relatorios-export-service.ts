@@ -14,10 +14,37 @@ import {
   type Semestre,
 } from '@/types'
 import { logger } from '@/utils/logger'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import type { RelatoriosRepository } from './relatorios-repository'
 
 const _log = logger.child({ context: 'RelatoriosExportService' })
+
+// Excel styling constants
+const greenFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } }
+const thinBorder: Partial<ExcelJS.Borders> = {
+  top: { style: 'thin' },
+  left: { style: 'thin' },
+  bottom: { style: 'thin' },
+  right: { style: 'thin' },
+}
+const headerFont: Partial<ExcelJS.Font> = { bold: true, size: 10 }
+
+function applyHeaderStyle(row: ExcelJS.Row) {
+  row.eachCell((cell) => {
+    cell.fill = greenFill
+    cell.font = headerFont
+    cell.border = thinBorder
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }
+  })
+  row.height = 25
+}
+
+function applyDataStyle(row: ExcelJS.Row) {
+  row.eachCell((cell) => {
+    cell.border = thinBorder
+    cell.alignment = { vertical: 'middle', wrapText: true }
+  })
+}
 
 export function createRelatoriosExportService(
   repo: RelatoriosRepository,
@@ -28,172 +55,129 @@ export function createRelatoriosExportService(
   }) => Promise<{ valido: boolean; totalProblemas: number; problemas: unknown[] }>
 ) {
   return {
-    async exportRelatorioCsv(tipo: string, ano: number, semestre: Semestre) {
-      const generateCsvRow = (data: (string | number | null | undefined)[]) => {
-        return data
-          .map((value) => {
-            const stringValue = String(value || '')
-            return stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')
-              ? `"${stringValue.replace(/"/g, '""')}"`
-              : stringValue
-          })
-          .join(',')
-      }
-
-      let csvData = ''
+    async exportRelatorioXlsx(tipo: string, ano: number, semestre: Semestre) {
+      const workbook = new ExcelJS.Workbook()
       let fileName = ''
+
+      const addSheetWithData = (sheetName: string, headers: string[], rows: (string | number | null | undefined)[][]) => {
+        const sheet = workbook.addWorksheet(sheetName)
+        const headerRow = sheet.addRow(headers)
+        applyHeaderStyle(headerRow)
+        rows.forEach((rowData) => {
+          const row = sheet.addRow(rowData.map((v) => v ?? ''))
+          applyDataStyle(row)
+        })
+        headers.forEach((_, idx) => {
+          sheet.getColumn(idx + 1).width = Math.max(15, headers[idx].length + 5)
+        })
+      }
 
       switch (tipo) {
         case 'departamentos': {
           const dados = await repo.findDepartamentosReport(ano, semestre)
-          const headers = [
-            'Departamento',
-            'Sigla',
-            'Total Projetos',
-            'Projetos Aprovados',
-            'Bolsas Solicitadas',
-            'Bolsas Disponibilizadas',
-          ]
-          csvData = `${headers.join(',')}\n`
-          dados.forEach((item) => {
-            csvData += `${generateCsvRow([
-              item.departamento.nome,
-              item.departamento.sigla,
-              item.projetos,
-              Number(item.projetosAprovados) || 0,
-              Number(item.bolsasSolicitadas) || 0,
-              Number(item.bolsasDisponibilizadas) || 0,
-            ])}\n`
-          })
-          fileName = `relatorio-departamentos-${ano}-${semestre}.csv`
+          const headers = ['Departamento', 'Sigla', 'Total Projetos', 'Projetos Aprovados', 'Bolsas Solicitadas', 'Bolsas Disponibilizadas']
+          const rows = dados.map((item) => [
+            item.departamento.nome,
+            item.departamento.sigla,
+            item.projetos,
+            Number(item.projetosAprovados) || 0,
+            Number(item.bolsasSolicitadas) || 0,
+            Number(item.bolsasDisponibilizadas) || 0,
+          ])
+          if (rows.length === 0) throw new NotFoundError('Dados', 'não encontrados para exportar')
+          addSheetWithData('Departamentos', headers, rows)
+          fileName = `relatorio-departamentos-${ano}-${semestre}.xlsx`
           break
         }
 
         case 'professores': {
           const dados = await repo.findProfessoresReport(ano, semestre)
-          const headers = [
-            'Nome Completo',
-            'Email',
-            'Departamento',
-            'Sigla Depto',
-            'Total Projetos',
-            'Projetos Aprovados',
-            'Bolsas Solicitadas',
-            'Bolsas Disponibilizadas',
-          ]
-          csvData = `${headers.join(',')}\n`
-          dados.forEach((item) => {
-            csvData += `${generateCsvRow([
-              item.professor.nomeCompleto,
-              item.professor.emailInstitucional,
-              item.departamento.nome,
-              item.departamento.sigla,
-              item.projetos,
-              Number(item.projetosAprovados) || 0,
-              Number(item.bolsasSolicitadas) || 0,
-              Number(item.bolsasDisponibilizadas) || 0,
-            ])}\n`
-          })
-          fileName = `relatorio-professores-${ano}-${semestre}.csv`
+          const headers = ['Nome Completo', 'Email', 'Departamento', 'Sigla Depto', 'Total Projetos', 'Projetos Aprovados', 'Bolsas Solicitadas', 'Bolsas Disponibilizadas']
+          const rows = dados.map((item) => [
+            item.professor.nomeCompleto,
+            item.professor.emailInstitucional,
+            item.departamento.nome,
+            item.departamento.sigla,
+            item.projetos,
+            Number(item.projetosAprovados) || 0,
+            Number(item.bolsasSolicitadas) || 0,
+            Number(item.bolsasDisponibilizadas) || 0,
+          ])
+          if (rows.length === 0) throw new NotFoundError('Dados', 'não encontrados para exportar')
+          addSheetWithData('Professores', headers, rows)
+          fileName = `relatorio-professores-${ano}-${semestre}.xlsx`
           break
         }
 
         case 'alunos': {
           const dados = await repo.findAlunosReport(ano, semestre)
-          const headers = [
-            'Nome Completo',
-            'Email',
-            'Matrícula',
-            'CR',
-            'Status Inscrição',
-            'Tipo Vaga Pretendida',
-            'Projeto',
-            'Professor Responsável',
-          ]
-          csvData = `${headers.join(',')}\n`
-          dados.forEach((item) => {
-            csvData += `${generateCsvRow([
-              item.aluno.nomeCompleto,
-              item.aluno.emailInstitucional,
-              item.aluno.matricula,
-              item.aluno.cr || 0,
-              item.statusInscricao,
-              item.tipoVagaPretendida,
-              item.projeto.titulo,
-              item.projeto.professorResponsavel,
-            ])}\n`
-          })
-          fileName = `relatorio-alunos-${ano}-${semestre}.csv`
+          const headers = ['Nome Completo', 'Email', 'Matrícula', 'CR', 'Status Inscrição', 'Tipo Vaga Pretendida', 'Projeto', 'Professor Responsável']
+          const rows = dados.map((item) => [
+            item.aluno.nomeCompleto,
+            item.aluno.emailInstitucional,
+            item.aluno.matricula,
+            item.aluno.cr || 0,
+            item.statusInscricao,
+            item.tipoVagaPretendida,
+            item.projeto.titulo,
+            item.projeto.professorResponsavel,
+          ])
+          if (rows.length === 0) throw new NotFoundError('Dados', 'não encontrados para exportar')
+          addSheetWithData('Alunos', headers, rows)
+          fileName = `relatorio-alunos-${ano}-${semestre}.xlsx`
           break
         }
 
         case 'disciplinas': {
           const dados = await repo.findDisciplinasReport(ano, semestre)
-          const headers = [
-            'Código',
-            'Nome Disciplina',
-            'Departamento',
-            'Sigla Depto',
-            'Total Projetos',
-            'Projetos Aprovados',
-          ]
-          csvData = `${headers.join(',')}\n`
-          dados.forEach((item) => {
-            csvData += `${generateCsvRow([
-              item.disciplina.codigo,
-              item.disciplina.nome,
-              item.departamento.nome,
-              item.departamento.sigla,
-              item.projetos,
-              Number(item.projetosAprovados) || 0,
-            ])}\n`
-          })
-          fileName = `relatorio-disciplinas-${ano}-${semestre}.csv`
+          const headers = ['Código', 'Nome Disciplina', 'Departamento', 'Sigla Depto', 'Total Projetos', 'Projetos Aprovados']
+          const rows = dados.map((item) => [
+            item.disciplina.codigo,
+            item.disciplina.nome,
+            item.departamento.nome,
+            item.departamento.sigla,
+            item.projetos,
+            Number(item.projetosAprovados) || 0,
+          ])
+          if (rows.length === 0) throw new NotFoundError('Dados', 'não encontrados para exportar')
+          addSheetWithData('Disciplinas', headers, rows)
+          fileName = `relatorio-disciplinas-${ano}-${semestre}.xlsx`
           break
         }
 
         case 'editais': {
           const dados = await repo.findEditaisReport(ano)
-          const headers = [
-            'Número Edital',
-            'Título',
-            'Ano',
-            'Semestre',
-            'Data Início',
-            'Data Fim',
-            'Publicado',
-            'Data Publicação',
-            'Criado Por',
-          ]
-          csvData = `${headers.join(',')}\n`
-          dados.forEach((item) => {
-            csvData += `${generateCsvRow([
-              item.edital.numeroEdital,
-              item.edital.titulo,
-              item.periodo.ano,
-              SEMESTRE_LABELS[item.periodo.semestre as keyof typeof SEMESTRE_LABELS],
-              new Date(item.periodo.dataInicio).toLocaleDateString('pt-BR'),
-              new Date(item.periodo.dataFim).toLocaleDateString('pt-BR'),
-              item.edital.publicado ? 'Sim' : 'Não',
-              item.edital.dataPublicacao ? new Date(item.edital.dataPublicacao).toLocaleDateString('pt-BR') : '',
-              item.criadoPor.username,
-            ])}\n`
-          })
-          fileName = `relatorio-editais-${ano}.csv`
+          const headers = ['Número Edital', 'Título', 'Ano', 'Semestre', 'Data Início', 'Data Fim', 'Publicado', 'Data Publicação', 'Criado Por']
+          const rows = dados.map((item) => [
+            item.edital.numeroEdital,
+            item.edital.titulo,
+            item.periodo.ano,
+            SEMESTRE_LABELS[item.periodo.semestre as keyof typeof SEMESTRE_LABELS],
+            new Date(item.periodo.dataInicio).toLocaleDateString('pt-BR'),
+            new Date(item.periodo.dataFim).toLocaleDateString('pt-BR'),
+            item.edital.publicado ? 'Sim' : 'Não',
+            item.edital.dataPublicacao ? new Date(item.edital.dataPublicacao).toLocaleDateString('pt-BR') : '',
+            item.criadoPor.username,
+          ])
+          if (rows.length === 0) throw new NotFoundError('Dados', 'não encontrados para exportar')
+          addSheetWithData('Editais', headers, rows)
+          fileName = `relatorio-editais-${ano}.xlsx`
           break
         }
 
         case 'geral': {
           const [projetosStats] = await repo.findProjetosStats(ano, semestre)
           const headers = ['Métrica', 'Valor']
-          csvData = `${headers.join(',')}\n`
-          csvData += `${generateCsvRow(['Total de Projetos', projetosStats?.total || 0])}\n`
-          csvData += `${generateCsvRow(['Projetos Aprovados', Number(projetosStats?.aprovados) || 0])}\n`
-          csvData += `${generateCsvRow(['Projetos Submetidos', Number(projetosStats?.submetidos) || 0])}\n`
-          csvData += `${generateCsvRow(['Projetos em Rascunho', Number(projetosStats?.rascunhos) || 0])}\n`
-          csvData += `${generateCsvRow(['Total Bolsas Solicitadas', Number(projetosStats?.totalBolsasSolicitadas) || 0])}\n`
-          csvData += `${generateCsvRow(['Total Bolsas Disponibilizadas', Number(projetosStats?.totalBolsasDisponibilizadas) || 0])}\n`
-          fileName = `relatorio-geral-${ano}-${semestre}.csv`
+          const rows = [
+            ['Total de Projetos', projetosStats?.total || 0],
+            ['Projetos Aprovados', Number(projetosStats?.aprovados) || 0],
+            ['Projetos Submetidos', Number(projetosStats?.submetidos) || 0],
+            ['Projetos em Rascunho', Number(projetosStats?.rascunhos) || 0],
+            ['Total Bolsas Solicitadas', Number(projetosStats?.totalBolsasSolicitadas) || 0],
+            ['Total Bolsas Disponibilizadas', Number(projetosStats?.totalBolsasDisponibilizadas) || 0],
+          ]
+          addSheetWithData('Resumo Geral', headers, rows)
+          fileName = `relatorio-geral-${ano}-${semestre}.xlsx`
           break
         }
 
@@ -201,16 +185,13 @@ export function createRelatoriosExportService(
           throw new ValidationError('Tipo de relatório inválido')
       }
 
-      if (csvData.split('\n').length <= 1) {
-        throw new NotFoundError('Dados', 'não encontrados para exportar com os filtros aplicados')
-      }
-
-      const csvBase64 = Buffer.from(csvData, 'utf-8').toString('base64')
+      const buffer = await workbook.xlsx.writeBuffer()
+      const base64 = Buffer.from(buffer).toString('base64')
 
       return {
         success: true,
         fileName,
-        downloadUrl: `data:text/csv;charset=utf-8;base64,${csvBase64}`,
+        downloadUrl: `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`,
         message: 'Relatório gerado com sucesso. O download deve iniciar automaticamente.',
       }
     },
@@ -278,34 +259,22 @@ export function createRelatoriosExportService(
       }
 
       type ExcelRow = Record<string, string | number>
-      const createExcelBuffer = (rows: ExcelRow[], sheetName: string) => {
-        const worksheet = XLSX.utils.json_to_sheet(rows)
-        const workbook = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(workbook, worksheet, sheetName)
-        const colWidths = [
-          { wch: 15 },
-          { wch: 30 },
-          { wch: 30 },
-          { wch: 8 },
-          { wch: 15 },
-          { wch: 12 },
-          { wch: 40 },
-          { wch: 50 },
-          { wch: 30 },
-          { wch: 15 },
-          { wch: 25 },
-          { wch: 15 },
-          { wch: 12 },
-          { wch: 12 },
-          { wch: 10 },
-          { wch: 10 },
-          { wch: 15 },
-          { wch: 10 },
-          { wch: 15 },
-          { wch: 8 },
-        ]
-        worksheet['!cols'] = colWidths
-        return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+      const createExcelBuffer = async (rows: ExcelRow[], sheetName: string): Promise<Buffer> => {
+        const workbook = new ExcelJS.Workbook()
+        const sheet = workbook.addWorksheet(sheetName)
+        if (rows.length === 0) return Buffer.from(await workbook.xlsx.writeBuffer())
+        const headers = Object.keys(rows[0])
+        const headerRow = sheet.addRow(headers)
+        applyHeaderStyle(headerRow)
+        rows.forEach((rowObj) => {
+          const row = sheet.addRow(Object.values(rowObj))
+          applyDataStyle(row)
+        })
+        const colWidths = [15, 30, 30, 8, 15, 12, 40, 50, 30, 15, 25, 15, 12, 12, 10, 10, 15, 10, 15, 8]
+        headers.forEach((_, idx) => {
+          sheet.getColumn(idx + 1).width = colWidths[idx] || 15
+        })
+        return Buffer.from(await workbook.xlsx.writeBuffer())
       }
 
       const anexos: { filename: string; buffer: Buffer }[] = []
@@ -319,7 +288,7 @@ export function createRelatoriosExportService(
         const rows = await buildExcelRows(bolsistas)
         anexos.push({
           filename: `consolidacao-bolsistas-${ano}-${semestreDisplay}.xlsx`,
-          buffer: createExcelBuffer(rows, 'Bolsistas'),
+          buffer: await createExcelBuffer(rows, 'Bolsistas'),
         })
       }
 
@@ -331,7 +300,7 @@ export function createRelatoriosExportService(
         const rows = await buildExcelRows(voluntarios)
         anexos.push({
           filename: `consolidacao-voluntarios-${ano}-${semestreDisplay}.xlsx`,
-          buffer: createExcelBuffer(rows, 'Voluntários'),
+          buffer: await createExcelBuffer(rows, 'Voluntários'),
         })
       }
 

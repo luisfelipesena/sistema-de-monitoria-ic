@@ -4,8 +4,8 @@ import { createRelatoriosService } from '@/server/services/relatorios/relatorios
 import { relatoriosValidationRouter } from './relatorios-validation'
 import {
   alunoRelatorioSchema,
-  csvExportInputSchema,
-  csvExportOutputSchema,
+  xlsxExportInputSchema,
+  xlsxExportOutputSchema,
   dashboardQuickMetricsSchema,
   departamentoRelatorioSchema,
   disciplinaRelatorioSchema,
@@ -135,13 +135,13 @@ export const relatoriosRouter = createTRPCRouter({
       }
     }),
 
-  exportRelatorioCsv: adminProtectedProcedure
-    .input(csvExportInputSchema)
-    .output(csvExportOutputSchema)
+  exportRelatorioXlsx: adminProtectedProcedure
+    .input(xlsxExportInputSchema)
+    .output(xlsxExportOutputSchema)
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createRelatoriosService(ctx.db)
-        return await service.exportRelatorioCsv(input.tipo, input.ano, input.semestre)
+        return await service.exportRelatorioXlsx(input.tipo, input.ano, input.semestre)
       } catch (error) {
         mapDomainErrorToTRPC(error)
       }

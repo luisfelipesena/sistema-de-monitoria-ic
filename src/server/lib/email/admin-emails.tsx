@@ -19,7 +19,6 @@ export const adminEmailService = {
     ano: number
     remetenteUserId?: number
     isExcel?: boolean
-    isCSV?: boolean
     projectPdfAttachments?: Array<{
       filename: string
       content: Buffer
@@ -34,16 +33,8 @@ export const adminEmailService = {
 
     if (data.isExcel) {
       fileExtension = 'xlsx'
-      contentType =
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       formatoTexto = 'Excel'
-    } else if (
-      data.isCSV ||
-      (!data.isExcel && data.planilhaPDFBuffer.toString().startsWith('Unidade'))
-    ) {
-      fileExtension = 'csv'
-      contentType = 'text/csv'
-      formatoTexto = 'CSV'
     }
 
     const filename = `Planilha_PROGRAD_${data.ano}_${semestreDisplay}.${fileExtension}`

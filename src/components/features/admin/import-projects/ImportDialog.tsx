@@ -74,7 +74,8 @@ export function ImportDialog({ onSuccess }: ImportDialogProps) {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (!file.name.endsWith(".xlsx") && !file.name.endsWith(".xls") && !file.name.endsWith(".csv")) {
+      const validExtensions = [".xlsx", ".xls", ".csv"]
+      if (!validExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
         toast({ title: "Erro", description: "Por favor, selecione um arquivo Excel (.xlsx, .xls) ou CSV (.csv).", variant: "destructive" })
         return
       }
@@ -167,7 +168,7 @@ export function ImportDialog({ onSuccess }: ImportDialogProps) {
               )}
             />
             <div className="space-y-2">
-              <label className="text-sm font-medium">Arquivo Excel/CSV</label>
+              <label className="text-sm font-medium">Arquivo Excel ou CSV</label>
               <Input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileSelect} required />
               {selectedFile && <p className="text-sm text-muted-foreground">Arquivo selecionado: {selectedFile.name}</p>}
             </div>

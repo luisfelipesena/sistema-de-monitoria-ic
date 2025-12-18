@@ -181,47 +181,58 @@ export default function AuditLogsPage() {
   const hasActiveFilters =
     selectedAction !== "all" || selectedEntity !== "all" || entityIdSearch !== "" || dateRange?.from || dateRange?.to
 
-  // Export to CSV
-  const handleExportCSV = useCallback(() => {
+  // Export to Excel
+  const handleExportXLSX = useCallback(async () => {
     if (!logs.length) return
 
-    const headers = [
-      "ID",
-      "Data/Hora",
-      "Usuário",
-      "Email",
-      "Ação",
-      "Entidade",
-      "ID Entidade",
-      "IP",
-      "User Agent",
-      "Detalhes",
-    ]
+    const ExcelJS = await import("exceljs")
+    const workbook = new ExcelJS.Workbook()
+    const sheet = workbook.addWorksheet("Audit Logs")
 
-    const rows = logs.map((log) => [
-      log.id,
-      format(new Date(log.timestamp), "dd/MM/yyyy HH:mm:ss"),
-      log.user?.username ?? "Sistema",
-      log.user?.email ?? "-",
-      ACTION_LABELS[log.action as AuditAction],
-      ENTITY_LABELS[log.entityType as AuditEntity],
-      log.entityId ?? "-",
-      log.ipAddress ?? "-",
-      log.userAgent ?? "-",
-      log.details ?? "-",
-    ])
+    const headers = ["ID", "Data/Hora", "Usuário", "Email", "Ação", "Entidade", "ID Entidade", "IP", "User Agent", "Detalhes"]
+    const greenFill = { type: "pattern" as const, pattern: "solid" as const, fgColor: { argb: "FF92D050" } }
+    const thinBorder = {
+      top: { style: "thin" as const }, left: { style: "thin" as const }, bottom: { style: "thin" as const }, right: { style: "thin" as const },
+    }
 
-    const csvContent = [
-      headers.join(";"),
-      ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(";")),
-    ].join("\n")
-
-    const blob = new Blob(["\ufeff" + csvContent], {
-      type: "text/csv;charset=utf-8;",
+    const headerRow = sheet.addRow(headers)
+    headerRow.eachCell((cell) => {
+      cell.fill = greenFill
+      cell.font = { bold: true, size: 10 }
+      cell.border = thinBorder
+      cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true }
     })
+    headerRow.height = 25
+
+    logs.forEach((log) => {
+      const row = sheet.addRow([
+        log.id,
+        format(new Date(log.timestamp), "dd/MM/yyyy HH:mm:ss"),
+        log.user?.username ?? "Sistema",
+        log.user?.email ?? "-",
+        ACTION_LABELS[log.action as AuditAction],
+        ENTITY_LABELS[log.entityType as AuditEntity],
+        log.entityId ?? "-",
+        log.ipAddress ?? "-",
+        log.userAgent ?? "-",
+        log.details ?? "-",
+      ])
+      row.eachCell((cell) => {
+        cell.border = thinBorder
+        cell.alignment = { vertical: "middle", wrapText: true }
+      })
+    })
+
+    const colWidths = [10, 20, 20, 30, 15, 15, 15, 15, 40, 50]
+    headers.forEach((_, idx) => {
+      sheet.getColumn(idx + 1).width = colWidths[idx] || 15
+    })
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
     const link = document.createElement("a")
     link.href = URL.createObjectURL(blob)
-    link.download = `audit-logs-${format(new Date(), "yyyy-MM-dd-HHmm")}.csv`
+    link.download = `audit-logs-${format(new Date(), "yyyy-MM-dd-HHmm")}.xlsx`
     link.click()
   }, [logs])
 
@@ -261,9 +272,9 @@ export default function AuditLogsPage() {
             <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? "animate-spin" : ""}`} />
             Atualizar
           </Button>
-          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={logs.length === 0}>
+          <Button variant="outline" size="sm" onClick={handleExportXLSX} disabled={logs.length === 0}>
             <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
+            Baixar Excel
           </Button>
         </>
       }

@@ -23,7 +23,7 @@ export function RelatorioProfessores({ data, isLoading, onExport, isExporting }:
           </div>
           <Button variant="outline" onClick={onExport} disabled={isExporting}>
             <Download className="h-4 w-4 mr-2" />
-            Exportar CSV
+            Baixar Excel
           </Button>
         </CardTitle>
       </CardHeader>

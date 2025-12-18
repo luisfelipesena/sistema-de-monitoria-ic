@@ -1,6 +1,7 @@
 import { NotFoundError } from '@/server/lib/errors'
 import { SEMESTRE_1, type Semestre } from '@/types'
 import { logger } from '@/utils/logger'
+import ExcelJS from 'exceljs'
 import type { RelatoriosRepository } from './relatorios-repository'
 
 const _log = logger.child({ context: 'PlanilhaPROGRADService' })
@@ -15,97 +16,94 @@ function cleanNumericOnly(value: string | null | undefined): string {
 function formatPhone(value: string | null | undefined): string {
   if (!value) return ''
   const clean = value.replace(/\D/g, '')
-  // If it already has DDD (11 digits), return as is
   if (clean.length >= 11) return clean
-  // If it's a 9-digit number, assume local (71 - Salvador)
   if (clean.length === 9) return `71${clean}`
   return clean
 }
 
-// Helper to escape CSV values
-function escapeCSV(value: string | number | null | undefined): string {
-  const stringValue = String(value ?? '')
-  if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-    return `"${stringValue.replace(/"/g, '""')}"`
-  }
-  return stringValue
+// Excel styling constants
+const greenFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } }
+const thinBorder: Partial<ExcelJS.Borders> = {
+  top: { style: 'thin' },
+  left: { style: 'thin' },
+  bottom: { style: 'thin' },
+  right: { style: 'thin' },
+}
+
+function applyHeaderStyle(row: ExcelJS.Row) {
+  row.eachCell((cell) => {
+    cell.fill = greenFill
+    cell.font = { bold: true, size: 10 }
+    cell.border = thinBorder
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }
+  })
+  row.height = 25
+}
+
+function applyDataStyle(row: ExcelJS.Row) {
+  row.eachCell((cell) => {
+    cell.border = thinBorder
+    cell.alignment = { vertical: 'middle', wrapText: true }
+  })
 }
 
 export function createPlanilhaPROGRADService(repo: RelatoriosRepository) {
   return {
     /**
-     * Generate CSV for VOLUNTÁRIOS in PROGRAD format
-     * Columns:
-     * - Nome Completo
-     * - RG (somente números)
-     * - CPF (somente números)
-     * - Matrícula
-     * - Componente Curricular do Projeto (código e nome)
-     * - Professor Responsável
+     * Generate XLSX for VOLUNTARIOS in PROGRAD format
+     * Columns: Nome, RG, CPF, Matrícula, Componente Curricular, Professor
      */
-    async generatePlanilhaVoluntariosCSV(ano: number, semestre: Semestre, departamentoId?: number) {
+    async generatePlanilhaVoluntariosXLSX(ano: number, semestre: Semestre, departamentoId?: number) {
       const voluntarios = await repo.findVoluntariosFinal(ano, semestre, departamentoId)
 
       if (voluntarios.length === 0) {
         throw new NotFoundError('Voluntário', 'Nenhum voluntário encontrado para o período especificado')
       }
 
-      const headers = [
-        'Nome Completo',
-        'RG (somente números)',
-        'CPF (somente números)',
-        'Matrícula',
-        'Componente Curricular do Projeto (código e nome)',
-        'Professor Responsável',
-      ]
+      const workbook = new ExcelJS.Workbook()
+      const sheet = workbook.addWorksheet('Voluntários')
 
-      const rows = await Promise.all(
-        voluntarios.map(async (v) => {
-          const disciplinas = await repo.findDisciplinasByProjetoId(v.projeto.id)
-          const componenteCurricular = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
+      const headers = ['Nome Completo', 'RG', 'CPF', 'Matrícula', 'Componente Curricular', 'Professor Responsável']
+      const headerRow = sheet.addRow(headers)
+      applyHeaderStyle(headerRow)
 
-          return [
-            escapeCSV(v.aluno.nomeCompleto),
-            escapeCSV(cleanNumericOnly(v.aluno.rg)),
-            escapeCSV(cleanNumericOnly(v.aluno.cpf)),
-            escapeCSV(v.aluno.matricula),
-            escapeCSV(componenteCurricular),
-            escapeCSV(v.professor.nomeCompleto),
-          ].join(',')
-        })
-      )
+      for (const v of voluntarios) {
+        const disciplinas = await repo.findDisciplinasByProjetoId(v.projeto.id)
+        const componenteCurricular = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
 
-      const csvContent = [headers.join(','), ...rows].join('\n')
+        const row = sheet.addRow([
+          v.aluno.nomeCompleto,
+          cleanNumericOnly(v.aluno.rg),
+          cleanNumericOnly(v.aluno.cpf),
+          v.aluno.matricula,
+          componenteCurricular,
+          v.professor.nomeCompleto,
+        ])
+        applyDataStyle(row)
+      }
+
+      const colWidths = [30, 15, 15, 15, 50, 30]
+      headers.forEach((_, idx) => {
+        sheet.getColumn(idx + 1).width = colWidths[idx] || 15
+      })
+
+      const buffer = await workbook.xlsx.writeBuffer()
       const semestreDisplay = semestre === SEMESTRE_1 ? '1' : '2'
-      const fileName = `planilha-voluntarios-${ano}-${semestreDisplay}.csv`
+      const fileName = `planilha-voluntarios-${ano}-${semestreDisplay}.xlsx`
 
       return {
-        csvContent,
+        buffer: Buffer.from(buffer),
         fileName,
         totalRegistros: voluntarios.length,
-        downloadUrl: `data:text/csv;charset=utf-8;base64,${Buffer.from(csvContent, 'utf-8').toString('base64')}`,
+        downloadUrl: `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${Buffer.from(buffer).toString('base64')}`,
       }
     },
 
     /**
-     * Generate CSV for BOLSISTAS in PROGRAD format
-     * Columns:
-     * - Nome Completo
-     * - RG (somente números)
-     * - CPF (somente números)
-     * - Matrícula
-     * - Celular (DDD + número)
-     * - E-mail
-     * - Banco (exceto Mercado Pago)
-     * - Agência
-     * - Dígito (agência) - Note: not available in current schema, will be empty
-     * - Conta
-     * - Dígito (conta)
-     * - Endereço completo
-     * - Componente Curricular do Projeto (código e nome)
-     * - Professor Responsável
+     * Generate XLSX for BOLSISTAS in PROGRAD format
+     * Columns: Nome, RG, CPF, Matrícula, Celular, Email, Banco, Agência, Dígito Agência, Conta, Dígito Conta, Endereço, Componente, Professor
      */
-    async generatePlanilhaBolsistasCSV(
+    async generatePlanilhaBolsistasXLSX(
       ano: number,
       semestre: Semestre,
       departamentoId?: number,
@@ -117,12 +115,15 @@ export function createPlanilhaPROGRADService(repo: RelatoriosRepository) {
         throw new NotFoundError('Bolsista', 'Nenhum bolsista encontrado para o período especificado')
       }
 
+      const workbook = new ExcelJS.Workbook()
+      const sheet = workbook.addWorksheet('Bolsistas')
+
       const headers = [
         'Nome Completo',
-        'RG (somente números)',
-        'CPF (somente números)',
+        'RG',
+        'CPF',
         'Matrícula',
-        'Celular (DDD + número)',
+        'Celular',
         'E-mail',
         'Banco',
         'Agência',
@@ -130,55 +131,55 @@ export function createPlanilhaPROGRADService(repo: RelatoriosRepository) {
         'Conta',
         'Dígito Conta',
         'Endereço Completo',
-        'Componente Curricular do Projeto (código e nome)',
+        'Componente Curricular',
         'Professor Responsável',
       ]
+      const headerRow = sheet.addRow(headers)
+      applyHeaderStyle(headerRow)
 
-      // Note: We need to fetch endereco separately since it's not in findBolsistasFinal
-      // For now, we'll leave endereço empty or fetch it if available
-      const rows = await Promise.all(
-        bolsistas.map(async (b) => {
-          const disciplinas = await repo.findDisciplinasByProjetoId(b.projeto.id)
-          const componenteCurricular = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
+      for (const b of bolsistas) {
+        const disciplinas = await repo.findDisciplinasByProjetoId(b.projeto.id)
+        const componenteCurricular = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
+        const enderecoCompleto = ''
 
-          // Endereco would need to be fetched separately if includeEndereco is true
-          // For now, leaving as empty since it requires additional query
-          const enderecoCompleto = ''
+        const row = sheet.addRow([
+          b.aluno.nomeCompleto,
+          cleanNumericOnly(b.aluno.rg),
+          cleanNumericOnly(b.aluno.cpf),
+          b.aluno.matricula,
+          formatPhone(b.aluno.telefone),
+          b.alunoUser.email,
+          b.aluno.banco || '',
+          b.aluno.agencia || '',
+          '',
+          b.aluno.conta || '',
+          b.aluno.digitoConta || '',
+          enderecoCompleto,
+          componenteCurricular,
+          b.professor.nomeCompleto,
+        ])
+        applyDataStyle(row)
+      }
 
-          return [
-            escapeCSV(b.aluno.nomeCompleto),
-            escapeCSV(cleanNumericOnly(b.aluno.rg)),
-            escapeCSV(cleanNumericOnly(b.aluno.cpf)),
-            escapeCSV(b.aluno.matricula),
-            escapeCSV(formatPhone(b.aluno.telefone)),
-            escapeCSV(b.alunoUser.email),
-            escapeCSV(b.aluno.banco || ''),
-            escapeCSV(b.aluno.agencia || ''),
-            escapeCSV(''), // Dígito agência - not available in schema
-            escapeCSV(b.aluno.conta || ''),
-            escapeCSV(b.aluno.digitoConta || ''),
-            escapeCSV(enderecoCompleto),
-            escapeCSV(componenteCurricular),
-            escapeCSV(b.professor.nomeCompleto),
-          ].join(',')
-        })
-      )
+      const colWidths = [30, 15, 15, 15, 15, 30, 15, 12, 8, 15, 8, 40, 50, 30]
+      headers.forEach((_, idx) => {
+        sheet.getColumn(idx + 1).width = colWidths[idx] || 15
+      })
 
-      const csvContent = [headers.join(','), ...rows].join('\n')
+      const buffer = await workbook.xlsx.writeBuffer()
       const semestreDisplay = semestre === SEMESTRE_1 ? '1' : '2'
-      const fileName = `planilha-bolsistas-${ano}-${semestreDisplay}.csv`
+      const fileName = `planilha-bolsistas-${ano}-${semestreDisplay}.xlsx`
 
       return {
-        csvContent,
+        buffer: Buffer.from(buffer),
         fileName,
         totalRegistros: bolsistas.length,
-        downloadUrl: `data:text/csv;charset=utf-8;base64,${Buffer.from(csvContent, 'utf-8').toString('base64')}`,
+        downloadUrl: `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${Buffer.from(buffer).toString('base64')}`,
       }
     },
 
     /**
      * Validate data completeness for PROGRAD export
-     * Returns list of issues found
      */
     async validateDataForExport(ano: number, semestre: Semestre, tipo: 'bolsistas' | 'voluntarios' | 'ambos') {
       const problemas: Array<{
@@ -193,36 +194,16 @@ export function createPlanilhaPROGRADService(repo: RelatoriosRepository) {
 
         for (const b of bolsistas) {
           if (!b.aluno.cpf) {
-            problemas.push({
-              tipo: 'bolsista',
-              monitor: b.aluno.nomeCompleto,
-              campo: 'CPF',
-              mensagem: 'CPF não informado',
-            })
+            problemas.push({ tipo: 'bolsista', monitor: b.aluno.nomeCompleto, campo: 'CPF', mensagem: 'CPF não informado' })
           }
           if (!b.aluno.banco) {
-            problemas.push({
-              tipo: 'bolsista',
-              monitor: b.aluno.nomeCompleto,
-              campo: 'Dados Bancários',
-              mensagem: 'Banco não informado',
-            })
+            problemas.push({ tipo: 'bolsista', monitor: b.aluno.nomeCompleto, campo: 'Dados Bancários', mensagem: 'Banco não informado' })
           }
           if (!b.aluno.agencia) {
-            problemas.push({
-              tipo: 'bolsista',
-              monitor: b.aluno.nomeCompleto,
-              campo: 'Dados Bancários',
-              mensagem: 'Agência não informada',
-            })
+            problemas.push({ tipo: 'bolsista', monitor: b.aluno.nomeCompleto, campo: 'Dados Bancários', mensagem: 'Agência não informada' })
           }
           if (!b.aluno.conta) {
-            problemas.push({
-              tipo: 'bolsista',
-              monitor: b.aluno.nomeCompleto,
-              campo: 'Dados Bancários',
-              mensagem: 'Conta não informada',
-            })
+            problemas.push({ tipo: 'bolsista', monitor: b.aluno.nomeCompleto, campo: 'Dados Bancários', mensagem: 'Conta não informada' })
           }
         }
       }
@@ -232,12 +213,7 @@ export function createPlanilhaPROGRADService(repo: RelatoriosRepository) {
 
         for (const v of voluntarios) {
           if (!v.aluno.cpf) {
-            problemas.push({
-              tipo: 'voluntario',
-              monitor: v.aluno.nomeCompleto,
-              campo: 'CPF',
-              mensagem: 'CPF não informado',
-            })
+            problemas.push({ tipo: 'voluntario', monitor: v.aluno.nomeCompleto, campo: 'CPF', mensagem: 'CPF não informado' })
           }
         }
       }

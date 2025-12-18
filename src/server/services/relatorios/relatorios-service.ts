@@ -41,7 +41,7 @@ export function createRelatoriosService(db: Database) {
     validateCompleteData: validationService.validateCompleteData,
 
     // Export operations
-    exportRelatorioCsv: exportService.exportRelatorioCsv,
+    exportRelatorioXlsx: exportService.exportRelatorioXlsx,
     exportConsolidated: exportService.exportConsolidated,
     getConsolidatedMonitoringData: exportService.getConsolidatedMonitoringData,
     monitoresFinalBolsistas: exportService.monitoresFinalBolsistas,

@@ -317,7 +317,7 @@ export function createAnalyticsService(db: Database) {
         throw new NotFoundError('Projeto', 'Nenhum projeto aprovado encontrado para o período especificado')
       }
 
-      // Get public PDF URLs for CSV
+      // Get public PDF URLs for XLSX
       const projetoIds = projetos.map((p) => p.id)
       const existingTokens = await repo.findActiveTokensForProjects(projetoIds)
       const tokenByProjetoId = new Map(existingTokens.map((t) => [t.projetoId, t.token]))

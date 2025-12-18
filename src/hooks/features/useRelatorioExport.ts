@@ -10,7 +10,7 @@ interface UseRelatorioExportParams {
 export function useRelatorioExport({ ano, semestre }: UseRelatorioExportParams) {
   const { toast } = useToast()
 
-  const exportCsvMutation = api.relatorios.exportRelatorioCsv.useMutation({
+  const exportXlsxMutation = api.relatorios.exportRelatorioXlsx.useMutation({
     onSuccess: (data) => {
       toast({
         title: 'Sucesso!',
@@ -46,7 +46,7 @@ export function useRelatorioExport({ ano, semestre }: UseRelatorioExportParams) 
   })
 
   const handleExport = (tipo: TipoRelatorio) => {
-    exportCsvMutation.mutate({
+    exportXlsxMutation.mutate({
       tipo,
       ano,
       semestre,
@@ -55,6 +55,6 @@ export function useRelatorioExport({ ano, semestre }: UseRelatorioExportParams) 
 
   return {
     handleExport,
-    isExporting: exportCsvMutation.isPending,
+    isExporting: exportXlsxMutation.isPending,
   }
 }

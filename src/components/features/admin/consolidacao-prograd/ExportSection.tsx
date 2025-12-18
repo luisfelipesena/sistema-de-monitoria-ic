@@ -16,7 +16,7 @@ interface ExportSectionProps {
   setShowEmailDialog: (show: boolean) => void
   isPendingExport: boolean
   onSendEmail: () => void
-  onGenerateCSV: () => void
+  onGenerateXLSX: () => void
 }
 
 export function ExportSection({
@@ -31,7 +31,7 @@ export function ExportSection({
   setShowEmailDialog,
   isPendingExport,
   onSendEmail,
-  onGenerateCSV,
+  onGenerateXLSX,
 }: ExportSectionProps) {
   return (
     <Card>
@@ -70,11 +70,11 @@ export function ExportSection({
           <div className="border-t my-4" />
 
           <div className="space-y-2">
-            <h4 className="font-medium">Exportação Rápida (CSV)</h4>
-            <p className="text-sm text-muted-foreground">Formato CSV para análise rápida ou backup dos dados</p>
-            <Button onClick={onGenerateCSV} disabled={isLoading || !data || data.length === 0} variant="outline">
+            <h4 className="font-medium">Exportação Rápida (Excel)</h4>
+            <p className="text-sm text-muted-foreground">Formato Excel para análise rápida ou backup dos dados</p>
+            <Button onClick={onGenerateXLSX} disabled={isLoading || !data || data.length === 0} variant="outline">
               <Download className="h-4 w-4 mr-2" />
-              Baixar CSV
+              Baixar Excel
             </Button>
           </div>
         </div>

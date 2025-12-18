@@ -195,7 +195,7 @@ export const relatorioFilterSchema = z.object({
   status: statusInscricaoSchema.optional(),
 })
 
-export const csvExportSchema = z.object({
+export const xlsxExportSchema = z.object({
   tipo: tipoRelatorioSchema,
   ano: anoSchema,
   semestre: semestreSchema,
@@ -312,12 +312,13 @@ export const relatorioFiltersWithStatusSchema = relatorioFilterSchema.extend({
   status: statusInscricaoSchema.optional(),
 })
 
-export const csvExportInputSchema = csvExportSchema
+export const xlsxExportInputSchema = xlsxExportSchema
 
-export const csvExportOutputSchema = z.object({
+export const xlsxExportOutputSchema = z.object({
   success: z.boolean(),
   fileName: z.string(),
   downloadUrl: z.string(),
+  message: z.string().optional(),
 })
 
 export const dashboardQuickMetricsSchema = z.object({
@@ -396,14 +397,14 @@ export const monitorFinalBolsistaSchema = z.object({
 })
 
 export type RelatorioFilterData = z.infer<typeof relatorioFilterSchema>
-export type CsvExportData = z.infer<typeof csvExportSchema>
+export type XlsxExportData = z.infer<typeof xlsxExportSchema>
 export type DepartamentoRelatorioData = z.infer<typeof departamentoRelatorioSchema>
 export type ProfessorRelatorioData = z.infer<typeof professorRelatorioSchema>
 export type AlunoRelatorioData = z.infer<typeof alunoRelatorioSchema>
 export type DisciplinaRelatorioData = z.infer<typeof disciplinaRelatorioSchema>
 export type EditalRelatorioData = z.infer<typeof editalRelatorioSchema>
 export type RelatorioGeralData = z.infer<typeof relatorioGeralSchema>
-export type CsvExportOutputData = z.infer<typeof csvExportOutputSchema>
+export type XlsxExportOutputData = z.infer<typeof xlsxExportOutputSchema>
 export type DashboardQuickMetricsData = z.infer<typeof dashboardQuickMetricsSchema>
 export type MonitorConsolidadoData = z.infer<typeof monitorConsolidadoSchema>
 export type MonitoresFinalFiltersData = z.infer<typeof monitoresFinalFiltersSchema>
