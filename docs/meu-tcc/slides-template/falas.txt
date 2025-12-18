@@ -106,7 +106,7 @@ SLIDE 13 - FLUXO DE PROCESSOS - VISÃO GERAL (1.5 min)
 - "Fase 3: Alocação de Bolsas e Edital Interno - após resposta da PROGRAD, admin aloca bolsas e chefe assina edital."
 - "Fase 4: Inscrições e Seleção de Monitores - alunos se inscrevem, sistema captura notas e CR, professores selecionam."
 - "Fase 5: Consolidação Final - alunos aceitam vagas, preenchem dados bancários, gera planilha para PROGRAD."
-- "Fase 6: Relatórios Finais e Certificados - esta fase foi especificada mas não implementada nesta versão."
+- "Fase 6: Relatórios Finais e Certificados - código completo com relatórios finais e certificados para download pelos alunos."
 - "Importante: a PROGRAD não acessa o sistema diretamente - toda comunicação é via e-mail e planilhas Excel."
 
 ========================================
@@ -132,7 +132,7 @@ SLIDE 16 - RESULTADOS DA AVALIAÇÃO (1 min)
 - "Serão avaliados aspectos de expectativa como importação, templates, PDFs e assinaturas."
 - "Também aspectos de avaliação como feedback e estados do sistema."
 - "E aspectos de impacto como geração de planilhas para PROGRAD e transparência do processo."
-- "A validação técnica foi conduzida através de testes automatizados: 57 testes em 16 arquivos, 100% de aprovação, execução em 1.07 segundos."
+- "A validação técnica foi conduzida através de testes automatizados: 55 testes em 15 arquivos, 100% de aprovação, execução em menos de 1 segundo."
 - "A cobertura inclui RBAC, workflow de projetos, processo seletivo, importação de planejamento e publicação de editais."
 
 ========================================
@@ -141,7 +141,7 @@ SLIDE 17 - CONTRIBUIÇÕES DO TRABALHO (1 min)
 - "Este trabalho apresenta quatro contribuições principais."
 - "Primeira: uma arquitetura especializada em três camadas - Router, Service, Repository - específica para o domínio de monitoria com requisitos formais de auditoria."
 - "Segunda: um workflow automatizado cobrindo as fases 1 a 5, incluindo templates, assinaturas digitais, equivalências curriculares e geração de PDFs, com redução estimada de 80% em tarefas repetitivas."
-- "Terceira: um estudo de caso real de transformação digital em instituição pública, com evidências técnicas de 57 testes e 100% de aprovação."
+- "Terceira: um estudo de caso real de transformação digital em instituição pública, com evidências técnicas de 55 testes e 100% de aprovação."
 - "Quarta: disponibilização de código aberto com tecnologias modernas e documentação, permitindo replicação por outras universidades."
 
 ========================================
@@ -150,9 +150,9 @@ SLIDE 18 - LIMITAÇÕES E TRABALHOS FUTUROS (1 min)
 - "Reconheço algumas limitações atuais."
 - "Não há integração automática com o sistema acadêmico SIAC - estudantes precisam anexar histórico e documentos manualmente."
 - "O escopo está restrito ao Instituto de Computação, necessitando adaptações para outros departamentos."
-- "O módulo de relatórios finais e certificados - a Fase 6 - foi especificado mas ainda não implementado."
+- "A validação com usuários finais ainda está pendente - o código base está completo, mas falta a validação passo a passo com professores, alunos e administradores em contexto real."
 - "Não há aplicativo móvel nativo, embora a interface seja responsiva."
-- "Os próximos passos incluem: piloto institucional nos próximos seis meses, integração com SIAC ou SIGAA para captura automática de dados, implementação da Fase 6 com certificados, app móvel em React Native, e expansão para outros departamentos."
+- "Os próximos passos incluem: piloto institucional nos próximos seis meses, validação passo a passo com usuários finais, integração com SIAC ou SIGAA para captura automática de dados, app móvel em React Native, e expansão para outros departamentos."
 - "No longo prazo, o objetivo é generalizar para outras universidades públicas brasileiras."
 
 ========================================
@@ -176,7 +176,8 @@ DICAS PARA APRESENTAÇÃO:
 - Usar diagramas TikZ como apoio visual
 - Enfatizar a lacuna identificada no estado da prática
 - Destacar os diferenciais: específico, ciclo completo, automação
-- Mencionar resultados técnicos concretos (57 testes, 100% sucesso)
+- Mencionar resultados técnicos concretos (55 testes, 100% sucesso)
 - Conectar teoria (SPT/SIG) com implementação prática
 - Ressaltar potencial de replicação e trabalhos futuros
-- Se perguntarem sobre avaliação com usuários: está planejada como piloto institucional
+- Se perguntarem sobre avaliação com usuários: código completo, validação passo a passo planejada como piloto institucional
+- Se perguntarem sobre certificados: módulo completo (API + UI), pronto para uso após validação

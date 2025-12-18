@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  17 DEC 2025 23:53
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  18 DEC 2025 11:22
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -2165,15 +2165,15 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 28D4E8EC398E45F2CF5776E2A1A5142F;4811.
  ) 
 Here is how much of TeX's memory you used:
- 35743 strings out of 473190
- 685963 string characters out of 5715801
- 1273674 words of memory out of 5000000
+ 35741 strings out of 473190
+ 685941 string characters out of 5715801
+ 1273626 words of memory out of 5000000
  57991 multiletter control sequences out of 15000+600000
- 836176 words of font info for 276 fonts, out of 8000000 for 9000
+ 836102 words of font info for 275 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  132i,16n,135p,2725b,1486s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Bold.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BoldItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Book.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BookItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmb.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmr.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmri.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb>
-Output written on main.pdf (21 pages, 5174245 bytes).
+Output written on main.pdf (21 pages, 5174320 bytes).
 PDF statistics:
  476 PDF objects out of 1000 (max. 8388607)
  401 compressed objects within 5 object streams

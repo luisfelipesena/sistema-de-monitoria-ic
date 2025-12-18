@@ -422,6 +422,12 @@ const menuConfig: MenuConfig[] = [
         icon: FileCheck,
         roles: ["student"],
       },
+      {
+        label: "Certificados",
+        href: "/home/student/certificados",
+        icon: Award,
+        roles: ["student"],
+      },
     ],
   },
 
