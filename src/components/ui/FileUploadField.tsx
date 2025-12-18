@@ -8,20 +8,8 @@ import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/utils/api"
 import { cn } from "@/utils/cn"
-import {
-  AlertCircle,
-  CheckCircle,
-  Download,
-  Eye,
-  File,
-  FileSpreadsheet,
-  FileText,
-  Image,
-  Loader2,
-  Upload,
-  X,
-} from "lucide-react"
-import { useCallback, useRef, useState } from "react"
+import { AlertCircle, CheckCircle, Eye, File, FileSpreadsheet, FileText, Image, Loader2, Upload, X } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 interface FileUploadFieldProps {
   label: string
@@ -51,6 +39,14 @@ export function FileUploadField({
   disabled = false,
 }: FileUploadFieldProps) {
   const { toast } = useToast()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const uploadFileMutation = api.file.uploadFile.useMutation()
+  const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation()
+  const getFileMetadataQuery = api.file.getFileMetadataForUser.useQuery(
+    { fileId: currentFileId! },
+    { enabled: !!currentFileId, retry: false }
+  )
+
   const [uploadState, setUploadState] = useState<UploadState>(currentFileId ? "success" : "idle")
   const [isDragging, setIsDragging] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -59,12 +55,45 @@ export function FileUploadField({
     name: string
     size?: number
     type?: string
-  } | null>(currentFileId ? { id: currentFileId, name: "Arquivo atual" } : null)
+  } | null>(currentFileId ? { id: currentFileId, name: "Carregando..." } : null)
   const [dragCounter, setDragCounter] = useState(0)
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const uploadFileMutation = api.file.uploadFile.useMutation()
-  const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation()
+  // Buscar metadados do arquivo quando currentFileId estiver disponível
+  useEffect(() => {
+    if (currentFileId) {
+      if (getFileMetadataQuery.data) {
+        const metadata = getFileMetadataQuery.data
+        setUploadedFile({
+          id: metadata.objectName,
+          name: metadata.originalFilename || "Arquivo atual",
+          size: metadata.size,
+          type: metadata.mimeType,
+        })
+        setUploadState("success")
+      } else if (!getFileMetadataQuery.isLoading && !getFileMetadataQuery.isFetching) {
+        // Se não conseguir buscar metadados (erro ou não encontrado), mostrar com informações básicas
+        if (getFileMetadataQuery.isError || !getFileMetadataQuery.data) {
+          setUploadedFile({
+            id: currentFileId,
+            name: "Arquivo atual",
+          })
+          setUploadState("success")
+        }
+      }
+    } else if (!currentFileId && uploadedFile) {
+      // Se currentFileId foi removido e não estamos em processo de upload, limpar o estado
+      if (uploadState !== "uploading") {
+        setUploadedFile(null)
+        setUploadState("idle")
+      }
+    }
+  }, [
+    currentFileId,
+    getFileMetadataQuery.data,
+    getFileMetadataQuery.isLoading,
+    getFileMetadataQuery.isError,
+    getFileMetadataQuery.isFetching,
+  ])
 
   const getFileIcon = (fileName: string, fileType?: string) => {
     const extension = fileName.split(".").pop()?.toLowerCase()
@@ -248,34 +277,11 @@ export function FileUploadField({
         fileId: uploadedFile.id,
         action: "view",
       })
+      window.open(url, "_blank")
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível abrir o arquivo.",
-        variant: "destructive",
-      })
-    }
-  }
-
-  const handleDownloadFile = async () => {
-    if (!uploadedFile) return
-
-    try {
-      const url = await getPresignedUrlMutation.mutateAsync({
-        fileId: uploadedFile.id,
-        action: "download",
-      })
-
-      const link = document.createElement("a")
-      link.href = url
-      link.download = uploadedFile.name
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível baixar o arquivo.",
+        description: error.message || "Não foi possível visualizar o arquivo.",
         variant: "destructive",
       })
     }
@@ -360,27 +366,17 @@ export function FileUploadField({
               </Badge>
             </div>
 
-            <div className="flex items-center gap-1 ml-3">
+            <div className="flex items-center gap-2 ml-3">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={handleViewFile}
                 disabled={getPresignedUrlMutation.isPending}
-                className="h-8 w-8 p-0"
+                className="flex items-center gap-1.5"
                 title="Visualizar arquivo"
               >
                 <Eye className="h-4 w-4" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDownloadFile}
-                disabled={getPresignedUrlMutation.isPending}
-                className="h-8 w-8 p-0"
-                title="Baixar arquivo"
-              >
-                <Download className="h-4 w-4" />
+                {uploadedFile.name.toLowerCase().endsWith(".pdf") ? "Visualizar PDF" : "Visualizar"}
               </Button>
 
               <Button

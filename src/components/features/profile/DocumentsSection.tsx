@@ -2,13 +2,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { FileUploadField } from "@/components/ui/FileUploadField"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
 import { ADMIN, PROFESSOR, STUDENT } from "@/types"
 import { api } from "@/utils/api"
-import { Eye, FileText, Upload } from "lucide-react"
+import { FileText, Upload } from "lucide-react"
 
 interface DocumentConfig {
   id: string
@@ -27,7 +26,6 @@ export function DocumentsSection() {
 
   const { data: userProfile, refetch: refetchProfile } = api.user.getProfile.useQuery()
   const updateDocumentMutation = api.onboarding.updateDocument.useMutation()
-  const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation()
 
   if (!isStudent && !isProfessor && !isAdmin) {
     return null
@@ -56,32 +54,6 @@ export function DocumentsSection() {
         description: error instanceof Error ? error.message : "Não foi possível enviar o documento.",
         variant: "destructive",
       })
-    }
-  }
-
-  const handleViewDocument = async (fileId: string, docName: string) => {
-    try {
-      toast({
-        title: "Preparando visualização...",
-        description: `Abrindo ${docName}`,
-      })
-
-      await getPresignedUrlMutation.mutateAsync({
-        fileId: fileId,
-        action: "view",
-      })
-
-      toast({
-        title: "Documento aberto",
-        description: "O documento foi aberto em nova aba.",
-      })
-    } catch (error) {
-      toast({
-        title: "Erro ao abrir documento",
-        description: "Não foi possível abrir o documento para visualização.",
-        variant: "destructive",
-      })
-      console.error("View document error:", error)
     }
   }
 
@@ -181,32 +153,17 @@ export function DocumentsSection() {
 
               return (
                 <div key={doc.id} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-medium">{doc.name}</h4>
-                      {doc.required && (
-                        <Badge variant="outline" className="border-red-500 text-red-700">
-                          Obrigatório
-                        </Badge>
-                      )}
-                      {currentFileId && (
-                        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
-                          Enviado
-                        </Badge>
-                      )}
-                    </div>
-
+                  <div className="flex items-center gap-2 mb-3">
+                    <h4 className="font-medium">{doc.name}</h4>
+                    {doc.required && (
+                      <Badge variant="outline" className="border-red-500 text-red-700">
+                        Obrigatório
+                      </Badge>
+                    )}
                     {currentFileId && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDocument(currentFileId, doc.name)}
-                        disabled={getPresignedUrlMutation.isPending}
-                        className="flex items-center gap-2"
-                      >
-                        <Eye className="h-4 w-4" />
-                        {getPresignedUrlMutation.isPending ? "Carregando..." : "Visualizar PDF"}
-                      </Button>
+                      <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
+                        Enviado
+                      </Badge>
                     )}
                   </div>
 
@@ -217,7 +174,7 @@ export function DocumentsSection() {
                         <span className="text-sm font-medium">Arquivo atual enviado</span>
                       </div>
                       <p className="text-xs text-green-700 mt-1">
-                        Clique em "Visualizar" para ver o documento ou faça upload de um novo arquivo para substituir.
+                        Faça upload de um novo arquivo para substituir o atual.
                       </p>
                     </div>
                   )}
@@ -257,7 +214,6 @@ export function DocumentsSection() {
                   <li>• Aceitos formatos: PDF, DOC, DOCX, JPG, PNG</li>
                   <li>• Tamanho máximo: 10MB por arquivo</li>
                   <li>• Mantenha seus documentos sempre atualizados</li>
-                  <li>• Use o botão "Visualizar" para conferir seus documentos enviados</li>
                 </ul>
               </div>
             </div>

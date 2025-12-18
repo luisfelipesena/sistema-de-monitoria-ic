@@ -2,8 +2,10 @@ import type { db } from '@/server/db'
 import {
   alunoTable,
   departamentoTable,
+  disciplinaTable,
   inscricaoTable,
   professorTable,
+  projetoDisciplinaTable,
   projetoTable,
   relatorioFinalDisciplinaTable,
   relatorioFinalMonitorTable,
@@ -11,16 +13,40 @@ import {
   vagaTable,
 } from '@/server/db/schema'
 import { relatoriosEmailService } from '@/server/lib/email/relatorios-emails'
-import { APPROVED, SEMESTRE_LABELS, type Semestre, extractNotaFromRelatorioConteudo } from '@/types'
-import { env } from '@/utils/env'
+import { APPROVED, SEMESTRE_1, SEMESTRE_LABELS, type Semestre, extractNotaFromRelatorioConteudo } from '@/types'
 import { logger } from '@/utils/logger'
 import { and, count, eq, sql } from 'drizzle-orm'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 
 type Database = typeof db
 
 const log = logger.child({ context: 'RelatoriosFinaisExportService' })
-const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
+
+// Excel styling constants (matching PROGRAD template)
+const greenFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } }
+const thinBorder: Partial<ExcelJS.Borders> = {
+  top: { style: 'thin' },
+  left: { style: 'thin' },
+  bottom: { style: 'thin' },
+  right: { style: 'thin' },
+}
+
+function applyHeaderStyle(row: ExcelJS.Row) {
+  row.eachCell((cell) => {
+    cell.fill = greenFill
+    cell.font = { bold: true, size: 10 }
+    cell.border = thinBorder
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }
+  })
+  row.height = 25
+}
+
+function applyDataStyle(row: ExcelJS.Row) {
+  row.eachCell((cell) => {
+    cell.border = thinBorder
+    cell.alignment = { vertical: 'middle', wrapText: true }
+  })
+}
 
 export function createRelatoriosFinaisExportService(database: Database) {
   return {
@@ -70,26 +96,35 @@ export function createRelatoriosFinaisExportService(database: Database) {
       return texto
     },
 
+    /**
+     * Generate certificate report XLSX matching Certificates 2025.xlsx template format.
+     * Returns a SINGLE workbook with 3 sheets:
+     * - "Relatórios Disciplinas": Componente, Código, Semestre, Departamento, Unidade, Professor
+     * - "Relatórios Monitores": Monitor, Modalidade, Código, Componente, Semestre, Início, Início do recesso, Fim do recesso, Término, Nota, Frequência, Semanas, CHT, Departamento, Unidade, Professor
+     * - "Source": Dropdown validation data
+     */
     async gerarPlanilhasCertificados(
       ano: number,
       semestre: Semestre
-    ): Promise<{ bolsistas: Buffer; voluntarios: Buffer; relatoriosDisciplina: Buffer }> {
+    ): Promise<{ certificados: Buffer; fileName: string }> {
+      const semestreDisplay = `${ano}.${semestre === SEMESTRE_1 ? '1' : '2'}`
+
+      // Fetch all monitors with complete data
       const monitores = await database
         .select({
           alunoNome: alunoTable.nomeCompleto,
-          alunoMatricula: alunoTable.matricula,
-          alunoCpf: alunoTable.cpf,
-          alunoEmail: userTable.email,
           professorNome: professorTable.nomeCompleto,
-          professorSiape: professorTable.matriculaSiape,
+          projetoId: projetoTable.id,
           projetoTitulo: projetoTable.titulo,
           disciplinaNome: projetoTable.disciplinaNome,
-          projetoId: projetoTable.id,
           tipoVaga: vagaTable.tipo,
-          cargaHoraria: sql<number>`${projetoTable.cargaHorariaSemana} * ${projetoTable.numeroSemanas}`,
-          relatorioMonitorId: relatorioFinalMonitorTable.id,
+          cargaHorariaSemana: projetoTable.cargaHorariaSemana,
+          numeroSemanas: projetoTable.numeroSemanas,
           relatorioConteudo: relatorioFinalMonitorTable.conteudo,
           departamentoNome: departamentoTable.nome,
+          departamentoSigla: departamentoTable.sigla,
+          dataInicio: vagaTable.dataInicio,
+          dataFim: vagaTable.dataFim,
         })
         .from(relatorioFinalMonitorTable)
         .innerJoin(
@@ -105,81 +140,181 @@ export function createRelatoriosFinaisExportService(database: Database) {
         .innerJoin(vagaTable, eq(vagaTable.inscricaoId, inscricaoTable.id))
         .where(and(eq(projetoTable.ano, ano), eq(projetoTable.semestre, semestre)))
 
-      const bolsistas = monitores.filter((m) => m.tipoVaga === 'BOLSISTA')
-      const voluntarios = monitores.filter((m) => m.tipoVaga === 'VOLUNTARIO')
+      // Fetch disciplines for each project
+      const projetoIds = [...new Set(monitores.map((m) => m.projetoId))]
+      const disciplinasMap = new Map<number, Array<{ codigo: string; nome: string }>>()
 
-      const bolsistasData = bolsistas.map((m) => ({
-        'Nome do Aluno': m.alunoNome,
-        Matricula: m.alunoMatricula || '',
-        CPF: m.alunoCpf || '',
-        Email: m.alunoEmail,
-        Disciplina: m.disciplinaNome || m.projetoTitulo,
-        Professor: m.professorNome,
-        SIAPE: m.professorSiape || '',
-        Departamento: m.departamentoNome,
-        'Carga Horaria Total': m.cargaHoraria,
-        Nota: extractNotaFromRelatorioConteudo(m.relatorioConteudo),
-        'Link Relatorio PDF': `${clientUrl}/api/relatorio-monitor/${m.relatorioMonitorId}/pdf`,
-      }))
+      for (const projetoId of projetoIds) {
+        const disciplinas = await database
+          .select({
+            codigo: disciplinaTable.codigo,
+            nome: disciplinaTable.nome,
+          })
+          .from(projetoDisciplinaTable)
+          .innerJoin(disciplinaTable, eq(projetoDisciplinaTable.disciplinaId, disciplinaTable.id))
+          .where(eq(projetoDisciplinaTable.projetoId, projetoId))
+        disciplinasMap.set(projetoId, disciplinas)
+      }
 
-      const wsBolsistas = XLSX.utils.json_to_sheet(bolsistasData)
-      const wbBolsistas = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wbBolsistas, wsBolsistas, 'Bolsistas')
-      const bolsistasBuffer = Buffer.from(XLSX.write(wbBolsistas, { type: 'buffer', bookType: 'xlsx' }))
+      // Create workbook with 3 sheets
+      const workbook = new ExcelJS.Workbook()
 
-      const voluntariosData = voluntarios.map((m) => ({
-        'Nome do Aluno': m.alunoNome,
-        Matricula: m.alunoMatricula || '',
-        CPF: m.alunoCpf || '',
-        Email: m.alunoEmail,
-        Disciplina: m.disciplinaNome || m.projetoTitulo,
-        Professor: m.professorNome,
-        Departamento: m.departamentoNome,
-        'Carga Horaria Total': m.cargaHoraria,
-        Nota: extractNotaFromRelatorioConteudo(m.relatorioConteudo),
-        'Link Relatorio PDF': `${clientUrl}/api/relatorio-monitor/${m.relatorioMonitorId}/pdf`,
-      }))
+      // === SHEET 1: Relatórios Disciplinas ===
+      const sheetDisciplinas = workbook.addWorksheet('Relatórios Disciplinas')
+      const disciplinasHeaders = ['Componente', 'Código', 'Semestre', 'Departamento', 'Unidade', 'Professor']
+      const disciplinasHeaderRow = sheetDisciplinas.addRow(disciplinasHeaders)
+      applyHeaderStyle(disciplinasHeaderRow)
 
-      const wsVoluntarios = XLSX.utils.json_to_sheet(voluntariosData)
-      const wbVoluntarios = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wbVoluntarios, wsVoluntarios, 'Voluntarios')
-      const voluntariosBuffer = Buffer.from(XLSX.write(wbVoluntarios, { type: 'buffer', bookType: 'xlsx' }))
+      // Second row with descriptions
+      const disciplinasDescRow = sheetDisciplinas.addRow([
+        'Nome do Componente Curricular',
+        'Código do Componente Curricular',
+        'Semestre',
+        'Departamento ou Coordenação acadêmica',
+        'Unidade Universitária',
+        'Professor Orientador',
+      ])
+      applyDataStyle(disciplinasDescRow)
 
-      const relatoriosDisciplina = await database
-        .select({
-          professorNome: professorTable.nomeCompleto,
-          professorSiape: professorTable.matriculaSiape,
-          projetoTitulo: projetoTable.titulo,
-          disciplinaNome: projetoTable.disciplinaNome,
-          projetoId: projetoTable.id,
-          relatorioId: relatorioFinalDisciplinaTable.id,
-          departamentoNome: departamentoTable.nome,
-          status: relatorioFinalDisciplinaTable.status,
-        })
-        .from(relatorioFinalDisciplinaTable)
-        .innerJoin(projetoTable, eq(relatorioFinalDisciplinaTable.projetoId, projetoTable.id))
-        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-        .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-        .where(and(eq(projetoTable.ano, ano), eq(projetoTable.semestre, semestre)))
+      // Collect unique disciplines
+      const uniqueDisciplinas = new Map<
+        string,
+        { nome: string; codigo: string; departamento: string; professor: string }
+      >()
+      for (const m of monitores) {
+        const disciplinas = disciplinasMap.get(m.projetoId) || []
+        for (const d of disciplinas) {
+          if (!uniqueDisciplinas.has(d.codigo)) {
+            uniqueDisciplinas.set(d.codigo, {
+              nome: d.nome,
+              codigo: d.codigo,
+              departamento: m.departamentoNome,
+              professor: m.professorNome,
+            })
+          }
+        }
+      }
 
-      const relatoriosData = relatoriosDisciplina.map((r) => ({
-        Disciplina: r.disciplinaNome || r.projetoTitulo,
-        Professor: r.professorNome,
-        SIAPE: r.professorSiape || '',
-        Departamento: r.departamentoNome,
-        Status: r.status,
-        'Link Relatorio PDF': `${clientUrl}/api/relatorio-disciplina/${r.relatorioId}/pdf`,
-      }))
+      for (const d of uniqueDisciplinas.values()) {
+        const row = sheetDisciplinas.addRow([
+          d.nome,
+          d.codigo,
+          semestreDisplay,
+          d.departamento,
+          'Instituto de Computação',
+          d.professor,
+        ])
+        applyDataStyle(row)
+      }
 
-      const wsRelatorios = XLSX.utils.json_to_sheet(relatoriosData)
-      const wbRelatorios = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wbRelatorios, wsRelatorios, 'Relatorios')
-      const relatoriosBuffer = Buffer.from(XLSX.write(wbRelatorios, { type: 'buffer', bookType: 'xlsx' }))
+      // Set column widths
+      const disciplinaWidths = [40, 15, 10, 40, 25, 35]
+      disciplinaWidths.forEach((w, i) => {
+        sheetDisciplinas.getColumn(i + 1).width = w
+      })
+
+      // === SHEET 2: Relatórios Monitores ===
+      const sheetMonitores = workbook.addWorksheet('Relatórios Monitores')
+      const monitoresHeaders = [
+        'Monitor',
+        'Modalidade',
+        'Código',
+        'Componente',
+        'Semestre',
+        'Início',
+        'Início do recesso',
+        'Fim do recesso',
+        'Término',
+        'Nota',
+        'Frequência',
+        'Semanas',
+        'CHT',
+        'Departamento',
+        'Unidade',
+        'Professor',
+      ]
+      const monitoresHeaderRow = sheetMonitores.addRow(monitoresHeaders)
+      applyHeaderStyle(monitoresHeaderRow)
+
+      // Second row with descriptions
+      const monitoresDescRow = sheetMonitores.addRow([
+        'Nome do Monitor',
+        'Modalidade',
+        'Código do Componente Curricular',
+        'Nome do Componente Curricular',
+        'Semestre',
+        'Início das atividades',
+        'Início do recesso',
+        'Fim do recesso',
+        'Término das atividades',
+        'Nota',
+        'Frequência de participação (%)',
+        'Semanas',
+        'Carga horária total',
+        'Departamento ou Coordenação acadêmica',
+        'Unidade Universitária',
+        'Professor Orientador',
+      ])
+      applyDataStyle(monitoresDescRow)
+
+      // Helper to format date
+      const formatDate = (d: Date | null) => {
+        if (!d) return ''
+        return d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })
+      }
+
+      // Add monitor rows
+      for (const m of monitores) {
+        const disciplinas = disciplinasMap.get(m.projetoId) || []
+        const disciplina = disciplinas[0] || { codigo: '', nome: m.disciplinaNome || m.projetoTitulo }
+        const nota = extractNotaFromRelatorioConteudo(m.relatorioConteudo)
+        const cargaHorariaTotal = (m.cargaHorariaSemana || 12) * (m.numeroSemanas || 18)
+        const modalidade = m.tipoVaga === 'BOLSISTA' ? 'Bolsista' : 'Voluntário'
+
+        // Default dates if not set
+        const dataInicio = m.dataInicio || new Date(ano, semestre === SEMESTRE_1 ? 2 : 7, 24)
+        const dataFim = m.dataFim || new Date(ano, semestre === SEMESTRE_1 ? 6 : 11, 26)
+
+        const row = sheetMonitores.addRow([
+          m.alunoNome,
+          modalidade,
+          disciplina.codigo,
+          disciplina.nome,
+          semestreDisplay,
+          formatDate(dataInicio),
+          '', // Início do recesso
+          '', // Fim do recesso
+          formatDate(dataFim),
+          nota,
+          '100%',
+          m.numeroSemanas || 18,
+          `${cargaHorariaTotal} horas`,
+          m.departamentoSigla || m.departamentoNome,
+          'IC',
+          m.professorNome,
+        ])
+        applyDataStyle(row)
+      }
+
+      // Set column widths for monitors sheet
+      const monitoresWidths = [35, 12, 12, 35, 10, 12, 15, 15, 12, 8, 12, 10, 12, 15, 8, 35]
+      monitoresWidths.forEach((w, i) => {
+        sheetMonitores.getColumn(i + 1).width = w
+      })
+
+      // === SHEET 3: Source (validation data) ===
+      const sheetSource = workbook.addWorksheet('Source')
+      sheetSource.addRow(['Modalidade'])
+      sheetSource.addRow(['Bolsista'])
+      sheetSource.addRow(['Voluntário'])
+
+      // Generate buffer
+      const buffer = await workbook.xlsx.writeBuffer()
+      const fileName = `Certificates_${ano}_${semestre === SEMESTRE_1 ? '1' : '2'}.xlsx`
 
       return {
-        bolsistas: bolsistasBuffer,
-        voluntarios: voluntariosBuffer,
-        relatoriosDisciplina: relatoriosBuffer,
+        certificados: Buffer.from(buffer),
+        fileName,
       }
     },
 
@@ -189,27 +324,18 @@ export function createRelatoriosFinaisExportService(database: Database) {
       emailDestino: string,
       remetenteUserId: number
     ): Promise<{ success: boolean; message: string }> {
-      const semestreDisplay = SEMESTRE_LABELS[semestre]
-
       try {
-        const planilhas = await this.gerarPlanilhasCertificados(ano, semestre)
+        const planilha = await this.gerarPlanilhasCertificados(ano, semestre)
 
         await relatoriosEmailService.sendCertificadosParaDepartamento({
           to: emailDestino,
           ano,
           semestre,
-          anexos: [
-            { filename: `Certificados_Bolsistas_${ano}_${semestreDisplay}.xlsx`, buffer: planilhas.bolsistas },
-            { filename: `Certificados_Voluntarios_${ano}_${semestreDisplay}.xlsx`, buffer: planilhas.voluntarios },
-            {
-              filename: `Relatorios_Disciplinas_${ano}_${semestreDisplay}.xlsx`,
-              buffer: planilhas.relatoriosDisciplina,
-            },
-          ],
+          anexos: [{ filename: planilha.fileName, buffer: planilha.certificados }],
           remetenteUserId,
         })
 
-        return { success: true, message: `Planilhas enviadas com sucesso para ${emailDestino}` }
+        return { success: true, message: `Planilha de certificados enviada com sucesso para ${emailDestino}` }
       } catch (error) {
         log.error(`Erro ao enviar certificados: ${error instanceof Error ? error.message : String(error)}`)
         return { success: false, message: `Erro ao enviar: ${error instanceof Error ? error.message : String(error)}` }

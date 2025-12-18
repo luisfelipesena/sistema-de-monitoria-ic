@@ -1,7 +1,7 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { BusinessError } from '@/server/lib/errors'
 import { createFileService } from '@/server/services/file/file-service'
 import { fileActionSchema } from '@/types'
-import { BusinessError } from '@/server/lib/errors'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
 
@@ -234,6 +234,30 @@ export const fileRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const service = createFileService(ctx.db)
       return service.getFileMetadata(input.fileId)
+    }),
+
+  getFileMetadataForUser: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        path: '/files/{fileId}/metadata',
+        tags: ['files'],
+        summary: 'Get file metadata for current user',
+        description: 'Get metadata for a file owned by the current user',
+      },
+    })
+    .input(z.object({ fileId: z.string() }))
+    .output(fileListItemSchema)
+    .query(async ({ input, ctx }) => {
+      try {
+        const service = createFileService(ctx.db)
+        return service.getFileMetadataForUser(input.fileId, ctx.user.id, ctx.user.role)
+      } catch (error) {
+        if (error instanceof BusinessError) {
+          throw new TRPCError({ code: error.code as 'NOT_FOUND' | 'FORBIDDEN' | 'BAD_REQUEST', message: error.message })
+        }
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao buscar metadados do arquivo' })
+      }
     }),
 
   getProjetoFiles: protectedProcedure

@@ -111,9 +111,8 @@ export const relatoriosValidationRouter = createTRPCRouter({
     )
     .output(
       z.object({
-        bolsistas: z.string(),
-        voluntarios: z.string(),
-        relatoriosDisciplina: z.string(),
+        certificados: z.string(),
+        fileName: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -121,9 +120,8 @@ export const relatoriosValidationRouter = createTRPCRouter({
         const service = createRelatoriosNotificationsService(ctx.db)
         const result = await service.gerarPlanilhasCertificados(input.ano, input.semestre)
         return {
-          bolsistas: result.bolsistas.toString('base64'),
-          voluntarios: result.voluntarios.toString('base64'),
-          relatoriosDisciplina: result.relatoriosDisciplina.toString('base64'),
+          certificados: result.certificados.toString('base64'),
+          fileName: result.fileName,
         }
       } catch (error) {
         mapDomainErrorToTRPC(error)

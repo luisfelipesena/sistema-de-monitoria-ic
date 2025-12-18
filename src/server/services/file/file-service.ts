@@ -200,6 +200,39 @@ export function createFileService(db: Database) {
       }
     },
 
+    async getFileMetadataForUser(fileId: string, userId: number, userRole: UserRole) {
+      // Verificar autorização usando a mesma lógica do getPresignedUrl
+      const [aluno, professor, projetoDocumento] = await Promise.all([
+        repo.findAlunoByFileId(fileId),
+        repo.findProfessorByFileId(fileId),
+        repo.findProjetoDocumentoByFileId(fileId),
+      ])
+
+      let isAuthorized = false
+      if (aluno && aluno.userId === userId) {
+        isAuthorized = true
+      } else if (professor && professor.userId === userId) {
+        isAuthorized = true
+      } else if (
+        projetoDocumento &&
+        (projetoDocumento.projeto?.professorResponsavelId === userId ||
+          projetoDocumento.projeto?.professoresParticipantes.some((p) => p.professorId === userId))
+      ) {
+        isAuthorized = true
+      }
+
+      if (userRole === ADMIN) {
+        isAuthorized = true
+      }
+
+      if (!isAuthorized) {
+        log.warn(`Unauthorized metadata access attempt for fileId: ${fileId} by userId: ${userId}`)
+        throw new ForbiddenError('Acesso não autorizado')
+      }
+
+      return this.getFileMetadata(fileId)
+    },
+
     async getProjetoFiles(projetoId: number, userId: number, userRole: UserRole) {
       const projeto = await repo.findProjetoById(projetoId)
 
@@ -290,7 +323,7 @@ export function createFileService(db: Database) {
         })
 
         objectsStream.on('end', () => {
-          ;(async () => {
+          ; (async () => {
             // Filter by projetoId metadata
             const matchingFiles: Array<{ name: string; lastModified: Date }> = []
             for (const file of pdfFiles) {
