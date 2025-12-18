@@ -22,6 +22,21 @@ export const createMeService = (database: Database) => {
       if (user.role === PROFESSOR) {
         professorProfile = await database.query.professorTable.findFirst({
           where: (table, { eq }) => eq(table.userId, user.id),
+          columns: {
+            id: true,
+            departamentoId: true,
+            nomeCompleto: true,
+            nomeSocial: true,
+            genero: true,
+            cpf: true,
+            matriculaSiape: true,
+            regime: true,
+            telefone: true,
+            telefoneInstitucional: true,
+            emailInstitucional: true,
+            tipoProfessor: true,
+            accountStatus: true,
+          },
         })
       }
 

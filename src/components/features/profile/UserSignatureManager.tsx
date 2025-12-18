@@ -171,7 +171,13 @@ export function UserSignatureManager() {
                   <Eye className="h-4 w-4 mr-2" />
                   Visualizar
                 </Button>
-                <Button variant="destructive" size="sm" onClick={handleDeleteSignature}>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteSignature}
+                  disabled={deleteSignatureMutation.isPending}
+                  isLoading={deleteSignatureMutation.isPending}
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Remover
                 </Button>
@@ -261,7 +267,11 @@ export function UserSignatureManager() {
                       >
                         Cancelar
                       </Button>
-                      <Button onClick={handleSaveFromPad} disabled={!isSigned}>
+                      <Button
+                        onClick={handleSaveFromPad}
+                        disabled={!isSigned || saveSignatureMutation.isPending}
+                        isLoading={saveSignatureMutation.isPending}
+                      >
                         Salvar Assinatura
                       </Button>
                     </div>

@@ -310,10 +310,17 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
                       setShowSignatureDialog(false)
                       handleUseDefaultSignature()
                     }}
+                    disabled={isSubmitting}
+                    isLoading={isSubmitting}
                   >
                     Usar Assinatura Padrão
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => setUseCustomSignature(true)}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setUseCustomSignature(true)}
+                    disabled={isSubmitting}
+                  >
                     Desenhar Nova
                   </Button>
                 </div>

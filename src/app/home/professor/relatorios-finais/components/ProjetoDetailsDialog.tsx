@@ -57,6 +57,8 @@ interface ProjetoDetailsDialogProps {
   onSignRelatorio: () => void
   onCreateMonitorRelatorio: (inscricaoId: number, nomeCompleto: string, relatorioDisciplinaId: number) => void
   onSignMonitorRelatorio: (relatorioId: number) => void
+  isSigningDisciplina?: boolean
+  isSigningMonitor?: boolean
 }
 
 export function ProjetoDetailsDialog({
@@ -69,6 +71,8 @@ export function ProjetoDetailsDialog({
   onSignRelatorio,
   onCreateMonitorRelatorio,
   onSignMonitorRelatorio,
+  isSigningDisciplina = false,
+  isSigningMonitor = false,
 }: ProjetoDetailsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,10 +124,15 @@ export function ProjetoDetailsDialog({
 
                     {!details.professorAssinouEm && (
                       <div className="flex gap-2 pt-2">
-                        <Button variant="outline" size="sm" onClick={onEditRelatorio}>
+                        <Button variant="outline" size="sm" onClick={onEditRelatorio} disabled={isSigningDisciplina}>
                           <Edit className="h-4 w-4 mr-1" /> Editar
                         </Button>
-                        <Button size="sm" onClick={onSignRelatorio}>
+                        <Button
+                          size="sm"
+                          onClick={onSignRelatorio}
+                          disabled={isSigningDisciplina}
+                          isLoading={isSigningDisciplina}
+                        >
                           <CheckCircle className="h-4 w-4 mr-1" /> Assinar Relatório
                         </Button>
                       </div>
@@ -161,6 +170,8 @@ export function ProjetoDetailsDialog({
                                     size="sm"
                                     variant="outline"
                                     onClick={() => onSignMonitorRelatorio(m.relatorioId!)}
+                                    disabled={isSigningMonitor}
+                                    isLoading={isSigningMonitor}
                                   >
                                     Assinar
                                   </Button>

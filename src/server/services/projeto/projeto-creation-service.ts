@@ -97,6 +97,7 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
         ano: input.ano,
         semestre: input.semestre,
         tipoProposicao: input.tipoProposicao,
+        professoresParticipantes: input.professoresParticipantes,
         bolsasSolicitadas: input.bolsasSolicitadas || 0,
         voluntariosSolicitados: input.voluntariosSolicitados || 0,
         cargaHorariaSemana: input.cargaHorariaSemana,
@@ -183,7 +184,6 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
       return {
         ...projetoCompleto,
         disciplinas,
-        professoresParticipantes: [],
         atividades,
       }
     },
@@ -226,6 +226,7 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
       if (input.ano !== undefined) updateData.ano = input.ano
       if (input.semestre !== undefined) updateData.semestre = input.semestre
       if (input.tipoProposicao !== undefined) updateData.tipoProposicao = input.tipoProposicao
+      if (input.professoresParticipantes !== undefined) updateData.professoresParticipantes = input.professoresParticipantes
       if (input.bolsasSolicitadas !== undefined) updateData.bolsasSolicitadas = input.bolsasSolicitadas
       if (input.voluntariosSolicitados !== undefined) updateData.voluntariosSolicitados = input.voluntariosSolicitados
       if (input.cargaHorariaSemana !== undefined) updateData.cargaHorariaSemana = input.cargaHorariaSemana
@@ -279,7 +280,6 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
       return {
         ...projetoCompleto,
         disciplinas,
-        professoresParticipantes: [],
         atividades,
       }
     },

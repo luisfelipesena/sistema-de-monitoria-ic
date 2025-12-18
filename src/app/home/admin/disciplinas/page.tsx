@@ -220,17 +220,28 @@ export default function DisciplinasPage() {
         id: "actions",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleEdit(row.original)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleEdit(row.original)}
+              disabled={deleteMutation.isPending}
+            >
               <Edit className="h-4 w-4" />
             </Button>
-            <Button variant="destructive" size="sm" onClick={() => handleDelete(row.original.id)}>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => handleDelete(row.original.id)}
+              disabled={deleteMutation.isPending}
+              isLoading={deleteMutation.isPending}
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         ),
       },
     ],
-    [departamentos, codigoFilterOptions, nomeFilterOptions, departamentoFilterOptions]
+    [departamentos, codigoFilterOptions, nomeFilterOptions, departamentoFilterOptions, deleteMutation.isPending]
   )
 
   const actions = (

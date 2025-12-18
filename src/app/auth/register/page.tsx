@@ -1,7 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
@@ -141,8 +141,15 @@ export default function RegisterPage() {
 
                 {errors ? <p className="text-sm text-red-600 text-center">{errors}</p> : null}
 
-                <Button type="submit" className="w-full h-12 text-base font-medium">
-                  Criar conta
+                <Button type="submit" className="w-full h-12 text-base font-medium" disabled={form.formState.isSubmitting}>
+                  {form.formState.isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Criando conta...
+                    </>
+                  ) : (
+                    "Criar conta"
+                  )}
                 </Button>
               </form>
             </Form>

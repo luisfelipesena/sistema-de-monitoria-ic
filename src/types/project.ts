@@ -1,10 +1,12 @@
 import { z } from 'zod'
 import {
   Genero,
+  generoSchema,
   PROJETO_STATUS_DRAFT,
   ProjetoStatus,
   projetoStatusSchema,
   Regime,
+  regimeSchema,
   Semestre,
   semestreSchema,
   SigningMode,
@@ -144,13 +146,13 @@ export interface MonitoriaFormData {
   professorResponsavel?: {
     id: number
     nomeCompleto: string
-    nomeSocial?: string
+    nomeSocial: string | null
     genero: Genero | null
     cpf: string | null
-    matriculaSiape?: string
+    matriculaSiape: string | null
     regime: Regime | null
-    telefone?: string
-    telefoneInstitucional?: string
+    telefone: string | null
+    telefoneInstitucional: string | null
     emailInstitucional: string | null
   }
   ano: number
@@ -380,6 +382,13 @@ export const projectDetailSchema = z.object({
     .object({
       id: z.number().int().positive(),
       nomeCompleto: z.string(),
+      nomeSocial: z.string().nullable(),
+      genero: generoSchema.nullable(),
+      cpf: z.string().nullable(),
+      matriculaSiape: z.string().nullable(),
+      regime: regimeSchema.nullable(),
+      telefone: z.string().nullable(),
+      telefoneInstitucional: z.string().nullable(),
       emailInstitucional: z.string().email().nullable(),
     })
     .optional(),
@@ -402,14 +411,7 @@ export const projectDetailSchema = z.object({
       })
     )
     .optional(),
-  professoresParticipantes: z
-    .array(
-      z.object({
-        id: z.number().int().positive(),
-        nomeCompleto: z.string(),
-      })
-    )
-    .optional(),
+  professoresParticipantes: z.string().nullable().optional(),
 })
 
 export const projectListItemSchema = z.object({

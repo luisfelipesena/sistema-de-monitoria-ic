@@ -274,6 +274,8 @@ export default function RelatoriosFinaisPage() {
         onSignRelatorio={handleSignDisciplinaRelatorio}
         onCreateMonitorRelatorio={openCreateMonitorDialog}
         onSignMonitorRelatorio={handleSignMonitorRelatorio}
+        isSigningDisciplina={signRelatorioDisciplina.isPending}
+        isSigningMonitor={signRelatorioMonitorAsProfessor.isPending}
       />
 
       {/* Create/Edit Disciplina Dialog */}

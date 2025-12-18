@@ -11,13 +11,11 @@ import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/us
 import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
 import {
   DashboardProjectItem,
-  GENERO_OUTRO,
   MonitoriaFormData,
   PROFESSOR,
   PROJETO_STATUS_DRAFT,
   PROJETO_STATUS_LABELS,
   PROJETO_STATUS_PENDING_SIGNATURE,
-  REGIME_20H,
   SEMESTRE_1,
   SIGNING_MODE_PROFESSOR,
 } from "@/types"
@@ -95,12 +93,14 @@ function DocumentSigningContent() {
         ? {
             id: selectedProject.professorResponsavel.id,
             nomeCompleto: selectedProject.professorResponsavel.nomeCompleto,
-            genero: GENERO_OUTRO,
-            cpf: "",
+            nomeSocial: selectedProject.professorResponsavel.nomeSocial,
+            genero: selectedProject.professorResponsavel.genero,
+            cpf: selectedProject.professorResponsavel.cpf,
+            matriculaSiape: selectedProject.professorResponsavel.matriculaSiape,
             emailInstitucional: selectedProject.professorResponsavel.emailInstitucional,
-            regime: REGIME_20H,
-            telefone: "",
-            telefoneInstitucional: "",
+            regime: selectedProject.professorResponsavel.regime,
+            telefone: selectedProject.professorResponsavel.telefone,
+            telefoneInstitucional: selectedProject.professorResponsavel.telefoneInstitucional,
           }
         : undefined,
       ano: selectedProject.ano,

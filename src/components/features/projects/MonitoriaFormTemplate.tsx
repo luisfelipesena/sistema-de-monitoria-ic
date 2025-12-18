@@ -370,10 +370,10 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                 </Text>
               </View>
               <View style={styles.threeColumnMiddle}>
-                <Text>2.4 CPF: {data.professorResponsavel?.cpf || "01391080505"}</Text>
+                <Text>2.4 CPF: {data.professorResponsavel?.cpf || "---------00000"}</Text>
               </View>
               <View style={styles.threeColumnRight}>
-                <Text>2.5 SIAPE: {data.professorResponsavel?.matriculaSiape || "30695530"}</Text>
+                <Text>2.5 SIAPE: {data.professorResponsavel?.matriculaSiape || "---------00000"}</Text>
               </View>
             </View>
 
@@ -386,17 +386,19 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                 </Text>
               </View>
               <View style={styles.threeColumnMiddle}>
-                <Text>2.7 Tel. Institucional: {data.professorResponsavel?.telefoneInstitucional || "( )"}</Text>
+                <Text>
+                  2.7 Tel. Institucional: {data.professorResponsavel?.telefoneInstitucional || "( --- ) ----------"}
+                </Text>
               </View>
               <View style={styles.threeColumnRight}>
-                <Text>2.8 Celular: {data.professorResponsavel?.telefone || "( 71 ) 992271821"}</Text>
+                <Text>2.8 Celular: {data.professorResponsavel?.telefone || "( --- ) ----------"}</Text>
               </View>
             </View>
 
             <View style={styles.formRow}>
               <Text>
                 2.9 E-mail institucional:{" "}
-                {data.professorResponsavel?.emailInstitucional || data.user?.email || "robespierre.pita@ufba.br"}
+                {data.professorResponsavel?.emailInstitucional || data.user?.email || "----------@ufba.br"}
               </Text>
             </View>
 
@@ -404,20 +406,11 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
             {data.tipoProposicao === TIPO_PROPOSICAO_COLETIVA && (
               <>
                 <Text style={styles.sectionHeader}>3. BREVE DESCRIÇÃO DO PROJETO</Text>
-                <View style={styles.formRowTall}>
-                  <Text>
-                    A disciplina {data.disciplinas?.map((d) => d.codigo).join(", ") || DEFAULT_DISCIPLINA_CODIGO} -{" "}
-                    {data.disciplinas?.map((d) => d.nome).join(", ") || "Bancos de Dados"} tem como objetivo ensinar aos
-                    alunos os conceitos fundamentais de bancos de dados, incluindo modelagem, normalização, consultas
-                    SQL e gerenciamento de sistemas de banco de dados. Durante o curso, os alunos realizam atividades
-                    práticas que envolvem a criação e manipulação de bancos de dados, além de resolver problemas e
-                    implementar soluções em sistemas reais. A monitoria é essencial para esta disciplina, pois os
-                    monitores atuam no suporte aos alunos, auxiliando na resolução de exercícios, esclarecendo dúvidas
-                    sobre o uso de SQL e orientando na construção de modelos de dados e na implementação de sistemas de
-                    banco de dados. Além disso, os monitores ajudam a garantir o bom funcionamento das atividades
-                    práticas e contribuem para o acompanhamento do progresso dos alunos.
-                  </Text>
-                </View>
+                {descricaoLines.map((line, index) => (
+                  <View key={index} style={styles.formRow}>
+                    <Text>{line}</Text>
+                  </View>
+                ))}
 
                 <Text style={styles.sectionHeader}>4. ATIVIDADES QUE SERÃO DESENVOLVIDAS PELOS(AS) MONITORES(AS)</Text>
                 {data.atividades && data.atividades.length > 0 ? (

@@ -87,9 +87,8 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
         }
       }
 
-      const [disciplinas, professoresParticipantes, atividades] = await Promise.all([
+      const [disciplinas, atividades] = await Promise.all([
         repo.findDisciplinasByProjetoId(projeto.id),
-        repo.findProfessoresParticipantes(projeto.id),
         repo.findAtividadesByProjetoId(projeto.id),
       ])
 
@@ -108,7 +107,6 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
           emailInstitucional: projeto.professorResponsavel.emailInstitucional,
         },
         disciplinas,
-        professoresParticipantes,
         atividades,
       }
     },

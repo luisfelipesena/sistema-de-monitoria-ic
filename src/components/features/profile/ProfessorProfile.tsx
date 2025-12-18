@@ -127,7 +127,13 @@ export function ProfessorProfile() {
               <Button variant="outline" onClick={handleCancel}>
                 Cancelar
               </Button>
-              <Button onClick={handleSave}>Salvar</Button>
+              <Button
+                onClick={handleSave}
+                disabled={updateProfileMutation.isPending}
+                isLoading={updateProfileMutation.isPending}
+              >
+                Salvar
+              </Button>
             </div>
           )}
         </div>

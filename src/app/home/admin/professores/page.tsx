@@ -49,7 +49,7 @@ import {
 import { api } from "@/utils/api"
 import type { ColumnDef } from "@tanstack/react-table"
 import { format } from "date-fns"
-import { Eye, Mail, Pencil, Plus, Trash2, UserCheck, Users, UserX } from "lucide-react"
+import { Eye, Loader2, Mail, Pencil, Plus, Trash2, UserCheck, Users, UserX } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 
@@ -572,9 +572,18 @@ export default function ProfessoresPage() {
                 <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button onClick={handleInviteProfessor}>
-                  <Mail className="h-4 w-4 mr-2" />
-                  Enviar Convite
+                <Button onClick={handleInviteProfessor} disabled={inviteProfessorMutation.isPending}>
+                  {inviteProfessorMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Enviar Convite
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>

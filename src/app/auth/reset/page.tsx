@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/hooks/use-auth"
@@ -130,8 +131,15 @@ function ResetPasswordInner({ token }: { token: string }) {
 
             {errors ? <p className="text-sm text-red-600">{errors}</p> : null}
 
-            <Button type="submit" className="w-full">
-              Atualizar senha
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Atualizando...
+                </>
+              ) : (
+                "Atualizar senha"
+              )}
             </Button>
           </form>
         </Form>
