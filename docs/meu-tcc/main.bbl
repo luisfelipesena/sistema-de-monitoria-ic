@@ -48,10 +48,11 @@ Santos, A. I.~C. (2023).
 \newblock Alertufba: um sistema web de orientações sobre segurança e emergência no contexto universitário.
 \newblock Trabalho de conclusão de curso (graduação em sistemas de informação), Universidade Federal da Bahia, Salvador, BA.
 
-\bibitem[{UNESCO}, 2022]{UNESCO2022}
-{UNESCO} (2022).
-\newblock Digital transformation of higher education: Towards a {Learner-Centred} ecosystem.
-\newblock Relatório da UNESCO sobre transformação digital da educação superior.
+\bibitem[{UNESCO}, 2023]{UNESCO2023}
+{UNESCO} (2023).
+\newblock {Global Education Monitoring Report 2023: Technology in Education -- A Tool on Whose Terms?}
+\newblock Technical report, UNESCO, Paris.
+\newblock Relatório global sobre tecnologia na educação e transformação digital.
 
 \bibitem[{Universidade de Bras\'ilia}, 2024]{UnB_SIGAA}
 {Universidade de Bras\'ilia} (2024).
@@ -75,7 +76,7 @@ Santos, A. I.~C. (2023).
 
 \bibitem[{World Bank}, 2022]{WorldBank2022}
 {World Bank} (2022).
-\newblock Digital government and public sector transformation.
-\newblock Relatório do Banco Mundial sobre transformação digital e setor público.
+\newblock {GovTech Maturity Index, 2022 Update: Trends in Public Sector Digital Transformation}.
+\newblock Technical report, World Bank, Washington, DC.
 
 \end{thebibliography}

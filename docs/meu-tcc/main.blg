@@ -8,30 +8,30 @@ Warning--empty doi in Frison2016
 Warning--empty doi in Natario2010
 You've used 17 entries,
             1961 wiz_defined-function locations,
-            570 strings with 6217 characters,
-and the built_in function-call counts, 4749 in all, are:
-= -- 479
+            574 strings with 6237 characters,
+and the built_in function-call counts, 4800 in all, are:
+= -- 485
 > -- 137
 < -- 17
 + -- 40
 - -- 40
-* -- 336
-:= -- 900
-add.period$ -- 44
+* -- 340
+:= -- 912
+add.period$ -- 45
 call.type$ -- 17
-change.case$ -- 105
+change.case$ -- 107
 chr.to.int$ -- 17
 cite$ -- 20
-duplicate$ -- 196
-empty$ -- 332
+duplicate$ -- 198
+empty$ -- 338
 format.name$ -- 63
-if$ -- 894
+if$ -- 906
 int.to.chr$ -- 1
 int.to.str$ -- 0
 missing$ -- 9
-newline$ -- 81
+newline$ -- 82
 num.names$ -- 51
-pop$ -- 77
+pop$ -- 76
 preamble$ -- 1
 purify$ -- 105
 quote$ -- 0
@@ -46,5 +46,5 @@ type$ -- 96
 warning$ -- 3
 while$ -- 40
 width$ -- 0
-write$ -- 200
+write$ -- 206
 (There were 3 warnings)
