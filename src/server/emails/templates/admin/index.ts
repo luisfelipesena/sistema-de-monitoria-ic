@@ -1,0 +1,6 @@
+export { ChefeSignatureRequest } from './ChefeSignatureRequest'
+export { DepartmentConsolidation } from './DepartmentConsolidation'
+export { EditalPublished } from './EditalPublished'
+export { PlanilhaPrograd } from './PlanilhaPrograd'
+export { ProfessorSigned } from './ProfessorSigned'
+export { ProjectSubmitted } from './ProjectSubmitted'

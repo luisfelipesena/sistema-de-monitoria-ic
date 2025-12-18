@@ -5,12 +5,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
+import { ToastAction } from "@/components/ui/toast"
 import { MonitoriaFormData } from "@/types"
 import { api } from "@/utils/api"
 import { PDFViewer } from "@react-pdf/renderer"
 import { CheckCircle, FileSignature, Loader2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import SignatureCanvas from "react-signature-canvas"
+
+// Feedback form para TCC - válido até Dez/2025
+const FEEDBACK_FORM_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSceFcmkgqgPf87Co2QVXjcKoaP9eKGZ5hKCENevThwPcewIZA/viewform?usp=dialog"
+const FEEDBACK_END_DATE = new Date("2025-12-31T23:59:59")
 
 interface InteractiveProjectPDFProps {
   formData: MonitoriaFormData
@@ -65,6 +71,22 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
     setShowSignatureDialog(true)
   }
 
+  const showFeedbackToast = () => {
+    if (new Date() >= FEEDBACK_END_DATE) return
+
+    toast({
+      title: "Avalie a plataforma!",
+      description: "Sua opinião é essencial para o TCC. Leva menos de 2 minutos.",
+      action: (
+        <ToastAction altText="Responder formulário" asChild>
+          <a href={FEEDBACK_FORM_URL} target="_blank" rel="noopener noreferrer">
+            Responder
+          </a>
+        </ToastAction>
+      ),
+    })
+  }
+
   const handleUseDefaultSignature = async () => {
     const defaultSignature = getDefaultSignature()
     if (!defaultSignature || !formData.projetoId) {
@@ -105,6 +127,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
         description: "Documento assinado com sua assinatura padrão!",
       })
       onSignatureComplete?.()
+      showFeedbackToast()
     } catch (error) {
       console.error("Error using default signature:", error)
       toast({
@@ -164,6 +187,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
           description: "Assinatura salva com sucesso!",
         })
         onSignatureComplete?.()
+        showFeedbackToast()
       } catch (error) {
         console.error("Error saving signature:", error)
         toast({

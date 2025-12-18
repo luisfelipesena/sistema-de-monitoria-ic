@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  17 DEC 2025 20:09
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  17 DEC 2025 21:34
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1013,15 +1013,7 @@ LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <14> not available
 (Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 77.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
 (Font)              scaled to size 14.0pt on input line 77.
-LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <12> not available
-(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 80.
-LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 12.0pt on input line 80.
-LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <12> not available
-(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 80.
-LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 12.0pt on input line 80.
-LaTeX Font Info:    Trying to load font information for TS1+qtm on input line 82.
+LaTeX Font Info:    Trying to load font information for TS1+qtm on input line 80.
 (/usr/local/texlive/2025/texmf-dist/tex/latex/tex-gyre/ts1qtm.fd
 File: ts1qtm.fd 2009/09/25 v1.2 font definition file for TS1/qtm
 )
@@ -1032,20 +1024,29 @@ File: ts1qtm.fd 2009/09/25 v1.2 font definition file for TS1/qtm
 
 
 {/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/tex-gyre/q-ts1.enc}]
+LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <12> not available
+(Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input line 88.
+LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
+(Font)              scaled to size 12.0pt on input line 88.
+LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <12> not available
+(Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input line 88.
+LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
+(Font)              scaled to size 12.0pt on input line 88.
+
 
 
 
 [2]
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 169--169
+Underfull \hbox (badness 10000) in paragraph at lines 167--167
 []\T1/qtm/m/n/10 (+20) Júpiter + for-mu-lá-rios
  []
 
 
 
 [3]
-Underfull \hbox (badness 2452) in paragraph at lines 199--200
+Underfull \hbox (badness 2452) in paragraph at lines 197--198
 []\T1/qtm/m/n/10 (+20) À luz desse ce-ná-rio, o Sis-tema de Monitoria-IC
  []
 
@@ -1056,72 +1057,72 @@ Underfull \hbox (badness 2452) in paragraph at lines 199--200
 [4]
 
 
-Underfull \hbox (badness 2158) in paragraph at lines 220--220
+Underfull \hbox (badness 2158) in paragraph at lines 218--218
 \T1/qtm/m/n/10 (+20) ta-res, sem mó-dulo de-
  []
 
 
-Underfull \hbox (badness 1117) in paragraph at lines 222--222
+Underfull \hbox (badness 1117) in paragraph at lines 220--220
 \T1/qtm/m/n/10 (+20) com do-cu-men-tos ad-mi-
  []
 
 
-Underfull \hbox (badness 1466) in paragraph at lines 222--222
+Underfull \hbox (badness 1466) in paragraph at lines 220--220
 \T1/qtm/m/n/10 (+20) nis-tra-ti-vos e co-mis-sões
  []
 
 
-Underfull \hbox (badness 1910) in paragraph at lines 224--224
+Underfull \hbox (badness 1910) in paragraph at lines 222--222
 \T1/qtm/m/n/10 (+20) aca-dê-mi-cas e ad-mi-
  []
 
 
-Underfull \hbox (badness 2269) in paragraph at lines 226--226
+Underfull \hbox (badness 2269) in paragraph at lines 224--224
 []\T1/qtm/m/n/10 (+20) Controle aca-dê-mico
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 226--226
+Underfull \hbox (badness 10000) in paragraph at lines 224--224
 []\T1/qtm/m/n/10 (+20) Possui fun-ci-o-na-li-da-des
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 226--226
+Underfull \hbox (badness 10000) in paragraph at lines 224--224
 \T1/qtm/m/n/10 (+20) de apoio; mo-ni-to-ria
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 226--226
+Underfull \hbox (badness 10000) in paragraph at lines 224--224
 \T1/qtm/m/n/10 (+20) com-ple-men-tada por
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 226--226
+Underfull \hbox (badness 10000) in paragraph at lines 224--224
 \T1/qtm/m/n/10 (+20) edi-tais e ori-en-ta-ções
  []
 
 
-Underfull \hbox (badness 6792) in paragraph at lines 230--230
+Underfull \hbox (badness 6792) in paragraph at lines 228--228
 []\T1/qtm/m/n/10 (+20) Workflow com-pleto
  []
 
 
-Underfull \hbox (badness 7631) in paragraph at lines 230--230
+Underfull \hbox (badness 7631) in paragraph at lines 228--228
 \T1/qtm/m/n/10 (+20) tos, bol-sas, ins-cri-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 230--230
+Underfull \hbox (badness 10000) in paragraph at lines 228--228
 \T1/qtm/m/n/10 (+20) mo-ni-to-ria, con-ce-bido
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 230--230
+Underfull \hbox (badness 10000) in paragraph at lines 228--228
 \T1/qtm/m/n/10 (+20) as fa-ses 1 a 5; re-la-tó-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 230--230
+Underfull \hbox (badness 10000) in paragraph at lines 228--228
 \T1/qtm/m/n/10 (+20) rios/certificados fo-ram
  []
 
@@ -1138,7 +1139,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 230--230
 [7
 
 ] [8]
-Overfull \hbox (255.77097pt too wide) in paragraph at lines 427--428
+Overfull \hbox (255.77097pt too wide) in paragraph at lines 425--426
  [][] 
  []
 
@@ -1166,13 +1167,13 @@ Package microtype Info: Loading generic protrusion settings for font family
 
 
 [11{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}]
-<images/monitoria/data-model-erd.png, id=294, 3814.25pt x 2107.875pt>
+<images/monitoria/data-model-erd.png, id=290, 2066.72125pt x 2237.35875pt>
 File: images/monitoria/data-model-erd.png Graphic file (type png)
 <use images/monitoria/data-model-erd.png>
-Package pdftex.def Info: images/monitoria/data-model-erd.png  used on input line 458.
-(pdftex.def)             Requested size: 473.09848pt x 261.42526pt.
+Package pdftex.def Info: images/monitoria/data-model-erd.png  used on input line 456.
+(pdftex.def)             Requested size: 473.09848pt x 512.1578pt.
 
-Overfull \hbox (233.09848pt too wide) in paragraph at lines 458--459
+Overfull \hbox (233.09848pt too wide) in paragraph at lines 456--457
  [][] 
  []
 
@@ -1183,88 +1184,88 @@ Overfull \hbox (233.09848pt too wide) in paragraph at lines 458--459
 [12
 
 
- <./images/monitoria/data-model-erd.png (PNG copy)>]
+ <./images/monitoria/data-model-erd.png>]
 
 
 
 [13
 
 ]
-Underfull \hbox (badness 3612) in paragraph at lines 507--508
+Underfull \hbox (badness 3612) in paragraph at lines 505--506
 []\T1/qtm/m/n/10 (+20) A or-ga-ni-za-ção da ló-gica de ne-gó-cio se-gue uma
  []
 
 
-Underfull \hbox (badness 1509) in paragraph at lines 507--508
+Underfull \hbox (badness 1509) in paragraph at lines 505--506
 \T1/qtm/m/n/10 (+20) por do-mí-nio. O rou-ter prin-ci-pal (\T1/cmtt/m/n/10 appRouter\T1/qtm/m/n/10 (+20) ) agrega
  []
 
 
-Underfull \hbox (badness 2213) in paragraph at lines 507--508
+Underfull \hbox (badness 2213) in paragraph at lines 505--506
 \T1/cmtt/m/n/10 user\T1/qtm/m/n/10 (+20) , \T1/cmtt/m/n/10 apiKey\T1/qtm/m/n/10 (+20) ), en-ti-da-des aca-dê-mi-cas (\T1/cmtt/m/n/10 departamento\T1/qtm/m/n/10 (+20) ,
  []
 
 
-Underfull \hbox (badness 4072) in paragraph at lines 507--508
+Underfull \hbox (badness 4072) in paragraph at lines 505--506
 \T1/cmtt/m/n/10 curso\T1/qtm/m/n/10 (+20) , \T1/cmtt/m/n/10 discipline\T1/qtm/m/n/10 (+20) ), ges-tão de mo-ni-to-ria (\T1/cmtt/m/n/10 projeto\T1/qtm/m/n/10 (+20) ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 507--508
+Underfull \hbox (badness 10000) in paragraph at lines 505--506
 \T1/cmtt/m/n/10 projetoTemplates\T1/qtm/m/n/10 (+20) , \T1/cmtt/m/n/10 edital\T1/qtm/m/n/10 (+20) , \T1/cmtt/m/n/10 inscricao\T1/qtm/m/n/10 (+20) , \T1/cmtt/m/n/10 selecao\T1/qtm/m/n/10 (+20) ,
  []
 
 
-Underfull \hbox (badness 5832) in paragraph at lines 507--508
+Underfull \hbox (badness 5832) in paragraph at lines 505--506
 \T1/qtm/m/n/10 (+20) pa-ra-lelo por múl-ti-plos de-sen-vol-ve-do-res sem con-fli-tos
  []
 
-<images/monitoria/landing.png, id=313, 3163.82pt x 3503.0875pt>
+<images/monitoria/landing.png, id=311, 3163.82pt x 3503.0875pt>
 File: images/monitoria/landing.png Graphic file (type png)
 <use images/monitoria/landing.png>
-Package pdftex.def Info: images/monitoria/landing.png  used on input line 515.
+Package pdftex.def Info: images/monitoria/landing.png  used on input line 513.
 (pdftex.def)             Requested size: 240.0pt x 265.71358pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/login.png, id=314, 3163.82pt x 1864.9675pt>
+<images/monitoria/login.png, id=312, 3163.82pt x 1864.9675pt>
 File: images/monitoria/login.png Graphic file (type png)
 <use images/monitoria/login.png>
-Package pdftex.def Info: images/monitoria/login.png  used on input line 522.
+Package pdftex.def Info: images/monitoria/login.png  used on input line 520.
 (pdftex.def)             Requested size: 240.0pt x 141.46011pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-dashboard.png, id=317, 3513.125pt x 2091.815pt>
+<images/monitoria/admin-dashboard.png, id=315, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-dashboard.png Graphic file (type png)
 <use images/monitoria/admin-dashboard.png>
-Package pdftex.def Info: images/monitoria/admin-dashboard.png  used on input line 531.
+Package pdftex.def Info: images/monitoria/admin-dashboard.png  used on input line 529.
 (pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/professor-assinatura-documentos.png, id=318, 3513.125pt x 2091.815pt>
+<images/monitoria/professor-assinatura-documentos.png, id=316, 3513.125pt x 2091.815pt>
 File: images/monitoria/professor-assinatura-documentos.png Graphic file (type png)
 <use images/monitoria/professor-assinatura-documentos.png>
-Package pdftex.def Info: images/monitoria/professor-assinatura-documentos.png  used on input line 538.
+Package pdftex.def Info: images/monitoria/professor-assinatura-documentos.png  used on input line 536.
 (pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/student-inscricao-monitoria.png, id=321, 3513.125pt x 2091.815pt>
+<images/monitoria/student-inscricao-monitoria.png, id=319, 3513.125pt x 2091.815pt>
 File: images/monitoria/student-inscricao-monitoria.png Graphic file (type png)
 <use images/monitoria/student-inscricao-monitoria.png>
-Package pdftex.def Info: images/monitoria/student-inscricao-monitoria.png  used on input line 547.
+Package pdftex.def Info: images/monitoria/student-inscricao-monitoria.png  used on input line 545.
 (pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/student-resultados.png, id=322, 3513.125pt x 2091.815pt>
+<images/monitoria/student-resultados.png, id=320, 3513.125pt x 2091.815pt>
 File: images/monitoria/student-resultados.png Graphic file (type png)
 <use images/monitoria/student-resultados.png>
-Package pdftex.def Info: images/monitoria/student-resultados.png  used on input line 554.
+Package pdftex.def Info: images/monitoria/student-resultados.png  used on input line 552.
 (pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
@@ -1272,55 +1273,55 @@ LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 [14 <./images/monitoria/landing.png (PNG copy)> <./images/monitoria/login.png (PNG copy)> <./images/monitoria/admin-dashboard.png (PNG copy)>]
-<images/monitoria/admin-manage-projects.png, id=339, 3513.125pt x 2091.815pt>
+<images/monitoria/admin-manage-projects.png, id=337, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-manage-projects.png Graphic file (type png)
 <use images/monitoria/admin-manage-projects.png>
-Package pdftex.def Info: images/monitoria/admin-manage-projects.png  used on input line 563.
+Package pdftex.def Info: images/monitoria/admin-manage-projects.png  used on input line 561.
 (pdftex.def)             Requested size: 240.0pt x 142.89906pt.
-<images/monitoria/admin-edital-management.png, id=340, 3513.125pt x 2091.815pt>
+<images/monitoria/admin-edital-management.png, id=338, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-edital-management.png Graphic file (type png)
 <use images/monitoria/admin-edital-management.png>
-Package pdftex.def Info: images/monitoria/admin-edital-management.png  used on input line 570.
+Package pdftex.def Info: images/monitoria/admin-edital-management.png  used on input line 568.
 (pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-scholarship-allocation.png, id=341, 3513.125pt x 2091.815pt>
+<images/monitoria/admin-scholarship-allocation.png, id=339, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-scholarship-allocation.png Graphic file (type png)
 <use images/monitoria/admin-scholarship-allocation.png>
-Package pdftex.def Info: images/monitoria/admin-scholarship-allocation.png  used on input line 577.
+Package pdftex.def Info: images/monitoria/admin-scholarship-allocation.png  used on input line 575.
 (pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 
-<images/monitoria/admin-users.png, id=346, 3513.125pt x 2091.815pt>
+<images/monitoria/admin-users.png, id=344, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-users.png Graphic file (type png)
 <use images/monitoria/admin-users.png>
-Package pdftex.def Info: images/monitoria/admin-users.png  used on input line 586.
+Package pdftex.def Info: images/monitoria/admin-users.png  used on input line 584.
 (pdftex.def)             Requested size: 240.0pt x 142.89906pt.
-<images/monitoria/admin-import-projects.png, id=347, 3513.125pt x 2866.71pt>
+<images/monitoria/admin-import-projects.png, id=345, 3513.125pt x 2866.71pt>
 File: images/monitoria/admin-import-projects.png Graphic file (type png)
 <use images/monitoria/admin-import-projects.png>
-Package pdftex.def Info: images/monitoria/admin-import-projects.png  used on input line 593.
+Package pdftex.def Info: images/monitoria/admin-import-projects.png  used on input line 591.
 (pdftex.def)             Requested size: 240.0pt x 195.8348pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-departamentos.png, id=348, 3513.125pt x 2091.815pt>
+<images/monitoria/admin-departamentos.png, id=346, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-departamentos.png Graphic file (type png)
 <use images/monitoria/admin-departamentos.png>
-Package pdftex.def Info: images/monitoria/admin-departamentos.png  used on input line 600.
+Package pdftex.def Info: images/monitoria/admin-departamentos.png  used on input line 598.
 (pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-<images/monitoria/admin-planilha-prograd.png, id=349, 3513.125pt x 2091.815pt>
+<images/monitoria/admin-planilha-prograd.png, id=347, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-planilha-prograd.png Graphic file (type png)
 <use images/monitoria/admin-planilha-prograd.png>
-Package pdftex.def Info: images/monitoria/admin-planilha-prograd.png  used on input line 607.
+Package pdftex.def Info: images/monitoria/admin-planilha-prograd.png  used on input line 605.
 (pdftex.def)             Requested size: 240.0pt x 142.89906pt.
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
@@ -1365,768 +1366,768 @@ LaTeX Warning: `!h' float specifier changed to `!ht'.
 > Step: execute table commands.
 > Step: calculate cell and line sizes.
 
-Overfull \hbox (2.14981pt too wide) in paragraph at lines 745--745
+Overfull \hbox (2.14981pt too wide) in paragraph at lines 743--743
  []\T1/qtm/b/n/9 (-20) Variância 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (2.14981pt too wide) in paragraph at lines 745--745
+Overfull \hbox (2.14981pt too wide) in paragraph at lines 743--743
  []\T1/qtm/b/n/9 (-20) Variância 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 > Step: build the whole table.
 
-Overfull \hbox (2.14981pt too wide) in paragraph at lines 745--745
+Overfull \hbox (2.14981pt too wide) in paragraph at lines 743--743
  []\T1/qtm/b/n/9 (-20) Variância 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
 
-Overfull \hbox (7.72443pt too wide) in paragraph at lines 745--745
+Overfull \hbox (7.72443pt too wide) in paragraph at lines 743--743
  []\T1/qtm/m/it/9 (-20) TODO 
  []
 
@@ -2161,21 +2162,21 @@ L3 programming layer <2025-01-18>
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: A685C08C8A9140C5AC94DB919143D1B0;4920.
+(rerunfilecheck)             Checksum: 28D4E8EC398E45F2CF5776E2A1A5142F;4811.
  ) 
 Here is how much of TeX's memory you used:
- 35745 strings out of 473190
- 685993 string characters out of 5715801
- 1273669 words of memory out of 5000000
- 57992 multiletter control sequences out of 15000+600000
+ 35743 strings out of 473190
+ 685963 string characters out of 5715801
+ 1273674 words of memory out of 5000000
+ 57991 multiletter control sequences out of 15000+600000
  836176 words of font info for 276 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  132i,16n,135p,2725b,1486s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Bold.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BoldItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Book.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BookItalic.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmb.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmr.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmri.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb>
-Output written on main.pdf (21 pages, 5197123 bytes).
+Output written on main.pdf (21 pages, 5174173 bytes).
 PDF statistics:
- 478 PDF objects out of 1000 (max. 8388607)
- 404 compressed objects within 5 object streams
- 100 named destinations out of 1000 (max. 500000)
- 79667 words of extra memory for PDF output out of 89155 (max. 10000000)
+ 476 PDF objects out of 1000 (max. 8388607)
+ 401 compressed objects within 5 object streams
+ 99 named destinations out of 1000 (max. 500000)
+ 79659 words of extra memory for PDF output out of 89155 (max. 10000000)
 

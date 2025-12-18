@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1766012987.09946 "main.aux" "main.bbl" "main" 1766012990.34296 0
+["bibtex main"] 1766017912.81026 "main.aux" "main.bbl" "main" 1766018102.87459 0
   "./apalike-sol.bst" 1761156389.19737 24928 269dedab788b7f84af88c155ecb45872 ""
   "./references.bib" 1763475724.71071 5827 2eac1381ca455610e6dc85b7663664d0 ""
-  "main.aux" 1766012990.06249 13721 537a17095e39e8e6def9741d597a044f "pdflatex"
+  "main.aux" 1766018102.56125 13603 9d236f285c9649eba78de283ef7f66af "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1766012987.19616 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1766012990.34309 0
-  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1766012983.73395 100131 716183a38a214f84882c86f2f4599c20 ""
+["pdflatex"] 1766018099.32422 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1766018102.87474 0
+  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1766017908.91791 100105 4f12b1f7225f99fedad470e77435fc51 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_2mfh3o.enc" 1570828436 3443 c184b8b1bd90c3ec5d4289b992e64d96 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_iln36p.enc" 1570828436 3071 cfa92ee28d698dd9275559d9d1c3a233 ""
@@ -271,16 +271,16 @@
   "images/monitoria/admin-planilha-prograd.png" 1765346111.89139 203357 4d4fa0ab7b3f11d98a6fb2de0329fb83 ""
   "images/monitoria/admin-scholarship-allocation.png" 1765346111.89196 346811 9de1105ef3fcbf77fcfb6f6ba99854d5 ""
   "images/monitoria/admin-users.png" 1765346111.89265 508603 744e42ca82df7398e8401604c66e30b4 ""
-  "images/monitoria/data-model-erd.png" 1765932135.93367 193103 f959e323a0d96a9f22c4023368be2ed2 ""
+  "images/monitoria/data-model-erd.png" 1766018098.76366 197836 71c7c8974210eff6094dace674bf29af ""
   "images/monitoria/landing.png" 1765346111.89323 582232 36daa0e24a5f8f33671bb98ab1f19d3d ""
   "images/monitoria/login.png" 1765346111.89378 597105 c7db725daf569dc87b7904031e82340d ""
   "images/monitoria/professor-assinatura-documentos.png" 1765346111.89438 274114 86f04661a5d4817b161dc5984a49c1eb ""
   "images/monitoria/student-inscricao-monitoria.png" 1765346111.89625 273727 82e632526270269377018659ed76904d ""
   "images/monitoria/student-resultados.png" 1765346111.89654 196365 3382bc79ac4646f2a174bce96e5315f3 ""
-  "main.aux" 1766012990.06249 13721 537a17095e39e8e6def9741d597a044f "pdflatex"
-  "main.bbl" 1766012987.19328 3490 afc509917fb2aa9b812ed9c919607e9d "bibtex main"
-  "main.out" 1766012990.06377 4920 a685c08c8a9140c5ac94db919143d1b0 "pdflatex"
-  "main.tex" 1766012983.73395 100131 716183a38a214f84882c86f2f4599c20 ""
+  "main.aux" 1766018102.56125 13603 9d236f285c9649eba78de283ef7f66af "pdflatex"
+  "main.bbl" 1766017912.92301 3490 afc509917fb2aa9b812ed9c919607e9d "bibtex main"
+  "main.out" 1766018102.56227 4811 28d4e8ec398e45f2cf5776e2a1a5142f "pdflatex"
+  "main.tex" 1766017908.91791 100105 4f12b1f7225f99fedad470e77435fc51 ""
   "sbc2025.cls" 1761156389.24799 14761 c546ee61221e9a80c8e82e624cbd925e ""
   (generated)
   "main.aux"
