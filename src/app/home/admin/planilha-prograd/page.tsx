@@ -43,54 +43,176 @@ export default function PlanilhaPROGRADPage() {
     refetch()
   }
 
-  const handleDownloadCSV = () => {
+  const handleDownloadXLSX = async () => {
     if (!planilhaData?.projetos?.length) {
       toast({
         title: "Aviso",
-        description: "Carregue os dados primeiro para baixar o CSV.",
+        description: "Carregue os dados primeiro para baixar o Excel.",
         variant: "destructive",
       })
       return
     }
 
-    const headers = [
-      "Unidade Universitária",
-      "Órgão Responsável",
-      "CÓDIGO",
-      "Componente Curricular: NOME",
-      "Professor Responsável",
-      "Professores Participantes",
-    ]
+    // Dynamic import exceljs for client-side
+    const ExcelJS = await import("exceljs")
+    const wb = new ExcelJS.Workbook()
+    const ws = wb.addWorksheet("Projetos Aprovados")
 
-    const escapeCSV = (value: string) => {
-      if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-        return `"${value.replace(/"/g, '""')}"`
-      }
-      return value
+    // Styles
+    const greenFill = { type: "pattern" as const, pattern: "solid" as const, fgColor: { argb: "FF92D050" } }
+    const thinBorder = {
+      top: { style: "thin" as const },
+      left: { style: "thin" as const },
+      bottom: { style: "thin" as const },
+      right: { style: "thin" as const },
     }
 
-    const rows = planilhaData.projetos.map((p) => [
-      escapeCSV("Instituto de Computação"),
-      escapeCSV(p.departamentoNome),
-      escapeCSV(p.codigo),
-      // Embed PDF link in discipline name if available
-      escapeCSV(p.linkPDF ? `${p.disciplinaNome} (${p.linkPDF})` : p.disciplinaNome),
-      escapeCSV(p.professorNome),
-      escapeCSV(p.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? p.professoresParticipantes : ""),
-    ])
+    const semestreNum = selectedSemester === SEMESTRE_1 ? "1" : "2"
 
-    const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n")
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    // Group projects by department first to know total rows
+    const projetosPorDepartamento = planilhaData.projetos.reduce(
+      (acc, projeto) => {
+        const dept = projeto.departamentoNome || "Sem Departamento"
+        if (!acc[dept]) acc[dept] = []
+        acc[dept].push(projeto)
+        return acc
+      },
+      {} as Record<string, typeof planilhaData.projetos>
+    )
+    const sortedDepartments = Object.keys(projetosPorDepartamento).sort()
+    const totalDataRows = planilhaData.projetos.length
+
+    // Build all rows as array first, then add to worksheet
+    const allRows: Array<{ values: (string | { text: string; hyperlink: string })[], isTitle?: boolean, isHeader?: boolean, deptFirst?: boolean, isFirstData?: boolean }> = []
+
+    // Title row
+    allRows.push({
+      values: [`PLANILHA DE DETALHAMENTO DOS PROJETOS APROVADOS NA CONGREGAÇÃO DO IC - ${selectedYear}.${semestreNum}`, "", "", "", "", ""],
+      isTitle: true,
+    })
+
+    // Header row
+    allRows.push({
+      values: [
+        "Unidade Universitária",
+        "Órgão Responsável (Dept. ou Coord. Acadêmica)",
+        "CÓDIGO",
+        "Componente(s) Curricular(es): NOME",
+        "Professor Responsável pelo Projeto (Proponente)",
+        "Professores participantes (Projetos coletivos)",
+      ],
+      isHeader: true,
+    })
+
+    // Data rows
+    let isFirstDataRow = true
+    for (const departamento of sortedDepartments) {
+      const deptProjetos = projetosPorDepartamento[departamento]
+      deptProjetos.forEach((p, idx) => {
+        const componenteValue = p.linkPDF
+          ? { text: p.disciplinaNome, hyperlink: p.linkPDF }
+          : p.disciplinaNome
+
+        allRows.push({
+          values: [
+            isFirstDataRow ? "Instituto de Computação" : "",
+            idx === 0 ? departamento : "",
+            p.codigo,
+            componenteValue,
+            p.professorNome,
+            p.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? p.professoresParticipantes || "" : "",
+          ],
+          deptFirst: idx === 0,
+          isFirstData: isFirstDataRow,
+        })
+        isFirstDataRow = false
+      })
+    }
+
+    // Now add rows to worksheet - only the exact number we need
+    allRows.forEach((rowData, rowIndex) => {
+      const excelRow = rowIndex + 1
+      const row = ws.getRow(excelRow)
+
+      if (rowData.isTitle) {
+        // Title row
+        row.getCell(1).value = rowData.values[0] as string
+        row.getCell(1).font = { name: "Verdana", size: 12, bold: true }
+        row.getCell(1).fill = greenFill
+        row.getCell(1).alignment = { horizontal: "center", vertical: "middle" }
+        row.getCell(1).border = thinBorder
+        row.height = 25
+        ws.mergeCells(`A${excelRow}:F${excelRow}`)
+      } else if (rowData.isHeader) {
+        // Header row
+        rowData.values.forEach((val, colIdx) => {
+          const cell = row.getCell(colIdx + 1)
+          cell.value = val as string
+          cell.font = { bold: true, size: 10 }
+          cell.fill = greenFill
+          cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true }
+          cell.border = thinBorder
+        })
+        row.height = 30
+      } else {
+        // Data row
+        rowData.values.forEach((val, colIdx) => {
+          const cell = row.getCell(colIdx + 1)
+          if (typeof val === "object" && val !== null && "hyperlink" in val) {
+            cell.value = { text: val.text, hyperlink: val.hyperlink }
+            cell.font = { color: { argb: "FF0563C1" }, underline: true }
+          } else {
+            cell.value = val as string
+          }
+          cell.border = thinBorder
+          cell.alignment = { vertical: "middle", wrapText: true }
+          if (colIdx === 2) cell.alignment = { horizontal: "center", vertical: "middle" }
+        })
+      }
+
+      row.commit()
+    })
+
+    // Set column widths AFTER adding data (to avoid creating extra cells)
+    ws.getColumn(1).width = 23
+    ws.getColumn(2).width = 43
+    ws.getColumn(3).width = 12
+    ws.getColumn(4).width = 69
+    ws.getColumn(5).width = 51
+    ws.getColumn(6).width = 59
+
+    // Merge cells for Unidade (column A) - all data rows if more than 1
+    const firstDataRow = 3
+    const lastDataRow = 2 + totalDataRows
+    if (totalDataRows > 1) {
+      ws.mergeCells(`A${firstDataRow}:A${lastDataRow}`)
+      ws.getCell(`A${firstDataRow}`).alignment = { horizontal: "center", vertical: "middle", wrapText: true }
+    }
+
+    // Merge cells for Órgão (column B) - per department
+    let currentMergeRow = firstDataRow
+    for (const departamento of sortedDepartments) {
+      const deptCount = projetosPorDepartamento[departamento].length
+      if (deptCount > 1) {
+        ws.mergeCells(`B${currentMergeRow}:B${currentMergeRow + deptCount - 1}`)
+        ws.getCell(`B${currentMergeRow}`).alignment = { horizontal: "center", vertical: "middle", wrapText: true }
+      }
+      currentMergeRow += deptCount
+    }
+
+    // Download
+    const buffer = await wb.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    link.download = `Planilha_PROGRAD_${selectedYear}_${selectedSemester === SEMESTRE_1 ? "1" : "2"}.csv`
+    link.download = `Planilha_PROGRAD_${selectedYear}_${semestreNum}.xlsx`
     link.click()
     URL.revokeObjectURL(url)
 
     toast({
       title: "Download iniciado",
-      description: "O arquivo CSV está sendo baixado.",
+      description: "O arquivo Excel está sendo baixado.",
     })
   }
 
@@ -221,9 +343,9 @@ export default function PlanilhaPROGRADPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button onClick={handleDownloadCSV} variant="outline">
+                    <Button onClick={handleDownloadXLSX} variant="outline">
                       <Download className="h-4 w-4 mr-2" />
-                      Baixar CSV
+                      Baixar Excel
                     </Button>
                     <Button onClick={() => setShowEmailModal(true)} className="bg-blue-600 hover:bg-blue-700">
                       <Mail className="h-4 w-4 mr-2" />
@@ -340,7 +462,7 @@ export default function PlanilhaPROGRADPage() {
                   <strong>
                     {selectedYear}.{semestreDisplay}
                   </strong>{" "}
-                  será enviada em formato CSV.
+                  será enviada em formato Excel (.xlsx) com links clicáveis para os PDFs.
                 </p>
               </div>
 

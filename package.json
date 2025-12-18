@@ -88,6 +88,7 @@
     "drizzle-orm": "^0.38.4",
     "drizzle-zod": "^0.8.2",
     "embla-carousel-react": "^8.6.0",
+    "exceljs": "^4.4.0",
     "fast-xml-parser": "^5.2.5",
     "input-otp": "^1.4.2",
     "jose": "^6.0.11",

@@ -9,6 +9,7 @@ import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import { sanitizeForFilename } from '@/utils/string-normalization'
 import { v4 as uuidv4 } from 'uuid'
+import ExcelJS from 'exceljs'
 import { createAnalyticsRepository } from './analytics-repository'
 
 const EMAIL_IC_CHAVE = 'EMAIL_INSTITUTO_COMPUTACAO'
@@ -350,9 +351,8 @@ export function createAnalyticsService(db: Database) {
         }
       }
 
-      // Generate CSV content with proper PDF URLs
-      const csvContent = this.generateCSVWithUrls(projetos, tokenByProjetoId, baseUrl)
-      const csvBuffer = Buffer.from(csvContent, 'utf-8')
+      // Generate XLSX content with proper hyperlinks
+      const xlsxBuffer = await this.generateXLSXWithHyperlinks(projetos, tokenByProjetoId, baseUrl, ano, semestre)
 
       // Fetch individual project PDFs for attachments
       const pdfAttachments: Array<{ filename: string; content: Buffer; contentType: string }> = []
@@ -405,11 +405,11 @@ export function createAnalyticsService(db: Database) {
         destinatarios.map((email) =>
           sendPlanilhaPROGRADEmail({
             progradEmail: email,
-            planilhaPDFBuffer: csvBuffer,
+            planilhaPDFBuffer: xlsxBuffer,
             semestre,
             ano,
             remetenteUserId: userId,
-            isCSV: true,
+            isExcel: true,
             projectPdfAttachments: pdfAttachments,
           })
         )
@@ -433,7 +433,7 @@ export function createAnalyticsService(db: Database) {
       }
     },
 
-    generateCSVWithUrls(
+    async generateXLSXWithHyperlinks(
       projetos: Array<{
         id: number
         titulo: string
@@ -445,41 +445,159 @@ export function createAnalyticsService(db: Database) {
         tipoProposicao: string | null
       }>,
       tokenByProjetoId: Map<number, string>,
-      baseUrl: string
-    ): string {
-      const headers = [
-        'Unidade Universitária',
-        'Órgão Responsável',
-        'CÓDIGO',
-        'Componente Curricular: NOME',
-        'Professor Responsável',
-        'Professores Participantes',
-        'Link PDF',
-      ]
+      baseUrl: string,
+      ano: number,
+      semestre: Semestre
+    ): Promise<Buffer> {
+      const wb = new ExcelJS.Workbook()
+      const ws = wb.addWorksheet('Projetos Aprovados')
 
-      const escapeCSV = (value: string) => {
-        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-          return `"${value.replace(/"/g, '""')}"`
-        }
-        return value
+      // Styles
+      const greenFill: ExcelJS.Fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF92D050' } }
+      const thinBorder: Partial<ExcelJS.Borders> = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
       }
 
-      const rows = projetos.map((p) => {
-        const token = tokenByProjetoId.get(p.id)
-        const linkPDF = token ? `${baseUrl}/api/public/projeto-pdf/${token}` : ''
+      const semestreNum = semestre === 'SEMESTRE_1' ? '1' : '2'
 
-        return [
-          escapeCSV('Instituto de Computação'),
-          escapeCSV(p.departamentoNome || ''),
-          escapeCSV(p.disciplinaCodigo || 'N/A'),
-          escapeCSV(p.disciplinaNome || p.titulo || ''),
-          escapeCSV(p.professorNome || ''),
-          escapeCSV(p.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? p.professoresParticipantes || '' : ''),
-          escapeCSV(linkPDF),
-        ]
+      // Group projects by department first
+      const projetosPorDepartamento = projetos.reduce(
+        (acc, projeto) => {
+          const dept = projeto.departamentoNome || 'Sem Departamento'
+          if (!acc[dept]) acc[dept] = []
+          acc[dept].push(projeto)
+          return acc
+        },
+        {} as Record<string, typeof projetos>
+      )
+      const sortedDepartments = Object.keys(projetosPorDepartamento).sort()
+      const totalDataRows = projetos.length
+
+      // Build all rows as array first
+      type RowData = {
+        values: (string | { text: string; hyperlink: string })[]
+        isTitle?: boolean
+        isHeader?: boolean
+      }
+      const allRows: RowData[] = []
+
+      // Title row
+      allRows.push({
+        values: [`PLANILHA DE DETALHAMENTO DOS PROJETOS APROVADOS NA CONGREGAÇÃO DO IC - ${ano}.${semestreNum}`, '', '', '', '', ''],
+        isTitle: true,
       })
 
-      return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n')
+      // Header row
+      allRows.push({
+        values: [
+          'Unidade Universitária',
+          'Órgão Responsável (Dept. ou Coord. Acadêmica)',
+          'CÓDIGO',
+          'Componente(s) Curricular(es): NOME',
+          'Professor Responsável pelo Projeto (Proponente)',
+          'Professores participantes (Projetos coletivos)',
+        ],
+        isHeader: true,
+      })
+
+      // Data rows
+      let isFirstDataRow = true
+      for (const departamento of sortedDepartments) {
+        const deptProjetos = projetosPorDepartamento[departamento]
+        deptProjetos.forEach((p, idx) => {
+          const token = tokenByProjetoId.get(p.id)
+          const linkPDF = token ? `${baseUrl}/api/public/projeto-pdf/${token}` : ''
+          const displayName = p.disciplinaNome || p.titulo || ''
+
+          const componenteValue = linkPDF ? { text: displayName, hyperlink: linkPDF } : displayName
+
+          allRows.push({
+            values: [
+              isFirstDataRow ? 'Instituto de Computação' : '',
+              idx === 0 ? departamento : '',
+              p.disciplinaCodigo || 'N/A',
+              componenteValue,
+              p.professorNome || '',
+              p.tipoProposicao === TIPO_PROPOSICAO_COLETIVA ? p.professoresParticipantes || '' : '',
+            ],
+          })
+          isFirstDataRow = false
+        })
+      }
+
+      // Add rows to worksheet - only exact number needed
+      allRows.forEach((rowData, rowIndex) => {
+        const excelRow = rowIndex + 1
+        const row = ws.getRow(excelRow)
+
+        if (rowData.isTitle) {
+          row.getCell(1).value = rowData.values[0] as string
+          row.getCell(1).font = { name: 'Verdana', size: 12, bold: true }
+          row.getCell(1).fill = greenFill
+          row.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' }
+          row.getCell(1).border = thinBorder
+          row.height = 25
+          ws.mergeCells(`A${excelRow}:F${excelRow}`)
+        } else if (rowData.isHeader) {
+          rowData.values.forEach((val, colIdx) => {
+            const cell = row.getCell(colIdx + 1)
+            cell.value = val as string
+            cell.font = { bold: true, size: 10 }
+            cell.fill = greenFill
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }
+            cell.border = thinBorder
+          })
+          row.height = 30
+        } else {
+          rowData.values.forEach((val, colIdx) => {
+            const cell = row.getCell(colIdx + 1)
+            if (typeof val === 'object' && val !== null && 'hyperlink' in val) {
+              cell.value = { text: val.text, hyperlink: val.hyperlink }
+              cell.font = { color: { argb: 'FF0563C1' }, underline: true }
+            } else {
+              cell.value = val as string
+            }
+            cell.border = thinBorder
+            cell.alignment = { vertical: 'middle', wrapText: true }
+            if (colIdx === 2) cell.alignment = { horizontal: 'center', vertical: 'middle' }
+          })
+        }
+
+        row.commit()
+      })
+
+      // Set column widths AFTER adding data
+      ws.getColumn(1).width = 23
+      ws.getColumn(2).width = 43
+      ws.getColumn(3).width = 12
+      ws.getColumn(4).width = 69
+      ws.getColumn(5).width = 51
+      ws.getColumn(6).width = 59
+
+      // Merge cells for Unidade (column A)
+      const firstDataRow = 3
+      const lastDataRow = 2 + totalDataRows
+      if (totalDataRows > 1) {
+        ws.mergeCells(`A${firstDataRow}:A${lastDataRow}`)
+        ws.getCell(`A${firstDataRow}`).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }
+      }
+
+      // Merge cells for Órgão (column B) per department
+      let currentMergeRow = firstDataRow
+      for (const departamento of sortedDepartments) {
+        const deptCount = projetosPorDepartamento[departamento].length
+        if (deptCount > 1) {
+          ws.mergeCells(`B${currentMergeRow}:B${currentMergeRow + deptCount - 1}`)
+          ws.getCell(`B${currentMergeRow}`).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }
+        }
+        currentMergeRow += deptCount
+      }
+
+      const buffer = await wb.xlsx.writeBuffer()
+      return Buffer.from(buffer)
     },
 
     async getEmailDestinatarios(adminType?: AdminType | null) {
