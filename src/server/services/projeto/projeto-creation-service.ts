@@ -156,19 +156,13 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
 
       // Audit log for project creation
       if (auditService) {
-        await auditService.logAction(
-          input.userId,
-          AUDIT_ACTION_CREATE,
-          AUDIT_ENTITY_PROJETO,
-          novoProjeto.id,
-          {
-            titulo: input.titulo,
-            ano: input.ano,
-            semestre: input.semestre,
-            tipoProposicao: input.tipoProposicao,
-            createdBy: isProfessor(input.userRole) ? 'professor' : 'admin',
-          }
-        )
+        await auditService.logAction(input.userId, AUDIT_ACTION_CREATE, AUDIT_ENTITY_PROJETO, novoProjeto.id, {
+          titulo: input.titulo,
+          ano: input.ano,
+          semestre: input.semestre,
+          tipoProposicao: input.tipoProposicao,
+          createdBy: isProfessor(input.userRole) ? 'professor' : 'admin',
+        })
       }
 
       const projetoCompleto = await repo.findByIdWithRelations(novoProjeto.id)
@@ -226,7 +220,8 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
       if (input.ano !== undefined) updateData.ano = input.ano
       if (input.semestre !== undefined) updateData.semestre = input.semestre
       if (input.tipoProposicao !== undefined) updateData.tipoProposicao = input.tipoProposicao
-      if (input.professoresParticipantes !== undefined) updateData.professoresParticipantes = input.professoresParticipantes
+      if (input.professoresParticipantes !== undefined)
+        updateData.professoresParticipantes = input.professoresParticipantes
       if (input.bolsasSolicitadas !== undefined) updateData.bolsasSolicitadas = input.bolsasSolicitadas
       if (input.voluntariosSolicitados !== undefined) updateData.voluntariosSolicitados = input.voluntariosSolicitados
       if (input.cargaHorariaSemana !== undefined) updateData.cargaHorariaSemana = input.cargaHorariaSemana
@@ -255,16 +250,10 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
 
       // Audit log for project update
       if (auditService && input.userId) {
-        await auditService.logAction(
-          input.userId,
-          AUDIT_ACTION_UPDATE,
-          AUDIT_ENTITY_PROJETO,
-          input.id,
-          {
-            fieldsUpdated: Object.keys(updateData),
-            updatedBy: input.userRole && isProfessor(input.userRole) ? 'professor' : 'admin',
-          }
-        )
+        await auditService.logAction(input.userId, AUDIT_ACTION_UPDATE, AUDIT_ENTITY_PROJETO, input.id, {
+          fieldsUpdated: Object.keys(updateData),
+          updatedBy: input.userRole && isProfessor(input.userRole) ? 'professor' : 'admin',
+        })
       }
 
       const projetoCompleto = await repo.findByIdWithRelations(input.id)
@@ -310,16 +299,10 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
 
       // Audit log for project deletion
       if (auditService) {
-        await auditService.logAction(
-          userId,
-          AUDIT_ACTION_DELETE,
-          AUDIT_ENTITY_PROJETO,
-          id,
-          {
-            titulo: projeto.titulo,
-            deletedBy: isAdmin(userRole) ? 'admin' : 'professor',
-          }
-        )
+        await auditService.logAction(userId, AUDIT_ACTION_DELETE, AUDIT_ENTITY_PROJETO, id, {
+          titulo: projeto.titulo,
+          deletedBy: isAdmin(userRole) ? 'admin' : 'professor',
+        })
       }
     },
 

@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, inArray, isNull, lte, or, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import type * as schema from '@/server/db/schema'
 import {
@@ -465,9 +465,7 @@ export class InscricaoRepository {
 
     // Apply pagination
     const paginatedQuery =
-      filters.limit !== undefined
-        ? baseQuery.limit(filters.limit).offset(filters.offset ?? 0)
-        : baseQuery
+      filters.limit !== undefined ? baseQuery.limit(filters.limit).offset(filters.offset ?? 0) : baseQuery
 
     // Parallel queries: items + total + stats
     const [items, totalResult, stats] = await Promise.all([

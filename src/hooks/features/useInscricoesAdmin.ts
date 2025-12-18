@@ -2,15 +2,7 @@ import { useServerPagination } from '@/hooks/useServerPagination'
 import { api } from '@/utils/api'
 
 export function useInscricoesAdmin() {
-  const {
-    page,
-    pageSize,
-    setPage,
-    setPageSize,
-    columnFilters,
-    setColumnFilters,
-    apiFilters,
-  } = useServerPagination({
+  const { page, pageSize, setPage, setPageSize, columnFilters, setColumnFilters, apiFilters } = useServerPagination({
     useCurrentSemester: true,
     defaultPageSize: 20,
   })

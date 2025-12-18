@@ -194,16 +194,36 @@ export function createPlanilhaPROGRADService(repo: RelatoriosRepository) {
 
         for (const b of bolsistas) {
           if (!b.aluno.cpf) {
-            problemas.push({ tipo: 'bolsista', monitor: b.aluno.nomeCompleto, campo: 'CPF', mensagem: 'CPF não informado' })
+            problemas.push({
+              tipo: 'bolsista',
+              monitor: b.aluno.nomeCompleto,
+              campo: 'CPF',
+              mensagem: 'CPF não informado',
+            })
           }
           if (!b.aluno.banco) {
-            problemas.push({ tipo: 'bolsista', monitor: b.aluno.nomeCompleto, campo: 'Dados Bancários', mensagem: 'Banco não informado' })
+            problemas.push({
+              tipo: 'bolsista',
+              monitor: b.aluno.nomeCompleto,
+              campo: 'Dados Bancários',
+              mensagem: 'Banco não informado',
+            })
           }
           if (!b.aluno.agencia) {
-            problemas.push({ tipo: 'bolsista', monitor: b.aluno.nomeCompleto, campo: 'Dados Bancários', mensagem: 'Agência não informada' })
+            problemas.push({
+              tipo: 'bolsista',
+              monitor: b.aluno.nomeCompleto,
+              campo: 'Dados Bancários',
+              mensagem: 'Agência não informada',
+            })
           }
           if (!b.aluno.conta) {
-            problemas.push({ tipo: 'bolsista', monitor: b.aluno.nomeCompleto, campo: 'Dados Bancários', mensagem: 'Conta não informada' })
+            problemas.push({
+              tipo: 'bolsista',
+              monitor: b.aluno.nomeCompleto,
+              campo: 'Dados Bancários',
+              mensagem: 'Conta não informada',
+            })
           }
         }
       }
@@ -213,7 +233,12 @@ export function createPlanilhaPROGRADService(repo: RelatoriosRepository) {
 
         for (const v of voluntarios) {
           if (!v.aluno.cpf) {
-            problemas.push({ tipo: 'voluntario', monitor: v.aluno.nomeCompleto, campo: 'CPF', mensagem: 'CPF não informado' })
+            problemas.push({
+              tipo: 'voluntario',
+              monitor: v.aluno.nomeCompleto,
+              campo: 'CPF',
+              mensagem: 'CPF não informado',
+            })
           }
         }
       }

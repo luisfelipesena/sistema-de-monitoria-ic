@@ -7,12 +7,9 @@ import { ProfessoresTable } from "@/components/features/admin/dashboard/Professo
 import { ProjectsTable } from "@/components/features/admin/dashboard/ProjectsTable"
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { useDashboard } from "@/hooks/features/useDashboard"
-import { useProactiveRemindersBackground } from "@/hooks/use-proactive-reminders"
 import { Loader } from "lucide-react"
 
 export default function DashboardAdmin() {
-  // Execute proactive reminders in background when admin accesses dashboard
-  useProactiveRemindersBackground()
   const {
     abaAtiva,
     setAbaAtiva,

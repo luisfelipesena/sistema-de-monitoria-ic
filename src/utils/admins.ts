@@ -2,11 +2,7 @@ import { db } from '@/server/db'
 import { userTable } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 
-const ADMIN_EMAILS = [
-  'luis.sena+admin@ufba.br',
-  'rubisleypl@ufba.br',
-  'dcc@ufba.br',
-]
+const ADMIN_EMAILS = ['luis.sena+admin@ufba.br', 'rubisleypl@ufba.br', 'dcc@ufba.br']
 
 export const isAdminEmail = (email: string | null | undefined) => !!email && ADMIN_EMAILS.includes(email.toLowerCase())
 

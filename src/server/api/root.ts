@@ -19,6 +19,7 @@ import { projetoRouter } from '@/server/api/routers/projeto/projeto'
 import { publicPdfRouter } from '@/server/api/routers/public-pdf/public-pdf'
 import { relatoriosFinaisRouter } from '@/server/api/routers/relatorios-finais/relatorios-finais'
 import { relatoriosRouter } from '@/server/api/routers/relatorios/relatorios'
+import { relatoriosValidationRouter } from '@/server/api/routers/relatorios/relatorios-validation'
 import { scholarshipAllocationRouter } from '@/server/api/routers/scholarship-allocation/scholarship-allocation'
 import { selecaoRouter } from '@/server/api/routers/selecao/selecao'
 import { signatureRouter } from '@/server/api/routers/signature/signature'
@@ -45,6 +46,7 @@ export const appRouter = createTRPCRouter({
   projetoTemplates: projetoTemplatesRouter,
   relatorios: relatoriosRouter,
   relatoriosFinais: relatoriosFinaisRouter,
+  relatoriosValidation: relatoriosValidationRouter,
   analytics: analyticsRouter,
   apiKey: apiKeyRouter,
   selecao: selecaoRouter,

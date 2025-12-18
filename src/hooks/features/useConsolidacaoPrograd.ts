@@ -15,6 +15,91 @@ export function useConsolidacaoPrograd() {
 
   const { data: consolidationData, isLoading, refetch } = useConsolidatedMonitoringData(selectedYear, selectedSemester)
 
+  // Validation status for reports
+  const {
+    data: validationStatus,
+    isLoading: isLoadingValidation,
+    refetch: refetchValidation,
+  } = api.relatoriosValidation.getValidationStatus.useQuery(
+    { ano: selectedYear, semestre: selectedSemester },
+    { enabled: !!selectedYear && !!selectedSemester }
+  )
+
+  // Notification mutations
+  const notifyProfessorsMutation = api.relatoriosValidation.notifyProfessorsToGenerateReports.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: 'Notificações Enviadas',
+        description: `${result.emailsEnviados} professor(es) notificado(s).${result.errors.length > 0 ? ` ${result.errors.length} erro(s).` : ''}`,
+      })
+      refetchValidation()
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao Notificar',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+
+  const notifyStudentsMutation = api.relatoriosValidation.notifyStudentsWithPendingReports.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: 'Notificações Enviadas',
+        description: `${result.emailsEnviados} aluno(s) notificado(s).${result.errors.length > 0 ? ` ${result.errors.length} erro(s).` : ''}`,
+      })
+      refetchValidation()
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao Notificar',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+
+  const sendCertificatesMutation = api.relatoriosValidation.enviarCertificadosParaNUMOP.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: result.success ? 'Certificados Enviados' : 'Erro no Envio',
+        description: result.message,
+        variant: result.success ? 'default' : 'destructive',
+      })
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao Enviar',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+
+  const handleNotifyProfessors = (prazoFinal?: Date) => {
+    notifyProfessorsMutation.mutate({
+      ano: selectedYear,
+      semestre: selectedSemester,
+      prazoFinal,
+    })
+  }
+
+  const handleNotifyStudents = () => {
+    notifyStudentsMutation.mutate({
+      ano: selectedYear,
+      semestre: selectedSemester,
+    })
+  }
+
+  const handleSendCertificates = (emailDestino: string) => {
+    sendCertificatesMutation.mutate({
+      ano: selectedYear,
+      semestre: selectedSemester,
+      emailDestino,
+    })
+  }
+
   const tipoExportacao =
     incluirBolsistas && incluirVoluntarios ? 'ambos' : incluirBolsistas ? 'bolsistas' : 'voluntarios'
 
@@ -92,15 +177,35 @@ export function useConsolidacaoPrograd() {
     const sheet = workbook.addWorksheet('Consolidação Monitoria')
 
     const headers = [
-      'Matrícula Monitor', 'Nome Monitor', 'Email Monitor', 'CR', 'Tipo Monitoria', 'Valor Bolsa',
-      'Projeto', 'Disciplinas', 'Professor Responsável', 'SIAPE Professor', 'Departamento',
-      'Carga Horária Semanal', 'Total Horas', 'Data Início', 'Data Fim', 'Status', 'Período',
-      'Banco', 'Agência', 'Conta', 'Dígito',
+      'Matrícula Monitor',
+      'Nome Monitor',
+      'Email Monitor',
+      'CR',
+      'Tipo Monitoria',
+      'Valor Bolsa',
+      'Projeto',
+      'Disciplinas',
+      'Professor Responsável',
+      'SIAPE Professor',
+      'Departamento',
+      'Carga Horária Semanal',
+      'Total Horas',
+      'Data Início',
+      'Data Fim',
+      'Status',
+      'Período',
+      'Banco',
+      'Agência',
+      'Conta',
+      'Dígito',
     ]
 
     const greenFill = { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FF92D050' } }
     const thinBorder = {
-      top: { style: 'thin' as const }, left: { style: 'thin' as const }, bottom: { style: 'thin' as const }, right: { style: 'thin' as const },
+      top: { style: 'thin' as const },
+      left: { style: 'thin' as const },
+      bottom: { style: 'thin' as const },
+      right: { style: 'thin' as const },
     }
 
     const headerRow = sheet.addRow(headers)
@@ -185,5 +290,15 @@ export function useConsolidacaoPrograd() {
     handleSendEmail,
     generateXLSXSpreadsheet,
     refetch,
+    // Report notification features
+    validationStatus,
+    isLoadingValidation,
+    isNotifyingProfessors: notifyProfessorsMutation.isPending,
+    isNotifyingStudents: notifyStudentsMutation.isPending,
+    isSendingCertificates: sendCertificatesMutation.isPending,
+    handleNotifyProfessors,
+    handleNotifyStudents,
+    handleSendCertificates,
+    refetchValidation,
   }
 }

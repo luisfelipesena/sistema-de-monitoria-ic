@@ -59,7 +59,11 @@ export function createRelatoriosExportService(
       const workbook = new ExcelJS.Workbook()
       let fileName = ''
 
-      const addSheetWithData = (sheetName: string, headers: string[], rows: (string | number | null | undefined)[][]) => {
+      const addSheetWithData = (
+        sheetName: string,
+        headers: string[],
+        rows: (string | number | null | undefined)[][]
+      ) => {
         const sheet = workbook.addWorksheet(sheetName)
         const headerRow = sheet.addRow(headers)
         applyHeaderStyle(headerRow)
@@ -75,7 +79,14 @@ export function createRelatoriosExportService(
       switch (tipo) {
         case 'departamentos': {
           const dados = await repo.findDepartamentosReport(ano, semestre)
-          const headers = ['Departamento', 'Sigla', 'Total Projetos', 'Projetos Aprovados', 'Bolsas Solicitadas', 'Bolsas Disponibilizadas']
+          const headers = [
+            'Departamento',
+            'Sigla',
+            'Total Projetos',
+            'Projetos Aprovados',
+            'Bolsas Solicitadas',
+            'Bolsas Disponibilizadas',
+          ]
           const rows = dados.map((item) => [
             item.departamento.nome,
             item.departamento.sigla,
@@ -92,7 +103,16 @@ export function createRelatoriosExportService(
 
         case 'professores': {
           const dados = await repo.findProfessoresReport(ano, semestre)
-          const headers = ['Nome Completo', 'Email', 'Departamento', 'Sigla Depto', 'Total Projetos', 'Projetos Aprovados', 'Bolsas Solicitadas', 'Bolsas Disponibilizadas']
+          const headers = [
+            'Nome Completo',
+            'Email',
+            'Departamento',
+            'Sigla Depto',
+            'Total Projetos',
+            'Projetos Aprovados',
+            'Bolsas Solicitadas',
+            'Bolsas Disponibilizadas',
+          ]
           const rows = dados.map((item) => [
             item.professor.nomeCompleto,
             item.professor.emailInstitucional,
@@ -111,7 +131,16 @@ export function createRelatoriosExportService(
 
         case 'alunos': {
           const dados = await repo.findAlunosReport(ano, semestre)
-          const headers = ['Nome Completo', 'Email', 'Matrícula', 'CR', 'Status Inscrição', 'Tipo Vaga Pretendida', 'Projeto', 'Professor Responsável']
+          const headers = [
+            'Nome Completo',
+            'Email',
+            'Matrícula',
+            'CR',
+            'Status Inscrição',
+            'Tipo Vaga Pretendida',
+            'Projeto',
+            'Professor Responsável',
+          ]
           const rows = dados.map((item) => [
             item.aluno.nomeCompleto,
             item.aluno.emailInstitucional,
@@ -130,7 +159,14 @@ export function createRelatoriosExportService(
 
         case 'disciplinas': {
           const dados = await repo.findDisciplinasReport(ano, semestre)
-          const headers = ['Código', 'Nome Disciplina', 'Departamento', 'Sigla Depto', 'Total Projetos', 'Projetos Aprovados']
+          const headers = [
+            'Código',
+            'Nome Disciplina',
+            'Departamento',
+            'Sigla Depto',
+            'Total Projetos',
+            'Projetos Aprovados',
+          ]
           const rows = dados.map((item) => [
             item.disciplina.codigo,
             item.disciplina.nome,
@@ -147,7 +183,17 @@ export function createRelatoriosExportService(
 
         case 'editais': {
           const dados = await repo.findEditaisReport(ano)
-          const headers = ['Número Edital', 'Título', 'Ano', 'Semestre', 'Data Início', 'Data Fim', 'Publicado', 'Data Publicação', 'Criado Por']
+          const headers = [
+            'Número Edital',
+            'Título',
+            'Ano',
+            'Semestre',
+            'Data Início',
+            'Data Fim',
+            'Publicado',
+            'Data Publicação',
+            'Criado Por',
+          ]
           const rows = dados.map((item) => [
             item.edital.numeroEdital,
             item.edital.titulo,

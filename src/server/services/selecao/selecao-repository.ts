@@ -1,15 +1,12 @@
 import type { db } from '@/server/db'
 import {
-  alunoTable,
   assinaturaDocumentoTable,
   ataSelecaoTable,
-  departamentoTable,
   disciplinaTable,
   inscricaoTable,
   professorTable,
   projetoDisciplinaTable,
   projetoTable,
-  userTable,
 } from '@/server/db/schema'
 import {
   PROJETO_STATUS_APPROVED,
@@ -18,7 +15,7 @@ import {
   type Semestre,
 } from '@/types'
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
-import { and, count, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, isNotNull } from 'drizzle-orm'
 
 // Types for pagination filters
 export interface SelecaoAdminFilters {
@@ -255,7 +252,10 @@ export function createSelecaoRepository(db: Database) {
           limit: filters.limit,
           offset: filters.offset,
         }),
-        db.select({ count: count() }).from(projetoTable).where(and(...conditions)),
+        db
+          .select({ count: count() })
+          .from(projetoTable)
+          .where(and(...conditions)),
         this.getSelecaoStats(conditions),
       ])
 
@@ -445,7 +445,9 @@ export function createSelecaoRepository(db: Database) {
         db
           .select({ count: count() })
           .from(ataSelecaoTable)
-          .where(baseCondition ? and(baseCondition, eq(ataSelecaoTable.assinado, true)) : eq(ataSelecaoTable.assinado, true)),
+          .where(
+            baseCondition ? and(baseCondition, eq(ataSelecaoTable.assinado, true)) : eq(ataSelecaoTable.assinado, true)
+          ),
       ])
 
       const total = totalResult[0]?.count ?? 0

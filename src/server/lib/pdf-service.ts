@@ -269,11 +269,11 @@ export class PDFService {
         undefined,
         disciplinaCodigo && professorNome
           ? {
-            disciplinaCodigo,
-            professorNome,
-            ano: data.ano,
-            semestre: data.semestre,
-          }
+              disciplinaCodigo,
+              professorNome,
+              ano: data.ano,
+              semestre: data.semestre,
+            }
           : undefined
       )
 
