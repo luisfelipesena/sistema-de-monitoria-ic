@@ -323,7 +323,7 @@ export function createFileService(db: Database) {
         })
 
         objectsStream.on('end', () => {
-          ; (async () => {
+          ;(async () => {
             // Filter by projetoId metadata
             const matchingFiles: Array<{ name: string; lastModified: Date }> = []
             for (const file of pdfFiles) {
