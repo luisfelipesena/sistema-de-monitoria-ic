@@ -126,17 +126,35 @@ SLIDE 15 - FUNCIONALIDADES POR PERFIL (1 min)
 - "Para estudantes: visualização de vagas disponíveis, inscrição em projetos, acompanhamento de resultados, aceite ou rejeição de vagas, e preenchimento de dados bancários."
 
 ========================================
-SLIDE 16 - RESULTADOS DA AVALIAÇÃO (1 min)
+SLIDE 16 - METODOLOGIA DE AVALIAÇÃO COM USUÁRIOS (1 min)
 ========================================
-- "A avaliação do sistema será realizada com professores através de questionário Likert."
-- "Serão avaliados aspectos de expectativa como importação, templates, PDFs e assinaturas."
-- "Também aspectos de avaliação como feedback e estados do sistema."
-- "E aspectos de impacto como geração de planilhas para PROGRAD e transparência do processo."
-- "A validação técnica foi conduzida através de testes automatizados: 55 testes em 15 arquivos, 100% de aprovação, execução em menos de 1 segundo."
-- "A cobertura inclui RBAC, workflow de projetos, processo seletivo, importação de planejamento e publicação de editais."
+- "A avaliação com usuários seguiu uma abordagem qualitativa exploratória."
+- "Com apenas dois participantes, uma análise quantitativa com escala Likert não teria validade estatística. Por isso, optamos por técnicas qualitativas que capturam insights mais ricos."
+- "Utilizamos três técnicas complementares: walkthrough guiado, onde os participantes executam tarefas predefinidas; protocolo think-aloud, onde verbalizam seus pensamentos durante o uso; e entrevista semiestruturada ao final."
+- "Os participantes foram o Professor Rubisley, atuando como administrador, e o Professor Frederico, atuando como professor."
+- "Cada sessão durou aproximadamente uma hora, com gravação de tela e áudio."
+- "A validação técnica foi conduzida com 55 testes automatizados, 100% de aprovação, execução em pouco mais de 1 segundo."
 
 ========================================
-SLIDE 17 - CONTRIBUIÇÕES DO TRABALHO (1 min)
+SLIDE 17 - ROTEIRO DE AVALIAÇÃO (1 min)
+========================================
+- "O roteiro foi estruturado em três sessões sequenciais, simulando o fluxo real do sistema."
+- "Na primeira sessão, o administrador faz login, importa a planilha de planejamento do DCC, verifica as notificações enviadas e visualiza os projetos criados."
+- "Na segunda sessão, o professor recupera sua senha pelo primeiro acesso, completa o onboarding com SIAPE e assinatura digital, cria um template para a disciplina, edita o projeto do semestre, e finalmente assina e submete."
+- "Na terceira sessão, o administrador volta ao sistema, visualiza o projeto submetido, analisa os detalhes, aprova e gera a planilha consolidada para o Instituto e PROGRAD."
+- "Após cada walkthrough, conduzimos uma entrevista de 15 minutos explorando experiência geral, comparação com o processo manual, estimativa de economia de tempo e sugestões de melhoria."
+
+========================================
+SLIDE 18 - RESULTADOS DA AVALIAÇÃO QUALITATIVA (1 min)
+========================================
+- "Os resultados da avaliação qualitativa serão apresentados após a realização das sessões."
+- "Para cada perfil, identificaremos pontos positivos, dificuldades encontradas e sugestões de melhoria."
+- "A análise cruzada buscará padrões comuns entre os dois perfis e possíveis divergências de percepção."
+- "Também coletaremos estimativas de economia de tempo baseadas nas percepções dos participantes."
+- "E avaliaremos a intenção de adoção: se os participantes usariam o sistema num semestre real e quais barreiras precisariam ser resolvidas."
+
+========================================
+SLIDE 19 - CONTRIBUIÇÕES DO TRABALHO (1 min)
 ========================================
 - "Este trabalho apresenta quatro contribuições principais."
 - "Primeira: uma arquitetura especializada em três camadas - Router, Service, Repository - específica para o domínio de monitoria com requisitos formais de auditoria."
@@ -145,18 +163,18 @@ SLIDE 17 - CONTRIBUIÇÕES DO TRABALHO (1 min)
 - "Quarta: disponibilização de código aberto com tecnologias modernas e documentação, permitindo replicação por outras universidades."
 
 ========================================
-SLIDE 18 - LIMITAÇÕES E TRABALHOS FUTUROS (1 min)
+SLIDE 20 - LIMITAÇÕES E TRABALHOS FUTUROS (1 min)
 ========================================
-- "Reconheço algumas limitações atuais."
-- "Não há integração automática com o sistema acadêmico SIAC - estudantes precisam anexar histórico e documentos manualmente."
-- "O escopo está restrito ao Instituto de Computação, necessitando adaptações para outros departamentos."
-- "A validação com usuários finais ainda está pendente - o código base está completo, mas falta a validação passo a passo com professores, alunos e administradores em contexto real."
+- "Reconheço algumas limitações do estudo."
+- "A avaliação qualitativa foi conduzida com apenas dois participantes, limitando a generalização dos resultados."
+- "Não incluímos o perfil estudante na avaliação - o fluxo de inscrição e aceite não foi testado com alunos reais."
+- "Não há integração automática com o SIAC - estudantes precisam anexar histórico manualmente."
+- "O escopo está restrito ao Instituto de Computação."
 - "Não há aplicativo móvel nativo, embora a interface seja responsiva."
-- "Os próximos passos incluem: piloto institucional nos próximos seis meses, validação passo a passo com usuários finais, integração com SIAC ou SIGAA para captura automática de dados, app móvel em React Native, e expansão para outros departamentos."
-- "No longo prazo, o objetivo é generalizar para outras universidades públicas brasileiras."
+- "Os próximos passos incluem: piloto institucional, integração com SIAC/SIGAA, app móvel em React Native, e expansão para outros departamentos."
 
 ========================================
-SLIDE 19 - CONCLUSÃO (1 min)
+SLIDE 21 - CONCLUSÃO (1 min)
 ========================================
 - "O Sistema de Monitoria-IC representa um avanço significativo na modernização da gestão acadêmica universitária."
 - "Demonstra que a digitalização e automação de processos tradicionalmente manuais é viável e benéfica."
@@ -165,7 +183,7 @@ SLIDE 19 - CONCLUSÃO (1 min)
 - "O sucesso inicial na UFBA indica alto potencial de replicação em outras instituições que enfrentam desafios similares."
 
 ========================================
-SLIDE 20 - PERGUNTAS (30 seg)
+SLIDE 22 - PERGUNTAS (30 seg)
 ========================================
 - "Agradeço pela atenção. O código fonte está disponível no GitHub e estou à disposição para perguntas."
 
@@ -179,5 +197,5 @@ DICAS PARA APRESENTAÇÃO:
 - Mencionar resultados técnicos concretos (55 testes, 100% sucesso)
 - Conectar teoria (SPT/SIG) com implementação prática
 - Ressaltar potencial de replicação e trabalhos futuros
-- Se perguntarem sobre avaliação com usuários: código completo, validação passo a passo planejada como piloto institucional
+- Se perguntarem sobre metodologia: justificar escolha qualitativa pela amostra reduzida (N=2)
 - Se perguntarem sobre certificados: módulo completo (API + UI), pronto para uso após validação

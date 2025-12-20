@@ -657,111 +657,157 @@ As métricas de desempenho coletadas em ambiente de desenvolvimento local indica
 
 Cabe ressaltar que esta avaliação concentra-se em aspectos técnicos e funcionais do sistema, validando a corretude da implementação em relação aos requisitos especificados na Tabela~\ref{tab:requisitos}. Uma avaliação complementar com usuários finais (professores, estudantes e administradores) em ambiente real de monitoria, incluindo métricas de usabilidade percebida, satisfação, curva de aprendizado e impacto efetivo na redução de tempo gasto em tarefas administrativas, permanece como trabalho futuro prioritário, conforme discutido na Seção~\ref{sec:conclusion}.
 
-\subsection{Avaliação com Professores (Validação Preliminar)}
+\subsection{Avaliação com Usuários (Estudo Qualitativo)}
 
-Além da validação técnica descrita acima, foi conduzida uma avaliação preliminar com docentes, com foco no fluxo enfatizado neste trabalho (importação de planejamento \(\rightarrow\) criação/reuso de templates \(\rightarrow\) assinatura de projetos \(\rightarrow\) aprovação administrativa \(\rightarrow\) geração de planilha para o Instituto/PROGRAD). A pesquisa foi aplicada apenas com professores por duas razões: (i) o papel \textit{admin} é tipicamente representado por um conjunto reduzido de usuários (1--2), e (ii) os docentes apresentam maior diversidade de perfil e uso ao longo do processo, oferecendo evidências mais ricas para análise inicial.
+Além da validação técnica descrita acima, foi conduzida uma avaliação qualitativa exploratória com dois participantes representando os perfis principais do sistema: um administrador (coordenador de monitoria) e um professor. A escolha por abordagem qualitativa, em detrimento de questionários quantitativos com escala Likert, justifica-se pelo número reduzido de participantes disponíveis (N=2), o que inviabiliza análises estatísticas significativas. Estudos qualitativos com amostras pequenas são apropriados para identificar problemas de usabilidade e obter insights profundos sobre a experiência do usuário~\cite{nielsen1994usability, lazar2017research}.
 
-Como validação qualitativa do fluxo, o passo-a-passo foi revisado e conferido em conjunto com o Prof.\ Rubisley de Paula Lemes, verificando a aderência do sistema às etapas administrativas e às ações esperadas do professor no ciclo de criação e submissão do projeto.
+O foco da avaliação compreendeu o fluxo enfatizado neste trabalho: importação de planejamento \(\rightarrow\) criação/reuso de templates \(\rightarrow\) assinatura de projetos \(\rightarrow\) aprovação administrativa \(\rightarrow\) geração de planilha para o Instituto/PROGRAD.
 
-Para capturar percepção de utilidade e satisfação, foi aplicado um questionário estruturado, composto por 10 questões em escala Likert (1 a 5) e 2 questões de resposta binária (Sim/Não). As Tabelas~\ref{tab:questionario-professores} e~\ref{tab:questionario-professores-cont} apresentam o instrumento aplicado. Os valores numéricos e estatísticas apresentadas nas Tabelas~\ref{tab:avaliacao-professores-likert} e~\ref{tab:avaliacao-professores-binario} serão atualizados após a consolidação final das respostas.
+\subsubsection{Metodologia}
 
-A construção do instrumento foi orientada pelo fluxo end-to-end priorizado nesta monografia, de modo que cada pergunta estivesse diretamente associada a uma etapa do processo: notificação após importação do planejamento, criação e reuso de template por disciplina, geração e pré-visualização do PDF, assinatura e submissão do projeto, feedback administrativo e consolidação em planilha para o Instituto/PROGRAD. Dessa forma, buscou-se reduzir ambiguidade na interpretação e favorecer respostas ancoradas em funcionalidades concretas do sistema.
+A metodologia adotada combinou três técnicas complementares de coleta de dados:
 
-O questionário foi aplicado após uma demonstração guiada do fluxo e exploração livre do sistema pelos participantes. Para as questões Q1--Q10, utilizou-se escala Likert de 1 a 5, onde (1) \textit{Discordo totalmente}, (2) \textit{Discordo parcialmente}, (3) \textit{Neutro}, (4) \textit{Concordo parcialmente} e (5) \textit{Concordo totalmente}. As questões Q11--Q12 foram incluídas como indicadores binários de intenção de adoção e recomendação, complementando a avaliação de satisfação.
+\begin{enumerate}
+  \item \textbf{Walkthrough guiado}: cada participante realizou tarefas predefinidas correspondentes ao seu perfil, seguindo um roteiro estruturado que cobria as funcionalidades principais do sistema. Durante a execução, foram registrados checkpoints de sucesso/falha, tempo gasto e dificuldades observadas.
 
-Na análise, as respostas serão consolidadas por distribuição de frequências e estatísticas descritivas (média, desvio padrão e variância) para as questões em escala, além da proporção de respostas Sim/Não nas questões binárias. Os resultados quantitativos serão preenchidos nesta seção após a coleta final do formulário (\textit{N} de respondentes e valores nas tabelas estão marcados como \textit{TODO}).
+  \item \textbf{Protocolo Think-Aloud}: os participantes foram instruídos a verbalizar seus pensamentos durante a interação com o sistema, expressando expectativas, dúvidas, surpresas e frustrações. Essa técnica permite capturar a experiência do usuário em tempo real, identificando problemas de usabilidade que não seriam evidentes apenas pela observação.
+
+  \item \textbf{Entrevista semiestruturada}: após o walkthrough, foi conduzida uma entrevista de aproximadamente 15 minutos com cada participante, explorando percepções gerais, pontos positivos e negativos, comparação com o processo manual atual e sugestões de melhoria.
+\end{enumerate}
+
+As sessões foram gravadas (tela e áudio) mediante consentimento dos participantes, totalizando aproximadamente 1 hora por participante. A análise dos dados seguiu a técnica de análise temática~\cite{braun2006using}, identificando padrões recorrentes nas verbalizações e respostas.
+
+\subsubsection{Participantes e Perfis}
+
+A Tabela~\ref{tab:participantes} apresenta os participantes e suas atribuições no estudo.
+
+\begin{table}[htb]
+  \centering
+  \small
+  \caption{Participantes da avaliação qualitativa.}
+  \label{tab:participantes}
+  \begin{tblr}{
+    width=\linewidth,
+    colspec={|Q[c,2cm]|Q[c,2cm]|X[l]|},
+    hlines,
+    vlines
+  }
+    \textbf{Participante} & \textbf{Perfil} & \textbf{Tarefas Realizadas} \\
+    Prof.\ Rubisley & Admin & Importar planejamento, verificar notificações, aprovar projeto, gerar planilha PROGRAD \\
+    Prof.\ Frederico & Professor & Primeiro acesso (senha), onboarding, criar template, editar projeto, assinar e submeter \\
+  \end{tblr}
+\end{table}
+
+\subsubsection{Roteiro de Tarefas}
+
+O walkthrough foi estruturado em três sessões sequenciais, simulando o fluxo real de uso do sistema:
+
+\textbf{Sessão 1 -- Administrador (Parte 1):}
+\begin{itemize}
+  \item Login como administrador
+  \item Importar planilha de planejamento do DCC
+  \item Verificar professores notificados automaticamente
+  \item Visualizar projetos criados (status: pendente de assinatura)
+\end{itemize}
+
+\textbf{Sessão 2 -- Professor:}
+\begin{itemize}
+  \item Primeiro acesso: recuperação de senha via ``Esqueci minha senha''
+  \item Login e completar onboarding (SIAPE, CPF, assinatura digital)
+  \item Visualizar projeto criado pela importação
+  \item Criar/editar template padrão para a disciplina
+  \item Editar projeto do semestre (bolsas, voluntários, atividades)
+  \item Pré-visualizar PDF, assinar digitalmente e submeter
+\end{itemize}
+
+\textbf{Sessão 3 -- Administrador (Parte 2):}
+\begin{itemize}
+  \item Visualizar projeto submetido pelo professor
+  \item Analisar detalhes e aprovar o projeto
+  \item Gerar planilha consolidada para Instituto/PROGRAD
+\end{itemize}
+
+\subsubsection{Roteiro de Entrevista}
+
+A Tabela~\ref{tab:roteiro-entrevista} apresenta as perguntas utilizadas nas entrevistas semiestruturadas, organizadas por categoria de análise.
 
 \begin{table*}[htb]
   \centering
   \small
-  \caption{Questionário aplicado aos professores (enunciados completos).}
-  \label{tab:questionario-professores}
+  \caption{Roteiro de entrevista semiestruturada por perfil de usuário.}
+  \label{tab:roteiro-entrevista}
   \begin{adjustbox}{max width=\textwidth}
     \begin{tblr}{
       width=\textwidth,
-      colspec={|Q[c,1.2cm]|X[l]|},
+      colspec={|Q[c,1.8cm]|Q[c,1.5cm]|X[l]|},
       hlines,
       vlines
     }
-      \textbf{Variável} & \textbf{Questão} \\
-      Q1 & Após o administrador importar o planejamento semestral, o sistema identifica disciplinas e professores e notifica automaticamente o docente sobre projetos pendentes de revisão. Essa funcionalidade atendeu às suas expectativas? \\
-      Q2 & Ao criar um projeto para uma disciplina, o sistema permite criar/atualizar um template padrão (título, descrição, carga horária, público-alvo e atividades) para reuso em semestres futuros. Essa funcionalidade atendeu às suas expectativas? \\
-      Q3 & Ao reutilizar o template padrão, o preenchimento do projeto do semestre (com possibilidade de ajustes) reduz retrabalho e acelera a submissão do documento. Essa funcionalidade atendeu às suas expectativas? \\
-      Q4 & A geração e pré-visualização do PDF do projeto antes da assinatura ajudam a reduzir erros e aumentam a confiança na submissão. Essa funcionalidade atendeu às suas expectativas? \\
-      Q5 & O processo de assinatura digital do projeto no módulo \textit{Assinatura de Documentos} (abrir documento, assinar, submeter para análise) é simples e adequado para o fluxo do semestre. Como você avalia essa funcionalidade? \\
-      Q6 & Após a assinatura e submissão, o feedback administrativo (aprovação/rejeição) é apresentado de forma clara e orienta correções quando necessário. Como você avalia essa funcionalidade? \\
+      \textbf{Categoria} & \textbf{Perfil} & \textbf{Pergunta} \\
+      Experiência geral & Ambos & Descreva sua experiência geral com o sistema. O que mais chamou sua atenção (positivo ou negativo)? \\
+      Importação & Admin & A importação da planilha funcionou como esperava? Os erros (se houve) foram bem explicados? \\
+      Notificações & Admin & Conseguiu verificar quais professores foram notificados? O feedback do sistema foi suficiente? \\
+      Primeiro acesso & Professor & O processo de primeiro acesso (recuperação de senha, onboarding) foi tranquilo? O que poderia melhorar? \\
+      Template & Professor & A criação de template foi útil? Usaria em semestres futuros para economizar tempo? \\
+      Assinatura digital & Professor & O processo de assinatura digital foi intuitivo? Confia que a assinatura foi registrada corretamente? \\
+      PDF gerado & Professor & O PDF gerado atendeu suas expectativas? A pré-visualização foi útil antes de assinar? \\
+      Aprovação & Admin & O fluxo de aprovação/rejeição está intuitivo? As informações são suficientes para tomar a decisão? \\
+      Planilha PROGRAD & Admin & A planilha gerada atende às necessidades reais? Precisaria de ajustes manuais antes de enviar? \\
+      Comparação & Ambos & Comparando com o processo manual atual (planilhas, emails): o que ficou mais fácil? O que ainda parece complicado? \\
+      Economia de tempo & Ambos & Quanto tempo você estima que economizaria por semestre usando o sistema? \\
+      Adoção & Ambos & Conseguiria usar esse sistema num semestre real? Quais barreiras precisariam ser resolvidas? \\
+      Sugestões & Ambos & O que mudaria ou adicionaria ao sistema? Alguma funcionalidade crítica está faltando? \\
     \end{tblr}
   \end{adjustbox}
 \end{table*}
 
-\begin{table*}[htb]
-  \centering
-  \small
-  \caption{Continuação do questionário aplicado aos professores.}
-  \label{tab:questionario-professores-cont}
-  \begin{adjustbox}{max width=\textwidth}
-    \begin{tblr}{
-      width=\textwidth,
-      colspec={|Q[c,1.2cm]|X[l]|},
-      hlines,
-      vlines
-    }
-      \textbf{Variável} & \textbf{Questão} \\
-      Q7 & Os estados do projeto (por exemplo: rascunho, pendente de assinatura, em análise, aprovado, rejeitado) são compreensíveis e ajudam no acompanhamento do processo. Essa funcionalidade atendeu às suas expectativas? \\
-      Q8 & A consolidação dos projetos aprovados em planilha para envio ao Instituto/PROGRAD (incluindo links/anexos para PDFs) facilita o trâmite administrativo do semestre. Essa funcionalidade atendeu às suas expectativas? \\
-      Q9 & O fluxo implementado aumenta transparência e rastreabilidade das ações (quem fez o quê e em que etapa) no processo de monitoria. Essa funcionalidade atendeu às suas expectativas? \\
-      Q10 & Considerando as fases 1 e 2 (importação, template, criação/assinatura e aprovação/planilha), qual o seu nível de satisfação geral com o Sistema de Monitoria-IC? \\
-      Q11 & Você utilizaria o Sistema de Monitoria-IC no lugar do processo manual atual do Instituto de Computação? (Sim/Não) \\
-      Q12 & Você recomendaria a adoção do Sistema de Monitoria-IC para o Instituto de Computação em um semestre de monitoria real? (Sim/Não) \\
-    \end{tblr}
-  \end{adjustbox}
-\end{table*}
+\subsubsection{Resultados da Avaliação Qualitativa}
 
-\begin{table*}[htb]
-  \centering
-  \small
-  \caption{Distribuição das respostas (Likert 1--5) do questionário aplicado a professores.}
-  \label{tab:avaliacao-professores-likert}
-  \begin{adjustbox}{max width=\textwidth}
-    \begin{tblr}{
-      width=\textwidth,
-      colspec={|Q[c,0.8cm]|Q[c,1.6cm]|X[l]|Q[c,0.55cm]|Q[c,0.55cm]|Q[c,0.55cm]|Q[c,0.55cm]|Q[c,0.55cm]|Q[c,1.0cm]|Q[c,1.2cm]|Q[c,1.2cm]|},
-      hlines,
-      vlines
-    }
-      \textbf{Q} & \textbf{Fator avaliado} & \textbf{Funcionalidade (resumo)} & \textbf{1} & \textbf{2} & \textbf{3} & \textbf{4} & \textbf{5} & \textbf{Média} & \textbf{Std. Desvio} & \textbf{Variância} \\
-      Q1 & Expectativa & Importação e notificação automática após o planejamento. & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} \\
-      Q2 & Expectativa & Criação/edição de template padrão por disciplina. & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} \\
-      Q3 & Expectativa & Reuso do template no projeto do semestre (redução de retrabalho). & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} \\
-      Q4 & Expectativa & Pré-visualização do PDF antes da assinatura/submissão. & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} \\
-      Q5 & Avaliação & Assinatura digital do projeto e submissão para análise. & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} \\
-      Q6 & Avaliação & Clareza do feedback administrativo (aprovação/rejeição). & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} \\
-      Q7 & Expectativa & Compreensão dos estados do projeto no dashboard. & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} \\
-      Q8 & Impacto & Planilha consolidada para Instituto/PROGRAD (links/anexos). & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} \\
-      Q9 & Impacto & Transparência e rastreabilidade do fluxo. & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} \\
-      Q10 & Avaliação & Satisfação geral com as fases 1 e 2. & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} & \textit{TODO} \\
-    \end{tblr}
-  \end{adjustbox}
-\end{table*}
+Os resultados da avaliação qualitativa serão apresentados após a realização das sessões com os participantes. A análise seguirá a estrutura de análise temática, identificando:
 
-\begin{table*}[htb]
+\textbf{Perfil Administrador:}
+\begin{itemize}
+  \item Pontos positivos identificados: \textit{TODO}
+  \item Dificuldades encontradas: \textit{TODO}
+  \item Sugestões de melhoria: \textit{TODO}
+\end{itemize}
+
+\textbf{Perfil Professor:}
+\begin{itemize}
+  \item Pontos positivos identificados: \textit{TODO}
+  \item Dificuldades encontradas: \textit{TODO}
+  \item Sugestões de melhoria: \textit{TODO}
+\end{itemize}
+
+\textbf{Análise Cruzada:}
+\begin{itemize}
+  \item Padrões comuns entre os perfis: \textit{TODO}
+  \item Divergências de percepção: \textit{TODO}
+\end{itemize}
+
+\textbf{Validação dos Objetivos Específicos:}
+
+A Tabela~\ref{tab:validacao-objetivos} apresentará a validação dos objetivos específicos com base nas evidências coletadas.
+
+\begin{table}[htb]
   \centering
   \small
-  \caption{Distribuição das respostas (Sim/Não) do questionário aplicado a professores.}
-  \label{tab:avaliacao-professores-binario}
-  \begin{adjustbox}{max width=\textwidth}
-    \begin{tblr}{
-      width=\textwidth,
-      colspec={|Q[c,0.8cm]|X[l]|Q[c,1.2cm]|Q[c,1.2cm]|},
-      hlines,
-      vlines
-    }
-      \textbf{Q} & \textbf{Pergunta} & \textbf{Sim} & \textbf{Não} \\
-      Q11 & Você utilizaria o Sistema de Monitoria-IC no lugar do processo manual atual? & \textit{TODO} & \textit{TODO} \\
-      Q12 & Você recomendaria o Sistema de Monitoria-IC para adoção no Instituto de Computação? & \textit{TODO} & \textit{TODO} \\
-    \end{tblr}
-  \end{adjustbox}
-\end{table*}
+  \caption{Validação dos objetivos específicos com base na avaliação qualitativa.}
+  \label{tab:validacao-objetivos}
+  \begin{tblr}{
+    width=\linewidth,
+    colspec={|X[l]|Q[c,2cm]|X[l]|},
+    hlines,
+    vlines
+  }
+    \textbf{Objetivo Específico} & \textbf{Status} & \textbf{Evidência} \\
+    Digitalizar ciclo completo de projetos & \textit{TODO} & \textit{TODO} \\
+    Automatizar processo seletivo & \textit{TODO} & \textit{TODO} \\
+    Sistematizar alocação de bolsas & \textit{TODO} & \textit{TODO} \\
+    Eliminar trabalhos manuais repetitivos & \textit{TODO} & \textit{TODO} \\
+    Fornecer base analítica para decisões & \textit{TODO} & \textit{TODO} \\
+  \end{tblr}
+\end{table}
 
 \FloatBarrier
 \clearpage
@@ -771,16 +817,20 @@ Na análise, as respostas serão consolidadas por distribuição de frequências
 Esta avaliação apresenta limitações importantes que devem ser consideradas na interpretação dos resultados:
 
 \begin{itemize}
-  \item Ausência de avaliação com usuários finais: até o momento, não foi conduzida uma avaliação empírica com professores, estudantes e administradores utilizando o sistema em contexto real de monitoria. Assim, não há dados diretos sobre usabilidade percebida, satisfação, curva de aprendizado ou impacto subjetivo na rotina dos atores envolvidos.
+  \item \textbf{Amostra reduzida}: a avaliação qualitativa foi conduzida com apenas dois participantes (N=2), o que limita a generalização dos resultados. Embora estudos qualitativos com amostras pequenas sejam válidos para identificar problemas de usabilidade~\cite{nielsen1994usability}, uma avaliação mais abrangente com maior número de usuários seria desejável para confirmar os padrões identificados.
 
-  \item Ambiente controlado de testes: os experimentos foram realizados em ambiente controlado, com dados de exemplo e volume de acessos compatível com o cenário do Instituto de Computação. A extrapolação para contextos de maior escala (por exemplo, uso institucional ampliado para toda a UFBA) deve ser feita com cautela.
+  \item \textbf{Ausência do perfil estudante}: a avaliação focou nos perfis de administrador e professor, não incluindo estudantes. O fluxo de inscrição, seleção e aceite de vagas pelos alunos não foi avaliado empiricamente com usuários reais.
 
-  \item Métricas predominantemente técnicas: os indicadores analisados focam em aspectos técnicos (cobertura de testes, sucesso de cenários, tempos de resposta), sem contemplar comparações quantitativas diretas entre o processo manual e o processo automatizado em termos de tempo gasto, número de erros administrativos ou retrabalho efetivamente reduzido.
+  \item \textbf{Ambiente controlado}: os experimentos foram realizados em ambiente de desenvolvimento/staging, com dados de exemplo. A extrapolação para contextos de maior escala (por exemplo, uso institucional ampliado para toda a UFBA) deve ser feita com cautela.
 
-  \item Evolução contínua do sistema: o Sistema de Monitoria-IC foi concebido como um software em evolução. Alterações futuras na arquitetura, no modelo de dados ou nas regras de negócio podem alterar o comportamento observado nesta avaliação, exigindo reexecução periódica dos testes automatizados e coleta de novas métricas.
+  \item \textbf{Ausência de comparação quantitativa}: não foram coletadas métricas comparativas diretas (tempo gasto, número de erros) entre o processo manual e o processo automatizado. As estimativas de economia de tempo baseiam-se nas percepções dos participantes.
+
+  \item \textbf{Viés de seleção}: os participantes são professores do Instituto de Computação, com familiaridade com sistemas digitais acima da média. Usuários com menor experiência tecnológica podem ter experiências diferentes.
+
+  \item \textbf{Evolução contínua do sistema}: o Sistema de Monitoria-IC foi concebido como software em evolução. Alterações futuras podem alterar o comportamento observado, exigindo reavaliação periódica.
 \end{itemize}
 
-Em síntese, a avaliação experimental realizada indica robustez e coerência técnica da solução proposta, mas ainda carece de estudos com usuários finais para confirmar empiricamente os ganhos de eficiência e transparência almejados. Essa etapa é tratada como prioritária no plano de trabalhos futuros.
+Em síntese, a avaliação experimental combinou validação técnica (55 testes automatizados, 100\% aprovação) com avaliação qualitativa exploratória, fornecendo evidências preliminares de usabilidade e utilidade. A validação em ambiente real de produção, com maior número de usuários e métricas quantitativas de impacto, permanece como trabalho futuro prioritário.
 
 \FloatBarrier
 
