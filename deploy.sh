@@ -2,15 +2,32 @@
 set -e
 
 # Configurações
-REMOTE="ssh://dokku@200.128.51.137:9999/sistema-de-monitoria" # Target Dokku app name
 SSH_PORT=9999
-# Optional: Specify the local branch to deploy, default to current branch
+SSH_HOST="dokku@200.128.51.137"
 LOCAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-echo "Fazendo push do branch local '$LOCAL_BRANCH' para Dokku ($REMOTE)"
+# Target selection (default: main app)
+TARGET=${1:-main}
 
-# Fazendo push direto do branch atual para o master do Dokku
-# Use -f para forçar o push, sobrescrevendo o histórico no Dokku remote (comum para deploys)
+case $TARGET in
+  main|app)
+    REMOTE="ssh://$SSH_HOST:$SSH_PORT/sistema-de-monitoria"
+    APP_NAME="sistema-de-monitoria"
+    ;;
+  minio)
+    REMOTE="ssh://$SSH_HOST:$SSH_PORT/sistema-de-monitoria-minio"
+    APP_NAME="sistema-de-monitoria-minio"
+    ;;
+  *)
+    echo "Usage: ./deploy.sh [main|minio]"
+    echo "  main/app - Deploy main application (default)"
+    echo "  minio    - Deploy minio service"
+    exit 1
+    ;;
+esac
+
+echo "Deploying '$LOCAL_BRANCH' to $APP_NAME ($REMOTE)"
+
 GIT_SSH_COMMAND="ssh -p $SSH_PORT" git push -f "$REMOTE" "$LOCAL_BRANCH":master
 
-echo "Deploy do branch '$LOCAL_BRANCH' concluído para $REMOTE" 
+echo "Deploy of '$LOCAL_BRANCH' to $APP_NAME completed"
