@@ -137,15 +137,16 @@ WHERE u.email = 'esa@dcc.ufba.br' AND d.sigla = 'DCC'
   AND NOT EXISTS (SELECT 1 FROM "professor" p WHERE p.user_id = u.id);
 
 -- Frederico Araújo Durão
+-- NOTE: Correct email is fdurao@ufba.br (not fduaro - typo on UFBA website)
 INSERT INTO "user" (username, email, role, password_hash, email_verified_at)
-VALUES ('fduaro', 'fduaro@ufba.br', 'professor', NULL, NULL)
+VALUES ('fdurao', 'fdurao@ufba.br', 'professor', NULL, NULL)
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO "professor" (user_id, nome_completo, departamento_id, regime, tipo_professor, account_status, email_institucional)
-SELECT u.id, 'Frederico Araújo Durão', d.id, 'DE', 'EFETIVO', 'PENDING', 'fduaro@ufba.br'
+SELECT u.id, 'Frederico Araújo Durão', d.id, 'DE', 'EFETIVO', 'PENDING', 'fdurao@ufba.br'
 FROM "user" u
 CROSS JOIN "departamento" d
-WHERE u.email = 'fduaro@ufba.br' AND d.sigla = 'DCC'
+WHERE u.email = 'fdurao@ufba.br' AND d.sigla = 'DCC'
   AND NOT EXISTS (SELECT 1 FROM "professor" p WHERE p.user_id = u.id);
 
 -- George Marconi de Araújo Lima
