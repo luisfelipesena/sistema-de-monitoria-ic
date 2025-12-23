@@ -684,11 +684,9 @@ A metodologia adotada combinou três técnicas complementares de coleta de dados
 
 As sessões foram gravadas (tela e áudio) mediante consentimento dos participantes, totalizando aproximadamente 1 hora por participante. A análise dos dados seguiu a técnica de análise temática~\cite{braun2006using}, identificando padrões recorrentes nas verbalizações e respostas.
 
-\subsubsection{Participantes e Perfis}
+A avaliação contou com dois participantes representando os perfis principais do sistema: o Prof.\ Rubisley (coordenador de monitoria, perfil administrador) e o Prof.\ Frederico (perfil professor). A Tabela~\ref{tab:participantes} apresenta os participantes e suas atribuições no estudo. O administrador realizou tarefas de importação de planejamento, verificação de notificações automáticas, aprovação de projetos e geração de planilha PROGRAD. O professor executou o fluxo completo de primeiro acesso (recuperação de senha e onboarding com SIAPE, CPF e assinatura digital), visualização do projeto criado pela importação, criação de template reutilizável, edição de projeto do semestre (bolsas, voluntários, atividades), pré-visualização do PDF e assinatura digital com submissão.
 
-A Tabela~\ref{tab:participantes} apresenta os participantes e suas atribuições no estudo.
-
-\begin{table}[htb]
+\begin{table}[t]
   \centering
   \small
   \caption{Participantes da avaliação qualitativa.}
@@ -705,50 +703,24 @@ A Tabela~\ref{tab:participantes} apresenta os participantes e suas atribuições
   \end{tblr}
 \end{table}
 
-\subsubsection{Roteiro de Tarefas}
+O walkthrough foi estruturado em três sessões sequenciais simulando o fluxo real de uso: na primeira sessão, o administrador realizou login, importou a planilha de planejamento do DCC, verificou os professores notificados automaticamente e visualizou os projetos criados com status pendente de assinatura. Na segunda sessão, o professor executou o primeiro acesso via ``Esqueci minha senha'', completou o onboarding, visualizou o projeto criado pela importação, criou/editou template padrão para a disciplina, editou o projeto do semestre e finalizou com pré-visualização do PDF, assinatura digital e submissão. Na terceira sessão, o administrador retornou para visualizar o projeto submetido, analisar os detalhes, aprovar o projeto e gerar a planilha consolidada para o Instituto/PROGRAD.
 
-O walkthrough foi estruturado em três sessões sequenciais, simulando o fluxo real de uso do sistema:
+Após cada walkthrough, foi conduzida uma entrevista semiestruturada de aproximadamente 15 minutos, explorando a experiência geral do participante, comparação com o processo manual atual, estimativa de economia de tempo, barreiras percebidas para adoção em semestre real e sugestões de melhoria. As perguntas foram organizadas por categoria de análise (experiência geral, funcionalidades específicas por perfil, comparação, economia de tempo, adoção e sugestões), conforme apresentado na Tabela~\ref{tab:roteiro-entrevista}. Esta abordagem seguiu as recomendações de Lazar et al.~\cite{lazar2017research} para condução de estudos qualitativos em IHC, permitindo explorar em profundidade as percepções e necessidades dos usuários enquanto mantém foco nas dimensões relevantes para validação do sistema. A estrutura do roteiro foi desenhada para capturar tanto aspectos funcionais quanto percepções subjetivas, possibilitando uma avaliação holística da experiência de uso do sistema por diferentes perfis de usuários acadêmicos.
 
-\textbf{Sessão 1 -- Administrador (Parte 1):}
-\begin{itemize}
-  \item Login como administrador
-  \item Importar planilha de planejamento do DCC
-  \item Verificar professores notificados automaticamente
-  \item Visualizar projetos criados (status: pendente de assinatura)
-\end{itemize}
-
-\textbf{Sessão 2 -- Professor:}
-\begin{itemize}
-  \item Primeiro acesso: recuperação de senha via ``Esqueci minha senha''
-  \item Login e completar onboarding (SIAPE, CPF, assinatura digital)
-  \item Visualizar projeto criado pela importação
-  \item Criar/editar template padrão para a disciplina
-  \item Editar projeto do semestre (bolsas, voluntários, atividades)
-  \item Pré-visualizar PDF, assinar digitalmente e submeter
-\end{itemize}
-
-\textbf{Sessão 3 -- Administrador (Parte 2):}
-\begin{itemize}
-  \item Visualizar projeto submetido pelo professor
-  \item Analisar detalhes e aprovar o projeto
-  \item Gerar planilha consolidada para Instituto/PROGRAD
-\end{itemize}
-
-Após cada walkthrough, foi conduzida uma entrevista semiestruturada de aproximadamente 15 minutos, explorando a experiência geral do participante, comparação com o processo manual atual, estimativa de economia de tempo, barreiras percebidas para adoção em semestre real e sugestões de melhoria. As perguntas foram organizadas por categoria de análise (experiência geral, funcionalidades específicas por perfil, comparação, economia de tempo, adoção e sugestões), conforme apresentado na Tabela~\ref{tab:roteiro-entrevista}. Esta abordagem seguiu as recomendações de Lazar et al.~\cite{lazar2017research} para condução de estudos qualitativos em IHC, permitindo explorar em profundidade as percepções e necessidades dos usuários enquanto mantém foco nas dimensões relevantes para validação do sistema.
-
-\begin{table*}[htb]
+\begin{table*}[p]
   \centering
-  \small
   \caption{Roteiro de entrevista semiestruturada por perfil de usuário.}
   \label{tab:roteiro-entrevista}
+  \vspace{0.5cm}
   \begin{adjustbox}{max width=\textwidth}
     \begin{tblr}{
       width=\textwidth,
-      colspec={|Q[c,1.8cm]|Q[c,1.5cm]|X[l]|},
+      colspec={|Q[c,2cm]|Q[c,1.8cm]|X[l]|},
       hlines,
-      vlines
+      vlines,
+      row{1}={font=\bfseries}
     }
-      \textbf{Categoria} & \textbf{Perfil} & \textbf{Pergunta} \\
+      Categoria & Perfil & Pergunta \\
       Experiência geral & Ambos & Descreva sua experiência geral com o sistema. O que mais chamou sua atenção (positivo ou negativo)? \\
       Importação & Admin & A importação da planilha funcionou como esperava? Os erros (se houve) foram bem explicados? \\
       Notificações & Admin & Conseguiu verificar quais professores foram notificados? O feedback do sistema foi suficiente? \\
@@ -766,68 +738,69 @@ Após cada walkthrough, foi conduzida uma entrevista semiestruturada de aproxima
   \end{adjustbox}
 \end{table*}
 
-\FloatBarrier
 \subsubsection{Resultados da Avaliação Qualitativa}
 
-A análise temática das verbalizações e entrevistas, seguindo o método de Braun e Clarke~\cite{braun2006using}, identificou três categorias principais: usabilidade, utilidade e adoção.
+A análise temática das verbalizações e entrevistas, seguindo o método de Braun e Clarke~\cite{braun2006using}, identificou três categorias principais: usabilidade, utilidade e adoção. A Figura~\ref{fig:thematic-map} apresenta o mapa temático resultante da análise, sintetizando os principais achados por categoria.
 
-\begin{figure*}[!htb]
+\begin{figure}[p]
   \centering
+  \vspace*{-0.5cm}
+  \resizebox{0.95\textwidth}{!}{%
   \begin{tikzpicture}[
-    node distance=0.8cm,
-    category/.style={rounded corners, draw=gray!70, fill=blue!10, minimum width=3.5cm, minimum height=1.2cm, align=center, font=\small\bfseries},
-    subcategory/.style={rounded corners, draw=gray!50, fill=white, minimum width=3.2cm, text width=3cm, align=left, font=\scriptsize},
-    title/.style={rounded corners, draw=gray!70, fill=yellow!20, minimum width=10cm, minimum height=0.9cm, align=center, font=\small\bfseries},
-    >={Stealth[length=2mm]}
+    node distance=1.2cm,
+    category/.style={rounded corners, draw=gray!70, fill=blue!10, minimum width=4.5cm, minimum height=1.6cm, align=center, font=\large\bfseries},
+    subcategory/.style={rounded corners, draw=gray!50, fill=white, minimum width=4.3cm, text width=4cm, align=left, font=\normalsize},
+    title/.style={rounded corners, draw=gray!70, fill=yellow!20, minimum width=12cm, minimum height=1.2cm, align=center, font=\Large\bfseries},
+    >={Stealth[length=3mm]}
   ]
     % Título
     \node[title] (title) {Avaliação Qualitativa (N=2, ~1h)};
 
     % Categorias
-    \node[category, below left=1.2cm and 2.5cm of title] (usab) {Usabilidade\\{\scriptsize (+4, -1)}};
-    \node[category, below=1.2cm of title] (util) {Utilidade\\{\scriptsize (+3)}};
-    \node[category, below right=1.2cm and 2.5cm of title] (adoc) {Adoção\\{\scriptsize (+2, S:3)}};
+    \node[category, below left=1.8cm and 3.5cm of title] (usab) {Usabilidade\\{\normalsize (+4, -1)}};
+    \node[category, below=1.8cm of title] (util) {Utilidade\\{\normalsize (+3)}};
+    \node[category, below right=1.8cm and 3.5cm of title] (adoc) {Adoção\\{\normalsize (+2, S:3)}};
 
     % Subcategorias Usabilidade
-    \node[subcategory, below=0.5cm of usab] (usab1) {
-      \textbullet~Sidebar organizado\\
-      \textbullet~Onboarding claro\\
-      \textbullet~PDF preview útil\\
-      \textbullet~Assinatura intuitiva\\
+    \node[subcategory, below=0.7cm of usab] (usab1) {
+      \textbullet~Sidebar organizado\\[0.2em]
+      \textbullet~Onboarding claro\\[0.2em]
+      \textbullet~PDF preview útil\\[0.2em]
+      \textbullet~Assinatura intuitiva\\[0.2em]
       {\color{orange}\textbullet~Reset senha$^*$}
     };
 
     % Subcategorias Utilidade
-    \node[subcategory, below=0.5cm of util] (util1) {
-      \textbullet~Templates reutilizáveis\\
-      \textbullet~Importação automática\\
+    \node[subcategory, below=0.7cm of util] (util1) {
+      \textbullet~Templates reutilizáveis\\[0.2em]
+      \textbullet~Importação automática\\[0.2em]
       \textbullet~Planilha PROGRAD OK
     };
 
     % Subcategorias Adoção
-    \node[subcategory, below=0.5cm of adoc] (adoc1) {
-      \textbullet~Projeto continuará\\
-      \textbullet~Uso em semestre real\\
-      {\color{blue}\textbullet~Notificar professor$^\dagger$}\\
-      {\color{blue}\textbullet~Reposicionar planilha$^\dagger$}
+    \node[subcategory, below=0.7cm of adoc] (adoc1) {
+      \textbullet~Projeto continuará\\[0.2em]
+      \textbullet~Uso em semestre real\\[0.2em]
+      {\color{blue}\textbullet~Notificar professor$^\dagger$}\\[0.2em]
+      {\color{blue}\textbullet~Repos. planilha$^\dagger$}
     };
 
     % Conectores
-    \draw[->] (title.south) -- ++(0,-0.4) -| (usab.north);
-    \draw[->] (title.south) -- (util.north);
-    \draw[->] (title.south) -- ++(0,-0.4) -| (adoc.north);
+    \draw[->, line width=1pt] (title.south) -- ++(0,-0.5) -| (usab.north);
+    \draw[->, line width=1pt] (title.south) -- (util.north);
+    \draw[->, line width=1pt] (title.south) -- ++(0,-0.5) -| (adoc.north);
 
-    % Legenda
-    \node[below=3.5cm of title, font=\scriptsize, text width=12cm, align=center] {
-      (+) pontos positivos \quad (-) dificuldades \quad (S) sugestões\\[0.2em]
+    % Legenda - positioned below the subcategories
+    \node[below=0.8cm of util1, font=\normalsize, text width=12cm, align=center] {
+      (+) pontos positivos \quad (-) dificuldades \quad (S) sugestões\\[0.4em]
       $^*$Resolvido durante sessão \quad $^\dagger$Sugestão de melhoria
     };
-  \end{tikzpicture}
+  \end{tikzpicture}%
+  }
+  \vspace*{0.3cm}
   \caption{Mapa temático da avaliação qualitativa com usuários.}
   \label{fig:thematic-map}
-\end{figure*}
-
-A Figura~\ref{fig:thematic-map} apresenta o mapa temático resultante da análise, sintetizando os principais achados por categoria.
+\end{figure}
 
 \textbf{Perfil Administrador:}
 \begin{itemize}
@@ -858,25 +831,25 @@ A Figura~\ref{fig:thematic-map} apresenta o mapa temático resultante da anális
 
 A Tabela~\ref{tab:validacao-objetivos} apresenta a validação dos objetivos específicos com base nas evidências coletadas durante as sessões de avaliação.
 
-\begin{table}[htb]
+\begin{table*}[t]
   \centering
-  \small
   \caption{Validação dos objetivos específicos com base na avaliação qualitativa.}
   \label{tab:validacao-objetivos}
   \begin{tblr}{
-    width=\linewidth,
-    colspec={|X[l]|Q[c,1.8cm]|X[l]|},
+    width=\textwidth,
+    colspec={|X[l,1.2]|Q[c,2.2cm]|X[l,1.5]|},
     hlines,
-    vlines
+    vlines,
+    row{1}={font=\bfseries}
   }
-    \textbf{Objetivo Específico} & \textbf{Status} & \textbf{Evidência} \\
+    Objetivo Específico & Status & Evidência \\
     Digitalizar ciclo completo de projetos & \ding{51} Validado & Fluxo completo executado com sucesso: importação de planejamento, criação de template, assinatura digital, aprovação administrativa e geração de planilha PROGRAD \\
     Automatizar processo seletivo & \ding{51} Parcial & Automação de notificações por e-mail e geração de PDFs confirmada; sugerida melhoria para notificação de ajustes em projetos \\
     Sistematizar alocação de bolsas & \ding{51} Validado & Validação de limites funcionando corretamente; planilha PROGRAD gerada no formato institucional esperado \\
     Eliminar trabalhos manuais repetitivos & \ding{51} Validado & Templates reutilizáveis avaliados como excelentes para economia de tempo em semestres futuros; redução estimada de 80\% em tarefas repetitivas \\
     Fornecer base analítica para decisões & \ding{51} Parcial & Dashboard funcional com métricas operacionais; analytics avançado identificado como trabalho futuro \\
   \end{tblr}
-\end{table}
+\end{table*}
 
 \textbf{Intenção de Adoção:}
 
