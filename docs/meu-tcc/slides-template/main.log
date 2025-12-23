@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  23 DEC 2025 10:40
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.4.1)  23 DEC 2025 11:38
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1041,11 +1041,11 @@ Package pdftex.def Info: imgs/process-flow.png  used on input line 389.
 [15
 
 ]
-<imgs/admin-dashboard.png, id=159, 3513.125pt x 2091.815pt>
-File: imgs/admin-dashboard.png Graphic file (type png)
-<use imgs/admin-dashboard.png>
-Package pdftex.def Info: imgs/admin-dashboard.png  used on input line 483.
-(pdftex.def)             Requested size: 174.80884pt x 104.08618pt.
+<imgs/admin-analise.jpeg, id=159, 1606.0pt x 1412.27625pt>
+File: imgs/admin-analise.jpeg Graphic file (type jpg)
+<use imgs/admin-analise.jpeg>
+Package pdftex.def Info: imgs/admin-analise.jpeg  used on input line 483.
+(pdftex.def)             Requested size: 152.40004pt x 134.01678pt.
 <imgs/admin-manage-projects.png, id=160, 3513.125pt x 2091.815pt>
 File: imgs/admin-manage-projects.png Graphic file (type png)
 <use imgs/admin-manage-projects.png>
@@ -1055,12 +1055,12 @@ Package pdftex.def Info: imgs/admin-manage-projects.png  used on input line 483.
 
 [16
 
- <./imgs/admin-dashboard.png (PNG copy)> <./imgs/admin-manage-projects.png (PNG copy)>]
-<imgs/professor-assinatura-documentos.png, id=166, 3513.125pt x 2091.815pt>
-File: imgs/professor-assinatura-documentos.png Graphic file (type png)
-<use imgs/professor-assinatura-documentos.png>
-Package pdftex.def Info: imgs/professor-assinatura-documentos.png  used on input line 501.
-(pdftex.def)             Requested size: 174.80884pt x 104.08618pt.
+ <./imgs/admin-analise.jpeg> <./imgs/admin-manage-projects.png (PNG copy)>]
+<imgs/professor-assinatura-projeto.png, id=166, 4111.36pt x 2230.3325pt>
+File: imgs/professor-assinatura-projeto.png Graphic file (type png)
+<use imgs/professor-assinatura-projeto.png>
+Package pdftex.def Info: imgs/professor-assinatura-projeto.png  used on input line 501.
+(pdftex.def)             Requested size: 174.77754pt x 94.8134pt.
 <imgs/student-inscricao-monitoria.png, id=167, 3513.125pt x 2091.815pt>
 File: imgs/student-inscricao-monitoria.png Graphic file (type png)
 <use imgs/student-inscricao-monitoria.png>
@@ -1070,7 +1070,7 @@ Package pdftex.def Info: imgs/student-inscricao-monitoria.png  used on input lin
 
 [17
 
- <./imgs/professor-assinatura-documentos.png (PNG copy)> <./imgs/student-inscricao-monitoria.png (PNG copy)>]
+ <./imgs/professor-assinatura-projeto.png> <./imgs/student-inscricao-monitoria.png (PNG copy)>]
 
 [18
 
@@ -1130,16 +1130,16 @@ Package rerunfilecheck Info: File `main.out' has not changed.
  ) 
 Here is how much of TeX's memory you used:
  30316 strings out of 473190
- 602539 string characters out of 5715801
+ 602503 string characters out of 5715801
  1013398 words of memory out of 5000000
  52869 multiletter control sequences out of 15000+600000
  657353 words of font info for 100 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  128i,13n,123p,1131b,1117s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss12.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss17.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss8.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmss9.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmssbx10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsso10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsy10.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsy5.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsy6.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmsy8.pfb></usr/local/texlive/2025/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on main.pdf (25 pages, 1542797 bytes).
+Output written on main.pdf (25 pages, 1909794 bytes).
 PDF statistics:
- 295 PDF objects out of 1000 (max. 8388607)
+ 296 PDF objects out of 1000 (max. 8388607)
  207 compressed objects within 3 object streams
  57 named destinations out of 1000 (max. 500000)
  235 words of extra memory for PDF output out of 10000 (max. 10000000)

@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1766497245.34436 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/slides-template/main.tex" "main.pdf" "main" 1766497246.90846 0
-  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/slides-template/main.tex" 1766496927.78524 29727 206da4070bfe4ee80faaa04673cf5146 ""
+["pdflatex"] 1766500706.87178 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/slides-template/main.tex" "main.pdf" "main" 1766500708.90753 0
+  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/slides-template/main.tex" 1766500645.61144 29721 15c5fc334d8225f21425c0b4233648de ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc" 1254269338 2375 baa924870cfb487815765f9094cf3728 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-mathsy.enc" 1202520719 2840 216e6e45ad352e2456e1149f28885bee ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc" 1254269338 3031 6c4d3515bf7115d8518af1c9ab97ca44 ""
@@ -272,16 +272,16 @@
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1743556498 3345730 b0114b64bb79cd284171e12692394348 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
   "beamerthemeDCC.sty" 1765937833.35989 5174 f773ad73f97b69c58ed3673180d7385f ""
-  "imgs/admin-dashboard.png" 1766496866.75565 243412 18962ba982a18130b1ead9e1eb35b103 ""
+  "imgs/admin-analise.jpeg" 1766500525.29744 223459 fee54bf72106e3fee72818678fbe6666 ""
   "imgs/admin-manage-projects.png" 1766496866.75749 283325 b403e941564640834346963217417a69 ""
   "imgs/dcc.png" 1765937833.36249 91923 c803d27ecc0925080248c36c5160bd26 ""
   "imgs/process-flow.png" 1766013016.79834 121877 345fefaa7f348b29ecc20a4a2de772a6 ""
-  "imgs/professor-assinatura-documentos.png" 1766496866.75917 274114 86f04661a5d4817b161dc5984a49c1eb ""
+  "imgs/professor-assinatura-projeto.png" 1766500525.29567 882171 f1d1f22b9767d237c144067839e65d22 ""
   "imgs/student-inscricao-monitoria.png" 1766496866.76085 273727 82e632526270269377018659ed76904d ""
-  "main.aux" 1766497246.83031 5580 11eb6afb9b90eab672cc3fee203e0d52 "pdflatex"
-  "main.nav" 1766497246.83155 3493 3bd479c399f25c479e036c2a82094b30 "pdflatex"
-  "main.out" 1766497246.83132 753 2d503c1fbd7a2be6c8ae21096df537c1 "pdflatex"
-  "main.tex" 1766496927.78524 29727 206da4070bfe4ee80faaa04673cf5146 ""
+  "main.aux" 1766500708.82509 5580 11eb6afb9b90eab672cc3fee203e0d52 "pdflatex"
+  "main.nav" 1766500708.82604 3493 3bd479c399f25c479e036c2a82094b30 "pdflatex"
+  "main.out" 1766500708.82588 753 2d503c1fbd7a2be6c8ae21096df537c1 "pdflatex"
+  "main.tex" 1766500645.61144 29721 15c5fc334d8225f21425c0b4233648de ""
   (generated)
   "main.aux"
   "main.log"

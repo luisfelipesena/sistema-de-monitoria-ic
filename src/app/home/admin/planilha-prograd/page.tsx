@@ -83,11 +83,24 @@ export default function PlanilhaPROGRADPage() {
     const totalDataRows = planilhaData.projetos.length
 
     // Build all rows as array first, then add to worksheet
-    const allRows: Array<{ values: (string | { text: string; hyperlink: string })[], isTitle?: boolean, isHeader?: boolean, deptFirst?: boolean, isFirstData?: boolean }> = []
+    const allRows: Array<{
+      values: (string | { text: string; hyperlink: string })[]
+      isTitle?: boolean
+      isHeader?: boolean
+      deptFirst?: boolean
+      isFirstData?: boolean
+    }> = []
 
     // Title row
     allRows.push({
-      values: [`PLANILHA DE DETALHAMENTO DOS PROJETOS APROVADOS NA CONGREGAÇÃO DO IC - ${selectedYear}.${semestreNum}`, "", "", "", "", ""],
+      values: [
+        `PLANILHA DE DETALHAMENTO DOS PROJETOS APROVADOS NA CONGREGAÇÃO DO IC - ${selectedYear}.${semestreNum}`,
+        "",
+        "",
+        "",
+        "",
+        "",
+      ],
       isTitle: true,
     })
 
@@ -109,9 +122,7 @@ export default function PlanilhaPROGRADPage() {
     for (const departamento of sortedDepartments) {
       const deptProjetos = projetosPorDepartamento[departamento]
       deptProjetos.forEach((p, idx) => {
-        const componenteValue = p.linkPDF
-          ? { text: p.disciplinaNome, hyperlink: p.linkPDF }
-          : p.disciplinaNome
+        const componenteValue = p.linkPDF ? { text: p.disciplinaNome, hyperlink: p.linkPDF } : p.disciplinaNome
 
         allRows.push({
           values: [
@@ -327,12 +338,6 @@ export default function PlanilhaPROGRADPage() {
                     <div className="text-center p-4 bg-green-50 rounded-lg">
                       <div className="text-2xl font-bold text-green-600">{totalProjetos}</div>
                       <div className="text-sm text-green-700">Projetos Aprovados</div>
-                    </div>
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">
-                        {[...new Set(planilhaData.projetos.map((p) => p.departamentoNome))].length}
-                      </div>
-                      <div className="text-sm text-blue-700">Departamentos</div>
                     </div>
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600">

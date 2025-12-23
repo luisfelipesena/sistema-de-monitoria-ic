@@ -492,21 +492,21 @@ INPUT ./images/monitoria/admin-dashboard.png
 INPUT ./images/monitoria/admin-dashboard.png
 INPUT ./images/monitoria/admin-dashboard.png
 INPUT ./images/monitoria/admin-dashboard.png
-INPUT ./images/monitoria/professor-assinatura-documentos.png
-INPUT ./images/monitoria/professor-assinatura-documentos.png
-INPUT ./images/monitoria/professor-assinatura-documentos.png
-INPUT ./images/monitoria/professor-assinatura-documentos.png
-INPUT ./images/monitoria/professor-assinatura-documentos.png
+INPUT ./images/Assinatura de Projeto.png
+INPUT ./images/Assinatura de Projeto.png
+INPUT ./images/Assinatura de Projeto.png
+INPUT ./images/Assinatura de Projeto.png
+INPUT ./images/Assinatura de Projeto.png
 INPUT ./images/monitoria/student-inscricao-monitoria.png
 INPUT ./images/monitoria/student-inscricao-monitoria.png
 INPUT ./images/monitoria/student-inscricao-monitoria.png
 INPUT ./images/monitoria/student-inscricao-monitoria.png
 INPUT ./images/monitoria/student-inscricao-monitoria.png
-INPUT ./images/monitoria/student-resultados.png
-INPUT ./images/monitoria/student-resultados.png
-INPUT ./images/monitoria/student-resultados.png
-INPUT ./images/monitoria/student-resultados.png
-INPUT ./images/monitoria/student-resultados.png
+INPUT ./images/Editar Projeto De Monitoria.png
+INPUT ./images/Editar Projeto De Monitoria.png
+INPUT ./images/Editar Projeto De Monitoria.png
+INPUT ./images/Editar Projeto De Monitoria.png
+INPUT ./images/Editar Projeto De Monitoria.png
 INPUT ./images/monitoria/admin-manage-projects.png
 INPUT ./images/monitoria/admin-manage-projects.png
 INPUT ./images/monitoria/admin-manage-projects.png
@@ -537,11 +537,16 @@ INPUT ./images/monitoria/admin-departamentos.png
 INPUT ./images/monitoria/admin-departamentos.png
 INPUT ./images/monitoria/admin-departamentos.png
 INPUT ./images/monitoria/admin-departamentos.png
-INPUT ./images/monitoria/admin-planilha-prograd.png
-INPUT ./images/monitoria/admin-planilha-prograd.png
-INPUT ./images/monitoria/admin-planilha-prograd.png
-INPUT ./images/monitoria/admin-planilha-prograd.png
-INPUT ./images/monitoria/admin-planilha-prograd.png
+INPUT ./images/Admin Analise.jpeg
+INPUT ./images/Admin Analise.jpeg
+INPUT ./images/Admin Analise.jpeg
+INPUT ./images/Admin Analise.jpeg
+INPUT ./images/Admin Analise.jpeg
+INPUT ./images/Planilha Prograd.png
+INPUT ./images/Planilha Prograd.png
+INPUT ./images/Planilha Prograd.png
+INPUT ./images/Planilha Prograd.png
+INPUT ./images/Planilha Prograd.png
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmr10.tfm
 INPUT /usr/local/texlive/2025/texmf-dist/fonts/tfm/public/cm/cmr10.tfm

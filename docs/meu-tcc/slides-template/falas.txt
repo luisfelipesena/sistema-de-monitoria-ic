@@ -128,13 +128,13 @@ SLIDE 15 - FUNCIONALIDADES POR PERFIL (1 min)
 ========================================
 SLIDE 16 - INTERFACE DO SISTEMA - ADMINISTRADOR (30 seg)
 ========================================
-- "Aqui vemos a interface real do administrador. À esquerda, o dashboard com métricas do semestre atual. À direita, a gestão de projetos com filtros por status e semestre."
+- "Aqui vemos a interface real do administrador. À esquerda, a tela de análise de projetos submetidos pelos professores, onde o admin pode aprovar ou solicitar revisões. À direita, a gestão de projetos com filtros por status e semestre."
 - "O sidebar segue a ordem natural do fluxo de trabalho, facilitando a navegação."
 
 ========================================
 SLIDE 17 - INTERFACE DO SISTEMA - PROFESSOR E ESTUDANTE (30 seg)
 ========================================
-- "Para o professor, temos a tela de assinatura digital com pré-visualização do PDF antes da submissão."
+- "Para o professor, temos a tela de assinatura de projeto com pré-visualização do PDF gerado e opção de desenhar nova assinatura."
 - "Para o estudante, a interface de inscrição em monitoria mostra as vagas disponíveis e permite candidatura simplificada."
 
 ========================================
