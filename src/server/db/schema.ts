@@ -105,6 +105,7 @@ export const projetoStatusEnum = pgEnum('projeto_status_enum', [
   'APPROVED', // Admin approved (professor already signed)
   'REJECTED', // Admin rejected
   'PENDING_PROFESSOR_SIGNATURE', // Generated from import, needs professor signature
+  'PENDING_REVISION', // Admin requested revision, professor can edit and re-sign
 ])
 
 export const generoEnum = pgEnum('genero_enum', ['MASCULINO', 'FEMININO', 'OUTRO'])
@@ -208,6 +209,11 @@ export const projetoTable = pgTable('projeto', {
   assinaturaProfessor: text('assinatura_professor'), // base64 data URL
   // analiseSubmissao: text('analise_submissao'), // Renamed/Repurposed
   feedbackAdmin: text('feedback_admin'), // Admin feedback on approval/rejection
+  mensagemRevisao: text('mensagem_revisao'), // Admin's revision request message
+  revisaoSolicitadaEm: timestamp('revisao_solicitada_em', {
+    withTimezone: true,
+    mode: 'date',
+  }), // When revision was requested
   // documentoUniqueId: text('documento_unique_id'), // Link to separate document table
   // assinaturaUniqueId: text('assinatura_unique_id'), // Link to separate signature process/table
   // validado: boolean('validado').notNull().default(false), // Status handles validation

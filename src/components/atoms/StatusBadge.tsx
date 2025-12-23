@@ -67,6 +67,13 @@ const STATUS_CONFIG_MAP: Record<string, StatusConfig> = {
     icon: AlertCircle,
     className: "bg-orange-50 text-orange-800 border-orange-300",
   },
+  PENDING_REVISION: {
+    variant: "outline",
+    label: "Revisão Solicitada",
+    ariaLabel: "Status: Aguardando revisão do professor",
+    icon: AlertCircle,
+    className: "bg-amber-50 text-amber-800 border-amber-400",
+  },
 
   // Inscription statuses
   SELECTED_BOLSISTA: {

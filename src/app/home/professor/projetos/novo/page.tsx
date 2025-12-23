@@ -8,17 +8,23 @@ import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaF
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { useProjectCreation } from "@/hooks/features/useProjectCreation"
 import type { MonitoriaFormData } from "@/types"
-import { PDFViewer } from "@react-pdf/renderer"
 import { Loader2 } from "lucide-react"
+import nextDynamic from "next/dynamic"
 import React from "react"
+
+// PDFViewer wrapper to prevent SSR issues - separate file for ESM compatibility
+const ClientOnlyPDFViewer = nextDynamic(
+  () => import("@/components/features/projects/PDFViewerWrapper").then((mod) => mod.PDFViewerWrapper),
+  { ssr: false, loading: () => <div className="flex justify-center items-center h-[800px]"><Loader2 className="h-8 w-8 animate-spin" /></div> }
+)
 
 const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) => {
   return (
     <div className="border rounded-lg bg-white">
       <div style={{ width: "100%", height: "800px" }}>
-        <PDFViewer width="100%" height="100%" showToolbar={false}>
+        <ClientOnlyPDFViewer width="100%" height="100%" showToolbar={false}>
           <MonitoriaFormTemplate data={data} />
-        </PDFViewer>
+        </ClientOnlyPDFViewer>
       </div>
     </div>
   )

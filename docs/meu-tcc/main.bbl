@@ -4,6 +4,11 @@
 Brasil (1996).
 \newblock Lei nº 9.394, de 20 de dezembro de 1996. estabelece as diretrizes e bases da educação nacional.
 
+\bibitem[Braun and Clarke, 2006]{braun2006using}
+Braun, V. and Clarke, V. (2006).
+\newblock Using thematic analysis in psychology.
+\newblock {\em Qualitative Research in Psychology}, 3(2):77--101. DOI: 10.1191/1478088706qp063oa.
+
 \bibitem[Dantas, 2014]{Dantas2014}
 Dantas, O.~M. (2014).
 \newblock Monitoria: fonte de saberes à docência superior.
@@ -33,6 +38,11 @@ Laudon, K.~C. and Laudon, J.~P. (2011).
 \newblock {\em Management Information Systems: Managing the Digital Firm}.
 \newblock Pearson, 12th edition.
 
+\bibitem[Lazar {\em et~al}., 2017]{lazar2017research}
+Lazar, J., Feng, J.~H., and Hochheiser, H. (2017).
+\newblock {\em Research Methods in Human-Computer Interaction}.
+\newblock Morgan Kaufmann, Cambridge, MA, 2nd edition.
+
 \bibitem[Machado, 2023]{machado2024icrequests}
 Machado, M.~B. (2023).
 \newblock Ic-requests: um sistema sensível ao contexto para suporte a solicitações acadêmicas.
@@ -42,6 +52,11 @@ Machado, M.~B. (2023).
 Natário, E.~G. and Santos, A. A. A.~d. (2010).
 \newblock Programa de monitores para o ensino superior.
 \newblock {\em Estudos de Psicologia}, 27(3):355--364.
+
+\bibitem[Nielsen, 1994]{nielsen1994usability}
+Nielsen, J. (1994).
+\newblock {\em Usability Engineering}.
+\newblock Morgan Kaufmann, San Francisco, CA.
 
 \bibitem[Santos, 2023]{santos2023alertufba}
 Santos, A. I.~C. (2023).

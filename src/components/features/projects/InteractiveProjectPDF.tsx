@@ -8,10 +8,16 @@ import { useToast } from "@/hooks/use-toast"
 import { ToastAction } from "@/components/ui/toast"
 import { MonitoriaFormData } from "@/types"
 import { api } from "@/utils/api"
-import { PDFViewer } from "@react-pdf/renderer"
 import { CheckCircle, FileSignature, Loader2 } from "lucide-react"
+import dynamic from "next/dynamic"
 import { useEffect, useRef, useState } from "react"
 import SignatureCanvas from "react-signature-canvas"
+
+// PDFViewer wrapper to prevent SSR issues - separate file for ESM compatibility
+const ClientOnlyPDFViewer = dynamic(
+  () => import("./PDFViewerWrapper").then((mod) => mod.PDFViewerWrapper),
+  { ssr: false, loading: () => <div className="flex justify-center items-center h-[800px]"><Loader2 className="h-8 w-8 animate-spin" /></div> }
+)
 
 // Feedback form para TCC - válido até Dez/2025
 const FEEDBACK_FORM_URL =
@@ -284,14 +290,17 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
         </CardHeader>
         <CardContent>
           <div className="border rounded-lg bg-white">
-            <PDFViewer width="100%" height="800px" showToolbar>
+            <ClientOnlyPDFViewer width="100%" height="800px" showToolbar>
               <MonitoriaFormTemplate data={currentFormData} />
-            </PDFViewer>
+            </ClientOnlyPDFViewer>
           </div>
         </CardContent>
       </Card>
 
-      <Dialog open={showSignatureDialog} onOpenChange={setShowSignatureDialog}>
+      <Dialog open={showSignatureDialog} onOpenChange={(open) => {
+        setShowSignatureDialog(open)
+        if (!open) setUseCustomSignature(false) // Reset when closing
+      }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Assinatura Digital - {roleLabel}</DialogTitle>
@@ -300,10 +309,18 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
             {hasDefaultSignature && !useCustomSignature && (
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-blue-800 font-medium mb-2">💡 Você tem uma assinatura padrão configurada</p>
-                <p className="text-blue-700 text-sm">
+                <p className="text-blue-700 text-sm mb-3">
                   Use sua assinatura padrão ou desenhe uma nova assinatura específica para este documento.
                 </p>
-                <div className="flex gap-2 mt-3">
+                {/* Preview da assinatura padrão */}
+                <div className="border rounded-lg p-3 bg-white mb-3 flex justify-center">
+                  <img
+                    src={getDefaultSignature() ?? undefined}
+                    alt="Sua assinatura padrão"
+                    className="max-w-full max-h-24 object-contain"
+                  />
+                </div>
+                <div className="flex gap-2">
                   <Button
                     size="sm"
                     onClick={() => {

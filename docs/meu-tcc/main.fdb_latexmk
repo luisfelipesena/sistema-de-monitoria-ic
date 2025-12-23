@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1766026426.1129 "main.aux" "main.bbl" "main" 1766067755.03183 0
+["bibtex main"] 1766496832.62172 "main.aux" "main.bbl" "main" 1766496835.82475 0
   "./apalike-sol.bst" 1761156389.19737 24928 269dedab788b7f84af88c155ecb45872 ""
-  "./references.bib" 1766026411.76286 6118 c08ebbe02b5f9b7b63efae533f97470b ""
-  "main.aux" 1766067754.71642 13603 f895baa17718ed75389e441ff248d606 "pdflatex"
+  "./references.bib" 1766150872.85604 6896 d9247e3e3e6bf968120e94f6d326e471 ""
+  "main.aux" 1766496835.52276 14367 fa20efc9282eae96beea3c6ace0333c6 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1766067751.35224 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1766067755.03197 0
-  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1766067751.12794 100227 8f44f3fbf8d733bec2cc84b09ed1330e ""
+["pdflatex"] 1766496832.71932 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1766496835.82489 0
+  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1766496828.71266 105639 aa6da5947ec5fcb0aa17eb4269614ccf ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_2mfh3o.enc" 1570828436 3443 c184b8b1bd90c3ec5d4289b992e64d96 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_iln36p.enc" 1570828436 3071 cfa92ee28d698dd9275559d9d1c3a233 ""
@@ -55,6 +55,7 @@
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/tex-gyre/ec-qtmri.tfm" 1254269485 11356 da1519f442d8a49b81c86cbaf25ef79f ""
   "/usr/local/texlive/2025/texmf-dist/fonts/tfm/public/tex-gyre/ts1-qtmr.tfm" 1255129411 1600 20cdf11dab97d5d39e847571f9314407 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1248133631 32569 5e5ddc8df908dea60932f3c484a54c0d ""
+  "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb" 1248133631 32915 7bf7720c61a5b3a7ff25b0964421c9b6 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/cm-super/sftt1000.pfb" 1215737283 169201 9ebf99020dde51a5086e186761a34e8f ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-Bold.pfb" 1554498137 485112 0bd86946afd04160ee1229d86cd76902 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/fira/FiraSans-BoldItalic.pfb" 1554498137 482434 d28be89f64a86a90f7c92f6836c3a33e ""
@@ -64,6 +65,7 @@
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmb.pfb" 1255129411 131776 4be3e220f990dc716f91bb7965c09237 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmr.pfb" 1255129411 133302 8dca243a80ecf4cfe00077d4bd995bd7 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/type1/public/tex-gyre/qtmri.pfb" 1255129411 129669 aaf12ebd0b807d452087fc34bde5bd7d ""
+  "/usr/local/texlive/2025/texmf-dist/fonts/type1/urw/zapfding/uzdr.pfb" 1136849748 45955 6dfcb282cf470ceb18d57d017b7898d6 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/vf/public/fira/FiraSans-Bold-osf-sc-t1.vf" 1558644978 1704 5565bfb09ed02d93e9a20a91965adfe1 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/vf/public/fira/FiraSans-Bold-osf-t1.vf" 1558644978 1724 1ac6e230aa57cf8ba8f965fbceffd874 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/vf/public/fira/FiraSans-BoldItalic-osf-t1.vf" 1558644978 1728 e6f6fd8b96be9c23bc67f68784124a0b ""
@@ -277,10 +279,10 @@
   "images/monitoria/professor-assinatura-documentos.png" 1765346111.89438 274114 86f04661a5d4817b161dc5984a49c1eb ""
   "images/monitoria/student-inscricao-monitoria.png" 1765346111.89625 273727 82e632526270269377018659ed76904d ""
   "images/monitoria/student-resultados.png" 1765346111.89654 196365 3382bc79ac4646f2a174bce96e5315f3 ""
-  "main.aux" 1766067754.71642 13603 f895baa17718ed75389e441ff248d606 "pdflatex"
-  "main.bbl" 1766026426.20095 3548 811cd547164425977972817d6e6bd07c "bibtex main"
-  "main.out" 1766067754.71755 4811 28d4e8ec398e45f2cf5776e2a1a5142f "pdflatex"
-  "main.tex" 1766067751.12794 100227 8f44f3fbf8d733bec2cc84b09ed1330e ""
+  "main.aux" 1766496835.52276 14367 fa20efc9282eae96beea3c6ace0333c6 "pdflatex"
+  "main.bbl" 1766496832.71609 4155 0cac490bd80ff78b1ce7902ca2dfb1b7 "bibtex main"
+  "main.out" 1766496835.52382 5512 4e093e8c2408627d8dc91dd867718757 "pdflatex"
+  "main.tex" 1766496828.71266 105639 aa6da5947ec5fcb0aa17eb4269614ccf ""
   "sbc2025.cls" 1761156389.24799 14761 c546ee61221e9a80c8e82e624cbd925e ""
   (generated)
   "main.aux"

@@ -148,6 +148,9 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
                           setPublicoAlvoTipo(value)
                           if (value === "estudantes_graduacao") {
                             field.onChange("Estudantes de graduação")
+                          } else {
+                            // Sync form field with custom value (or empty to require input)
+                            field.onChange(publicoAlvoCustom || "")
                           }
                         }}
                         className="flex flex-col space-y-2"

@@ -727,9 +727,7 @@ O walkthrough foi estruturado em três sessões sequenciais, simulando o fluxo r
   \item Gerar planilha consolidada para Instituto/PROGRAD
 \end{itemize}
 
-\subsubsection{Roteiro de Entrevista}
-
-A Tabela~\ref{tab:roteiro-entrevista} apresenta as perguntas utilizadas nas entrevistas semiestruturadas, organizadas por categoria de análise.
+Após cada walkthrough, foi conduzida uma entrevista semiestruturada de aproximadamente 15 minutos, explorando a experiência geral do participante, comparação com o processo manual atual, estimativa de economia de tempo, barreiras percebidas para adoção em semestre real e sugestões de melhoria. As perguntas foram organizadas por categoria de análise (experiência geral, funcionalidades específicas por perfil, comparação, economia de tempo, adoção e sugestões), conforme apresentado na Tabela~\ref{tab:roteiro-entrevista}. Esta abordagem seguiu as recomendações de Lazar et al.~\cite{lazar2017research} para condução de estudos qualitativos em IHC, permitindo explorar em profundidade as percepções e necessidades dos usuários enquanto mantém foco nas dimensões relevantes para validação do sistema.
 
 \begin{table*}[htb]
   \centering
@@ -761,33 +759,97 @@ A Tabela~\ref{tab:roteiro-entrevista} apresenta as perguntas utilizadas nas entr
   \end{adjustbox}
 \end{table*}
 
+\FloatBarrier
 \subsubsection{Resultados da Avaliação Qualitativa}
 
-Os resultados da avaliação qualitativa serão apresentados após a realização das sessões com os participantes. A análise seguirá a estrutura de análise temática, identificando:
+A análise temática das verbalizações e entrevistas, seguindo o método de Braun e Clarke~\cite{braun2006using}, identificou três categorias principais: usabilidade, utilidade e adoção.
+
+\begin{figure*}[!htb]
+  \centering
+  \begin{tikzpicture}[
+    node distance=0.8cm,
+    category/.style={rounded corners, draw=gray!70, fill=blue!10, minimum width=3.5cm, minimum height=1.2cm, align=center, font=\small\bfseries},
+    subcategory/.style={rounded corners, draw=gray!50, fill=white, minimum width=3.2cm, text width=3cm, align=left, font=\scriptsize},
+    title/.style={rounded corners, draw=gray!70, fill=yellow!20, minimum width=10cm, minimum height=0.9cm, align=center, font=\small\bfseries},
+    >={Stealth[length=2mm]}
+  ]
+    % Título
+    \node[title] (title) {Avaliação Qualitativa (N=2, ~1h)};
+
+    % Categorias
+    \node[category, below left=1.2cm and 2.5cm of title] (usab) {Usabilidade\\{\scriptsize (+4, -1)}};
+    \node[category, below=1.2cm of title] (util) {Utilidade\\{\scriptsize (+3)}};
+    \node[category, below right=1.2cm and 2.5cm of title] (adoc) {Adoção\\{\scriptsize (+2, S:3)}};
+
+    % Subcategorias Usabilidade
+    \node[subcategory, below=0.5cm of usab] (usab1) {
+      \textbullet~Sidebar organizado\\
+      \textbullet~Onboarding claro\\
+      \textbullet~PDF preview útil\\
+      \textbullet~Assinatura intuitiva\\
+      {\color{orange}\textbullet~Reset senha$^*$}
+    };
+
+    % Subcategorias Utilidade
+    \node[subcategory, below=0.5cm of util] (util1) {
+      \textbullet~Templates reutilizáveis\\
+      \textbullet~Importação automática\\
+      \textbullet~Planilha PROGRAD OK
+    };
+
+    % Subcategorias Adoção
+    \node[subcategory, below=0.5cm of adoc] (adoc1) {
+      \textbullet~Projeto continuará\\
+      \textbullet~Uso em semestre real\\
+      {\color{blue}\textbullet~Notificar professor$^\dagger$}\\
+      {\color{blue}\textbullet~Reposicionar planilha$^\dagger$}
+    };
+
+    % Conectores
+    \draw[->] (title.south) -- ++(0,-0.4) -| (usab.north);
+    \draw[->] (title.south) -- (util.north);
+    \draw[->] (title.south) -- ++(0,-0.4) -| (adoc.north);
+
+    % Legenda
+    \node[below=3.5cm of title, font=\scriptsize, text width=12cm, align=center] {
+      (+) pontos positivos \quad (-) dificuldades \quad (S) sugestões\\[0.2em]
+      $^*$Resolvido durante sessão \quad $^\dagger$Sugestão de melhoria
+    };
+  \end{tikzpicture}
+  \caption{Mapa temático da avaliação qualitativa com usuários.}
+  \label{fig:thematic-map}
+\end{figure*}
+
+A Figura~\ref{fig:thematic-map} apresenta o mapa temático resultante da análise, sintetizando os principais achados por categoria.
 
 \textbf{Perfil Administrador:}
 \begin{itemize}
-  \item Pontos positivos identificados: \textit{TODO}
-  \item Dificuldades encontradas: \textit{TODO}
-  \item Sugestões de melhoria: \textit{TODO}
+  \item Pontos positivos identificados: O participante destacou a organização lógica do menu lateral, que segue a ordem natural do fluxo de trabalho (projetos, editais, inscrições, seleção, relatórios). A importação de planejamento foi considerada eficiente, com feedback visual claro sobre o número de projetos criados e professores notificados. A planilha PROGRAD gerada foi avaliada como adequada ao formato institucional esperado.
+
+  \item Dificuldades encontradas: Não foram identificadas dificuldades críticas. O participante executou todas as tarefas do roteiro sem interrupções ou erros significativos.
+
+  \item Sugestões de melhoria: Foi sugerida a inclusão de um botão para notificar o professor quando o projeto necessita de ajustes, permitindo comunicação direta via e-mail com campo para mensagem personalizada. Também foi proposta a relocação da funcionalidade de geração de planilha PROGRAD para dentro da seção de Projetos, mantendo cada planilha na etapa correspondente do fluxo.
 \end{itemize}
 
 \textbf{Perfil Professor:}
 \begin{itemize}
-  \item Pontos positivos identificados: \textit{TODO}
-  \item Dificuldades encontradas: \textit{TODO}
-  \item Sugestões de melhoria: \textit{TODO}
+  \item Pontos positivos identificados: A funcionalidade de templates reutilizáveis foi avaliada de forma muito positiva, sendo descrita pelo participante como excelente para economia de tempo em semestres futuros. O processo de onboarding (primeiro acesso) foi considerado claro e o fluxo de assinatura digital intuitivo, com a pré-visualização do PDF antes da assinatura sendo destacada como útil.
+
+  \item Dificuldades encontradas: Houve uma confusão inicial no processo de redefinição de senha, que foi resolvida durante a própria sessão. O participante preencheu incorretamente um campo do formulário (público-alvo), demonstrando um cenário realista de uso que justifica a necessidade da funcionalidade de notificação sugerida pelo administrador.
+
+  \item Sugestões de melhoria: Foi sugerido que o projeto permaneça editável após o envio ao administrador, sendo bloqueado apenas após a aprovação final, facilitando correções quando solicitadas.
 \end{itemize}
 
 \textbf{Análise Cruzada:}
 \begin{itemize}
-  \item Padrões comuns entre os perfis: \textit{TODO}
-  \item Divergências de percepção: \textit{TODO}
+  \item Padrões comuns entre os perfis: Ambos os participantes validaram o fluxo principal do sistema, desde a importação até a geração da planilha PROGRAD. A avaliação geral foi positiva, com reconhecimento explícito da contribuição do sistema para a modernização do processo de monitoria. Os participantes concordaram que o sistema está pronto para uso em um semestre real e que continuará evoluindo com contribuições de outros desenvolvedores.
+
+  \item Divergências de percepção: A principal divergência refere-se à localização da funcionalidade de planilha PROGRAD: enquanto o sistema atual a posiciona na seção de Relatórios, o administrador manifestou preferência por mantê-la dentro da seção de Projetos, argumentando que cada etapa deve conter suas próprias planilhas de consolidação.
 \end{itemize}
 
 \textbf{Validação dos Objetivos Específicos:}
 
-A Tabela~\ref{tab:validacao-objetivos} apresentará a validação dos objetivos específicos com base nas evidências coletadas.
+A Tabela~\ref{tab:validacao-objetivos} apresenta a validação dos objetivos específicos com base nas evidências coletadas durante as sessões de avaliação.
 
 \begin{table}[htb]
   \centering
@@ -796,18 +858,22 @@ A Tabela~\ref{tab:validacao-objetivos} apresentará a validação dos objetivos 
   \label{tab:validacao-objetivos}
   \begin{tblr}{
     width=\linewidth,
-    colspec={|X[l]|Q[c,2cm]|X[l]|},
+    colspec={|X[l]|Q[c,1.8cm]|X[l]|},
     hlines,
     vlines
   }
     \textbf{Objetivo Específico} & \textbf{Status} & \textbf{Evidência} \\
-    Digitalizar ciclo completo de projetos & \textit{TODO} & \textit{TODO} \\
-    Automatizar processo seletivo & \textit{TODO} & \textit{TODO} \\
-    Sistematizar alocação de bolsas & \textit{TODO} & \textit{TODO} \\
-    Eliminar trabalhos manuais repetitivos & \textit{TODO} & \textit{TODO} \\
-    Fornecer base analítica para decisões & \textit{TODO} & \textit{TODO} \\
+    Digitalizar ciclo completo de projetos & \ding{51} Validado & Fluxo completo executado com sucesso: importação de planejamento, criação de template, assinatura digital, aprovação administrativa e geração de planilha PROGRAD \\
+    Automatizar processo seletivo & \ding{51} Parcial & Automação de notificações por e-mail e geração de PDFs confirmada; sugerida melhoria para notificação de ajustes em projetos \\
+    Sistematizar alocação de bolsas & \ding{51} Validado & Validação de limites funcionando corretamente; planilha PROGRAD gerada no formato institucional esperado \\
+    Eliminar trabalhos manuais repetitivos & \ding{51} Validado & Templates reutilizáveis avaliados como excelentes para economia de tempo em semestres futuros; redução estimada de 80\% em tarefas repetitivas \\
+    Fornecer base analítica para decisões & \ding{51} Parcial & Dashboard funcional com métricas operacionais; analytics avançado identificado como trabalho futuro \\
   \end{tblr}
 \end{table}
+
+\textbf{Intenção de Adoção:}
+
+Ambos os participantes confirmaram a viabilidade do sistema para uso em um semestre real. O administrador destacou que o projeto é contínuo e evoluirá com contribuições futuras de outros desenvolvedores. As barreiras identificadas para adoção plena incluem a necessidade de implementar a funcionalidade de notificação ao professor para solicitação de ajustes e pequenos ajustes de nomenclatura e posicionamento de funcionalidades na interface.
 
 \FloatBarrier
 \clearpage

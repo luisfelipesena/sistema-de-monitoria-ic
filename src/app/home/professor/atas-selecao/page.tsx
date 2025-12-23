@@ -22,9 +22,15 @@ import {
   getSemestreNumero,
 } from "@/types"
 import { api } from "@/utils/api"
-import { PDFViewer } from "@react-pdf/renderer"
-import { Eye, FileText, Save } from "lucide-react"
+import { Eye, FileText, Loader2, Save } from "lucide-react"
+import dynamic from "next/dynamic"
 import { useMemo, useState } from "react"
+
+// PDFViewer wrapper to prevent SSR issues - separate file for ESM compatibility
+const ClientOnlyPDFViewer = dynamic(
+  () => import("@/components/features/projects/PDFViewerWrapper").then((mod) => mod.PDFViewerWrapper),
+  { ssr: false, loading: () => <div className="flex justify-center items-center h-[800px]"><Loader2 className="h-8 w-8 animate-spin" /></div> }
+)
 
 export default function AtasSelecaoPage() {
   const { toast } = useToast()
@@ -371,9 +377,9 @@ export default function AtasSelecaoPage() {
           </CardHeader>
           <CardContent>
             <div style={{ height: "800px", width: "100%" }}>
-              <PDFViewer width="100%" height="100%">
+              <ClientOnlyPDFViewer width="100%" height="100%">
                 <AtaSelecaoTemplate data={ataData} />
-              </PDFViewer>
+              </ClientOnlyPDFViewer>
             </div>
           </CardContent>
         </Card>

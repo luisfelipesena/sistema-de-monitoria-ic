@@ -94,6 +94,8 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
 
       return {
         ...projeto,
+        mensagemRevisao: projeto.mensagemRevisao,
+        revisaoSolicitadaEm: projeto.revisaoSolicitadaEm,
         professorResponsavel: {
           id: projeto.professorResponsavel.id,
           nomeCompleto: projeto.professorResponsavel.nomeCompleto,

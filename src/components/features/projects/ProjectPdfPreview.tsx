@@ -3,9 +3,15 @@
 import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
 import { Button } from "@/components/ui/button"
 import { MonitoriaFormData } from "@/types"
-import { PDFViewer } from "@react-pdf/renderer"
 import { AlertCircle, CheckCircle, Eye, EyeOff, FileText, Loader2, RefreshCw } from "lucide-react"
+import dynamic from "next/dynamic"
 import { useMemo, useState } from "react"
+
+// PDFViewer wrapper to prevent SSR issues - separate file for ESM compatibility
+const ClientOnlyPDFViewer = dynamic(
+  () => import("@/components/features/projects/PDFViewerWrapper").then((mod) => mod.PDFViewerWrapper),
+  { ssr: false, loading: () => <div className="flex justify-center items-center h-[600px]"><Loader2 className="h-8 w-8 animate-spin" /></div> }
+)
 
 interface ProjectPDFPreviewProps {
   formData: Partial<MonitoriaFormData>
@@ -56,9 +62,9 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
 
     return (
       <div key={pdfRenderKey} className="pdf-container h-[600px] w-full border rounded">
-        <PDFViewer width="100%" height="100%" showToolbar={false} style={{ border: "none" }}>
+        <ClientOnlyPDFViewer width="100%" height="100%" showToolbar={false}>
           <MonitoriaFormTemplate data={pdfData} />
-        </PDFViewer>
+        </ClientOnlyPDFViewer>
       </div>
     )
   }, [pdfRenderKey, pdfData, showPreview])

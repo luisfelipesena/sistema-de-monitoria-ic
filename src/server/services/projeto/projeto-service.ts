@@ -36,6 +36,7 @@ export function createProjetoService(db: Database) {
     submitProjeto: approvalService.submitProjeto,
     approveProjeto: approvalService.approveProjeto,
     rejectProjeto: approvalService.rejectProjeto,
+    requestRevision: approvalService.requestRevision,
     signProfessor: approvalService.signProfessor,
 
     // Selection operations

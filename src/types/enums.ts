@@ -283,6 +283,7 @@ export const PROJETO_STATUS_SUBMITTED = 'SUBMITTED' as const
 export const PROJETO_STATUS_APPROVED = 'APPROVED' as const
 export const PROJETO_STATUS_REJECTED = 'REJECTED' as const
 export const PROJETO_STATUS_PENDING_SIGNATURE = 'PENDING_PROFESSOR_SIGNATURE' as const
+export const PROJETO_STATUS_PENDING_REVISION = 'PENDING_REVISION' as const
 
 // Tipo Proposição constants (as const for literal type inference)
 export const TIPO_PROPOSICAO_INDIVIDUAL = 'INDIVIDUAL' as const
@@ -470,6 +471,7 @@ export const PROJETO_STATUS_LABELS: Record<ProjetoStatus, string> = {
   APPROVED: 'Aprovado',
   REJECTED: 'Rejeitado',
   PENDING_PROFESSOR_SIGNATURE: 'Pendente Assinatura',
+  PENDING_REVISION: 'Aguardando Revisão',
 }
 
 export const TIPO_PROPOSICAO_LABELS: Record<TipoProposicao, string> = {

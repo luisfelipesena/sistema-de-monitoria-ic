@@ -13,18 +13,25 @@ import {
   MonitoriaFormData,
   projectFormSchema,
   PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_PENDING_REVISION,
   PROJETO_STATUS_PENDING_SIGNATURE,
   SEMESTRE_1,
   TIPO_PROPOSICAO_INDIVIDUAL,
 } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { PDFViewer } from "@react-pdf/renderer"
 import { ArrowLeft, Edit3, Loader2 } from "lucide-react"
+import dynamic from "next/dynamic"
 import { useParams, useRouter } from "next/navigation"
 import React, { useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+
+// PDFViewer wrapper to prevent SSR issues - separate file for ESM compatibility
+const ClientOnlyPDFViewer = dynamic(
+  () => import("@/components/features/projects/PDFViewerWrapper").then((mod) => mod.PDFViewerWrapper),
+  { ssr: false, loading: () => <div className="flex justify-center items-center h-[800px]"><Loader2 className="h-8 w-8 animate-spin" /></div> }
+)
 
 type ProjetoFormData = z.infer<typeof projectFormSchema>
 
@@ -43,9 +50,9 @@ const PDFPreviewComponent = React.memo(({ data }: { data: MonitoriaFormData }) =
   return (
     <div className="border rounded-lg bg-white">
       <div style={{ width: "100%", height: "800px" }}>
-        <PDFViewer width="100%" height="100%" showToolbar={false}>
+        <ClientOnlyPDFViewer width="100%" height="100%" showToolbar={false}>
           <MonitoriaFormTemplate data={data} />
-        </PDFViewer>
+        </ClientOnlyPDFViewer>
       </div>
     </div>
   )
@@ -167,8 +174,12 @@ export default function EditProjetoPage() {
   useEffect(() => {
     if (!projeto) return
 
-    // Allow editing for DRAFT and PENDING_PROFESSOR_SIGNATURE statuses
-    if (projeto.status !== PROJETO_STATUS_DRAFT && projeto.status !== PROJETO_STATUS_PENDING_SIGNATURE) {
+    // Allow editing for DRAFT, PENDING_SIGNATURE, and PENDING_REVISION statuses
+    if (
+      projeto.status !== PROJETO_STATUS_DRAFT &&
+      projeto.status !== PROJETO_STATUS_PENDING_SIGNATURE &&
+      projeto.status !== PROJETO_STATUS_PENDING_REVISION
+    ) {
       router.back()
       return
     }
@@ -304,6 +315,9 @@ export default function EditProjetoPage() {
         return {
           titulo: templateValues.tituloDefault || `Template - ${projetoDisciplinas[0]?.nome || "Disciplina"}`,
           descricao: templateValues.descricaoDefault || "",
+          departamento: projeto.departamento
+            ? { id: projeto.departamento.id, nome: projeto.departamento.nome }
+            : undefined,
           ano: new Date().getFullYear(),
           semestre: SEMESTRE_1,
           tipoProposicao: TIPO_PROPOSICAO_INDIVIDUAL,
@@ -343,6 +357,9 @@ export default function EditProjetoPage() {
       return {
         titulo: projectValues.titulo,
         descricao: projectValues.descricao,
+        departamento: projeto.departamento
+          ? { id: projeto.departamento.id, nome: projeto.departamento.nome }
+          : undefined,
         ano: projectValues.ano,
         semestre: projectValues.semestre,
         tipoProposicao: projectValues.tipoProposicao,
@@ -475,6 +492,9 @@ export default function EditProjetoPage() {
 
   const onSubmit = async (data: ProjetoFormData) => {
     try {
+      // Check if project was in PENDING_REVISION before update (will redirect to signature page)
+      const wasInPendingRevision = projeto?.status === PROJETO_STATUS_PENDING_REVISION
+
       const atividadesFiltradas = atividades.filter((atividade) => atividade.trim() !== "")
 
       const projetoData = {
@@ -487,11 +507,19 @@ export default function EditProjetoPage() {
 
       toast({
         title: "Projeto atualizado",
-        description: "Seu projeto foi atualizado com sucesso.",
+        description: wasInPendingRevision
+          ? "Projeto atualizado. Agora assine o documento para reenviar."
+          : "Seu projeto foi atualizado com sucesso.",
       })
 
       await apiUtils.projeto.getProjetos.invalidate()
-      router.push("/home/professor/dashboard")
+
+      // Redirect to signature page if project was in revision, otherwise to dashboard
+      if (wasInPendingRevision) {
+        router.push(`/home/professor/assinatura-documentos?projetoId=${projectId}`)
+      } else {
+        router.push("/home/professor/dashboard")
+      }
     } catch (error: any) {
       toast({
         title: "Erro ao atualizar projeto",
@@ -539,6 +567,17 @@ export default function EditProjetoPage() {
             <p className="text-sm text-blue-800">
               <span className="font-medium">Disciplina(s):</span>{" "}
               {projeto.disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join(", ")}
+            </p>
+          </div>
+        )}
+
+        {/* Revision request message from admin */}
+        {projeto.status === PROJETO_STATUS_PENDING_REVISION && projeto.mensagemRevisao && !isEditingTemplate && (
+          <div className="bg-orange-50 border border-orange-300 rounded-lg p-4">
+            <h4 className="font-semibold text-orange-800 mb-2">📝 Revisão Solicitada pela Coordenação</h4>
+            <p className="text-sm text-orange-700 whitespace-pre-wrap">{projeto.mensagemRevisao}</p>
+            <p className="text-xs text-orange-600 mt-2">
+              Faça as correções solicitadas, assine o documento novamente e reenvie para análise.
             </p>
           </div>
         )}

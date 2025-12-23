@@ -5,6 +5,7 @@ import { PDFService } from '@/server/lib/pdf-service'
 import {
   PROJETO_STATUS_APPROVED,
   PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_PENDING_REVISION,
   PROJETO_STATUS_PENDING_SIGNATURE,
   PROJETO_STATUS_REJECTED,
   PROJETO_STATUS_SUBMITTED,
@@ -30,7 +31,11 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
         }
       }
 
-      if (projeto.status !== PROJETO_STATUS_DRAFT && projeto.status !== PROJETO_STATUS_PENDING_SIGNATURE) {
+      if (
+        projeto.status !== PROJETO_STATUS_DRAFT &&
+        projeto.status !== PROJETO_STATUS_PENDING_SIGNATURE &&
+        projeto.status !== PROJETO_STATUS_PENDING_REVISION
+      ) {
         throw new BusinessError('Projeto não pode ser submetido neste status', 'BAD_REQUEST')
       }
 
@@ -73,6 +78,52 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
       })
 
       log.info({ projetoId: id }, 'Projeto rejeitado')
+    },
+
+    async requestRevision(id: number, mensagem: string, userId: number) {
+      const projeto = await repo.findByIdWithRelations(id)
+      if (!projeto) {
+        throw new NotFoundError('Projeto', id)
+      }
+
+      if (projeto.status !== PROJETO_STATUS_SUBMITTED) {
+        throw new BusinessError('Projeto não está aguardando aprovação', 'BAD_REQUEST')
+      }
+
+      // Update project: clear signature, set revision status and message
+      await repo.update(id, {
+        status: PROJETO_STATUS_PENDING_REVISION,
+        mensagemRevisao: mensagem,
+        revisaoSolicitadaEm: new Date(),
+        assinaturaProfessor: null, // Clear signature - professor must re-sign after edits
+      })
+
+      log.info({ projetoId: id }, 'Revisão solicitada pelo admin')
+
+      // Send email notification to professor
+      try {
+        const professor = projeto.professorResponsavel
+        if (professor?.emailInstitucional) {
+          await emailService.sendProjetoStatusChangeNotification(
+            {
+              professorNome: professor.nomeCompleto,
+              professorEmail: professor.emailInstitucional,
+              projetoTitulo: projeto.titulo,
+              projetoId: projeto.id,
+              novoStatus: PROJETO_STATUS_PENDING_REVISION,
+              feedback: mensagem,
+              linkProjeto: `${process.env.NEXT_PUBLIC_APP_URL}/home/professor/projetos/${projeto.id}/edit`,
+            },
+            userId
+          )
+          log.info(
+            { projetoId: id, professorEmail: professor.emailInstitucional },
+            'Email de revisão enviado ao professor'
+          )
+        }
+      } catch (error) {
+        log.error({ error, projetoId: id }, 'Erro ao enviar email de revisão, mas status foi atualizado')
+      }
     },
 
     async signProfessor(projetoId: number, signatureImage: string, userId: number, userRole: UserRole) {

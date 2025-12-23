@@ -141,9 +141,7 @@ export default function ManageProjectsPage() {
         project={previewDialog.data}
         onApprove={handleApproveProject}
         onReject={() => previewDialog.data && handleOpenRejectDialog(previewDialog.data)}
-        onViewPDF={handleViewProjectPDF}
         isApproving={isApproving}
-        isLoadingPdf={loadingPdfProjetoId === previewDialog.data?.id}
       />
 
       <ProjectRejectDialog

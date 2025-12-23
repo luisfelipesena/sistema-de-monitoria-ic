@@ -9,6 +9,7 @@ import {
   AUDIT_ACTION_UPDATE,
   AUDIT_ENTITY_PROJETO,
   PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_PENDING_REVISION,
   PROJETO_STATUS_PENDING_SIGNATURE,
   VOLUNTARIO_STATUS_ATIVO,
   VOLUNTARIO_STATUS_INATIVO,
@@ -194,8 +195,15 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
           throw new ForbiddenError('Acesso negado a este projeto')
         }
 
-        if (projeto.status !== PROJETO_STATUS_DRAFT && projeto.status !== PROJETO_STATUS_PENDING_SIGNATURE) {
-          throw new BusinessError('Só é possível editar projetos em rascunho ou aguardando assinatura', 'BAD_REQUEST')
+        if (
+          projeto.status !== PROJETO_STATUS_DRAFT &&
+          projeto.status !== PROJETO_STATUS_PENDING_SIGNATURE &&
+          projeto.status !== PROJETO_STATUS_PENDING_REVISION
+        ) {
+          throw new BusinessError(
+            'Só é possível editar projetos em rascunho, aguardando assinatura ou revisão solicitada',
+            'BAD_REQUEST'
+          )
         }
       }
 
@@ -208,11 +216,11 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
 
       const updateData: Record<string, unknown> = {}
 
-      // If project was PENDING_SIGNATURE and is being edited, reset to DRAFT
+      // If project was PENDING_SIGNATURE or PENDING_REVISION and is being edited, reset to DRAFT
       // This allows the professor to properly review, edit and then sign again
-      if (projeto.status === PROJETO_STATUS_PENDING_SIGNATURE) {
+      if (projeto.status === PROJETO_STATUS_PENDING_SIGNATURE || projeto.status === PROJETO_STATUS_PENDING_REVISION) {
         updateData.status = PROJETO_STATUS_DRAFT
-        log.info({ projetoId: input.id }, 'Project status reset from PENDING_SIGNATURE to DRAFT for editing')
+        log.info({ projetoId: input.id, oldStatus: projeto.status }, 'Project status reset to DRAFT for editing')
       }
       if (input.titulo !== undefined) updateData.titulo = input.titulo
       if (input.descricao !== undefined) updateData.descricao = input.descricao

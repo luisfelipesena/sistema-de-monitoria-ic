@@ -23,6 +23,7 @@ import {
   PROJETO_STATUS_APPROVED,
   PROJETO_STATUS_DRAFT,
   PROJETO_STATUS_LABELS,
+  PROJETO_STATUS_PENDING_REVISION,
   PROJETO_STATUS_PENDING_SIGNATURE,
   PROJETO_STATUS_REJECTED,
   PROJETO_STATUS_SUBMITTED,
@@ -41,6 +42,7 @@ const statusFilterOptions = [
   { value: PROJETO_STATUS_APPROVED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_APPROVED] },
   { value: PROJETO_STATUS_REJECTED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_REJECTED] },
   { value: PROJETO_STATUS_PENDING_SIGNATURE, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_PENDING_SIGNATURE] },
+  { value: PROJETO_STATUS_PENDING_REVISION, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_PENDING_REVISION] },
 ]
 
 export default function DashboardProfessor() {
@@ -169,6 +171,12 @@ export default function DashboardProfessor() {
           return <Badge variant="outline">Rascunho</Badge>
         } else if (status === PROJETO_STATUS_PENDING_SIGNATURE) {
           return <Badge variant="secondary">Aguardando Assinatura do Professor</Badge>
+        } else if (status === PROJETO_STATUS_PENDING_REVISION) {
+          return (
+            <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+              Revisão Solicitada
+            </Badge>
+          )
         }
         return <Badge variant="outline">{status}</Badge>
       },
@@ -291,6 +299,19 @@ export default function DashboardProfessor() {
                 >
                   <Edit className="h-4 w-4" />
                   Revisar
+                </Button>
+              </Link>
+            )}
+
+            {projeto.status === PROJETO_STATUS_PENDING_REVISION && (
+              <Link href={`/home/professor/projetos/${projeto.id}/edit`}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="rounded-full flex items-center gap-1 bg-orange-100 text-orange-800 hover:bg-orange-200 border-orange-300"
+                >
+                  <Edit className="h-4 w-4" />
+                  Editar e Reenviar
                 </Button>
               </Link>
             )}

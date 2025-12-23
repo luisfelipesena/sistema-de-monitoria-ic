@@ -1,4 +1,4 @@
-ROTEIRO DE APRESENTAÇÃO - SISTEMA DE MONITORIA-IC (~15-20 minutos)
+ROTEIRO DE APRESENTAÇÃO - SISTEMA DE MONITORIA-IC (~18-22 minutos, 25 slides)
 Plataforma Web para Gestão Completa de Monitorias Acadêmicas da UFBA
 
 ========================================
@@ -126,7 +126,19 @@ SLIDE 15 - FUNCIONALIDADES POR PERFIL (1 min)
 - "Para estudantes: visualização de vagas disponíveis, inscrição em projetos, acompanhamento de resultados, aceite ou rejeição de vagas, e preenchimento de dados bancários."
 
 ========================================
-SLIDE 16 - METODOLOGIA DE AVALIAÇÃO COM USUÁRIOS (1 min)
+SLIDE 16 - INTERFACE DO SISTEMA - ADMINISTRADOR (30 seg)
+========================================
+- "Aqui vemos a interface real do administrador. À esquerda, o dashboard com métricas do semestre atual. À direita, a gestão de projetos com filtros por status e semestre."
+- "O sidebar segue a ordem natural do fluxo de trabalho, facilitando a navegação."
+
+========================================
+SLIDE 17 - INTERFACE DO SISTEMA - PROFESSOR E ESTUDANTE (30 seg)
+========================================
+- "Para o professor, temos a tela de assinatura digital com pré-visualização do PDF antes da submissão."
+- "Para o estudante, a interface de inscrição em monitoria mostra as vagas disponíveis e permite candidatura simplificada."
+
+========================================
+SLIDE 18 - METODOLOGIA DE AVALIAÇÃO COM USUÁRIOS (1 min)
 ========================================
 - "A avaliação com usuários seguiu uma abordagem qualitativa exploratória."
 - "Com apenas dois participantes, uma análise quantitativa com escala Likert não teria validade estatística. Por isso, optamos por técnicas qualitativas que capturam insights mais ricos."
@@ -136,7 +148,7 @@ SLIDE 16 - METODOLOGIA DE AVALIAÇÃO COM USUÁRIOS (1 min)
 - "A validação técnica foi conduzida com 55 testes automatizados, 100% de aprovação, execução em pouco mais de 1 segundo."
 
 ========================================
-SLIDE 17 - ROTEIRO DE AVALIAÇÃO (1 min)
+SLIDE 19 - ROTEIRO DE AVALIAÇÃO (1 min)
 ========================================
 - "O roteiro foi estruturado em três sessões sequenciais, simulando o fluxo real do sistema."
 - "Na primeira sessão, o administrador faz login, importa a planilha de planejamento do DCC, verifica as notificações enviadas e visualiza os projetos criados."
@@ -145,16 +157,22 @@ SLIDE 17 - ROTEIRO DE AVALIAÇÃO (1 min)
 - "Após cada walkthrough, conduzimos uma entrevista de 15 minutos explorando experiência geral, comparação com o processo manual, estimativa de economia de tempo e sugestões de melhoria."
 
 ========================================
-SLIDE 18 - RESULTADOS DA AVALIAÇÃO QUALITATIVA (1 min)
+SLIDE 20 - MAPA TEMÁTICO DA AVALIAÇÃO (30 seg)
 ========================================
-- "Os resultados da avaliação qualitativa serão apresentados após a realização das sessões."
-- "Para cada perfil, identificaremos pontos positivos, dificuldades encontradas e sugestões de melhoria."
-- "A análise cruzada buscará padrões comuns entre os dois perfis e possíveis divergências de percepção."
-- "Também coletaremos estimativas de economia de tempo baseadas nas percepções dos participantes."
-- "E avaliaremos a intenção de adoção: se os participantes usariam o sistema num semestre real e quais barreiras precisariam ser resolvidas."
+- "A análise temática, seguindo o método de Braun e Clarke, identificou três categorias principais: usabilidade, utilidade e adoção."
+- "Em usabilidade, tivemos 4 pontos positivos e apenas 1 dificuldade menor. Em utilidade, 3 pontos positivos relacionados a templates, importação e planilhas. Em adoção, 2 pontos positivos e 3 sugestões de melhoria."
 
 ========================================
-SLIDE 19 - CONTRIBUIÇÕES DO TRABALHO (1 min)
+SLIDE 21 - RESULTADOS DA AVALIAÇÃO QUALITATIVA (1.5 min)
+========================================
+- "Detalhando os resultados por perfil."
+- "Do lado do administrador: a organização do sidebar foi elogiada por seguir a ordem lógica do fluxo de trabalho. A planilha PROGRAD gerada estava no formato esperado. Como sugestão, foi proposto um botão para notificar o professor."
+- "Do lado do professor: a funcionalidade de templates reutilizáveis foi descrita como fantástica para economia de tempo. O onboarding foi considerado claro e a assinatura digital intuitiva."
+- "Na análise cruzada, ambos validaram o fluxo completo e destacaram que o projeto é vivo e continuará evoluindo."
+- "A economia de tempo foi estimada em 80% de redução em tarefas repetitivas. Ambos confirmaram viabilidade para uso em semestre real."
+
+========================================
+SLIDE 22 - CONTRIBUIÇÕES DO TRABALHO (1 min)
 ========================================
 - "Este trabalho apresenta quatro contribuições principais."
 - "Primeira: uma arquitetura especializada em três camadas - Router, Service, Repository - específica para o domínio de monitoria com requisitos formais de auditoria."
@@ -163,39 +181,41 @@ SLIDE 19 - CONTRIBUIÇÕES DO TRABALHO (1 min)
 - "Quarta: disponibilização de código aberto com tecnologias modernas e documentação, permitindo replicação por outras universidades."
 
 ========================================
-SLIDE 20 - LIMITAÇÕES E TRABALHOS FUTUROS (1 min)
+SLIDE 23 - LIMITAÇÕES E TRABALHOS FUTUROS (1 min)
 ========================================
 - "Reconheço algumas limitações do estudo."
 - "A avaliação qualitativa foi conduzida com apenas dois participantes, limitando a generalização dos resultados."
 - "Não incluímos o perfil estudante na avaliação - o fluxo de inscrição e aceite não foi testado com alunos reais."
 - "Não há integração automática com o SIAC - estudantes precisam anexar histórico manualmente."
 - "O escopo está restrito ao Instituto de Computação."
-- "Não há aplicativo móvel nativo, embora a interface seja responsiva."
 - "Os próximos passos incluem: piloto institucional, integração com SIAC/SIGAA, app móvel em React Native, e expansão para outros departamentos."
 
 ========================================
-SLIDE 21 - CONCLUSÃO (1 min)
+SLIDE 24 - CONCLUSÃO (1 min)
 ========================================
 - "O Sistema de Monitoria-IC representa um avanço significativo na modernização da gestão acadêmica universitária."
 - "Demonstra que a digitalização e automação de processos tradicionalmente manuais é viável e benéfica."
 - "Estabelece uma base sólida para a transformação digital contínua das universidades brasileiras."
-- "Mostra que é possível criar soluções tecnológicas específicas para problemas acadêmicos complexos, utilizando tecnologias modernas e práticas de engenharia de software consolidadas."
+- "Mostra que é possível criar soluções tecnológicas específicas para problemas acadêmicos complexos."
 - "O sucesso inicial na UFBA indica alto potencial de replicação em outras instituições que enfrentam desafios similares."
 
 ========================================
-SLIDE 22 - PERGUNTAS (30 seg)
+SLIDE 25 - PERGUNTAS (30 seg)
 ========================================
 - "Agradeço pela atenção. O código fonte está disponível no GitHub e estou à disposição para perguntas."
 
 ========================================
 DICAS PARA APRESENTAÇÃO:
 ========================================
-- Manter ritmo fluido, ~1 min por slide em média
-- Usar diagramas TikZ como apoio visual
+- Manter ritmo fluido, ~50 seg por slide em média
+- Usar capturas de tela como apoio visual nos slides 16-17
+- Usar mapa temático TikZ no slide 20 para explicar resultados
 - Enfatizar a lacuna identificada no estado da prática
 - Destacar os diferenciais: específico, ciclo completo, automação
 - Mencionar resultados técnicos concretos (55 testes, 100% sucesso)
 - Conectar teoria (SPT/SIG) com implementação prática
-- Ressaltar potencial de replicação e trabalhos futuros
+- Ressaltar a citação "fantástico" para templates reutilizáveis
+- Destacar economia de 80% em tarefas repetitivas
 - Se perguntarem sobre metodologia: justificar escolha qualitativa pela amostra reduzida (N=2)
 - Se perguntarem sobre certificados: módulo completo (API + UI), pronto para uso após validação
+- Se perguntarem sobre integração SIAC: trabalho futuro prioritário, atualmente upload manual

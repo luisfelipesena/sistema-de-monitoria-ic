@@ -464,6 +464,42 @@
     \end{columns}
 \end{frame}
 
+\begin{frame}{Interface do Sistema -- Administrador}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \centering
+            \textbf{Dashboard de Métricas}
+            \includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{admin-dashboard.png}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \textbf{Gestão de Projetos}
+            \includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{admin-manage-projects.png}
+        \end{column}
+    \end{columns}
+    \vspace{0.2cm}
+    \centering
+    \scriptsize Interface responsiva com sidebar organizado pelo fluxo de trabalho
+\end{frame}
+
+\begin{frame}{Interface do Sistema -- Professor e Estudante}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \centering
+            \textbf{Assinatura Digital (Professor)}
+            \includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{professor-assinatura-documentos.png}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \centering
+            \textbf{Inscrição em Monitoria (Aluno)}
+            \includegraphics[width=\linewidth,height=0.55\textheight,keepaspectratio]{student-inscricao-monitoria.png}
+        \end{column}
+    \end{columns}
+    \vspace{0.2cm}
+    \centering
+    \scriptsize Templates reutilizáveis e processo de inscrição simplificado
+\end{frame}
+
 %=================================================
 \section{Avaliação e Conclusão}
 %=================================================
@@ -543,35 +579,82 @@
     \end{itemize}
 \end{frame}
 
+\begin{frame}{Mapa Temático da Avaliação}
+    \centering
+    \begin{tikzpicture}[scale=0.65, transform shape,
+        category/.style={rounded corners, draw=gray!70, fill=blue!15, minimum width=2.8cm, minimum height=1cm, align=center, font=\small\bfseries},
+        subcategory/.style={rounded corners, draw=gray!50, fill=white, minimum width=2.5cm, text width=2.4cm, align=left, font=\tiny},
+        title/.style={rounded corners, draw=gray!70, fill=yellow!25, minimum width=8cm, minimum height=0.8cm, align=center, font=\small\bfseries},
+        >={Stealth[length=2mm]}
+    ]
+        \node[title] (title) {Avaliação Qualitativa (N=2, ~1h)};
+
+        \node[category, below left=1cm and 2cm of title] (usab) {Usabilidade\\{\tiny (+4, -1)}};
+        \node[category, below=1cm of title] (util) {Utilidade\\{\tiny (+3)}};
+        \node[category, below right=1cm and 2cm of title] (adoc) {Adoção\\{\tiny (+2, S:3)}};
+
+        \node[subcategory, below=0.4cm of usab] (usab1) {
+            \textbullet~Sidebar organizado\\
+            \textbullet~Onboarding claro\\
+            \textbullet~PDF preview útil\\
+            {\color{orange}\textbullet~Reset senha$^*$}
+        };
+
+        \node[subcategory, below=0.4cm of util] (util1) {
+            \textbullet~Templates reuso\\
+            \textbullet~Import. automática\\
+            \textbullet~Planilha PROGRAD
+        };
+
+        \node[subcategory, below=0.4cm of adoc] (adoc1) {
+            \textbullet~Projeto continuará\\
+            \textbullet~Uso semestre real\\
+            {\color{blue}\textbullet~Notificar prof.$^\dagger$}
+        };
+
+        \draw[->] (title.south) -- ++(0,-0.3) -| (usab.north);
+        \draw[->] (title.south) -- (util.north);
+        \draw[->] (title.south) -- ++(0,-0.3) -| (adoc.north);
+    \end{tikzpicture}
+
+    \vspace{0.3cm}
+    \scriptsize
+    \textcolor{green!60!black}{(+)} positivo \quad \textcolor{orange}{(-)} dificuldade$^*$ \quad \textcolor{blue}{(S)} sugestão$^\dagger$
+\end{frame}
+
 \begin{frame}{Resultados da Avaliação Qualitativa}
     \begin{columns}[T]
         \begin{column}{0.48\textwidth}
             \textbf{Perfil Administrador:}
             \begin{itemize}
-                \item Pontos positivos: \textit{TODO}
-                \item Dificuldades: \textit{TODO}
-                \item Sugestões: \textit{TODO}
+                \item \textcolor{green!60!black}{(+)} Sidebar organizado na ordem do fluxo
+                \item \textcolor{green!60!black}{(+)} Planilha PROGRAD formato esperado
+                \item \textcolor{blue}{(S)} Botão ``Notificar Professor''
             \end{itemize}
-            \vspace{0.3cm}
+            \vspace{0.2cm}
             \textbf{Perfil Professor:}
             \begin{itemize}
-                \item Pontos positivos: \textit{TODO}
-                \item Dificuldades: \textit{TODO}
-                \item Sugestões: \textit{TODO}
+                \item \textcolor{green!60!black}{(+)} Templates reutilizáveis: \textit{``fantástico!''}
+                \item \textcolor{green!60!black}{(+)} Onboarding e assinatura intuitivos
+                \item \textcolor{orange}{(-)} Reset senha (resolvido na sessão)
             \end{itemize}
         \end{column}
         \begin{column}{0.48\textwidth}
             \textbf{Análise Cruzada:}
             \begin{itemize}
-                \item Padrões comuns: \textit{TODO}
-                \item Divergências: \textit{TODO}
+                \item Ambos validaram fluxo completo
+                \item Aprovação geral positiva
+                \item \textit{``Projeto vivo, continuará evoluindo''}
             \end{itemize}
-            \vspace{0.3cm}
-            \textbf{Economia de Tempo Estimada:}\\
-            \textit{TODO} (baseado nas percepções)
-            \vspace{0.3cm}
-            \textbf{Intenção de Adoção:}\\
-            \textit{TODO}
+            \vspace{0.2cm}
+            \fbox{\parbox{0.9\linewidth}{
+                \centering\small
+                \textbf{Economia de Tempo:}\\
+                Redução estimada de \textbf{80\%}\\
+                em tarefas repetitivas
+            }}
+            \vspace{0.2cm}
+            \textbf{Adoção:} Viável para semestre real
         \end{column}
     \end{columns}
 \end{frame}

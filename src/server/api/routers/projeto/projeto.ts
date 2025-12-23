@@ -283,6 +283,33 @@ export const projetoRouter = createTRPCRouter({
       }
     }),
 
+  requestRevision: adminProtectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        path: '/projetos/{id}/request-revision',
+        tags: ['projetos'],
+        summary: 'Request revision',
+        description: 'Request revision from professor with a message',
+      },
+    })
+    .input(
+      z.object({
+        id: idSchema,
+        mensagem: z.string().min(10, 'Mensagem deve ter pelo menos 10 caracteres').max(2000),
+      })
+    )
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const service = createProjetoService(ctx.db)
+        await service.requestRevision(input.id, input.mensagem, ctx.user.id)
+        return { success: true }
+      } catch (error) {
+        return handleServiceError(error, 'Erro ao solicitar revisão')
+      }
+    }),
+
   signProfessor: protectedProcedure
     .meta({
       openapi: {

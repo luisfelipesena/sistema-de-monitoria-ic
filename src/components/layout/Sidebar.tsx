@@ -97,6 +97,12 @@ const menuConfig: MenuConfig[] = [
         roles: ["admin"],
       },
       {
+        label: "Planilha IC PROGRAD",
+        href: "/home/admin/planilha-prograd",
+        icon: FileSpreadsheet,
+        roles: ["admin"],
+      },
+      {
         label: "Templates de Projeto",
         href: "/home/admin/projeto-templates",
         icon: FileText,
@@ -168,12 +174,6 @@ const menuConfig: MenuConfig[] = [
     icon: FileSpreadsheet,
     roles: ["admin"],
     items: [
-      {
-        label: "Planilha PROGRAD",
-        href: "/home/admin/planilha-prograd",
-        icon: FileSpreadsheet,
-        roles: ["admin"],
-      },
       {
         label: "Consolidação PROGRAD",
         href: "/home/admin/consolidacao-prograd",
