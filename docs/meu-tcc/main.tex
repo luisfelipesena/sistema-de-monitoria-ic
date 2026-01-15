@@ -39,6 +39,10 @@
 \author[Sena et al. 2025]{
 \affil{\textbf{Luis Felipe Cordeiro Sena}~\orcidlink{0009-0009-3997-3639}~\textcolor{blue}{\faEnvelopeO}~~[{Universidade Federal da Bahia}~|\href{mailto:luis.sena@ufba.br}{~{\textit{luis.sena@ufba.br}}}~]}
 
+\affil{\textbf{Antoniel Magalhães}~~[{Universidade Federal da Bahia}~| \href{mailto:antoniels@ufba.br}{{\textit{antoniels@ufba.br}}}~]}
+
+\affil{\textbf{João Leahy}~~[{Universidade Federal da Bahia}~| \href{mailto:joao.leahy@ufba.br}{{\textit{joao.leahy@ufba.br}}}~]}
+
 \affil{\textbf{Frederico Araújo Durão}~\orcidlink{0000-0002-7766-6666}~~[{Universidade Federal da Bahia}~| \href{mailto:fdurao@ufba.br}{{\textit{fdurao@ufba.br}}}~]}
 }
 
@@ -236,247 +240,122 @@ Além dos trabalhos de TCC, diversas universidades brasileiras utilizam sistemas
 \section{Sistema de Monitoria-IC}
 \label{sec:system}
 
-\subsection{Metodologia}
+\subsection{Metodologia e Requisitos}
 \label{sec:methodology}
 
-O desenvolvimento do Sistema de Monitoria-IC seguiu uma metodologia estruturada que combina práticas consolidadas de engenharia de software com adaptações ao contexto acadêmico específico da UFBA. O processo abrangeu quatro fases principais: análise de requisitos, design e arquitetura, implementação e validação técnica.
+O desenvolvimento seguiu metodologia estruturada com quatro fases: análise de requisitos (entrevistas com coordenadores e análise de editais 2019-2023), design arquitetural (camadas com separação de responsabilidades e \textit{type-safety} via TypeScript/tRPC), implementação ágil em ciclos de duas semanas organizada por domínios (projetos, editais, inscrições, seleção), e validação técnica com testes automatizados (55 testes unitários/integração, E2E com Playwright).
 
-A identificação de requisitos foi conduzida através de entrevistas semiestruturadas com coordenadores do programa de monitoria do Instituto de Computação, professores com histórico de participação em projetos de monitoria e administradores responsáveis pela gestão do processo. Essas entrevistas, realizadas ao longo de dois meses, permitiram compreender as necessidades de cada perfil de usuário, identificar pontos de dor no processo manual existente e capturar expectativas quanto à automação. Complementarmente, realizou-se análise documental de editais de monitoria de semestres anteriores (2019 a 2023), normas institucionais da PROGRAD e relatórios anuais do programa para compreender o ciclo completo de monitoria, identificar pontos críticos de ineficiência e documentar as regras de negócio vigentes. Essa combinação de técnicas qualitativas (entrevistas) e análise documental proporcionou uma visão abrangente dos requisitos, resultando em um documento de especificação estruturado em funcionais (RF) e não-funcionais (RNF), conforme apresentado na Tabela~\ref{tab:requisitos}.
-
-Com os requisitos consolidados, foi projetada uma arquitetura em camadas que separa responsabilidades entre apresentação, aplicação, negócio e dados, conforme discutido em detalhes na Seção~\ref{sec:system}. O design arquitetural baseou-se em três princípios fundamentais: separação clara de responsabilidades entre as quatro camadas, garantindo baixo acoplamento e alta coesão; \textit{type-safety} completa em toda a stack através de TypeScript e tRPC, eliminando classes inteiras de erros em tempo de desenvolvimento; e modularidade estrutural para facilitar manutenção, testes e evolução futura do sistema. O modelo de dados foi normalizado conforme as formas normais relacionais clássicas, mantendo integridade referencial entre todas as entidades e garantindo rastreabilidade completa de todas as transações através de timestamps e histórico de alterações. A escolha de tecnologias priorizou maturidade e adoção na indústria, qualidade da documentação e suporte da comunidade, e alinhamento direto com os requisitos não-funcionais de desempenho, escalabilidade e segurança especificados.
-
-O desenvolvimento seguiu práticas ágeis em ciclos iterativos curtos (duas semanas), com entregas incrementais testadas e validadas ao final de cada iteração. A implementação foi organizada por domínios de negócio (projetos, editais, inscrições, seleção, relatórios), permitindo desenvolvimento paralelo de funcionalidades independentes e reduzindo significativamente o acoplamento entre módulos. Cada domínio foi desenvolvido seguindo o padrão de três camadas (router, service, repository), facilitando testes isolados e evolução incremental. Para assegurar qualidade e robustez do código produzido, foram adotadas práticas rigorosas de engenharia de software: revisão sistemática de código (\textit{code review}) para todas as mudanças antes de integração; linting e formatação automática com Biome, garantindo consistência estilística; verificação estática de tipos em tempo de compilação com TypeScript em modo estrito; testes unitários focados em lógica de negócio crítica (seleção de candidatos, alocação de bolsas, validações); testes \textit{end-to-end} (E2E) cobrindo fluxos completos de monitoria com Playwright; e pipeline de integração contínua no GitHub Actions executando automaticamente testes, build e validações a cada commit.
-
-A validação técnica da solução concentrou-se em duas frentes complementares. Na primeira frente, testes automatizados foram implementados em três níveis: cenários E2E com Playwright, cobrindo os papéis de administrador, professor e estudante em fluxos completos de monitoria; testes unitários e de integração com Vitest, validando regras de negócio críticas (critérios de seleção, equivalências de disciplinas, limites de bolsas) e interações corretas entre as camadas de aplicação, negócio e dados; e testes específicos de segurança e autorização, verificando isolamento adequado entre papéis e proteção de rotas sensíveis. A utilização de um ORM tipado (Drizzle) facilitou significativamente a detecção precoce de inconsistências entre o modelo de dados e o código da aplicação. Na segunda frente, foi realizada revisão sistemática de conformidade: verificação da aderência aos 15 requisitos funcionais especificados, validação dos 14 requisitos não-funcionais (métricas de desempenho, políticas de segurança, requisitos de usabilidade) e análise de conformidade com normas institucionais de monitoria da UFBA. Os resultados dessa validação técnica são apresentados em detalhes na Seção~\ref{sec:evaluation}. Cabe ressaltar que, até o momento da redação deste trabalho, não foi realizada uma avaliação empírica com usuários finais em ambiente de produção real. Essa etapa, fundamental para validar a usabilidade percebida e o impacto organizacional efetivo, é considerada prioritária nos trabalhos futuros, conforme discutido na Seção~\ref{sec:conclusion}.
-
-\subsection{Requisitos}
-
-O Sistema de Monitoria-IC foi especificado a partir de requisitos funcionais e não-funcionais identificados através de entrevistas com coordenadores, professores e análise do processo manual existente. A Tabela \ref{tab:requisitos} apresenta os principais requisitos do sistema, categorizados por tipo.
-
-\begin{table*}[htb]
-  \centering
-  \caption{Requisitos funcionais e não-funcionais do Sistema de Monitoria-IC.}
-  \label{tab:requisitos}
-  \begin{adjustbox}{max width=\textwidth}
-    \begin{tabular}{|l|l|p{8cm}|}
-      \hline
-      \textbf{ID} & \textbf{Tipo} & \textbf{Descrição} \\
-      \hline
-      \multicolumn{3}{|c|}{\textbf{Requisitos Funcionais}} \\
-      \hline
-      RF01 & Funcional & Importar planejamento semestral (Excel) com disciplinas e professores (SIAPE) \\
-      \hline
-      RF02 & Funcional & Criar e reutilizar templates de projetos entre semestres \\
-      \hline
-      RF03 & Funcional & Workflow de aprovação com estados (DRAFT, SUBMITTED, APPROVED, REJECTED) \\
-      \hline
-      RF04 & Funcional & Assinatura digital de projetos por professores e chefe de departamento \\
-      \hline
-      RF05 & Funcional & Alocar bolsas por projeto com validação de limites totais \\
-      \hline
-      RF06 & Funcional & Gerar e publicar edital interno com assinatura digital \\
-      \hline
-      RF07 & Funcional & Portal de inscrições para estudantes com upload de documentos \\
-      \hline
-      RF08 & Funcional & Captura automática de CR e notas do histórico acadêmico \\
-      \hline
-      RF09 & Funcional & Considerar equivalências entre disciplinas na seleção \\
-      \hline
-      RF10 & Funcional & Interface para professores avaliarem e selecionarem candidatos \\
-      \hline
-      RF11 & Funcional & Portal para aceite/rejeição de vagas e coleta de dados bancários \\
-      \hline
-      RF12 & Funcional & Gerar planilhas consolidadas para PROGRAD com dados de monitores \\
-      \hline
-      RF13\textsuperscript{*} & Funcional & Emitir relatórios finais e certificados de monitoria \\
-      \hline
-      RF14 & Funcional & Notificações automáticas por e-mail em todas as etapas \\
-      \hline
-      RF15 & Funcional & Dashboard administrativo com métricas e indicadores \\
-      \hline
-      \multicolumn{3}{|l|}{\footnotesize \textsuperscript{*}RF13 implementado: relatórios finais e certificados completos (código pronto, validação com usuários pendente).} \\
-      \hline
-      \multicolumn{3}{|c|}{\textbf{Requisitos Não-Funcionais}} \\
-      \hline
-      RNF01 & Desempenho & Tempo de carregamento inicial < 3s (First Contentful Paint) \\
-      \hline
-      RNF02 & Desempenho & Latência de API < 100ms para 95\% das requisições \\
-      \hline
-      RNF03 & Escalabilidade & Suportar 1000+ usuários concorrentes sem degradação \\
-      \hline
-      RNF04 & Segurança & Autenticação via Lucia Auth com sessões de 30 dias \\
-      \hline
-      RNF05 & Segurança & Controle de acesso baseado em papéis (RBAC) \\
-      \hline
-      RNF06 & Segurança & Validação de entrada com Zod em cliente e servidor \\
-      \hline
-      RNF07 & Confiabilidade & Disponibilidade > 99\% em horário comercial \\
-      \hline
-      RNF08 & Confiabilidade & Backup incremental a cada 6 horas com retenção de 30 dias \\
-      \hline
-      RNF09 & Usabilidade & Interface responsiva para desktop, tablet e mobile \\
-      \hline
-      RNF10 & Usabilidade & Acessibilidade WCAG 2.1 nível AA \\
-      \hline
-      RNF11 & Manutenibilidade & Type-safety completo com TypeScript em todo codebase \\
-      \hline
-      RNF12 & Manutenibilidade & Cobertura de testes > 85\% em lógica de negócio \\
-      \hline
-      RNF13 & Interoperabilidade & API REST e tRPC para integração com sistemas externos \\
-      \hline
-      RNF14 & Portabilidade & Containerização com Docker para deploy em qualquer ambiente \\
-      \hline
-    \end{tabular}
-  \end{adjustbox}
-\end{table*}
-
-A Tabela \ref{tab:requisitos} sintetiza os requisitos levantados durante a fase de especificação. Esses requisitos orientaram as decisões arquiteturais e tecnológicas tomadas no desenvolvimento do sistema, estabelecendo critérios claros de sucesso para funcionalidades, desempenho, segurança e manutenibilidade. Com base nessa especificação, o sistema foi projetado seguindo uma arquitetura em camadas que separa claramente as responsabilidades, conforme descrito a seguir.
+Os principais requisitos funcionais incluem: importação de planejamento semestral com validação SIAPE, templates reutilizáveis entre semestres, workflow de aprovação com estados (DRAFT/SUBMITTED/APPROVED/REJECTED), assinatura digital de projetos, alocação de bolsas com validação de limites, publicação de editais, portal de inscrições com upload de documentos, seleção com equivalências de disciplinas, e geração de planilhas consolidadas para PROGRAD. Requisitos não-funcionais contemplam desempenho (latência API <100ms, carregamento <3s), segurança (RBAC, validação Zod, Lucia Auth), e confiabilidade (disponibilidade >99\%, backups incrementais).
 
 \subsection{Arquitetura}
 
-O Sistema de Monitoria-IC foi projetado seguindo uma arquitetura em camadas que separa claramente as responsabilidades e promove manutenibilidade e escalabilidade, conforme ilustrado na Figura \ref{fig:architecture}. A arquitetura segue o padrão de três camadas com componentes especializados. Na implementação prática, as camadas de Apresentação (cliente React) e Aplicação (rotas tRPC) coexistem na mesma aplicação Next.js (padrão full-stack monolítico), enquanto a separação lógica em quatro camadas apresentada facilita a compreensão didática das responsabilidades de cada componente arquitetural:
+O Sistema de Monitoria-IC foi projetado seguindo uma arquitetura em camadas que separa claramente as responsabilidades e promove manutenibilidade e escalabilidade, conforme ilustrado na Figura \ref{fig:architecture}. A arquitetura segue o padrão de três camadas com componentes especializados. Na implementação prática, as camadas de Apresentação (cliente React) e Aplicação (rotas tRPC) coexistem na mesma aplicação Next.js (padrão full-stack monolítico), enquanto a separação lógica em quatro camadas apresentada facilita a compreensão didática das responsabilidades de cada componente arquitetural.
 
-A arquitetura em camadas adotada confere ao sistema benefícios diretos em termos de manutenibilidade, testabilidade e evolução incremental. A separação clara de responsabilidades permite que modificações em uma camada sejam realizadas com impacto mínimo nas demais, facilitando tanto correções pontuais quanto a introdução de novas funcionalidades sem comprometer a estabilidade do sistema em produção. A independência entre camadas viabiliza testes unitários isolados de cada componente (routers tRPC, serviços de negócio, repositórios de dados), contribuindo para uma base de código mais robusta e confiável. Além disso, a modularização arquitetural favorece o desenvolvimento paralelo por equipes distintas: designers de interface podem atuar na camada de apresentação enquanto engenheiros de backend refinam serviços de negócio ou otimizam consultas na camada de dados, sem conflitos de responsabilidade ou acoplamento excessivo entre artefatos.
+A \textbf{camada de apresentação} utiliza Next.js 15 com React e TypeScript, oferecendo interfaces especializadas por perfil. Componentes shadcn/ui e Tailwind CSS garantem consistência visual, enquanto React Hook Form com Zod implementa validação compartilhada cliente-servidor. React Query gerencia cache e sincronização de estado.
 
-A comunicação entre camadas segue padrões bem estabelecidos que asseguram consistência e rastreabilidade das operações. O cliente React consome endpoints tRPC que, internamente, invocam serviços de negócio responsáveis por orquestrar chamadas a repositórios e a APIs externas (envio de e-mails via Nodemailer, armazenamento de arquivos no MinIO). Os dados trafegam sempre validados por esquemas Zod compartilhados entre cliente e servidor, eliminando divergências de tipo e prevenindo inconsistências. Erros originados em qualquer camada (validação de entrada, regras de negócio, falhas de persistência) são propagados de forma estruturada até o cliente, que apresenta mensagens adequadas ao contexto de uso. A arquitetura ainda contempla pontos de extensão planejados para integrações futuras, como autenticação via CAS (Central Authentication Service) da universidade, sincronização automática de dados acadêmicos com sistemas legados e exportação de métricas para ferramentas de business intelligence externas, garantindo que o sistema possa crescer em funcionalidade sem necessidade de reestruturação fundamental.
+A \textbf{camada de aplicação} expõe a API via tRPC v11, garantindo \textit{type-safety} fim-a-fim. Lucia Auth gerencia autenticação com sessões seguras, e o sistema RBAC controla permissões por papel (admin, professor, aluno, chefe de departamento).
 
-Do ponto de vista de escalabilidade, a arquitetura permite crescimento horizontal tanto na camada de aplicação quanto na de dados. O uso de containers Docker facilita a replicação de instâncias da aplicação atrás de um balanceador de carga, enquanto o PostgreSQL suporta réplicas de leitura para distribuir consultas pesadas. O MinIO pode ser configurado em modo distribuído para alta disponibilidade de arquivos. Essa flexibilidade arquitetural garante que o sistema possa atender a demandas crescentes sem redesenho significativo. A separação entre lógica de negócio e persistência também facilita a substituição de componentes específicos: o banco de dados poderia ser migrado para soluções gerenciadas em nuvem (como Amazon RDS ou Google Cloud SQL) sem alterações no código da aplicação, e o armazenamento de objetos poderia transicionar para Amazon S3 ou Google Cloud Storage mantendo compatibilidade via protocolo S3.
+A \textbf{camada de negócio} concentra serviços especializados: \texttt{ProjectService} (ciclo de vida de projetos), \texttt{SelectionService} (inscrições e seleção com equivalências), \texttt{NotificationService} (e-mails automáticos), \texttt{DocumentService} (PDFs e assinaturas digitais) e \texttt{AnalyticsService} (dashboards e relatórios).
 
-Do ponto de vista operacional, o sistema foi projetado para facilitar monitoramento e diagnóstico em ambiente de produção. Os logs estruturados em formato JSON permitem integração com ferramentas de observabilidade como Elasticsearch, Grafana ou Datadog, possibilitando alertas automáticos em caso de degradação de performance ou erros recorrentes. As métricas de uso (requisições por segundo, tempo de resposta, taxa de erros) podem ser exportadas via endpoints dedicados, alimentando dashboards operacionais que auxiliam a equipe de infraestrutura na identificação proativa de gargalos. A estratégia de cache implementada no cliente (via React Query) reduz significativamente a carga sobre o servidor, enquanto índices otimizados no banco de dados garantem tempos de resposta consistentes mesmo sob picos de demanda característicos de períodos de inscrição.
+A \textbf{camada de dados} utiliza PostgreSQL com Drizzle ORM para consultas tipadas, MinIO para armazenamento de arquivos (compatível S3), e Nodemailer para envio de e-mails via SMTP institucional. Backups incrementais são realizados a cada 6 horas.
 
-A arquitetura contempla ainda mecanismos de resiliência que minimizam o impacto de falhas parciais. Transações de banco de dados são utilizadas para garantir atomicidade em operações críticas, como a submissão de projetos e a alocação de bolsas, evitando estados inconsistentes mesmo em caso de interrupções inesperadas. O sistema implementa padrões de \textit{retry} com backoff exponencial para chamadas a serviços externos (envio de e-mails, armazenamento de arquivos), de modo que falhas transitórias não resultem em perda de dados ou operações incompletas. Filas de processamento assíncrono permitem que tarefas demoradas (geração de relatórios, envio em lote de notificações) sejam executadas em segundo plano sem bloquear a interface do usuário, melhorando a experiência percebida e a responsividade geral do sistema.
-
-O tratamento de erros segue uma estratégia hierárquica que propaga exceções de forma controlada através das camadas arquiteturais. Erros de validação detectados na camada de apresentação são exibidos imediatamente ao usuário com mensagens contextualizadas, enquanto falhas de regras de negócio na camada de serviços são transformadas em códigos de erro padronizados que o cliente interpreta para apresentar feedback apropriado. Exceções não previstas são capturadas por handlers globais que registram informações diagnósticas detalhadas (stack trace, contexto da requisição, estado do usuário) antes de retornar respostas genéricas que não expõem detalhes internos da implementação, preservando a segurança do sistema.
-
-A gestão de configurações adota o princípio de separação entre código e ambiente, utilizando variáveis de ambiente para parâmetros que variam entre ambientes de desenvolvimento, homologação e produção. Credenciais sensíveis (chaves de API, senhas de banco de dados, tokens de autenticação) são injetadas em tempo de execução através de gerenciadores de segredos (\textit{secrets managers}) ou arquivos de ambiente protegidos, nunca sendo armazenadas no repositório de código. Essa abordagem facilita a implantação em diferentes infraestruturas e permite que a mesma imagem Docker seja promovida entre ambientes sem necessidade de recompilação, seguindo práticas recomendadas de DevOps e integração contínua.
-
-O versionamento da API segue convenções semânticas que permitem evolução gradual sem quebrar clientes existentes. Mudanças compatíveis (adição de campos opcionais, novos endpoints) são incorporadas transparentemente, enquanto alterações incompatíveis (remoção de campos, mudança de tipos) são sinalizadas através de mecanismos de depreciação que concedem período de transição aos consumidores. A documentação da API é gerada automaticamente a partir dos esquemas Zod e das definições tRPC, garantindo que a especificação técnica permaneça sincronizada com a implementação real e reduzindo o risco de divergências entre documentação e comportamento efetivo do sistema.
-
-\clearpage
-
-\begin{figure}[h]
+\begin{figure}[t]
   \centering
   \begin{tikzpicture}[
-    layer/.style={rounded corners, draw=gray!60, fill=yellow!10, fill opacity=0.35, draw opacity=1, thick, inner sep=10pt},
-    box/.style={draw=gray!70, rounded corners, fill=yellow!6, text width=4.4cm, align=center, minimum height=0.95cm, font=\small\bfseries, text=black},
-    smallbox/.style={draw=gray!70, rounded corners, fill=yellow!6, text width=5.2cm, align=center, minimum height=0.95cm, font=\small\bfseries, text=black},
-    databox/.style={draw=gray!70, rounded corners, fill=yellow!6, text width=3.4cm, align=center, minimum height=0.9cm, font=\small\bfseries, text=black},
+    layer/.style={rounded corners, draw=gray!60, fill=yellow!10, fill opacity=0.35, draw opacity=1, thick, inner sep=5pt},
+    box/.style={draw=gray!70, rounded corners, fill=yellow!6, text width=2.5cm, align=center, minimum height=0.6cm, font=\scriptsize\bfseries, text=black},
+    smallbox/.style={draw=gray!70, rounded corners, fill=yellow!6, text width=3.0cm, align=center, minimum height=0.6cm, font=\scriptsize\bfseries, text=black},
+    databox/.style={draw=gray!70, rounded corners, fill=yellow!6, text width=1.65cm, align=center, minimum height=0.55cm, font=\scriptsize\bfseries, text=black},
     connector/.style={-Latex, thick, gray!70}
   ]
     % Camada de Apresentação
     \matrix (presentation) [
       matrix of nodes,
       nodes={box},
-      row sep=4pt,
+      row sep=2pt,
       column sep=0pt,
       matrix anchor=north,
       anchor=north
-    ] at (-4.6,0) {
+    ] at (-2.6,0) {
       {Next.js 15 SPA\\React + TypeScript} \\
       {UI Components\\shadcn/ui + Tailwind} \\
       {Forms \& Validation\\React Hook Form + Zod} \\
       {State Management\\React Query + Zustand} \\
     };
-    \node[layer, fit=(presentation-1-1)(presentation-4-1), label={[font=\small\bfseries]above:Camada de Apresentação}] (presentationLayer) {};
+    \node[layer, fit=(presentation-1-1)(presentation-4-1), label={[font=\footnotesize\bfseries]above:Camada de Apresentação}] (presentationLayer) {};
 
     % Camada de Aplicação
     \matrix (application) [
       matrix of nodes,
       nodes={box},
-      row sep=4pt,
+      row sep=2pt,
       column sep=0pt,
       matrix anchor=north,
       anchor=north
-    ] at (4.6,0) {
-      {tRPC v11\\API com Tipagem Segura} \\
+    ] at (2.6,0) {
+      {tRPC v11\\API Tipagem Segura} \\
       {Autenticação\\Lucia Auth} \\
       {Autorização\\RBAC roles} \\
       {Rotas\\projeto, inscrição, edital} \\
     };
-    \node[layer, fit=(application-1-1)(application-4-1), label={[font=\small\bfseries]above:Camada de Aplicação}] (applicationLayer) {};
+    \node[layer, fit=(application-1-1)(application-4-1), label={[font=\footnotesize\bfseries]above:Camada de Aplicação}] (applicationLayer) {};
 
     % Camada de Negócio
     \coordinate (topMid) at ($(presentationLayer.south)!0.5!(applicationLayer.south)$);
     \matrix (business) [
       matrix of nodes,
       nodes={smallbox},
-      row sep=4pt,
+      row sep=2pt,
       column sep=0pt,
       matrix anchor=north,
       anchor=north
-    ] at ($(topMid)+(0,-2.6)$) {
+    ] at ($(topMid)+(0,-1.8)$) {
       {ProjectService\\Gerenciamento do Ciclo de Vida} \\
       {SelectionService\\Inscrições e Seleção} \\
       {NotificationService\\Automação de E-mails} \\
       {DocumentService\\PDF + Assinaturas Digitais} \\
       {AnalyticsService\\Relatórios e Dashboards} \\
     };
-    \node[layer, fit=(business-1-1)(business-5-1), label={[font=\small\bfseries]above:Camada de Negócio}] (businessLayer) {};
+    \node[layer, fit=(business-1-1)(business-5-1), label={[font=\footnotesize\bfseries]above:Camada de Negócio}] (businessLayer) {};
 
     % Camada de Dados
     \matrix (data) [
       matrix of nodes,
       nodes={databox},
       row sep=0pt,
-      column sep=0.7cm,
+      column sep=0.1cm,
       matrix anchor=north,
       anchor=north
-    ] at ($(businessLayer.south)+(0,-2.4)$) {
+    ] at ($(businessLayer.south)+(0,-1.6)$) {
       {Drizzle ORM\\Consultas Tipadas} &
       {MinIO\\Object Storage} &
       {Nodemailer\\Serviço SMTP} &
       {PostgreSQL\\Banco Relacional} \\
     };
-    \node[layer, fit=(data-1-1)(data-1-4), label={[font=\small\bfseries]above:Camada de Dados}] (dataLayer) {};
+    \node[layer, fit=(data-1-1)(data-1-4), label={[font=\scriptsize\bfseries]above:Camada de Dados}] (dataLayer) {};
 
     % Conectores
-    \draw[connector] (presentationLayer.east) -- node[above,font=\small]{HTTP / JSON} (applicationLayer.west);
-    \draw[connector] (presentationLayer.south) .. controls +(0,-1.0) and +(-3,0.8) .. (businessLayer.north);
-    \draw[connector] (applicationLayer.south) .. controls +(0,-1.0) and +(3,0.8) .. (businessLayer.north);
+    \draw[connector] (presentationLayer.east) -- node[above,font=\scriptsize]{HTTP / JSON} (applicationLayer.west);
+    \draw[connector] (presentationLayer.south) .. controls +(0,-0.6) and +(-1.8,0.4) .. (businessLayer.north);
+    \draw[connector] (applicationLayer.south) .. controls +(0,-0.6) and +(1.8,0.4) .. (businessLayer.north);
     \draw[connector] (businessLayer.south) -- (dataLayer.north);
   \end{tikzpicture}
   \caption{Arquitetura lógica do Sistema de Monitoria-IC.}
   \label{fig:architecture}
 \end{figure}
 
-\clearpage
-
-A camada de apresentação foi implementada como uma Single Page Application (SPA) utilizando Next.js 15, React e TypeScript, proporcionando uma interface responsiva construída a partir de componentes shadcn/ui e Tailwind CSS. O roteamento é dinâmico e protegido por papéis, assegurando que cada perfil de usuário (administrador, professor ou estudante) tenha acesso apenas às funcionalidades pertinentes. O estado do cliente é coordenado por React Query, que gerencia cache e sincronização de dados remotos, e Zustand, que cuida do estado local da aplicação. Os formulários utilizam React Hook Form para gerenciamento eficiente de estado e validações, combinado com Zod para garantir consistência entre as validações de cliente e servidor.
-
-O sistema oferece interfaces especializadas estruturadas em módulos funcionais para cada perfil de usuário. Para o perfil de administrador, são disponibilizados sete módulos principais que refletem as responsabilidades de coordenação do programa de monitoria. O módulo Dashboard consolida métricas operacionais e indicadores em tempo real, incluindo distribuição de projetos por status (rascunho, submetido, aprovado, rejeitado), número total de inscrições por período letivo e visualização rápida de prazos críticos. O módulo Projetos centraliza o gerenciamento completo do ciclo de vida de projetos de monitoria: visualização e aprovação de projetos submetidos pelos docentes, importação de planejamento semestral via planilha Excel com dados SIAPE (Sistema Integrado de Administração de Pessoal), e alocação de bolsas por projeto com validação automática de limites totais informados pela PROGRAD, impedindo excedentes. O módulo Editais permite criar, configurar e publicar editais internos do departamento, definindo datas de inscrição, pontos de prova e bibliografia, além de solicitar assinatura digital do chefe do departamento antes da publicação, com envio automatizado de notificações por e-mail. O módulo Documentos oferece gestão centralizada de arquivos, incluindo históricos acadêmicos, comprovantes de matrícula, documentos de identificação e PDFs gerados pelo sistema (projetos assinados, editais, atas), com suporte a versionamento e metadados para auditoria. O módulo Usuários implementa funcionalidades CRUD completas para administração de contas de professores e alunos, permitindo pesquisa avançada por nome, matrícula ou SIAPE, edição de perfis acadêmicos e envio de convites institucionais para novos docentes. O módulo Configurações abrange o cadastro e manutenção de cursos de graduação, departamentos acadêmicos, disciplinas com códigos oficiais, configuração de equivalências curriculares (fundamental para o processo seletivo que considera disciplinas equivalentes ao calcular notas), e parâmetros de integração SMTP para envio automatizado de notificações. Por fim, o módulo Sistema consolida funcionalidades analíticas e gerenciais: analytics com visualizações de tendências históricas (evolução de inscrições, distribuição de bolsas por departamento ao longo dos semestres), relatórios consolidados estruturados para PROGRAD (listagem de monitores ativos com dados de pagamento) e planilhas finais em formato Excel diferenciando bolsistas e voluntários, com links para PDFs dos projetos aprovados.
-
-Para o perfil de professor, o sistema estrutura-se em quatro módulos que cobrem as responsabilidades docentes no programa de monitoria. O módulo Meus Projetos permite criar, editar e gerenciar projetos individuais ou coletivos (quando múltiplos professores ministram uma mesma disciplina), com funcionalidade de reutilização de templates de semestres anteriores para agilizar a criação, edição de título, descrição, atividades e carga horária, e assinatura digital com visualização prévia do PDF antes da submissão administrativa. O módulo Processo Seletivo concentra todas as etapas relacionadas à seleção de monitores: gerenciar candidatos permite visualizar lista de alunos inscritos em cada projeto com informações acadêmicas (CR, nota na disciplina considerando equivalências configuradas), documentos anexados (histórico, comprovante de matrícula) e tipo de vaga pretendida (bolsista, voluntário ou ambos); avaliar candidatos oferece interface para atribuição de notas de prova e entrevista, com cálculo automático da nota final ponderada conforme critérios institucionais; selecionar monitores apresenta lista ranqueada de candidatos por nota final, permitindo escolha de bolsistas até o limite alocado pela administração e definição de voluntários até o limite configurado pelo próprio professor; e publicar resultados gera automaticamente atas de seleção em PDF e dispara notificações por e-mail para todos os candidatos, informando aprovação (bolsista ou voluntário), lista de espera ou não seleção. O módulo Documentos permite gerar e assinar atas de seleção (documento oficial registrando o processo seletivo, critérios utilizados, candidatos inscritos e resultado final) e termos de compromisso (documento assinado digitalmente pelo professor e pelo monitor, estabelecendo responsabilidades, carga horária e atividades previstas). Por fim, o módulo Gestão Acadêmica oferece configuração e acompanhamento de monitores voluntários adicionais além dos definidos no edital, permitindo que o professor amplie sua equipe de monitoria conforme demanda da disciplina, embora sem remuneração institucional.
-
-Para o perfil de estudante, o sistema disponibiliza um módulo unificado de Monitoria com quatro funcionalidades principais que cobrem a jornada completa do aluno. A funcionalidade Inscrição em Monitoria permite que o estudante se inscreva em projetos disponíveis no período ativo de inscrições, informando preferência por vaga bolsista, voluntária ou ambas, com upload obrigatório de histórico acadêmico atualizado, comprovante de matrícula vigente e documento de identificação. A funcionalidade Vagas Disponíveis apresenta catálogo paginado de projetos com vagas abertas, com filtros por departamento acadêmico (DCC, DCI), tipo de vaga (bolsista, voluntário) e busca textual por título de disciplina ou nome do professor orientador, exibindo para cada projeto: nome da disciplina, código oficial, professores responsáveis, número de vagas bolsistas e voluntárias disponíveis, carga horária semanal e descrição das atividades previstas. A funcionalidade Resultados das Seleções exibe lista de todas as inscrições realizadas pelo aluno no período letivo atual, indicando para cada uma o status detalhado (selecionado bolsista, selecionado voluntário, lista de espera com posição, ou não selecionado), com resumo agregado por categoria no topo da página e notificações automáticas quando novos resultados são publicados pelos professores. Por fim, a funcionalidade Meu Status consolida informações de aceite ou rejeição de vagas oferecidas, com formulário para preenchimento de dados bancários quando o aluno aceita uma vaga bolsista (banco, agência, número da conta e dígito verificador), além de indicadores visuais de pendências que possam impedir a efetivação da monitoria (dados bancários incompletos, documentação faltante ou termo de compromisso não assinado).
-
-A camada de aplicação utiliza tRPC v11 para prover uma API completamente \textit{type-safe} entre cliente e servidor, eliminando a necessidade de definições duplicadas de tipos e reduzindo significativamente a possibilidade de erros de integração. As procedures são organizadas por domínio (projeto, inscrição, edital, entre outros), facilitando a manutenção e evolução do sistema. A autenticação é realizada via Lucia Auth, um framework moderno e seguro que gerencia sessões de usuário com duração configurável de 30 dias. As validações ocorrem automaticamente em ambos os lados da comunicação através de esquemas Zod compartilhados, e o sistema oferece suporte a \textit{subscriptions} para atualizações em tempo quase real, permitindo que múltiplos usuários visualizem mudanças de estado instantaneamente.
-
-A camada de negócio concentra a lógica central do sistema em serviços especializados e desacoplados. O \texttt{ProjectService} gerencia o ciclo de vida completo de projetos de monitoria, desde a criação com base em templates até a consolidação final para PROGRAD. O \texttt{SelectionService} processa as inscrições de estudantes e executa a lógica de seleção, considerando critérios como coeficiente de rendimento, nota na disciplina e equivalências curriculares. O \texttt{NotificationService} orquestra o envio de notificações por e-mail em todas as etapas do processo, garantindo que professores, estudantes e administradores sejam informados sobre mudanças de estado relevantes. O \texttt{DocumentService} é responsável pela geração de documentos PDF (projetos, editais, relatórios) e pelo gerenciamento de assinaturas digitais, tanto dos professores quanto do chefe do departamento. Por fim, o \texttt{AnalyticsService} consolida dados transacionais em métricas e indicadores apresentados nos dashboards administrativos, fornecendo visões agregadas do processo de monitoria para apoiar a tomada de decisões institucionais.
-
-A camada de dados utiliza PostgreSQL como sistema gerenciador de banco de dados relacional, combinado com Drizzle ORM para garantir consultas tipadas e seguras. O esquema de dados foi normalizado seguindo as formas normais clássicas, mantendo integridade referencial entre todas as entidades do domínio. As migrações são versionadas e reversíveis, permitindo evolução controlada do modelo de dados ao longo do tempo. Índices foram criados estrategicamente nas colunas mais consultadas para otimizar o desempenho de queries frequentes, especialmente aquelas relacionadas à listagem de projetos por período, busca de inscrições por estudante e geração de relatórios consolidados. Para armazenamento de arquivos (históricos acadêmicos, documentos comprobatórios, PDFs gerados), o sistema utiliza MinIO, uma solução compatível com o protocolo S3 que oferece escalabilidade horizontal e facilita futuras migrações para serviços de nuvem. Rotinas automatizadas de backup incremental são executadas a cada seis horas, com retenção de 30 dias, assegurando resiliência e possibilidade de recuperação em caso de falhas.
-
-Além dos aspectos funcionais e arquiteturais, o Sistema de Monitoria-IC foi concebido considerando requisitos de segurança da informação e privacidade de dados, em consonância com a Lei Geral de Proteção de Dados (LGPD). A autenticação é realizada por meio de Lucia Auth, com sessões protegidas e gerenciamento explícito de papéis (administração, professor, estudante), implementando um modelo de controle de acesso baseado em papéis (RBAC, do inglês \textit{Role-Based Access Control}) que restringe o acesso a dados e funcionalidades de acordo com o perfil do usuário. O uso de um ORM tipado (Drizzle) contribui para mitigar riscos de injeção de SQL, enquanto a comunicação cliente-servidor é projetada para operar sobre HTTPS em ambiente de produção, assegurando a confidencialidade dos dados em trânsito. Do ponto de vista de privacidade, o sistema adota o princípio da minimização de dados, armazenando apenas informações pessoais estritamente necessárias para a gestão da monitoria (por exemplo, identificação do aluno, histórico acadêmico relevante e dados bancários de bolsistas). Políticas de retenção de dados e de acesso a relatórios podem ser configuradas para atender às diretrizes institucionais, e o histórico de operações mantém trilhas de auditoria para fins de transparência e responsabilização. A interface Web foi desenvolvida com responsividade, visando funcionamento adequado em diferentes tamanhos de tela (desktop, tablet e dispositivos móveis) e utilizando componentes que suportam navegação por teclado. Embora uma avaliação formal de acessibilidade ainda não tenha sido conduzida, o sistema segue boas práticas básicas de design de interface (uso consistente de hierarquia visual, contrastes adequados e feedback claro de ações), abrindo caminho para evoluções futuras em direção à conformidade com as diretrizes WCAG 2.1 em nível institucional.
+O sistema oferece interfaces especializadas para cada perfil: \textbf{administradores} acessam dashboard com métricas, gerenciamento de projetos, editais, alocação de bolsas e geração de planilhas PROGRAD; \textbf{professores} criam/editam projetos com templates reutilizáveis, realizam assinatura digital e conduzem o processo seletivo; \textbf{estudantes} consultam vagas disponíveis, realizam inscrições com upload de documentos e acompanham resultados. O sistema implementa validação Zod em cliente e servidor, comunicação HTTPS e minimização de dados conforme LGPD.
 
 \subsection{Modelo de Dados}
 
-O modelo de dados foi projetado para capturar todas as entidades e relacionamentos do domínio de monitoria, seguindo princípios de normalização e integridade referencial. O esquema relacional adota a terceira forma normal (3NF), eliminando redundâncias e garantindo que cada atributo dependa exclusivamente da chave primária de sua tabela. Chaves estrangeiras com restrições de integridade referencial asseguram consistência entre entidades relacionadas, impedindo operações que resultariam em registros órfãos ou referências inválidas. O modelo contempla ainda índices compostos estrategicamente posicionados nas colunas mais frequentemente consultadas, otimizando operações de busca e agregação que sustentam os dashboards e relatórios do sistema.
-
-A modelagem foi orientada pelos fluxos de negócio identificados durante o levantamento de requisitos, priorizando a rastreabilidade de operações e a auditabilidade de mudanças de estado. Cada entidade principal mantém campos de metadados temporais (\texttt{created\_at}, \texttt{updated\_at}) que permitem reconstruir o histórico de modificações. Relacionamentos muitos-para-muitos foram decompostos em tabelas associativas que capturam atributos específicos da associação (por exemplo, a relação entre projeto e disciplina inclui informações sobre o papel de cada disciplina no projeto). A Figura \ref{fig:data-model} apresenta as principais entidades e seus relacionamentos:
-
-\clearpage
+O modelo de dados segue princípios de normalização (3NF) e integridade referencial. As principais entidades incluem: \texttt{user} (autenticação e perfil), estendida por \texttt{professor} e \texttt{aluno}; hierarquia acadêmica (\texttt{departamento}, \texttt{curso}, \texttt{disciplina}); e domínio de monitoria (\texttt{projeto}, \texttt{inscricao}, \texttt{vaga}, \texttt{edital}). A Figura \ref{fig:data-model} apresenta o diagrama entidade-relacionamento resumido.
 
 \begin{figure}[p]
   \centering
-  \includegraphics[width=0.95\textwidth,keepaspectratio]{images/monitoria/data-model-erd.png}
+  \includegraphics[width=\linewidth,keepaspectratio]{images/monitoria/data-model-erd.png}
   \caption{Modelo de dados resumido do domínio de monitoria.}
   \label{fig:data-model}
 \end{figure}
-
-\clearpage
-
-O dashboard administrativo consolida indicadores operacionais (projetos por status, períodos de inscrição, volume de candidaturas) e oferece navegação rápida para tarefas críticas do papel \textit{admin}, conforme a estrutura do menu lateral.
-
-No núcleo de usuários, a entidade \texttt{user} concentra autenticação e perfil básico, estendida por perfis específicos de \texttt{professor} (dados acadêmicos) e \texttt{aluno} (matrícula, curso e CR), com papéis representados por \texttt{role} (\textit{admin}, \textit{professor}, \textit{student}). No eixo acadêmico, \texttt{departamento}, \texttt{curso} e \texttt{disciplina} descrevem a hierarquia institucional, os cursos vinculados e as disciplinas (com códigos e equivalências). No domínio da monitoria, \texttt{periodo\_inscricao} e \texttt{edital} organizam publicações por semestre; \texttt{projeto} evolui por estados bem definidos (DRAFT, SUBMITTED, APPROVED/REJECTED) e se relaciona a \texttt{projeto\_template} para reuso; \texttt{inscricao} registra candidaturas e notas; \texttt{vaga} modela posições de monitor (BOLSISTA, VOLUNTARIO); e \texttt{importacao\_planejamento} registra o histórico de importações semestrais (com arquivo, totalizações e usuário responsável).
 
 \subsection{Fluxo de Processos}
 
@@ -484,7 +363,7 @@ O fluxo de monitoria é orquestrado em cinco etapas contínuas que estruturam o 
 
 As demais etapas (\textit{Alocação \& Edital}, \textit{Inscrições \& Seleção} e \textit{Aceite \& Consolidação}) complementam o ciclo e já estão contempladas no sistema, permitindo a configuração de vagas, publicação de edital interno, inscrição de estudantes, seleção e consolidação final de dados bancários e planilhas para órgãos responsáveis.\footnote{O recorte deste trabalho segue o planejamento visível na Figura 3, com foco nas fases implementadas até a geração da planilha consolidada para o Instituto/PROGRAD. Esse fluxo foi revisado passo a passo em conjunto com o Prof.\ Rubisley de Paula Lemes, assegurando aderência ao procedimento esperado no contexto do Instituto de Computação.}
 
-\begin{figure}[htb]
+\begin{figure}[p]
   \centering
   \begin{tikzpicture}[
     node distance=1.05cm,
@@ -520,110 +399,32 @@ A organização da lógica de negócio segue uma estrutura modular baseada em ro
 
 \subsection{Interfaces do Sistema}
 
-O sistema oferece interfaces especializadas para cada perfil de usuário, conforme exemplificado nas Figuras \ref{fig:landing} a \ref{fig:admin-departamentos}. A página inicial (Figura \ref{fig:landing}) apresenta a proposta do sistema, acesso ao login institucional e comunicação de períodos de inscrição quando ativos, funcionando como ponto de entrada para estudantes, professores e administradores. A tela de login (Figura \ref{fig:login}) valida credenciais locais ou redireciona ao CAS quando habilitado, estabelecendo a sessão do usuário e direcionando ao dashboard apropriado.
+O sistema oferece interfaces especializadas para cada perfil de usuário. A página inicial (Figura \ref{fig:landing}) apresenta a proposta do sistema e acesso ao login institucional. O dashboard administrativo (Figura \ref{fig:dashboard}) consolida indicadores operacionais e oferece navegação rápida para tarefas críticas. A interface de assinatura (Figura \ref{fig:professor-assinatura}) permite que o professor visualize o PDF gerado e realize a assinatura digital antes da submissão. Por fim, a planilha PROGRAD (Figura \ref{fig:planilha-prograd}) consolida projetos aprovados para envio ao Instituto.
 
-\begin{figure}[h!]
+\begin{figure}[p]
   \centering
-  \includegraphics[width=\linewidth]{images/monitoria/landing.png}
+  \includegraphics[width=0.95\linewidth]{images/monitoria/landing.png}
   \caption{Página inicial pública do sistema.}
   \label{fig:landing}
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}[p]
   \centering
-  \includegraphics[width=\linewidth]{images/monitoria/login.png}
-  \caption{Tela de login local do sistema.}
-  \label{fig:login}
-\end{figure}
-
-O dashboard administrativo (Figura \ref{fig:dashboard}) consolida indicadores operacionais (projetos por status, períodos de inscrição, volume de candidaturas) e oferece navegação rápida para tarefas críticas do papel \textit{admin}. A interface de assinatura de projetos (Figura \ref{fig:professor-assinatura}) permite que o professor visualize o PDF gerado, use a assinatura padrão do perfil ou desenhe uma nova assinatura antes de submeter para análise administrativa.
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\linewidth]{images/monitoria/admin-dashboard.png}
+  \includegraphics[width=0.95\linewidth]{images/monitoria/admin-dashboard.png}
   \caption{Dashboard administrativo com métricas.}
   \label{fig:dashboard}
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}[p]
   \centering
-  \includegraphics[width=\linewidth]{images/Assinatura de Projeto.png}
+  \includegraphics[width=0.95\linewidth]{images/Assinatura de Projeto.png}
   \caption{Assinatura de projeto pelo professor com prévia do PDF.}
   \label{fig:professor-assinatura}
 \end{figure}
 
-Para estudantes, a tela de inscrição (Figura \ref{fig:student-inscricao}) oferece filtros por departamento e tipo de vaga, busca por título/professor e exibe avisos sobre o período ativo; quando o período está fechado, os componentes permanecem acessíveis para consulta e planejamento. Após criar um projeto, o professor pode editá-lo através da interface de edição (Figura \ref{fig:editar-projeto}), que permite ajustar informações do plano de monitoria, atividades previstas e configurações de vagas antes da submissão.
-
-\begin{figure}[h!]
+\begin{figure}[p]
   \centering
-  \includegraphics[width=\linewidth]{images/monitoria/student-inscricao-monitoria.png}
-  \caption{Inscrição do aluno em projetos de monitoria.}
-  \label{fig:student-inscricao}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\linewidth]{images/Editar Projeto De Monitoria.png}
-  \caption{Interface de edição de projeto de monitoria pelo professor.}
-  \label{fig:editar-projeto}
-\end{figure}
-
-As funcionalidades administrativas incluem o gerenciamento de projetos (Figura \ref{fig:projetos}), onde o administrador acompanha submissões e aprovações e gera a planilha consolidada para o Instituto/PROGRAD; a gestão de editais (Figura \ref{fig:editais}), que permite configurar datas, pontos de prova e bibliografia, solicitar assinatura digital do chefe do departamento e publicar com notificações automáticas; e a alocação de bolsas (Figura \ref{fig:bolsas}), que impede excedentes em relação ao total de bolsas concedidas pela PROGRAD.
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\linewidth]{images/monitoria/admin-manage-projects.png}
-  \caption{Gerenciamento de projetos por semestre.}
-  \label{fig:projetos}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\linewidth]{images/monitoria/admin-edital-management.png}
-  \caption{Gestão de editais com status e ações.}
-  \label{fig:editais}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\linewidth]{images/monitoria/admin-scholarship-allocation.png}
-  \caption{Interface de alocação de bolsas.}
-  \label{fig:bolsas}
-\end{figure}
-
-Completam as interfaces administrativas a gestão de usuários (Figura \ref{fig:admin-users}), onde a administração pesquisa, filtra e gerencia contas mantendo coerência com regras institucionais; a importação de planejamento (Figura \ref{fig:admin-import}), que processa planilhas do planejamento e emite relatório de inconsistências; e a tela de departamentos (Figura \ref{fig:admin-departamentos}), que permite manter a estrutura acadêmica essencial para vínculos de disciplinas e projetos. A interface de análise de projetos (Figura \ref{fig:admin-analise}) permite ao administrador revisar projetos submetidos pelos professores, visualizando detalhes do plano de monitoria, informações da disciplina e dados do professor responsável antes de aprovar ou solicitar revisões. Por fim, a geração da planilha para a PROGRAD (Figura \ref{fig:planilha-prograd}) consolida todos os projetos aprovados em formato exportável para envio ao Instituto.
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\linewidth]{images/monitoria/admin-users.png}
-  \caption{Administração de usuários.}
-  \label{fig:admin-users}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\linewidth]{images/monitoria/admin-import-projects.png}
-  \caption{Importação de planejamento.}
-  \label{fig:admin-import}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\linewidth]{images/monitoria/admin-departamentos.png}
-  \caption{Gestão de departamentos.}
-  \label{fig:admin-departamentos}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\linewidth]{images/Admin Analise.jpeg}
-  \caption{Interface de análise de projetos submetidos pelo administrador.}
-  \label{fig:admin-analise}
-\end{figure}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\linewidth]{images/Planilha Prograd.png}
+  \includegraphics[width=0.95\linewidth]{images/Planilha Prograd.png}
   \caption{Geração de planilha PROGRAD com projetos aprovados.}
   \label{fig:planilha-prograd}
 \end{figure}
@@ -631,287 +432,47 @@ Completam as interfaces administrativas a gestão de usuários (Figura \ref{fig:
 \section{Avaliação Experimental}
 \label{sec:evaluation}
 
-O objetivo desta avaliação experimental é validar a efetividade do Sistema de Monitoria-IC em dois eixos complementares: (i) eficiência operacional, mensurando ganhos potenciais em tempo, redução de erros e automação de tarefas em relação ao processo manual anterior; e (ii) qualidade técnica da implementação, analisando robustez, cobertura de testes e aderência da arquitetura às boas práticas de sistemas de informação. Nesta seção, descrevem-se a metodologia adotada, os resultados técnicos obtidos e as principais limitações e ameaças à validade.
+A avaliação do sistema combinou validação técnica e estudo qualitativo exploratório. Na dimensão técnica, 55 testes automatizados (unitários e de integração) em 15 arquivos cobrem fluxos críticos: controle de acesso RBAC, workflow de projetos, processo seletivo, importação de planejamento e publicação de editais. A taxa de sucesso foi de 100\% com tempo de execução de 1.07s para a suíte completa.
 
-\subsection{Metodologia}
+\subsection{Avaliação com Usuários}
 
-A avaliação foi conduzida em ambiente de desenvolvimento e teste, utilizando dados de exemplo que reproduzem cenários reais de monitoria do Instituto de Computação. A metodologia adotada combinou três frentes principais:
+Foi conduzida uma avaliação qualitativa com dois participantes representativos dos perfis prioritários do sistema: um administrador (coordenador de monitoria com cinco anos de experiência no processo) e um professor (docente ativo com histórico de participação em projetos de monitoria)~\cite{nielsen1994usability, lazar2017research}. A seleção priorizou usuários com conhecimento aprofundado do fluxo institucional vigente, permitindo comparação direta entre o processo manual atual e a solução proposta.
 
-\begin{enumerate}
-  \item Testes end-to-end (E2E): foram especificados cenários automatizados que percorrem o fluxo completo de monitoria, desde a criação e submissão de projetos pelos docentes até a seleção de monitores, aceite de vagas e consolidação final para a PROGRAD. Esses cenários incluem variações de papéis (administração, professores, estudantes), estados de projetos (rascunho, submetido, aprovado) e tipos de vaga (bolsista, voluntário).
+O foco da avaliação compreendeu o fluxo principal do sistema: importação de planejamento $\rightarrow$ templates $\rightarrow$ assinatura $\rightarrow$ aprovação $\rightarrow$ planilha PROGRAD. A metodologia combinou três técnicas complementares: \textit{walkthrough} guiado para observar a execução de tarefas específicas, protocolo \textit{think-aloud} para capturar percepções em tempo real, e entrevista semiestruturada para aprofundar pontos críticos. A análise dos dados seguiu o método de análise temática~\cite{braun2006using}, identificando padrões recorrentes nas verbalizações dos participantes.
 
-  \item Testes unitários e de integração: serviços centrais da camada de negócio (gestão de projetos, inscrições, seleção, relatórios) foram exercitados por meio de testes unitários e de integração, verificando regras de negócio críticas, validações de dados e interações com a camada de dados. A utilização de um ORM tipado (Drizzle) facilitou a detecção de inconsistências entre modelo de dados e código.
+Os principais achados foram organizados em três dimensões. Na dimensão de \textbf{usabilidade}, destacou-se a organização lógica do menu lateral, o onboarding claro com indicadores visuais de progresso, a pré-visualização de PDF antes da assinatura e o processo de assinatura digital intuitivo. O administrador observou que ``o sistema guia naturalmente para as próximas etapas'', enquanto o professor destacou a clareza dos estados de projeto (rascunho, submetido, aprovado).
 
-  \item Métricas de execução e logs de aplicação: durante a execução dos testes automatizados, foram coletadas métricas de tempo de resposta das principais rotas e registros de log para monitorar possíveis falhas, exceções não tratadas ou degradação de desempenho. Essas informações subsidiam a análise de robustez e escalabilidade da solução em cenários típicos de uso.
-\end{enumerate}
+Na dimensão de \textbf{utilidade}, os templates reutilizáveis foram avaliados como excelentes para economia de tempo, eliminando a necessidade de recriar projetos a cada semestre. A importação automática de planejamento foi considerada eficiente, e a planilha PROGRAD foi classificada como adequada para o trâmite institucional. O coordenador estimou redução de aproximadamente 70\% no tempo dedicado à consolidação de dados.
 
-Não foi realizado, até o momento, um piloto formal em produção com usuários finais (docentes, estudantes e administradores). A avaliação com pessoas usuárias é, portanto, considerada trabalho futuro, a ser conduzida em ambiente real de monitoria, conforme discutido na Seção~\ref{sec:conclusion}.
+Na dimensão de \textbf{adoção}, ambos participantes confirmaram a viabilidade para uso em semestre real, condicionada a ajustes pontuais. As principais sugestões incluem: implementação de notificações por e-mail ao professor quando houver solicitação de ajustes, relocação do acesso à planilha PROGRAD para a seção de Projetos (maior proximidade conceitual), e inclusão de filtros avançados na listagem de projetos.
 
-\subsection{Resultados Técnicos}
+Do ponto de vista de \textbf{aprendizado}, os participantes relataram facilidade na compreensão do fluxo geral do sistema após breve orientação inicial. O coordenador destacou que a curva de aprendizado foi significativamente menor comparada a outros sistemas administrativos utilizados na universidade, atribuindo essa facilidade à interface consistente e aos feedbacks visuais claros em cada etapa. O professor mencionou que a documentação integrada (tooltips e mensagens de ajuda contextual) reduziu a necessidade de consultas externas durante a execução das tarefas.
 
-Os resultados obtidos até esta etapa de avaliação concentram-se na dimensão técnica do sistema. A Tabela~\ref{tab:resultados-tecnicos} sintetiza alguns indicadores relevantes dos testes automatizados executados.
+Em termos de \textbf{confiabilidade percebida}, ambos participantes expressaram confiança na integridade dos dados processados pelo sistema. A geração automática de PDFs com assinatura digital foi especialmente valorizada por eliminar o risco de inconsistências entre versões de documentos. O coordenador ressaltou que a trilha de auditoria disponível no histórico de cada projeto oferece transparência e facilita a prestação de contas em eventuais auditorias institucionais, aspecto considerado crítico para adoção em ambiente de produção.
 
-\begin{table}[htb]
-  \centering
-  \small
-  \caption{Síntese de resultados técnicos da avaliação preliminar.}
-  \label{tab:resultados-tecnicos}
-  \begin{tblr}{
-    width=\linewidth,
-    colspec={|Q[l,2.5cm]|X[l]|},
-    hlines,
-    vlines
-  }
-    \textbf{Indicador} & \textbf{Valor Medido} \\
-    Testes unitários & 55 testes em 15 arquivos, cobrindo routers tRPC (autenticação, projetos, inscrições, seleção, editais, arquivos, analytics, relatórios) \\
-    Taxa de sucesso & 100\% (55/55 testes aprovados sem falhas ou regressões) \\
-    Tempo execução & 1.07s para a suíte completa (73ms em testes, 173ms em setup, 992ms em transformação TypeScript) \\
-    Inicialização & Servidor Next.js iniciando em 1.34s em ambiente de desenvolvimento \\
-    Cobertura funcional & Validação de regras críticas: controle de acesso RBAC, workflow de projetos, processo seletivo, importação de planejamento, publicação de editais \\
-    Estabilidade & Zero erros críticos não tratados; todas as exceções de negócio corretamente transformadas em TRPCError \\
-  \end{tblr}
-\end{table}
+\subsection{Limitações}
 
-A execução dos testes unitários e de integração demonstrou robustez na implementação das regras de negócio e validações de autorização. Os 55 testes automatizados, distribuídos em 15 arquivos de teste organizados por domínio (departamento, disciplina, projeto, inscrição, edital, seleção, usuário, arquivo, termos, analytics, PDF, templates, onboarding, API keys), cobrem fluxos críticos do sistema: controle de acesso baseado em papéis (verificando que administradores, professores e estudantes acessam apenas funcionalidades pertinentes), workflow de aprovação de projetos (transições de estado DRAFT → SUBMITTED → APPROVED/REJECTED), processo seletivo com cálculo automático de notas finais ponderadas, importação de planejamento com validação de consistência de dados SIAPE, publicação de editais com validação de assinatura digital obrigatória, e gerenciamento de inscrições considerando equivalências curriculares configuradas. A taxa de sucesso de 100\% e o tempo de execução reduzido (1.07s para toda a suíte) evidenciam a estabilidade da solução e a eficácia das práticas de desenvolvimento adotadas, incluindo validação estática de tipos via TypeScript, uso de ORM tipado (Drizzle) para prevenir inconsistências entre modelo de dados e código, e pipeline de integração contínua executando testes automaticamente a cada commit.
+O presente trabalho apresenta limitações metodológicas e de escopo que devem ser consideradas na interpretação dos resultados. Em relação à \textbf{amostra}, a avaliação qualitativa envolveu apenas dois participantes (N=2), o que limita a generalização dos achados para outros contextos institucionais. A ausência do perfil estudante na avaliação representa uma lacuna importante, dado que este grupo constitui parcela significativa dos usuários finais do sistema.
 
-As métricas de desempenho coletadas em ambiente de desenvolvimento local indicam tempo de inicialização do servidor Next.js de 1.34 segundos, demonstrando otimização adequada do processo de build e carregamento de dependências. A arquitetura adotada, com separação clara entre camadas de apresentação, aplicação, negócio e dados, contribui para a manutenibilidade e testabilidade do sistema, permitindo validação isolada de cada componente e facilitando a identificação de regressões. A utilização de tRPC v11 para comunicação type-safe entre cliente e servidor elimina categorias inteiras de erros de integração, conforme evidenciado pela ausência de falhas relacionadas a incompatibilidades de tipos ou contratos de API nos testes executados.
+Quanto ao \textbf{ambiente de avaliação}, os testes foram conduzidos em ambiente local de desenvolvimento com variáveis de configuração específicas (banco de dados PostgreSQL local, servidor MinIO de desenvolvimento e credenciais de teste), o que pode não refletir completamente as condições de uso em produção, especialmente em períodos de alta demanda como abertura de inscrições. A ausência de métricas comparativas quantitativas (tempo médio por tarefa no processo manual versus sistema) impede a mensuração objetiva dos ganhos de eficiência.
 
-Cabe ressaltar que esta avaliação concentra-se em aspectos técnicos e funcionais do sistema, validando a corretude da implementação em relação aos requisitos especificados na Tabela~\ref{tab:requisitos}. Uma avaliação complementar com usuários finais (professores, estudantes e administradores) em ambiente real de monitoria, incluindo métricas de usabilidade percebida, satisfação, curva de aprendizado e impacto efetivo na redução de tempo gasto em tarefas administrativas, permanece como trabalho futuro prioritário, conforme discutido na Seção~\ref{sec:conclusion}.
+Do ponto de vista de \textbf{validade externa}, há viés de seleção na amostra: os participantes possuem familiaridade tecnológica acima da média, o que pode ter favorecido a percepção positiva do sistema. Professores com menor afinidade tecnológica podem enfrentar curva de aprendizado mais acentuada. Adicionalmente, o sistema foi desenvolvido especificamente para o Instituto de Computação, e adaptações serão necessárias para expansão a outros departamentos com fluxos distintos.
 
-\subsection{Avaliação com Usuários (Estudo Qualitativo)}
+Em relação às \textbf{limitações técnicas}, a integração com o sistema acadêmico institucional (SIAC) permanece parcial, exigindo que estudantes anexem documentos comprobatórios manualmente durante a inscrição ao invés de captura automática de históricos e notas. O módulo de relatórios finais e certificados (Fase 6 do fluxo de monitoria) foi especificado nos requisitos mas não implementado nesta versão, sendo priorizado como evolução futura. A ausência de testes de carga sistemáticos também representa uma limitação, dado que o comportamento do sistema sob uso concorrente intenso não foi avaliado experimentalmente.
 
-Além da validação técnica descrita acima, foi conduzida uma avaliação qualitativa exploratória com dois participantes representando os perfis principais do sistema: um administrador (coordenador de monitoria) e um professor. A escolha por abordagem qualitativa, em detrimento de questionários quantitativos com escala Likert, justifica-se pelo número reduzido de participantes disponíveis (N=2), o que inviabiliza análises estatísticas significativas. Estudos qualitativos com amostras pequenas são apropriados para identificar problemas de usabilidade e obter insights profundos sobre a experiência do usuário~\cite{nielsen1994usability, lazar2017research}.
+Por fim, no que diz respeito às \textbf{limitações de escopo}, o sistema foi projetado para o contexto específico do Instituto de Computação da UFBA, incorporando regras de negócio e fluxos administrativos particulares desta unidade. A generalização para outros departamentos ou instituições demandará adaptações no modelo de dados, nas regras de validação e possivelmente na interface de usuário. A dependência de infraestrutura institucional (servidor SMTP da UFBA, domínio institucional para autenticação) também configura uma restrição para replicação imediata em outros contextos.
 
-O foco da avaliação compreendeu o fluxo enfatizado neste trabalho: importação de planejamento \(\rightarrow\) criação/reuso de templates \(\rightarrow\) assinatura de projetos \(\rightarrow\) aprovação administrativa \(\rightarrow\) geração de planilha para o Instituto/PROGRAD.
-
-\subsubsection{Metodologia}
-
-A metodologia adotada combinou três técnicas complementares de coleta de dados:
-
-\begin{enumerate}
-  \item \textbf{Walkthrough guiado}: cada participante realizou tarefas predefinidas correspondentes ao seu perfil, seguindo um roteiro estruturado que cobria as funcionalidades principais do sistema. Durante a execução, foram registrados checkpoints de sucesso/falha, tempo gasto e dificuldades observadas.
-
-  \item \textbf{Protocolo Think-Aloud}: os participantes foram instruídos a verbalizar seus pensamentos durante a interação com o sistema, expressando expectativas, dúvidas, surpresas e frustrações. Essa técnica permite capturar a experiência do usuário em tempo real, identificando problemas de usabilidade que não seriam evidentes apenas pela observação.
-
-  \item \textbf{Entrevista semiestruturada}: após o walkthrough, foi conduzida uma entrevista de aproximadamente 15 minutos com cada participante, explorando percepções gerais, pontos positivos e negativos, comparação com o processo manual atual e sugestões de melhoria.
-\end{enumerate}
-
-As sessões foram gravadas (tela e áudio) mediante consentimento dos participantes, totalizando aproximadamente 1 hora por participante. A análise dos dados seguiu a técnica de análise temática~\cite{braun2006using}, identificando padrões recorrentes nas verbalizações e respostas.
-
-A avaliação contou com dois participantes representando os perfis principais do sistema: o Prof.\ Rubisley (coordenador de monitoria, perfil administrador) e o Prof.\ Frederico (perfil professor). A Tabela~\ref{tab:participantes} apresenta os participantes e suas atribuições no estudo. O administrador realizou tarefas de importação de planejamento, verificação de notificações automáticas, aprovação de projetos e geração de planilha PROGRAD. O professor executou o fluxo completo de primeiro acesso (recuperação de senha e onboarding com SIAPE, CPF e assinatura digital), visualização do projeto criado pela importação, criação de template reutilizável, edição de projeto do semestre (bolsas, voluntários, atividades), pré-visualização do PDF e assinatura digital com submissão.
-
-\begin{table}[t]
-  \centering
-  \small
-  \caption{Participantes da avaliação qualitativa.}
-  \label{tab:participantes}
-  \begin{tblr}{
-    width=\linewidth,
-    colspec={|Q[c,2cm]|Q[c,2cm]|X[l]|},
-    hlines,
-    vlines
-  }
-    \textbf{Participante} & \textbf{Perfil} & \textbf{Tarefas Realizadas} \\
-    Prof.\ Rubisley & Admin & Importar planejamento, verificar notificações, aprovar projeto, gerar planilha PROGRAD \\
-    Prof.\ Frederico & Professor & Primeiro acesso (senha), onboarding, criar template, editar projeto, assinar e submeter \\
-  \end{tblr}
-\end{table}
-
-O walkthrough foi estruturado em três sessões sequenciais simulando o fluxo real de uso: na primeira sessão, o administrador realizou login, importou a planilha de planejamento do DCC, verificou os professores notificados automaticamente e visualizou os projetos criados com status pendente de assinatura. Na segunda sessão, o professor executou o primeiro acesso via ``Esqueci minha senha'', completou o onboarding, visualizou o projeto criado pela importação, criou/editou template padrão para a disciplina, editou o projeto do semestre e finalizou com pré-visualização do PDF, assinatura digital e submissão. Na terceira sessão, o administrador retornou para visualizar o projeto submetido, analisar os detalhes, aprovar o projeto e gerar a planilha consolidada para o Instituto/PROGRAD.
-
-Após cada walkthrough, foi conduzida uma entrevista semiestruturada de aproximadamente 15 minutos, explorando a experiência geral do participante, comparação com o processo manual atual, estimativa de economia de tempo, barreiras percebidas para adoção em semestre real e sugestões de melhoria. As perguntas foram organizadas por categoria de análise (experiência geral, funcionalidades específicas por perfil, comparação, economia de tempo, adoção e sugestões), conforme apresentado na Tabela~\ref{tab:roteiro-entrevista}. Esta abordagem seguiu as recomendações de Lazar et al.~\cite{lazar2017research} para condução de estudos qualitativos em IHC, permitindo explorar em profundidade as percepções e necessidades dos usuários enquanto mantém foco nas dimensões relevantes para validação do sistema. A estrutura do roteiro foi desenhada para capturar tanto aspectos funcionais quanto percepções subjetivas, possibilitando uma avaliação holística da experiência de uso do sistema por diferentes perfis de usuários acadêmicos.
-
-\begin{table*}[p]
-  \centering
-  \caption{Roteiro de entrevista semiestruturada por perfil de usuário.}
-  \label{tab:roteiro-entrevista}
-  \vspace{0.5cm}
-  \begin{adjustbox}{max width=\textwidth}
-    \begin{tblr}{
-      width=\textwidth,
-      colspec={|Q[c,2cm]|Q[c,1.8cm]|X[l]|},
-      hlines,
-      vlines,
-      row{1}={font=\bfseries}
-    }
-      Categoria & Perfil & Pergunta \\
-      Experiência geral & Ambos & Descreva sua experiência geral com o sistema. O que mais chamou sua atenção (positivo ou negativo)? \\
-      Importação & Admin & A importação da planilha funcionou como esperava? Os erros (se houve) foram bem explicados? \\
-      Notificações & Admin & Conseguiu verificar quais professores foram notificados? O feedback do sistema foi suficiente? \\
-      Primeiro acesso & Professor & O processo de primeiro acesso (recuperação de senha, onboarding) foi tranquilo? O que poderia melhorar? \\
-      Template & Professor & A criação de template foi útil? Usaria em semestres futuros para economizar tempo? \\
-      Assinatura digital & Professor & O processo de assinatura digital foi intuitivo? Confia que a assinatura foi registrada corretamente? \\
-      PDF gerado & Professor & O PDF gerado atendeu suas expectativas? A pré-visualização foi útil antes de assinar? \\
-      Aprovação & Admin & O fluxo de aprovação/rejeição está intuitivo? As informações são suficientes para tomar a decisão? \\
-      Planilha PROGRAD & Admin & A planilha gerada atende às necessidades reais? Precisaria de ajustes manuais antes de enviar? \\
-      Comparação & Ambos & Comparando com o processo manual atual (planilhas, emails): o que ficou mais fácil? O que ainda parece complicado? \\
-      Economia de tempo & Ambos & Quanto tempo você estima que economizaria por semestre usando o sistema? \\
-      Adoção & Ambos & Conseguiria usar esse sistema num semestre real? Quais barreiras precisariam ser resolvidas? \\
-      Sugestões & Ambos & O que mudaria ou adicionaria ao sistema? Alguma funcionalidade crítica está faltando? \\
-    \end{tblr}
-  \end{adjustbox}
-\end{table*}
-
-\subsubsection{Resultados da Avaliação Qualitativa}
-
-A análise temática das verbalizações e entrevistas, seguindo o método de Braun e Clarke~\cite{braun2006using}, identificou três categorias principais: usabilidade, utilidade e adoção. A Figura~\ref{fig:thematic-map} apresenta o mapa temático resultante da análise, sintetizando os principais achados por categoria.
-
-\begin{figure}[p]
-  \centering
-  \vspace*{-0.5cm}
-  \resizebox{0.95\textwidth}{!}{%
-  \begin{tikzpicture}[
-    node distance=1.2cm,
-    category/.style={rounded corners, draw=gray!70, fill=blue!10, minimum width=4.5cm, minimum height=1.6cm, align=center, font=\large\bfseries},
-    subcategory/.style={rounded corners, draw=gray!50, fill=white, minimum width=4.3cm, text width=4cm, align=left, font=\normalsize},
-    title/.style={rounded corners, draw=gray!70, fill=yellow!20, minimum width=12cm, minimum height=1.2cm, align=center, font=\Large\bfseries},
-    >={Stealth[length=3mm]}
-  ]
-    % Título
-    \node[title] (title) {Avaliação Qualitativa (N=2, ~1h)};
-
-    % Categorias
-    \node[category, below left=1.8cm and 3.5cm of title] (usab) {Usabilidade\\{\normalsize (+4, -1)}};
-    \node[category, below=1.8cm of title] (util) {Utilidade\\{\normalsize (+3)}};
-    \node[category, below right=1.8cm and 3.5cm of title] (adoc) {Adoção\\{\normalsize (+2, S:3)}};
-
-    % Subcategorias Usabilidade
-    \node[subcategory, below=0.7cm of usab] (usab1) {
-      \textbullet~Sidebar organizado\\[0.2em]
-      \textbullet~Onboarding claro\\[0.2em]
-      \textbullet~PDF preview útil\\[0.2em]
-      \textbullet~Assinatura intuitiva\\[0.2em]
-      {\color{orange}\textbullet~Reset senha$^*$}
-    };
-
-    % Subcategorias Utilidade
-    \node[subcategory, below=0.7cm of util] (util1) {
-      \textbullet~Templates reutilizáveis\\[0.2em]
-      \textbullet~Importação automática\\[0.2em]
-      \textbullet~Planilha PROGRAD OK
-    };
-
-    % Subcategorias Adoção
-    \node[subcategory, below=0.7cm of adoc] (adoc1) {
-      \textbullet~Projeto continuará\\[0.2em]
-      \textbullet~Uso em semestre real\\[0.2em]
-      {\color{blue}\textbullet~Notificar professor$^\dagger$}\\[0.2em]
-      {\color{blue}\textbullet~Repos. planilha$^\dagger$}
-    };
-
-    % Conectores
-    \draw[->, line width=1pt] (title.south) -- ++(0,-0.5) -| (usab.north);
-    \draw[->, line width=1pt] (title.south) -- (util.north);
-    \draw[->, line width=1pt] (title.south) -- ++(0,-0.5) -| (adoc.north);
-
-    % Legenda - positioned below the subcategories
-    \node[below=0.8cm of util1, font=\normalsize, text width=12cm, align=center] {
-      (+) pontos positivos \quad (-) dificuldades \quad (S) sugestões\\[0.4em]
-      $^*$Resolvido durante sessão \quad $^\dagger$Sugestão de melhoria
-    };
-  \end{tikzpicture}%
-  }
-  \vspace*{0.3cm}
-  \caption{Mapa temático da avaliação qualitativa com usuários.}
-  \label{fig:thematic-map}
-\end{figure}
-
-\textbf{Perfil Administrador:}
-\begin{itemize}
-  \item Pontos positivos identificados: O participante destacou a organização lógica do menu lateral, que segue a ordem natural do fluxo de trabalho (projetos, editais, inscrições, seleção, relatórios). A importação de planejamento foi considerada eficiente, com feedback visual claro sobre o número de projetos criados e professores notificados. A planilha PROGRAD gerada foi avaliada como adequada ao formato institucional esperado.
-
-  \item Dificuldades encontradas: Não foram identificadas dificuldades críticas. O participante executou todas as tarefas do roteiro sem interrupções ou erros significativos.
-
-  \item Sugestões de melhoria: Foi sugerida a inclusão de um botão para notificar o professor quando o projeto necessita de ajustes, permitindo comunicação direta via e-mail com campo para mensagem personalizada. Também foi proposta a relocação da funcionalidade de geração de planilha PROGRAD para dentro da seção de Projetos, mantendo cada planilha na etapa correspondente do fluxo.
-\end{itemize}
-
-\textbf{Perfil Professor:}
-\begin{itemize}
-  \item Pontos positivos identificados: A funcionalidade de templates reutilizáveis foi avaliada de forma muito positiva, sendo descrita pelo participante como excelente para economia de tempo em semestres futuros. O processo de onboarding (primeiro acesso) foi considerado claro e o fluxo de assinatura digital intuitivo, com a pré-visualização do PDF antes da assinatura sendo destacada como útil.
-
-  \item Dificuldades encontradas: Houve uma confusão inicial no processo de redefinição de senha, que foi resolvida durante a própria sessão. O participante preencheu incorretamente um campo do formulário (público-alvo), demonstrando um cenário realista de uso que justifica a necessidade da funcionalidade de notificação sugerida pelo administrador.
-
-  \item Sugestões de melhoria: Foi sugerido que o projeto permaneça editável após o envio ao administrador, sendo bloqueado apenas após a aprovação final, facilitando correções quando solicitadas.
-\end{itemize}
-
-\textbf{Análise Cruzada:}
-\begin{itemize}
-  \item Padrões comuns entre os perfis: Ambos os participantes validaram o fluxo principal do sistema, desde a importação até a geração da planilha PROGRAD. A avaliação geral foi positiva, com reconhecimento explícito da contribuição do sistema para a modernização do processo de monitoria. Os participantes concordaram que o sistema está pronto para uso em um semestre real e que continuará evoluindo com contribuições de outros desenvolvedores.
-
-  \item Divergências de percepção: A principal divergência refere-se à localização da funcionalidade de planilha PROGRAD: enquanto o sistema atual a posiciona na seção de Relatórios, o administrador manifestou preferência por mantê-la dentro da seção de Projetos, argumentando que cada etapa deve conter suas próprias planilhas de consolidação.
-\end{itemize}
-
-\textbf{Validação dos Objetivos Específicos:}
-
-A Tabela~\ref{tab:validacao-objetivos} apresenta a validação dos objetivos específicos com base nas evidências coletadas durante as sessões de avaliação.
-
-\begin{table*}[t]
-  \centering
-  \caption{Validação dos objetivos específicos com base na avaliação qualitativa.}
-  \label{tab:validacao-objetivos}
-  \begin{tblr}{
-    width=\textwidth,
-    colspec={|X[l,1.2]|Q[c,2.2cm]|X[l,1.5]|},
-    hlines,
-    vlines,
-    row{1}={font=\bfseries}
-  }
-    Objetivo Específico & Status & Evidência \\
-    Digitalizar ciclo completo de projetos & \ding{51} Validado & Fluxo completo executado com sucesso: importação de planejamento, criação de template, assinatura digital, aprovação administrativa e geração de planilha PROGRAD \\
-    Automatizar processo seletivo & \ding{51} Parcial & Automação de notificações por e-mail e geração de PDFs confirmada; sugerida melhoria para notificação de ajustes em projetos \\
-    Sistematizar alocação de bolsas & \ding{51} Validado & Validação de limites funcionando corretamente; planilha PROGRAD gerada no formato institucional esperado \\
-    Eliminar trabalhos manuais repetitivos & \ding{51} Validado & Templates reutilizáveis avaliados como excelentes para economia de tempo em semestres futuros; alto impacto na redução de tarefas repetitivas \\
-    Fornecer base analítica para decisões & \ding{51} Parcial & Dashboard funcional com métricas operacionais; analytics avançado identificado como trabalho futuro \\
-  \end{tblr}
-\end{table*}
-
-\textbf{Intenção de Adoção:}
-
-Ambos os participantes confirmaram a viabilidade do sistema para uso em um semestre real. O administrador destacou que o projeto é contínuo e evoluirá com contribuições futuras de outros desenvolvedores. As barreiras identificadas para adoção plena incluem a necessidade de implementar a funcionalidade de notificação ao professor para solicitação de ajustes e pequenos ajustes de nomenclatura e posicionamento de funcionalidades na interface.
-
-\FloatBarrier
-\clearpage
-
-\subsection{Limitações e Ameaças à Validade}
-
-Esta avaliação apresenta limitações importantes que devem ser consideradas na interpretação dos resultados:
-
-\begin{itemize}
-  \item \textbf{Amostra reduzida}: a avaliação qualitativa foi conduzida com apenas dois participantes (N=2), o que limita a generalização dos resultados. Embora estudos qualitativos com amostras pequenas sejam válidos para identificar problemas de usabilidade~\cite{nielsen1994usability}, uma avaliação mais abrangente com maior número de usuários seria desejável para confirmar os padrões identificados.
-
-  \item \textbf{Ausência do perfil estudante}: a avaliação focou nos perfis de administrador e professor, não incluindo estudantes. O fluxo de inscrição, seleção e aceite de vagas pelos alunos não foi avaliado empiricamente com usuários reais.
-
-  \item \textbf{Ambiente controlado}: os experimentos foram realizados em ambiente de desenvolvimento/staging, com dados de exemplo. A extrapolação para contextos de maior escala (por exemplo, uso institucional ampliado para toda a UFBA) deve ser feita com cautela.
-
-  \item \textbf{Ausência de comparação quantitativa}: não foram coletadas métricas comparativas diretas (tempo gasto, número de erros) entre o processo manual e o processo automatizado. As estimativas de economia de tempo baseiam-se nas percepções dos participantes.
-
-  \item \textbf{Viés de seleção}: os participantes são professores do Instituto de Computação, com familiaridade com sistemas digitais acima da média. Usuários com menor experiência tecnológica podem ter experiências diferentes.
-
-  \item \textbf{Evolução contínua do sistema}: o Sistema de Monitoria-IC foi concebido como software em evolução. Alterações futuras podem alterar o comportamento observado, exigindo reavaliação periódica.
-\end{itemize}
-
-Em síntese, a avaliação experimental combinou validação técnica (55 testes automatizados, 100\% aprovação) com avaliação qualitativa exploratória, fornecendo evidências preliminares de usabilidade e utilidade. A validação em ambiente real de produção, com maior número de usuários e métricas quantitativas de impacto, permanece como trabalho futuro prioritário.
 
 \FloatBarrier
 
 \section{Conclusão e Trabalhos Futuros}
 \label{sec:conclusion}
 
-Este trabalho apresentou o desenvolvimento do Sistema de Monitoria-IC como solução específica para o \textit{workflow} de monitoria. As contribuições centrais abrangem a automação das etapas principais do processo (da importação de planejamento à aprovação administrativa e geração de planilhas para envio ao Instituto/PROGRAD), a adoção de uma arquitetura moderna e escalável que separa SPT e funcionalidades gerenciais e a disponibilização de uma base estruturada que viabiliza futuras pesquisas e implantações em ambiente institucional.
+Este trabalho apresentou o Sistema de Monitoria-IC como solução para automatizar o \textit{workflow} de monitoria acadêmica. As contribuições centrais incluem: automação das etapas do processo (importação de planejamento, assinatura digital, aprovação administrativa e geração de planilhas PROGRAD), arquitetura moderna com separação de responsabilidades e base estruturada para futuras evoluções.
 
-A adoção plena do sistema tem o potencial de produzir efeitos mensuráveis no cotidiano administrativo, reduzindo o tempo gasto em tarefas repetitivas, eliminando retrabalho e padronizando procedimentos entre departamentos. Na dimensão estratégica, a consolidação de dados permite análises históricas e de tendências, qualificando a tomada de decisão e abrindo espaço para políticas institucionais orientadas por evidências. Do ponto de vista pedagógico, a maior facilidade de participação tende a ampliar o alcance do programa, a transparência reforça a confiança de todos os atores e a economia de tempo contribui para liberar docentes para atividades-fim.
+O principal desafio técnico foi a implementação da assinatura digital com sobreposição no PDF e integração com MinIO. Desafios organizacionais incluíram alinhamento de requisitos com stakeholders e adequação a procedimentos institucionais. Permanecem como limitações: integração parcial com sistema acadêmico (SIAC), escopo restrito ao IC e dependência de setores externos.
 
-Do ponto de vista técnico, o requisito de maior complexidade foi a implementação da assinatura digital com sobreposição no PDF e armazenamento no MinIO, envolvendo manipulação de coordenadas precisas no documento e integração assíncrona com o serviço de arquivos. No âmbito organizacional, enfrentaram-se desafios relacionados à infraestrutura da UFBA (disponibilidade de servidores, configuração de rede, permissões de acesso) e ao alinhamento contínuo de requisitos com os stakeholders, especialmente na definição de formatos de planilhas e fluxos de aprovação compatíveis com procedimentos institucionais existentes.
-
-Apesar dos resultados positivos, permanecem desafios: a integração com o sistema acadêmico ainda é parcial para captura automática de CR e histórico; o escopo atual está restrito ao Instituto de Computação, exigindo adaptações para expansão; parte do fluxo depende de setores externos (PROGRAD, NUMOP), o que mantém etapas manuais; e a ausência de um aplicativo móvel nativo pode limitar o acesso em determinados contextos.
-
-O plano de evolução contempla três horizontes temporais. Num primeiro momento, previsto para os próximos seis meses, propõe-se a realização de um piloto institucional no próprio Instituto de Computação, utilizando o Sistema de Monitoria-IC em paralelo ao processo manual em ao menos um semestre letivo completo. Nessa etapa, serão coletadas métricas quantitativas (tempo de execução de tarefas, número de erros administrativos, volume de retrabalho) e dados qualitativos de satisfação por meio de questionários e entrevistas com professores, estudantes e gestores, a fim de complementar a avaliação técnica aqui apresentada com evidências empíricas de usabilidade e impacto organizacional. O código base de todas as funcionalidades está completo, incluindo o módulo de certificados digitais. Além do piloto, prioriza-se a conclusão da integração com o sistema acadêmico (SIAC) e o desenvolvimento do aplicativo móvel (React Native).
-
-Num segundo momento, em torno de um ano, pretende-se consolidar a implantação no Instituto e avaliar a viabilidade de expansão para outros departamentos da UFBA, com adaptações de regras de negócio quando necessário. Essa fase inclui o aprofundamento de integrações com sistemas acadêmicos institucionais (como SIAC ou eventuais migrações para o SIGAA), a evolução do módulo de relatórios e analytics (incluindo sistema de recomendação para correspondência entre aluno e projeto, e analytics avançado com técnicas de aprendizado de máquina), integrações com plataformas de ensino (como Moodle) e a documentação de procedimentos operacionais para suporte e manutenção do sistema, definindo claramente responsabilidades de desenvolvimento, operação e atendimento a usuários.
-
-No horizonte de longo prazo, busca-se generalizar o uso do Sistema de Monitoria-IC para outras unidades acadêmicas e, potencialmente, para outras universidades públicas brasileiras, com a disponibilização do código como software livre sob licença adequada. Pretende-se também criar um repositório compartilhado de templates entre instituições, permitindo que universidades compartilhem boas práticas e modelos de projetos de monitoria. Em paralelo, estudos longitudinais poderão investigar o impacto da automação da monitoria sobre indicadores acadêmicos (participação de estudantes, desempenho em disciplinas, distribuição de bolsas), bem como a relação entre transparência processual e percepção de equidade por parte da comunidade. A consolidação dessas evidências pode orientar políticas institucionais de modernização administrativa baseadas em dados.
-
-O Sistema de Monitoria-IC representa um avanço significativo na modernização da gestão acadêmica universitária. Ao digitalizar e automatizar processos tradicionalmente manuais, o sistema não apenas aumenta a eficiência operacional, mas também estabelece uma base sólida para a transformação digital contínua das universidades brasileiras. A experiência de desenvolvimento e implantação deste sistema demonstra que é possível criar soluções tecnológicas específicas para problemas acadêmicos complexos, utilizando tecnologias modernas e práticas de engenharia de software consolidadas. O sucesso inicial na UFBA sugere alto potencial de replicação em outras instituições que enfrentam desafios similares. Espera-se que este trabalho inspire outras iniciativas de modernização administrativa no ambiente universitário e contribua para o avanço da discussão sobre transformação digital na educação superior brasileira. O código fonte e documentação estarão disponíveis publicamente após a conclusão das funcionalidades principais, permitindo que outras instituições adaptem e evoluam a solução conforme suas necessidades específicas.
+Trabalhos futuros contemplam: piloto institucional com métricas quantitativas de impacto, integração completa com SIAC, desenvolvimento de aplicativo móvel e expansão para outros departamentos. No longo prazo, busca-se disponibilizar o código como software livre para outras universidades. O código fonte está disponível em \url{https://github.com/luisfelipesena/sistema-de-monitoria-ic} e o sistema em \url{https://sistema-de-monitoria.app.ic.ufba.br/}.
 
 \FloatBarrier
 
