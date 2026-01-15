@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1768501829.46445 "main.aux" "main.bbl" "main" 1768501831.77763 0
+["bibtex main"] 1768501829.46445 "main.aux" "main.bbl" "main" 1768504484.27061 0
   "./apalike-sol.bst" 1761156389.19737 24928 269dedab788b7f84af88c155ecb45872 ""
   "./references.bib" 1768496256.23268 7044 adef780cb6fb0bd3e8f9d0b678052466 ""
-  "main.aux" 1768501831.50311 9303 27c5e4c9d044e502c809a29b4fe1f6c5 "pdflatex"
+  "main.aux" 1768504483.96291 9303 27c5e4c9d044e502c809a29b4fe1f6c5 "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1768501829.5465 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1768501831.77775 0
-  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1768501827.03285 58154 eaf102f88cbed724876a10aed8967953 ""
+["pdflatex"] 1768504481.88145 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1768504484.27076 0
+  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1768504481.62718 58178 00802f408561f6377d78a29744e37a24 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_2mfh3o.enc" 1570828436 3443 c184b8b1bd90c3ec5d4289b992e64d96 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/fira/fir_iln36p.enc" 1570828436 3071 cfa92ee28d698dd9275559d9d1c3a233 ""
@@ -263,10 +263,10 @@
   "images/monitoria/admin-dashboard.png" 1765346111.88907 243412 18962ba982a18130b1ead9e1eb35b103 ""
   "images/monitoria/data-model-erd.png" 1766018098.76366 197836 71c7c8974210eff6094dace674bf29af ""
   "images/monitoria/landing.png" 1765346111.89323 582232 36daa0e24a5f8f33671bb98ab1f19d3d ""
-  "main.aux" 1768501831.50311 9303 27c5e4c9d044e502c809a29b4fe1f6c5 "pdflatex"
+  "main.aux" 1768504483.96291 9303 27c5e4c9d044e502c809a29b4fe1f6c5 "pdflatex"
   "main.bbl" 1768501829.54375 4261 56154c1a21fb75c498458552d1f16aee "bibtex main"
-  "main.out" 1768501831.50397 4234 236894d4317c064d82bfad7c9d15995d "pdflatex"
-  "main.tex" 1768501827.03285 58154 eaf102f88cbed724876a10aed8967953 ""
+  "main.out" 1768504483.96406 4234 236894d4317c064d82bfad7c9d15995d "pdflatex"
+  "main.tex" 1768504481.62718 58178 00802f408561f6377d78a29744e37a24 ""
   "sbc2025.cls" 1761156389.24799 14761 c546ee61221e9a80c8e82e624cbd925e ""
   (generated)
   "main.aux"
