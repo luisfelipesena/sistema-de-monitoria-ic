@@ -1,0 +1,1 @@
+ALTER TABLE "importacao_planejamento" ADD COLUMN "professores_notificados_em" timestamp with time zone;

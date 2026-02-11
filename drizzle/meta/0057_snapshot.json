@@ -1,6 +1,6 @@
 {
-  "id": "6fdd840c-bac9-4a56-b92a-a588e519b73a",
-  "prevId": "f637422c-ac72-4950-8dbe-f321bce24ea8",
+  "id": "92fb2fb1-5489-41a1-b47c-eebb92189da8",
+  "prevId": "6fdd840c-bac9-4a56-b92a-a588e519b73a",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1553,6 +1553,12 @@
         "erros": {
           "name": "erros",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "professores_notificados_em": {
+          "name": "professores_notificados_em",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         },

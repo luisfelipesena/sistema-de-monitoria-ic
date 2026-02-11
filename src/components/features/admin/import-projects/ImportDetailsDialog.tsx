@@ -1,10 +1,15 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
 import { SEMESTRE_1 } from "@/types"
+import { api } from "@/utils/api"
+import { CheckCircle, Mail, Send } from "lucide-react"
 import { getStatusBadge } from "./ImportHistoryTableColumns"
 
 interface ImportDetails {
+  id: number
   nomeArquivo: string
   ano: number
   semestre: string
@@ -12,6 +17,7 @@ interface ImportDetails {
   totalProjetos: number
   projetosCriados: number
   projetosComErro: number
+  professoresNotificadosEm?: Date | string | null
   erros?: {
     erros?: string[]
     warnings?: string[]
@@ -22,10 +28,34 @@ interface ImportDetailsDialogProps {
   details: ImportDetails | null | undefined
   open: boolean
   onOpenChange: (open: boolean) => void
+  onNotified?: () => void
 }
 
-export function ImportDetailsDialog({ details, open, onOpenChange }: ImportDetailsDialogProps) {
+export function ImportDetailsDialog({ details, open, onOpenChange, onNotified }: ImportDetailsDialogProps) {
+  const { toast } = useToast()
+
+  const notifyMutation = api.importProjects.notifyProfessors.useMutation({
+    onSuccess: (result) => {
+      toast({
+        title: "Professores notificados!",
+        description: `${result.emailsEnviados} de ${result.totalProfessores} professores notificados com sucesso.`,
+      })
+      onNotified?.()
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao notificar",
+        description: error.message,
+        variant: "destructive",
+      })
+    },
+  })
+
   if (!details) return null
+
+  const jaNotificado = !!details.professoresNotificadosEm
+  const importConcluida = details.status === "CONCLUIDO" || details.status === "CONCLUIDO_COM_ERROS"
+  const temProjetosCriados = details.projetosCriados > 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -65,6 +95,47 @@ export function ImportDetailsDialog({ details, open, onOpenChange }: ImportDetai
               <p className="text-lg font-semibold text-red-600">{details.projetosComErro}</p>
             </div>
           </div>
+
+          {importConcluida && temProjetosCriados && (
+            <div className="border rounded-lg p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-sm font-medium">Notificação aos Professores</p>
+                </div>
+                {jaNotificado ? (
+                  <div className="flex items-center gap-1.5 text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm">
+                      Notificados em{" "}
+                      {new Date(details.professoresNotificadosEm!).toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => notifyMutation.mutate({ id: details.id })}
+                    disabled={notifyMutation.isPending}
+                  >
+                    <Send className="h-4 w-4 mr-1.5" />
+                    {notifyMutation.isPending ? "Enviando..." : "Notificar Professores"}
+                  </Button>
+                )}
+              </div>
+              {!jaNotificado && (
+                <p className="text-xs text-muted-foreground">
+                  Envie um email aos professores informando que os projetos foram criados e que eles podem revisar e
+                  assinar.
+                </p>
+              )}
+            </div>
+          )}
 
           {details.erros?.erros && details.erros.erros.length > 0 && (
             <div>

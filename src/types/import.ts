@@ -38,6 +38,7 @@ export interface ImportHistoryItem {
   projetosCriados: number
   projetosComErro: number
   status: string
+  professoresNotificadosEm: Date | null
   importadoPor: {
     username: string
     email: string

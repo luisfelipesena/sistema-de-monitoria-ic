@@ -268,6 +268,31 @@ export function createImportProjectsRepository(db: Database) {
     },
 
     /**
+     * Find distinct professors linked to projects of an import
+     */
+    async findProfessoresByImportacao(importacaoId: number) {
+      const projetos = await db.query.projetoTable.findMany({
+        where: and(eq(projetoTable.importacaoPlanejamentoId, importacaoId), isNull(projetoTable.deletedAt)),
+        columns: { professorResponsavelId: true },
+      })
+
+      const professorIds = [...new Set(projetos.map((p) => p.professorResponsavelId))]
+      if (professorIds.length === 0) return []
+
+      return db.query.professorTable.findMany({
+        where: inArray(professorTable.id, professorIds),
+        with: {
+          user: {
+            columns: {
+              email: true,
+              username: true,
+            },
+          },
+        },
+      })
+    },
+
+    /**
      * Soft-delete all projects linked to a specific importacao
      */
     async softDeleteProjetosByImportacaoId(importacaoId: number) {
@@ -275,12 +300,7 @@ export function createImportProjectsRepository(db: Database) {
       await db
         .update(projetoTable)
         .set({ deletedAt: now, updatedAt: now })
-        .where(
-          and(
-            eq(projetoTable.importacaoPlanejamentoId, importacaoId),
-            isNull(projetoTable.deletedAt)
-          )
-        )
+        .where(and(eq(projetoTable.importacaoPlanejamentoId, importacaoId), isNull(projetoTable.deletedAt)))
     },
 
     /**

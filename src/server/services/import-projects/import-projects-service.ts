@@ -396,7 +396,10 @@ export function createImportProjectsService(db: Database) {
 
           // Deduplication: skip if active project already exists
           const existingProjeto = await repo.findExistingProjeto(
-            professorResponsavel.id, disciplina.id, importacao.ano, importacao.semestre
+            professorResponsavel.id,
+            disciplina.id,
+            importacao.ano,
+            importacao.semestre
           )
           if (existingProjeto) {
             warnings.push(
@@ -525,39 +528,11 @@ export function createImportProjectsService(db: Database) {
         erros: erros.length > 0 || warnings.length > 0 ? JSON.stringify({ erros, warnings }) : null,
       })
 
-      if (projetosCriados > 0 && professoresNotificar.size > 0) {
-        try {
-          const professoresParaNotificar = await repo.findProfessoresByIds(Array.from(professoresNotificar))
-
-          for (const professor of professoresParaNotificar) {
-            try {
-              await sendProjectCreationNotification({
-                to: professor.user.email,
-                professorName: professor.nomeCompleto,
-                ano: importacao.ano,
-                semestre: importacao.semestre,
-              })
-
-              log.info({ professorId: professor.id, email: professor.user.email }, 'Email enviado')
-            } catch (emailError) {
-              log.error(emailError, 'Erro ao enviar email para professor')
-              warnings.push(`Erro ao enviar email para ${professor.user.email}`)
-            }
-          }
-
-          log.info({ totalProfessores: professoresParaNotificar.length }, 'Emails de notificação enviados')
-        } catch (error) {
-          log.error(error, 'Erro ao enviar emails de notificação')
-          warnings.push('Erro ao enviar emails de notificação para professores')
-        }
-      }
-
       log.info(
         {
           importacaoId,
           projetosCriados,
           projetosComErro,
-          emailsEnviados: professoresNotificar.size,
         },
         'Importação finalizada'
       )
@@ -586,7 +561,6 @@ export function createImportProjectsService(db: Database) {
         projetosComErro,
         erros,
         warnings,
-        emailsEnviados: professoresNotificar.size,
       }
     },
 
@@ -602,6 +576,7 @@ export function createImportProjectsService(db: Database) {
         projetosCriados: imp.projetosCriados,
         projetosComErro: imp.projetosComErro,
         status: imp.status,
+        professoresNotificadosEm: imp.professoresNotificadosEm ?? null,
         erros: imp.erros ? JSON.parse(imp.erros) : { erros: [], warnings: [] },
         importadoPor: imp.importadoPor,
         createdAt: imp.createdAt,
@@ -815,37 +790,11 @@ export function createImportProjectsService(db: Database) {
         erros: erros.length > 0 || warnings.length > 0 ? JSON.stringify({ erros, warnings }) : null,
       })
 
-      // Enviar emails
-      if (projetosCriados > 0 && professoresNotificar.size > 0) {
-        try {
-          const professoresParaNotificar = await repo.findProfessoresByIds(Array.from(professoresNotificar))
-
-          for (const professor of professoresParaNotificar) {
-            try {
-              await sendProjectCreationNotification({
-                to: professor.user.email,
-                professorName: professor.nomeCompleto,
-                ano: importacao.ano,
-                semestre: importacao.semestre,
-              })
-
-              log.info({ professorId: professor.id, email: professor.user.email }, 'Email enviado')
-            } catch (emailError) {
-              log.error(emailError, 'Erro ao enviar email para professor')
-              warnings.push(`Erro ao enviar email para ${professor.user.email}`)
-            }
-          }
-        } catch (error) {
-          log.error(error, 'Erro ao enviar emails de notificação')
-        }
-      }
-
       log.info(
         {
           importacaoId,
           projetosCriados,
           projetosComErro,
-          emailsEnviados: professoresNotificar.size,
         },
         'Importação DCC finalizada'
       )
@@ -874,7 +823,58 @@ export function createImportProjectsService(db: Database) {
         projetosComErro,
         erros,
         warnings,
-        emailsEnviados: professoresNotificar.size,
+      }
+    },
+
+    async notifyProfessors(importacaoId: number) {
+      const importacao = await repo.findImportacao(importacaoId)
+
+      if (!importacao) {
+        throw new NotFoundError('Importação', importacaoId)
+      }
+
+      if (importacao.professoresNotificadosEm) {
+        throw new BusinessError('Professores já foram notificados para esta importação', 'ALREADY_NOTIFIED')
+      }
+
+      const professores = await repo.findProfessoresByImportacao(importacaoId)
+
+      if (professores.length === 0) {
+        throw new BusinessError('Nenhum professor encontrado para notificar nesta importação', 'NO_PROFESSORS')
+      }
+
+      let emailsEnviados = 0
+      const errosEmail: string[] = []
+
+      for (const professor of professores) {
+        try {
+          await sendProjectCreationNotification({
+            to: professor.user.email,
+            professorName: professor.nomeCompleto,
+            ano: importacao.ano,
+            semestre: importacao.semestre as Semestre,
+          })
+          emailsEnviados++
+          log.info({ professorId: professor.id, email: professor.user.email }, 'Email enviado')
+        } catch (emailError) {
+          log.error(emailError, 'Erro ao enviar email para professor')
+          errosEmail.push(`Erro ao enviar email para ${professor.user.email}`)
+        }
+      }
+
+      await repo.updateImportacao(importacaoId, {
+        professoresNotificadosEm: new Date(),
+      })
+
+      log.info(
+        { importacaoId, emailsEnviados, totalProfessores: professores.length },
+        'Professores notificados manualmente'
+      )
+
+      return {
+        emailsEnviados,
+        totalProfessores: professores.length,
+        erros: errosEmail,
       }
     },
   }

@@ -46,7 +46,6 @@ describe('importProjectsRouter', () => {
         projetosComErro: 0,
         erros: [],
         warnings: [],
-        emailsEnviados: 0,
       })
 
       const result = await caller.processImportedFileDCC({ importacaoId: 1 })
@@ -67,7 +66,6 @@ describe('importProjectsRouter', () => {
         projetosComErro: 1,
         erros: ['Professor(es) Professor Desconhecido não encontrado(s) para a disciplina MATA01. Projeto não criado.'],
         warnings: [],
-        emailsEnviados: 0,
       })
 
       const result = await caller.processImportedFileDCC({ importacaoId: 1 })
@@ -89,7 +87,6 @@ describe('importProjectsRouter', () => {
         projetosComErro: 1,
         erros: ['Disciplina MATA99 (Disciplina Inexistente) não encontrada no sistema. Projeto não criado.'],
         warnings: ['Linha 5: Carga horária não informada. Será usado 0 como padrão.'],
-        emailsEnviados: 2,
       })
 
       const result = await caller.processImportedFileDCC({ importacaoId: 1 })
@@ -98,7 +95,6 @@ describe('importProjectsRouter', () => {
       expect(result.projetosComErro).toBe(1)
       expect(result.erros).toHaveLength(1)
       expect(result.warnings).toHaveLength(1)
-      expect(result.emailsEnviados).toBe(2)
       expect(processDCC.processImportedFileDCC).toHaveBeenCalledWith(1, mockContext)
     })
   })

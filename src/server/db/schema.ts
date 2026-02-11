@@ -205,8 +205,9 @@ export const projetoTable = pgTable('projeto', {
   localSelecao: varchar('local_selecao', { length: 255 }), // Local da seleção (ex: "Sala 101, PAF I")
   bibliografia: text('bibliografia'), // Bibliografia para seleção
   pontosProva: text('pontos_prova'), // Pontos/tópicos da prova de seleção
-  importacaoPlanejamentoId: integer('importacao_planejamento_id')
-    .references(() => importacaoPlanejamentoTable.id, { onDelete: 'set null' }),
+  importacaoPlanejamentoId: integer('importacao_planejamento_id').references(() => importacaoPlanejamentoTable.id, {
+    onDelete: 'set null',
+  }),
   status: projetoStatusEnum('status').notNull().default('DRAFT'),
   assinaturaProfessor: text('assinatura_professor'), // base64 data URL
   // analiseSubmissao: text('analise_submissao'), // Renamed/Repurposed
@@ -834,6 +835,10 @@ export const importacaoPlanejamentoTable = pgTable('importacao_planejamento', {
   projetosComErro: integer('projetos_com_erro').notNull().default(0),
   status: varchar('status').notNull().default('PROCESSANDO'), // PROCESSANDO, CONCLUIDO, ERRO
   erros: text('erros'), // JSON com detalhes dos erros
+  professoresNotificadosEm: timestamp('professores_notificados_em', {
+    withTimezone: true,
+    mode: 'date',
+  }), // Quando os professores foram notificados (null = ainda não notificados)
   importadoPorUserId: integer('importado_por_user_id')
     .references(() => userTable.id)
     .notNull(),

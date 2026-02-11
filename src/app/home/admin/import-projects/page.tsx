@@ -19,12 +19,20 @@ import {
 export default function ImportProjectsPage() {
   const { toast } = useToast()
   const [selectedImportId, setSelectedImportId] = useState<number | null>(null)
+  const apiUtils = api.useUtils()
 
   const { data: importHistory, isLoading, refetch } = api.importProjects.getImportHistory.useQuery()
   const { data: importDetails } = api.importProjects.getImportDetails.useQuery(
     { id: selectedImportId! },
     { enabled: !!selectedImportId }
   )
+
+  const handleNotified = () => {
+    if (selectedImportId) {
+      apiUtils.importProjects.getImportDetails.invalidate({ id: selectedImportId })
+    }
+    refetch()
+  }
 
   const deleteImportMutation = api.importProjects.deleteImport.useMutation({
     onSuccess: () => {
@@ -113,6 +121,7 @@ export default function ImportProjectsPage() {
           details={importDetails}
           open={!!selectedImportId}
           onOpenChange={(open) => !open && setSelectedImportId(null)}
+          onNotified={handleNotified}
         />
       </div>
     </PagesLayout>

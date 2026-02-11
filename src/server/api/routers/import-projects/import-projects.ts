@@ -51,6 +51,11 @@ export const importProjectsRouter = createTRPCRouter({
     return service.deleteImport(input.id)
   }),
 
+  notifyProfessors: adminProtectedProcedure.input(z.object({ id: z.number() })).mutation(async ({ input, ctx }) => {
+    const service = createImportProjectsService(ctx.db)
+    return service.notifyProfessors(input.id)
+  }),
+
   getProfessores: adminProtectedProcedure.query(async ({ ctx }) => {
     const service = createImportProjectsService(ctx.db)
     return service.getProfessores()

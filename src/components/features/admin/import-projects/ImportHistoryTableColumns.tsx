@@ -100,7 +100,7 @@ export function createImportHistoryColumns({
       id: "actions",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => onViewDetails(row.original.id)}>
+          <Button variant="outline" size="sm" onClick={() => onViewDetails(row.original.id)} aria-label="Ver detalhes">
             <Eye className="h-4 w-4" />
           </Button>
           <Button
@@ -108,6 +108,7 @@ export function createImportHistoryColumns({
             size="sm"
             onClick={() => onDelete(row.original.id)}
             disabled={isDeleting}
+            aria-label="Excluir importação"
           >
             <Trash2 className="h-4 w-4" />
           </Button>

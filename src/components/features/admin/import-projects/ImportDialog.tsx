@@ -51,7 +51,7 @@ export function ImportDialog({ onSuccess }: ImportDialogProps) {
     onSuccess: (result) => {
       toast({
         title: "Importação concluída!",
-        description: `${result.projetosCriados} projetos criados. ${result.emailsEnviados} professores notificados.`,
+        description: `${result.projetosCriados} projetos criados. Você pode notificar os professores nos detalhes da importação.`,
       })
       setIsDialogOpen(false)
       setSelectedFile(null)
