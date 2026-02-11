@@ -57,7 +57,7 @@ function DocumentSigningContent() {
 
   // Column filters with URL state persistence
   const { columnFilters, setColumnFilters } = useUrlColumnFilters({
-    useCurrentSemester: true,
+    useCurrentSemester: false,
   })
 
   // Filter projects that need professor signing

@@ -3,7 +3,7 @@ import { api } from '@/utils/api'
 
 export function useRelatorioMonitorAdmin() {
   const { page, pageSize, setPage, setPageSize, columnFilters, setColumnFilters, apiFilters } = useServerPagination({
-    useCurrentSemester: true,
+    useCurrentSemester: false,
     defaultPageSize: 20,
   })
 

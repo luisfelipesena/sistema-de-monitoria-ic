@@ -57,7 +57,7 @@ export default function DashboardProfessor() {
 
   // Column filters with URL state persistence and current semester as default
   const { columnFilters, setColumnFilters } = useUrlColumnFilters({
-    useCurrentSemester: true,
+    useCurrentSemester: false,
   })
 
   const handleDeleteProjeto = (projeto: DashboardProjectItem) => {
