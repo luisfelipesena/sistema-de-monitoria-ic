@@ -22,9 +22,9 @@ export function useDashboard() {
   const [abaAtiva, setAbaAtiva] = useState<'projetos' | 'professores' | 'alunos'>('projetos')
   const [groupedView, setGroupedView] = useState(false)
 
-  // Column filters with URL state persistence and current semester as default
+  // Column filters with URL state persistence (no default semester filter)
   const { columnFilters, setColumnFilters, activeFilterCount } = useUrlColumnFilters({
-    useCurrentSemester: true,
+    useCurrentSemester: false,
   })
 
   const [deletingProjetoId, setDeletingProjetoId] = useState<number | null>(null)

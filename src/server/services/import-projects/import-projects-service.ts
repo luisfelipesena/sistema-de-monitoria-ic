@@ -54,7 +54,7 @@ export function createImportProjectsService(db: Database) {
   async function createProjetoForProfessor(
     disciplina: { id: number; codigo: string; nome: string },
     professor: { id: number; nomeCompleto: string; departamentoId: number | null; userId: number },
-    importacao: { ano: number; semestre: Semestre },
+    importacao: { id: number; ano: number; semestre: Semestre },
     row: ProcessedRow,
     professoresNotificar: Set<number>,
     warnings: string[],
@@ -62,6 +62,15 @@ export function createImportProjectsService(db: Database) {
   ): Promise<number> {
     const codigoSanitizado = sanitizeDisciplineCode(row.disciplinaCodigo)
     const nomeSanitizado = sanitizeTitle(row.disciplinaNome)
+
+    // Deduplication: skip if active project already exists for this professor+discipline+ano+semestre
+    const existing = await repo.findExistingProjeto(professor.id, disciplina.id, importacao.ano, importacao.semestre)
+    if (existing) {
+      warnings.push(
+        `Projeto já existe para ${professor.nomeCompleto} em ${codigoSanitizado} (${importacao.ano}/${importacao.semestre}). Pulando.`
+      )
+      return 0
+    }
 
     if (!professor.departamentoId) {
       erros.push(
@@ -111,9 +120,10 @@ export function createImportProjectsService(db: Database) {
       publicoAlvo,
       bolsasSolicitadas: row.vagas || 0,
       voluntariosSolicitados: 0,
-      tipoProposicao: TIPO_PROPOSICAO_INDIVIDUAL, // Each professor gets their own project
+      tipoProposicao: TIPO_PROPOSICAO_INDIVIDUAL,
       professoresParticipantes: null,
       status: PROJETO_STATUS_PENDING_SIGNATURE,
+      importacaoPlanejamentoId: importacao.id,
     }
 
     const projeto = await repo.createProjeto(novoProjeto)
@@ -342,14 +352,13 @@ export function createImportProjectsService(db: Database) {
                 warnings,
                 erros
               )
-              if (created === 0) {
+              if (created > 0) {
+                projetosCriados++
+              } else {
                 projetosComErro++
               }
             }
 
-            // Count successful creations (createProjetoForProfessor returns 1 on success, 0 on error)
-            // We already incremented projetosComErro for failures above
-            projetosCriados += professores.filter((p) => p.departamentoId !== null).length
             continue
           }
 
@@ -383,6 +392,17 @@ export function createImportProjectsService(db: Database) {
                 'Disciplina criada automaticamente'
               )
             }
+          }
+
+          // Deduplication: skip if active project already exists
+          const existingProjeto = await repo.findExistingProjeto(
+            professorResponsavel.id, disciplina.id, importacao.ano, importacao.semestre
+          )
+          if (existingProjeto) {
+            warnings.push(
+              `Projeto já existe para ${professorResponsavel.nomeCompleto} em ${codigoSanitizado} (${importacao.ano}/${importacao.semestre}). Pulando.`
+            )
+            continue
           }
 
           const template = await repo.findTemplatePorDisciplina(disciplina.id)
@@ -425,7 +445,7 @@ export function createImportProjectsService(db: Database) {
             descricao,
             professorResponsavelId: professorResponsavel.id,
             departamentoId: professorResponsavel.departamentoId,
-            disciplinaNome: titulo, // Use sanitized title
+            disciplinaNome: titulo,
             ano: importacao.ano,
             semestre: importacao.semestre,
             cargaHorariaSemana,
@@ -436,6 +456,7 @@ export function createImportProjectsService(db: Database) {
             tipoProposicao,
             professoresParticipantes,
             status: PROJETO_STATUS_PENDING_SIGNATURE,
+            importacaoPlanejamentoId: importacao.id,
           }
 
           const projeto = await repo.createProjeto(novoProjeto)
@@ -601,6 +622,8 @@ export function createImportProjectsService(db: Database) {
     },
 
     async deleteImport(id: number) {
+      // Soft-delete all projects created by this import before deleting the import record
+      await repo.softDeleteProjetosByImportacaoId(id)
       await repo.deleteImportacao(id)
       return { success: true }
     },
@@ -743,109 +766,30 @@ export function createImportProjectsService(db: Database) {
             continue
           }
 
-          const tipoProposicao = professores.length > 1 ? TIPO_PROPOSICAO_COLETIVA : TIPO_PROPOSICAO_INDIVIDUAL
-          const professorResponsavel = professores[0]
-
-          if (!professorResponsavel.departamentoId) {
-            erros.push(
-              `Disciplina ${codigoSanitizado}: Professor ${professorResponsavel.nomeCompleto} não possui departamento associado`
-            )
-            projetosComErro++
-            continue
+          // Create one INDIVIDUAL project per professor
+          const dccRow: ProcessedRow = {
+            disciplinaCodigo: codigoSanitizado,
+            disciplinaNome: nomeSanitizado,
+            professoresSiapes: [],
+            vagas: 0,
           }
 
-          // Buscar template
-          const template = await repo.findTemplatePorDisciplina(disciplina.id)
-
-          let titulo = sanitizeTitle(nomeSanitizado)
-          let descricao = `Projeto de monitoria para ${titulo}`
-          let cargaHorariaSemana = firstEntry.cargaHoraria || 12
-          let numeroSemanas = 17
-          let publicoAlvo = 'Estudantes do curso'
-          let atividades: string[] = []
-          let professoresParticipantes: string | null = null
-
-          if (template) {
-            titulo = sanitizeTitle(template.tituloDefault || titulo)
-            descricao = template.descricaoDefault || descricao
-            cargaHorariaSemana = template.cargaHorariaSemanaDefault || cargaHorariaSemana
-            numeroSemanas = template.numeroSemanasDefault || numeroSemanas
-            publicoAlvo = template.publicoAlvoDefault || publicoAlvo
-
-            if (template.atividadesDefault) {
-              try {
-                atividades = JSON.parse(template.atividadesDefault)
-              } catch {
-                atividades = template.atividadesDefault.split(';').filter((a) => a.trim().length > 0)
-              }
+          for (const professor of professores) {
+            const created = await createProjetoForProfessor(
+              disciplina,
+              professor,
+              importacao,
+              dccRow,
+              professoresNotificar,
+              warnings,
+              erros
+            )
+            if (created > 0) {
+              projetosCriados++
+            } else {
+              projetosComErro++
             }
-          } else {
-            warnings.push(`Disciplina ${codigoSanitizado}: Sem template cadastrado, usando valores padrão`)
           }
-
-          if (tipoProposicao === TIPO_PROPOSICAO_COLETIVA) {
-            professoresParticipantes = professores.map((p) => p.nomeCompleto).join(', ')
-          }
-
-          const novoProjeto: NewProjeto = {
-            titulo,
-            descricao,
-            professorResponsavelId: professorResponsavel.id,
-            departamentoId: professorResponsavel.departamentoId,
-            disciplinaNome: titulo,
-            ano: importacao.ano,
-            semestre: importacao.semestre,
-            cargaHorariaSemana,
-            numeroSemanas,
-            publicoAlvo,
-            bolsasSolicitadas: 0,
-            voluntariosSolicitados: 0,
-            tipoProposicao,
-            professoresParticipantes,
-            status: PROJETO_STATUS_PENDING_SIGNATURE,
-          }
-
-          const projeto = await repo.createProjeto(novoProjeto)
-
-          await repo.associateProjetoDisciplina(projeto.id, disciplina.id)
-
-          const existingAssociation = await repo.findAssociacaoProfessorDisciplina(
-            disciplina.id,
-            professorResponsavel.id,
-            importacao.ano,
-            importacao.semestre
-          )
-
-          if (!existingAssociation) {
-            await repo.createAssociacaoProfessorDisciplina(
-              disciplina.id,
-              professorResponsavel.id,
-              importacao.ano,
-              importacao.semestre
-            )
-          }
-
-          if (atividades.length > 0) {
-            const atividadesData = atividades.map((descricao) => ({
-              projetoId: projeto.id,
-              descricao,
-            }))
-            await repo.insertAtividades(atividadesData)
-          }
-
-          professores.forEach((p) => professoresNotificar.add(p.userId))
-
-          projetosCriados++
-          log.info(
-            {
-              projetoId: projeto.id,
-              disciplina: codigoSanitizado,
-              titulo,
-              tipo: tipoProposicao,
-              professores: professores.length,
-            },
-            'Projeto criado'
-          )
         } catch (error) {
           erros.push(
             `Erro ao criar projeto para ${entries[0].disciplinaCodigo}: ${error instanceof Error ? error.message : 'Erro desconhecido'}`

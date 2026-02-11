@@ -205,6 +205,8 @@ export const projetoTable = pgTable('projeto', {
   localSelecao: varchar('local_selecao', { length: 255 }), // Local da seleção (ex: "Sala 101, PAF I")
   bibliografia: text('bibliografia'), // Bibliografia para seleção
   pontosProva: text('pontos_prova'), // Pontos/tópicos da prova de seleção
+  importacaoPlanejamentoId: integer('importacao_planejamento_id')
+    .references(() => importacaoPlanejamentoTable.id, { onDelete: 'set null' }),
   status: projetoStatusEnum('status').notNull().default('DRAFT'),
   assinaturaProfessor: text('assinatura_professor'), // base64 data URL
   // analiseSubmissao: text('analise_submissao'), // Renamed/Repurposed
@@ -625,6 +627,10 @@ export const projetoRelations = relations(projetoTable, ({ one, many }) => ({
     fields: [projetoTable.editalInternoId],
     references: [editalTable.id],
   }),
+  importacaoPlanejamento: one(importacaoPlanejamentoTable, {
+    fields: [projetoTable.importacaoPlanejamentoId],
+    references: [importacaoPlanejamentoTable.id],
+  }),
   disciplinas: many(projetoDisciplinaTable),
   professoresParticipantes: many(projetoProfessorParticipanteTable),
   atividades: many(atividadeProjetoTable),
@@ -843,11 +849,12 @@ export const importacaoPlanejamentoTable = pgTable('importacao_planejamento', {
   }).$onUpdate(() => new Date()),
 })
 
-export const importacaoPlanejamentoRelations = relations(importacaoPlanejamentoTable, ({ one }) => ({
+export const importacaoPlanejamentoRelations = relations(importacaoPlanejamentoTable, ({ one, many }) => ({
   importadoPor: one(userTable, {
     fields: [importacaoPlanejamentoTable.importadoPorUserId],
     references: [userTable.id],
   }),
+  projetos: many(projetoTable),
 }))
 
 export const statusEnvioEnum = pgEnum('status_envio_enum', ['ENVIADO', 'FALHOU'])

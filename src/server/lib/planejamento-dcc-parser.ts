@@ -18,6 +18,22 @@ export interface ParsedPlanejamentoDCC {
 }
 
 /**
+ * Sanitize cell values from spreadsheets to handle special characters
+ * that may cause processing errors (smart quotes, BOM, non-breaking spaces, etc.)
+ */
+function sanitizeCellValue(value: string): string {
+  return value
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width chars / BOM
+    .replace(/\u00A0/g, ' ')               // Non-breaking space
+    .replace(/[\u2018\u2019]/g, "'")        // Smart single quotes
+    .replace(/[\u201C\u201D]/g, '"')        // Smart double quotes
+    .replace(/[\u2013\u2014]/g, '-')        // En/em dashes
+    .replace(/\u2026/g, '...')              // Ellipsis
+    .replace(/\r\n|\r/g, '\n')             // Normalize newlines
+    .trim()
+}
+
+/**
  * Parser específico para planilha de planejamento DCC
  * Formato: DISCIPLINA | TURMA | NOME DISCIPLINA | ... | CH | DOCENTE
  */
@@ -110,10 +126,10 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
       const lineNumber = i + 1
 
       try {
-        const disciplinaRaw = String(row[disciplinaIdx] || '').trim()
-        const nomeRaw = nomeIdx !== -1 ? String(row[nomeIdx] || '').trim() : ''
-        const docenteRaw = String(row[docenteIdx] || '').trim()
-        const chRaw = chIdx !== -1 ? String(row[chIdx] || '').trim() : ''
+        const disciplinaRaw = sanitizeCellValue(String(row[disciplinaIdx] || ''))
+        const nomeRaw = nomeIdx !== -1 ? sanitizeCellValue(String(row[nomeIdx] || '')) : ''
+        const docenteRaw = sanitizeCellValue(String(row[docenteIdx] || ''))
+        const chRaw = chIdx !== -1 ? sanitizeCellValue(String(row[chIdx] || '')) : ''
 
         // Pular linhas separadoras (ex: "OBRIGATÓRIAS DA GRADUAÇÃO")
         if (

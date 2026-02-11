@@ -61,6 +61,8 @@ interface DataTableProps<TData, TValue> {
   onColumnFiltersChange?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>
   /** Server-side pagination config. When provided, uses server pagination instead of client-side. */
   serverPagination?: ServerPaginationConfig
+  /** Default sorting state */
+  defaultSorting?: SortingState
 }
 
 export function TableComponent<TData, TValue>({
@@ -74,8 +76,9 @@ export function TableComponent<TData, TValue>({
   columnFilters: externalColumnFilters,
   onColumnFiltersChange,
   serverPagination,
+  defaultSorting,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>(defaultSorting ?? [])
   const [internalColumnFilters, setInternalColumnFilters] = useState<ColumnFiltersState>([])
 
   // Use external filters if provided, otherwise use internal state

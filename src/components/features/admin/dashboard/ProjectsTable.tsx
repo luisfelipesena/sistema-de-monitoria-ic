@@ -172,6 +172,7 @@ export function ProjectsTable({
         data={projetos}
         columnFilters={columnFilters}
         onColumnFiltersChange={onColumnFiltersChange}
+        defaultSorting={[{ id: 'ano', desc: true }]}
       />
       <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
         <AlertDialogContent>

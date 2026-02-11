@@ -11,7 +11,7 @@ import {
   type NewProjeto,
 } from '@/server/db/schema'
 import type { InferInsertModel } from 'drizzle-orm'
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
 import type { Semestre } from '@/types'
 import { findMatchingProfessors } from '@/utils/string-normalization'
 
@@ -265,6 +265,44 @@ export function createImportProjectsRepository(db: Database) {
           },
         },
       })
+    },
+
+    /**
+     * Soft-delete all projects linked to a specific importacao
+     */
+    async softDeleteProjetosByImportacaoId(importacaoId: number) {
+      const now = new Date()
+      await db
+        .update(projetoTable)
+        .set({ deletedAt: now, updatedAt: now })
+        .where(
+          and(
+            eq(projetoTable.importacaoPlanejamentoId, importacaoId),
+            isNull(projetoTable.deletedAt)
+          )
+        )
+    },
+
+    /**
+     * Check if an active project already exists for a given professor, discipline, year and semester
+     */
+    async findExistingProjeto(professorId: number, disciplinaId: number, ano: number, semestre: Semestre) {
+      const result = await db
+        .select({ id: projetoTable.id })
+        .from(projetoTable)
+        .innerJoin(projetoDisciplinaTable, eq(projetoDisciplinaTable.projetoId, projetoTable.id))
+        .where(
+          and(
+            eq(projetoTable.professorResponsavelId, professorId),
+            eq(projetoDisciplinaTable.disciplinaId, disciplinaId),
+            eq(projetoTable.ano, ano),
+            eq(projetoTable.semestre, semestre),
+            isNull(projetoTable.deletedAt)
+          )
+        )
+        .limit(1)
+
+      return result.length > 0 ? result[0] : null
     },
   }
 }
