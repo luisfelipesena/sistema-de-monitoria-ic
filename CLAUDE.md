@@ -459,7 +459,7 @@ import { TableComponent, multiselectFilterFn } from '@/components/layout/TableCo
 export default function AdminPage() {
   // Hook provides URL-synced filters with optional current semester defaults
   const { columnFilters, setColumnFilters } = useUrlColumnFilters({
-    useCurrentSemester: true  // Auto-applies ano + semestre on first visit
+    useCurrentSemester: false  // NEVER use true - filters should not be pre-selected
   })
 
   const columns = useMemo(() => createColumns(), [])
@@ -485,7 +485,7 @@ export default function LargeDatasetPage() {
     page, pageSize, setPage, setPageSize,
     columnFilters, setColumnFilters,
     apiFilters  // Ready-to-use object for API calls
-  } = useServerPagination({ defaultPageSize: 20, useCurrentSemester: true })
+  } = useServerPagination({ defaultPageSize: 20, useCurrentSemester: false })
 
   const { data, isLoading } = api.entity.list.useQuery({
     ...apiFilters,  // Contains limit, offset, and all filter values
