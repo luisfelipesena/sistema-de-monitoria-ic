@@ -100,6 +100,7 @@ export function ProjectAnalysisDialog({
         : undefined,
       ano: fullProject.ano,
       semestre: fullProject.semestre,
+      numeroEdital: fullProject.editalNumero ?? undefined,
       tipoProposicao: fullProject.tipoProposicao,
       professoresParticipantes: fullProject.professoresParticipantes ?? undefined,
       bolsasSolicitadas: fullProject.bolsasSolicitadas,

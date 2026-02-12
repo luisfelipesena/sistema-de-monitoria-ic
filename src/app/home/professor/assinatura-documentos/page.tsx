@@ -105,6 +105,7 @@ function DocumentSigningContent() {
         : undefined,
       ano: selectedProject.ano,
       semestre: selectedProject.semestre,
+      numeroEdital: selectedProject.editalNumero ?? undefined,
       tipoProposicao: selectedProject.tipoProposicao,
       professoresParticipantes: selectedProject.professoresParticipantes ?? undefined,
       bolsasSolicitadas: selectedProject.bolsasSolicitadas || 0,

@@ -116,6 +116,7 @@ export const userRouter = createTRPCRouter({
             telefoneInstitucional: phoneSchema,
             regime: regimeSchema,
             tipoProfessor: tipoProfessorSchema.optional(),
+            matriculaSiape: z.string().optional(),
           })
           .optional(),
         studentData: z

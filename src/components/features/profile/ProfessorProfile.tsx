@@ -83,6 +83,7 @@ export function ProfessorProfile() {
           telefoneInstitucional: formData.telefoneInstitucional,
           regime: formData.regime,
           tipoProfessor: formData.tipoProfessor || undefined,
+          matriculaSiape: formData.matriculaSiape || undefined,
         },
       })
 

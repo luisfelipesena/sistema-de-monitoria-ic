@@ -365,6 +365,7 @@ export const projectDetailSchema = z.object({
   estimativaPessoasBenificiadas: z.number().int().min(0).nullable().optional(),
   professorResponsavelId: z.number().int().positive(),
   status: projetoStatusSchema,
+  editalNumero: z.string().nullable().optional(),
   assinaturaProfessor: z.string().nullable().optional(),
   feedbackAdmin: z.string().nullable().optional(),
   mensagemRevisao: z.string().nullable().optional(),

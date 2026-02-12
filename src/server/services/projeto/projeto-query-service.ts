@@ -90,15 +90,19 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
         }
       }
 
-      const [disciplinas, atividades] = await Promise.all([
+      const [disciplinas, atividades, periodo] = await Promise.all([
         repo.findDisciplinasByProjetoId(projeto.id),
         repo.findAtividadesByProjetoId(projeto.id),
+        repo.findPeriodoByProjetoSemestre(projeto.ano, projeto.semestre),
       ])
+
+      const editalNumero = periodo?.numeroEditalPrograd || periodo?.edital?.numeroEdital || null
 
       return {
         ...projeto,
         mensagemRevisao: projeto.mensagemRevisao,
         revisaoSolicitadaEm: projeto.revisaoSolicitadaEm,
+        editalNumero,
         professorResponsavel: {
           id: projeto.professorResponsavel.id,
           nomeCompleto: projeto.professorResponsavel.nomeCompleto,

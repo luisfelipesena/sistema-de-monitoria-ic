@@ -59,6 +59,7 @@ export interface UpdateProfileData {
     telefoneInstitucional?: string
     regime: Regime
     tipoProfessor?: TipoProfessor
+    matriculaSiape?: string
   }
   studentData?: {
     nomeCompleto: string
@@ -318,6 +319,7 @@ export const createUserRepository = (db: Database) => {
               telefoneInstitucional: normalizePhone(data.professorData.telefoneInstitucional),
               regime: data.professorData.regime as Regime,
               tipoProfessor: data.professorData.tipoProfessor,
+              matriculaSiape: data.professorData.matriculaSiape,
               updatedAt: new Date(),
             })
             .where(eq(professorTable.userId, userId))

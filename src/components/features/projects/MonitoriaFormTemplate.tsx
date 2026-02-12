@@ -448,7 +448,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                 <View style={styles.formRowTall}>
                   <Text>
                     Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das normas descritas no Edital
-                    PROGRAD/UFBA Nº 004/2025 – Programa de Monitoria {data.ano}.
+                    PROGRAD/UFBA Nº {data.numeroEdital || "004"}/{data.ano} – Programa de Monitoria {data.ano}.
                     {data.semestre === SEMESTRE_2 ? "2" : "1"} ( {data.semestre === SEMESTRE_2 ? "X" : "X"} ).
                   </Text>
                 </View>
@@ -509,7 +509,7 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                 <View style={styles.formRowTall}>
                   <Text>
                     Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das normas descritas no Edital
-                    PROGRAD/UFBA Nº 004/{data.ano} – Programa de Monitoria {data.ano}.
+                    PROGRAD/UFBA Nº {data.numeroEdital || "004"}/{data.ano} – Programa de Monitoria {data.ano}.
                     {data.semestre === SEMESTRE_1 ? "1" : "2"} ( {data.semestre === SEMESTRE_1 ? "X" : "X"} ).
                   </Text>
                 </View>
