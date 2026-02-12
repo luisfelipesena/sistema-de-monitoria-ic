@@ -81,6 +81,7 @@ export interface EditalListItem {
     ano: number
     dataInicio: Date // Data início INSCRIÇÃO
     dataFim: Date // Data fim INSCRIÇÃO
+    numeroEditalPrograd?: string | null
     status: PeriodoInscricaoStatus
     totalProjetos: number
     totalInscricoes: number
@@ -130,6 +131,7 @@ export interface EditalWithPeriodoStatus {
     dataInicio: Date // Data início INSCRIÇÃO
     dataFim: Date // Data fim INSCRIÇÃO
     totalBolsasPrograd: number | null
+    numeroEditalPrograd: string | null
     status: PeriodoInscricaoStatus
     totalProjetos: number
     totalInscricoes: number

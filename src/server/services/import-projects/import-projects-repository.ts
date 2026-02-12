@@ -8,6 +8,7 @@ import {
   projetoDisciplinaTable,
   disciplinaProfessorResponsavelTable,
   atividadeProjetoTable,
+  periodoInscricaoTable,
   type NewProjeto,
 } from '@/server/db/schema'
 import type { InferInsertModel } from 'drizzle-orm'
@@ -323,6 +324,19 @@ export function createImportProjectsRepository(db: Database) {
         .limit(1)
 
       return result.length > 0 ? result[0] : null
+    },
+
+    async findPeriodoBySemestre(ano: number, semestre: Semestre) {
+      return db.query.periodoInscricaoTable.findFirst({
+        where: and(eq(periodoInscricaoTable.ano, ano), eq(periodoInscricaoTable.semestre, semestre)),
+      })
+    },
+
+    async updatePeriodoEditalPrograd(periodoId: number, numeroEditalPrograd: string) {
+      await db
+        .update(periodoInscricaoTable)
+        .set({ numeroEditalPrograd, updatedAt: new Date() })
+        .where(eq(periodoInscricaoTable.id, periodoId))
     },
   }
 }

@@ -61,6 +61,7 @@ export const createImportSchema = z.object({
 export const importFormSchema = z.object({
   ano: anoSchema,
   semestre: semestreSchema,
+  numeroEditalPrograd: z.string().optional(),
 })
 
 export type CreateImportData = z.infer<typeof createImportSchema>

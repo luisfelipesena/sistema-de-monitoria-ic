@@ -24,7 +24,7 @@ import {
   userTable,
   vagaTable,
 } from '@/server/db/schema'
-import type { AdminType, Regime, TipoProfessor, UserRole } from '@/types'
+import { normalizePhone, type AdminType, type Regime, type TipoProfessor, type UserRole } from '@/types'
 import {
   PROFESSOR,
   PROFESSOR_STATUS_ATIVO,
@@ -314,8 +314,8 @@ export const createUserRepository = (db: Database) => {
             .set({
               nomeCompleto: data.professorData.nomeCompleto,
               cpf: data.professorData.cpf,
-              telefone: data.professorData.telefone,
-              telefoneInstitucional: data.professorData.telefoneInstitucional,
+              telefone: normalizePhone(data.professorData.telefone),
+              telefoneInstitucional: normalizePhone(data.professorData.telefoneInstitucional),
               regime: data.professorData.regime as Regime,
               tipoProfessor: data.professorData.tipoProfessor,
               updatedAt: new Date(),
@@ -332,7 +332,7 @@ export const createUserRepository = (db: Database) => {
               cpf: data.studentData.cpf,
               cr: data.studentData.cr,
               cursoNome: data.studentData.cursoNome,
-              telefone: data.studentData.telefone,
+              telefone: normalizePhone(data.studentData.telefone),
               banco: data.studentData.banco,
               agencia: data.studentData.agencia,
               conta: data.studentData.conta,

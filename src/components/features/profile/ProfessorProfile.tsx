@@ -16,6 +16,7 @@ import {
   TIPO_PROFESSOR_EFETIVO,
   TIPO_PROFESSOR_SUBSTITUTO,
   TIPO_PROFESSOR_LABELS,
+  normalizePhone,
   type Regime,
   type TipoProfessor,
 } from "@/types"
@@ -55,8 +56,8 @@ export function ProfessorProfile() {
         nomeCompleto: professor.nomeCompleto || "",
         matriculaSiape: professor.matriculaSiape || "",
         cpf: professor.cpf || "",
-        telefone: professor.telefone || "",
-        telefoneInstitucional: professor.telefoneInstitucional || "",
+        telefone: normalizePhone(professor.telefone) || "",
+        telefoneInstitucional: normalizePhone(professor.telefoneInstitucional) || "",
         regime: professor.regime || "",
         tipoProfessor: professor.tipoProfessor || "",
       })
@@ -106,8 +107,8 @@ export function ProfessorProfile() {
         nomeCompleto: professor.nomeCompleto || "",
         matriculaSiape: professor.matriculaSiape || "",
         cpf: professor.cpf || "",
-        telefone: professor.telefone || "",
-        telefoneInstitucional: professor.telefoneInstitucional || "",
+        telefone: normalizePhone(professor.telefone) || "",
+        telefoneInstitucional: normalizePhone(professor.telefoneInstitucional) || "",
         regime: professor.regime || "",
         tipoProfessor: professor.tipoProfessor || "",
       })

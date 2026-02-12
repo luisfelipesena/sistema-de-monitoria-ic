@@ -55,6 +55,8 @@ export const newEditalSchema = z
     // Legacy fields
     fileIdPdfExterno: z.string().optional(),
     datasProvasDisponiveis: z.array(z.string()).optional(),
+    // PROGRAD
+    numeroEditalPrograd: z.string().optional(),
   })
   .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
     message: 'Data de fim da inscrição deve ser posterior à data de início',
@@ -92,6 +94,8 @@ export const updateEditalSchema = z
     dataDivulgacaoResultado: z.date().optional().nullable(),
     // Legacy
     datasProvasDisponiveis: z.array(z.string()).optional(),
+    // PROGRAD
+    numeroEditalPrograd: z.string().optional(),
   })
   .refine(
     (data) => {
@@ -134,6 +138,7 @@ export const periodoInscricaoComStatusSchema = z.object({
   status: periodoInscricaoStatusSchema,
   totalProjetos: z.number().default(0),
   totalInscricoes: z.number().default(0),
+  numeroEditalPrograd: z.string().nullable().optional(),
 })
 
 export const editalListItemSchema = editalSchema.extend({

@@ -45,6 +45,8 @@ export interface EditalFormData {
   dataFimSelecao?: Date;
   // Data de divulgação dos resultados
   dataDivulgacaoResultado?: Date;
+  // Edital PROGRAD
+  numeroEditalPrograd?: string;
 }
 
 interface EditalFormDialogProps {
@@ -121,6 +123,23 @@ export function EditalFormDialog({
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="numeroEditalPrograd"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nº Edital PROGRAD (opcional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value || ""} placeholder="Ex: 01/2026" />
+                    </FormControl>
+                    <FormDescription>
+                      Número do edital PROGRAD associado a este semestre (aparece nos PDFs dos projetos)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

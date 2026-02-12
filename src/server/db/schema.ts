@@ -485,6 +485,7 @@ export const periodoInscricaoTable = pgTable('periodo_inscricao', {
   dataInicio: date('data_inicio', { mode: 'date' }).notNull(),
   dataFim: date('data_fim', { mode: 'date' }).notNull(),
   totalBolsasPrograd: integer('total_bolsas_prograd').default(0), // Total de bolsas disponibilizadas pela PROGRAD
+  numeroEditalPrograd: varchar('numero_edital_prograd', { length: 100 }),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',

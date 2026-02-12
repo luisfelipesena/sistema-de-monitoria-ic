@@ -1,0 +1,1 @@
+ALTER TABLE "periodo_inscricao" ADD COLUMN "numero_edital_prograd" varchar(100);

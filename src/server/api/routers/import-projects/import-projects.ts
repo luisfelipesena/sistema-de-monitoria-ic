@@ -12,6 +12,7 @@ export const importProjectsRouter = createTRPCRouter({
         fileName: z.string(),
         ano: z.number().int().min(2000).max(2100),
         semestre: semestreSchema,
+        numeroEditalPrograd: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

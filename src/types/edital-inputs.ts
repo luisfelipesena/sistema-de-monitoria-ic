@@ -20,6 +20,7 @@ export type CreateEditalInput = {
   fileIdPdfExterno?: string
   datasProvasDisponiveis?: string[]
   criadoPorUserId: number
+  numeroEditalPrograd?: string
 }
 
 export type UpdateEditalInput = {
@@ -40,4 +41,5 @@ export type UpdateEditalInput = {
   dataDivulgacaoResultado?: Date | null
   // Legacy
   datasProvasDisponiveis?: string[]
+  numeroEditalPrograd?: string
 }

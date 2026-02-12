@@ -53,6 +53,7 @@ export function createEditalCrudService(
         semestre: input.semestre,
         dataInicio: input.dataInicioInscricao,
         dataFim: input.dataFimInscricao,
+        numeroEditalPrograd: input.numeroEditalPrograd,
       })
 
       const novoEdital = await repo.insert({
@@ -121,6 +122,11 @@ export function createEditalCrudService(
           semestre: novoSemestre,
           dataInicio: novaDataInicio,
           dataFim: novaDataFim,
+          ...(input.numeroEditalPrograd !== undefined && { numeroEditalPrograd: input.numeroEditalPrograd }),
+        })
+      } else if (input.numeroEditalPrograd !== undefined) {
+        await repo.updatePeriodo(edital.periodoInscricaoId, {
+          numeroEditalPrograd: input.numeroEditalPrograd,
         })
       }
 

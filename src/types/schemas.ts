@@ -12,8 +12,20 @@ export const descriptionSchema = z.string().max(1000).optional()
 export const emailSchema = z.string().email('Email inválido')
 export const phoneSchema = z
   .string()
-  .refine((val) => !val || /^\(\d{2}\) \d{4,5}-\d{4}$/.test(val), 'Telefone inválido')
+  .refine((val) => {
+    if (!val) return true
+    const digits = val.replace(/\D/g, '')
+    return digits.length === 10 || digits.length === 11
+  }, 'Telefone inválido. Informe DDD + número (10 ou 11 dígitos)')
   .optional()
+
+export function normalizePhone(phone: string | null | undefined): string | undefined {
+  if (!phone) return undefined
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 11) return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  if (digits.length === 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  return phone
+}
 
 // Username validation
 export const usernameSchema = z

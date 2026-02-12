@@ -37,6 +37,7 @@ interface UploadFileInput {
   fileName: string
   ano: number
   semestre: Semestre
+  numeroEditalPrograd?: string
 }
 
 interface ProcessedRow {
@@ -191,6 +192,17 @@ export function createImportProjectsService(db: Database) {
       })
 
       log.info({ importacaoId: importacao.id }, 'Importação criada, iniciando processamento')
+
+      if (input.numeroEditalPrograd) {
+        const periodo = await repo.findPeriodoBySemestre(input.ano, input.semestre)
+        if (periodo) {
+          await repo.updatePeriodoEditalPrograd(periodo.id, input.numeroEditalPrograd)
+          log.info(
+            { periodoId: periodo.id, numeroEditalPrograd: input.numeroEditalPrograd },
+            'Número do edital PROGRAD atualizado no período'
+          )
+        }
+      }
 
       return importacao
     },

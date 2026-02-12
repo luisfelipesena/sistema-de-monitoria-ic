@@ -113,6 +113,7 @@ export function ImportDialog({ onSuccess }: ImportDialogProps) {
         fileName: selectedFile.name,
         ano: data.ano,
         semestre: data.semestre,
+        numeroEditalPrograd: data.numeroEditalPrograd,
       })
     } catch (error) {
       console.error("Error during import:", error)
@@ -163,6 +164,19 @@ export function ImportDialog({ onSuccess }: ImportDialogProps) {
                       <SelectItem value={SEMESTRE_2}>2º Semestre</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="numeroEditalPrograd"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nº Edital PROGRAD (opcional)</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ex: 01/2026" />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

@@ -595,6 +595,7 @@ export function createProjetoRepository(db: Database) {
             columns: {
               ano: true,
               semestre: true,
+              numeroEditalPrograd: true,
             },
           },
         },

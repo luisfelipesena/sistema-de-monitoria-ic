@@ -257,6 +257,7 @@ export default function EditalManagementPage() {
       dataInicioSelecao: data.dataInicioSelecao,
       dataFimSelecao: data.dataFimSelecao,
       dataDivulgacaoResultado: data.dataDivulgacaoResultado,
+      numeroEditalPrograd: data.numeroEditalPrograd,
     });
   };
 
@@ -275,6 +276,7 @@ export default function EditalManagementPage() {
       dataInicioSelecao: data.dataInicioSelecao,
       dataFimSelecao: data.dataFimSelecao,
       dataDivulgacaoResultado: data.dataDivulgacaoResultado,
+      numeroEditalPrograd: data.numeroEditalPrograd,
     });
   };
 
@@ -391,6 +393,7 @@ export default function EditalManagementPage() {
       dataDivulgacaoResultado: edital.dataDivulgacaoResultado
         ? new Date(edital.dataDivulgacaoResultado)
         : undefined,
+      numeroEditalPrograd: edital.periodoInscricao?.numeroEditalPrograd || "",
     });
     setIsEditDialogOpen(true);
   };

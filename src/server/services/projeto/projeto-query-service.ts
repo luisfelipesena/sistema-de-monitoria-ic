@@ -39,7 +39,10 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       editais.forEach((edital) => {
         if (edital.periodoInscricao) {
           const key = `${edital.periodoInscricao.ano}_${edital.periodoInscricao.semestre}`
-          editalMap.set(key, { numeroEdital: edital.numeroEdital, publicado: edital.publicado })
+          editalMap.set(key, {
+            numeroEdital: edital.periodoInscricao.numeroEditalPrograd || edital.numeroEdital,
+            publicado: edital.publicado,
+          })
         }
       })
 

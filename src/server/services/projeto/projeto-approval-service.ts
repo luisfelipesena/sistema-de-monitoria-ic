@@ -150,8 +150,8 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
         repo.findAtividadesByProjetoId(projeto.id),
       ])
 
-      const edital = await repo.findPeriodoByProjetoSemestre(projeto.ano, projeto.semestre)
-      const numeroEdital = edital?.edital?.numeroEdital
+      const periodo = await repo.findPeriodoByProjetoSemestre(projeto.ano, projeto.semestre)
+      const numeroEdital = periodo?.numeroEditalPrograd || periodo?.edital?.numeroEdital
 
       const pdfData = {
         titulo: projeto.titulo,
