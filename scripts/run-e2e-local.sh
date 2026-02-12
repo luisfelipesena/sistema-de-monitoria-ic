@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# Script to run E2E tests locally, replicating CI pipeline
-# This script mimics the GitHub Actions workflow for local development
+# Script to run E2E tests locally
+# NOTE: E2E tests are NOT run in CI (removed due to infrastructure issues).
+# This script is for local development only. Requires a running PostgreSQL
+# instance and a properly configured .env.test file.
 
 set -e  # Exit on error
 
