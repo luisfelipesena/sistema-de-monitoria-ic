@@ -158,6 +158,11 @@ export function createEditalQueryService(repo: EditalRepository) {
       })
     },
 
+    async getNumeroEditalPrograd(ano: number, semestre: Semestre) {
+      const periodo = await repo.findPeriodoBySemestre(ano, semestre)
+      return periodo?.numeroEditalPrograd || null
+    },
+
     async getAvailableExamDates(id: number) {
       const edital = await repo.findById(id)
       if (!edital) {

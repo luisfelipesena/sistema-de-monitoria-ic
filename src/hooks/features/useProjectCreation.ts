@@ -138,6 +138,14 @@ export function useProjectCreation() {
     },
   })
 
+  // Edital PROGRAD number lookup
+  const watchedAno = form.watch('ano')
+  const watchedSemestre = form.watch('semestre')
+  const { data: numeroEditalPrograd } = api.edital.getNumeroEditalPrograd.useQuery(
+    { ano: watchedAno, semestre: watchedSemestre },
+    { enabled: !!watchedAno && !!watchedSemestre }
+  )
+
   // Effects - Template form population
   useEffect(() => {
     if (currentTemplate && isEditingTemplate) {
@@ -252,6 +260,7 @@ export function useProjectCreation() {
             : undefined,
           ano: new Date().getFullYear(),
           semestre: SEMESTRE_1,
+          numeroEdital: numeroEditalPrograd ?? undefined,
           tipoProposicao: TIPO_PROPOSICAO_INDIVIDUAL,
           bolsasSolicitadas: 1,
           voluntariosSolicitados: 2,
@@ -291,6 +300,7 @@ export function useProjectCreation() {
           : undefined,
         ano: projectValues.ano,
         semestre: projectValues.semestre,
+        numeroEdital: numeroEditalPrograd ?? undefined,
         tipoProposicao: projectValues.tipoProposicao,
         professoresParticipantes: projectValues.professoresParticipantes,
         numeroMonitroresSolicitados: projectValues.professoresParticipantes ? 2 : undefined,
@@ -310,7 +320,7 @@ export function useProjectCreation() {
         },
       }
     },
-    [departamentos, disciplinas, selectedDisciplinaId, currentUser?.professor, atividades]
+    [departamentos, disciplinas, selectedDisciplinaId, currentUser?.professor, atividades, numeroEditalPrograd]
   )
 
   // Handlers

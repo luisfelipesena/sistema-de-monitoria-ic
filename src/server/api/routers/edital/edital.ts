@@ -199,6 +199,14 @@ export const editalRouter = createTRPCRouter({
       }
     }),
 
+  getNumeroEditalPrograd: protectedProcedure
+    .input(z.object({ ano: z.number(), semestre: semestreSchema }))
+    .output(z.string().nullable())
+    .query(async ({ ctx, input }) => {
+      const service = createEditalService(ctx.db)
+      return await service.getNumeroEditalPrograd(input.ano, input.semestre)
+    }),
+
   getEditais: protectedProcedure
     .meta({
       openapi: {

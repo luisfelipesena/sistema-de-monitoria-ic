@@ -38,6 +38,7 @@ export function createEditalService(db: Database) {
     getEditaisBySemestre: queryService.getEditaisBySemestre,
     getCurrentEditalForSemestre: queryService.getCurrentEditalForSemestre,
     getEditaisParaAssinar: queryService.getEditaisParaAssinar,
+    getNumeroEditalPrograd: queryService.getNumeroEditalPrograd,
     getAvailableExamDates: queryService.getAvailableExamDates,
 
     // CRUD operations

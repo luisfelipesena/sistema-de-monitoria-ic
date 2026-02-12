@@ -362,6 +362,7 @@ export default function EditProjetoPage() {
           : undefined,
         ano: projectValues.ano,
         semestre: projectValues.semestre,
+        numeroEdital: projeto.editalNumero ?? undefined,
         tipoProposicao: projectValues.tipoProposicao,
         professoresParticipantes: projectValues.professoresParticipantes,
         numeroMonitroresSolicitados: projectValues.bolsasSolicitadas + projectValues.voluntariosSolicitados,
