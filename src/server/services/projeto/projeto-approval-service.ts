@@ -169,7 +169,7 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
         publicoAlvo: projeto.publicoAlvo,
         estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || undefined,
         disciplinas,
-        professoresParticipantes: '',
+        professoresParticipantes: projeto.professoresParticipantes || '',
         atividades: atividades.map((a) => a.descricao),
         assinaturaProfessor: signatureImage,
         dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
