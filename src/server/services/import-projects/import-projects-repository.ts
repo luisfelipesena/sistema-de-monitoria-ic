@@ -338,6 +338,20 @@ export function createImportProjectsRepository(db: Database) {
         .set({ numeroEditalPrograd, updatedAt: new Date() })
         .where(eq(periodoInscricaoTable.id, periodoId))
     },
+
+    async createPeriodo(data: { ano: number; semestre: Semestre; numeroEditalPrograd?: string }) {
+      const [periodo] = await db
+        .insert(periodoInscricaoTable)
+        .values({
+          ano: data.ano,
+          semestre: data.semestre,
+          dataInicio: new Date(),
+          dataFim: new Date(),
+          numeroEditalPrograd: data.numeroEditalPrograd,
+        })
+        .returning()
+      return periodo
+    },
   }
 }
 

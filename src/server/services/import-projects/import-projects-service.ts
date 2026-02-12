@@ -201,6 +201,16 @@ export function createImportProjectsService(db: Database) {
             { periodoId: periodo.id, numeroEditalPrograd: input.numeroEditalPrograd },
             'Número do edital PROGRAD atualizado no período'
           )
+        } else {
+          const newPeriodo = await repo.createPeriodo({
+            ano: input.ano,
+            semestre: input.semestre,
+            numeroEditalPrograd: input.numeroEditalPrograd,
+          })
+          log.info(
+            { periodoId: newPeriodo.id, numeroEditalPrograd: input.numeroEditalPrograd },
+            'Período criado com número do edital PROGRAD'
+          )
         }
       }
 
