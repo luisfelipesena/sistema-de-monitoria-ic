@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
 import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
 import {
+  ADMIN,
   DashboardProjectItem,
   MonitoriaFormData,
   PROFESSOR,
@@ -61,11 +62,19 @@ function DocumentSigningContent() {
   })
 
   // Filter projects that need professor signing
+  // Exclude projects covered by an approved collective project for the same discipline/period
   const pendingSignatureProjetos = useMemo(() => {
     if (!projetos || !user) return []
 
     return projetos.filter((projeto) => {
-      return projeto.status === PROJETO_STATUS_DRAFT || projeto.status === PROJETO_STATUS_PENDING_SIGNATURE
+      if (projeto.status !== PROJETO_STATUS_DRAFT && projeto.status !== PROJETO_STATUS_PENDING_SIGNATURE) {
+        return false
+      }
+      // Hide individual projects that are redundant because a collective project was approved
+      if ('coveredByCollective' in projeto && projeto.coveredByCollective) {
+        return false
+      }
+      return true
     })
   }, [projetos, user])
 
@@ -246,7 +255,7 @@ function DocumentSigningContent() {
     },
   ]
 
-  if (user?.role !== PROFESSOR) {
+  if (user?.role !== PROFESSOR && user?.role !== ADMIN) {
     return (
       <PagesLayout title="Acesso Negado">
         <div className="text-center py-12">

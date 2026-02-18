@@ -498,6 +498,23 @@ export default function EditProjetoPage() {
 
       const atividadesFiltradas = atividades.filter((atividade) => atividade.trim() !== "")
 
+      // Auto-save template with current project values
+      if (disciplinaId) {
+        try {
+          await upsertTemplate.mutateAsync({
+            disciplinaId,
+            tituloDefault: data.titulo,
+            descricaoDefault: data.descricao,
+            cargaHorariaSemanaDefault: data.cargaHorariaSemana,
+            numeroSemanasDefault: data.numeroSemanas,
+            publicoAlvoDefault: data.publicoAlvo,
+            atividadesDefault: atividadesFiltradas,
+          })
+        } catch (err) {
+          console.warn("Failed to auto-save template:", err)
+        }
+      }
+
       const projetoData = {
         id: projectId,
         ...data,

@@ -15,7 +15,7 @@ import {
   userTable,
 } from '@/server/db/schema'
 import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
-import { ADMIN, PROJETO_STATUS_APPROVED } from '@/types'
+import { ADMIN, PROJETO_STATUS_APPROVED, TIPO_PROPOSICAO_COLETIVA } from '@/types'
 import type { InferInsertModel, SQL } from 'drizzle-orm'
 import { and, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from 'drizzle-orm'
 
@@ -652,6 +652,61 @@ export function createProjetoRepository(db: Database) {
       return db.query.alunoTable.findFirst({
         where: eq(alunoTable.userId, userId),
       })
+    },
+
+    /**
+     * Find project IDs that are INDIVIDUAL and covered by an APPROVED COLETIVA project
+     * for the same discipline, ano, and semestre.
+     */
+    async findProjectIdsCoveredByCollective(projectIds: number[]): Promise<Set<number>> {
+      if (projectIds.length === 0) return new Set()
+
+      // Get discipline+period info for all given projects
+      const projectDisciplinas = await db
+        .select({
+          projetoId: projetoDisciplinaTable.projetoId,
+          disciplinaId: projetoDisciplinaTable.disciplinaId,
+          ano: projetoTable.ano,
+          semestre: projetoTable.semestre,
+          tipoProposicao: projetoTable.tipoProposicao,
+        })
+        .from(projetoDisciplinaTable)
+        .innerJoin(projetoTable, eq(projetoDisciplinaTable.projetoId, projetoTable.id))
+        .where(inArray(projetoDisciplinaTable.projetoId, projectIds))
+
+      // Find all APPROVED COLETIVA projects
+      const approvedCollectives = await db
+        .select({
+          projetoId: projetoTable.id,
+          disciplinaId: projetoDisciplinaTable.disciplinaId,
+          ano: projetoTable.ano,
+          semestre: projetoTable.semestre,
+        })
+        .from(projetoTable)
+        .innerJoin(projetoDisciplinaTable, eq(projetoTable.id, projetoDisciplinaTable.projetoId))
+        .where(
+          and(
+            eq(projetoTable.status, PROJETO_STATUS_APPROVED),
+            eq(projetoTable.tipoProposicao, TIPO_PROPOSICAO_COLETIVA),
+            isNull(projetoTable.deletedAt)
+          )
+        )
+
+      // Build a set of "disciplinaId_ano_semestre" keys for approved collectives
+      const collectiveKeys = new Set(approvedCollectives.map((c) => `${c.disciplinaId}_${c.ano}_${c.semestre}`))
+
+      // Find INDIVIDUAL projects whose discipline+period is covered
+      const coveredIds = new Set<number>()
+      for (const pd of projectDisciplinas) {
+        if (pd.tipoProposicao !== TIPO_PROPOSICAO_COLETIVA) {
+          const key = `${pd.disciplinaId}_${pd.ano}_${pd.semestre}`
+          if (collectiveKeys.has(key)) {
+            coveredIds.add(pd.projetoId)
+          }
+        }
+      }
+
+      return coveredIds
     },
   }
 }

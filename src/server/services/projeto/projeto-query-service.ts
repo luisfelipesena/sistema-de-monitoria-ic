@@ -72,8 +72,17 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
         })
       )
 
+      // Check which projects are covered by approved collective projects
+      const allIds = projetosComDisciplinas.map((p) => p.id)
+      const coveredByCollective = await repo.findProjectIdsCoveredByCollective(allIds)
+
+      const result = projetosComDisciplinas.map((p) => ({
+        ...p,
+        coveredByCollective: coveredByCollective.has(p.id),
+      }))
+
       log.info('Projetos recuperados com sucesso')
-      return projetosComDisciplinas
+      return result
     },
 
     async getProjeto(id: number, userId: number, userRole: UserRole) {

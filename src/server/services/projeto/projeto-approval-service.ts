@@ -213,7 +213,17 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
         log.error({ error, projetoId }, 'Erro ao enviar notificações, mas assinatura foi salva')
       }
 
-      log.info({ projetoId }, 'Assinatura do professor adicionada')
+      log.info(
+        {
+          projetoId,
+          projetoTitulo: projeto.titulo,
+          professorResponsavelId: projeto.professorResponsavelId,
+          userId,
+          userRole,
+          timestamp: new Date().toISOString(),
+        },
+        'Assinatura do professor adicionada - projeto UNICO assinado'
+      )
     },
   }
 }

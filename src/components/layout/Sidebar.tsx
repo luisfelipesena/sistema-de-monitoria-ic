@@ -108,6 +108,12 @@ const menuConfig: MenuConfig[] = [
         icon: FileText,
         roles: ["admin"],
       },
+      {
+        label: "Assinar Documentos",
+        href: "/home/professor/assinatura-documentos",
+        icon: FileSignature,
+        roles: ["admin"],
+      },
     ],
   },
 

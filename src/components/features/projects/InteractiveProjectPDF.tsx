@@ -3,6 +3,16 @@
 import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { ToastAction } from "@/components/ui/toast"
@@ -33,6 +43,8 @@ interface InteractiveProjectPDFProps {
 export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete }: InteractiveProjectPDFProps) {
   const { toast } = useToast()
   const [showSignatureDialog, setShowSignatureDialog] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [pendingSignAction, setPendingSignAction] = useState<"default" | "custom" | null>(null)
   const [signedData, setSignedData] = useState<MonitoriaFormData>(formData)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingSignatures, setIsLoadingSignatures] = useState(true)
@@ -69,12 +81,28 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
   }, [formData])
 
   const handleOpenSignature = () => {
-    if (hasDefaultSignature && !useCustomSignature) {
-      // Se tem assinatura padrão, abre o dialog para dar opção ao usuário
+    setPendingSignAction("default")
+    setShowConfirmDialog(true)
+  }
+
+  const handleOpenCustomSignature = () => {
+    setPendingSignAction("custom")
+    setShowConfirmDialog(true)
+  }
+
+  const handleConfirmSign = () => {
+    setShowConfirmDialog(false)
+    if (pendingSignAction === "custom") {
+      setUseCustomSignature(true)
       setShowSignatureDialog(true)
-      return
+    } else {
+      if (hasDefaultSignature && !useCustomSignature) {
+        setShowSignatureDialog(true)
+      } else {
+        setShowSignatureDialog(true)
+      }
     }
-    setShowSignatureDialog(true)
+    setPendingSignAction(null)
   }
 
   const showFeedbackToast = () => {
@@ -263,10 +291,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        setUseCustomSignature(true)
-                        setShowSignatureDialog(true)
-                      }}
+                      onClick={handleOpenCustomSignature}
                       disabled={isSubmitting}
                     >
                       Desenhar Nova Assinatura
@@ -296,6 +321,23 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Assinatura</AlertDialogTitle>
+            <AlertDialogDescription>
+              Voce esta prestes a assinar o projeto:{" "}
+              <span className="font-semibold text-foreground">{formData.titulo}</span>
+              . Esta acao nao pode ser desfeita. Deseja continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSign}>Confirmar Assinatura</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={showSignatureDialog} onOpenChange={(open) => {
         setShowSignatureDialog(open)

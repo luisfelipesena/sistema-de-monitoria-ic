@@ -372,16 +372,26 @@ export function useProjectCreation() {
   }
 
   const onSubmitProject = async (data: ProjetoFormData) => {
-    if (!currentTemplate) {
-      toast({
-        title: 'Template obrigatório',
-        description: 'Você precisa criar um template padrão antes de criar projetos para esta disciplina.',
-        variant: 'destructive',
-      })
-      return
-    }
+    if (!selectedDisciplinaId) return
 
     const atividadesFiltradas = atividades.filter((atividade) => atividade.trim() !== '')
+
+    // Auto-save template with current project values before creating
+    if (!currentTemplate) {
+      try {
+        await upsertTemplate.mutateAsync({
+          disciplinaId: selectedDisciplinaId,
+          tituloDefault: data.titulo,
+          descricaoDefault: data.descricao,
+          cargaHorariaSemanaDefault: data.cargaHorariaSemana,
+          numeroSemanasDefault: data.numeroSemanas,
+          publicoAlvoDefault: data.publicoAlvo,
+          atividadesDefault: atividadesFiltradas,
+        })
+      } catch (err) {
+        console.warn('Failed to auto-save template:', err)
+      }
+    }
 
     const projetoData = {
       ...data,

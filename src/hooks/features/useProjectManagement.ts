@@ -238,7 +238,7 @@ export function useProjectManagement() {
   }
 
   const handleGoToDocumentSigning = () => {
-    router.push('/home/admin/assinatura-documentos')
+    router.push('/home/professor/assinatura-documentos')
   }
 
   return {
