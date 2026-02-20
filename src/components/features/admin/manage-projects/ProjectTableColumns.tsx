@@ -13,25 +13,17 @@ import {
   PROJETO_STATUS_SUBMITTED,
 } from "@/types"
 import type { ColumnDef, FilterFn } from "@tanstack/react-table"
-import { Download, Eye, FileText, Hand, List, Trash2, Users } from "lucide-react"
+import { Download, Eye, FileText, List, Trash2 } from "lucide-react"
 
-// Custom filter function for disciplina (matches any disciplina code in the array)
+// Custom filter: matches disciplina code, nome, or professor name
 const disciplinaFilterFn: FilterFn<ManageProjectItem> = (row, columnId, filterValue) => {
   if (!filterValue || filterValue === "") return true
+  const searchValue = String(filterValue).toLowerCase()
   const disciplinas = row.original.disciplinas
-  if (!disciplinas || disciplinas.length === 0) return false
-  const searchValue = String(filterValue).toLowerCase()
-  return disciplinas.some(
-    (d) => d.codigo.toLowerCase().includes(searchValue) || d.nome.toLowerCase().includes(searchValue)
-  )
-}
-
-// Custom filter function for professor (matches professor name)
-const professorFilterFn: FilterFn<ManageProjectItem> = (row, _columnId, filterValue) => {
-  if (!filterValue || filterValue === "") return true
-  const professorNome = row.original.professorResponsavelNome || ""
-  const searchValue = String(filterValue).toLowerCase()
-  return professorNome.toLowerCase().includes(searchValue)
+  const professorNome = (row.original.professorResponsavelNome || "").toLowerCase()
+  const matchDisciplina =
+    disciplinas?.some((d) => d.codigo.toLowerCase().includes(searchValue) || d.nome.toLowerCase().includes(searchValue)) ?? false
+  return matchDisciplina || professorNome.includes(searchValue)
 }
 
 interface ColumnActions {
@@ -42,7 +34,6 @@ interface ColumnActions {
   loadingPdfProjetoId: number | null
   isDeletingProject: boolean
   disciplinaFilterOptions?: { value: string; label: string }[]
-  professorFilterOptions?: { value: string; label: string }[]
 }
 
 // Filter options
@@ -60,12 +51,17 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
       header: createFilterableHeader<ManageProjectItem>({
         title: "Projeto",
         filterType: "text",
-        filterPlaceholder: "Buscar código ou nome...",
+        filterPlaceholder: "Buscar código, nome ou professor...",
         wide: true,
         autocompleteOptions: actions.disciplinaFilterOptions,
       }),
       accessorKey: "disciplina",
       filterFn: disciplinaFilterFn,
+      sortingFn: (rowA, rowB) => {
+        const codeA = rowA.original.disciplinas[0]?.codigo ?? ""
+        const codeB = rowB.original.disciplinas[0]?.codigo ?? ""
+        return codeA.localeCompare(codeB)
+      },
       cell: ({ row }) => {
         const disciplinas = row.original.disciplinas
         const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
@@ -82,21 +78,6 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
           </div>
         )
       },
-    },
-    {
-      id: "professorNome",
-      header: createFilterableHeader<ManageProjectItem>({
-        title: "Professor",
-        filterType: "text",
-        filterPlaceholder: "Buscar professor...",
-        wide: true,
-        autocompleteOptions: actions.professorFilterOptions,
-      }),
-      accessorKey: "professorResponsavelNome",
-      filterFn: professorFilterFn,
-      cell: ({ row }) => (
-        <div className="text-sm text-gray-700">{row.original.professorResponsavelNome}</div>
-      ),
     },
     {
       header: createFilterableHeader<ManageProjectItem>({
@@ -130,34 +111,26 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
       cell: ({ row }) => <div className="text-center">{row.original.semestre === "SEMESTRE_1" ? "1º" : "2º"}</div>,
     },
     {
-      header: () => (
-        <div className="flex items-center justify-center gap-2">
-          <Users className="h-5 w-5 text-gray-400" />
-          Bolsas
-        </div>
-      ),
+      header: () => <div className="text-center">Vagas</div>,
       accessorKey: "bolsasDisponibilizadas",
-      cell: ({ row }) => <div className="text-center">{row.original.bolsasDisponibilizadas || 0}</div>,
+      size: 90,
+      cell: ({ row }) => {
+        const bolsas = row.original.bolsasDisponibilizadas || 0
+        const vol = row.original.voluntariosSolicitados || 0
+        return (
+          <div className="text-center text-xs tabular-nums">
+            <span title="Bolsistas">{bolsas}B</span>
+            <span className="text-muted-foreground mx-0.5">/</span>
+            <span title="Voluntários">{vol}V</span>
+          </div>
+        )
+      },
     },
     {
-      header: () => (
-        <div className="flex items-center justify-center gap-2">
-          <Hand className="h-5 w-5 text-gray-400" />
-          Voluntários
-        </div>
-      ),
-      accessorKey: "voluntariosSolicitados",
-      cell: ({ row }) => <div className="text-center">{row.original.voluntariosSolicitados || 0}</div>,
-    },
-    {
-      header: () => (
-        <div className="flex items-center justify-center gap-2">
-          <Users className="h-5 w-5 text-gray-400" />
-          Inscritos
-        </div>
-      ),
+      header: () => <div className="text-center">Inscritos</div>,
       accessorKey: "totalInscritos",
-      cell: ({ row }) => <div className="text-center text-base">{row.original.totalInscritos}</div>,
+      size: 70,
+      cell: ({ row }) => <div className="text-center text-base tabular-nums">{row.original.totalInscritos}</div>,
     },
     {
       header: () => (

@@ -200,43 +200,37 @@ export const createProjectColumns = (options: ProjectColumnsOptions): ColumnDef<
     },
     {
       id: "vagas",
-      header: "Vagas",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <div className="text-sm">
-            <Badge variant="outline" className="mr-1">
-              {row.original.bolsasSolicitadas} 🏆
-            </Badge>
-            <Badge variant="outline">{row.original.voluntariosSolicitados} 👥</Badge>
+      header: () => <div className="text-center">Vagas</div>,
+      size: 90,
+      cell: ({ row }) => {
+        const bolsas = row.original.bolsasSolicitadas || 0
+        const vol = row.original.voluntariosSolicitados || 0
+        return (
+          <div className="text-center text-xs tabular-nums">
+            <span title="Bolsistas">{bolsas}B</span>
+            <span className="text-muted-foreground mx-0.5">/</span>
+            <span title="Voluntários">{vol}V</span>
           </div>
-        </div>
-      ),
-    },
-    {
-      id: "inscricoes",
-      accessorKey: "inscricoes",
-      header: "Inscrições",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <Badge variant={row.original.inscricoes > 0 ? "default" : "outline"}>{row.original.inscricoes}</Badge>
-        </div>
-      ),
+        )
+      },
     },
     {
       id: "alocados",
-      header: "Alocados",
-      cell: ({ row }) => (
-        <div className="text-center">
-          <div className="text-sm">
-            <Badge variant="outline" className="mr-1">
-              {row.original.bolsasAlocadas}/{row.original.bolsasSolicitadas}
-            </Badge>
-            <Badge variant="outline">
-              {row.original.voluntariosAlocados}/{row.original.voluntariosSolicitados}
-            </Badge>
+      header: () => <div className="text-center">Alocados</div>,
+      size: 110,
+      cell: ({ row }) => {
+        const { bolsasAlocadas, bolsasSolicitadas, voluntariosAlocados, voluntariosSolicitados, inscricoes } = row.original
+        return (
+          <div className="text-center text-xs tabular-nums">
+            <span title="Bolsistas alocados/solicitados">{bolsasAlocadas}/{bolsasSolicitadas}B</span>
+            <span className="text-muted-foreground mx-0.5">/</span>
+            <span title="Voluntários alocados/solicitados">{voluntariosAlocados}/{voluntariosSolicitados}V</span>
+            {inscricoes > 0 && (
+              <span className="text-muted-foreground ml-1" title="Inscrições">({inscricoes})</span>
+            )}
           </div>
-        </div>
-      ),
+        )
+      },
     },
     {
       id: "status",

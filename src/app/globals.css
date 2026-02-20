@@ -280,3 +280,22 @@ p {
 .body-small {
   @apply text-xs leading-5;
 }
+
+/* Scrollbar always visible on table containers */
+.scrollbar-visible {
+  overflow-x: auto;
+}
+.scrollbar-visible::-webkit-scrollbar {
+  height: 8px;
+}
+.scrollbar-visible::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+.scrollbar-visible::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+.scrollbar-visible::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}

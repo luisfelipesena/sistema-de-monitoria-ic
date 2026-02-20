@@ -96,6 +96,7 @@ export function TableComponent<TData, TValue>({
       ? {
           manualPagination: true,
           manualFiltering: true,
+          manualSorting: true,
           pageCount: Math.ceil(serverPagination.totalCount / serverPagination.pageSize),
           state: {
             sorting,
@@ -187,18 +188,30 @@ export function TableComponent<TData, TValue>({
         <div className="overflow-x-auto scrollbar-visible">
           <Table>
             <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="bg-muted/50 hover:bg-muted/50">
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="h-12 px-2 sm:px-4 text-left align-middle font-medium text-slate-500 text-xs sm:text-sm whitespace-nowrap"
-                    >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
+              {table.getHeaderGroups().map((headerGroup) => {
+                const lastCol = headerGroup.headers[headerGroup.headers.length - 1]
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const lastColDef = lastCol?.column.columnDef as any
+                const hasActionsColumn = lastColDef?.accessorKey === "acoes" || lastColDef?.id === "actions"
+                return (
+                  <TableRow key={headerGroup.id} className="bg-muted/50 hover:bg-muted/50">
+                    {headerGroup.headers.map((header, idx) => {
+                      const isSticky = hasActionsColumn && idx === headerGroup.headers.length - 1
+                      return (
+                        <TableHead
+                          key={header.id}
+                          style={header.column.getSize() !== 150 ? { width: header.column.getSize() } : undefined}
+                          className={`h-12 px-2 sm:px-4 text-left align-middle font-medium text-slate-500 text-xs sm:text-sm whitespace-nowrap ${
+                            isSticky ? "sticky right-0 z-10 bg-muted/95 shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]" : ""
+                          }`}
+                        >
+                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      )
+                    })}
+                  </TableRow>
+                )
+              })}
             </TableHeader>
             <TableBody>
               {isLoading ? (
@@ -211,21 +224,36 @@ export function TableComponent<TData, TValue>({
                   </TableCell>
                 </TableRow>
               ) : table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className="hover:bg-muted/10 border-b"
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
-                        <div className="max-w-[150px] sm:max-w-none truncate">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </div>
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                table.getRowModel().rows.map((row) => {
+                  const cells = row.getVisibleCells()
+                  const lastCell = cells[cells.length - 1]
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const lastCellDef = lastCell?.column.columnDef as any
+                  const hasActions = lastCellDef?.accessorKey === "acoes" || lastCellDef?.id === "actions"
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      className="hover:bg-muted/10 border-b"
+                    >
+                      {cells.map((cell, idx) => {
+                        const isSticky = hasActions && idx === cells.length - 1
+                        return (
+                          <TableCell
+                            key={cell.id}
+                            className={`px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm ${
+                              isSticky ? "sticky right-0 z-10 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]" : ""
+                            }`}
+                          >
+                            <div className="max-w-[150px] truncate sm:max-w-none sm:overflow-visible sm:whitespace-normal sm:text-ellipsis">
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </div>
+                          </TableCell>
+                        )
+                      })}
+                    </TableRow>
+                  )
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">

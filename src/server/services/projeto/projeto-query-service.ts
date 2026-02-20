@@ -261,6 +261,15 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
         })
       )
 
+      // Sort by ano desc, semestre desc, discipline code asc
+      projetosEnriquecidos.sort((a, b) => {
+        if (a.ano !== b.ano) return b.ano - a.ano
+        if (a.semestre !== b.semestre) return b.semestre.localeCompare(a.semestre)
+        const codeA = a.disciplinas[0]?.codigo ?? ''
+        const codeB = b.disciplinas[0]?.codigo ?? ''
+        return codeA.localeCompare(codeB)
+      })
+
       log.info({ total, count: projetos.length }, 'Projetos filtrados recuperados com sucesso')
       return { projetos: projetosEnriquecidos, total }
     },

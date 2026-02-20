@@ -17,7 +17,7 @@ import {
 import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
 import { ADMIN, PROJETO_STATUS_APPROVED, TIPO_PROPOSICAO_COLETIVA } from '@/types'
 import type { InferInsertModel, SQL } from 'drizzle-orm'
-import { and, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from 'drizzle-orm'
 
 export type ProjetoInsert = InferInsertModel<typeof projetoTable>
 export type AtividadeProjetoInsert = InferInsertModel<typeof atividadeProjetoTable>
@@ -174,6 +174,22 @@ export function createProjetoRepository(db: Database) {
         conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
       }
 
+      // Filter by disciplina code/name OR professor name (SQL-level, before pagination)
+      if (filters.disciplina) {
+        const search = `%${filters.disciplina}%`
+        conditions.push(
+          or(
+            ilike(professorTable.nomeCompleto, search),
+            sql`EXISTS (
+              SELECT 1 FROM ${projetoDisciplinaTable}
+              INNER JOIN ${disciplinaTable} ON ${disciplinaTable.id} = ${projetoDisciplinaTable.disciplinaId}
+              WHERE ${projetoDisciplinaTable.projetoId} = ${projetoTable.id}
+              AND (${ilike(disciplinaTable.codigo, search)} OR ${ilike(disciplinaTable.nome, search)})
+            )`
+          ) as SQL
+        )
+      }
+
       // Build base query
       let query = db
         .select({
@@ -209,7 +225,7 @@ export function createProjetoRepository(db: Database) {
         .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
         .where(and(...conditions))
-        .orderBy(desc(projetoTable.createdAt))
+        .orderBy(desc(projetoTable.ano), desc(projetoTable.semestre), asc(projetoTable.titulo))
 
       // Apply pagination
       if (filters.limit) {
@@ -219,36 +235,7 @@ export function createProjetoRepository(db: Database) {
         query = query.offset(filters.offset) as typeof query
       }
 
-      const results = await query
-
-      // If disciplina filter is provided, we need to filter post-query
-      // because disciplinas are in a separate table
-      if (filters.disciplina) {
-        const projetoIds = results.map((p) => p.id)
-        if (projetoIds.length === 0) return []
-
-        // Get disciplinas for these projects that match the filter (case-insensitive)
-        const matchingDisciplinas = await db
-          .select({
-            projetoId: projetoDisciplinaTable.projetoId,
-          })
-          .from(projetoDisciplinaTable)
-          .innerJoin(disciplinaTable, eq(projetoDisciplinaTable.disciplinaId, disciplinaTable.id))
-          .where(
-            and(
-              inArray(projetoDisciplinaTable.projetoId, projetoIds),
-              or(
-                ilike(disciplinaTable.codigo, `%${filters.disciplina}%`),
-                ilike(disciplinaTable.nome, `%${filters.disciplina}%`)
-              )
-            )
-          )
-
-        const matchingProjetoIds = new Set(matchingDisciplinas.map((d) => d.projetoId))
-        return results.filter((p) => matchingProjetoIds.has(p.id))
-      }
-
-      return results
+      return query
     },
 
     /**
@@ -281,26 +268,20 @@ export function createProjetoRepository(db: Database) {
         conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
       }
 
-      // For disciplina filter, we need to count differently (case-insensitive)
+      // Same EXISTS pattern as findAllFiltered for consistency
       if (filters.disciplina) {
-        // First get all matching projeto IDs
-        const matchingProjetos = await db
-          .selectDistinct({ id: projetoTable.id })
-          .from(projetoTable)
-          .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-          .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-          .innerJoin(projetoDisciplinaTable, eq(projetoTable.id, projetoDisciplinaTable.projetoId))
-          .innerJoin(disciplinaTable, eq(projetoDisciplinaTable.disciplinaId, disciplinaTable.id))
-          .where(
-            and(
-              ...conditions,
-              or(
-                ilike(disciplinaTable.codigo, `%${filters.disciplina}%`),
-                ilike(disciplinaTable.nome, `%${filters.disciplina}%`)
-              )
-            )
-          )
-        return matchingProjetos.length
+        const search = `%${filters.disciplina}%`
+        conditions.push(
+          or(
+            ilike(professorTable.nomeCompleto, search),
+            sql`EXISTS (
+              SELECT 1 FROM ${projetoDisciplinaTable}
+              INNER JOIN ${disciplinaTable} ON ${disciplinaTable.id} = ${projetoDisciplinaTable.disciplinaId}
+              WHERE ${projetoDisciplinaTable.projetoId} = ${projetoTable.id}
+              AND (${ilike(disciplinaTable.codigo, search)} OR ${ilike(disciplinaTable.nome, search)})
+            )`
+          ) as SQL
+        )
       }
 
       const [result] = await db

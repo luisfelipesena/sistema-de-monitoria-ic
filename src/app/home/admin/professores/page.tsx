@@ -118,10 +118,6 @@ export default function ProfessoresPage() {
     { value: REGIME_DE, label: REGIME_LABELS[REGIME_DE] },
   ]
 
-  const tipoProfessorFilterOptions = [
-    { value: TIPO_PROFESSOR_EFETIVO, label: TIPO_PROFESSOR_LABELS[TIPO_PROFESSOR_EFETIVO] },
-    { value: TIPO_PROFESSOR_SUBSTITUTO, label: TIPO_PROFESSOR_LABELS[TIPO_PROFESSOR_SUBSTITUTO] },
-  ]
 
   const handleInviteProfessor = async () => {
     try {
@@ -282,46 +278,39 @@ export default function ProfessoresPage() {
           filterOptions: departamentoFilterOptions,
         }),
         filterFn: multiselectFilterFn,
+        size: 160,
         cell: ({ row }) => {
           const dept = departamentos.find((d) => d.id === row.original.professorProfile?.departamentoId)
-          return dept?.nome || "N/A"
+          return <div className="text-sm leading-tight">{dept?.nome || "N/A"}</div>
         },
       },
       {
         id: "regime",
         accessorKey: "professorProfile.regime",
         header: createFilterableHeader<UserListItem>({
-          title: "Regime",
+          title: "Regime/Tipo",
           filterType: "multiselect",
           filterOptions: regimeFilterOptions,
         }),
         filterFn: multiselectFilterFn,
-        cell: ({ row }) => (
-          <div>
-            {row.original.professorProfile?.regime ? (
-              <Badge variant="outline">{REGIME_LABELS[row.original.professorProfile.regime as Regime]}</Badge>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </div>
-        ),
-      },
-      {
-        id: "tipoProfessor",
-        accessorKey: "professorProfile.tipoProfessor",
-        header: createFilterableHeader<UserListItem>({
-          title: "Tipo",
-          filterType: "multiselect",
-          filterOptions: tipoProfessorFilterOptions,
-        }),
-        filterFn: multiselectFilterFn,
         cell: ({ row }) => {
+          const regime = row.original.professorProfile?.regime
           const tipoProfessor = row.original.professorProfile?.tipoProfessor
-          if (!tipoProfessor) return <span className="text-muted-foreground">-</span>
           return (
-            <Badge variant={tipoProfessor === TIPO_PROFESSOR_EFETIVO ? "default" : "secondary"}>
-              {TIPO_PROFESSOR_LABELS[tipoProfessor]}
-            </Badge>
+            <div className="space-y-1">
+              {regime ? (
+                <Badge variant="outline">{REGIME_LABELS[regime as Regime]}</Badge>
+              ) : (
+                <span className="text-muted-foreground text-xs">-</span>
+              )}
+              {tipoProfessor && (
+                <div>
+                  <Badge variant={tipoProfessor === TIPO_PROFESSOR_EFETIVO ? "default" : "secondary"} className="text-xs">
+                    {TIPO_PROFESSOR_LABELS[tipoProfessor]}
+                  </Badge>
+                </div>
+              )}
+            </div>
           )
         },
       },
@@ -340,15 +329,6 @@ export default function ProfessoresPage() {
           if (status === "PENDING") return renderStatusBadge(PROFESSOR_STATUS_PENDING)
           return renderStatusBadge(PROFESSOR_STATUS_ATIVO) // Default to ATIVO for null/undefined
         },
-      },
-      {
-        accessorKey: "createdAt",
-        header: "Cadastrado em",
-        cell: ({ row }) => (
-          <div className="text-sm text-muted-foreground">
-            {row.original.createdAt ? format(new Date(row.original.createdAt), "dd/MM/yyyy") : "N/A"}
-          </div>
-        ),
       },
       {
         id: "actions",

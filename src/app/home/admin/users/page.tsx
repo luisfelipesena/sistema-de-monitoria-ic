@@ -198,53 +198,26 @@ export default function UsersPage() {
         },
       },
       {
-        id: "departamentoId",
+        id: "detalhes",
         header: createFilterableHeader<UserListItem>({
-          title: "Departamento",
-          filterType: "multiselect",
-          filterOptions: departamentoFilterOptions,
-        }),
-        accessorKey: "professorProfile.departamentoId",
-        filterFn: multiselectFilterFn,
-        cell: ({ row }) => {
-          const user = row.original
-          if (user.role !== PROFESSOR || !user.professorProfile) {
-            return <span className="text-muted-foreground">-</span>
-          }
-          const dept = departamentos?.find((d) => d.id === user.professorProfile?.departamentoId)
-          return <span className="text-sm">{dept?.nome || "N/A"}</span>
-        },
-      },
-      {
-        id: "cursoNome",
-        header: createFilterableHeader<UserListItem>({
-          title: "Curso",
+          title: "Detalhes",
           filterType: "text",
-          filterPlaceholder: "Buscar curso...",
+          filterPlaceholder: "Buscar depto/curso...",
           wide: true,
         }),
-        accessorKey: "studentProfile.cursoNome",
-        cell: ({ row }) => {
-          const user = row.original
-          if (user.role !== STUDENT || !user.studentProfile) {
-            return <span className="text-muted-foreground">-</span>
-          }
-          return <span className="text-sm">{user.studentProfile.cursoNome || "N/A"}</span>
-        },
-      },
-      {
-        id: "infoAdicional",
-        header: "Info Adicional",
+        accessorKey: "professorProfile.departamentoId",
         cell: ({ row }) => {
           const user = row.original
 
           if (user.role === PROFESSOR && user.professorProfile) {
+            const dept = departamentos?.find((d) => d.id === user.professorProfile?.departamentoId)
             return (
               <div className="text-sm">
-                <div>Regime: {user.professorProfile.regime || "N/A"}</div>
-                {user.professorProfile.matriculaSiape && (
-                  <div className="text-xs text-muted-foreground">SIAPE: {user.professorProfile.matriculaSiape}</div>
-                )}
+                <div>{dept?.nome || "N/A"}</div>
+                <div className="text-xs text-muted-foreground">
+                  {user.professorProfile.regime || "-"}
+                  {user.professorProfile.matriculaSiape && ` / SIAPE: ${user.professorProfile.matriculaSiape}`}
+                </div>
               </div>
             )
           }
@@ -252,8 +225,10 @@ export default function UsersPage() {
           if (user.role === STUDENT && user.studentProfile) {
             return (
               <div className="text-sm">
-                <div>Matrícula: {user.studentProfile.matricula || "N/A"}</div>
-                <div className="text-xs text-muted-foreground">CR: {user.studentProfile.cr?.toFixed(2) || "N/A"}</div>
+                <div>{user.studentProfile.cursoNome || "N/A"}</div>
+                <div className="text-xs text-muted-foreground">
+                  Mat: {user.studentProfile.matricula || "-"} / CR: {user.studentProfile.cr?.toFixed(2) || "-"}
+                </div>
               </div>
             )
           }

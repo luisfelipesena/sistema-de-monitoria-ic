@@ -7,7 +7,7 @@ interface PagesLayoutProps {
 
 export function PagesLayout({ title, subtitle, actions, children }: PagesLayoutProps) {
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+    <div className="w-full max-w-full py-4 sm:py-6 space-y-4 sm:space-y-6">
       <div className="flex flex-col space-y-4 sm:flex-row sm:justify-between sm:items-start sm:space-y-0">
         <div className="flex-1 min-w-0">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100 truncate">

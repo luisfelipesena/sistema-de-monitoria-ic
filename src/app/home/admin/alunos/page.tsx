@@ -212,27 +212,26 @@ export default function AlunosPage() {
       },
       {
         accessorKey: "bolsasAtivas",
-        header: "Bolsas",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant={row.original.bolsasAtivas > 0 ? "default" : "outline"}>{row.original.bolsasAtivas}</Badge>
-          </div>
-        ),
-      },
-      {
-        accessorKey: "voluntariadosAtivos",
-        header: "Voluntariados",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant={row.original.voluntariadosAtivos > 0 ? "secondary" : "outline"}>
-              {row.original.voluntariadosAtivos}
-            </Badge>
-          </div>
-        ),
+        header: () => <div className="text-center">Monitoria</div>,
+        size: 90,
+        cell: ({ row }) => {
+          const { bolsasAtivas, voluntariadosAtivos } = row.original
+          if (!bolsasAtivas && !voluntariadosAtivos) {
+            return <div className="text-center text-muted-foreground">-</div>
+          }
+          return (
+            <div className="text-center text-xs tabular-nums">
+              <span title="Bolsas">{bolsasAtivas}B</span>
+              <span className="text-muted-foreground mx-0.5">/</span>
+              <span title="Voluntariados">{voluntariadosAtivos}V</span>
+            </div>
+          )
+        },
       },
       {
         id: "documentos",
-        header: "Documentos",
+        header: () => <div className="text-center">Docs</div>,
+        size: 70,
         cell: ({ row }) => {
           const { documentosValidados, totalDocumentos } = row.original
           const percentage = totalDocumentos > 0 ? (documentosValidados / totalDocumentos) * 100 : 0

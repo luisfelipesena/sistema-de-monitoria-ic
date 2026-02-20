@@ -33,7 +33,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
 import { useState } from "react"
 
-import { Download, Edit, Eye, FileSignature, Hand, List, Loader, Plus, Trash2, Users } from "lucide-react"
+import { Download, Edit, Eye, FileSignature, List, Loader, Plus, Trash2, Users } from "lucide-react"
 
 // Filter options for status
 const statusFilterOptions = [
@@ -137,6 +137,11 @@ export default function DashboardProfessor() {
         </div>
       ),
       accessorKey: "titulo",
+      sortingFn: (rowA, rowB) => {
+        const codeA = rowA.original.disciplinas[0]?.codigo ?? ""
+        const codeB = rowB.original.disciplinas[0]?.codigo ?? ""
+        return codeA.localeCompare(codeB)
+      },
       cell: ({ row }) => {
         const disciplinas = row.original.disciplinas
         const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
@@ -202,50 +207,33 @@ export default function DashboardProfessor() {
       cell: ({ row }) => <div className="text-center">{row.original.semestre === "SEMESTRE_1" ? "1º" : "2º"}</div>,
     },
     {
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-gray-400" />
-          Bolsas
-        </div>
-      ),
+      header: () => <div className="text-center">Vagas</div>,
       accessorKey: "bolsasDisponibilizadas",
-      cell: ({ row }) => {
-        const bolsas = row.original.bolsasDisponibilizadas ?? 0
-        const status = row.original.status
-        if (status === PROJETO_STATUS_APPROVED) {
-          return <span>{bolsas}</span>
-        }
-        return <span>-</span>
-      },
-    },
-    {
-      header: () => (
-        <div className="flex items-center justify-center gap-2">
-          <Hand className="h-5 w-5 text-gray-400" />
-          Voluntários
-        </div>
-      ),
-      accessorKey: "voluntariosSolicitados",
+      size: 90,
       cell: ({ row }) => {
         const status = row.original.status
         if (status === PROJETO_STATUS_APPROVED) {
-          return <div className="text-center">{row.original.voluntariosSolicitados ?? 0}</div>
+          const bolsas = row.original.bolsasDisponibilizadas ?? 0
+          const vol = row.original.voluntariosSolicitados ?? 0
+          return (
+            <div className="text-center text-xs tabular-nums">
+              <span title="Bolsistas">{bolsas}B</span>
+              <span className="text-muted-foreground mx-0.5">/</span>
+              <span title="Voluntários">{vol}V</span>
+            </div>
+          )
         }
         return <div className="text-center">-</div>
       },
     },
     {
-      header: () => (
-        <div className="flex items-center justify-center gap-2">
-          <Users className="h-5 w-5 text-gray-400" />
-          Inscritos
-        </div>
-      ),
+      header: () => <div className="text-center">Inscritos</div>,
       accessorKey: "totalInscritos",
+      size: 70,
       cell: ({ row }) => {
         const status = row.original.status
         if (status === PROJETO_STATUS_APPROVED) {
-          return <div className="text-center text-base">{row.original.totalInscritos}</div>
+          return <div className="text-center text-base tabular-nums">{row.original.totalInscritos}</div>
         }
         return <div className="text-center">-</div>
       },
@@ -367,6 +355,7 @@ export default function DashboardProfessor() {
           data={projetos}
           columnFilters={columnFilters}
           onColumnFiltersChange={setColumnFilters}
+          defaultSorting={[{ id: "ano", desc: true }, { id: "semestre", desc: true }, { id: "titulo", desc: false }]}
         />
       ) : (
         <div className="text-center py-12 border rounded-md bg-muted/20">

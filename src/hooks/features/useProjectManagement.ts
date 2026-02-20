@@ -112,10 +112,8 @@ export function useProjectManagement() {
     { enabled: filesDialog.isOpen && !!filesDialog.data?.id }
   )
 
-  // Sort projetos by createdAt descending (already sorted by backend, but keeping for safety)
-  const sortedProjetos = useMemo(() => {
-    return [...projetos].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  }, [projetos])
+  // Server already sorts by ano desc, semestre desc, discipline code asc
+  const sortedProjetos = projetos
 
   // Status counts from current page data (for stats cards)
   // Note: These are counts from current filtered results, not total counts

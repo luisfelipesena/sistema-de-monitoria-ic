@@ -107,7 +107,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
 
       <SidebarInset>
         <Header />
-        <main className="flex-1 p-6 overflow-auto">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 overflow-auto min-w-0">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   )

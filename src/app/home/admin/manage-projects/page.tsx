@@ -52,29 +52,28 @@ export default function ManageProjectsPage() {
   const { data: disciplinas } = api.discipline.getDisciplines.useQuery()
 
   const disciplinaFilterOptions = useMemo(() => {
-    if (!disciplinas) return []
-    return disciplinas.map((d) => ({
-      value: d.codigo,
-      label: `${d.codigo} - ${d.nome}`,
-    }))
-  }, [disciplinas])
+    const options: { value: string; label: string }[] = []
 
-  // Generate professor filter options from unique professors in projects
-  const professorFilterOptions = useMemo(() => {
-    if (!projetos) return []
-    const uniqueProfessors = new Map<string, string>()
-    projetos.forEach((p) => {
-      if (p.professorResponsavelNome && !uniqueProfessors.has(p.professorResponsavelNome)) {
-        uniqueProfessors.set(p.professorResponsavelNome, p.professorResponsavelNome)
+    if (disciplinas) {
+      for (const d of disciplinas) {
+        options.push({ value: d.codigo, label: `${d.codigo} - ${d.nome}` })
       }
-    })
-    return Array.from(uniqueProfessors.entries())
-      .map(([nome]) => ({
-        value: nome,
-        label: nome,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label))
-  }, [projetos])
+    }
+
+    // Add unique professor names from current page data as suggestions
+    if (projetos) {
+      const seenNames = new Set<string>()
+      for (const p of projetos) {
+        const nome = p.professorResponsavelNome
+        if (nome && !seenNames.has(nome)) {
+          seenNames.add(nome)
+          options.push({ value: nome, label: `Prof. ${nome}` })
+        }
+      }
+    }
+
+    return options
+  }, [disciplinas, projetos])
 
   const columns = useMemo(
     () =>
@@ -87,7 +86,6 @@ export default function ManageProjectsPage() {
           loadingPdfProjetoId,
           isDeletingProject: isDeleting,
           disciplinaFilterOptions,
-          professorFilterOptions,
         },
         groupedView
       ),
@@ -100,7 +98,6 @@ export default function ManageProjectsPage() {
       isDeleting,
       groupedView,
       disciplinaFilterOptions,
-      professorFilterOptions,
     ]
   )
 
