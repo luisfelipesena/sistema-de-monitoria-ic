@@ -2,9 +2,12 @@
  * One-time migration: convert BMP signatures to PNG for user_id=61 (Luciano)
  * and projects 423/425. Also regenerates the PDFs in MinIO.
  *
- * Usage: npx dotenv -e .env -- tsx src/scripts/fix-bmp-signatures.ts
+ * Local:  npm run migrate:fix-bmp-signatures
+ *         (or: npx dotenv -e .env -- tsx src/scripts/fix-bmp-signatures.ts)
+ *
+ * Server (pós-deploy, via dokku enter):
+ *   ssh -t -p 9999 dokku@app.ic.ufba.br enter sistema-de-monitoria web sh -c "cd /app && npm run migrate:fix-bmp-signatures"
  */
-import sharp from 'sharp'
 import { db } from '@/server/db'
 import {
   atividadeProjetoTable,
@@ -16,6 +19,8 @@ import {
 } from '@/server/db/schema'
 import { PDFService } from '@/server/lib/pdf-service'
 import { and, eq } from 'drizzle-orm'
+import { Jimp } from 'jimp'
+import sharp from 'sharp'
 
 async function convertBmpToPng(dataUrl: string): Promise<string | null> {
   const match = dataUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/)
@@ -29,9 +34,22 @@ async function convertBmpToPng(dataUrl: string): Promise<string | null> {
 
   console.log(`  Converting from ${mimeType} to PNG...`)
   const inputBuffer = Buffer.from(match[2], 'base64')
-  const pngBuffer = await sharp(inputBuffer).png().toBuffer()
-  console.log(`  Converted: ${inputBuffer.length} bytes -> ${pngBuffer.length} bytes`)
-  return `data:image/png;base64,${pngBuffer.toString('base64')}`
+
+  try {
+    const pngBuffer = await sharp(inputBuffer).png().toBuffer()
+    console.log(`  Converted via Sharp: ${inputBuffer.length} bytes -> ${pngBuffer.length} bytes`)
+    return `data:image/png;base64,${pngBuffer.toString('base64')}`
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.includes('unsupported image format') || msg.includes('Input buffer')) {
+      console.log(`  Sharp failed (no BMP support), using Jimp fallback...`)
+      const image = await Jimp.read(inputBuffer)
+      const pngBuffer = await image.getBuffer('image/png')
+      console.log(`  Converted via Jimp: ${inputBuffer.length} bytes -> ${pngBuffer.length} bytes`)
+      return `data:image/png;base64,${pngBuffer.toString('base64')}`
+    }
+    throw err
+  }
 }
 
 async function regeneratePdf(projetoId: number) {

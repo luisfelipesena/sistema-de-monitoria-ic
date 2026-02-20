@@ -30,6 +30,7 @@
     "db:drop": "drizzle-kit drop",
     "db:seed": "dotenv -e .env -- tsx src/scripts/seed.ts",
     "db:reset": "npm run db:drop && npm run db:push && npm run db:seed",
+    "migrate:fix-bmp-signatures": "tsx src/scripts/fix-bmp-signatures.ts",
     "prepare": "husky"
   },
   "engines": {
@@ -91,6 +92,7 @@
     "exceljs": "^4.4.0",
     "fast-xml-parser": "^5.2.5",
     "input-otp": "^1.4.2",
+    "jimp": "^1.6.0",
     "jose": "^6.0.11",
     "jsonwebtoken": "^9.0.2",
     "lucia": "^3.2.2",
@@ -119,6 +121,7 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "trpc-to-openapi": "^2.3.1",
+    "tsx": "^4.19.2",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
     "vitest": "^3.2.3",
@@ -144,7 +147,6 @@
     "jsdom": "^26.1.0",
     "postcss": "^8.5.0",
     "tailwindcss": "^3.4.15",
-    "tsx": "^4.19.2",
     "typescript": "^5.7.3",
     "vite-tsconfig-paths": "^4.3.2"
   }
