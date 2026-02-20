@@ -1,4 +1,5 @@
 import { db } from '@/server/db'
+import { ensurePngDataUrl } from '@/server/lib/image-utils'
 import { createSignatureRepository } from './signature-repository'
 
 export const createSignatureService = (database: typeof db) => {
@@ -19,7 +20,8 @@ export const createSignatureService = (database: typeof db) => {
     },
 
     async saveDefaultSignature(userId: number, signatureData: string) {
-      await signatureRepository.saveDefaultSignature(userId, signatureData)
+      const normalizedData = await ensurePngDataUrl(signatureData)
+      await signatureRepository.saveDefaultSignature(userId, normalizedData)
       return { success: true }
     },
 

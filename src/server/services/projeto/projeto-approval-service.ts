@@ -1,6 +1,7 @@
 import { isAdmin, isProfessor } from '@/server/lib/auth-helpers'
 import { emailService } from '@/server/lib/email'
 import { BusinessError, ForbiddenError, NotFoundError } from '@/server/lib/errors'
+import { ensurePngDataUrl } from '@/server/lib/image-utils'
 import { PDFService } from '@/server/lib/pdf-service'
 import {
   PROJETO_STATUS_APPROVED,
@@ -139,8 +140,15 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
         }
       }
 
+      let normalizedSignature: string
+      try {
+        normalizedSignature = await ensurePngDataUrl(signatureImage)
+      } catch {
+        throw new BusinessError('Formato de imagem da assinatura não é suportado. Use PNG ou JPEG.', 'VALIDATION_ERROR')
+      }
+
       await repo.update(projetoId, {
-        assinaturaProfessor: signatureImage,
+        assinaturaProfessor: normalizedSignature,
         status: PROJETO_STATUS_SUBMITTED,
       })
 
@@ -171,14 +179,14 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
         disciplinas,
         professoresParticipantes: projeto.professoresParticipantes || '',
         atividades: atividades.map((a) => a.descricao),
-        assinaturaProfessor: signatureImage,
+        assinaturaProfessor: normalizedSignature,
         dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
         signingMode: 'professor' as const,
         projetoId: projeto.id,
       }
 
       try {
-        const objectName = await PDFService.generateAndSaveSignedProjetoPDF(pdfData, signatureImage)
+        const objectName = await PDFService.generateAndSaveSignedProjetoPDF(pdfData, normalizedSignature)
         log.info({ projetoId, objectName }, 'PDF com assinatura do professor salvo no MinIO')
 
         const savedPdf = await PDFService.getLatestProjetoPDF(projeto.id)
