@@ -21,6 +21,6 @@ esac
 
 echo "Deploying '$LOCAL_BRANCH' to $APP_NAME"
 
-git push -f dokku@app.ic.ufba.br:$APP_NAME "$LOCAL_BRANCH":master
+git push -f dokku@app.ic.ufba.br:$APP_NAME "$LOCAL_BRANCH":main
 
 echo "Deploy completed"
