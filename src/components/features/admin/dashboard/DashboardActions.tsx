@@ -35,6 +35,7 @@ export function DashboardActions({ abaAtiva }: DashboardActionsProps) {
           <span className="sm:hidden">Professores</span>
         </Button>
       )}
+
       {abaAtiva === "alunos" && (
         <Button
           variant="primary"
