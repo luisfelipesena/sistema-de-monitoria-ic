@@ -1,0 +1,220 @@
+STATUS DE IMPLEMENTACAO PERANTE O PLANEJAMENTO
+
+Documento de referencia para onboarding tecnico de novos devs.
+Baseado no plano em:
+@sistema-de-monitoria-ic/docs/planejamento_do_projeto.txt
+
+Objetivo:
+- Mostrar, por fase, o que ja existe no sistema.
+- Apontar exemplos concretos de onde olhar no codigo.
+- Dar um roteiro curto de como testar os fluxos principais.
+- Registrar pendencias reais para proximos ciclos.
+
+================================================================
+1) Visao geral
+================================================================
+
+O projeto esta com as 6 fases do plano implementadas em nivel funcional.
+O foco atual esta em robustez, cobertura de testes, retriable email flows e
+melhorias de operacao (bulk actions e refinamentos de UX/processo).
+
+================================================================
+2) Status por fase + onde ver no codigo
+================================================================
+
+FASE 1 - Planejamento e criacao de projetos
+Status: IMPLEMENTADA (fluxo principal funcional)
+
+Como funciona:
+- Admin importa planilha de planejamento.
+- Sistema identifica contexto de projeto, cria base para professor e dispara notificacao.
+- Professor cria/edita template, gera projeto do semestre, assina e submete.
+
+Onde ver no codigo (exemplos):
+- Importacao e geracao a partir de planejamento:
+  src/server/services/import-projects/import-projects-service.ts
+- Templates e criacao de projeto por professor:
+  src/server/services/projeto-templates/projeto-templates-service.ts
+  src/server/services/projeto/projeto-service.ts
+- Submissao e ciclo de aprovacao:
+  src/server/services/projeto/projeto-approval-service.ts
+  src/server/api/routers/projeto/projeto.ts
+- Tela do professor:
+  src/app/home/professor/projetos/[id]/edit/page.tsx
+
+
+FASE 2 - Aprovacao e envio para PROGRAD
+Status: IMPLEMENTADA (fluxo principal funcional)
+
+Como funciona:
+- Admin filtra e revisa projetos submetidos.
+- Admin aprova/rejeita ou pede revisao.
+- Sistema gera planilha de envio (com links para documentos) e envia por email.
+
+Onde ver no codigo (exemplos):
+- Aprovacao/rejeicao/revisao:
+  src/server/services/projeto/projeto-approval-service.ts
+  src/server/services/projeto/projeto-service.ts
+  src/server/api/routers/projeto/projeto.ts
+- Envio de planilha para PROGRAD/IC:
+  src/server/lib/email/admin-emails.tsx
+  src/server/lib/email/index.ts
+  src/server/services/analytics/analytics-service.ts
+- Tela de planilha PROGRAD:
+  src/app/home/admin/planilha-prograd/page.tsx
+
+
+FASE 3 - Alocacao de bolsas e edital interno
+Status: IMPLEMENTADA (fluxo principal funcional)
+
+Como funciona:
+- Admin define total de bolsas informado externamente e distribui por projeto.
+- Professor visualiza bolsas (somente leitura) e define voluntarios.
+- Admin cria edital, solicita assinatura do chefe por token, publica e notifica.
+
+Onde ver no codigo (exemplos):
+- Total de bolsas e alocacao:
+  src/server/services/scholarship-allocation/scholarship-allocation-service.ts
+  src/server/api/routers/scholarship-allocation/scholarship-allocation.ts
+- Edital (CRUD, assinatura por token, publicacao):
+  src/server/services/edital/edital-crud-service.ts
+  src/server/services/edital/edital-publication-service.ts
+  src/server/services/edital/edital-service.ts
+  src/server/api/routers/edital/edital.ts
+- Tela publica de assinatura do edital:
+  src/app/assinar-edital/page.tsx
+
+
+FASE 4 - Inscricoes e selecao de monitores
+Status: IMPLEMENTADA (fluxo principal funcional)
+
+Como funciona:
+- Aluno se inscreve para vaga (bolsista/voluntario).
+- Professor avalia candidatos e seleciona dentro dos limites.
+- Sistema publica resultado, notifica e coleta aceite/rejeicao do aluno.
+- Para bolsista, dados bancarios sao obrigatorios para consolidacao posterior.
+
+Onde ver no codigo (exemplos):
+- Inscricao e regras:
+  src/server/services/inscricao/inscricao-service.ts
+  src/server/services/inscricao/student-inscricao-service.ts
+  src/server/api/routers/inscricao/inscricao.ts
+- Selecao/publicacao:
+  src/server/services/selecao/selecao-service.ts
+  src/server/api/routers/selecao/selecao.ts
+- Telas:
+  src/app/home/student/inscricao-monitoria/page.tsx
+  src/app/home/professor/select-monitors/page.tsx
+  src/app/home/professor/publicar-resultados/page.tsx
+
+
+FASE 5 - Consolidacao final e relatorio PROGRAD
+Status: IMPLEMENTADA (fluxo principal funcional)
+
+Como funciona:
+- Admin seleciona ano/semestre.
+- Sistema valida integridade dos dados dos monitores ativos.
+- Sistema gera planilhas separadas (bolsistas e voluntarios) e executa envio.
+
+Onde ver no codigo (exemplos):
+- Validacao/consolidacao:
+  src/server/api/routers/relatorios/relatorios-validation.ts
+  src/server/services/relatorios/relatorios-finais-export-service.ts
+- Notificacoes/processamento associado:
+  src/server/services/relatorios/relatorios-notifications-service.ts
+- Hook/tela de consolidacao:
+  src/hooks/features/useConsolidacaoPrograd.ts
+  src/app/home/admin/consolidacao-prograd/page.tsx
+
+
+FASE 6 - Relatorios finais e certificados
+Status: IMPLEMENTADA (fluxo principal funcional)
+
+Como funciona:
+- Admin inicia ciclo final e dispara notificacoes.
+- Professor gera e assina relatorio da disciplina e dos monitores.
+- Aluno assina relatorio individual.
+- Admin valida progresso, gera texto de ata, planilhas de certificados e envio final.
+
+Onde ver no codigo (exemplos):
+- Notificacao para iniciar relatarios:
+  src/server/services/relatorios/relatorios-notifications-service.ts
+- Exportacao de planilhas/certificados e envio:
+  src/server/services/relatorios/relatorios-finais-export-service.ts
+- Validacao de progresso:
+  src/server/api/routers/relatorios/relatorios-validation.ts
+
+================================================================
+3) Como testar (roteiro rapido para dev local)
+================================================================
+
+Pre-requisitos:
+- Docker rodando.
+- Variaveis de ambiente locais configuradas (.env).
+
+Setup rapido:
+1. docker compose up -d db
+2. npm run db:push
+3. npm run db:seed:fast
+4. npm run dev
+
+Sugestao de contas de teste:
+- admin@ufba.br
+- professor@ufba.br
+- student@ufba.br
+
+Fluxo minimo recomendado de validacao manual:
+- Fase 1:
+  Admin importa planejamento e notifica professor.
+  Professor cria/ajusta projeto, assina e submete.
+- Fase 2:
+  Admin aprova/rejeita e aciona fluxo de envio de planilha.
+- Fase 3:
+  Admin define/aloca bolsas, cria edital, coleta assinatura e publica.
+- Fase 4:
+  Student se inscreve, Professor avalia/publica resultado, Student aceita.
+- Fase 5:
+  Admin valida dados bancarios e gera exportacoes do periodo.
+- Fase 6:
+  Admin inicia ciclo final, Professor/Student assinam relatorios, Admin gera
+  artefatos finais e dispara envio.
+
+================================================================
+4) Testes existentes (estado atual)
+================================================================
+
+Ja existem testes cobrindo partes importantes, principalmente edital e fluxo
+de inscricao/selecao:
+- src/tests/e2e/admin-edital-interno-workflow.spec.ts
+- src/tests/e2e/edital-publication-workflow.spec.ts
+- src/tests/e2e/chief-signature-workflow.spec.ts
+- src/tests/e2e/admin-approval-workflow.spec.ts
+- src/tests/routers/edital.test.ts
+- src/tests/routers/inscricao.test.ts
+- src/tests/routers/selecao.test.ts
+
+Observacao:
+- Ainda ha espaco para ampliar cobertura de regressao ponta-a-ponta das fases 5 e 6.
+- Vale manter uma matriz de testes por fase para reduzir risco em mudancas futuras.
+
+================================================================
+5) Pendencias e melhorias sugeridas
+================================================================
+
+Pendencias tecnicas/operacionais mais relevantes:
+1. Estrategia de retry para envio de emails (atual foco em log, sem fila robusta).
+2. Operacoes em lote para aprovacao/rejeicao de projetos.
+3. Mecanismo explicito de revogacao/reprocesso de assinatura.
+4. Reducao de tamanho de services muito grandes (manutenibilidade).
+5. Reforco de cobertura automatizada para consolidacao final e certificados.
+
+================================================================
+6) Nota de contexto
+================================================================
+
+Este documento e um snapshot tecnico para onboarding. O plano funcional oficial
+continua sendo o arquivo:
+/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/planejamento_do_projeto.txt
+
+Quando houver alteracao de processo (especialmente fases 5 e 6), atualizar este
+arquivo em conjunto com os testes da fase afetada.
