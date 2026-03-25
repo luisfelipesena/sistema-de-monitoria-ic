@@ -21,6 +21,7 @@
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:push": "drizzle-kit push",
+    "db:seed:fast": "docker compose exec -T db psql -U postgres -d sistema_de_monitoria_ic -f /backup/seed-local.sql",
     "seed:test-user": "npx tsx scripts/seed-test-user.ts",
     "seed:test-user:js": "node scripts/seed-test-user.js",
     "db:generate": "drizzle-kit generate",
