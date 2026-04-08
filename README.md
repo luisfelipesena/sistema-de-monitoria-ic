@@ -76,7 +76,11 @@ Sistema completo para gerenciamento de programas de monitoria acadêmica da UFBA
 - **DB**: PostgreSQL 16.3
 
 ## 🏗️ Arquitetura
+<<<<<<< HEAD
 [Diagrama da Arquitetura](https://docs.google.com/presentation/d/1XnN4WE_xpnN4NS-1hLHdaVivDtbAuN0l97IwUsy6Olc/edit?usp=sharing)
+=======
+[Flowcharts](https://docs.google.com/presentation/d/1XnN4WE_xpnN4NS-1hLHdaVivDtbAuN0l97IwUsy6Olc/edit?usp=sharing)
+>>>>>>> feb76032a00e880b3a0eebdc823cccc0bccf47e5
 ### Backend - 3 Layer Pattern
 
 ```
