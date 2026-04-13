@@ -63,6 +63,7 @@ export function createProjetoRepository(db: Database) {
           titulo: projetoTable.titulo,
           departamentoId: projetoTable.departamentoId,
           departamentoNome: departamentoTable.nome,
+          departamentoSigla: departamentoTable.sigla,
           professorResponsavelId: projetoTable.professorResponsavelId,
           professorResponsavelNome: professorTable.nomeCompleto,
           status: projetoTable.status,

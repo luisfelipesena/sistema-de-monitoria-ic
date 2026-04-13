@@ -101,7 +101,6 @@ export interface ManageProjectItem {
   id: number
   titulo: string
   status: string
-  departamentoId: number | null
   departamentoNome: string | null
   semestre: string
   ano: number

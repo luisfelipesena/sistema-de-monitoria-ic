@@ -45,6 +45,7 @@ interface ProcessedRow {
   disciplinaNome: string
   professoresSiapes: string[]
   vagas: number
+  departamento?: string
 }
 
 export function createImportProjectsService(db: Database) {
@@ -769,6 +770,7 @@ export function createImportProjectsService(db: Database) {
             disciplinaNome: nomeSanitizado,
             professoresSiapes: [],
             vagas: 0,
+            departamento: firstEntry.departamento,
           }
 
           for (const professor of professores) {

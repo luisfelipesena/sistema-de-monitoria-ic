@@ -8,6 +8,7 @@ export interface PlanejamentoDCCRow {
   disciplinaCodigo: string
   disciplinaNome: string
   professorNome: string
+  departamento?: string
   cargaHoraria?: number
 }
 
@@ -97,7 +98,7 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
     })
     const docenteIdx = headers.length - 1 // Última coluna
     const chIdx = headers.findIndex((h) => String(h).toUpperCase() === 'CH')
-
+    const deptoIdx = headers.findIndex((h) => String(h).toUpperCase().includes('DEPARTAMENTO'))
     if (disciplinaIdx === -1 || docenteIdx === -1) {
       errors.push(`Colunas obrigatórias não encontradas. Disciplina: ${disciplinaIdx}, Docente: ${docenteIdx}`)
       return { rows, errors, warnings }
@@ -108,6 +109,7 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
         disciplinaIdx,
         nomeIdx,
         chIdx,
+        deptoIdx,
         docenteIdx,
       },
       'Índices das colunas identificados'
@@ -117,6 +119,7 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
     let currentDisciplina = ''
     let currentNome = ''
     let currentCH: number | undefined
+    let currentDepto: string | undefined
 
     // Processar linhas de dados (começar após header + 1 para pular separadores)
     for (let i = headerIndex + 1; i < data.length; i++) {
@@ -130,7 +133,7 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
         const nomeRaw = nomeIdx !== -1 ? sanitizeCellValue(String(row[nomeIdx] || '')) : ''
         const docenteRaw = sanitizeCellValue(String(row[docenteIdx] || ''))
         const chRaw = chIdx !== -1 ? sanitizeCellValue(String(row[chIdx] || '')) : ''
-
+        const deptoRaw = deptoIdx !== -1 ? sanitizeCellValue(String(row[deptoIdx] || '')) : ''
         // Pular linhas separadoras (ex: "OBRIGATÓRIAS DA GRADUAÇÃO")
         if (
           disciplinaRaw.toUpperCase().includes('OBRIGATÓRIA') ||
@@ -145,6 +148,7 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
           currentDisciplina = disciplinaRaw
           currentNome = nomeRaw || currentDisciplina
           currentCH = chRaw ? parseInt(chRaw, 10) : undefined
+          currentDepto = deptoRaw || undefined
         }
 
         // Processar docente se existir
@@ -191,6 +195,7 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
                 disciplinaCodigo: currentDisciplina,
                 disciplinaNome: currentNome,
                 professorNome: prof,
+                departamento: currentDepto,
                 cargaHoraria: currentCH && !isNaN(currentCH) ? currentCH : undefined,
               })
 

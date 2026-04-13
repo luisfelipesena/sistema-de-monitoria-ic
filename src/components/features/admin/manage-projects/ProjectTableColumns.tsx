@@ -79,6 +79,31 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
         )
       },
     },
+        
+
+      //header: createFilterableHeader<ManageProjectItem>({
+
+      //  title: "Dpto",
+
+      //  filterType: "multiselect",
+
+      //  filterPlaceholder: "DCC, DCI...",
+
+      //}),
+
+      //accessorKey: "departamentoSigla",
+
+      //cell: ({ row }) => (
+
+       // <span className="font-medium text-gray-600">
+
+         // {row.original.departamentoSigla || "-"}
+
+       // </span>
+
+      //),
+
+    //},
     {
       header: createFilterableHeader<ManageProjectItem>({
         title: "Status",

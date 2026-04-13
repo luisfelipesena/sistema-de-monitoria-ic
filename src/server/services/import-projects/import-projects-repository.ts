@@ -1,20 +1,21 @@
 import type { db } from '@/server/db'
 import {
-  importacaoPlanejamentoTable,
+  atividadeProjetoTable,
+  departamentoTable,
+  disciplinaProfessorResponsavelTable,
   disciplinaTable,
+  importacaoPlanejamentoTable,
+  periodoInscricaoTable,
   professorTable,
+  projetoDisciplinaTable,
   projetoTable,
   projetoTemplateTable,
-  projetoDisciplinaTable,
-  disciplinaProfessorResponsavelTable,
-  atividadeProjetoTable,
-  periodoInscricaoTable,
   type NewProjeto,
 } from '@/server/db/schema'
-import type { InferInsertModel } from 'drizzle-orm'
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
 import type { Semestre } from '@/types'
 import { findMatchingProfessors } from '@/utils/string-normalization'
+import type { InferInsertModel } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
 
 type Database = typeof db
 
@@ -34,7 +35,13 @@ export function createImportProjectsRepository(db: Database) {
         where: eq(importacaoPlanejamentoTable.id, id),
       })
     },
-
+    async findDepartamentoByDisciplinaId(disciplinaId: number) {
+      const disciplina = await db.query.disciplinaTable.findFirst({
+        where: eq(disciplinaTable.id, disciplinaId),
+        columns: { departamentoId: true }
+      })
+      return disciplina?.departamentoId ?? null
+    },
     async updateImportacao(id: number, data: ImportacaoUpdate) {
       await db.update(importacaoPlanejamentoTable).set(data).where(eq(importacaoPlanejamentoTable.id, id))
     },
@@ -44,6 +51,17 @@ export function createImportProjectsRepository(db: Database) {
         where: eq(disciplinaTable.codigo, codigo),
       })
     },
+
+    async getDepartamentoIdByDisciplina(codigo: string) {
+    const disciplina = await db.query.disciplinaTable.findFirst({
+      where: eq(disciplinaTable.codigo, codigo),
+      columns: {
+        departamentoId: true, // Puxa exclusivamente o ID do departamento
+      },
+    })
+
+    return disciplina?.departamentoId
+  },
 
     async findProfessoresBySiapes(siapes: string[]) {
       return db.query.professorTable.findMany({
