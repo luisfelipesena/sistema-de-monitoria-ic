@@ -1,4 +1,6 @@
-﻿FASE 1: Planejamento e Criação de Projetos
+﻿Atualizado: 21/04/2026
+
+FASE 1: Planejamento e Criação de Projetos
 
 Admin
 	1.	Importa a planilha de planejamento do DCC com disciplinas e professores (SIAPE).
@@ -42,23 +44,27 @@ Processo Manual de Distribuição (antes do sistema)
 
 Admin
 	1.	Define no sistema o total de bolsas informado pela PROGRAD.
-	2.	Aloca bolsas por projeto aprovado conforme decisão da comissão (o sistema impede exceder o total). (aqui todos os projetos devem estar abertos para alocação, óbvio que alocaremos de acordo com a comissão)
-	3.	Clica em "Notificar Professores" – o sistema envia e-mails automáticos com a tabela de bolsas. (aqui o envio é para todos os profs que submeteram projetos, pois podem definir voluntários tb)
+	2.	Aloca bolsas por projeto aprovado conforme decisão da comissão (o sistema impede exceder o total). 
+		(aqui todos os projetos devem estar abertos para alocação, óbvio que alocaremos de acordo com a 
+		comissão)
+	3.	Clica em "Notificar Professores" – o sistema envia e-mails automáticos com a tabela de bolsas. 
+		(aqui o envio é para todos os profs que submeteram projetos, pois podem definir voluntários tb)
 
 Professor
 	1.	Recebe o e-mail com suas bolsas alocadas.
 	2.	Acessa o dashboard e visualiza os projetos com bolsas (campo não editável).
 	3.	Pode definir voluntários adicionais (campo editável).
 	4.	Preenche dados do edital interno DCC:
-	•	Escolhe data/horário da seleção (entre 2–3 opções definidas pelo admin).
-	•	Edita/confirma pontos da prova (modelo sugerido pelo sistema).
-	•	Edita/confirma bibliografia (modelo sugerido pelo sistema).
+		•	Escolhe data/horário da seleção (entre 2–3 opções definidas pelo admin).
+		•	Edita/confirma pontos da prova (modelo sugerido pelo sistema).
+		•	Edita/confirma bibliografia (modelo sugerido pelo sistema).
 
 Admin
 	1.	Define o número do edital interno DCC.
 	2.	Escolhe 2–3 datas possíveis para provas.
 	3.	Define a data limite para divulgação dos resultados.
 	4.	Solicita assinatura digital do chefe do departamento.
+	5.  Define a data inicial e data final para as inscrições.
 
 Chefe do Departamento
 	1.	Acessa o sistema e visualiza editais pendentes de assinatura.
@@ -67,8 +73,8 @@ Chefe do Departamento
 Admin
 	1.	Publica o edital assinado.
 	2.	O sistema envia automaticamente o PDF para:
-	•	Todos os estudantes do instituto.
-	•	Todos os professores do instituto.
+		•	Todos os estudantes do instituto.
+		•	Todos os professores do instituto.
 
 ⸻
 
@@ -82,34 +88,38 @@ Aluno
 	5.	O sistema registra automaticamente a nota da disciplina (do histórico).
 		• Sistema considera disciplinas equivalentes (ex: MATA37 LP = MATE045).
 		• Sistema também captura o CR (Coeficiente de Rendimento) do aluno.
+	6.	Se for bolsista, preenche dados bancários (banco, agência, conta e dígito).
 
 Professor
 	1.	Acessa “Gerenciar Candidatos” e visualiza os inscritos.
 	2.	Em “Avaliar Candidatos”, atribui notas (prova e/ou entrevista).
 	3.	O sistema calcula a nota final automaticamente.
-	4.	Em “Selecionar Monitores”, escolhe:
-	•	Bolsistas (até o limite alocado).
-	•	Voluntários (até o limite definido).
+	4.	Ver atas e resultados, assinar esses documentos.
 	5.	Clica em “Publicar Resultados” – o sistema notifica os alunos por e-mail.
 
 Aluno
 	1.	Recebe o e-mail com o resultado da seleção.
 	2.	Acessa “Resultados das Seleções”.
-	3.	Aceita ou rejeita a monitoria.
-	4.	Se for bolsista, preenche dados bancários (banco, agência, conta e dígito).
-
+	3.	Aceita ou rejeita a monitoria. Terá deadline de 2 dias após a divulgação dos resultados para 
+		aceitar ou rejeitar.
+	
 ⸻
 
-FASE 5: Consolidação Final e Relatório PROGRAD
+FASE 5: Consolidação Final e Relatório
 
 Admin
-	1.	Acessa "Consolidação PROGRAD".
+	1.	Acessa "Gerenciar seleções".
 	2.	Seleciona o período (ano/semestre).
 	3.	Valida os dados (o sistema verifica se todos os alunos têm informações bancárias completas).
+		Valida a quantidade de bolsistas. Se uma disciplina não teve bolsista e tem bolsa alocada, o admin
+		pode mudar o número de bolsas de outra disciplina, com isso o sistema pegaria o próximo aluno que 
+		aceitou ser bolsista naquela disciplina, através das respostas dos alunos para o chamado de aceitar
+		ou rejeitar.
 	4.	Gera planilha Excel consolidada com todos os monitores ativos:
-	•	Bolsistas (com dados de pagamento).
-	•	Voluntários (se configurado para incluir).
-	5.	Envia a planilha final por e-mail ao DEPARTAMENTO (DCC). (Aqui são duas planilhas isoladas, uma dos bolsitas e uma dos voluntários)
+		•	Bolsistas (com dados de pagamento).
+		•	Voluntários (se configurado para incluir).
+	5.	Envia a planilha final por e-mail ao DEPARTAMENTO (DCC). (Aqui são duas planilhas isoladas, uma
+		dos bolsitas e uma dos voluntários)
 
 Chefe do Departamento
 	1.	Recebe a planilha consolidada.
@@ -125,18 +135,19 @@ FASE 6: Relatórios Finais e Certificados (Semestre Encerrado)
 
 Admin
 	1.	Inicia processo de relatórios finais (normalmente com semestre atual já em andamento).
-	2.	Clica em "Gerar Relatórios" – sistema notifica professores por e-mail.
+	2.	Clica em "Gerar Relatórios" – sistema notifica professores por e-mail, dizendo sistema aberto
+		para geração dos relatórios por uma semana, por exemplo.
 
 Professor
 	1.	Recebe notificação para gerar relatórios.
 	2.	Acessa área de "Relatórios Finais".
 	3.	Gera relatório final da disciplina:
-	•	Pode usar template de semestres anteriores.
-	•	Edita conforme necessário.
-	•	Assina digitalmente.
+		•	Pode usar template de semestres anteriores.
+		•	Edita conforme necessário.
+		•	Assina digitalmente.
 	4.	Gera relatório individual para cada monitor (bolsista/voluntário):
-	•	Sistema pré-preenche com dados do aluno.
-	•	Professor revisa e assina.
+		•	Sistema pré-preenche com dados do aluno.
+		•	Professor revisa e assina.
 	5.	Sistema notifica alunos automaticamente.
 
 Aluno
@@ -147,13 +158,13 @@ Aluno
 Admin
 	1.	Valida que todos os relatórios estão assinados.
 	2.	Gera texto padrão para ata do departamento:
-	•	"Professor X solicita aprovação do relatório de monitoria do aluno Y, nota Z, semestre W, disciplina V".
-	3.	Copia texto e inclui na ata do departamento.
-	4.	Gera 3 planilhas com links PDF:
-	•	Certificados de monitores bolsistas.
-	•	Certificados de monitores voluntários.
-	•	Relatórios finais das disciplinas.
-	5.	Envia planilhas ao DEPARTAMENTO.
+		•	"Professor X solicita aprovação do relatório de monitoria do aluno Y, nota Z, semestre W,
+			disciplina V".
+	3.	Gera planilha com links PDF.
+	4.	Certificados de monitores bolsistas.
+		•	Certificados de monitores voluntários.
+		•	Relatórios finais das disciplinas.
+		•	Envia planilhas ao DEPARTAMENTO.	
 
 Departamento
 	1.	Recebe planilhas de certificados.
