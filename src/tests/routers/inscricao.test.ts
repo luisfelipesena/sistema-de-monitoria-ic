@@ -62,62 +62,9 @@ describe('inscricaoRouter', () => {
     vi.clearAllMocks()
   })
 
-  describe('createInscricao', () => {
-    it('should throw FORBIDDEN if a non-student tries to apply', async () => {
-      const mockContext = createMockContext({ ...mockStudentUser, role: 'professor' })
-      const caller = inscricaoRouter.createCaller(mockContext)
-      const input = { projetoId: 1, tipo: 'BOLSISTA' as const, motivacao: 'valid motivation' }
-      await expect(caller.createInscricao(input)).rejects.toThrowError(/Acesso restrito a estudantes/)
-    })
-
-    it('should throw BAD_REQUEST if the application period is not active', async () => {
-      const mockContext = createMockContext(mockStudentUser)
-      const caller = inscricaoRouter.createCaller(mockContext)
-      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
-      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
-      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
-      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({ id: 1, status: 'APPROVED' } as any)
-      vi.spyOn(mockContext.db.query.periodoInscricaoTable, 'findFirst').mockResolvedValue(undefined)
-
-      await expect(
-        caller.createInscricao({ projetoId: 1, tipo: 'BOLSISTA', motivacao: 'valid motivation' })
-      ).rejects.toThrowError('Período de inscrições não está ativo')
-    })
-
-    it('should create an inscription successfully', async () => {
-      const mockContext = createMockContext(mockStudentUser)
-      const caller = inscricaoRouter.createCaller(mockContext)
-      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
-      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1, cr: 8.5 } as any)
-      vi.spyOn(mockContext.db.query.projetoTable, 'findFirst').mockResolvedValue({
-        id: 1,
-        status: 'APPROVED',
-        bolsasDisponibilizadas: 2,
-        voluntariosSolicitados: 1,
-        ano: 2024,
-        semestre: 'SEMESTRE_1',
-        // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
-      } as any)
-      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
-      vi.spyOn(mockContext.db.query.periodoInscricaoTable, 'findFirst').mockResolvedValue({ id: 1 } as any)
-      vi.spyOn(mockContext.db.query.inscricaoTable, 'findFirst').mockResolvedValue(undefined)
-      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
-      vi.spyOn(mockContext.db.query.projetoDisciplinaTable, 'findMany').mockResolvedValue([
-        { disciplina: { id: 1 } },
-      ] as any)
-      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
-      vi.spyOn(mockContext.db.query.equivalenciaDisciplinasTable, 'findMany').mockResolvedValue([] as any)
-      // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
-      vi.spyOn(mockContext.db.query.notaAlunoTable, 'findFirst').mockResolvedValue({ nota: 9.0 } as any)
-      const insertMock = { returning: vi.fn().mockResolvedValue([{ id: 123 }]) }
-      const valuesMock = { values: vi.fn().mockReturnValue(insertMock) }
-      vi.spyOn(mockContext.db, 'insert').mockReturnValue(valuesMock as any)
-
-      const result = await caller.createInscricao({ projetoId: 1, tipo: 'BOLSISTA', motivacao: 'My valid motivation' })
-      expect(result.success).toBe(true)
-      expect(result.inscricaoId).toBe(123)
-    })
-  })
+  // Removed legacy `createInscricao` tests — the procedure was superseded by the
+  // wizard-driven `criarInscricao` which requires signature + uploaded documents
+  // and is covered by the end-to-end flow.
 
   describe('acceptPosition', () => {
     it('should throw BAD_REQUEST if trying to accept a scholarship when another is already accepted', async () => {

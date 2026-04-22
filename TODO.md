@@ -1,4 +1,34 @@
 
+## Fase 4 — Fluxo de Inscrição de Monitoria (Aluno) ✅
+
+Replica no sistema o Google Form DCC e gera os PDFs oficiais UFBA (Anexo III/IV + Anexo I Termo) assinados digitalmente, sem depender de upload externo do aluno. Mesmo padrão end-to-end usado no `MonitoriaFormTemplate.tsx` para projetos (React-PDF + assinatura inline + armazenamento MinIO).
+
+- Wizard em 5 passos em `/home/student/inscricao-monitoria/[projetoId]/wizard`: Dados Pessoais → Declaração (tipo vaga + cursou componente + equivalência) → Documentos (RG, CPF, Histórico Escolar) → Assinatura digital → Revisar & Enviar ✅
+- Geração automática do **Anexo III** (bolsista) ou **Anexo IV** (voluntário) com dados pré-preenchidos do aluno/projeto/disciplina e assinatura inline ✅
+- Geração automática do **Anexo I** (Termo de Compromisso) com tabela bancária preenchida apenas quando BOLSISTA ✅
+- PDF combinado (`pdf-lib` merge) equivalente ao que era submetido manualmente no Drive ✅
+- Captura automática de CR + nota da disciplina com equivalência bidirecional (`findStudentGradeWithEquivalents`) ✅
+- Declaração §3.1/§3.2.1 do Anexo IV/III: "cursou com aprovação?" + disciplina equivalente opcional ✅
+- Patch de perfil inline (endereço, data de nascimento, dados bancários) quando o onboarding está incompleto — sem redirect ✅
+- Persistência unificada: `inscricaoDocumentoTable` armazena uploads (RG/CPF/HIST) + PDFs gerados (Anexo III/IV, Anexo I, combinado) com novo enum `tipoDocumentoInscricaoEnum` ✅
+- Endpoint `inscricao.getInscricaoDocumentos` com presigned URLs — aluno/professor do projeto/admin podem baixar ✅
+- Endpoint `inscricao.regenerateDocumentos` para retry sem re-assinatura (usa `assinaturaAlunoFileId` salva) ✅
+- Endpoint `aluno.getFullProfile` para pré-preencher o wizard com endereço + banking ✅
+- Migration `0059_inscricao_wizard.sql` aplica enum + colunas novas em `aluno`/`inscricao`/`inscricao_documento` ✅
+- Smoke test `scripts/test-inscricao-pdfs.ts` renderiza os 3 templates (~30 KB cada) — útil para regressão visual ✅
+
+Arquivos adicionados/modificados:
+- Templates: `src/server/lib/pdfTemplates/anexo-{iii-inscricao-bolsista,iv-inscricao-voluntario,i-termo-compromisso-monitor,shared-styles,ufba-header}.{tsx,ts}`
+- Serviço PDF: `src/server/services/inscricao/pdf/inscricao-pdf-{generator,service}.{tsx,ts}`
+- Router: `src/server/api/routers/aluno/aluno.ts` + extensões em `inscricao.ts`
+- Wizard UI: `src/components/features/inscricao/wizard/InscricaoWizard.tsx` + rota `src/app/home/student/inscricao-monitoria/[projetoId]/wizard/page.tsx`
+- Types: `src/types/inscricao-document.ts`, `src/types/inscricao-pdf-inputs.ts`, estensões em `inscription.ts`/`student.ts`
+- Schema: `dataNascimento`, `telefoneFixo` em aluno; `cursouComponente`, `disciplinaEquivalenteId`, `assinaturaAlunoFileId`, `dataAssinaturaAluno`, `localAssinaturaAluno` em inscricao; `tipo_documento_inscricao_enum` em inscricao_documento
+
+Verificação E2E manual: aluno seleciona projeto → percorre wizard → Anexo IV (voluntário) pg1 + Anexo I pg2 idênticos ao `docs/examples/voluntario - Liz Rabacal.pdf` (ou Anexo III pg1 + Anexo I pg2 se bolsista, com tabela bancária preenchida).
+
+---
+
 - Permitir historico para os professores verem seus projetos passados
 - Admin DCC outro ADMIN com acesso DCI - cada um ve os projetos do seu departamento - ajustar isso ✅
   - Em /home/admin/planilha-prograd o DCI carregar somente projetos DCI e o DCC somente projetos do DCC ✅

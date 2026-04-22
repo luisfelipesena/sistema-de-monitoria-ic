@@ -1,36 +1,26 @@
-import type { TipoInscricao, UserRole } from '@/types'
+import { BusinessError } from '@/server/lib/errors'
+import type { InscriptionFormData, UserRole } from '@/types'
 import type { Database } from './inscricao-repository'
 import { createInscricaoRepository } from './inscricao-repository'
-import { StudentInscricaoService } from './student-inscricao-service'
+import { createInscricaoPdfService } from './pdf/inscricao-pdf-service'
 import { ProfessorInscricaoService } from './professor-inscricao-service'
-import { BusinessError } from '@/server/lib/errors'
+import { StudentInscricaoService } from './student-inscricao-service'
 
 export class InscricaoService {
   private studentService: StudentInscricaoService
   private professorService: ProfessorInscricaoService
+  private pdfService: ReturnType<typeof createInscricaoPdfService>
 
-  constructor(db: Database) {
+  constructor(private db: Database) {
     const repository = createInscricaoRepository(db)
-    this.studentService = new StudentInscricaoService(repository)
+    this.studentService = new StudentInscricaoService(repository, db)
     this.professorService = new ProfessorInscricaoService(repository)
+    this.pdfService = createInscricaoPdfService(db)
   }
 
   // Student methods
   async getMyStatus(userId: number, userRole: UserRole) {
     return this.studentService.getMyStatus(userId, userRole)
-  }
-
-  async createInscricao(
-    userId: number,
-    userRole: UserRole,
-    input: {
-      projetoId: number
-      tipo: TipoInscricao
-      motivacao: string
-      documentos?: Array<{ fileId: string; tipoDocumento: string }>
-    }
-  ) {
-    return this.studentService.createInscricao(userId, userRole, input)
   }
 
   async getMyResults(userId: number, userRole: UserRole) {
@@ -41,28 +31,17 @@ export class InscricaoService {
     return this.studentService.getMinhasInscricoes(userId)
   }
 
-  async criarInscricao(
-    userId: number,
-    userRole: UserRole,
-    input: {
-      projetoId: number
-      tipoVagaPretendida?: TipoInscricao
-      documentos?: Array<{ fileId: string; tipoDocumento: string }>
-    }
-  ) {
-    if (!input.tipoVagaPretendida) {
-      throw new BusinessError('Tipo de vaga é obrigatório', 'BAD_REQUEST')
-    }
-    const result = await this.studentService.createInscricao(userId, userRole, {
-      projetoId: input.projetoId,
-      tipo: input.tipoVagaPretendida,
-      motivacao: '',
-      documentos: input.documentos,
-    })
+  async criarInscricao(userId: number, userRole: UserRole, input: InscriptionFormData) {
+    const result = await this.studentService.createInscricao(userId, userRole, input)
     return {
       id: result.inscricaoId,
       message: 'Inscrição realizada com sucesso!',
+      combinedPdfFileId: result.combinedPdfFileId,
     }
+  }
+
+  async regenerateDocumentos(userId: number, userRole: UserRole, inscricaoId: number) {
+    return this.studentService.regenerateDocumentos(userId, userRole, inscricaoId)
   }
 
   async aceitarInscricao(userId: number, userRole: UserRole, inscricaoId: number) {
@@ -71,6 +50,26 @@ export class InscricaoService {
 
   async recusarInscricao(userId: number, userRole: UserRole, inscricaoId: number, feedbackProfessor?: string) {
     return this.studentService.recusarInscricao(userId, userRole, inscricaoId, feedbackProfessor)
+  }
+
+  // PDF orchestration
+  async getInscricaoDocumentos(userId: number, userRole: UserRole, inscricaoId: number) {
+    // Autorização: aluno dono, professor responsável, ou admin
+    const repo = createInscricaoRepository(this.db)
+    const inscricao = await repo.findInscricaoWithProjetoProfessor(inscricaoId)
+    if (!inscricao) throw new BusinessError('Inscrição não encontrada', 'NOT_FOUND')
+
+    const isAdmin = userRole === 'admin'
+    const aluno = await repo.findAlunoByUserId(userId)
+    const professor = await repo.findProfessorByUserId(userId)
+    const isOwnerStudent = aluno?.id === inscricao.alunoId
+    const isProjectProfessor = professor?.id === inscricao.projeto.professorResponsavelId
+
+    if (!isAdmin && !isOwnerStudent && !isProjectProfessor) {
+      throw new BusinessError('Acesso negado aos documentos desta inscrição', 'FORBIDDEN')
+    }
+
+    return this.pdfService.getInscricaoDocumentos(inscricaoId)
   }
 
   // Professor methods

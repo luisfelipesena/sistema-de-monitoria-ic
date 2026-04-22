@@ -94,3 +94,78 @@ export const createStudentSchema = z.object({
 })
 
 export type CreateStudentData = z.infer<typeof createStudentSchema>
+
+// ========================================
+// PROFILE PATCH (inscription wizard)
+// Fields the student can complete during an inscription if their profile is incomplete.
+// ========================================
+
+export const enderecoPatchSchema = z.object({
+  rua: z.string().min(1, 'Rua é obrigatória'),
+  numero: z.number().int().positive().nullable().optional(),
+  bairro: z.string().min(1, 'Bairro é obrigatório'),
+  cidade: z.string().min(1, 'Cidade é obrigatória'),
+  estado: z.string().min(1, 'Estado é obrigatório'),
+  cep: z.string().min(1, 'CEP é obrigatório'),
+  complemento: z.string().nullable().optional(),
+})
+
+export const alunoProfilePatchSchema = z.object({
+  nomeCompleto: z.string().min(1).optional(),
+  nomeSocial: z.string().nullable().optional(),
+  cpf: cpfSchema.optional(),
+  rg: z.string().min(1).optional(),
+  dataNascimento: z.coerce.date().optional(),
+  genero: generoSchema.optional(),
+  telefone: z.string().min(1).optional(),
+  telefoneFixo: z.string().nullable().optional(),
+  cursoNome: z.string().min(1).optional(),
+  endereco: enderecoPatchSchema.optional(),
+  // Banking (required only for bolsista — enforced server-side)
+  banco: z.string().nullable().optional(),
+  agencia: z.string().nullable().optional(),
+  conta: z.string().nullable().optional(),
+  digitoConta: z.string().nullable().optional(),
+})
+
+export type EnderecoPatch = z.infer<typeof enderecoPatchSchema>
+export type AlunoProfilePatch = z.infer<typeof alunoProfilePatchSchema>
+
+// Full profile returned by aluno.getFullProfile — used to pre-fill the wizard
+export interface AlunoFullProfile {
+  id: number
+  userId: number
+  nomeCompleto: string
+  nomeSocial: string | null
+  cpf: string | null
+  rg: string | null
+  matricula: string | null
+  dataNascimento: Date | null
+  genero: Genero | null
+  telefone: string | null
+  telefoneFixo: string | null
+  cursoNome: string | null
+  emailInstitucional: string | null
+  cr: number | null
+  banco: string | null
+  agencia: string | null
+  conta: string | null
+  digitoConta: string | null
+  historicoEscolarFileId: string | null
+  comprovanteMatriculaFileId: string | null
+  endereco: {
+    id: number
+    rua: string
+    numero: number | null
+    bairro: string
+    cidade: string
+    estado: string
+    cep: string
+    complemento: string | null
+  } | null
+  user: {
+    id: number
+    username: string
+    email: string
+  }
+}

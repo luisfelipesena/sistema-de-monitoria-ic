@@ -1,5 +1,12 @@
 import { BusinessError } from '@/server/lib/errors'
-import type { StatusInscricao, TipoInscricao, TipoVaga, UserRole } from '@/types'
+import type {
+  AlunoProfilePatch,
+  InscriptionFormData,
+  StatusInscricao,
+  TipoInscricao,
+  TipoVaga,
+  UserRole,
+} from '@/types'
 import {
   ACCEPTED_BOLSISTA,
   ACCEPTED_VOLUNTARIO,
@@ -23,7 +30,8 @@ import {
   VOLUNTARIO,
 } from '@/types'
 import { logger } from '@/utils/logger'
-import type { InscricaoRepository } from './inscricao-repository'
+import { createInscricaoPdfService } from './pdf/inscricao-pdf-service'
+import type { Database, InscricaoRepository } from './inscricao-repository'
 
 const log = logger.child({ context: 'StudentInscricaoService' })
 
@@ -36,7 +44,10 @@ const APPROVAL_STATUSES = new Set<StatusInscricao>([
 const ACTIVE_MONITOR_STATUSES = new Set<StatusInscricao>([ACCEPTED_BOLSISTA, ACCEPTED_VOLUNTARIO])
 
 export class StudentInscricaoService {
-  constructor(private repository: InscricaoRepository) {}
+  constructor(
+    private repository: InscricaoRepository,
+    private db: Database
+  ) {}
 
   async getMyStatus(userId: number, userRole: UserRole) {
     if (userRole !== STUDENT) {
@@ -122,16 +133,7 @@ export class StudentInscricaoService {
     }
   }
 
-  async createInscricao(
-    userId: number,
-    userRole: UserRole,
-    input: {
-      projetoId: number
-      tipo: TipoInscricao
-      motivacao: string
-      documentos?: Array<{ fileId: string; tipoDocumento: string }>
-    }
-  ) {
+  async createInscricao(userId: number, userRole: UserRole, input: InscriptionFormData) {
     if (userRole !== STUDENT) {
       throw new BusinessError('Acesso permitido apenas para estudantes', 'FORBIDDEN')
     }
@@ -160,20 +162,36 @@ export class StudentInscricaoService {
       throw new BusinessError('Você já se inscreveu neste projeto', 'CONFLICT')
     }
 
-    if (!input.tipo) {
-      throw new BusinessError('Tipo de vaga é obrigatório', 'BAD_REQUEST')
-    }
-
-    if (input.tipo === BOLSISTA && (!projeto.bolsasDisponibilizadas || projeto.bolsasDisponibilizadas <= 0)) {
+    const tipoVaga = input.tipoVagaPretendida as TipoInscricao
+    if (tipoVaga === BOLSISTA && (!projeto.bolsasDisponibilizadas || projeto.bolsasDisponibilizadas <= 0)) {
       throw new BusinessError('Não há vagas de bolsista disponíveis para este projeto', 'BAD_REQUEST')
     }
-
-    if (input.tipo === VOLUNTARIO && (!projeto.voluntariosSolicitados || projeto.voluntariosSolicitados <= 0)) {
+    if (tipoVaga === VOLUNTARIO && (!projeto.voluntariosSolicitados || projeto.voluntariosSolicitados <= 0)) {
       throw new BusinessError('Não há vagas de voluntário disponíveis para este projeto', 'BAD_REQUEST')
     }
 
-    const projetoDisciplinas = await this.repository.findProjetoDisciplinas(input.projetoId)
+    if (input.cursouComponente === false && !input.disciplinaEquivalenteId) {
+      throw new BusinessError('Informe a disciplina equivalente cursada', 'BAD_REQUEST')
+    }
+    if (input.disciplinaEquivalenteId) {
+      const eqDisc = await this.repository.findDisciplinaById(input.disciplinaEquivalenteId)
+      if (!eqDisc) throw new BusinessError('Disciplina equivalente não encontrada', 'NOT_FOUND')
+    }
 
+    // Aplicar patch de perfil (endereço + dados pessoais + banking) antes de validar completude
+    if (input.profilePatch) {
+      await this.applyProfilePatch(aluno.id, input.profilePatch)
+    }
+
+    // Re-ler aluno + endereço para validar completude
+    const alunoFull = await this.repository.findAlunoFullByUserId(userId)
+    if (!alunoFull) {
+      throw new BusinessError('Perfil de estudante não encontrado', 'NOT_FOUND')
+    }
+    this.assertProfileComplete(alunoFull, tipoVaga)
+
+    // Resolver nota da disciplina (via equivalência)
+    const projetoDisciplinas = await this.repository.findProjetoDisciplinas(input.projetoId)
     let notaDisciplina: number | null = null
     for (const pd of projetoDisciplinas) {
       const grade = await this.repository.findStudentGradeWithEquivalents(aluno.id, pd.disciplina.id)
@@ -184,25 +202,107 @@ export class StudentInscricaoService {
       }
     }
 
+    // Criar inscrição
     const novaInscricao = await this.repository.createInscricao({
       periodoInscricaoId: periodoAtivo.id,
       projetoId: input.projetoId,
       alunoId: aluno.id,
-      tipoVagaPretendida: input.tipo,
+      tipoVagaPretendida: tipoVaga,
       status: STATUS_INSCRICAO_SUBMITTED,
-      coeficienteRendimento: aluno.cr?.toString() || null,
+      coeficienteRendimento: alunoFull.cr?.toString() || null,
       notaDisciplina: notaDisciplina?.toString() || null,
     })
 
-    if (input.documentos && input.documentos.length > 0) {
-      await this.repository.createDocumentos(novaInscricao.id, input.documentos)
+    // Persistir documentos uploadados pelo aluno (RG, CPF, Histórico, etc)
+    if (input.uploadedDocuments.length > 0) {
+      await this.repository.createDocumentos(novaInscricao.id, input.uploadedDocuments)
     }
 
-    log.info({ inscricaoId: novaInscricao.id }, 'Nova inscrição criada')
+    // Persistir assinatura + metadados de declaração
+    await this.repository.updateInscricaoSignatureMetadata(novaInscricao.id, {
+      assinaturaAlunoFileId: input.signatureDataUrl,
+      dataAssinaturaAluno: new Date(),
+      localAssinaturaAluno: input.localAssinatura,
+      cursouComponente: input.cursouComponente,
+      disciplinaEquivalenteId: input.disciplinaEquivalenteId ?? null,
+    })
+
+    // Gerar + persistir PDFs oficiais (Anexo III ou IV + Anexo I + combinado)
+    const pdfService = createInscricaoPdfService(this.db)
+    let generated: Awaited<ReturnType<typeof pdfService.generateAndPersist>> | null = null
+    try {
+      generated = await pdfService.generateAndPersist(novaInscricao.id, userId)
+    } catch (error) {
+      log.error({ error, inscricaoId: novaInscricao.id }, 'Falha ao gerar PDFs da inscrição')
+      await this.repository.updateInscricao(novaInscricao.id, {
+        feedbackProfessor: 'PDF_GENERATION_FAILED',
+        updatedAt: new Date(),
+      })
+      throw new BusinessError(
+        'Inscrição criada, mas houve falha na geração dos PDFs. Tente novamente em "Minhas Inscrições".',
+        'INTERNAL_ERROR'
+      )
+    }
+
+    log.info({ inscricaoId: novaInscricao.id, combined: generated.combinedFileId }, 'Nova inscrição criada')
 
     return {
       success: true,
       inscricaoId: novaInscricao.id,
+      combinedPdfFileId: generated.combinedFileId,
+    }
+  }
+
+  async regenerateDocumentos(userId: number, userRole: UserRole, inscricaoId: number) {
+    if (userRole !== STUDENT) {
+      throw new BusinessError('Acesso permitido apenas para estudantes', 'FORBIDDEN')
+    }
+    const aluno = await this.repository.findAlunoByUserId(userId)
+    if (!aluno) throw new BusinessError('Perfil de estudante não encontrado', 'NOT_FOUND')
+    const inscricao = await this.repository.findInscricaoByIdAndAlunoId(inscricaoId, aluno.id)
+    if (!inscricao) throw new BusinessError('Inscrição não encontrada', 'NOT_FOUND')
+
+    const pdfService = createInscricaoPdfService(this.db)
+    const generated = await pdfService.generateAndPersist(inscricaoId, userId)
+    return { success: true, combinedPdfFileId: generated.combinedFileId }
+  }
+
+  private async applyProfilePatch(alunoId: number, patch: AlunoProfilePatch) {
+    if (patch.endereco) {
+      await this.repository.upsertEnderecoForAluno(alunoId, patch.endereco)
+    }
+    const { endereco: _endereco, ...rest } = patch
+    const cleaned = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined))
+    if (Object.keys(cleaned).length > 0) {
+      await this.repository.updateAlunoProfile(
+        alunoId,
+        cleaned as Parameters<InscricaoRepository['updateAlunoProfile']>[1]
+      )
+    }
+  }
+
+  private assertProfileComplete(
+    aluno: NonNullable<Awaited<ReturnType<InscricaoRepository['findAlunoFullByUserId']>>>,
+    tipoVaga: TipoInscricao
+  ) {
+    const missing: string[] = []
+    if (!aluno.nomeCompleto) missing.push('nomeCompleto')
+    if (!aluno.cpf) missing.push('cpf')
+    if (!aluno.rg) missing.push('rg')
+    if (!aluno.matricula) missing.push('matricula')
+    if (!aluno.dataNascimento) missing.push('dataNascimento')
+    if (!aluno.cursoNome) missing.push('cursoNome')
+    if (!aluno.endereco) missing.push('endereco')
+    if (tipoVaga === BOLSISTA) {
+      if (!aluno.banco) missing.push('banco')
+      if (!aluno.agencia) missing.push('agencia')
+      if (!aluno.conta) missing.push('conta')
+    }
+    if (missing.length > 0) {
+      throw new BusinessError(
+        `Perfil do aluno incompleto: ${missing.join(', ')}. Complete os dados e tente novamente.`,
+        'BAD_REQUEST'
+      )
     }
   }
 

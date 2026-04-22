@@ -5,6 +5,7 @@ import {
   alunoTable,
   departamentoTable,
   disciplinaTable,
+  enderecoTable,
   equivalenciaDisciplinasTable,
   inscricaoDocumentoTable,
   inscricaoTable,
@@ -15,7 +16,7 @@ import {
   projetoTable,
   userTable,
 } from '@/server/db/schema'
-import type { ACCEPTED_BOLSISTA, Semestre, StatusInscricao, TipoInscricao } from '@/types'
+import type { ACCEPTED_BOLSISTA, Semestre, StatusInscricao, TipoDocumentoInscricao, TipoInscricao } from '@/types'
 import { logger } from '@/utils/logger'
 
 const log = logger.child({ context: 'InscricaoRepository' })
@@ -61,7 +62,8 @@ export interface InscricaoUpdateData {
 
 export interface DocumentoData {
   fileId: string
-  tipoDocumento: string
+  tipoDocumento: TipoDocumentoInscricao
+  assinadoPorUserId?: number | null
 }
 
 export class InscricaoRepository {
@@ -127,6 +129,115 @@ export class InscricaoRepository {
     return this.db.query.alunoTable.findFirst({
       where: eq(alunoTable.userId, userId),
     })
+  }
+
+  async findAlunoFullByUserId(userId: number) {
+    return this.db.query.alunoTable.findFirst({
+      where: eq(alunoTable.userId, userId),
+      with: {
+        user: true,
+        endereco: true,
+      },
+    })
+  }
+
+  async findDisciplinaById(id: number) {
+    return this.db.query.disciplinaTable.findFirst({
+      where: eq(disciplinaTable.id, id),
+    })
+  }
+
+  async upsertEnderecoForAluno(
+    alunoId: number,
+    patch: {
+      rua: string
+      numero?: number | null
+      bairro: string
+      cidade: string
+      estado: string
+      cep: string
+      complemento?: string | null
+    }
+  ): Promise<number> {
+    const aluno = await this.db.query.alunoTable.findFirst({ where: eq(alunoTable.id, alunoId) })
+    if (!aluno) throw new Error('Aluno não encontrado ao atualizar endereço')
+
+    if (aluno.enderecoId) {
+      await this.db
+        .update(enderecoTable)
+        .set({
+          rua: patch.rua,
+          numero: patch.numero ?? null,
+          bairro: patch.bairro,
+          cidade: patch.cidade,
+          estado: patch.estado,
+          cep: patch.cep,
+          complemento: patch.complemento ?? null,
+        })
+        .where(eq(enderecoTable.id, aluno.enderecoId))
+      return aluno.enderecoId
+    }
+
+    const [inserted] = await this.db
+      .insert(enderecoTable)
+      .values({
+        rua: patch.rua,
+        numero: patch.numero ?? null,
+        bairro: patch.bairro,
+        cidade: patch.cidade,
+        estado: patch.estado,
+        cep: patch.cep,
+        complemento: patch.complemento ?? null,
+      })
+      .returning({ id: enderecoTable.id })
+
+    await this.db.update(alunoTable).set({ enderecoId: inserted.id }).where(eq(alunoTable.id, alunoId))
+    return inserted.id
+  }
+
+  async updateAlunoProfile(
+    alunoId: number,
+    patch: Partial<{
+      nomeCompleto: string
+      nomeSocial: string | null
+      cpf: string
+      rg: string
+      dataNascimento: Date
+      genero: 'MASCULINO' | 'FEMININO' | 'OUTRO'
+      telefone: string
+      telefoneFixo: string | null
+      cursoNome: string
+      banco: string | null
+      agencia: string | null
+      conta: string | null
+      digitoConta: string | null
+    }>
+  ) {
+    const hasAnyField = Object.values(patch).some((v) => v !== undefined)
+    if (!hasAnyField) return
+    await this.db.update(alunoTable).set(patch).where(eq(alunoTable.id, alunoId))
+  }
+
+  async updateInscricaoSignatureMetadata(
+    inscricaoId: number,
+    patch: {
+      assinaturaAlunoFileId: string
+      dataAssinaturaAluno: Date
+      localAssinaturaAluno: string
+      cursouComponente: boolean
+      disciplinaEquivalenteId: number | null
+    }
+  ) {
+    await this.db
+      .update(inscricaoTable)
+      .set({
+        assinaturaAlunoFileId: patch.assinaturaAlunoFileId,
+        dataAssinaturaAluno: patch.dataAssinaturaAluno,
+        localAssinaturaAluno: patch.localAssinaturaAluno,
+        cursouComponente: patch.cursouComponente,
+        disciplinaEquivalenteId: patch.disciplinaEquivalenteId,
+      })
+      .where(eq(inscricaoTable.id, inscricaoId))
   }
 
   async findProfessorByUserId(userId: number) {
@@ -369,10 +480,12 @@ export class InscricaoRepository {
   }
 
   async createDocumentos(inscricaoId: number, documentos: DocumentoData[]) {
+    if (documentos.length === 0) return
     const documentosToInsert = documentos.map((doc) => ({
       inscricaoId,
       fileId: doc.fileId,
       tipoDocumento: doc.tipoDocumento,
+      assinadoPorUserId: doc.assinadoPorUserId ?? null,
     }))
     return this.db.insert(inscricaoDocumentoTable).values(documentosToInsert)
   }

@@ -50,6 +50,8 @@ export * from './student'
 // Core business domains
 export * from './edital'
 export * from './inscription'
+export * from './inscricao-document'
+export * from './inscricao-pdf-inputs'
 export * from './project'
 
 // Document and signature management

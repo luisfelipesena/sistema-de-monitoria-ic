@@ -16,6 +16,7 @@ import {
   rejectInscriptionSchema,
   semestreSchema,
   statusInscricaoSchema,
+  tipoDocumentoInscricaoSchema,
   tipoVagaSchema,
   type TipoVaga,
 } from '@/types'
@@ -106,42 +107,6 @@ export const inscricaoRouter = createTRPCRouter({
       try {
         const service = createInscricaoService(ctx.db)
         return await service.getMyStatus(ctx.user.id, ctx.user.role)
-      } catch (error) {
-        throw transformError(error)
-      }
-    }),
-
-  // Security: Student-only endpoint
-  createInscricao: studentProtectedProcedure
-    .meta({
-      openapi: {
-        method: 'POST',
-        path: '/inscricao/create',
-        tags: ['inscricao'],
-        summary: 'Create application',
-        description: 'Create new application for monitoring project (students only)',
-      },
-    })
-    .input(
-      z.object({
-        projetoId: idSchema,
-        tipo: tipoVagaSchema,
-        motivacao: z.string().min(10, 'Motivação deve ter pelo menos 10 caracteres'),
-        documentos: z
-          .array(
-            z.object({
-              fileId: z.string(),
-              tipoDocumento: z.string(),
-            })
-          )
-          .optional(),
-      })
-    )
-    .output(z.object({ success: z.boolean(), inscricaoId: idSchema }))
-    .mutation(async ({ input, ctx }) => {
-      try {
-        const service = createInscricaoService(ctx.db)
-        return await service.createInscricao(ctx.user.id, ctx.user.role, input)
       } catch (error) {
         throw transformError(error)
       }
@@ -247,11 +212,47 @@ export const inscricaoRouter = createTRPCRouter({
       },
     })
     .input(inscriptionFormSchema)
-    .output(z.object({ id: idSchema, message: z.string() }))
+    .output(z.object({ id: idSchema, message: z.string(), combinedPdfFileId: z.string() }))
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createInscricaoService(ctx.db)
         return await service.criarInscricao(ctx.user.id, ctx.user.role, input)
+      } catch (error) {
+        throw transformError(error)
+      }
+    }),
+
+  // Documentos gerados + uploadados, com presigned URLs. Autorização: dono / professor / admin.
+  getInscricaoDocumentos: protectedProcedure
+    .input(z.object({ inscricaoId: idSchema }))
+    .output(
+      z.array(
+        z.object({
+          id: idSchema,
+          fileId: z.string(),
+          tipoDocumento: tipoDocumentoInscricaoSchema,
+          createdAt: z.date(),
+          presignedUrl: z.string().nullable(),
+        })
+      )
+    )
+    .query(async ({ input, ctx }) => {
+      try {
+        const service = createInscricaoService(ctx.db)
+        return await service.getInscricaoDocumentos(ctx.user.id, ctx.user.role, input.inscricaoId)
+      } catch (error) {
+        throw transformError(error)
+      }
+    }),
+
+  // Re-gera PDFs (usa a assinatura já armazenada). Student-only.
+  regenerateDocumentos: studentProtectedProcedure
+    .input(z.object({ inscricaoId: idSchema }))
+    .output(z.object({ success: z.boolean(), combinedPdfFileId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const service = createInscricaoService(ctx.db)
+        return await service.regenerateDocumentos(ctx.user.id, ctx.user.role, input.inscricaoId)
       } catch (error) {
         throw transformError(error)
       }
