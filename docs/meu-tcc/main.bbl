@@ -4,6 +4,10 @@
 Brasil (1996).
 \newblock Lei nº 9.394, de 20 de dezembro de 1996. estabelece as diretrizes e bases da educação nacional.
 
+\bibitem[Brasil, 2018]{LGPD2018}
+Brasil (2018).
+\newblock Lei nº 13.709, de 14 de agosto de 2018. lei geral de proteção de dados pessoais (lgpd).
+
 \bibitem[Braun and Clarke, 2006]{braun2006using}
 Braun, V. and Clarke, V. (2006).
 \newblock Using thematic analysis in psychology.
@@ -12,7 +16,7 @@ Braun, V. and Clarke, V. (2006).
 \bibitem[Dantas, 2014]{Dantas2014}
 Dantas, O.~M. (2014).
 \newblock Monitoria: fonte de saberes à docência superior.
-\newblock {\em Revista Brasileira de Estudos Pedagógicos}, 95(241):567--589.
+\newblock {\em Revista Brasileira de Estudos Pedagógicos}, 95(241):567--589. DOI: 10.1590/S2176-6681/319611887.
 
 \bibitem[Davenport, 1993]{Davenport1993}
 Davenport, T.~H. (1993).
@@ -23,10 +27,15 @@ Davenport, T.~H. (1993).
 de~S.Paulo, F. (2024).
 \newblock Ranking universitário folha (ruf) 2024.
 
+\bibitem[Fowler, 2002]{Fowler2002}
+Fowler, M. (2002).
+\newblock {\em Patterns of Enterprise Application Architecture}.
+\newblock Addison-Wesley, Boston, MA.
+
 \bibitem[Frison, 2016]{Frison2016}
 Frison, L. M.~B. (2016).
 \newblock Monitoria: uma modalidade de ensino que potencializa a aprendizagem colaborativa e autorregulada.
-\newblock {\em Pro-Posições}, 27(1):133--153.
+\newblock {\em Pro-Posições}, 27(1):133--153. DOI: 10.1590/0103-7307201607908.
 
 \bibitem[Hammer and Champy, 1993]{Hammer1993}
 Hammer, M. and Champy, J. (1993).
@@ -48,10 +57,20 @@ Machado, M.~B. (2023).
 \newblock Ic-requests: um sistema sensível ao contexto para suporte a solicitações acadêmicas.
 \newblock Trabalho de conclusão de curso (graduação em ciência da computação), Universidade Federal da Bahia, Salvador, BA.
 
+\bibitem[Martin, 2017]{Martin2017}
+Martin, R.~C. (2017).
+\newblock {\em Clean Architecture: A Craftsman's Guide to Software Structure and Design}.
+\newblock Prentice Hall, Upper Saddle River, NJ.
+
 \bibitem[Natário and Santos, 2010]{Natario2010}
 Natário, E.~G. and Santos, A. A. A.~d. (2010).
 \newblock Programa de monitores para o ensino superior.
-\newblock {\em Estudos de Psicologia}, 27(3):355--364.
+\newblock {\em Estudos de Psicologia}, 27(3):355--364. DOI: 10.1590/S0103-166X2010000300006.
+
+\bibitem[Newman, 2015]{Newman2015}
+Newman, S. (2015).
+\newblock {\em Building Microservices: Designing Fine-Grained Systems}.
+\newblock O'Reilly Media, Sebastopol, CA.
 
 \bibitem[Nielsen, 1994]{nielsen1994usability}
 Nielsen, J. (1994).

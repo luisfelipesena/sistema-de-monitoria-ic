@@ -3,48 +3,44 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: main.aux
 The style file: apalike-sol.bst
 Database file #1: references.bib
-Warning--empty doi in Dantas2014
-Warning--empty doi in Frison2016
-Warning--empty doi in Natario2010
-You've used 20 entries,
+You've used 24 entries,
             1961 wiz_defined-function locations,
-            593 strings with 6629 characters,
-and the built_in function-call counts, 5832 in all, are:
-= -- 585
-> -- 175
-< -- 19
-+ -- 52
-- -- 52
-* -- 425
-:= -- 1097
-add.period$ -- 54
-call.type$ -- 20
-change.case$ -- 127
-chr.to.int$ -- 20
-cite$ -- 23
-duplicate$ -- 240
-empty$ -- 414
-format.name$ -- 80
-if$ -- 1107
+            620 strings with 7193 characters,
+and the built_in function-call counts, 6905 in all, are:
+= -- 687
+> -- 203
+< -- 23
++ -- 60
+- -- 60
+* -- 494
+:= -- 1303
+add.period$ -- 65
+call.type$ -- 24
+change.case$ -- 148
+chr.to.int$ -- 24
+cite$ -- 24
+duplicate$ -- 292
+empty$ -- 498
+format.name$ -- 92
+if$ -- 1315
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 14
-newline$ -- 97
-num.names$ -- 60
-pop$ -- 96
+missing$ -- 20
+newline$ -- 116
+num.names$ -- 72
+pop$ -- 121
 preamble$ -- 1
-purify$ -- 126
+purify$ -- 150
 quote$ -- 0
-skip$ -- 193
+skip$ -- 232
 stack$ -- 0
-substring$ -- 337
-swap$ -- 9
+substring$ -- 385
+swap$ -- 12
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 110
-warning$ -- 3
-while$ -- 48
+type$ -- 128
+warning$ -- 0
+while$ -- 56
 width$ -- 0
-write$ -- 247
-(There were 3 warnings)
+write$ -- 299
