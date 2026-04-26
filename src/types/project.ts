@@ -101,7 +101,9 @@ export interface ManageProjectItem {
   id: number
   titulo: string
   status: string
+  departamentoId: number | null
   departamentoNome: string | null
+  departamentoSigla?: string | null
   semestre: string
   ano: number
   bolsasDisponibilizadas?: number | null | undefined
@@ -421,6 +423,7 @@ export const projectListItemSchema = z.object({
   titulo: z.string(),
   departamentoId: z.number().int().positive().nullable(),
   departamentoNome: z.string().nullable(),
+  departamentoSigla: z.string().nullable().optional(),
   professorResponsavelId: z.number().int().positive(),
   professorResponsavelNome: z.string(),
   status: z.string(),

@@ -4,6 +4,20 @@ import * as XLSX from 'xlsx'
 const log = logger.child({ context: 'PlanejamentoDCCParser' })
 const HEADER_DISCIPLINA_MARKER = 'DISCIPLINA' as const
 
+function normalizeHeader(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+    .trim()
+}
+
+function hasHeaderToken(value: string, tokens: string[]): boolean {
+  const normalized = normalizeHeader(value)
+  return tokens.some((token) => normalized.includes(normalizeHeader(token)))
+}
+
 export interface PlanejamentoDCCRow {
   disciplinaCodigo: string
   disciplinaNome: string
@@ -74,8 +88,8 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
     for (let i = 0; i < Math.min(10, data.length); i++) {
       const row = data[i]
       if (Array.isArray(row) && row.length > 0) {
-        const firstCol = String(row[0] || '').toUpperCase()
-        if (firstCol.includes(HEADER_DISCIPLINA_MARKER)) {
+        const firstCol = String(row[0] || '')
+        if (hasHeaderToken(firstCol, [HEADER_DISCIPLINA_MARKER])) {
           headerIndex = i
           break
         }
@@ -91,14 +105,16 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
     log.info({ headerIndex, headers }, 'Header encontrado')
 
     // Identificar índices das colunas importantes
-    const disciplinaIdx = headers.findIndex((h) => String(h).toUpperCase().includes('DISCIPLINA'))
+    const disciplinaIdx = headers.findIndex((h) => hasHeaderToken(String(h), ['disciplina']))
     const nomeIdx = headers.findIndex((h) => {
-      const h_upper = String(h).toUpperCase()
-      return h_upper.includes('NOME') && h_upper.includes('DISCIPLINA')
+      const normalized = normalizeHeader(String(h))
+      return normalized.includes('nome') && normalized.includes('disciplina')
     })
     const docenteIdx = headers.length - 1 // Última coluna
-    const chIdx = headers.findIndex((h) => String(h).toUpperCase() === 'CH')
-    const deptoIdx = headers.findIndex((h) => String(h).toUpperCase().includes('DEPARTAMENTO'))
+    const chIdx = headers.findIndex((h) => normalizeHeader(String(h)) === 'ch')
+    const deptoIdx = headers.findIndex((h) =>
+      hasHeaderToken(String(h), ['departamento', 'depto', 'departamento responsavel'])
+    )
     if (disciplinaIdx === -1 || docenteIdx === -1) {
       errors.push(`Colunas obrigatórias não encontradas. Disciplina: ${disciplinaIdx}, Docente: ${docenteIdx}`)
       return { rows, errors, warnings }

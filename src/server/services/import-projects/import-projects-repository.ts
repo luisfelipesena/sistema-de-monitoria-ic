@@ -15,7 +15,7 @@ import {
 import type { Semestre } from '@/types'
 import { findMatchingProfessors } from '@/utils/string-normalization'
 import type { InferInsertModel } from 'drizzle-orm'
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
+import { and, desc, eq, ilike, inArray, isNull } from 'drizzle-orm'
 
 type Database = typeof db
 
@@ -258,14 +258,14 @@ export function createImportProjectsRepository(db: Database) {
     async findDepartamentoByNome(nome: string) {
       const { departamentoTable } = await import('@/server/db/schema')
       return db.query.departamentoTable.findFirst({
-        where: eq(departamentoTable.nome, nome),
+        where: ilike(departamentoTable.nome, nome.trim()),
       })
     },
 
     async findDepartamentoBySigla(sigla: string) {
       const { departamentoTable } = await import('@/server/db/schema')
       return db.query.departamentoTable.findFirst({
-        where: eq(departamentoTable.sigla, sigla),
+        where: ilike(departamentoTable.sigla, sigla.trim()),
       })
     },
 

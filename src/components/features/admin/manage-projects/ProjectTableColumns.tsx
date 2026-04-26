@@ -34,6 +34,7 @@ interface ColumnActions {
   loadingPdfProjetoId: number | null
   isDeletingProject: boolean
   disciplinaFilterOptions?: { value: string; label: string }[]
+  departamentoFilterOptions?: { value: string; label: string }[]
 }
 
 // Filter options
@@ -46,6 +47,8 @@ const statusFilterOptions = [
 ]
 
 export function createProjectColumns(actions: ColumnActions, groupedView: boolean): ColumnDef<ManageProjectItem>[] {
+  const departamentoFilterOptions = actions.departamentoFilterOptions ?? []
+
   return [
     {
       header: createFilterableHeader<ManageProjectItem>({
@@ -79,31 +82,20 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
         )
       },
     },
-        
-
-      //header: createFilterableHeader<ManageProjectItem>({
-
-      //  title: "Dpto",
-
-      //  filterType: "multiselect",
-
-      //  filterPlaceholder: "DCC, DCI...",
-
-      //}),
-
-      //accessorKey: "departamentoSigla",
-
-      //cell: ({ row }) => (
-
-       // <span className="font-medium text-gray-600">
-
-         // {row.original.departamentoSigla || "-"}
-
-       // </span>
-
-      //),
-
-    //},
+    {
+      header: createFilterableHeader<ManageProjectItem>({
+        title: "Departamento",
+        filterType: "multiselect",
+        filterOptions: departamentoFilterOptions,
+      }),
+      accessorKey: "departamentoId",
+      filterFn: multiselectFilterFn,
+      cell: ({ row }) => {
+        const departamentoValue = row.original.departamentoId != null ? String(row.original.departamentoId) : null
+        const departamentoLabel = departamentoFilterOptions.find((opt) => opt.value === departamentoValue)?.label
+        return <span className="font-medium text-gray-600">{departamentoLabel ?? row.original.departamentoSigla ?? "-"}</span>
+      },
+    },
     {
       header: createFilterableHeader<ManageProjectItem>({
         title: "Status",
@@ -222,3 +214,4 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
     },
   ]
 }
+
