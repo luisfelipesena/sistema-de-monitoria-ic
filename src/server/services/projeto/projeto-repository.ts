@@ -33,6 +33,7 @@ export interface ProjetoFilters {
   disciplina?: string // LIKE search on disciplina codigo or nome
   professorNome?: string // LIKE search on professor name
   departamentoId?: number
+  departamento?: string
   limit?: number
   offset?: number
 }
@@ -63,6 +64,7 @@ export function createProjetoRepository(db: Database) {
           titulo: projetoTable.titulo,
           departamentoId: projetoTable.departamentoId,
           departamentoNome: departamentoTable.nome,
+          departamentoSigla: departamentoTable.sigla,
           professorResponsavelId: projetoTable.professorResponsavelId,
           professorResponsavelNome: professorTable.nomeCompleto,
           status: projetoTable.status,
@@ -174,6 +176,18 @@ export function createProjetoRepository(db: Database) {
         conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
       }
 
+      // Filter by departamento nome OU sigla (ILIKE)
+      if (filters.departamento) {
+        const search = `%${filters.departamento}%`
+
+        conditions.push(
+          or(
+            ilike(departamentoTable.nome, search),
+            ilike(departamentoTable.sigla, search)
+          ) as SQL
+        )
+      }
+
       // Filter by disciplina code/name OR professor name (SQL-level, before pagination)
       if (filters.disciplina) {
         const search = `%${filters.disciplina}%`
@@ -267,6 +281,17 @@ export function createProjetoRepository(db: Database) {
       if (filters.departamentoId) {
         conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
       }
+      // Filter by departamento nome OU sigla (ILIKE)
+      if (filters.departamento) {
+        const search = `%${filters.departamento}%`
+
+        conditions.push(
+          or(
+            ilike(departamentoTable.nome, search),
+            ilike(departamentoTable.sigla, search)
+          ) as SQL
+        )
+      }
 
       // Same EXISTS pattern as findAllFiltered for consistency
       if (filters.disciplina) {
@@ -301,6 +326,7 @@ export function createProjetoRepository(db: Database) {
           titulo: projetoTable.titulo,
           descricao: projetoTable.descricao,
           departamentoNome: departamentoTable.nome,
+          departamentoSigla: departamentoTable.sigla,
           professorResponsavelNome: professorTable.nomeCompleto,
           ano: projetoTable.ano,
           semestre: projetoTable.semestre,
