@@ -160,6 +160,7 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
             titulo: projeto.titulo,
             descricao: projeto.descricao,
             departamentoNome: projeto.departamentoNome,
+            departamentoSigla: projeto.departamentoSigla,
             professorResponsavelNome: projeto.professorResponsavelNome,
             ano: projeto.ano,
             semestre: projeto.semestre,

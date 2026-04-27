@@ -57,6 +57,20 @@ const disciplinaFilterFn: FilterFn<DashboardProjectItem> = (row, columnId, filte
   )
 }
 
+const departamentoFilterFn: FilterFn<DashboardProjectItem> = (row, columnId, filterValue) => {
+  if (!filterValue || filterValue === "") return true
+
+  const searchValue = String(filterValue).toLowerCase()
+
+  const nome = row.original.departamentoNome ?? ""
+  const sigla = row.original.departamentoSigla ?? ""
+
+  return (
+    nome.toLowerCase().includes(searchValue) ||
+    sigla.toLowerCase().includes(searchValue)
+  )
+}
+
 export function ProjectsTable({
   projetos,
   deletingProjetoId,
@@ -110,6 +124,17 @@ export function ProjectsTable({
           )
         },
       },
+
+      {
+        header: () => <div className="text-center">Departamento</div>,
+        accessorKey: "departamentoSigla",
+        cell: ({ row }) => (
+          <div className="text-center font-medium">
+            {row.original.departamentoSigla ?? "—"}
+          </div>
+        ),
+      },
+
       {
         header: createFilterableHeader<DashboardProjectItem>({
           title: "Status",

@@ -80,6 +80,17 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
       },
     },
     {
+      id: "departamento",
+      header: () => <div className="text-center">Departamento</div>,
+      accessorKey: "departamentoSigla",
+      size: 120,
+      cell: ({ row }) => (
+        <div className="text-center font-medium">
+          {row.original.departamentoSigla ?? "—"}
+        </div>
+      ),
+    },
+    {
       header: createFilterableHeader<ManageProjectItem>({
         title: "Status",
         filterType: "multiselect",
