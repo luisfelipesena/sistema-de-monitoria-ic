@@ -130,8 +130,7 @@ export default function InscricaoMonitoria() {
     try {
       await createInscricao.mutateAsync({
         projetoId: data.projetoId,
-        tipoVagaPretendida:
-          data.tipoVagaPretendida === TIPO_VAGA_LABELS.BOLSISTA ? TIPO_VAGA_BOLSISTA : TIPO_VAGA_VOLUNTARIO,
+        tipoVagaPretendida: data.tipoVagaPretendida,
       })
     } catch (error) {
       // Error handling is done in the mutation onError
@@ -141,6 +140,16 @@ export default function InscricaoMonitoria() {
   const openInscricaoDialog = (projeto: any) => {
     setSelectedProjeto(projeto)
     form.setValue("projetoId", projeto.id)
+
+    const hasBolsa = (projeto.bolsasDisponibilizadas ?? 0) > 0
+    const hasVoluntario = (projeto.voluntariosSolicitados ?? 0) > 0
+
+    if (hasBolsa) {
+      form.setValue("tipoVagaPretendida", TIPO_VAGA_BOLSISTA)
+    } else if (hasVoluntario) {
+      form.setValue("tipoVagaPretendida", TIPO_VAGA_VOLUNTARIO)
+    }
+
     setDialogOpen(true)
   }
 
@@ -368,8 +377,8 @@ export default function InscricaoMonitoria() {
                 <SelectContent>
                   {(selectedProjeto?.bolsasDisponibilizadas ?? 0) > 0 && (
                     <SelectItem value={TIPO_VAGA_BOLSISTA}>
-                      Bolsista ({selectedProjeto.bolsasDisponibilizadas} disponível
-                      {selectedProjeto.bolsasDisponibilizadas !== 1 ? "is" : ""})
+                      Bolsista ({selectedProjeto.bolsasDisponibilizadas} vaga
+                      {selectedProjeto.bolsasDisponibilizadas !== 1 ? "s" : ""})
                     </SelectItem>
                   )}
                   {(selectedProjeto?.voluntariosSolicitados ?? 0) > 0 && (
