@@ -49,8 +49,9 @@ export function createEditalPdfService(repo: EditalRepository) {
           edital.linkFormularioInscricao || `${env.NEXT_PUBLIC_APP_URL}/student/inscricao-monitoria`,
         dataDivulgacao: edital.dataDivulgacaoResultado?.toISOString(),
         chefeResponsavel: {
-          nome: 'Prof. Dr. [Nome do Chefe]',
+          nome: 'Chefe do Departamento de Ciência da Computação',
           cargo: 'Chefe do Departamento de Ciência da Computação',
+          assinatura: edital.chefeAssinatura || undefined,
         },
         disciplinas: projetos.map((projeto) => ({
           codigo: projeto.disciplinas[0]?.disciplina.codigo || 'MON',

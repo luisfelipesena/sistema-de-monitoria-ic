@@ -172,6 +172,13 @@ const styles = StyleSheet.create({
     marginTop: 30,
     alignItems: "center",
   },
+  signatureImage: {
+    width: 150,
+    height: 50,
+    marginTop: 10,
+    marginBottom: 5,
+    objectFit: "contain",
+  },
   signatureName: {
     fontSize: 10,
     fontFamily: "Helvetica-Bold",
@@ -225,6 +232,7 @@ export interface EditalInternoData {
   chefeResponsavel?: {
     nome: string
     cargo: string
+    assinatura?: string // Base64 data URL da assinatura
   }
   disciplinas: Array<{
     codigo: string
@@ -685,6 +693,9 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
         {/* Signature */}
         <View style={styles.signature}>
           <Text style={styles.textNoIndent}>Salvador, {formatDateExtended(data.periodoInscricao.dataInicio)}.</Text>
+          {data.chefeResponsavel?.assinatura && (
+            <Image src={data.chefeResponsavel.assinatura} style={styles.signatureImage} />
+          )}
           <Text style={styles.signatureName}>{data.chefeResponsavel?.nome || "Chefe do Departamento"}</Text>
           <Text style={styles.signatureTitle}>
             {data.chefeResponsavel?.cargo || "Chefe do Departamento de Ciência da Computação"}

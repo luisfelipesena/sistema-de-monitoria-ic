@@ -79,12 +79,6 @@ Sistema completo para gerenciamento de programas de monitoria acadêmica da UFBA
 <<<<<<< HEAD
 <<<<<<< HEAD
 [Diagrama da Arquitetura](https://docs.google.com/presentation/d/1XnN4WE_xpnN4NS-1hLHdaVivDtbAuN0l97IwUsy6Olc/edit?usp=sharing)
-=======
-[Flowcharts](https://docs.google.com/presentation/d/1XnN4WE_xpnN4NS-1hLHdaVivDtbAuN0l97IwUsy6Olc/edit?usp=sharing)
->>>>>>> feb76032a00e880b3a0eebdc823cccc0bccf47e5
-=======
-[Diagrama da Arquitetura do Sistema de Monitoria](https://docs.google.com/presentation/d/1XnN4WE_xpnN4NS-1hLHdaVivDtbAuN0l97IwUsy6Olc/edit?usp=sharing)
->>>>>>> 23061ddb1f7c62325a6c92ad36a06c4105bb2b73
 ### Backend - 3 Layer Pattern
 
 ```
