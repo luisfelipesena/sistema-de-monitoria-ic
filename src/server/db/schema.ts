@@ -131,6 +131,17 @@ export const tipoDocumentoProjetoEnum = pgEnum('tipo_documento_projeto_enum', [
   'ATA_SELECAO',
 ])
 
+export const tipoDocumentoInscricaoEnum = pgEnum('tipo_documento_inscricao_enum', [
+  'RG',
+  'CPF',
+  'HISTORICO_ESCOLAR',
+  'COMPROVANTE_MATRICULA',
+  'ANEXO_III_BOLSISTA',
+  'ANEXO_IV_VOLUNTARIO',
+  'ANEXO_I_TERMO_COMPROMISSO',
+  'COMPROVANTE_INSCRICAO_COMBINADO',
+])
+
 export const tipoAssinaturaEnum = pgEnum('tipo_assinatura_enum', [
   'PROJETO_PROFESSOR_RESPONSAVEL',
   'TERMO_COMPROMISSO_ALUNO',
@@ -401,6 +412,8 @@ export const alunoTable = pgTable('aluno', {
   cpf: varchar('cpf').unique(), // Make unique
   cr: real('CR'),
   telefone: varchar('telefone'),
+  telefoneFixo: varchar('telefone_fixo'),
+  dataNascimento: date('data_nascimento', { mode: 'date' }),
   // Dados Bancários para Bolsistas
   banco: varchar('banco', { length: 100 }),
   agencia: varchar('agencia', { length: 20 }),
@@ -519,6 +532,13 @@ export const inscricaoTable = pgTable('inscricao', {
   coeficienteRendimento: decimal('cr', { precision: 4, scale: 2 }),
   notaFinal: decimal('nota_final', { precision: 4, scale: 2 }),
   feedbackProfessor: text('feedback_professor'), // Reason for selection/rejection
+  // Declaração Anexo IV §3.1 / §3.2.1: aluno cursou o componente? Se não, informar equivalente
+  cursouComponente: boolean('cursou_componente'),
+  disciplinaEquivalenteId: integer('disciplina_equivalente_id').references(() => disciplinaTable.id),
+  // Assinatura digital do monitor no momento da inscrição (Anexos I, III, IV)
+  assinaturaAlunoFileId: text('assinatura_aluno_file_id'),
+  dataAssinaturaAluno: timestamp('data_assinatura_aluno', { withTimezone: true, mode: 'date' }),
+  localAssinaturaAluno: varchar('local_assinatura_aluno', { length: 120 }),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',
@@ -543,8 +563,8 @@ export const inscricaoDocumentoTable = pgTable('inscricao_documento', {
     .references(() => inscricaoTable.id, { onDelete: 'cascade' })
     .notNull(),
   fileId: text('file_id').notNull(), // Unique identifier for the uploaded document in the object storage
-  tipoDocumento: text('tipo_documento').notNull(), // e.g., 'HISTORICO_ESCOLAR'
-  // validado: boolean('validado'), // Potentially handled by admin/professor review
+  tipoDocumento: tipoDocumentoInscricaoEnum('tipo_documento').notNull(),
+  assinadoPorUserId: integer('assinado_por_user_id').references(() => userTable.id), // Who signed (for generated anexos)
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'date',

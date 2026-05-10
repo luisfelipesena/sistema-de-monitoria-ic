@@ -421,6 +421,13 @@
       "when": 1770904378825,
       "tag": "0058_far_ozymandias",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1776874221170,
+      "tag": "0059_inscricao_wizard",
+      "breakpoints": true
     }
   ]
 }

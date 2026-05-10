@@ -1,3 +1,4 @@
+import { alunoRouter } from '@/server/api/routers/aluno/aluno'
 import { analyticsRouter } from '@/server/api/routers/analytics/analytics'
 import { apiKeyRouter } from '@/server/api/routers/api-key/api-key'
 import { auditRouter } from '@/server/api/routers/audit/audit'
@@ -31,6 +32,7 @@ import { createTRPCRouter } from './trpc'
 export const appRouter = createTRPCRouter({
   auth: authRouter,
   me: meRouter,
+  aluno: alunoRouter,
   discipline: disciplineRouter,
   file: fileRouter,
   onboarding: onboardingRouter,

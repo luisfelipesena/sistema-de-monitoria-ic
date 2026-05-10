@@ -16,7 +16,9 @@ import {
   UserRole,
   WAITING_LIST,
 } from './enums'
+import { tipoDocumentoInscricaoSchema } from './inscricao-document'
 import { idSchema } from './schemas'
+import { alunoProfilePatchSchema } from './student'
 
 // ========================================
 // INSCRIPTION TYPES
@@ -168,18 +170,36 @@ export const createInscriptionSchema = z.object({
   feedbackProfessor: z.string().optional(),
 })
 
-export const inscriptionFormSchema = z.object({
-  projetoId: idSchema,
-  tipoVagaPretendida: tipoInscricaoSchema.optional(),
-  documentos: z
-    .array(
-      z.object({
-        fileId: z.string(),
-        tipoDocumento: z.string(),
-      })
-    )
-    .optional(),
-})
+export const inscriptionFormSchema = z
+  .object({
+    projetoId: idSchema,
+    tipoVagaPretendida: tipoInscricaoSchema,
+    // §3.1 Anexo IV / §3.1 Anexo III: cursou o componente?
+    cursouComponente: z.boolean(),
+    // §3.2.1: se não cursou, qual a disciplina equivalente
+    disciplinaEquivalenteId: idSchema.optional(),
+    // Assinatura digital do aluno (data URL base64)
+    signatureDataUrl: z
+      .string()
+      .startsWith('data:image/', { message: 'Assinatura inválida' })
+      .refine((s) => s.length > 100, { message: 'Assinatura muito curta' }),
+    localAssinatura: z.string().min(1).default('Salvador'),
+    // Documentos uploadados (RG, CPF, Histórico; Comprovante de Matrícula opcional se já no perfil)
+    uploadedDocuments: z
+      .array(
+        z.object({
+          fileId: z.string().min(1),
+          tipoDocumento: tipoDocumentoInscricaoSchema,
+        })
+      )
+      .min(3, 'Envie pelo menos RG, CPF e Histórico Escolar'),
+    // Se o perfil do aluno estiver incompleto, permite completar aqui
+    profilePatch: alunoProfilePatchSchema.optional(),
+  })
+  .refine((d) => d.cursouComponente || !!d.disciplinaEquivalenteId, {
+    message: 'Informe a disciplina equivalente cursada',
+    path: ['disciplinaEquivalenteId'],
+  })
 
 export const acceptInscriptionSchema = z.object({
   inscricaoId: idSchema,
