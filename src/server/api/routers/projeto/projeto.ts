@@ -110,7 +110,8 @@ export const projetoRouter = createTRPCRouter({
             offset: input.offset,
           },
           //ctx.user.adminType
-          ctx.user.id
+          ctx.user.id,
+          ctx.user.role
         )
       } catch (error) {
         return handleServiceError(error, 'Erro ao recuperar projetos filtrados')

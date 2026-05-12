@@ -11,35 +11,20 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
     async getProjetos(userId: number, userRole: UserRole) {
       let projetosRaw: Awaited<ReturnType<typeof repo.findByProfessorId | typeof repo.findAll>>
 
-      // Busca o perfil do professor para obter o departamento vinculado
       const professor = await repo.findProfessorByUserId(userId)
 
       if (isAdmin(userRole)) {
-        // Filtra pelo departamentoId do admin logado
-        projetosRaw = await repo.findAll(professor?.departamentoId ?? undefined)
+        if (!professor || !professor.departamentoId) {
+          throw new ForbiddenError('Usuário administrador deve possuir um perfil de professor e um departamento vinculado para acessar os projetos.')
+        }
+        
+        projetosRaw = await repo.findAll(professor.departamentoId)
       } else if (isProfessor(userRole)) {
         if (!professor) return []
         projetosRaw = await repo.findByProfessorId(professor.id)
       } else {
         return []
       }
-    /*async getProjetos(userId: number, userRole: UserRole, adminType?: AdminType | null) {
-      let projetosRaw: Awaited<ReturnType<typeof repo.findByProfessorId | typeof repo.findAll>>
-
-      if (isAdmin(userRole)) {
-        // Admin sees projects from their department (DCC or DCI)
-        projetosRaw = await repo.findAll(adminType)
-      } else if (isProfessor(userRole)) {
-        // Professor sees only their own projects
-        const professor = await repo.findProfessorByUserId(userId)
-        if (!professor) {
-          return []
-        }
-        projetosRaw = await repo.findByProfessorId(professor.id)
-      } else {
-        // Students shouldn't access this, but return empty if they do
-        return []
-      }*/
 
       const [inscricoesCount, editais] = await Promise.all([repo.getInscricoesCount(), repo.findEditaisByPeriodos()])
 
@@ -144,9 +129,7 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       }
     },
 
-    async getAvailableProjects(userId: number, userRole: UserRole) {
-      // 1. Identifica o departamento caso o usuário seja um Professor/Admin
-      // O relacionamento é User -> Professor -> departamentoId
+    async getAvailableProjects(userId: number, _userRole: UserRole) {
       const professor = await repo.findProfessorByUserId(userId)
       const userDeptoId = professor?.departamentoId ?? undefined
 
@@ -159,12 +142,8 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
 
       const periodoAtivo = await repo.findActivePeriodo(currentYear, currentSemester, now)
       
-      // 3. Modificação principal: Passamos o userDeptoId para o repositório.
-      // Se for Admin, findApprovedByPeriod filtrará pelo departamento.
-      // Se for Aluno (userDeptoId será undefined), listará todos os projetos do período.
       const projetos = await repo.findApprovedByPeriod(currentYear, currentSemester, userDeptoId)
 
-      // 4. Busca inscrições do aluno (se o usuário logado for um aluno)
       const inscricoes = aluno ? await repo.findInscricoesByAlunoId(aluno.id) : []
       const inscricoesMap = new Map(inscricoes.map((i) => [i.projetoId, i]))
 
@@ -205,59 +184,6 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       log.info({ deptoId: userDeptoId }, 'Projetos disponíveis recuperados com sucesso')
       return projetosComDisciplinas
     },
-    /*async getAvailableProjects(userId: number, _userRole: UserRole) {
-      const aluno = await repo.findAlunoByUserId(userId)
-      if (!aluno) {
-        throw new NotFoundError('Aluno', userId)
-      }
-
-      const now = new Date()
-      const currentYear = now.getFullYear()
-      const currentSemester = now.getMonth() < 6 ? SEMESTRE_1 : SEMESTRE_2
-
-      const periodoAtivo = await repo.findActivePeriodo(currentYear, currentSemester, now)
-      const projetos = await repo.findApprovedByPeriod(currentYear, currentSemester)
-
-      const inscricoes = await repo.findInscricoesByAlunoId(aluno.id)
-      const inscricoesMap = new Map(inscricoes.map((i) => [i.projetoId, i]))
-
-      const inscricoesCountAll = await repo.getInscricoesCount()
-      const inscricoesCountMap = new Map(inscricoesCountAll.map((i) => [i.projetoId, Number(i.count)]))
-
-      const projetosComDisciplinas = await Promise.all(
-        projetos.map(async (projeto) => {
-          const disciplinas = await repo.findDisciplinasByProjetoId(projeto.id)
-          const totalInscritos = inscricoesCountMap.get(projeto.id) || 0
-          const inscricaoAberta = !!periodoAtivo
-          const jaInscrito = inscricoesMap.has(projeto.id)
-
-          return {
-            id: projeto.id,
-            titulo: projeto.titulo,
-            descricao: projeto.descricao,
-            departamentoNome: projeto.departamentoNome,
-            departamentoSigla: projeto.departamentoSigla,
-            professorResponsavelNome: projeto.professorResponsavelNome,
-            ano: projeto.ano,
-            semestre: projeto.semestre,
-            cargaHorariaSemana: projeto.cargaHorariaSemana,
-            publicoAlvo: projeto.publicoAlvo,
-            disciplinas: disciplinas.map((d) => ({
-              codigo: d.codigo,
-              nome: d.nome,
-            })),
-            bolsasDisponibilizadas: projeto.bolsasDisponibilizadas || 0,
-            voluntariosSolicitados: projeto.voluntariosSolicitados || 0,
-            totalInscritos,
-            inscricaoAberta,
-            jaInscrito,
-          }
-        })
-      )
-
-      log.info('Projetos disponíveis recuperados com sucesso')
-      return projetosComDisciplinas
-    },*/
 
     async getVolunteers(userId: number, _userRole: UserRole) {
       const professor = await repo.findProfessorByUserId(userId)
@@ -290,11 +216,7 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
     /**
      * Get projects with server-side filtering and pagination (admin only)
      */
-    /**
-     * Get projects with server-side filtering and pagination (admin only)
-     * Refatorado para filtrar obrigatoriamente pelo departamento do usuário logado.
-     */
-    async getProjetosFiltered(filters: ProjetoFilters, userId: number) {
+    async getProjetosFiltered(filters: ProjetoFilters, userId: number, userRole: UserRole) {
       
       const professor = await repo.findProfessorByUserId(userId)
       

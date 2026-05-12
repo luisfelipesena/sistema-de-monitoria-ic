@@ -101,13 +101,6 @@ export function createProjetoRepository(db: Database) {
       if (departamentoId) {
         conditions.push(eq(projetoTable.departamentoId, departamentoId))
       }
-    /*async findAll(departmentSigla?: string | null) {
-      const conditions = [isNull(projetoTable.deletedAt)]
-
-      // Filter by department sigla if provided (for admin type filtering)
-      if (departmentSigla) {
-        conditions.push(eq(departamentoTable.sigla, departmentSigla))
-      }*/
 
       return db
         .select({
@@ -149,12 +142,11 @@ export function createProjetoRepository(db: Database) {
     /**
      * Find projects with server-side filtering and pagination
      */
-    async findAllFiltered(filters: ProjetoFilters, departmentSigla?: string | null) {
+    async findAllFiltered(filters: ProjetoFilters) { 
       const conditions: SQL[] = [isNull(projetoTable.deletedAt)]
 
-      // Admin type filtering by department sigla
-      if (departmentSigla) {
-        conditions.push(eq(departamentoTable.sigla, departmentSigla))
+      if (filters.departamentoId) {
+        conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
       }
 
       // Filter by ano (multiple values)
@@ -261,11 +253,11 @@ export function createProjetoRepository(db: Database) {
     /**
      * Count projects with server-side filtering (same WHERE conditions as findAllFiltered)
      */
-    async countFiltered(filters: ProjetoFilters, departmentSigla?: string | null): Promise<number> {
+    async countFiltered(filters: ProjetoFilters): Promise<number> {
       const conditions: SQL[] = [isNull(projetoTable.deletedAt)]
 
-      if (departmentSigla) {
-        conditions.push(eq(departamentoTable.sigla, departmentSigla))
+      if (filters.departamentoId) {
+        conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
       }
 
       if (filters.ano && filters.ano.length > 0) {
