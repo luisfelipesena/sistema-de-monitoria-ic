@@ -95,13 +95,19 @@ export function createProjetoRepository(db: Database) {
         .orderBy(projetoTable.createdAt)
     },
 
-    async findAll(departmentSigla?: string | null) {
+    async findAll(departamentoId?: number) {
+      const conditions = [isNull(projetoTable.deletedAt)]
+
+      if (departamentoId) {
+        conditions.push(eq(projetoTable.departamentoId, departamentoId))
+      }
+    /*async findAll(departmentSigla?: string | null) {
       const conditions = [isNull(projetoTable.deletedAt)]
 
       // Filter by department sigla if provided (for admin type filtering)
       if (departmentSigla) {
         conditions.push(eq(departamentoTable.sigla, departmentSigla))
-      }
+      }*/
 
       return db
         .select({
@@ -319,7 +325,18 @@ export function createProjetoRepository(db: Database) {
       return result?.count || 0
     },
 
-    async findApprovedByPeriod(ano: number, semestre: Semestre) {
+    async findApprovedByPeriod(ano: number, semestre: Semestre, departamentoId?: number) {
+      const conditions = [
+        eq(projetoTable.status, PROJETO_STATUS_APPROVED),
+        eq(projetoTable.ano, ano),
+        eq(projetoTable.semestre, semestre),
+        isNull(projetoTable.deletedAt)
+      ]
+
+      if (departamentoId) {
+        conditions.push(eq(projetoTable.departamentoId, departamentoId))
+      }
+
       return db
         .select({
           id: projetoTable.id,
@@ -338,14 +355,7 @@ export function createProjetoRepository(db: Database) {
         .from(projetoTable)
         .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-        .where(
-          and(
-            eq(projetoTable.status, PROJETO_STATUS_APPROVED),
-            eq(projetoTable.ano, ano),
-            eq(projetoTable.semestre, semestre),
-            isNull(projetoTable.deletedAt)
-          )
-        )
+        .where(and(...conditions))
         .orderBy(projetoTable.titulo)
     },
 
