@@ -97,6 +97,71 @@ export function createRelatoriosQueryService(repo: RelatoriosRepository) {
         totalVoluntarios: Number(vagasStats?.voluntarios) || 0,
       }
     },
+
+    async getBolsasRedistribuicaoStatus(ano: number, semestre: Semestre) {
+      const rows = await repo.findBolsasRedistribuicaoStatus(ano, semestre)
+
+      const projetosComSurplus: Array<{
+        projetoId: number
+        titulo: string
+        professor: string
+        bolsasSolicitadas: number
+        bolsasDisponibilizadas: number
+        bolsistasAceitos: number
+        surplus: number
+      }> = []
+
+      const projetosComDemanda: Array<{
+        projetoId: number
+        titulo: string
+        professor: string
+        bolsasSolicitadas: number
+        bolsasDisponibilizadas: number
+        bolsistasAceitos: number
+        demanda: number
+        proximoAluno: { nome: string; matricula: string | null; notaFinal: number | null } | null
+      }> = []
+
+      for (const row of rows) {
+        const bolsasDisponibilizadas = Number(row.bolsasDisponibilizadas) || 0
+        const bolsistasAceitos = Number(row.bolsistasAceitos) || 0
+        const diff = bolsasDisponibilizadas - bolsistasAceitos
+
+        if (diff > 0) {
+          projetosComSurplus.push({
+            projetoId: row.projetoId,
+            titulo: row.titulo,
+            professor: row.professorNome,
+            bolsasSolicitadas: row.bolsasSolicitadas,
+            bolsasDisponibilizadas,
+            bolsistasAceitos,
+            surplus: diff,
+          })
+        } else if (diff < 0) {
+          const proximoRaw = await repo.findProximoBolsistaAcimaCota(row.projetoId, bolsasDisponibilizadas)
+          const proximoAluno = proximoRaw
+            ? {
+                nome: proximoRaw.nome,
+                matricula: proximoRaw.matricula,
+                notaFinal: proximoRaw.notaFinal !== null ? Number(proximoRaw.notaFinal) : null,
+              }
+            : null
+
+          projetosComDemanda.push({
+            projetoId: row.projetoId,
+            titulo: row.titulo,
+            professor: row.professorNome,
+            bolsasSolicitadas: row.bolsasSolicitadas,
+            bolsasDisponibilizadas,
+            bolsistasAceitos,
+            demanda: -diff,
+            proximoAluno,
+          })
+        }
+      }
+
+      return { projetosComSurplus, projetosComDemanda }
+    },
   }
 }
 
