@@ -1,8 +1,16 @@
 import type { db } from '@/server/db'
+import { projetoTable, vagaTable } from '@/server/db/schema'
 import { BusinessError, NotFoundError } from '@/server/lib/errors'
 import type { Semestre, TipoVaga } from '@/types'
-import { SELECTED_BOLSISTA, SELECTED_VOLUNTARIO, SEMESTRE_1 } from '@/types'
+import {
+  PROJETO_STATUS_APPROVED,
+  SELECTED_BOLSISTA,
+  SELECTED_VOLUNTARIO,
+  SEMESTRE_1,
+  TIPO_VAGA_BOLSISTA,
+} from '@/types'
 import { logger } from '@/utils/logger'
+import { and, asc, count, eq, inArray } from 'drizzle-orm'
 import { createScholarshipAllocationRepository } from './scholarship-allocation-repository'
 
 const log = logger.child({ context: 'ScholarshipAllocationService' })
@@ -215,6 +223,121 @@ export function createScholarshipAllocationService(db: Database) {
         totalBolsasPrograd: periodo?.totalBolsasPrograd || 0,
         periodoExists: !!periodo,
       }
+    },
+
+    // FASE 5: Move 1 bolsa from a project with surplus to a project with demanda.
+    // Net-zero accounting: only adjusts projetoTable.bolsasDisponibilizadas.
+    // Vagas already exist (created by vagas-service.acceptVaga); no new vaga creation here.
+    async redistribuirBolsa(fromProjetoId: number, toProjetoId: number) {
+      if (fromProjetoId === toProjetoId) {
+        throw new BusinessError('Origem e destino não podem ser o mesmo projeto', 'INVALID_INPUT')
+      }
+
+      return await db.transaction(async (tx) => {
+        const sortedIds = [fromProjetoId, toProjetoId].sort((a, b) => a - b)
+
+        const lockedProjetos = await tx
+          .select({
+            id: projetoTable.id,
+            ano: projetoTable.ano,
+            semestre: projetoTable.semestre,
+            status: projetoTable.status,
+            bolsasSolicitadas: projetoTable.bolsasSolicitadas,
+            bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
+          })
+          .from(projetoTable)
+          .where(inArray(projetoTable.id, sortedIds))
+          .orderBy(asc(projetoTable.id))
+          .for('update')
+
+        if (lockedProjetos.length !== 2) {
+          throw new NotFoundError('Projeto', `${fromProjetoId} ou ${toProjetoId}`)
+        }
+
+        const fromProjeto = lockedProjetos.find((p) => p.id === fromProjetoId)
+        const toProjeto = lockedProjetos.find((p) => p.id === toProjetoId)
+
+        if (!fromProjeto || !toProjeto) {
+          throw new NotFoundError('Projeto', `${fromProjetoId} ou ${toProjetoId}`)
+        }
+
+        if (fromProjeto.ano !== toProjeto.ano || fromProjeto.semestre !== toProjeto.semestre) {
+          throw new BusinessError('Projetos devem ser do mesmo período (ano/semestre)', 'DIFFERENT_PERIOD')
+        }
+
+        if (fromProjeto.status !== PROJETO_STATUS_APPROVED || toProjeto.status !== PROJETO_STATUS_APPROVED) {
+          throw new BusinessError('Ambos os projetos devem estar APROVADOS', 'NOT_APPROVED')
+        }
+
+        const [fromVagasRow] = await tx
+          .select({ count: count() })
+          .from(vagaTable)
+          .where(and(eq(vagaTable.projetoId, fromProjetoId), eq(vagaTable.tipo, TIPO_VAGA_BOLSISTA)))
+
+        const [toVagasRow] = await tx
+          .select({ count: count() })
+          .from(vagaTable)
+          .where(and(eq(vagaTable.projetoId, toProjetoId), eq(vagaTable.tipo, TIPO_VAGA_BOLSISTA)))
+
+        const fromBolsasAlocadas = fromVagasRow?.count ?? 0
+        const toBolsasAlocadas = toVagasRow?.count ?? 0
+        const fromDisp = fromProjeto.bolsasDisponibilizadas ?? 0
+        const toDisp = toProjeto.bolsasDisponibilizadas ?? 0
+
+        if (fromDisp - fromBolsasAlocadas < 1) {
+          throw new BusinessError('Projeto origem não tem bolsa em surplus para transferir', 'NO_SURPLUS')
+        }
+
+        if (toBolsasAlocadas <= toDisp) {
+          throw new BusinessError(
+            'Projeto destino não tem demanda (não há aluno aceito acima da cota atual)',
+            'NO_DEMAND'
+          )
+        }
+
+        if (toDisp + 1 > toProjeto.bolsasSolicitadas) {
+          throw new BusinessError(
+            'Projeto destino atingiria o limite de bolsas solicitadas pelo professor',
+            'EXCEEDS_REQUESTED'
+          )
+        }
+
+        // Net-zero invariant against PROGRAD period limit (defensive, always passes for redistribuição)
+        await validateAllocationLimits([
+          {
+            projetoId: fromProjeto.id,
+            ano: fromProjeto.ano,
+            semestre: fromProjeto.semestre as Semestre,
+            oldValue: fromDisp,
+            newValue: fromDisp - 1,
+          },
+          {
+            projetoId: toProjeto.id,
+            ano: toProjeto.ano,
+            semestre: toProjeto.semestre as Semestre,
+            oldValue: toDisp,
+            newValue: toDisp + 1,
+          },
+        ])
+
+        await tx
+          .update(projetoTable)
+          .set({ bolsasDisponibilizadas: fromDisp - 1 })
+          .where(eq(projetoTable.id, fromProjetoId))
+
+        await tx
+          .update(projetoTable)
+          .set({ bolsasDisponibilizadas: toDisp + 1 })
+          .where(eq(projetoTable.id, toProjetoId))
+
+        log.info({ fromProjetoId, toProjetoId, fromNew: fromDisp - 1, toNew: toDisp + 1 }, 'Bolsa redistribuída')
+
+        return {
+          success: true,
+          from: { id: fromProjetoId, bolsasDisponibilizadas: fromDisp - 1 },
+          to: { id: toProjetoId, bolsasDisponibilizadas: toDisp + 1 },
+        }
+      })
     },
   }
 }

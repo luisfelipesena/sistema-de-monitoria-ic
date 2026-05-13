@@ -1,9 +1,11 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { relatorioTemplateTable } from '@/server/db/schema'
 import { createRelatoriosService } from '@/server/services/relatorios/relatorios-service'
+import { createScholarshipAllocationService } from '@/server/services/scholarship-allocation/scholarship-allocation-service'
 import { relatoriosValidationRouter } from './relatorios-validation'
 import {
   alunoRelatorioSchema,
+  bolsasRedistribuicaoStatusSchema,
   xlsxExportInputSchema,
   xlsxExportOutputSchema,
   dashboardQuickMetricsSchema,
@@ -13,6 +15,8 @@ import {
   monitorConsolidadoSchema,
   monitoresFinalFiltersSchema,
   monitorFinalBolsistaSchema,
+  redistribuirBolsaInputSchema,
+  redistribuirBolsaOutputSchema,
   relatorioFiltersSchema,
   relatorioFiltersWithDeptSchema,
   relatorioFiltersWithStatusSchema,
@@ -262,6 +266,32 @@ export const relatoriosRouter = createTRPCRouter({
         mapDomainErrorToTRPC(error)
       }
     }),
+  // --- Redistribuição de Bolsas (FASE 5) ---
+
+  getBolsasRedistribuicaoStatus: adminProtectedProcedure
+    .input(relatorioFiltersSchema)
+    .output(bolsasRedistribuicaoStatusSchema)
+    .query(async ({ input, ctx }) => {
+      try {
+        const service = createRelatoriosService(ctx.db)
+        return await service.getBolsasRedistribuicaoStatus(input.ano, input.semestre)
+      } catch (error) {
+        mapDomainErrorToTRPC(error)
+      }
+    }),
+
+  redistribuirBolsa: adminProtectedProcedure
+    .input(redistribuirBolsaInputSchema)
+    .output(redistribuirBolsaOutputSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const service = createScholarshipAllocationService(ctx.db)
+        return await service.redistribuirBolsa(input.fromProjetoId, input.toProjetoId)
+      } catch (error) {
+        mapDomainErrorToTRPC(error)
+      }
+    }),
+
   // --- Templates ---
 
   createTemplate: protectedProcedure
