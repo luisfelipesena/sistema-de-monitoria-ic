@@ -3,34 +3,15 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useAuth } from "@/hooks/use-auth"
-import { useToast } from "@/hooks/use-toast"
-import { TIPO_VAGA_BOLSISTA, TIPO_VAGA_LABELS, TIPO_VAGA_VOLUNTARIO, getSemestreNumero } from "@/types"
+import { TIPO_VAGA_LABELS, getSemestreNumero } from "@/types"
 import { api } from "@/utils/api"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { Award, BookOpen, Calendar, Clock, FileText, MapPin, Search, User, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-
-const inscricaoSchema = z.object({
-  projetoId: z.number(),
-  tipoVagaPretendida: z.enum([TIPO_VAGA_BOLSISTA, TIPO_VAGA_VOLUNTARIO]),
-})
-
-type InscricaoForm = z.infer<typeof inscricaoSchema>
 
 function LoadingSkeleton() {
   return (
@@ -38,23 +19,11 @@ function LoadingSkeleton() {
       {Array.from({ length: 6 }, (_, i) => (
         <Card key={i}>
           <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-64" />
-                <Skeleton className="h-4 w-48" />
-              </div>
-              <Skeleton className="h-6 w-20" />
-            </div>
+            <Skeleton className="h-5 w-64" />
+            <Skeleton className="h-4 w-48" />
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <div className="flex gap-4">
-                <Skeleton className="h-8 w-24" />
-                <Skeleton className="h-8 w-24" />
-              </div>
-            </div>
+            <Skeleton className="h-4 w-full" />
           </CardContent>
         </Card>
       ))}
@@ -63,85 +32,36 @@ function LoadingSkeleton() {
 }
 
 export default function InscricaoMonitoria() {
-  const { toast } = useToast()
-  const { user } = useAuth()
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedDepartamento, setSelectedDepartamento] = useState<string>("")
   const [tipoVagaFilter, setTipoVagaFilter] = useState<string>("")
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [selectedProjeto, setSelectedProjeto] = useState<any>(null)
 
-  const { data: projetos = [], isLoading: isLoadingProjetos, refetch } = api.projeto.getAvailableProjects.useQuery()
+  const { data: projetos = [], isLoading: isLoadingProjetos } = api.projeto.getAvailableProjects.useQuery()
   const { data: departamentos = [] } = api.departamento.getDepartamentos.useQuery({})
   const { data: activePeriodData, isLoading: isLoadingPeriod } = api.edital.getActivePeriod.useQuery()
 
   const isLoading = isLoadingProjetos || isLoadingPeriod
-  const createInscricao = api.inscricao.criarInscricao.useMutation({
-    onSuccess: (result) => {
-      toast({
-        title: "Sucesso!",
-        description: result.message,
-      })
-      setDialogOpen(false)
-      form.reset()
-      refetch()
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      })
-    },
-  })
-
-  const form = useForm<InscricaoForm>({
-    resolver: zodResolver(inscricaoSchema),
-    defaultValues: {
-      tipoVagaPretendida: TIPO_VAGA_BOLSISTA,
-    },
-  })
-
-  // Check if there's an active enrollment period
   const hasActivePeriod = activePeriodData?.periodo !== null
   const activePeriod = activePeriodData?.periodo
 
-  // Filter projects - getAvailableProjects already filters for APPROVED and active period
   const filteredProjetos = projetos.filter((projeto) => {
-    if (!hasActivePeriod) return false // Don't show projects if no active period
-
+    if (!hasActivePeriod) return false
     const matchesSearch =
       projeto.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       projeto.professorResponsavelNome.toLowerCase().includes(searchTerm.toLowerCase())
-
     const matchesDepartamento =
       !selectedDepartamento || selectedDepartamento === "all" || projeto.departamentoNome === selectedDepartamento
-
     const matchesTipoVaga =
       !tipoVagaFilter ||
       tipoVagaFilter === "all" ||
       (tipoVagaFilter === TIPO_VAGA_LABELS.BOLSISTA && (projeto.bolsasDisponibilizadas ?? 0) > 0) ||
       (tipoVagaFilter === TIPO_VAGA_LABELS.VOLUNTARIO && (projeto.voluntariosSolicitados ?? 0) > 0)
-
     return matchesSearch && matchesDepartamento && matchesTipoVaga
   })
 
-  const handleInscricaoSubmit = async (data: InscricaoForm) => {
-    try {
-      await createInscricao.mutateAsync({
-        projetoId: data.projetoId,
-        tipoVagaPretendida:
-          data.tipoVagaPretendida === TIPO_VAGA_LABELS.BOLSISTA ? TIPO_VAGA_BOLSISTA : TIPO_VAGA_VOLUNTARIO,
-      })
-    } catch (error) {
-      // Error handling is done in the mutation onError
-    }
-  }
-
-  const openInscricaoDialog = (projeto: any) => {
-    setSelectedProjeto(projeto)
-    form.setValue("projetoId", projeto.id)
-    setDialogOpen(true)
+  const openWizard = (projetoId: number) => {
+    router.push(`/home/student/inscricao-monitoria/${projetoId}/wizard`)
   }
 
   if (isLoading) {
@@ -158,12 +78,9 @@ export default function InscricaoMonitoria() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Inscrição em Projeto de Monitoria</h1>
         <p className="text-muted-foreground">Encontre e inscreva-se em projetos de monitoria disponíveis.</p>
-
-        {/* Period Status */}
         {activePeriod ? (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-start gap-3">
@@ -172,7 +89,7 @@ export default function InscricaoMonitoria() {
                 <h3 className="font-medium text-green-800">Período de Inscrições Ativo</h3>
                 <p className="text-sm text-green-700 mt-1">
                   {activePeriod.ano}.{getSemestreNumero(activePeriod.semestre)} • Até{" "}
-                  {activePeriod.dataFim.toLocaleDateString("pt-BR")} •{activePeriod.totalProjetos} projetos disponíveis
+                  {activePeriod.dataFim.toLocaleDateString("pt-BR")} • {activePeriod.totalProjetos} projetos disponíveis
                 </p>
               </div>
             </div>
@@ -192,7 +109,6 @@ export default function InscricaoMonitoria() {
         )}
       </div>
 
-      {/* Filters */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Filtros</CardTitle>
@@ -212,7 +128,6 @@ export default function InscricaoMonitoria() {
                 />
               </div>
             </div>
-
             <div>
               <Label htmlFor="departamento">Departamento</Label>
               <Select value={selectedDepartamento} onValueChange={setSelectedDepartamento}>
@@ -221,7 +136,7 @@ export default function InscricaoMonitoria() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos os departamentos</SelectItem>
-                  {departamentos.map((dept: any) => (
+                  {departamentos.map((dept: { id: number; nome: string }) => (
                     <SelectItem key={dept.id} value={dept.nome}>
                       {dept.nome}
                     </SelectItem>
@@ -229,7 +144,6 @@ export default function InscricaoMonitoria() {
                 </SelectContent>
               </Select>
             </div>
-
             <div>
               <Label htmlFor="tipoVaga">Tipo de vaga</Label>
               <Select value={tipoVagaFilter} onValueChange={setTipoVagaFilter}>
@@ -247,7 +161,6 @@ export default function InscricaoMonitoria() {
         </CardContent>
       </Card>
 
-      {/* Results Summary */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Projetos de Monitoria</h2>
         <p className="text-sm text-muted-foreground">
@@ -256,7 +169,6 @@ export default function InscricaoMonitoria() {
         </p>
       </div>
 
-      {/* Project Cards */}
       <div className="space-y-4">
         {filteredProjetos.length === 0 ? (
           <Card>
@@ -275,7 +187,7 @@ export default function InscricaoMonitoria() {
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-xl">{projeto.titulo}</CardTitle>
-                    <CardDescription className="text-base">
+                    <CardDescription>
                       <span className="flex items-center gap-4 text-sm">
                         <span className="flex items-center gap-1">
                           <User className="h-4 w-4" />
@@ -294,8 +206,6 @@ export default function InscricaoMonitoria() {
 
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground line-clamp-3">{projeto.descricao}</p>
-
-                {/* Período e Carga Horária */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -317,21 +227,11 @@ export default function InscricaoMonitoria() {
                   </div>
                 </div>
 
-                {/* Público Alvo */}
-                {projeto.publicoAlvo && (
-                  <div className="flex items-start gap-2 text-sm">
-                    <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <span>Público-alvo: {projeto.publicoAlvo}</span>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
                 <div className="flex gap-2 pt-2">
                   <Button
-                    onClick={() => openInscricaoDialog(projeto)}
+                    onClick={() => openWizard(projeto.id)}
                     disabled={
-                      createInscricao.isPending ||
-                      ((projeto.bolsasDisponibilizadas ?? 0) === 0 && (projeto.voluntariosSolicitados ?? 0) === 0)
+                      (projeto.bolsasDisponibilizadas ?? 0) === 0 && (projeto.voluntariosSolicitados ?? 0) === 0
                     }
                     className="flex-1"
                   >
@@ -344,85 +244,6 @@ export default function InscricaoMonitoria() {
           ))
         )}
       </div>
-
-      {/* Inscrição Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Inscrever-se no Projeto</DialogTitle>
-            <DialogDescription>{selectedProjeto?.titulo}</DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={form.handleSubmit(handleInscricaoSubmit)} className="space-y-4">
-            <div>
-              <Label htmlFor="tipoVaga">Tipo de vaga desejada</Label>
-              <Select
-                value={form.watch("tipoVagaPretendida")}
-                onValueChange={(value) =>
-                  form.setValue("tipoVagaPretendida", value as typeof TIPO_VAGA_BOLSISTA | typeof TIPO_VAGA_VOLUNTARIO)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(selectedProjeto?.bolsasDisponibilizadas ?? 0) > 0 && (
-                    <SelectItem value={TIPO_VAGA_BOLSISTA}>
-                      Bolsista ({selectedProjeto.bolsasDisponibilizadas} disponível
-                      {selectedProjeto.bolsasDisponibilizadas !== 1 ? "is" : ""})
-                    </SelectItem>
-                  )}
-                  {(selectedProjeto?.voluntariosSolicitados ?? 0) > 0 && (
-                    <SelectItem value={TIPO_VAGA_VOLUNTARIO}>
-                      Voluntário ({selectedProjeto.voluntariosSolicitados} vaga
-                      {selectedProjeto.voluntariosSolicitados !== 1 ? "s" : ""})
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              {form.formState.errors.tipoVagaPretendida && (
-                <p className="text-sm text-red-500 mt-1">{form.formState.errors.tipoVagaPretendida.message}</p>
-              )}
-            </div>
-
-            {user?.aluno?.cr && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <Label className="text-sm font-medium text-blue-800">Seu CR (Coeficiente de Rendimento)</Label>
-                <p className="text-lg font-semibold text-blue-900 mt-1">{user.aluno.cr.toFixed(2)}</p>
-                <p className="text-xs text-blue-700 mt-1">
-                  Este valor será automaticamente registrado na sua inscrição
-                </p>
-              </div>
-            )}
-
-            <div className="p-3 bg-muted rounded-lg text-sm">
-              <p>
-                <strong>Professor:</strong> {selectedProjeto?.professorResponsavelNome}
-              </p>
-              <p>
-                <strong>Departamento:</strong> {selectedProjeto?.departamentoNome}
-              </p>
-              <p>
-                <strong>Carga horária:</strong> {selectedProjeto?.cargaHorariaSemana}h/semana por{" "}
-                {selectedProjeto?.numeroSemanas} semanas
-              </p>
-              <p>
-                <strong>Período:</strong> {selectedProjeto?.ano}.
-                {selectedProjeto?.semestre ? getSemestreNumero(selectedProjeto.semestre) : ""}
-              </p>
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={createInscricao.isPending}>
-                {createInscricao.isPending ? "Inscrevendo..." : "Confirmar Inscrição"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

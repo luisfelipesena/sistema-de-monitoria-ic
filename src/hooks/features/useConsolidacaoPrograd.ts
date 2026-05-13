@@ -77,6 +77,38 @@ export function useConsolidacaoPrograd() {
     },
   })
 
+  // FASE 5: Redistribuição de Bolsas
+  const {
+    data: redistribuicaoStatus,
+    isLoading: isLoadingRedistribuicao,
+    refetch: refetchRedistribuicao,
+  } = api.relatorios.getBolsasRedistribuicaoStatus.useQuery(
+    { ano: selectedYear, semestre: selectedSemester },
+    { enabled: !!selectedYear && !!selectedSemester }
+  )
+
+  const redistribuirMutation = api.relatorios.redistribuirBolsa.useMutation({
+    onSuccess: () => {
+      toast({
+        title: 'Bolsa Redistribuída',
+        description: 'A bolsa foi transferida com sucesso.',
+      })
+      refetchRedistribuicao()
+      refetch()
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao Redistribuir',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+
+  const handleRedistribuir = (fromProjetoId: number, toProjetoId: number) => {
+    redistribuirMutation.mutate({ fromProjetoId, toProjetoId })
+  }
+
   const handleNotifyProfessors = (prazoFinal?: Date) => {
     notifyProfessorsMutation.mutate({
       ano: selectedYear,
@@ -300,5 +332,10 @@ export function useConsolidacaoPrograd() {
     handleNotifyStudents,
     handleSendCertificates,
     refetchValidation,
+    // Redistribuição de bolsas (FASE 5)
+    redistribuicaoStatus,
+    isLoadingRedistribuicao,
+    isRedistribuindo: redistribuirMutation.isPending,
+    handleRedistribuir,
   }
 }

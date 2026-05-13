@@ -1,6 +1,7 @@
 "use client"
 
 import { PagesLayout } from "@/components/layout/PagesLayout"
+import { BolsasRedistribuicaoSection } from "@/components/features/admin/consolidacao-prograd/BolsasRedistribuicaoSection"
 import { ConsolidacaoFilters } from "@/components/features/admin/consolidacao-prograd/ConsolidacaoFilters"
 import { ConsolidacaoStatsCards } from "@/components/features/admin/consolidacao-prograd/ConsolidacaoStatsCards"
 import { ConsolidacaoTable } from "@/components/features/admin/consolidacao-prograd/ConsolidacaoTable"
@@ -43,6 +44,10 @@ export default function ConsolidacaoPROGRADPage() {
     handleNotifyStudents,
     handleSendCertificates,
     refetchValidation,
+    redistribuicaoStatus,
+    isLoadingRedistribuicao,
+    isRedistribuindo,
+    handleRedistribuir,
   } = useConsolidacaoPrograd()
 
   return (
@@ -78,6 +83,14 @@ export default function ConsolidacaoPROGRADPage() {
 
           {/* Validation results */}
           <ValidationDialog validationData={validationData} showValidation={showValidation} />
+
+          {/* Redistribuição de bolsas (FASE 5 - passo 3b) */}
+          <BolsasRedistribuicaoSection
+            data={redistribuicaoStatus}
+            isLoading={isLoadingRedistribuicao}
+            isRedistribuindo={isRedistribuindo}
+            onRedistribuir={handleRedistribuir}
+          />
 
           {/* Export actions */}
           <ExportSection

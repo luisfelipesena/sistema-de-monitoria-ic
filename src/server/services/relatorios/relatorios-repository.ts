@@ -14,6 +14,7 @@ import {
   vagaTable,
 } from '@/server/db/schema'
 import {
+  ACCEPTED_BOLSISTA,
   APPROVED,
   BOLSISTA,
   PROJETO_STATUS_DRAFT,
@@ -459,6 +460,47 @@ export function createRelatoriosRepository(db: Database) {
           emailChefeDepartamento: departamentoTable.emailChefeDepartamento,
         })
         .from(departamentoTable)
+    },
+
+    // FASE 5: Redistribuição de Bolsas
+    // Returns approved projects in the period with bolsasDisponibilizadas + count of accepted bolsista vagas.
+    // The tipo=BOLSISTA predicate is in the LEFT JOIN's ON clause so projects with 0 BOLSISTA vagas
+    // (the surplus case) are preserved. APPROVED filter excludes drafts/submitted projects.
+    async findBolsasRedistribuicaoStatus(ano: number, semestre: Semestre) {
+      return db
+        .select({
+          projetoId: projetoTable.id,
+          titulo: projetoTable.titulo,
+          professorNome: professorTable.nomeCompleto,
+          bolsasSolicitadas: projetoTable.bolsasSolicitadas,
+          bolsasDisponibilizadas: sql<number>`COALESCE(${projetoTable.bolsasDisponibilizadas}, 0)`,
+          bolsistasAceitos: sql<number>`COUNT(${vagaTable.id})::int`,
+        })
+        .from(projetoTable)
+        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .leftJoin(vagaTable, and(eq(vagaTable.projetoId, projetoTable.id), eq(vagaTable.tipo, BOLSISTA)))
+        .where(and(eq(projetoTable.ano, ano), eq(projetoTable.semestre, semestre), eq(projetoTable.status, APPROVED)))
+        .groupBy(projetoTable.id, professorTable.nomeCompleto)
+    },
+
+    // For a project with demanda, find the next ACCEPTED_BOLSISTA inscription ordered by notaFinal DESC,
+    // skipping the first `bolsasDisponibilizadas` students (already covered by the current allocation).
+    // notaFinal is decimal — Drizzle returns string; service layer parses to number.
+    async findProximoBolsistaAcimaCota(projetoId: number, bolsasDisponibilizadas: number) {
+      const result = await db
+        .select({
+          nome: alunoTable.nomeCompleto,
+          matricula: alunoTable.matricula,
+          notaFinal: inscricaoTable.notaFinal,
+        })
+        .from(inscricaoTable)
+        .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
+        .where(and(eq(inscricaoTable.projetoId, projetoId), eq(inscricaoTable.status, ACCEPTED_BOLSISTA)))
+        .orderBy(desc(inscricaoTable.notaFinal))
+        .offset(bolsasDisponibilizadas)
+        .limit(1)
+
+      return result[0] ?? null
     },
   }
 }
