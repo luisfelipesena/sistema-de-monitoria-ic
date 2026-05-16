@@ -142,7 +142,7 @@ export function createProjetoRepository(db: Database) {
     /**
      * Find projects with server-side filtering and pagination
      */
-    async findAllFiltered(filters: ProjetoFilters) { 
+    async findAllFiltered(filters: ProjetoFilters) {
       const conditions: SQL[] = [isNull(projetoTable.deletedAt)]
 
       // Filter by ano (multiple values)
@@ -174,12 +174,7 @@ export function createProjetoRepository(db: Database) {
       if (filters.departamento) {
         const search = `%${filters.departamento}%`
 
-        conditions.push(
-          or(
-            ilike(departamentoTable.nome, search),
-            ilike(departamentoTable.sigla, search)
-          ) as SQL
-        )
+        conditions.push(or(ilike(departamentoTable.nome, search), ilike(departamentoTable.sigla, search)) as SQL)
       }
 
       // Filter by disciplina code/name OR professor name (SQL-level, before pagination)
@@ -275,12 +270,7 @@ export function createProjetoRepository(db: Database) {
       if (filters.departamento) {
         const search = `%${filters.departamento}%`
 
-        conditions.push(
-          or(
-            ilike(departamentoTable.nome, search),
-            ilike(departamentoTable.sigla, search)
-          ) as SQL
-        )
+        conditions.push(or(ilike(departamentoTable.nome, search), ilike(departamentoTable.sigla, search)) as SQL)
       }
 
       // Same EXISTS pattern as findAllFiltered for consistency
@@ -323,11 +313,11 @@ export function createProjetoRepository(db: Database) {
           professorResponsavel: true,
           disciplinas: {
             with: {
-              disciplina: true
-            }
-          }
+              disciplina: true,
+            },
+          },
         },
-        orderBy: [asc(projetoTable.titulo)]
+        orderBy: [asc(projetoTable.titulo)],
       })
     },
 

@@ -373,8 +373,7 @@ export const projetoRouter = createTRPCRouter({
           titulo: nameSchema,
           descricao: z.string(),
           departamentoNome: nameSchema,
-          // CORREÇÃO CRÍTICA: Adicionado departamentoSigla para casar com o retorno do Service
-          departamentoSigla: z.string(), 
+          departamentoSigla: z.string(),
           professorResponsavelNome: nameSchema,
           ano: z.number(),
           semestre: semestreSchema,

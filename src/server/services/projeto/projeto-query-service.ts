@@ -130,15 +130,14 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       const userDeptoId = professor?.departamentoId ?? undefined
 
       const aluno = await repo.findAlunoByUserId(userId)
-      
+
       const now = new Date()
       const currentYear = now.getFullYear()
       const currentSemester = now.getMonth() < 6 ? SEMESTRE_1 : SEMESTRE_2
 
       const periodoAtivo = await repo.findActivePeriodo(currentYear, currentSemester, now)
-      
+
       const projetos = await repo.findApprovedByPeriod(currentYear, currentSemester, userDeptoId)
-      
 
       const inscricoes = aluno ? await repo.findInscricoesByAlunoId(aluno.id) : []
       const inscricoesMap = new Map(inscricoes.map((i) => [i.projetoId, i]))
@@ -147,31 +146,31 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       const inscricoesCountMap = new Map(inscricoesCountAll.map((i) => [i.projetoId, Number(i.count)]))
 
       const projetosComDisciplinas = projetos.map((projeto) => {
-      const totalInscritos = inscricoesCountMap.get(projeto.id) || 0
-      const jaInscrito = inscricoesMap.has(projeto.id)
+        const totalInscritos = inscricoesCountMap.get(projeto.id) || 0
+        const jaInscrito = inscricoesMap.has(projeto.id)
 
-      return {
-        id: projeto.id,
-        titulo: projeto.titulo,
-        descricao: projeto.descricao,
-        departamentoNome: projeto.departamento?.nome ?? 'N/A',
-        departamentoSigla: projeto.departamento?.sigla ?? 'N/A', 
-        professorResponsavelNome: projeto.professorResponsavel?.nomeCompleto ?? 'N/A',
-        ano: projeto.ano,
-        semestre: projeto.semestre,
-        cargaHorariaSemana: projeto.cargaHorariaSemana,
-        publicoAlvo: projeto.publicoAlvo,
-        voluntariosSolicitados: projeto.voluntariosSolicitados || 0,
-        bolsasDisponibilizadas: projeto.bolsasDisponibilizadas || 0,
-        disciplinas: projeto.disciplinas.map((pd) => ({
-          codigo: pd.disciplina.codigo,
-          nome: pd.disciplina.nome,
-        })),
-        totalInscritos,
-        inscricaoAberta: !!periodoAtivo,
-        jaInscrito,
-      }
-    })
+        return {
+          id: projeto.id,
+          titulo: projeto.titulo,
+          descricao: projeto.descricao,
+          departamentoNome: projeto.departamento?.nome ?? 'N/A',
+          departamentoSigla: projeto.departamento?.sigla ?? 'N/A',
+          professorResponsavelNome: projeto.professorResponsavel?.nomeCompleto ?? 'N/A',
+          ano: projeto.ano,
+          semestre: projeto.semestre,
+          cargaHorariaSemana: projeto.cargaHorariaSemana,
+          publicoAlvo: projeto.publicoAlvo,
+          voluntariosSolicitados: projeto.voluntariosSolicitados || 0,
+          bolsasDisponibilizadas: projeto.bolsasDisponibilizadas || 0,
+          disciplinas: projeto.disciplinas.map((pd) => ({
+            codigo: pd.disciplina.codigo,
+            nome: pd.disciplina.nome,
+          })),
+          totalInscritos,
+          inscricaoAberta: !!periodoAtivo,
+          jaInscrito,
+        }
+      })
 
       log.info({ deptoId: userDeptoId }, 'Projetos disponíveis recuperados com sucesso')
       return projetosComDisciplinas
@@ -208,11 +207,9 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
     /**
      * Get projects with server-side filtering and pagination (admin only)
      */
-    async getProjetosFiltered(filters: ProjetoFilters, userId: number, userRole: UserRole) {
-      
+    async getProjetosFiltered(filters: ProjetoFilters, userId: number, _userRole: UserRole) {
       const professor = await repo.findProfessorByUserId(userId)
-      
-     
+
       const secureFilters: ProjetoFilters = {
         ano: filters.ano,
         semestre: filters.semestre,
@@ -222,7 +219,7 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
         departamento: filters.departamento,
         limit: filters.limit,
         offset: filters.offset,
-        departamentoId: professor?.departamentoId ?? undefined
+        departamentoId: professor?.departamentoId ?? undefined,
       }
 
       const [projetos, total] = await Promise.all([
@@ -230,10 +227,7 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
         repo.countFiltered(secureFilters),
       ])
 
-      const [inscricoesCount, editais] = await Promise.all([
-        repo.getInscricoesCount(), 
-        repo.findEditaisByPeriodos()
-      ])
+      const [inscricoesCount, editais] = await Promise.all([repo.getInscricoesCount(), repo.findEditaisByPeriodos()])
 
       const inscricoesMap = new Map<string, number>()
       inscricoesCount.forEach((item) => {
@@ -245,9 +239,9 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       editais.forEach((edital) => {
         if (edital.periodoInscricao) {
           const key = `${edital.periodoInscricao.ano}_${edital.periodoInscricao.semestre}`
-          editalMap.set(key, { 
-            numeroEdital: edital.periodoInscricao.numeroEditalPrograd || edital.numeroEdital, 
-            publicado: edital.publicado 
+          editalMap.set(key, {
+            numeroEdital: edital.periodoInscricao.numeroEditalPrograd || edital.numeroEdital,
+            publicado: edital.publicado,
           })
         }
       })
@@ -284,7 +278,7 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       })
 
       log.info(
-        { total, count: projetos.length, deptoId: professor?.departamentoId }, 
+        { total, count: projetos.length, deptoId: professor?.departamentoId },
         'Projetos filtrados por departamento recuperados com sucesso'
       )
 
