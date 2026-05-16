@@ -1,6 +1,5 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { createProjetoService } from '@/server/services/projeto/projeto-service'
-import { NotFoundError, ValidationError, ForbiddenError, BusinessError } from '@/types/errors'
 import {
   anoSchema,
   idSchema,
@@ -12,6 +11,7 @@ import {
   semestreSchema,
   voluntarioStatusSchema,
 } from '@/types'
+import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@/types/errors'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
@@ -55,7 +55,7 @@ export const projetoRouter = createTRPCRouter({
       try {
         const service = createProjetoService(ctx.db)
         // Pass adminType so DCC/DCI admins only see their department's projects
-        return await service.getProjetos(ctx.user.id, ctx.user.role, ctx.user.adminType)
+        return await service.getProjetos(ctx.user.id, ctx.user.role)
       } catch (error) {
         return handleServiceError(error, 'Erro ao recuperar projetos')
       }
@@ -106,7 +106,8 @@ export const projetoRouter = createTRPCRouter({
             limit: input.limit,
             offset: input.offset,
           },
-          ctx.user.adminType
+          ctx.user.id,
+          ctx.user.role
         )
       } catch (error) {
         return handleServiceError(error, 'Erro ao recuperar projetos filtrados')
@@ -372,6 +373,7 @@ export const projetoRouter = createTRPCRouter({
           titulo: nameSchema,
           descricao: z.string(),
           departamentoNome: nameSchema,
+          departamentoSigla: z.string(),
           professorResponsavelNome: nameSchema,
           ano: z.number(),
           semestre: semestreSchema,
@@ -394,7 +396,8 @@ export const projetoRouter = createTRPCRouter({
     .query(async ({ ctx }) => {
       try {
         const service = createProjetoService(ctx.db)
-        return await service.getAvailableProjects(ctx.user.id, ctx.user.role)
+        const result = await service.getAvailableProjects(ctx.user.id, ctx.user.role)
+        return result
       } catch (error) {
         return handleServiceError(error, 'Erro ao recuperar projetos disponíveis')
       }

@@ -33,6 +33,7 @@ export interface ProjetoFilters {
   disciplina?: string // LIKE search on disciplina codigo or nome
   professorNome?: string // LIKE search on professor name
   departamentoId?: number
+  departamento?: string
   limit?: number
   offset?: number
 }
@@ -63,6 +64,7 @@ export function createProjetoRepository(db: Database) {
           titulo: projetoTable.titulo,
           departamentoId: projetoTable.departamentoId,
           departamentoNome: departamentoTable.nome,
+          departamentoSigla: departamentoTable.sigla,
           professorResponsavelId: projetoTable.professorResponsavelId,
           professorResponsavelNome: professorTable.nomeCompleto,
           status: projetoTable.status,
@@ -93,12 +95,11 @@ export function createProjetoRepository(db: Database) {
         .orderBy(projetoTable.createdAt)
     },
 
-    async findAll(departmentSigla?: string | null) {
+    async findAll(departamentoId?: number) {
       const conditions = [isNull(projetoTable.deletedAt)]
 
-      // Filter by department sigla if provided (for admin type filtering)
-      if (departmentSigla) {
-        conditions.push(eq(departamentoTable.sigla, departmentSigla))
+      if (departamentoId) {
+        conditions.push(eq(projetoTable.departamentoId, departamentoId))
       }
 
       return db
@@ -141,13 +142,8 @@ export function createProjetoRepository(db: Database) {
     /**
      * Find projects with server-side filtering and pagination
      */
-    async findAllFiltered(filters: ProjetoFilters, departmentSigla?: string | null) {
+    async findAllFiltered(filters: ProjetoFilters) {
       const conditions: SQL[] = [isNull(projetoTable.deletedAt)]
-
-      // Admin type filtering by department sigla
-      if (departmentSigla) {
-        conditions.push(eq(departamentoTable.sigla, departmentSigla))
-      }
 
       // Filter by ano (multiple values)
       if (filters.ano && filters.ano.length > 0) {
@@ -172,6 +168,13 @@ export function createProjetoRepository(db: Database) {
       // Filter by departamento ID
       if (filters.departamentoId) {
         conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
+      }
+
+      // Filter by departamento nome OU sigla (ILIKE)
+      if (filters.departamento) {
+        const search = `%${filters.departamento}%`
+
+        conditions.push(or(ilike(departamentoTable.nome, search), ilike(departamentoTable.sigla, search)) as SQL)
       }
 
       // Filter by disciplina code/name OR professor name (SQL-level, before pagination)
@@ -241,12 +244,8 @@ export function createProjetoRepository(db: Database) {
     /**
      * Count projects with server-side filtering (same WHERE conditions as findAllFiltered)
      */
-    async countFiltered(filters: ProjetoFilters, departmentSigla?: string | null): Promise<number> {
+    async countFiltered(filters: ProjetoFilters): Promise<number> {
       const conditions: SQL[] = [isNull(projetoTable.deletedAt)]
-
-      if (departmentSigla) {
-        conditions.push(eq(departamentoTable.sigla, departmentSigla))
-      }
 
       if (filters.ano && filters.ano.length > 0) {
         conditions.push(inArray(projetoTable.ano, filters.ano))
@@ -266,6 +265,12 @@ export function createProjetoRepository(db: Database) {
 
       if (filters.departamentoId) {
         conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
+      }
+      // Filter by departamento nome OU sigla (ILIKE)
+      if (filters.departamento) {
+        const search = `%${filters.departamento}%`
+
+        conditions.push(or(ilike(departamentoTable.nome, search), ilike(departamentoTable.sigla, search)) as SQL)
       }
 
       // Same EXISTS pattern as findAllFiltered for consistency
@@ -294,33 +299,26 @@ export function createProjetoRepository(db: Database) {
       return result?.count || 0
     },
 
-    async findApprovedByPeriod(ano: number, semestre: Semestre) {
-      return db
-        .select({
-          id: projetoTable.id,
-          titulo: projetoTable.titulo,
-          descricao: projetoTable.descricao,
-          departamentoNome: departamentoTable.nome,
-          professorResponsavelNome: professorTable.nomeCompleto,
-          ano: projetoTable.ano,
-          semestre: projetoTable.semestre,
-          cargaHorariaSemana: projetoTable.cargaHorariaSemana,
-          publicoAlvo: projetoTable.publicoAlvo,
-          bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
-          voluntariosSolicitados: projetoTable.voluntariosSolicitados,
-        })
-        .from(projetoTable)
-        .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-        .where(
-          and(
-            eq(projetoTable.status, PROJETO_STATUS_APPROVED),
-            eq(projetoTable.ano, ano),
-            eq(projetoTable.semestre, semestre),
-            isNull(projetoTable.deletedAt)
-          )
-        )
-        .orderBy(projetoTable.titulo)
+    async findApprovedByPeriod(ano: number, semestre: Semestre, departamentoId?: number) {
+      return db.query.projetoTable.findMany({
+        where: and(
+          eq(projetoTable.status, PROJETO_STATUS_APPROVED),
+          eq(projetoTable.ano, ano),
+          eq(projetoTable.semestre, semestre),
+          isNull(projetoTable.deletedAt),
+          departamentoId ? eq(projetoTable.departamentoId, departamentoId) : undefined
+        ),
+        with: {
+          departamento: true,
+          professorResponsavel: true,
+          disciplinas: {
+            with: {
+              disciplina: true,
+            },
+          },
+        },
+        orderBy: [asc(projetoTable.titulo)],
+      })
     },
 
     async findExistingByDisciplinaPeriod(ano: number, semestre: Semestre) {
