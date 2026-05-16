@@ -145,10 +145,6 @@ export function createProjetoRepository(db: Database) {
     async findAllFiltered(filters: ProjetoFilters) { 
       const conditions: SQL[] = [isNull(projetoTable.deletedAt)]
 
-      if (filters.departamentoId) {
-        conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
-      }
-
       // Filter by ano (multiple values)
       if (filters.ano && filters.ano.length > 0) {
         conditions.push(inArray(projetoTable.ano, filters.ano))
@@ -256,10 +252,6 @@ export function createProjetoRepository(db: Database) {
     async countFiltered(filters: ProjetoFilters): Promise<number> {
       const conditions: SQL[] = [isNull(projetoTable.deletedAt)]
 
-      if (filters.departamentoId) {
-        conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
-      }
-
       if (filters.ano && filters.ano.length > 0) {
         conditions.push(inArray(projetoTable.ano, filters.ano))
       }
@@ -318,37 +310,25 @@ export function createProjetoRepository(db: Database) {
     },
 
     async findApprovedByPeriod(ano: number, semestre: Semestre, departamentoId?: number) {
-      const conditions = [
-        eq(projetoTable.status, PROJETO_STATUS_APPROVED),
-        eq(projetoTable.ano, ano),
-        eq(projetoTable.semestre, semestre),
-        isNull(projetoTable.deletedAt)
-      ]
-
-      if (departamentoId) {
-        conditions.push(eq(projetoTable.departamentoId, departamentoId))
-      }
-
-      return db
-        .select({
-          id: projetoTable.id,
-          titulo: projetoTable.titulo,
-          descricao: projetoTable.descricao,
-          departamentoNome: departamentoTable.nome,
-          departamentoSigla: departamentoTable.sigla,
-          professorResponsavelNome: professorTable.nomeCompleto,
-          ano: projetoTable.ano,
-          semestre: projetoTable.semestre,
-          cargaHorariaSemana: projetoTable.cargaHorariaSemana,
-          publicoAlvo: projetoTable.publicoAlvo,
-          bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
-          voluntariosSolicitados: projetoTable.voluntariosSolicitados,
-        })
-        .from(projetoTable)
-        .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
-        .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
-        .where(and(...conditions))
-        .orderBy(projetoTable.titulo)
+      return db.query.projetoTable.findMany({
+        where: and(
+          eq(projetoTable.status, PROJETO_STATUS_APPROVED),
+          eq(projetoTable.ano, ano),
+          eq(projetoTable.semestre, semestre),
+          isNull(projetoTable.deletedAt),
+          departamentoId ? eq(projetoTable.departamentoId, departamentoId) : undefined
+        ),
+        with: {
+          departamento: true,
+          professorResponsavel: true,
+          disciplinas: {
+            with: {
+              disciplina: true
+            }
+          }
+        },
+        orderBy: [asc(projetoTable.titulo)]
+      })
     },
 
     async findExistingByDisciplinaPeriod(ano: number, semestre: Semestre) {

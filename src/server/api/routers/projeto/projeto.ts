@@ -55,7 +55,6 @@ export const projetoRouter = createTRPCRouter({
       try {
         const service = createProjetoService(ctx.db)
         // Pass adminType so DCC/DCI admins only see their department's projects
-        //return await service.getProjetos(ctx.user.id, ctx.user.role, ctx.user.adminType)
         return await service.getProjetos(ctx.user.id, ctx.user.role)
       } catch (error) {
         return handleServiceError(error, 'Erro ao recuperar projetos')
@@ -79,7 +78,6 @@ export const projetoRouter = createTRPCRouter({
         status: z.array(projetoStatusSchema).optional(),
         disciplina: z.string().optional(),
         professorNome: z.string().optional(),
-        departamento: z.string().optional(),
         limit: z.number().min(1).max(100).default(20),
         offset: z.number().min(0).default(0),
       })
@@ -105,11 +103,9 @@ export const projetoRouter = createTRPCRouter({
             status: input.status,
             disciplina: input.disciplina,
             professorNome: input.professorNome,
-            departamento: input.departamento,
             limit: input.limit,
             offset: input.offset,
           },
-          //ctx.user.adminType
           ctx.user.id,
           ctx.user.role
         )
@@ -377,6 +373,8 @@ export const projetoRouter = createTRPCRouter({
           titulo: nameSchema,
           descricao: z.string(),
           departamentoNome: nameSchema,
+          // CORREÇÃO CRÍTICA: Adicionado departamentoSigla para casar com o retorno do Service
+          departamentoSigla: z.string(), 
           professorResponsavelNome: nameSchema,
           ano: z.number(),
           semestre: semestreSchema,
@@ -399,7 +397,8 @@ export const projetoRouter = createTRPCRouter({
     .query(async ({ ctx }) => {
       try {
         const service = createProjetoService(ctx.db)
-        return await service.getAvailableProjects(ctx.user.id, ctx.user.role)
+        const result = await service.getAvailableProjects(ctx.user.id, ctx.user.role)
+        return result
       } catch (error) {
         return handleServiceError(error, 'Erro ao recuperar projetos disponíveis')
       }

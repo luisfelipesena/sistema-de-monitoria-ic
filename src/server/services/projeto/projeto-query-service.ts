@@ -14,11 +14,7 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       const professor = await repo.findProfessorByUserId(userId)
 
       if (isAdmin(userRole)) {
-        if (!professor || !professor.departamentoId) {
-          throw new ForbiddenError('Usuário administrador deve possuir um perfil de professor e um departamento vinculado para acessar os projetos.')
-        }
-        
-        projetosRaw = await repo.findAll(professor.departamentoId)
+        projetosRaw = await repo.findAll(professor?.departamentoId ?? undefined)
       } else if (isProfessor(userRole)) {
         if (!professor) return []
         projetosRaw = await repo.findByProfessorId(professor.id)
@@ -133,7 +129,6 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       const professor = await repo.findProfessorByUserId(userId)
       const userDeptoId = professor?.departamentoId ?? undefined
 
-      // 2. Tenta encontrar o perfil de aluno (necessário para marcar "jaInscrito")
       const aluno = await repo.findAlunoByUserId(userId)
       
       const now = new Date()
@@ -143,6 +138,7 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       const periodoAtivo = await repo.findActivePeriodo(currentYear, currentSemester, now)
       
       const projetos = await repo.findApprovedByPeriod(currentYear, currentSemester, userDeptoId)
+      
 
       const inscricoes = aluno ? await repo.findInscricoesByAlunoId(aluno.id) : []
       const inscricoesMap = new Map(inscricoes.map((i) => [i.projetoId, i]))
@@ -150,36 +146,32 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       const inscricoesCountAll = await repo.getInscricoesCount()
       const inscricoesCountMap = new Map(inscricoesCountAll.map((i) => [i.projetoId, Number(i.count)]))
 
-      const projetosComDisciplinas = await Promise.all(
-        projetos.map(async (projeto) => {
-          const disciplinas = await repo.findDisciplinasByProjetoId(projeto.id)
-          const totalInscritos = inscricoesCountMap.get(projeto.id) || 0
-          const inscricaoAberta = !!periodoAtivo
-          const jaInscrito = inscricoesMap.has(projeto.id)
+      const projetosComDisciplinas = projetos.map((projeto) => {
+      const totalInscritos = inscricoesCountMap.get(projeto.id) || 0
+      const jaInscrito = inscricoesMap.has(projeto.id)
 
-          return {
-            id: projeto.id,
-            titulo: projeto.titulo,
-            descricao: projeto.descricao,
-            departamentoNome: projeto.departamentoNome,
-            departamentoSigla: projeto.departamentoSigla,
-            professorResponsavelNome: projeto.professorResponsavelNome,
-            ano: projeto.ano,
-            semestre: projeto.semestre,
-            cargaHorariaSemana: projeto.cargaHorariaSemana,
-            publicoAlvo: projeto.publicoAlvo,
-            disciplinas: disciplinas.map((d) => ({
-              codigo: d.codigo,
-              nome: d.nome,
-            })),
-            bolsasDisponibilizadas: projeto.bolsasDisponibilizadas || 0,
-            voluntariosSolicitados: projeto.voluntariosSolicitados || 0,
-            totalInscritos,
-            inscricaoAberta,
-            jaInscrito,
-          }
-        })
-      )
+      return {
+        id: projeto.id,
+        titulo: projeto.titulo,
+        descricao: projeto.descricao,
+        departamentoNome: projeto.departamento?.nome ?? 'N/A',
+        departamentoSigla: projeto.departamento?.sigla ?? 'N/A', 
+        professorResponsavelNome: projeto.professorResponsavel?.nomeCompleto ?? 'N/A',
+        ano: projeto.ano,
+        semestre: projeto.semestre,
+        cargaHorariaSemana: projeto.cargaHorariaSemana,
+        publicoAlvo: projeto.publicoAlvo,
+        voluntariosSolicitados: projeto.voluntariosSolicitados || 0,
+        bolsasDisponibilizadas: projeto.bolsasDisponibilizadas || 0,
+        disciplinas: projeto.disciplinas.map((pd) => ({
+          codigo: pd.disciplina.codigo,
+          nome: pd.disciplina.nome,
+        })),
+        totalInscritos,
+        inscricaoAberta: !!periodoAtivo,
+        jaInscrito,
+      }
+    })
 
       log.info({ deptoId: userDeptoId }, 'Projetos disponíveis recuperados com sucesso')
       return projetosComDisciplinas
