@@ -96,7 +96,7 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
       const novoProjeto = await repo.insert({
         titulo: input.titulo,
         descricao: input.descricao,
-        departamentoId: input.departamentoId ?? professorDepartamentoId,
+        departamentoId: input.departamentoId,
         professorResponsavelId,
         ano: input.ano,
         semestre: input.semestre,
