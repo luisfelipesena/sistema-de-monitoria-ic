@@ -396,6 +396,59 @@ export const monitorFinalBolsistaSchema = z.object({
   valorBolsa: z.number().optional(),
 })
 
+// ========================================
+// REDISTRIBUIÇÃO DE BOLSAS (FASE 5)
+// ========================================
+
+export const projetoSurplusSchema = z.object({
+  projetoId: idSchema,
+  titulo: nameSchema,
+  professor: nameSchema,
+  bolsasSolicitadas: z.number().int().nonnegative(),
+  bolsasDisponibilizadas: z.number().int().nonnegative(),
+  bolsistasAceitos: z.number().int().nonnegative(),
+  surplus: z.number().int().positive(),
+})
+
+export const projetoDemandaSchema = z.object({
+  projetoId: idSchema,
+  titulo: nameSchema,
+  professor: nameSchema,
+  bolsasSolicitadas: z.number().int().nonnegative(),
+  bolsasDisponibilizadas: z.number().int().nonnegative(),
+  bolsistasAceitos: z.number().int().nonnegative(),
+  demanda: z.number().int().positive(),
+  proximoAluno: z
+    .object({
+      nome: nameSchema,
+      matricula: z.string().nullable(),
+      notaFinal: z.number().nullable(),
+    })
+    .nullable(),
+})
+
+export const bolsasRedistribuicaoStatusSchema = z.object({
+  projetosComSurplus: z.array(projetoSurplusSchema),
+  projetosComDemanda: z.array(projetoDemandaSchema),
+})
+
+export const redistribuirBolsaInputSchema = z.object({
+  fromProjetoId: idSchema,
+  toProjetoId: idSchema,
+})
+
+export const redistribuirBolsaOutputSchema = z.object({
+  success: z.boolean(),
+  from: z.object({
+    id: idSchema,
+    bolsasDisponibilizadas: z.number().int().nonnegative(),
+  }),
+  to: z.object({
+    id: idSchema,
+    bolsasDisponibilizadas: z.number().int().nonnegative(),
+  }),
+})
+
 export type RelatorioFilterData = z.infer<typeof relatorioFilterSchema>
 export type XlsxExportData = z.infer<typeof xlsxExportSchema>
 export type DepartamentoRelatorioData = z.infer<typeof departamentoRelatorioSchema>
@@ -409,3 +462,8 @@ export type DashboardQuickMetricsData = z.infer<typeof dashboardQuickMetricsSche
 export type MonitorConsolidadoData = z.infer<typeof monitorConsolidadoSchema>
 export type MonitoresFinalFiltersData = z.infer<typeof monitoresFinalFiltersSchema>
 export type MonitorFinalBolsistaData = z.infer<typeof monitorFinalBolsistaSchema>
+export type ProjetoSurplus = z.infer<typeof projetoSurplusSchema>
+export type ProjetoDemanda = z.infer<typeof projetoDemandaSchema>
+export type BolsasRedistribuicaoStatus = z.infer<typeof bolsasRedistribuicaoStatusSchema>
+export type RedistribuirBolsaInput = z.infer<typeof redistribuirBolsaInputSchema>
+export type RedistribuirBolsaOutput = z.infer<typeof redistribuirBolsaOutputSchema>

@@ -36,6 +36,7 @@ export function createRelatoriosService(db: Database) {
     getRelatorioDisciplinas: queryService.getRelatorioDisciplinas,
     getRelatorioEditais: queryService.getRelatorioEditais,
     getDashboardMetrics: queryService.getDashboardMetrics,
+    getBolsasRedistribuicaoStatus: queryService.getBolsasRedistribuicaoStatus,
 
     // Validation operations
     validateCompleteData: validationService.validateCompleteData,

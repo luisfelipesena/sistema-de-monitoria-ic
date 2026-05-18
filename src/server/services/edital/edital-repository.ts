@@ -1,15 +1,15 @@
-import { and, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm'
-import type { InferInsertModel } from 'drizzle-orm'
 import type { db } from '@/server/db'
 import {
-  editalTable,
   editalSignatureTokenTable,
+  editalTable,
   periodoInscricaoTable,
   professorTable,
   projetoTable,
 } from '@/server/db/schema'
 import type { Semestre, TipoEdital } from '@/types'
-import { TIPO_EDITAL_DCC, APPROVED } from '@/types'
+import { APPROVED, TIPO_EDITAL_DCC } from '@/types'
+import type { InferInsertModel } from 'drizzle-orm'
+import { and, eq, gte, inArray, isNotNull, isNull, lte, or, sql } from 'drizzle-orm'
 
 export type EditalInsert = InferInsertModel<typeof editalTable>
 export type PeriodoInscricaoInsert = InferInsertModel<typeof periodoInscricaoTable>
@@ -37,6 +37,7 @@ export function createEditalRepository(db: Database) {
               email: true,
             },
           },
+          chefeDepartamento: true,
         },
       })
     },

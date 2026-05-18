@@ -1,0 +1,245 @@
+,,,,,,,,,,,,,,,,,
+DISCIPLINA,TURMA,NOME DISCIPLINA,Combinar,SEGUNDA,TERÇA,QUARTA,QUINTA,SEXTA,SABADO,Horário Sigaa,COLEGIADO,CALOUROS,CONCLUINTES,OUTROS,TOTAL,CH,DOCENTE 
+OBRIGATÓRIAS DA GRADUAÇÃO,,,,,,,,,,,,,,,,,
+MAT045,1,PROCESSAMENTO DE DADOS,,07:00 - 08:50,,07:00 - 08:50,,,,24M12,104 - Engenharia Elétrica,0,0,25,25,4,GUSTAVO BITTENCOURT FIGUEIREDO
+,,,,,,,,,,,111 - Matemática,0,0,5,5,,
+,,,,,,,,,,,118 - Geofísica,0,0,10,10,,
+,,,,,,,,,,,Matemática,0,0,5,5,,
+MAT045,2,PROCESSAMENTO DE DADOS,,13:00 - 14:50,,13:00 - 14:50,,,,24T12,104 - Engenharia Elétrica,0,0,20,20,4,CASSIO VINICIUS SERAFIM PRAZERES
+,,,,,,,,,,,107 - Engenharia Sanitária e Ambiental,0,0,15,15,,
+,,,,,,,,,,,Matemática,0,0,0,0,,
+,,,,,,,,,,,118 - Geofísica,0,0,5,5,,
+,,,,,,,,,,,111 - Matemática,0,0,5,5,,
+MAT045,3,PROCESSAMENTO DE DADOS,,,10:40 - 12:30,,10:40 - 12:30,,,35M56,Matemática,0,0,5,5,4,CLAUDIO NOGUEIRA SANTANNA
+,,,,,,,,,,,Matemática,0,0,5,5,,
+,,,,,,,,,,,105 - Engenharia Mecânica,0,0,20,20,,
+MAT045,4,PROCESSAMENTO DE DADOS,,,14:50 - 16:40,,14:50 - 16:40,,,35T34,105 - Engenharia Mecânica,0,0,25,25,4,EDUARDO SANTANA DE ALMEIDA
+,,,,,,,,,,,105 - Engenharia Mecânica,0,0,5,5,,
+,,,,,,,,,,,183 - Matemática - Noturno,0,0,5,5,,
+,,,,,,,,,,,118 - Geofísica,0,0,10,10,,
+MAT220,1,EMPREENDEDORES EM INFORMATICA,,,18:30 - 20:20,,18:30 - 20:20,,,35N12,195 - Sistemas de Informação - Noturno,0,0,20,20,4,LAISE CAVALCANTE OLIVEIRA
+,,,,,,,,,,,112 - Ciência da Computação,0,0,15,15,,
+,,,,,,,,,,,196 - Computação - Noturno,0,0,10,10,,
+MATA37,1,INTRODUÇÃO À LÓGICA DE PROGRAMAÇÃO,,,16:40 - 18:30,,16:40 - 18:30,,,,102 - Engenharia Civil,0,0,40,40,4,DANILO BARBOSA COIMBRA
+,,,,,,,,,,,149 - Engenharia de Petróleo,5,0,0,5,,
+MATA37,2,INTRODUÇÃO À LÓGICA DE PROGRAMAÇÃO,,,13:00 - 14:50,,13:00 - 14:50,,,35T12,112 - Ciência da Computação,45,0,0,45,4,RUBISLEY DE PAULA LEMES
+MATA37,3,INTRODUÇÃO À LÓGICA DE PROGRAMAÇÃO,,,20:20 - 22:10,,20:20 - 22:10,,,35N34,195 - Sistemas de Informação - Noturno,45,0,5,50,4,KARL PHILIPS APAZA AGUERO
+MATA37,4,INTRODUÇÃO À LÓGICA DE PROGRAMAÇÃO,,18:30 - 20:20,,,,18:30 - 20:20,,26N12,196 - Computação - Noturno,45,0,5,50,4,CHRISTINA VON FLACH GARCIA CHAVEZ
+MATA37,5,INTRODUÇÃO À LÓGICA DE PROGRAMAÇÃO,,,10:40 - 12:30,,10:40 - 12:30,,,35M56,103 - Engenharia de Minas,25,0,0,25,4,RAFAEL AUGUSTO DE MELO
+,,,,,,,,,,,149 - Engenharia de Petróleo,25,0,0,25,,
+MATA37,6,INTRODUÇÃO À LÓGICA DE PROGRAMAÇÃO,,,18:30 - 20:20,,18:30 - 20:20,,,35N12,188 - Eng.de Controle e Automação de Processos,0,0,40,40,4,KARL PHILIPS APAZA AGUERO
+,,,,,,,,,,,Engenharia Civil,0,0,5,5,,
+,,,,,,,,,,,196 - Computação - Noturno,0,0,0,0,,
+MATA37,7,INTRODUÇÃO À LÓGICA DE PROGRAMAÇÃO,,,14:50 - 16:40,,14:50 - 16:40,,,35T34,112 - Ciência da Computação,0,0,15,15,4,LUCIANO REBOUCAS DE OLIVEIRA
+,,,,,,,,,,,Engenharia Civil,0,0,15,15,,
+,,,,,,,,,,,103 - Engenharia de Minas,10,0,0,10,,
+,,,,,,,,,,,149 - Engenharia de Petróleo,5,0,0,5,,
+MATA37,8,INTRODUÇÃO À LÓGICA DE PROGRAMAÇÃO,,,20:20 - 22:10,,20:20 - 22:10,,,35N34,186 - Engenharia da Computação - Noturno,0,0,25,25,4,GILBERTO DE SOUZA LEITE
+,,,,,,,,,,,108 - Física,0,0,10,10,,
+,,,,,,,,,,,181 - Física - Noturno,0,0,5,5,,
+,,,,,,,,,,,Engenharia de Produção,0,0,5,5,,
+MATA38,1,PROJETO DE CIRCUITOS LÓGICOS,,,16:40 - 18:30,,16:40 - 18:30,,,35T56,112 - Ciência da Computação,45,0,0,45,4,LUCIANO REBOUCAS DE OLIVEIRA
+MATA38,2,PROJETO DE CIRCUITOS LÓGICOS,,,13:00 - 14:50,,13:00 - 14:50,,,35T12,188 - Eng.de Controle e Automação de Processos,0,0,20,20,4,BRUNO PEREIRA DOS SANTOS
+,,,,,,,,,,,112 - Ciência da Computação,0,0,25,25,,
+MATA40,1,ESTRUTURAS DE DADOS E ALGORITMOS I,,,16:40 - 18:30,,16:40 - 18:30,,,35T56,112 - Ciência da Computação,0,0,45,45,4,SERGIO GORENDER
+,,,,,,,,,,,116 - Estatística,0,0,1,1,,
+MATA40,2,ESTRUTURAS DE DADOS E ALGORITMOS I,,18:30 - 20:20,,18:30 - 20:20,,,,24N12,186 - Engenharia da Computação - Noturno,0,0,20,20,4,ANTONIO LOPES APOLINARIO JUNIOR
+,,,,,,,,,,,188 - Eng.de Controle e Automação de Processos,0,0,25,25,,
+MATA47,1,LÓGICA PARA COMPUTAÇÃO,,13:00 - 14:50,,16:40 - 18:30,,,,2T12   4T56,112 - Ciência da Computação,0,0,45,45,4,STEFFEN LEWITZKA
+MATA47,2,LÓGICA PARA COMPUTAÇÃO,,,18:30 - 20:20,,18:30 - 20:20,,,35N12,186 - Engenharia da Computação - Noturno,0,0,40,40,4,STEFFEN LEWITZKA
+MATA48,1,ARQUITETURA DE COMPUTADORES,,,14:50 - 16:40,,14:50 - 16:40,,,35T34,112 - Ciência da Computação,0,0,45,45,4,EUCLERIO BARBOSA ORNELLAS FILHO
+MATA48,2,ARQUITETURA DE COMPUTADORES,,,20:20 - 22:10,,20:20 - 22:10,,,35N34,188 - Eng.de Controle e Automação de Processos,0,0,40,40,4,EUCLERIO BARBOSA ORNELLAS FILHO
+MATA49,1,PROGRAMAÇÃO DE SOFTWARE BÁSICO,,,,13:00 - 14:50,,13:00 - 14:50,,46T12,112 - Ciência da Computação,0,0,45,45,4,EUCLERIO BARBOSA ORNELLAS FILHO
+MATA49,2,PROGRAMAÇÃO DE SOFTWARE BÁSICO,,,18:30 - 20:20,,18:30 - 20:20,,,35N12,186 - Engenharia da Computação - Noturno,0,0,40,40,4,EUCLERIO BARBOSA ORNELLAS FILHO
+,,,,,,,,,,,195 - Sistemas de Informação - Noturno,0,0,5,5,,
+MATA50,1,LINGUAGENS FORMAIS E AUTÔMATOS,,,13:00 - 14:50,,13:00 - 14:50,,,35T12,112 - Ciência da Computação,0,0,45,45,4,ADRIANO HUMBERTO DE OLIVEIRA MAIA
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,0,0,,
+MATA51,1,TEORIA DA COMPUTAÇÃO,,,13:00 - 14:50,,13:00 - 14:50,,,35T12,112 - Ciência da Computação,0,0,45,45,4,ISLAME FELIPE DA COSTA FERNANDES 
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,3,3,,
+,,,,,,,,,,,111 - Matemática,0,0,2,2,,
+MATA52,1,ANÁLISE E PROJETO DE ALGORITMOS,,,14:50 - 16:40,,14:50 - 16:40,,,35T34,112 - Ciência da Computação,0,0,45,45,4,RAFAEL AUGUSTO DE MELO
+MATA52,2,ANÁLISE E PROJETO DE ALGORITMOS,,,20:20 - 22:10,,20:20 - 22:10,,,35N34,186 - Engenharia da Computação - Noturno,0,0,40,40,4,LARISSA BARBOSA LEONCIO PINHEIRO
+MATA53,1,TEORIA DOS GRAFOS,,,14:50 - 16:40,,14:50 - 16:40,,,35T34,112 - Ciência da Computação,0,0,40,40,4,BRUNO PEREIRA DOS SANTOS
+,,,,,,,,,,,108 - Física,0,0,1,1,,
+,,,,,,,,,,,111 - Matemática,0,0,5,5,,
+,,,,,,,,,,,183 - Matemática - Licenciatura,0,0,9,9,,
+MATA54,1,ESTRUTURAS DE DADOS E ALGORITMOS II,,14:50 - 16:40,,14:50 - 16:40,,,,24T34,112 - Ciência da Computação,0,0,40,40,4,GEORGE MARCONI DE ARAUJO LIMA 
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,0,0,,
+MATA55,1,PROGRAMAÇÃO ORIENTADA A OBJETOS,,14:50 - 16:40,,14:50 - 16:40,,,,24T34,112 - Ciência da Computação,0,0,40,40,4,RITA SUZANA PITANGUEIRA MACIEL
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,5,5,,
+,,,,,,,,,,,188 - Eng.de Controle e Automação de Processos,0,0,0,0,,
+MATA55,2,PROGRAMAÇÃO ORIENTADA A OBJETOS,,18:30 - 20:20,,18:30 - 20:20,,,,24N12,195 - Sistemas de Informação - Noturno,0,0,45,45,4,GILBERTO DE SOUZA LEITE
+MATA55,3,PROGRAMAÇÃO ORIENTADA A OBJETOS,,18:30 - 20:20,,18:30 - 20:20,,,,24N12,196 - Computação - Noturno,0,0,30,30,4,RODRIGO ROCHA GOMES E SOUZA
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,20,20,,
+MATA56,1,PARADIGMAS DE LINGUAGENS DE PROGRAMAÇÃO,,16:40 - 18:30,,16:40 - 18:30,,,,24T56,112 - Ciência da Computação,0,0,40,40,4,MANOEL GOMES DE MENDONCA NETO
+,,,,,,,,,,,195 - Sistemas de Informação - Noturno,0,0,5,5,,
+MATA56,2,PARADIGMAS DE LINGUAGENS DE PROGRAMAÇÃO,,18:30 - 20:20,,18:30 - 20:20,,,,24N12,195 - Sistemas de Informação - Noturno,0,0,45,45,4,MANOEL GOMES DE MENDONCA NETO
+,,,,,,,,,,,196 - Computação - Noturno,0,0,5,5,,
+MATA57,1,LABORATÓRIO DE PROGRAMAÇÃO I,,,,,,14:50 - 17:35,,6T345,112 - Ciência da Computação,0,0,45,45,3,KARL PHILIPS APAZA AGUERO
+MATA58,1,SISTEMAS OPERACIONAIS,,13:00 - 14:50,,13:00 - 14:50,,,,24T12,112 - Ciência da Computação,0,0,40,40,4,MAYCON LEONE MACIEL PEIXOTO
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,5,5,,
+MATA58,2,SISTEMAS OPERACIONAIS,,,20:20 - 22:10,,20:20 - 22:10,,,35N34,195 - Sistemas de Informação - Noturno,0,0,40,40,4,ADRIANO HUMBERTO DE OLIVEIRA MAIA
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,5,5,,
+MATA59,2,REDES DE COMPUTADORES I,,18:30 - 20:20,,18:30 - 20:20,,,,35N12,195 - Sistemas de Informação - Noturno,0,0,25,25,4,LEOBINO NASCIMENTO SAMPAIO
+,,,,,,,,,,,196 - Computação - Noturno,0,0,15,15,,
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,5,5,,
+MATA59,1,REDES DE COMPUTADORES I,,,13:00 - 14:50,,13:00 - 14:50,,,35T12,112 - Ciência da Computação,0,0,45,45,4,GUSTAVO BITTENCOURT FIGUEIREDO
+MATA60,1,BANCO DE DADOS,,,16:40 - 18:30,,16:40 - 18:30,,,35T56,112 - Ciência da Computação,0,0,40,40,4,DANIELA BARREIRO CLARO
+,,,,,,,,,,,196 - Computação - Noturno,0,0,5,5,,
+,,,,,,,,,,,195 - Sistemas de Informação - Noturno,0,0,0,0,,
+MATA60,2,BANCO DE DADOS,,,18:30 - 20:20,,18:30 - 20:20,,,35N12,195 - Sistemas de Informação - Noturno,0,0,35,35,4,ROBESPIERRE DANTAS DA ROCHA PITA
+,,,,,,,,,,,196 - Computação - Noturno,0,0,15,15,,
+MATA61,1,COMPILADORES,,16:40 - 18:30,,16:40 - 18:30,,,,24T56,112 - Ciência da Computação,0,0,45,45,4,CHRISTINA VON FLACH GARCIA CHAVEZ
+MATA61,2,COMPILADORES,,18:30 - 20:20,,18:30 - 20:20,,,,24N12,112 - Ciência da Computação,0,0,0,0,4,ADRIANO HUMBERTO DE OLIVEIRA MAIA
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,35,35,,
+MATA62,1,ENGENHARIA DE SOFTWARE I,,,16:40 - 18:30,,16:40 - 18:30,,,35T56,112 - Ciência da Computação,0,0,40,40,4,EDUARDO SANTANA DE ALMEIDA
+,,,,,,,,,,,195 - Sistemas de Informação - Noturno,0,0,5,5,,
+MATA62,2,ENGENHARIA DE SOFTWARE I,,20:20 - 22:10,,20:20 - 22:10,,,,24N34,186 - Engenharia da Computação - Noturno,0,0,35,35,4,LARISSA BARBOSA LEONCIO PINHEIRO
+,,,,,,,,,,,195 - Sistemas de Informação - Noturno,0,0,5,5,,
+,,,,,,,,,,,196 - Computação - Noturno,0,0,5,5,,
+MATA63,1,ENGENHARIA DE SOFTWARE II,,16:40 - 18:30,,16:40 - 18:30,,,,24T56,112 - Ciência da Computação,0,0,40,40,4,RODRIGO ROCHA GOMES E SOUZA
+,,,,,,,,,,,195 - Sistemas de Informação - Noturno,0,0,5,5,,
+MATA63,2,ENGENHARIA DE SOFTWARE II,,,20:20 - 22:10,,20:20 - 22:10,,,35N34,195 - Sistemas de Informação - Noturno,0,0,40,40,4,LAISE CAVALCANTE OLIVEIRA
+,,,,,,,,,,,196 - Computação - Noturno,0,0,5,5,,
+MATA64,1,INTELIGÊNCIA ARTIFICIAL,,,14:50 - 16:40,,14:50 - 16:40,,,35T34,112 - Ciência da Computação,0,0,40,40,4,TATIANE NOGUEIRA RIOS
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,5,5,,
+MATA64,2,INTELIGÊNCIA ARTIFICIAL,,18:30 - 20:20,,18:30 - 20:20,,,,24N12,195 - Sistemas de Informação - Noturno,0,0,45,45,4,RICARDO ARAUJO RIOS
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,0,0,,
+MATA65,1,COMPUTAÇÃO GRÁFICA,,14:50 - 16:40,,14:50 - 16:40,,,,24T34,112 - Ciência da Computação,0,0,40,40,4,ANTONIO LOPES APOLINARIO JUNIOR
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,0,0,,
+MATA77,1,PROGRAMAÇÃO FUNCIONAL,,18:30 - 20:20,,18:30 - 20:20,,,,35T12,112 - Ciência da Computação,0,0,30,30,4,LARISSA BARBOSA LEONCIO PINHEIRO
+,,,,,,,,,,,196 - Computação - Noturno,0,0,5,5,,
+MATA80,1,LABORATÓRIO DE PROGRAMAÇÃO II,,,,,,,08:50 - 11:35,7M345,112 - Ciência da Computação,0,0,40,40,3,RUBISLEY DE PAULA LEMES
+,,,,,,,,,,,195 - Sistemas de Informação - Noturno,0,0,10,10,,
+MATB02,1,QUALIDADE DE SOFTWARE,,,,,,"18:30 - 20:20
+20:20 - 21:15",,6N123,195 - Sistemas de Informação - Noturno,0,0,35,35,3,GILBERTO DE SOUZA LEITE
+,,,,,,,,,,,112 - Ciência da Computação,0,0,5,5,,
+,,,,,,,,,,,196 - Computação - Noturno,0,0,5,5,,
+MATB19,1,SISTEMAS MULTIMÍDIA,,,20:20 - 22:10,,20:20 - 22:10,,,35N34,195 - Sistemas de Informação - Noturno,0,0,35,35,4,DANILO BARBOSA COIMBRA 
+,,,,,,,,,,,196 - Computação - Noturno,0,0,15,15,,
+MATC30,1,LABORATÓRIO DE PROGRAMAÇÃO I,,,,,18:30 - 20:20,,,5N12,188 - Eng.de Controle e Automação de Processos,0,0,40,40,2,GILBERTO DE SOUZA LEITE
+,,,,,,,,,,,195 - Sistemas de Informação - Noturno,0,0,5,5,,
+MATC82,1,SISTEMAS WEB,,,,20:20 - 22:10,,20:20 - 22:10,,46N34,112 - Ciência da Computação,0,0,5,5,4,LAISE CAVALCANTE OLIVEIRA
+,,,,,,,,,,,195 - Sistemas de Informação - Noturno,0,0,25,25,,
+,,,,,,,,,,,196 - Computação - Noturno,0,0,15,15,,
+MATC84,1,LABORATÓRIO DE PROGRAMAÇÃO WEB,,20:20 - 22:10,,20:20 - 21:15,,,,2N34 4N3,195 - Sistemas de Informação - Noturno,0,0,40,40,3,GILBERTO DE SOUZA LEITE
+,,,,,,,,,,,196 - Computação - Noturno,0,0,5,5,,
+MATC89,1,APLICAÇÕES PARA DISPOSITIVOS MÓVEIS,,,,18:30 - 20:20,,18:30 - 20:20,,46N12,195 - Sistemas de Informação - Noturno,0,0,25,25,4,LAISE CAVALCANTE OLIVEIRA
+,,,,,,,,,,,196 - Computação - Noturno,0,0,5,5,,
+,,,,,,,,,,,112 - Ciência da Computação,0,0,15,15,,
+MATC92,3,FUNDAMENTOS DE SISTEMAS DE INFORMAÇÃO,,,18:30 - 20:20,,18:30 - 20:20,,,35N12,195 - Sistemas de Informação - Noturno,0,0,25,25,4,LARISSA BARBOSA LEONCIO PINHEIRO
+,,,,,,,,,,,196 - Computação - Noturno,0,0,5,5,,
+,,,,,,,,,,,112 - Ciência da Computação,0,0,15,15,,
+MATC94,1,INTRODUÇÃO AS LINGUAGENS FORMAIS E TEORIA DA COMPUTAÇÃO,,,18:30 - 20:20,,18:30 - 20:20,,,35N12,195 - Sistemas de Informação - Noturno,0,0,45,45,4,ADRIANO HUMBERTO DE OLIVEIRA MAIA
+MATC94,1,INTRODUÇÃO AS LINGUAGENS FORMAIS E TEORIA DA COMPUTAÇÃO,,20:20 - 22:10,,20:20 - 22:10,,,,24N34,196 - Computação - Noturno,0,0,25,25,4,STEFFEN LEWITZKA
+MATC99,1,SEGURANÇA E AUDITORIA DE SISTEMAS DE INFORMAÇÃO,,20:20 - 22:10,,20:20 - 22:10,,,,24N34,195 - Sistemas de Informação - Noturno,0,0,40,40,4,LEOBINO NASCIMENTO SAMPAIO
+,,,,,,,,,,,112 - Ciência da Computação,0,0,5,5,,
+MATF34,1,ACCS:PROGRAMAÇÃO COMPETITIVA-COMPUTAÇÃO PARA ALUNOS,,,,,,,13:55 - 17:35,72345,196 - Computação - Noturno,0,0,10,10,4,RUBISLEY DE PAULA LEMES
+,,,,,,,,,,,112 - Ciência da Computação,0,0,40,40,,
+,,,,,,,,,,,195 - Sistemas de Informação - Noturno,0,0,10,10,,
+,,,,,,,,,,,186 - Engenharia da Computação - Noturno,0,0,5,5,,
+,,,,,,,,,,,Ciência e Tecnologia,0,0,5,5,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
+,,,,,,,,,,,,,,,0,,
