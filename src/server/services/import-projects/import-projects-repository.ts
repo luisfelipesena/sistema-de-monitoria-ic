@@ -1,7 +1,6 @@
 import type { db } from '@/server/db'
 import {
   atividadeProjetoTable,
-  departamentoTable,
   disciplinaProfessorResponsavelTable,
   disciplinaTable,
   importacaoPlanejamentoTable,
