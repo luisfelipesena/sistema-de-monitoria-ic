@@ -52,17 +52,6 @@ export function createImportProjectsRepository(db: Database) {
       })
     },
 
-    async getDepartamentoIdByDisciplina(codigo: string) {
-    const disciplina = await db.query.disciplinaTable.findFirst({
-      where: eq(disciplinaTable.codigo, codigo),
-      columns: {
-        departamentoId: true, // Puxa exclusivamente o ID do departamento
-      },
-    })
-
-    return disciplina?.departamentoId
-  },
-
     async findProfessoresBySiapes(siapes: string[]) {
       return db.query.professorTable.findMany({
         where: inArray(professorTable.matriculaSiape, siapes),
