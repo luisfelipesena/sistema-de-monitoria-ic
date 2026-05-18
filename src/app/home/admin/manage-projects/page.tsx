@@ -10,6 +10,7 @@ import { createProjectColumns } from "@/components/features/admin/manage-project
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { TableComponent } from "@/components/layout/TableComponent"
 import { useProjectManagement } from "@/hooks/features/useProjectManagement"
+import { ADMIN_TYPE_DCC, ADMIN_TYPE_DCI } from "@/types"
 import { api } from "@/utils/api"
 import { useMemo } from "react"
 
@@ -50,6 +51,7 @@ export default function ManageProjectsPage() {
 
   // Fetch disciplinas for autocomplete filter
   const { data: disciplinas } = api.discipline.getDisciplines.useQuery()
+  const { data: departamentos } = api.departamento.getDepartamentos.useQuery({ includeStats: false })
 
   const disciplinaFilterOptions = useMemo(() => {
     const options: { value: string; label: string }[] = []
@@ -75,6 +77,17 @@ export default function ManageProjectsPage() {
     return options
   }, [disciplinas, projetos])
 
+  const departamentoFilterOptions = useMemo(() => {
+    if (!departamentos) return []
+
+    return departamentos
+      .filter((departamento) => departamento.sigla === ADMIN_TYPE_DCC || departamento.sigla === ADMIN_TYPE_DCI)
+      .map((departamento) => ({
+        value: String(departamento.id),
+        label: departamento.sigla ?? departamento.nome,
+      }))
+  }, [departamentos])
+
   const columns = useMemo(
     () =>
       createProjectColumns(
@@ -86,6 +99,7 @@ export default function ManageProjectsPage() {
           loadingPdfProjetoId,
           isDeletingProject: isDeleting,
           disciplinaFilterOptions,
+          departamentoFilterOptions,
         },
         groupedView
       ),
@@ -98,6 +112,7 @@ export default function ManageProjectsPage() {
       isDeleting,
       groupedView,
       disciplinaFilterOptions,
+      departamentoFilterOptions,
     ]
   )
 

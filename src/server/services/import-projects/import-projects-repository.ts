@@ -1,20 +1,20 @@
 import type { db } from '@/server/db'
 import {
-  importacaoPlanejamentoTable,
+  atividadeProjetoTable,
+  disciplinaProfessorResponsavelTable,
   disciplinaTable,
+  importacaoPlanejamentoTable,
+  periodoInscricaoTable,
   professorTable,
+  projetoDisciplinaTable,
   projetoTable,
   projetoTemplateTable,
-  projetoDisciplinaTable,
-  disciplinaProfessorResponsavelTable,
-  atividadeProjetoTable,
-  periodoInscricaoTable,
   type NewProjeto,
 } from '@/server/db/schema'
-import type { InferInsertModel } from 'drizzle-orm'
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm'
 import type { Semestre } from '@/types'
 import { findMatchingProfessors } from '@/utils/string-normalization'
+import type { InferInsertModel } from 'drizzle-orm'
+import { and, desc, eq, ilike, inArray, isNull } from 'drizzle-orm'
 
 type Database = typeof db
 
@@ -34,7 +34,13 @@ export function createImportProjectsRepository(db: Database) {
         where: eq(importacaoPlanejamentoTable.id, id),
       })
     },
-
+    async findDepartamentoByDisciplinaId(disciplinaId: number) {
+      const disciplina = await db.query.disciplinaTable.findFirst({
+        where: eq(disciplinaTable.id, disciplinaId),
+        columns: { departamentoId: true }
+      })
+      return disciplina?.departamentoId ?? null
+    },
     async updateImportacao(id: number, data: ImportacaoUpdate) {
       await db.update(importacaoPlanejamentoTable).set(data).where(eq(importacaoPlanejamentoTable.id, id))
     },
@@ -240,14 +246,14 @@ export function createImportProjectsRepository(db: Database) {
     async findDepartamentoByNome(nome: string) {
       const { departamentoTable } = await import('@/server/db/schema')
       return db.query.departamentoTable.findFirst({
-        where: eq(departamentoTable.nome, nome),
+        where: ilike(departamentoTable.nome, nome.trim()),
       })
     },
 
     async findDepartamentoBySigla(sigla: string) {
       const { departamentoTable } = await import('@/server/db/schema')
       return db.query.departamentoTable.findFirst({
-        where: eq(departamentoTable.sigla, sigla),
+        where: ilike(departamentoTable.sigla, sigla.trim()),
       })
     },
 

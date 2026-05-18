@@ -8,6 +8,7 @@ export interface PlanejamentoRow {
   disciplinaNome: string
   professoresSiapes: string[] // Array de SIAPEs
   vagas?: number
+  departamento?: string
 }
 
 export interface ParsedPlanejamento {
@@ -89,6 +90,7 @@ export async function parsePlanejamentoSpreadsheet(fileBuffer: Buffer): Promise<
         ])
 
         const vagasRaw = extractValue(row, ['vagas', 'Vagas', 'numero_vagas'])
+        const departamentoRaw = extractValue(row, ['departamento', 'depto', 'depto_nome', 'department'])
 
         // Validações básicas
         if (!disciplinaCodigo) {
@@ -138,6 +140,7 @@ export async function parsePlanejamentoSpreadsheet(fileBuffer: Buffer): Promise<
           disciplinaNome: disciplinaNome.toString().trim(),
           professoresSiapes,
           vagas: vagas && !isNaN(vagas) ? vagas : undefined,
+          departamento: departamentoRaw ? departamentoRaw.toString().trim() : undefined,
         })
       } catch (error) {
         errors.push(
@@ -167,12 +170,30 @@ export async function parsePlanejamentoSpreadsheet(fileBuffer: Buffer): Promise<
  * Extrai valor de um objeto tentando múltiplas chaves possíveis
  */
 function extractValue(obj: Record<string, unknown>, possibleKeys: string[]): string | undefined {
+  const normalizedMap = new Map<string, unknown>()
+  for (const [rawKey, value] of Object.entries(obj)) {
+    const normalizedKey = normalizeKey(rawKey)
+    if (!normalizedMap.has(normalizedKey)) {
+      normalizedMap.set(normalizedKey, value)
+    }
+  }
+
   for (const key of possibleKeys) {
-    if (key in obj && obj[key] !== undefined && obj[key] !== null && obj[key] !== '') {
-      return obj[key] as string
+    const value = normalizedMap.get(normalizeKey(key))
+    if (value !== undefined && value !== null && value !== '') {
+      return value as string
     }
   }
   return undefined
+}
+
+function normalizeKey(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '_')
+    .toLowerCase()
+    .trim()
 }
 
 /**
