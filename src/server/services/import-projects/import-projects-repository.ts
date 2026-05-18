@@ -37,7 +37,7 @@ export function createImportProjectsRepository(db: Database) {
     async findDepartamentoByDisciplinaId(disciplinaId: number) {
       const disciplina = await db.query.disciplinaTable.findFirst({
         where: eq(disciplinaTable.id, disciplinaId),
-        columns: { departamentoId: true }
+        columns: { departamentoId: true },
       })
       return disciplina?.departamentoId ?? null
     },

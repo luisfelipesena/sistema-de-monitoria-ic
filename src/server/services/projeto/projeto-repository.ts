@@ -38,7 +38,9 @@ export interface ProjetoFilters {
 }
 
 export function createProjetoRepository(db: Database) {
-  const resolvedDepartamentoIdExpr = sql<number | null>`coalesce(${projetoTable.departamentoId}, ${professorTable.departamentoId})`
+  const resolvedDepartamentoIdExpr = sql<
+    number | null
+  >`coalesce(${projetoTable.departamentoId}, ${professorTable.departamentoId})`
 
   return {
     // Basic CRUD
