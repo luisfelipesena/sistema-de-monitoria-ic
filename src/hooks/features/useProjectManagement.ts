@@ -1,19 +1,19 @@
-import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 import { useDialogState } from '@/hooks/useDialogState'
 import { useServerPagination } from '@/hooks/useServerPagination'
-import { api } from '@/utils/api'
-import { useQueryClient } from '@tanstack/react-query'
 import type { ManageProjectItem } from '@/types'
 import {
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_SUBMITTED,
   PROJETO_STATUS_APPROVED,
+  PROJETO_STATUS_DRAFT,
   PROJETO_STATUS_REJECTED,
+  PROJETO_STATUS_SUBMITTED,
   type ProjetoStatus,
   type Semestre,
 } from '@/types'
+import { api } from '@/utils/api'
+import { useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import { useMemo, useState } from 'react'
 
 export function useProjectManagement() {
   const { toast } = useToast()
@@ -42,6 +42,7 @@ export function useProjectManagement() {
     status: apiFilters.status as ProjetoStatus[] | undefined,
     disciplina: apiFilters.disciplina,
     professorNome: apiFilters.professorNome,
+    departamentoId: apiFilters.departamentoId,
     limit: apiFilters.limit,
     offset: apiFilters.offset,
   })

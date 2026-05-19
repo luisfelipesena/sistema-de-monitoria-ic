@@ -1,14 +1,14 @@
-import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import { emailService } from '@/server/lib/email'
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import {
-  TIPO_EDITAL_DCC,
   SEMESTRE_LABELS,
+  TIPO_EDITAL_DCC,
   type CreateEditalInput,
   type EditalWithPeriodoStatus,
   type UpdateEditalInput,
 } from '@/types'
-import { logger } from '@/utils/logger'
 import { env } from '@/utils/env'
+import { logger } from '@/utils/logger'
 import { randomBytes } from 'crypto'
 import type { EditalRepository } from './edital-repository'
 
