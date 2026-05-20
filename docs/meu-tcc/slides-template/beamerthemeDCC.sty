@@ -1,0 +1,121 @@
+\RequirePackage{tikz, datetime, textpos}
+\fontfamily{sans-serif}\selectfont
+\ProcessOptions
+\yyyymmdddate \renewcommand{\dateseparator}{.}
+
+\definecolor{DCCRedHard}{RGB}{255,0,0}
+\definecolor{DCCBlueHard}{RGB}{91,155,213}
+\definecolor{DCCYellowHard}{RGB}{255,192,0}
+\definecolor{DCCGreenHard}{RGB}{112,173,71}
+
+\definecolor{DCCBlueSoft}{RGB}{161,197,230}
+\definecolor{DCCYellowSoft}{RGB}{254,230,158}
+\definecolor{DCCGreenSoft}{RGB}{199,226,182}
+
+\definecolor{MedianLightBlue}{RGB}{148,182,210}
+\definecolor{MedianOrange}{RGB}{221,128,71}
+\definecolor{MedianLightOrange}{RGB}{216,178,92}
+\definecolor{MedianUltraLightOrange}{RGB}{245,236,215}
+
+\setbeamercolor*{title page header}{fg=black}
+\setbeamercolor*{title}{fg=black}
+\setbeamercolor*{author}{fg=black}
+\setbeamercolor*{date}{fg=black}
+\setbeamercolor*{item}{fg=black}
+\setbeamercolor*{frametitle}{fg=black}
+\setbeamercolor*{block title}{fg=white, bg=MedianOrange}
+\setbeamercolor*{block title example}{fg=white, bg=MedianLightOrange}
+\setbeamercolor*{block body}{bg=MedianUltraLightOrange}
+\setbeamercolor*{block body example}{bg=MedianUltraLightOrange}
+\setbeamercolor*{section in toc}{fg=black}
+\setbeamercolor*{section page}{fg=white}
+
+\setbeamerfont{section page}{size=\LARGE}
+\setbeamerfont{title}{size=\LARGE}
+\setbeamerfont{author}{size=\Large}
+\setbeamerfont{date}{size=\Large}
+\setbeamerfont{frametitle}{size=\fontsize{20}{20}}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{section in toc}[sections numbered]
+\setbeamertemplate{subsection in toc}[subsections numbered]
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[numbered]
+
+\usepackage{natbib}
+\setbeamertemplate{frametitle continuation}[from second]
+\setbeamercolor*{bibliography entry title}{fg=black}
+\setbeamercolor*{bibliography entry author}{fg=black}
+\setbeamercolor*{bibliography entry location}{fg=black}
+\setbeamercolor*{bibliography entry note}{fg=black}
+\setbeamertemplate{bibliography item}{}
+
+\setbeamertemplate{footline}[frame number]
+
+\newenvironment{xplainframe}{\bgroup\setbeamertemplate{background}{}\begin{frame}[plain]}{\end{frame}\egroup}
+
+\setbeamertemplate{background}{
+  \begin{tikzpicture}
+  \useasboundingbox (0,0) rectangle(\the\paperwidth,\the\paperheight);
+  \ifnum\thepage>1\relax% Not the title page
+	  \fill[color=DCCRedHard] (0,0.923\paperheight) rectangle (0.046\paperwidth,0.713\paperheight);
+	  \fill[color=DCCBlueHard] (0,0.709\paperheight) rectangle (0.046\paperwidth,0.499\paperheight);
+	  \fill[color=DCCYellowHard] (0,0.494\paperheight) rectangle (0.046\paperwidth,0.283\paperheight);
+	  \fill[color=DCCGreenHard] (0,0.279\paperheight) rectangle (0.046\paperwidth,0.069\paperheight);
+
+	  \fill[color=white] (0.053\paperwidth,1\paperheight) rectangle (0.056\paperwidth,0\paperheight);
+
+	  \fill[left color=DCCBlueSoft, right color=white] (0.046\paperwidth,1\paperheight) rectangle (0.056\paperwidth,0.667\paperheight);
+	  \fill[left color=DCCYellowSoft, right color=white] (0.046\paperwidth,0.667\paperheight) rectangle (0.056\paperwidth,0.333\paperheight);
+	  \fill[left color=DCCGreenSoft, right color=white] (0.046\paperwidth,0.333\paperheight) rectangle (0.056\paperwidth,0\paperheight);
+  \else% Title page
+	  \fill[color=DCCRedHard] (0.139\paperwidth,0.51\paperheight) rectangle (0.316\paperwidth,0.537\paperheight);
+	  \fill[color=DCCBlueHard] (0.319\paperwidth,0.51\paperheight) rectangle (0.495\paperwidth,0.537\paperheight);
+	  \fill[color=DCCYellowHard] (0.498\paperwidth,0.51\paperheight) rectangle (0.673\paperwidth,0.537\paperheight);
+	  \fill[color=DCCGreenHard] (0.677\paperwidth,0.51\paperheight) rectangle (0.853\paperwidth,0.537\paperheight);
+
+      \node[inner sep=0pt] (dcc) at (0.125\textwidth,0.25\textheight){\includegraphics[height=0.35\textheight]{imgs/dcc.png}};
+      \node[inner sep=0pt] (dcc) at (1\textwidth,0.25\textheight){\includegraphics[height=0.35\textheight]{imgs/dcc.png}};
+  \fi
+  \end{tikzpicture}
+}
+\setbeamertemplate{title page}{
+	\begin{textblock*}{2cm}(2cm,-1cm)
+    \begin{beamercolorbox}[wd=11.9cm,sep=0cm]{title page header}
+        \usebeamerfont{title}\centering\usebeamercolor{title}\inserttitle%
+    \end{beamercolorbox}%
+    \end{textblock*}
+
+    \begin{textblock*}{\textwidth}(0cm,2.2cm)
+	    \begin{beamercolorbox}{author}
+	      \usebeamerfont{author}\centering\insertauthor \\
+    	\end{beamercolorbox}
+    \end{textblock*}
+}
+\newcommand{\sectionframe}{{
+	\setbeamertemplate{background}{
+		\begin{tikzpicture}
+			\useasboundingbox (0,0) rectangle(\the\paperwidth,\the\paperheight);
+			\fill[color=MedianOrange] (0,6) rectangle (1.5, 7);
+			\fill[color=MedianLightBlue] (1.6, 6) rectangle (\the\paperwidth, 7);
+		\end{tikzpicture}
+	}
+	\frame{\sectionpage}
+}}
+\setbeamertemplate{section page}{
+	\begin{textblock*}{12cm}(0.8cm,-0.9cm)
+		\begin{beamercolorbox}{section page}
+			\insertsectionhead
+		\end{beamercolorbox}
+	\end{textblock*}
+}
+\setbeamertemplate{frametitle}{
+	\vspace{0.3cm}
+	\begin{beamercolorbox}{frametitle}
+		\insertframetitle
+	\end{beamercolorbox}
+}
+
+%\setbeamertemplate{bibliography entry title}{}
+%\setbeamertemplate{bibliography entry location}{}
+%\setbeamertemplate{bibliography entry note}{}

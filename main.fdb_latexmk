@@ -1,0 +1,14 @@
+# Fdb version 4
+["pdflatex"] 1765925777.71957 "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" "main.pdf" "main" 1765925777.82826 2
+  "/Users/luisfelipesena/Development/Personal/sistema-de-monitoria-ic/docs/meu-tcc/main.tex" 1765925747.80146 100937 721313648151a6d7f7f9bd9883c80e07 ""
+  "/usr/local/texlive/2025/texmf-dist/web2c/texmf.cnf" 1739380943 42148 61becc7c670cd061bb319c643c27fdd4 ""
+  "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1743556498 3345730 b0114b64bb79cd284171e12692394348 ""
+  "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
+  "docs/meu-tcc/main.tex" 1765925747.80146 100937 721313648151a6d7f7f9bd9883c80e07 ""
+  "main.aux" 1765925777.71921 32 3985256e7290058c681f74d7a3565a19 "pdflatex"
+  "sbc2025.cls" 0 -1 0 ""
+  (generated)
+  "main.aux"
+  "main.log"
+  "main.pdf"
+  (rewritten before read)

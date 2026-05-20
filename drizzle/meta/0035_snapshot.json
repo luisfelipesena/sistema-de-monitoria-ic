@@ -1,0 +1,14 @@
+{
+  "id": "0035_demo_seed",
+  "prevId": "0034_woozy_spitfire",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {},
+  "enums": {},
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

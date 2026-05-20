@@ -1,0 +1,33 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+
+# Infrastructure Setup - Sistema de Monitoria IC
+
+Based on communication with the infrastructure team, the following setup will be provisioned:
+
+## Applications (Dokku)
+
+2.  **`sistema-de-monitoria`**: The application
+3.  **`sistema-de-monitoria-minio`**: MinIO instance for object storage (documents, uploads).
+
+## Database
+
+*   **Type:** PostgreSQL
+*   **Name:** `sistema-de-monitoria-api`
+*   **Link:** Automatically linked to the `sistema-de-monitoria-api` application.
+
+## Storage
+
+*   **Type:** Persistent Storage (Volume)
+*   **Application:** `sistema-de-monitoria-minio`
+*   **Configuration:** Requires specific setup within the application deployment following the guide at [https://github.com/mimischi/minio-dokku](https://github.com/mimischi/minio-dokku).
+
+## Authentication
+
+*   **Method:** Central Authentication Service (CAS)
+*   **Provider:** UFBA
+*   **CAS Server URL:** `https://autenticacao.ufba.br/ca`

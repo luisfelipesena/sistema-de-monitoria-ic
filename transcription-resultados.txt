@@ -1,0 +1,244 @@
+0:00
+Primeiro de tudo, os dois autorizam a gravação, que eu vou fazer aqui para vocês verem. Claro, se ele for pagando mil reais, mal tem, né? Pronto, perfeito. Eu botei aqui para gravar então. Primeiramente, bom dia.
+0:13
+Acho que a ideia aqui da reunião era mais a gente repassar sobre o sistema de monitoria, agora que voltou, graças a Deus, para o AI, está funcionando. A ideia é ter basicamente o Fred como um exemplo de professor, que receberia a notificação para poder fazer o projeto. E o professor Rupi seria mais como admin, de fazer a importação.
+0:30
+Do planejamento para ter o início desse fluxo. Então, o que eu cheguei a fazer foi cadastrar o professor Fred no sistema, mas ele tem que passar pelo onboarding e acho que o professor Rupi já tem acesso.
+0:46
+Não é isso, professor Rupi? Você está falando do qual? Do admin do DCC? Isso, isso. Calma aí, eu preciso verificar, cara. Eu tinha entrado antes, mas... Mas eu não sei se depois que mudou alguma coisa.
+1:04
+Dá um saque aí, só para eu confirmar que está ok. Espera aí. Eu vou mandar esse... É que tem a senha do e-mail, aí eu coloquei no WhatsApp, que é o do DCC. Eu pedi o caso. Deixa eu só lembrar essa senha, que eu nunca lembro.
+1:22
+Eu acho que esse... Que agora o login que a gente usa é o da plataforma, né? Sim. Deixa eu pegar aqui só o CSV, então. Calma aí, que eu estou tentando achar que é a parte da senha. Tem no WhatsApp só um CSV que eu tinha feito do planejamento, que aí só tem o professor Fred.
+2:06
+Eu e o professor Fred, né? Não entendi. O planejamento, que é aquele CSV, né? Para poder não... Ah, sim, você editou ele, só o Fred, né? Isso, isso. O Felipe, compartilha a tua tela aí, cara. Melhor? Porque aí todo mundo vai ver aí como é que estão as coisas andando.
+2:33
+Ok. O processo para mim, como admin aqui, por exemplo. Aí, usando só uma vez, viu aqui, Fred? O que a gente tem agora para o admin é o dashboard, que mostra mais informações gerais. E já carrega mostrando o ano atual e o semestre atual também, né?
+2:54
+E aí o fluxo que eu queria passar era mais isso aqui do importar planejamento. Que aí meio que importa aqui os projetos, né? Tem o CSV que eu repassei com o Rubis, meio que cria automaticamente. E aí o admin... O admin consegue ir gerenciando cada projeto aqui.
+3:08
+Na parte de gerenciar projetos, o dashboard é uma visão geral. E aí... Aí esse fluxo é isso, né? O professor vai ser notificado via e-mail, consegue acessar, fazer o onboard, ver o seu projeto. Aí cria um template padrão que vai servir para a matéria, daí em diante, como base.
+3:23
+Dá para editar. Preenche o seu projeto daquele semestre, assina e manda para o admin. Aí o admin, com o projeto assinado, ele consegue aprovar. E aí depois chega aqui, ó. É relatórios, planilha, prograde e gerar a planilha para enviar para o prograde esse ano.
+3:43
+Então, esse é o overview em geral. Acho que não dá para fazer aquela análise quantitativa, né?
+3:50
+Que eu estava planejando, a ideia era mais a gente repassar e fazer algumas perguntas, né? O que vocês tiverem em mente aí de ver, ó, isso aqui está legal, gostei disso aqui, que vai ajudar. Pô, tal coisa poderia ter sido simplificada.
+4:02
+Acho que todas essas ideias, assim, que tiveram em mente. Podem ir falando, que eu acho que vai ser importante depois, até para eu preencher os resultados, né? Tá, vamos lá. Primeira coisa, a gente então tem três perfis bem distintos.
+4:18
+Isso. O coordenador, o professor e o aluno. Isso. Então, vão ser três pessoas utilizando o sistema. Então, hoje, por exemplo, o professor Rubens vai logar, ele vai estar com a função aí. Geralmente, ele e o Carl, não sei.
+4:35
+Ups. Não sei, Carl, vão estar na função de coordenador. Eu e o Carl, como, né, da parte da comissão de monitoria, aí eu estou tentando entrar com o e-mail do DCC, Luiz. Não estou conseguindo aqui a senha e o e-mail.
+4:52
+Você consegue com a sua conta? Eu acho que já, ela já está aqui, ó. Cadê os usuários, seus usuários? Eu estou com o Admin, o Rubens Leite? Aqui, ó. Que é esse aqui, né, isso? É o Rubens Leite PL. Pronto.
+5:09
+Esse aqui é o antigo, né? Esse aí não tem, esse Rubens Leite, arroba aí, nunca existiu.
+5:39
+Estou a tentar, peraí.
+5:46
+Essa é a senha do próprio e-mail da UFBA, não é? Essa senha, eu acho que o senhor colocou em algum momento, que é lá do sistema, então, deve ter feito isso em algum momento. Se não fez, acho que vou botar aí, esqueci minha senha.
+5:58
+Ah, então, vou dizer. A senha que eu estou tentando aqui, não está aí. É, ele tem que esquecer a senha. É, já vai. Bora lá.
+7:07
+Tudo bem, então, já começamos testando a parte aí da redefinição do usuário que está funcionando. Acho que o professor Fred também vai precisar fazer isso para acessar o usuário dele. Vamos lá. Conseguiu acessar o site?
+7:26
+Tá. Bota o link aqui, só por favor. Deixa eu mandar aqui. Acho que seria bom começar, então, com... Você consegue compartilhar a tela, professor Rubens? Que aí a gente já passa sobre a sua tela, a gente vai repassando a ideia, acho que melhor, né, não?
+7:39
+Você quer que eu compartilhe a minha, é isso? É, acho melhor. A gente já faz com o mesmo que você interagindo também. Aham. Tema de monitoria.
+7:55
+Essa é a parte do dashboard, como eu comentei, né? Acho que a gente repassou até sobre isso, né, professor? Que a gente colocou os filtros ali nas colunas diretamente na tabela, né? Fez uma limpa com os botões.
+8:06
+Acho que agora é a visão do dashboard. Oi? Tinha muito botão lá em cima, né? A gente tirou todos e ficam todos agora direto. Direto nas próprias abas ali, né? De projetos editais, etc. E como não tem projeto aí, a gente não vai conseguir ver essa parte.
+8:24
+Então, acho que o que dá pra fazer aí naquele é importar planejamento, né? Certo. Você quer que eu vá lá? É, eu mostro. Importar planejamento. Eu mandei no seu WhatsApp um exemplo do planejamento que tem só, no caso, eu e o professor Fred, né? Pra testar.
+8:44
+Sim. Você consegue baixar aí? Certo, tô baixando. Tá. Mais uma... Uma pergunta que eu já tinha também era se agora, com esse sidebar aí, com as abas, cada aba, né, pai e filho, ficou mais claro a divisão, né?
+8:59
+Que antes eu lembro que tava mais confuso. Se agora tá mais claro que cada sessão faz parte pro admin e quando chega no professor se faz sentido também. Agora melhorou? Peraí, desculpa. Repete aí. Em relação ao sidebar que agora tem ali, né, cada aba, projetos, importa projetos, planejamento, na esquerda, né?
+9:19
+Se agora tá mais claro, como a gente tinha comentado, da separação, né? De cada parte que a gente comentou, tá separada e na ordem, né? Ah, sim. Eu achei... Isso, né? Eu sugeri pra você fazer. Achei que ficou bem melhor, né?
+9:34
+Na ordem, né? Que é feito, né? Primeiro projetos, depois a gente trata dos editais, depois, obviamente, as inscrições, depois seleção e, por fim, os relatórios, né? Finais da disciplina e dos monitores, né?
+9:48
+Isso. Além disso, é a questão dos usuários, configurações, sistema. Posso fazer a importação já aqui? Pronto, pode sim, pode sim. No canto superior direito, importação. Ah, também sim. Achei que tinha uma ali, né?
+10:03
+É, 2025, semestre, sei lá, dois. Primeiro arquivo, planejamento, teste, importar. Arquivo enviado, processando planilha, né? Isso. Tá aqui o processamento da planilha, aí já mostra aí. Acho que a notificação aí é...
+10:21
+É a ideia, né, de mostrar quantos projetos foram criados e quantos projetores foram notificados pra dar essa ideia mais rápida, tipo, de se deu sucesso ou não. E se você dá um scroll lá pra baixo, você vai visualizar exatamente o que você importou, né? A planilha do teste.
+10:37
+Sim, um milhão, dois projetos. Isso. E quem importou, a data, e se você clicar em ação no olho também, você tem algumas informações a mais, assim, no modal, né? Aí. Foram dois projetos criados. Um pra mate. Um pra mate é 85, um pra mate é 02, que é o que eu botei, como eu, como professor, pra receber o e-mail.
+10:57
+E os dois projetos foram criados. Como não tem o projeto padrão, meio que tá usando os valores padrões, o professor vai ter que criar o projeto padrão. Então... Sim. Essa parte, acho que ficou... Deu pra ficar claro? Pra entender como...
+11:09
+No fluxo do dia a dia? Aham. Aham. Pronto, tranquilo. Tá, acho que de próximo projeto, eu recebi já o e-mail aqui, de próximo passo, chegou a receber, é, pro Sprite. É, na verdade, eu não tô conseguindo alterar a senha, cara.
+11:28
+Acho que tá com bug. Cadê? Não tô conseguindo alterar a senha. Ó, eu recebo uma mensagem aqui, aí ele vai re-definição de senha, aí eu redefinir a senha, aí, ó, deixa eu colocar, deixa eu tentar novamente aqui, tá?
+11:42
+Você consegue compartilhar a tela? Acho que a gente já viu isso. Peraí.
+11:51
+Ah, ó. Agora... Deixa eu ver se foi. Peraí.
+12:04
+Pronto, foi. Aí ele tá pedindo pra eu completar aqui meu perfil, vou compartilhar minha tela. Pronto, minha tela tá aqui. Aí ele... Ok, eu vou botar aqui. Acho que tá em outra aula. Vou compartilhar essa aqui.
+12:32
+Sistema de monitoria, janela.
+12:41
+Pronto. É esse aqui, né? Isso aí cai na parte do onboarding, que é esse primeiro acesso, né? Aí, dados. Acho que você até comentei com o professor Rubens também de botar o tipo do professor, se é efetivo ou...
+12:54
+É, substituto, né? Aí já configura a assinatura. Beleza. Essa parte de onboarding acho que fica clara também, né, professor? Ok, tá ok. Tá tranquilo. Pronto, aí tem essa aqui, eu vou revisar. Isso. Porque aí já criou a matéria com o seu nome, você clica em revisar, e aí é a parte do projeto padrão, que é aquilo de você criar um projeto que vai ajudar no segmento de outras matérias, né?
+13:14
+Já vem com os valores, mas obviamente você consegue alterar, né? E gerar o preview ali do lado. Clica aí pra ver. Gera um preview aí e ajuda, né? E ele já carrega com os dados do Fred lá em cima, né, no PDF.
+13:28
+Exatamente, você subir aí vai ver isso. Ah, dá pra ver as lojas. É, tem que colocar o número ali de... Isso aí. Os professores beneficiados, bolsistas e voluntários. Beleza, salvou. Você consegue aí editar e assinar, acho que essa parte também a gente buscou deixar mais clara, né? Ok?
+13:47
+Ok. Vou ver aqui, assinatura padrão, assinatura padrão. Só dar um... Já foi, né? Já deu a assinatura. O professor Rubens, ele consegue agora voltar lá, está com a tela compartilhada, né? Mas eu acho que a ideia...
+14:05
+Me diga uma coisa. O Fred consegue editar de novo esse documento? Porque, por exemplo, se eu for lá no dashboard e ver que tem algo errado, pedir pro professor refazer alguma coisa. É possível visualizar.
+14:23
+Ele pode editar antes de enviar pro admin. Você acha que vale a pena deixar editável após o envio pro admin? Eu acho que sim, porque muitas das vezes isso acontece. O professor envia o projeto e aí ele chega lá, aí eu vou ter que recusar o projeto, entendeu? Eu faço assim, ó, tá errado.
+14:42
+Por tá errado, por quê? Porque tem que revisar tal coisa. Então, esse ponto acho que a gente não mencionou, né, Luiz? Ficou faltando esse pequeno detalhe. Mas tudo bem. Deixa eu ir lá no... Uma possibilidade que tem, professor, é nesse caso, é porque como tá no sistema hoje, a gente cria esse PDF com a assinatura do professor, que aí permite você com o admin ver o PDF já final, né?
+15:05
+Tipo, o PDF que ele assinou. Uma outra possibilidade é, pô, tá errado, você nega o projeto dele, e aí o professor consegue chegar lá e criar um novo projeto, entendeu? Consegue chegar lá em projetos e criar pra aquela matéria, ao invés de editar o que ele fez.
+15:20
+Mas pode ser uma outra opção também de... Mesmo depois de enviado, enquanto o admin não aprovar, permite editar, né? Isso, hoje ela é editável. A gente iguala... Corrige aí, vocês corrigem rápido isso aí.
+15:34
+É só o coordenador retornar. É. É. Se ele não assinar, a gente deixa lá. É, só que você tem que ter uma... Esse foi o detalhe, né? Como notificar o professor que tá faltando tal, tal coisa, né? Ó, reedita aí seu PDF porque tá faltando tal, tal coisa.
+15:52
+Sim, sim. Só deveria... Poderia ser, tipo, um e-mail? Poderia ser uma mensagem, né? Aparecer uma mensagenzinha ali no... A gente pensar em alguma coisa assim, tipo, pro professor aparece ali uma mensagem, né? Ó, tipo um pop-upzinho, né?
+16:09
+O PDF precisa ainda fazer tal coisa. Ou e-mail também, né? O que seria mais efetivo? Acho que o e-mail, né? E-mail, é. Acho que o e-mail. Abriria ali um... Deve ter um e-mail. Não tem essa opção ali mais no dashboard, pro admin.
+16:28
+Se o PDF tá faltando alguma coisa, precisa alterar alguma coisa, enviar notificação. E aí abre uma caixinha pra mim com o texto do e-mail. Pra alterar tal campo, tal, tal, tal, pá, vai o e-mail pra ele.
+16:41
+Aí falando, ó, reedite seu PDF e re-evie. Ou seja, na hora que chegar ali, né? Acho que você, como admin, consegue ir aí. Vai em dashboard? Vai em dashboard. Tá vendo minha tela? Tô vendo. Quem é que tá compartilhando?
+16:55
+Tô vendo sua tela ainda. É. Eu tô vendo a sua. É que a minha tá... Vai aqui. É, pronto. Voltou a minha, né? Voltou, isso. Tá bom. A gerenciar projetos. Isso. Aí tá ali, por exemplo, o de Fred, né? Aguardando aprovação.
+17:10
+Que é o que você consegue, você dá um escurozinho aí, lateral, isso. E analisar. Nesse, de analisar, você consegue abrir o PDF, né? Ou você consegue também... Você consegue também... Rejeitar. Aí, nesse fluxo de rejeitar, a ideia seria aparecer um modalzinho, né?
+17:31
+Um input. Que aí você colocasse o motivo da rejeição. Que aí o professor poderia... Ou a gente poderia botar notificar, né? Em vez de, tipo, rejeitar o projeto. Seria notificar o professor, tipo, um novo campo.
+17:45
+Pra falar, ó. Edit tal e tal campo que tá errado. Algo do tipo assim, né? A ideia. É, é isso. Teria que aparecer uma mensagem, né? Mas acho que o e-mail é melhor, né? Não? Com a notificação. Não, não. Sim, é.
+18:00
+Eu digo assim, ó. Por exemplo. Você chegou, pegou esse projeto. Viu o PDF. Viu que faltou mudar de individual pra coletivo. Exemplo. Aí, em vez de você chegar e clicar e rejeitar. Poderia ter um botão aí, como notificar o professor.
+18:14
+Que quando você clicar, você apareceria o input pra você escrever, né? A mensagem. Que iria pro e-mail. Aí, nesse, você dá a mensagem e colocaria, ó. Tá, o campo do tipo, em vez de coletivo, tá individual.
+18:29
+Por favor, ajuste. Enviaria o e-mail pro professor. O professor conseguiria editar. Pra depois chegar aí e ver o PDF editado. Acho que faz sentido, né? É, também. Eu tô vendo o PDF aqui que abriu, né?
+18:46
+Só tô conferindo os campos aqui certinho. Ele tá preenchendo, beleza.
+18:55
+Percebendo aqui, eu não sei se... Se o Fred, na hora que colocou o público-alvo, ele colocou, foi outros, é, né? Foi, foi. Porque veio com... Veio com uma marca no outro. Não, essa seria um caso de ele, por exemplo, mandar retornar pra eu editar, entendeu?
+19:11
+É, pra estudante... Aí, quando você volta... O e-mail... O nome social, você clicou também ali, porque tá preenchendo o nome social aqui do Fred, Frederico Araújo, do Curão, né? Então, tá aparecendo...
+19:27
+É, eu não sei, só tô perguntando se ele fez isso aí. Porque se não fez, normalmente esse campo fica em branco, né? É, comigo ficou em branco, mas acho que deve ter preenchido, né, professor? Deixa eu ver aqui no banco.
+19:39
+É, só verifique aí. Porque demais tá certo, é só isso que eu achei. Ele marcou, estudante outra turma, e se ele clicou no campo aí, nome social. É bom que isso acontece, porque isso na vida real que vai acontecer, entendeu?
+19:58
+É. E aí, é justamente isso que a gente tava comentando, né, Luiz? Aqui o admin vai olhar o PDF, né? Precisa olhar pra ver se tá tudo ok. Tem alguma coisa errada, acho que deveria ter um botãozinho aí também.
+20:13
+Aí do lado, né? Ver o PDF, remover e notificar, professor. Se isso acontecer, abre um modalzinho aqui de texto pra mim, que é a mensagem do e-mail, né? Eu acho que é mais prático. Você diz, nesse que tá pendente da assinatura do admin, que, como tá pendente da assinatura, mostra analisar e remover.
+20:35
+Aí eu tava pensando, dentro do modal de analisar, botar essa posição de notificar o professor, pra poder assistar, né? Você acha que vale a pena adicionar outro botão? Eu acho que seria ideal aqui, ó.
+20:48
+Tem ver PDF, remover e notificar. Eu digo isso porque, no caso, esse tá aprovado. Por exemplo, acho que dá pra eu assinar esse aqui, ó. Ah, não, é porque aqui eu cliquei no aprovar, né? Isso. É, mas se eu não clicasse lá, ele voltaria nessa tela, não?
+21:07
+É, é. É o que eu digo mais em relação ao fluxo do usuário. Porque como você, por exemplo, com o admin, já vai estar com o modal aberto de analisar, que é o que dá pra ver o PDF, poderia botar naquilo, botar onde ele tá, entendeu?
+21:19
+É de lá mesmo. Entendi. Não, aqui também dá. Pronto. Tranquilo, vou anotar isso aqui. Tudo bem. E aí abre esse modal de texto, com o e-mail que vai enviar pra ele. Eu coloco lá, ó, editar, campo tal, editar, campo tal.
+21:35
+E reenviar, né? E se ele faz isso, automaticamente, fica editável lá pro professor, né? Sim. Ou seja, o professor pode editar o PDF até antes do admin aprovar. Eu acho que, assim, eu não lembro a tela do Fred aí, depois que ele envia, ele aparece lá o projeto, tá editável ainda?
+21:59
+É. Depois que ele assina, não. Ele consegue visualizar o projeto, mas não tá editável depois que ele envia. Não tá editável, entendi. É. É, eu acho que ficaria editável somente quando eu clicar nesse botãozinho, né?
+22:11
+De enviar a notificação. Ah, tá. Então, o professor pode... Depois de enviado, o professor só pode editar o PDF, seu admin enviar uma notificação de ajuste. Isso. Porque senão ele pode ficar editando, talvez, outra coisa, e envia e tal, né?
+22:29
+Depois de enviado, o professor só pode... Pode editar o PDF. É, né? Pode... ... de notificação. Tranquilo, mas sobre essa parte aí que você passou, então, sobre a parte do modo de analisar, ver o PDF, né?
+22:47
+Analisar o PDF, tá tudo ok também, já antes da... Tá. ... que a gente comentou, né? E vai poupar, obviamente, tempo de ficar fazendo isso... Todos os processos que a gente falou de importar planilha e tudo mais, meio que manual, porque tá hoje no Docs, né?
+23:00
+É. E seria mais esse ajuste, realmente, de ter essa feature de notificar o professor para ele conseguir editar, salvar e você visualizar isso aí de novo. Pode ir, se restar, tá super show, né? Com certeza. Só essa parte aí de ter o template do projeto também, para o cara reusar, de repente, aquilo ali é fantástico.
+23:17
+Nossa, é ótimo, né? Daí a gente faz só uma vez, todos os outros semestres o cara vai usando, né? E ficou editável também, né, Fred? Porque se o professor não trabalhar com o que tá lá... Ele altera, altera. É, altera.
+23:30
+Isso aí, isso aí, pronto. Perfeito, perfeito. E acho que a última etapa seria aquela parte dos relatórios ali. Consegue ir lá, professor? Só para a gente ver a planilha Prograde agora que você aprovou um projeto, né?
+23:42
+Aqui? Não, mais embaixo. Relatórios, na aba relatórios, isso. Ah, relatórios. Aí, planilha Prograde. Não ficou lá em cima, não, cara? A gente não combinou de ficar aqui em projetos também? A planilha Prograde era para ficar dentro de projetos?
+23:58
+Acho que a gente tinha falado que era dentro de relatórios. Não, não, fica lá, porque faz parte dos projetos, né? Depois que a gente tem aqui o gerenciar projetos aqui, se tá tudo bem aqui, se eu, como admin, já vejo todos os projetos prontos, beleza, agora dá para gerar a planilha Prograde.
+24:18
+Mas ok, não sei, acho que vão lá. Planilha Prograde, 2025, carregar de novo. Seleciona o ano, né? Seleciona o semestre, carregar dados. Então, tem um programa aprovado, um departamento. E aí mostra aí, por exemplo, é o preview que vai ser, né?
+24:39
+Que aí, nesse caso aí, vai ser a MATE E85, que foi o que o Fred assinou. Tem o link aí, que vai ser o link do PDF que ele assinou já, né? E se você baixar, você vai ver que tá naquele modelo que a gente comentou, de ser realmente isso, né?
+24:51
+O nome do componente curricular é o link para o PDF. Sim. Deixa eu só ver aqui o nome. Ah, ok. Se você clicar em baixar ali, Excel, só para poder visualizar essa parte também. Ah, uma coisa que eu esqueci de falar, nesse enviar por e-mail, clica nele primeiro, só para você ver o modal.
+25:10
+Ele agora está enviando nesse Instituto Teste aí, né? Mas a ideia é que seja o IC. O IC. Isso, dá para editar também, né? Naquela parte do departamento. Mas ele vai enviar aí esse CSV com todas as matérias, nesse caso só tem uma, mais os PDFs individuais, como a gente comentou.
+25:28
+Então, cada PDF vai nessa página. Perfeito. Que é como funciona hoje, né? Você bota os planejamentos e envia no e-mail, não é isso? Isso. Pronto. Você quer que envie? Acho que não vai enviar para ninguém, né?
+25:42
+Só se... Esse primeiro não existe, não. Achei que você tinha criado ele como teste. Só você botar o seu e-mail aí, editar e receber o e-mail. Ah, não precisa não. Você me mostrou lá que estava funcionando.
+25:54
+Pronto, faz só baixar o Excel então, para a gente dar uma confirmada. Deixa eu ver como é que ficou aqui. É, a planilha está bem... É bem isso mesmo, né? Aparece a unidade, estudo de computação, departamento, código, a disciplina, professor.
+26:14
+É um teste de professor coletivo, você fez o teste para ver se estava funcionando também? Fiz, fiz. Ele botou vírgula em cada um dos professores adicionados lá no projeto, né? Para esse link da planilha funcionar, como é que faz?
+26:28
+Mas aqui é que eu estou olhando e ele não está funcionando. Ele não está aí em produção não? Não. Aí ele mostra o link aqui para mim, espera aí. Mas ele não está abrindo diretamente. Espera aí que eu não entendi.
+26:46
+Espera aí que está, deixa eu mostrar aqui. Onde é que está?
+26:55
+Compartilhamento.
+27:06
+Aqui, olha. Eu estou com a planilha aberta, certo? Foi, não? Foi. Tá, espera aí. Agora foi, né? Aí, está vendo a planilha? Ela está exatamente igual ao padrão ProGrad mesmo e tal. Só que aqui, o link, ele não está...
+27:33
+Aperta Ctrl e dá um clique aí, para a gente ver. Ctrl mais clique, né? É, Ctrl mais... Vê se não abriu no background. Aí, olha. Ele está abrindo. Ah, ele está abrindo aqui, é verdade. Está ok, beleza.
+27:54
+Acho que seria essa primeira parte, né? Acho que, em geral, a ideia é realmente facilitar isso, de automatizar. Acho que com essa adição, essa feature de notificar para a pessoa é mais um caso de facilitar essa comunicação.
+28:10
+Mas, pelo que eu entendi, o ajuste principal pendente seria mais isso de notificar o professor e da planilha ProGrad ir para a aba de projetos, certo? Só para deixar mais claro, não é isso? É, deixa eu ver. É que, realmente, é um relatório.
+28:25
+Será que faz sentido ficar ali ou ficar lá em projetos? Para mim, assim, da minha opinião, faria mais sentido ficar em relatório. Porque meio que você já junta tudo ali. Mas aí, vai do que faz mais sentido de facilitar na hora de fazer, né?
+28:38
+Eu acho que eu prefiro as planilhas sendo geradas dentro de cada etapa, né? Então, como ela faz parte dos projetos gerados, então, deveria estar lá em projetos. Porque em seleção tem também a planilha ProGrad que a gente tem que gerar.
+28:57
+Então, deve estar lá também, né?
+29:00
+E depois, em relatórios, efetivamente, quando eu falei para você criar essa entrada aí no menu lateral, é porque, realmente, é uma etapa do processo a gente gerar os relatórios finais das disciplinas.
+29:16
+Aí sim, ali, relatório por disciplina, relatório por menu. Então, a gente monitora essas outras planilhas aí geradas para a ProGrad. Eu acho que elas podem vir para dentro de cada um dos locais específicos delas.
+29:30
+Então, a gente gera uma planilha ProGrad em projetos. Depois, gera também na seleção e gera também nos relatórios. São as etapas que a gente gera a planilha e manda para a ProGrad. Então, a planilha ProGrad é essa dos projetos, né?
+29:47
+Também tem da... A gente criou, você pode colocar lá dentro. Os projetos, eu acho que pode mudar o nome disso, né? Planilha ProGrad pode ser projetos para ProGrad, alguma coisa assim, ProGrad. Projetos aprovados...
+30:07
+Projetos... Bom ponto aí, bom. Descobriu o nome. Projetos aprovados para ProGrad. Pode ser isso. Não, projetos IC ProGrad. Projetos IC ProGrad, né? Pode ser isso. Quando eu faço isso, é justamente isso que eu vou perguntar.
+30:26
+A planilha ProGrad agora, que a gente manda carregar os dados aqui, ela está sendo feita por departamento ou todos os dois estão juntos aqui? É por departamento. Então, meio que você com o DCC faz o seu do DCC e alguém do DCI vai ter que fazer o do DCI.
+30:42
+De carregar dados, só carrega o do seu departamento, né? Sim. Aqui eu entrei como o Rubens Leia, que está como admin. Eu estou vendo os dois, né? Eu acho. Você está chegando os dois aí na planilha? Não, não. É porque a gente não fez esse teste, mas é que para mim mostra que um departamento, né?
+31:04
+Então, eu fiquei na... Seriam dois departamentos ou coisa assim. Eu acho que eu mudei... Antes estavam os dois, como a gente tinha comentado, né? Antes estavam os dois, só que aí, como a gente dividiu o admin...
+31:14
+É, aquele dia que a gente conversou... Meio que eu vou dar uma... Uma passada nessa... É remover isso, né? Já que não faz sentido. Sempre vai ser só o seu departamento. Isso. Tem que ser o departamento.
+31:25
+Eu não preciso ver aí um departamento, os dois departamentos. Já, vou encontrar pelo seu. Tranquilo. Vou deixar aqui também. Mas, acho que seria isso. Em geral, vocês... Como feedback seria algo positivo em relação a facilitar...
+31:38
+Com certeza. Parabéns. Acho que a gente deu um gás aí. Você mesmo está à frente da disciplina. Então, não tem muito... Porque, assim... É que esse projeto é vivo. Ele vai continuar. Vão ter outros alunos que vão melhorar, entendeu?
+31:52
+Mas a sua contribuição está muito clara aí. Não tem o que... O que a gente tem que fazer agora é marcar a data dessa defesa, né? Isso também. Então, assim... Tem que... Vou deixar já marcado aqui. É... Deixa eu tirar um descanso aí também.
+32:06
+Dá para decidir a 12 de janeiro, que é o último dia do ano? Do semestre? 12 de janeiro? 8 e meia. Dá para ser sincero para mim o quanto antes melhor, tá? 8 e meia. Dá para ser sincero para mim o quanto antes melhor.
+32:18
+Não, é porque eu não vou ter disponibilidade. Ah, antes, né? Pronto, tranquilo. Muita gente viajando. 12 de janeiro, 8 da manhã. É melhor... 8 e meia é melhor porque fica mais... É... Fica mais tranquilo. Vou botar a Rubens logo na banca aí, viu, Rubens?
+32:37
+Beleza. Que dia é que você falou? 12 de janeiro. Segunda-feira, 12 de janeiro. Vixe, é dia 12 e eu estou viajando, Fred. Fred, na verdade, eu cheguei... Cheguei em Salvador umas 8 da manhã, por ali. Ah, não, então... Então, espera aí.
+32:54
+O mais tarde até dá, tipo, umas 10 e meia, talvez. Não, cara, vamos botar aqui, então, 11 horas, dá? 11, acho que dá. A não ser que dê algum problema no voo, sei lá. Acho que dá. Seu voo chega em Salvador que horas?
+33:14
+Acho que chega 8 da manhã. 8 da manhã, então bora botar 11 horas, tá tranquilo. Acho que dá sim, tá tranquilo. 11 horas aí, né? Eu não estou conseguindo banca, entendeu, cara? Então, é melhor fazer isso mesmo.
+33:29
+Agora é só preparar os slides mesmo e terminar o texto. É isso. Vou ajustar com essa análise meio que qualitativa, né, que a gente fez aqui. Fazer esses ajustes aí do que eu anotei. E aí, só fazer os slides, concluindo.
+33:44
+Já botei Mike aqui também sem...

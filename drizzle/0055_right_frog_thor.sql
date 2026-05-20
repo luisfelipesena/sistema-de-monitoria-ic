@@ -1,0 +1,2 @@
+ALTER TABLE "projeto" ADD COLUMN "importacao_planejamento_id" integer;--> statement-breakpoint
+ALTER TABLE "projeto" ADD CONSTRAINT "projeto_importacao_planejamento_id_importacao_planejamento_id_fk" FOREIGN KEY ("importacao_planejamento_id") REFERENCES "public"."importacao_planejamento"("id") ON DELETE set null ON UPDATE no action;

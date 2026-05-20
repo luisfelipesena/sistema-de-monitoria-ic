@@ -1,0 +1,221 @@
+ROTEIRO DE APRESENTAÇÃO - SISTEMA DE MONITORIA-IC (~18-22 minutos, 25 slides)
+Plataforma Web para Gestão Completa de Monitorias Acadêmicas da UFBA
+
+========================================
+SLIDE 1 - TÍTULO (30 seg)
+========================================
+- "Bom dia. Meu nome é Luis Felipe Sena, e apresento meu Trabalho de Conclusão de Curso: Sistema de Monitoria-IC, uma plataforma Web para gestão completa de monitorias acadêmicas da UFBA, orientado pelo Professor Frederico Durão."
+
+========================================
+SLIDE 2 - AGENDA (30 seg)
+========================================
+- "A apresentação está organizada em cinco partes: começarei pela introdução com motivação e problema; depois a fundamentação teórica sobre monitoria e sistemas de informação; em seguida, o estado da prática em universidades brasileiras; a parte principal sobre o sistema desenvolvido; e por fim, avaliação e conclusão."
+
+========================================
+SLIDE 3 - MOTIVAÇÃO (1.5 min)
+========================================
+- "A monitoria acadêmica é um pilar do ensino superior brasileiro, regulamentada pela Lei de Diretrizes e Bases da Educação."
+- "Ela oferece benefícios como desenvolvimento pedagógico para monitores e auxílio no ensino-aprendizagem para os demais alunos."
+- "O fluxo de monitoria é complexo, envolvendo múltiplos atores: professores que criam projetos, alunos que se inscrevem, administração que aprova e coordena, e PROGRAD que aloca bolsas."
+- "Porém, a realidade atual na UFBA é de processos manuais e fragmentados, com planilhas dispersas, formulários em papel e comunicação por e-mail."
+
+========================================
+SLIDE 4 - IDENTIFICAÇÃO DO PROBLEMA (1.5 min)
+========================================
+- "Identifiquei problemas em três dimensões."
+- "Do lado docente: há retrabalho sistemático, já que professores recriam projetos similares a cada semestre. Documentos ficam dispersos em planilhas, PDFs e e-mails, sem trilhas de auditoria."
+- "Do lado discente: a descoberta de vagas é imprevisível, a jornada é fragmentada com múltiplos formulários, e há opacidade no processo seletivo."
+- "Administrativamente: a consolidação de dados heterogêneos gera retrabalho, há dificuldade de conformidade com prazos, e relatórios são custosos."
+- "A lacuna identificada é clara: falta um sistema de informação fim-a-fim específico para monitoria."
+
+========================================
+SLIDE 5 - OBJETIVOS (1 min)
+========================================
+- "O objetivo central deste trabalho é desenvolver uma plataforma Web completa para gestão de monitorias do Instituto de Computação da UFBA."
+- "Os objetivos específicos incluem: digitalizar o ciclo completo de projetos, automatizar o processo seletivo, sistematizar a alocação de bolsas, eliminar trabalhos manuais repetitivos, e fornecer base analítica para tomada de decisões."
+- "Em resumo: substituir fluxos manuais e dispersos por um sistema único que garanta transparência, rastreabilidade e padronização."
+
+========================================
+SLIDE 6 - MONITORIA ACADÊMICA NA UFBA (1 min)
+========================================
+- "A monitoria na UFBA segue um fluxo em cinco fases principais."
+- "Começa com o planejamento semestral, passa pela criação e aprovação de projetos, alocação de bolsas e publicação de edital, processo de inscrições e seleção, e finaliza com aceite e consolidação."
+- "É regulamentada pela LDB e por diretrizes institucionais que estabelecem critérios baseados em nota na disciplina e Coeficiente de Rendimento."
+- "Há duas modalidades: bolsista, com remuneração, e voluntário."
+- "A literatura demonstra benefícios significativos: desenvolvimento de habilidades didáticas, melhoria no desempenho dos assistidos, e apoio aos docentes."
+
+========================================
+SLIDE 7 - SISTEMAS DE INFORMAÇÃO: SPT E SIG (1 min)
+========================================
+- "A fundamentação teórica baseia-se na classificação de Laudon e Laudon sobre Sistemas de Informação."
+- "O SPT, Sistema de Processamento de Transações, lida com operações rotineiras e cotidianas, exigindo alta precisão, auditoria e disponibilidade."
+- "O SIG, Sistema de Informações Gerenciais, fornece resumos e relatórios consolidados para análise e tomada de decisão."
+- "O Sistema de Monitoria-IC foi projetado integrando ambas as perspectivas: SPT para as transações do dia-a-dia e SIG para dashboards e relatórios gerenciais."
+
+========================================
+SLIDE 8 - LEVANTAMENTO EM UNIVERSIDADES (1 min)
+========================================
+- "Realizei um levantamento documental nas principais universidades públicas do país."
+- "Analisei fontes públicas: páginas institucionais, editais e documentos de orientação."
+- "O padrão observado foi consistente: sistemas acadêmicos genéricos como Júpiter na USP, SIGA na UFRJ, SIGAA na UnB, combinados com processos manuais complementares."
+- "Em todas as instituições, há fragmentação entre formulários eletrônicos, e-mails e planilhas."
+- "Não identifiquei nenhum módulo específico e completo para monitoria que cobrisse todo o ciclo de vida."
+
+========================================
+SLIDE 9 - COMPARAÇÃO COM SISTEMAS EXISTENTES (1 min)
+========================================
+- "Esta tabela resume a comparação entre os sistemas analisados e o Sistema de Monitoria-IC."
+- "Em workflow fim-a-fim, nenhum dos sistemas existentes oferece cobertura completa das fases 1 a 5. O SIGAA da UnB oferece cobertura parcial."
+- "Nenhum dos sistemas é específico para monitoria - todos são módulos genéricos de sistemas acadêmicos maiores."
+- "Quanto à automação, os sistemas existentes oferecem automação parcial ou nenhuma, enquanto o Monitoria-IC automatiza geração de PDFs, envio de e-mails, assinaturas digitais e equivalências curriculares."
+- "Essa comparação evidencia a lacuna que o sistema proposto preenche."
+
+========================================
+SLIDE 10 - DIFERENCIAIS DO SISTEMA (1 min)
+========================================
+- "O Sistema de Monitoria-IC se diferencia em cinco dimensões."
+- "Primeiro, é específico para o workflow de monitoria, não um módulo genérico."
+- "Segundo, cobre o ciclo completo, das fases 1 a 5."
+- "Terceiro, automatiza etapas críticas como geração de PDFs, envio de e-mails e assinaturas digitais."
+- "Quarto, utiliza um stack tecnológico moderno: Next.js, tRPC, PostgreSQL."
+- "Quinto, garante auditabilidade através de controle de acesso RBAC e histórico completo."
+
+========================================
+SLIDE 11 - ARQUITETURA EM CAMADAS (1 min)
+========================================
+- "A arquitetura segue o padrão de três camadas com separação clara de responsabilidades."
+- "A camada de Apresentação usa Next.js com React para a interface."
+- "A camada de Aplicação usa tRPC para API type-safe e Lucia Auth para autenticação."
+- "A camada de Negócio contém Services e Repositories que encapsulam a lógica de domínio."
+- "A camada de Dados usa PostgreSQL como banco relacional, MinIO para armazenamento de arquivos, e Drizzle ORM para consultas tipadas."
+- "Essa separação garante baixo acoplamento, type-safety em toda a stack, e facilita manutenção e testes."
+
+========================================
+SLIDE 12 - STACK TECNOLÓGICO (1 min)
+========================================
+- "No frontend: Next.js 15 com App Router, TypeScript para type-safety, Tailwind CSS com shadcn/ui para interface, React Hook Form com Zod para formulários validados, e React Query para gerenciamento de estado."
+- "No backend: tRPC versão 11 para API completamente tipada, Lucia Auth para autenticação segura, Drizzle ORM com PostgreSQL para persistência, MinIO para armazenamento de arquivos compatível com S3, e Nodemailer para envio de e-mails."
+- "Em DevOps: Docker para containerização, GitHub Actions para CI/CD, Vitest para testes unitários e Playwright para testes end-to-end."
+
+========================================
+SLIDE 13 - FLUXO DE PROCESSOS - VISÃO GERAL (1.5 min)
+========================================
+- "O sistema foi planejado para cobrir 6 fases do ciclo de monitoria."
+- "Fase 1: Planejamento e Criação de Projetos - admin importa planilha, sistema cria projetos, professores assinam."
+- "Fase 2: Aprovação e Envio para Instituto/PROGRAD - admin aprova projetos e gera planilha com PDFs."
+- "Fase 3: Alocação de Bolsas e Edital Interno - após resposta da PROGRAD, admin aloca bolsas e chefe assina edital."
+- "Fase 4: Inscrições e Seleção de Monitores - alunos se inscrevem, sistema captura notas e CR, professores selecionam."
+- "Fase 5: Consolidação Final - alunos aceitam vagas, preenchem dados bancários, gera planilha para PROGRAD."
+- "Fase 6: Relatórios Finais e Certificados - código completo com relatórios finais e certificados para download pelos alunos."
+- "Importante: a PROGRAD não acessa o sistema diretamente - toda comunicação é via e-mail e planilhas Excel."
+
+========================================
+SLIDE 14 - DETALHAMENTO DAS FASES (1.5 min)
+========================================
+- "Vamos detalhar cada fase."
+- "Nas Fases 1 e 2, o admin importa a planilha do DCC com disciplinas e códigos SIAPE. O sistema usa templates de semestres anteriores. Professores criam ou editam templates, assinam digitalmente e submetem. O admin aprova ou rejeita, e gera planilha Excel com PDFs para o Instituto encaminhar à PROGRAD."
+- "Na Fase 3, após a PROGRAD responder com o total de bolsas, o admin aloca por projeto. Professores definem voluntários e preenchem dados do edital. O chefe assina digitalmente, e o admin publica - notificando automaticamente professores e alunos."
+- "Nas Fases 4 e 5, alunos se inscrevem indicando se querem bolsista, voluntário ou ambos. O sistema captura notas e CR automaticamente, considerando equivalências. Professores avaliam e selecionam. Alunos aceitos preenchem dados bancários, e o admin gera planilhas finais para PROGRAD."
+
+========================================
+SLIDE 15 - FUNCIONALIDADES POR PERFIL (1 min)
+========================================
+- "O sistema oferece interfaces especializadas para cada perfil de usuário."
+- "Para administradores: dashboard com métricas, importação de planejamento, aprovação de projetos, alocação de bolsas, geração de planilhas e publicação de editais."
+- "Para professores: criação e reutilização de templates, assinatura de projetos, gerenciamento de candidatos, avaliação, seleção e publicação de resultados."
+- "Para estudantes: visualização de vagas disponíveis, inscrição em projetos, acompanhamento de resultados, aceite ou rejeição de vagas, e preenchimento de dados bancários."
+
+========================================
+SLIDE 16 - INTERFACE DO SISTEMA - ADMINISTRADOR (30 seg)
+========================================
+- "Aqui vemos a interface real do administrador. À esquerda, a tela de análise de projetos submetidos pelos professores, onde o admin pode aprovar ou solicitar revisões. À direita, a gestão de projetos com filtros por status e semestre."
+- "O sidebar segue a ordem natural do fluxo de trabalho, facilitando a navegação."
+
+========================================
+SLIDE 17 - INTERFACE DO SISTEMA - PROFESSOR E ESTUDANTE (30 seg)
+========================================
+- "Para o professor, temos a tela de assinatura de projeto com pré-visualização do PDF gerado e opção de desenhar nova assinatura."
+- "Para o estudante, a interface de inscrição em monitoria mostra as vagas disponíveis e permite candidatura simplificada."
+
+========================================
+SLIDE 18 - METODOLOGIA DE AVALIAÇÃO COM USUÁRIOS (1 min)
+========================================
+- "A avaliação com usuários seguiu uma abordagem qualitativa exploratória."
+- "Com apenas dois participantes, uma análise quantitativa com escala Likert não teria validade estatística. Por isso, optamos por técnicas qualitativas que capturam insights mais ricos."
+- "Utilizamos três técnicas complementares: walkthrough guiado, onde os participantes executam tarefas predefinidas; protocolo think-aloud, onde verbalizam seus pensamentos durante o uso; e entrevista semiestruturada ao final."
+- "Os participantes foram o Professor Rubisley, atuando como administrador, e o Professor Frederico, atuando como professor."
+- "Cada sessão durou aproximadamente uma hora, com gravação de tela e áudio."
+- "A validação técnica foi conduzida com 55 testes automatizados, 100% de aprovação, execução em pouco mais de 1 segundo."
+
+========================================
+SLIDE 19 - ROTEIRO DE AVALIAÇÃO (1 min)
+========================================
+- "O roteiro foi estruturado em três sessões sequenciais, simulando o fluxo real do sistema."
+- "Na primeira sessão, o administrador faz login, importa a planilha de planejamento do DCC, verifica as notificações enviadas e visualiza os projetos criados."
+- "Na segunda sessão, o professor recupera sua senha pelo primeiro acesso, completa o onboarding com SIAPE e assinatura digital, cria um template para a disciplina, edita o projeto do semestre, e finalmente assina e submete."
+- "Na terceira sessão, o administrador volta ao sistema, visualiza o projeto submetido, analisa os detalhes, aprova e gera a planilha consolidada para o Instituto e PROGRAD."
+- "Após cada walkthrough, conduzimos uma entrevista de 15 minutos explorando experiência geral, comparação com o processo manual, estimativa de economia de tempo e sugestões de melhoria."
+
+========================================
+SLIDE 20 - MAPA TEMÁTICO DA AVALIAÇÃO (30 seg)
+========================================
+- "A análise temática, seguindo o método de Braun e Clarke, identificou três categorias principais: usabilidade, utilidade e adoção."
+- "Em usabilidade, tivemos 4 pontos positivos e apenas 1 dificuldade menor. Em utilidade, 3 pontos positivos relacionados a templates, importação e planilhas. Em adoção, 2 pontos positivos e 3 sugestões de melhoria."
+
+========================================
+SLIDE 21 - RESULTADOS DA AVALIAÇÃO QUALITATIVA (1.5 min)
+========================================
+- "Detalhando os resultados por perfil."
+- "Do lado do administrador: a organização do sidebar foi elogiada por seguir a ordem lógica do fluxo de trabalho. A planilha PROGRAD gerada estava no formato esperado. Como sugestão, foi proposto um botão para notificar o professor."
+- "Do lado do professor: a funcionalidade de templates reutilizáveis foi descrita como fantástica para economia de tempo. O onboarding foi considerado claro e a assinatura digital intuitiva."
+- "Na análise cruzada, ambos validaram o fluxo completo e destacaram que o projeto é vivo e continuará evoluindo."
+- "A economia de tempo foi estimada em 80% de redução em tarefas repetitivas. Ambos confirmaram viabilidade para uso em semestre real."
+
+========================================
+SLIDE 22 - CONTRIBUIÇÕES DO TRABALHO (1 min)
+========================================
+- "Este trabalho apresenta quatro contribuições principais."
+- "Primeira: uma arquitetura especializada em três camadas - Router, Service, Repository - específica para o domínio de monitoria com requisitos formais de auditoria."
+- "Segunda: um workflow automatizado cobrindo as fases 1 a 5, incluindo templates, assinaturas digitais, equivalências curriculares e geração de PDFs, com redução estimada de 80% em tarefas repetitivas."
+- "Terceira: um estudo de caso real de transformação digital em instituição pública, com evidências técnicas de 55 testes e 100% de aprovação."
+- "Quarta: disponibilização de código aberto com tecnologias modernas e documentação, permitindo replicação por outras universidades."
+
+========================================
+SLIDE 23 - LIMITAÇÕES E TRABALHOS FUTUROS (1 min)
+========================================
+- "Reconheço algumas limitações do estudo."
+- "A avaliação qualitativa foi conduzida com apenas dois participantes, limitando a generalização dos resultados."
+- "Não incluímos o perfil estudante na avaliação - o fluxo de inscrição e aceite não foi testado com alunos reais."
+- "Não há integração automática com o SIAC - estudantes precisam anexar histórico manualmente."
+- "O escopo está restrito ao Instituto de Computação."
+- "Os próximos passos incluem: piloto institucional, integração com SIAC/SIGAA, app móvel em React Native, e expansão para outros departamentos."
+
+========================================
+SLIDE 24 - CONCLUSÃO (1 min)
+========================================
+- "O Sistema de Monitoria-IC representa um avanço significativo na modernização da gestão acadêmica universitária."
+- "Demonstra que a digitalização e automação de processos tradicionalmente manuais é viável e benéfica."
+- "Estabelece uma base sólida para a transformação digital contínua das universidades brasileiras."
+- "Mostra que é possível criar soluções tecnológicas específicas para problemas acadêmicos complexos."
+- "O sucesso inicial na UFBA indica alto potencial de replicação em outras instituições que enfrentam desafios similares."
+
+========================================
+SLIDE 25 - PERGUNTAS (30 seg)
+========================================
+- "Agradeço pela atenção. O código fonte está disponível no GitHub e estou à disposição para perguntas."
+
+========================================
+DICAS PARA APRESENTAÇÃO:
+========================================
+- Manter ritmo fluido, ~50 seg por slide em média
+- Usar capturas de tela como apoio visual nos slides 16-17
+- Usar mapa temático TikZ no slide 20 para explicar resultados
+- Enfatizar a lacuna identificada no estado da prática
+- Destacar os diferenciais: específico, ciclo completo, automação
+- Mencionar resultados técnicos concretos (55 testes, 100% sucesso)
+- Conectar teoria (SPT/SIG) com implementação prática
+- Ressaltar a citação "fantástico" para templates reutilizáveis
+- Destacar economia de 80% em tarefas repetitivas
+- Se perguntarem sobre metodologia: justificar escolha qualitativa pela amostra reduzida (N=2)
+- Se perguntarem sobre certificados: módulo completo (API + UI), pronto para uso após validação
+- Se perguntarem sobre integração SIAC: trabalho futuro prioritário, atualmente upload manual

@@ -1,0 +1,6387 @@
+<!DOCTYPE html>
+<html lang="en" class="genericErrorPageRendererHTML no-js">
+
+	<!--esi
+	<esi:assign name="isPageMetered">0</esi:assign>
+	<esi:assign name="isPaywallHidden">1</esi:assign>
+	<esi:assign name="isRegwallHidden">1</esi:assign>
+	<esi:assign name="hasCredit">1</esi:assign>
+	<esi:assign name="paywallCounterValue">0</esi:assign>
+	<esi:assign name="isPaywallCounterUpdated">0</esi:assign>
+	<esi:assign name="rendererType">genericErrorPageRenderer</esi:assign>
+	<esi:assign name="currentRequestPath">'http://'+ $(HTTP_HOST) + $(REQUEST_PATH)</esi:assign>
+	<esi:assign name="currentRequestPathEncoded">$url_encode($(currentRequestPath))</esi:assign>
+	<esi:assign name="isGooglebot">$(HTTP_USER_AGENT) has_i 'Googlebot'</esi:assign>
+	<esi:assign name="fbnBypass">false</esi:assign>
+-->
+
+
+	<!--esi
+        <esi:choose>
+            <esi:when test="$(HTTP_COOKIE{'tmg_session'}) & ($(HTTP_COOKIE{'tmg_p13n'}) matches '''(subscriptionType:[\'\"]All Digital Access[\'\"])''')">
+                <esi:assign name="isSubscribed" value="1"/>
+                <esi:assign name="isRegistered" value="1"/>
+                <esi:assign name="isAdLite" value="1"/>
+            </esi:when>
+            <esi:when test="$(HTTP_COOKIE{'tmg_session'}) & ($(HTTP_COOKIE{'tmg_p13n'}) matches '''(readerType:[\'\"]registered[\'\"])''')">
+                <esi:assign name="isSubscribed" value="0"/>
+                <esi:assign name="isRegistered" value="1"/>
+                <esi:assign name="isAdLite" value="0"/>
+            </esi:when>
+            <esi:when test="$(HTTP_COOKIE{'tmg_session'}) & ($(HTTP_COOKIE{'tmg_p13n'}) matches '''(readerType:[\'\"]subscriber[\'\"])''')">
+                <esi:assign name="isSubscribed" value="1"/>
+                <esi:assign name="isRegistered" value="1"/>
+                <esi:assign name="isAdLite" value="0"/>
+            </esi:when>
+            <esi:otherwise>
+                <esi:assign name="isSubscribed" value="0"/>
+                <esi:assign name="isRegistered" value="0"/>
+                <esi:assign name="isAdLite" value="0"/>
+            </esi:otherwise>
+        </esi:choose>
+
+        <esi:choose>
+            <esi:when test="!$exists( $(HTTP_COOKIE{'tmg_p13n'}) )">
+                <esi:assign name="isUser" value="1"/>
+            </esi:when>
+            <esi:otherwise>
+                <esi:assign name="isUser" value="0"/>
+            </esi:otherwise>
+        </esi:choose>
+    -->
+
+
+	<head>
+	<meta charset="UTF-8"/>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes"/>
+	<meta name="apple-itunes-app" content="app-id=388947468"/>
+	
+
+
+
+
+
+
+
+
+	
+	<title>404</title>
+
+
+
+
+
+
+
+
+
+
+
+<script defer="defer" type="text/javascript" src="/.rum/@adobe/helix-rum-js@%5E2/dist/rum-standalone.js"></script>
+<link rel="dns-prefetch" href="//polyfill-fastly.io"/>
+<link rel="dns-prefetch" href="//static.telegraph.co.uk"/>
+
+    <link rel="dns-prefetch" href="//assets.adobedtm.com"/>
+    <link rel="dns-prefetch" href="//experience.tinypass.com"/>
+
+
+<link rel="dns-prefetch" href="//cdn.petametrics.com"/>
+<link rel="dns-prefetch" href="//telegraphmedia.bootstrap.fyre.co"/>
+<link rel="preload" as="font" crossorigin="crossorigin" type="font/woff2" href="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/fonts/austin-news-uprights-vf-basic-web.woff2"/>
+<link rel="preload" as="font" crossorigin="crossorigin" type="font/woff2" href="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/fonts/Telesans-Text-Web-Regular.woff2"/>
+<link rel="preload" as="font" crossorigin="crossorigin" type="font/woff2" href="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/fonts/doric-news-uprights-vf-basic-web.woff2"/>
+
+
+
+<link rel="shortcut icon" type="image/x-icon" sizes="16x16" href="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/favicon.ico"/>
+
+<!-- Versions for modern browsers -->
+<link rel="icon" type="image/svg+xml" href="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/favicon.svg"/>
+<link rel="icon" sizes="196x196" href="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/favicon-196x196.png"/>
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/apple-touch-icon-180x180.png"/>
+
+<!-- Safari pinned tab icon -->
+<link rel="mask-icon" href="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/favicon.svg" color="#333333"/>
+
+
+<meta name="msapplication-TileColor" content="#2c769d"/>
+<meta name="msapplication-TileImage" content="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/mstile-144x144.png"/>
+
+<!--/* IE 11 Tile for Windows 8.1 Start Screen */ -->
+<meta name="msapplication-tooltip" content="The Telegraph"/>
+<meta name="msapplication-config" content="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/browserconfig.xml"/>
+
+<meta name="msapplication-square310x310logo" content="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/mstile-310x310.png"/>
+<meta name="msapplication-wide310x150logo" content="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/mstile-310x150.png"/>
+<meta name="msapplication-square150x150logo" content="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/mstile-150x150.png"/>
+<meta name="msapplication-square70x70logo" content="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/mstile-70x70.png"/>
+
+<meta name="theme-color" content="#ffffff"/>
+
+
+
+
+
+
+
+	
+		
+	<script>(()=>{"use strict";var e,r={},t={};function o(e){var n=t[e];if(void 0!==n)return n.exports;var i=t[e]={exports:{}};return r[e].call(i.exports,i,i.exports,o),i.exports}o.m=r,e=[],o.O=(r,t,n,i)=>{if(!t){var l=1/0;for(s=0;s<e.length;s++){for(var[t,n,i]=e[s],a=!0,u=0;u<t.length;u++)(!1&i||l>=i)&&Object.keys(o.O).every((e=>o.O[e](t[u])))?t.splice(u--,1):(a=!1,i<l&&(l=i));if(a){e.splice(s--,1);var f=n();void 0!==f&&(r=f)}}return r}i=i||0;for(var s=e.length;s>0&&e[s-1][2]>i;s--)e[s]=e[s-1];e[s]=[t,n,i]},o.n=e=>{var r=e&&e.__esModule?()=>e.default:()=>e;return o.d(r,{a:r}),r},o.d=(e,r)=>{for(var t in r)o.o(r,t)&&!o.o(e,t)&&Object.defineProperty(e,t,{enumerable:!0,get:r[t]})},o.g=function(){if("object"==typeof globalThis)return globalThis;try{return this||new Function("return this")()}catch(e){if("object"==typeof window)return window}}(),o.o=(e,r)=>Object.prototype.hasOwnProperty.call(e,r),o.r=e=>{"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},(()=>{var e={882:0};o.O.j=r=>0===e[r];var r=(r,t)=>{var n,i,[l,a,u]=t,f=0;if(l.some((r=>0!==e[r]))){for(n in a)o.o(a,n)&&(o.m[n]=a[n]);if(u)var s=u(o)}for(r&&r(t);f<l.length;f++)i=l[f],o.o(e,i)&&e[i]&&e[i][0](),e[i]=0;return o.O(s)},t=self["tmg.build"]=self["tmg.build"]||[];t.forEach(r.bind(null,0)),t.push=r.bind(null,t.push.bind(t))})()})();"use strict";(self["tmg.build"]=self["tmg.build"]||[]).push([[131,628,904],{433:(t,e,i)=>{i.d(e,{A:()=>a});var r=i(638);class s{constructor(t){this.params=Object.assign({accordionSelector:"[data-accordion]",triggerSelector:"[data-accordion-trigger]",contentSelector:"[data-accordion-content]",hideClasses:["accordion--is-collapsed"]},t)}init(){const t=document.querySelectorAll(this.params.accordionSelector);t.length>0&&t.forEach((t=>{this.setTriggerListeners(t)}))}setTriggerListeners(t){let e=t.querySelector(this.params.triggerSelector);e&&e.addEventListener("click",(e=>{const i=t.dataset.accordionAnimate,r=parseInt(t.dataset.accordionMaxScreenWidth);(0===r||window.innerWidth<r)&&(e.preventDefault(),i?this.animateAccordion(t):this.toggleClass(t),this.toggleState(t))}))}toggleClass(t){this.params.hideClasses.forEach((e=>{t.classList.toggle(e)}))}toggleState(t){const e=t.querySelector(this.params.contentSelector);null!==e.getAttribute("aria-hidden")&&e.setAttribute("aria-hidden","false"===e.getAttribute("aria-hidden")?"true":"false");const i=t.querySelector(this.params.triggerSelector);null!==i.getAttribute("aria-expanded")&&(i.setAttribute("aria-expanded","false"===i.getAttribute("aria-expanded")?"true":"false"),this.toggleAccordionFocus(e,i)),null!==i.getAttribute("aria-label")&&i.hasAttribute("toggle-aria-label")&&this.toggleAriaLabel(i)}animateAccordion(t){const e=document.getElementById(t.dataset.accordionAnimate),i=e.clientHeight,r=e.scrollHeight,s=!i,a=e.style.height;if(t.classList.toggle("accordion--animation-collapsed"),e.style.height=(s||!a?r:0)+"px",!a)return t.classList.toggle("accordion--animation-collapsed"),this.animateAccordion(t)}toggleAriaLabel(t){const e=t.getAttribute("aria-label"),i="Show",r="Hide";if(e.startsWith(i)||e.startsWith(r)){const s=e.startsWith(i)?e.replace(i,r):e.replace(r,i);t.setAttribute("aria-label",s)}}toggleAccordionFocus(t,e){"true"===e.getAttribute("aria-expanded")?t.focus():e.focus()}}r.A.subscribe({topic:"tmg.page.ready",func:()=>{new s({hideClasses:["accordion--is-collapsed","accordion--is-expanded"]}).init()},runIfAlreadyPublished:!0});const a=s},638:(t,e,i)=>{i.d(e,{A:()=>a});var r=i(764);const s=new class{constructor(){this.topics=[],this.publishedTopics=[],this.UID=-1}subscribe({topic:t,func:e,runIfAlreadyPublished:i}){if("function"!=typeof e)return!1;if(i)for(let i=0;i<this.publishedTopics.length;i++)this.publishedTopics[i]===t&&e.call();const r=(this.UID+=1).toString();return this.topics.push({token:r,topic:t,func:e}),r}unsubscribe({topic:t,token:e}){for(let i=0;i<this.topics.length;i++)this.topics[i].token===e&&this.topics[i].topic===t&&this.topics.splice(i,1)}publish({topic:t}){this.publishedTopics.push(t);for(let e=0;e<this.topics.length;e++)this.topics[e].topic===t&&this.topics[e].func.call()}};r.A.create("tmg.pubsub"),window.tmg.pubsub=s;const a=s},741:(t,e,i)=>{i.r({});var r=i(433);const s=new class{constructor(t){this.queryParamArray=[t,"debug","martech_debug"]}init(){this.disableConsoleLogs()}disableConsoleLogs(){this.isDebugging()||(console.log=function(){})}isDebugging(){const t=new URLSearchParams(window.location.search);let e;return this.queryParamArray.forEach((i=>{t.get(i)&&(e=i)})),"true"===t.get(e)}};var a=i(638);a.A.subscribe({topic:"tmg.polyfill.ready",func:()=>{a.A.publish({topic:"tmg.page.ready"})},runIfAlreadyPublished:!0});var n=i(764);class o{constructor(){n.A.create("tmg.polyfill"),this.race()}static complete(){window.tmg.polyfill.complete=()=>{},a.A.publish({topic:"tmg.polyfill.ready"})}race(){return setTimeout((()=>{window.tmg.polyfill.complete()}),3e3)}}new o,window.tmg.polyfill={complete:o.complete};var c=[],l=[],u="RUM_start",g=window.performance||{},d=Date.now?Date.now():+new Date;const m=()=>{if(g){if(g.now)return g.now();if(g.webkitNow)return g.now();if(g.msNow)return g.now();if(g.mozNow)return g.now()}return(Date.now?Date.now():+new Date)-d};function p(t){return function(t,e){for(var i=e.length-1;i>=0;i--){var r=e[i];if(t===r.name)return r}}(t,h())}function h(){if(g){if(g.getEntriesByType)return g.getEntriesByType("mark");if(g.webkitGetEntriesByType)return g.webkitGetEntriesByType("mark")}return c}let f={now:m,mark:function(t){if(g){if(g.mark)return g.mark(t);if(g.webkitMark)return g.webkitMark(t)}c.push({name:t,entryType:"mark",startTime:m(),duration:0})},measure:function(t,e,i){var r=0,s=m();if(void 0===e&&p(u)&&(e=u),g){if(g.measure)return e?i?g.measure(t,e,i):g.measure(t,e):g.measure(t);if(g.webkitMeasure)return g.webkitMeasure(t,e,i)}if(e){var a=p(e);if(a)r=a.startTime;else{if(!(g&&g.timing&&g.timing[e]))return;r=g.timing[e]-g.timing.navigationStart}}if(i){var n=p(i);if(n)s=n.startTime;else{if(!(g&&g.timing&&g.timing[i]))return;s=g.timing[i]-g.timing.navigationStart}}l.push({name:t,entryType:"measure",startTime:r,duration:s-r})},marks:c,measures:l};window.RUM=f,g&&g.timing&&g.timing.navigationStart&&(d=g.timing.navigationStart),window.addEventListener("beforeunload",(function(){var t=function(){var t=document.cookie.match("(^|;)\\s*AMCV_2C7336C753C676BA0A490D4B%40AdobeOrg\\s*=\\s*([^;]+)");return t?decodeURIComponent(t.pop()).split("|")[4]:""}(),e=h();if(t&&"ga"in window)for(var i=e.length-1;i>=0;i--){var r=e[i],s=r.name.split("_"),a=s[0],n=s[1],o=s[2],c=Math.round(r.startTime);a&&n&&o&&c&&ga("send",{hitType:"timing",timingCategory:a,timingVar:n,timingValue:c,timingLabel:o})}}));a.A.subscribe({topic:"tmg.page.ready",func:()=>{const t="xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,(function(t){var e=16*Math.random()|0;return("x"===t?e:3&e|8).toString(16)}));return void 0!==n.A&&n.A.create&&(n.A.create("tmg.instanceId"),window.tmg.instanceId=t),t},runIfAlreadyPublished:!0}),new class{constructor(t){this.selectorClass=t||"no-js",this.removeClass()}removeClass(){const t=document.querySelector(`.${this.selectorClass}`);t&&t.classList.remove(this.selectorClass)}},n.A,a.A,s.init(),r.A},764:(t,e,i)=>{i.d(e,{A:()=>s}),window.tmg=window.tmg||{};const r=function(t){try{let e=tmg,i=t.split(".");return"tmg"===i[0]&&(i=i.slice(1)),i.forEach((t=>{void 0===e[t]&&(e[t]={}),e=e[t]})),e}catch(e){console.warn("couldn't create namespace:",t)}};window.tmg.createNamespace=r;const s={create:r}}},t=>{t(t.s=741)}]);</script>
+
+
+	
+
+	
+
+
+
+
+
+
+
+    
+<link rel="stylesheet" href="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui.lc-88cf90db92dda356e2d67b232b6130ce-lc.min.css" type="text/css">
+
+
+
+
+<script>
+	RUM.mark('css_load_ui');
+</script>
+
+
+
+
+
+
+	
+		
+
+
+	<script src="https://polyfill-fastly.io/v3/polyfill.min.js?flags=gated&features=default,fetch,IntersectionObserver,NodeList.prototype.forEach,Array.prototype.@@iterator&Array.prototype.includes&Array.prototype.find&callback=tmg.polyfill.complete" defer></script>
+
+	<script>
+		RUM.mark( 'js_load_polyfill' );
+	</script>
+
+
+	
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Load Sourcepoint stub -->
+<script type="text/javascript">
+	(function () { var e = false; var c = window; var t = document; function r() { if (!c.frames["__cmpLocator"]) { if (t.body) { var a = t.body; var e = t.createElement("iframe"); e.style.cssText = "display:none"; e.name = "__cmpLocator"; a.appendChild(e) } else { setTimeout(r, 5) } } } r(); function p() { var a = arguments; __cmp.a = __cmp.a || []; if (!a.length) { return __cmp.a } else if (a[0] === "ping") { a[2]({ gdprAppliesGlobally: e, cmpLoaded: false }, true) } else { __cmp.a.push([].slice.apply(a)) } } function l(t) { var r = typeof t.data === "string"; try { var a = r ? JSON.parse(t.data) : t.data; if (a.__cmpCall) { var n = a.__cmpCall; c.__cmp(n.command, n.parameter, function (a, e) { var c = { __cmpReturn: { returnValue: a, success: e, callId: n.callId } }; t.source.postMessage(r ? JSON.stringify(c) : c, "*") }) } } catch (a) { } } if (typeof __cmp !== "function") { c.__cmp = p; __cmp.msgHandler = l; c.addEventListener("message", l, false) } })();
+</script>
+
+
+
+
+
+
+	
+		
+	<script src="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui.lc-d82dd04af2280b98092689dca40dfed9-lc.min..js" defer></script>
+
+
+	
+
+	
+
+	<script>
+		RUM.mark('js_load_ui');
+	</script>
+
+
+
+
+
+	<!-- Load Sourcepoint payload -->
+	<script src="https://static.telegraph.co.uk/telegraph-advertising/tmg-cmp.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+<link rel="stylesheet" href="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/fonts-italic.lc-74f8f3d5f9a42a449787b66c770ee233-lc.min.css" type="text/css">
+
+
+
+ 
+
+
+
+
+
+
+
+
+    
+        <script src="https://cf.eip.telegraph.co.uk/particle-embed/js/particle.js" async></script>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+	<link rel="canonical" href="https://www.telegraph.co.uk/application/errorpages/404/"/>
+
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="description"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="keywords"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmgads.channel" content="portal"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmgads.section" content="application-errorpages"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmgads.zone" content="portal"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmgads.articleid" content="AmKjbLK1R5X6"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmgads.pagetype"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmgads.level" content="3"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmgads.otherdata"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+		
+		
+	<!--esi
+	<esi:vars>
+		<meta name="tmgads.geo" content="$(GEO{'country_code'})"></meta>
+	</esi:vars>
+	-->
+
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmgads.keywords"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.Channel" content="portal"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.Category" content="errorpages"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.Genre" content="404"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.MLC" content="portal"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.articleId" content="AmKjbLK1R5X6"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.Content_Type"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.Level" content="3"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.author"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.articleFirstPublished" content="2022-07-01 13:58"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+		
+		
+	<!--esi
+	<esi:vars>
+		<meta name="DCSext.cf" content="$(isPageMetered)"></meta>
+	</esi:vars>
+	-->
+
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+		
+		
+	<!--esi
+	<esi:vars>
+		<meta name="DCSext.cd" content="$(isPaywallCounterUpdated)"></meta>
+	</esi:vars>
+	-->
+
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+		
+		
+	<!--esi
+	<esi:vars>
+		<meta name="DCSext.cn" content="$(paywallCounterValue)"></meta>
+	</esi:vars>
+	-->
+
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+		
+		
+	<!--esi
+	<esi:vars>
+		<meta name="DCSext.pd" content="$(isPaywallHidden)"></meta>
+	</esi:vars>
+	-->
+
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="og:title" content="404"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="og:description"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="og:type" content="homepage"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="og:site_name" content="The Telegraph"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="og:url" content="https://www.telegraph.co.uk/application/errorpages/404/"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+		
+	<meta property="og:image" content="https://www.telegraph.co.uk/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/tmg-share-img.svg"/>
+
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="twitter:title" content="404"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="twitter:url" content="https://www.telegraph.co.uk/application/errorpages/404/"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="twitter:image" content="https://www.telegraph.co.uk/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/core/resources/icons/tmg-share-img.svg"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="twitter:site" content="@Telegraph"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="twitter:description"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="twitter:card" content="summary_large_image"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmgads.businessSegment" content="404page"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmg.sponsor"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.campaignId"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.campaignStart"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.campaignEnd"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="DCSext.sponsored" content="false"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmg.premium.override" content="false"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmg.premium.state" content="false"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="premiumContentOnFirstPublish" content="false"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="143666524748"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="1438053159792450"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="1069269459751990"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="985629951556153"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="121391718031592"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="187451147952038"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="244632882562393"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="1443454839014980"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="551022578388741"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="534435549980003"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="751195545009382"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="116941904987458"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="285329994977070"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="fb:pages" content="122346694516955"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+		
+		
+	<meta property="article:content_tier" content="free"/>
+
+		
+		
+	
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+	
+	
+	
+		
+	<meta name="tmg.pt" content="1668704907933"/>
+
+		
+		
+		
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+<script>
+	window.tmgFacebookAppId = "1785449471702494";
+</script>
+
+
+<script>
+	var dataLayer = {
+		pageName:'application\\\/errorpages\\\/404',
+		pageType: 'genericErrorPageRenderer',
+		pageId: 'AmKjbLK1R5X6',
+		conceptIds: '[]',
+		rollupContentPath: '/application/errorpages/404/',
+		videoEmbedded: 'false',
+		videoEmbedCount: '0',
+		premiumContent: 'false',
+		premiumOverride: 'false'
+	};
+</script>
+
+	
+	
+
+<script>
+	var targetMboxData = {
+		'DCSext.Channel': 'portal',
+		'DCSext.Content_Type': '',
+		'DCSext.articleId': 'AmKjbLK1R5X6',
+		'dl.pageType': 'genericerrorpagerenderer',
+		'entity.author': '',
+		'entity.businessSegment': '404page',
+		'entity.categoryId': 'portal',
+		'entity.channel': 'portal',
+		'entity.firstPublished': '2022\u002D07\u002D01 13:58',
+		'entity.id': 'AmKjbLK1R5X6',
+		'entity.keywords': '',
+		'entity.name': '404',
+		'entity.pageType': '',
+		'entity.pageURL': '\/application\/errorpages\/404\/',
+		'entity.premiumContent': 'false',
+		'entity.thumbnailUrl': 'https:\/\/www.telegraph.co.uk\/etc.clientlibs\/settings\/wcm\/designs\/telegraph\/core\/clientlibs\/core\/resources\/icons\/tmg\u002Dshare\u002Dimg.svg',
+		'keywords': '',
+		'productPurchasedId': 'AmKjbLK1R5X6',
+		'tmg.author': '',
+		'tmg.keywords': '',
+		'tmg.platform': 'aem',
+		'tmg.premium.override': 'false',
+		'tmg.premium.state': 'false',
+		'tmgads.articleid': 'AmKjbLK1R5X6',
+		'tmgads.businessSegment': '404page',
+		'tmgads.keywords': '',
+		'tmgads.pagetype': '',
+		'user.categoryId': 'portal'
+	};
+
+	window.adobeDataLayer = window.adobeDataLayer || [];
+	window.adobeDataLayer.push({
+		event: 'pageLoaded',
+		web: {
+			webPageDetails: {
+				name: document.location.pathname,
+				server: document.location.hostname,
+				URL: document.location.href,
+			},
+			webReferrer: { URL: document.referrer }
+		},
+		_tmg: {
+			pageInfo: {
+				pageName: '404',
+				pageType: 'genericErrorPageRenderer',
+				pageId: 'AmKjbLK1R5X6',
+				conceptIds: '[]',
+				rollupContentPath: '\/application\/errorpages\/404\/',
+				videoEmbedded: 'false',
+				videoEmbedCount: '0',
+				premiumContent: 'false',
+				premiumOverride: 'false',
+				event: ['pageLoaded']
+			}
+		}
+	});
+</script>
+	
+
+
+
+
+
+<meta name="theme-color" content="#072A3A"/>
+
+<meta name="msapplication-navbutton-color" content="#072A3A"/>
+
+
+
+
+<script>
+	var pageData = {};
+</script>
+
+
+
+
+
+<meta name="robots" content="max-snippet:-1,max-image-preview:large,max-video-preview:-1,noindex"/>
+
+
+
+
+<meta name="tmg.app" content="false"/>
+
+
+<!--esi
+	<esi:choose>
+		<esi:when test="$(isAdLite)=='1'">
+			<esi:assign name="metaIsAdLite" value="'true'"/>
+		</esi:when>
+		<esi:otherwise>
+			<esi:assign name="metaIsAdLite" value="'false'"/>
+		</esi:otherwise>
+	</esi:choose>
+-->
+
+<meta name="tmg.isAdLite" content="<esi:vars>$(metaIsAdLite)</esi:vars>"/>
+
+
+
+
+
+<script>
+    var tmgAds = tmgAds || {};
+    tmgAds.sticky = true;
+</script>
+
+
+
+
+
+	
+	
+		
+
+		
+			
+
+
+	<script src="//assets.adobedtm.com/71dcbb11123ce6b2e1ce4d47fd79a130aad3fc95/satelliteLib-177113f60f763788009998023cd15615fe2168a2.js" defer></script>
+
+	<script>
+		RUM.mark( 'js_load_dtm' );
+	</script>
+
+
+		
+
+		
+	
+
+
+
+
+
+
+
+
+	
+		
+
+
+	
+		<script src="https://static.telegraph.co.uk/telegraph-advertising/tmg-gpt.min.js" defer></script>
+		<script>
+			RUM.mark( 'js_load_gpt' );
+		</script>
+	
+
+
+	
+
+	
+
+
+
+
+<!-- comScore Identifier: comscorekw=404page -->
+<!--esi
+<esi:assign name="businessSegment">'404page'</esi:assign>
+-->
+
+
+
+
+
+
+
+
+	
+
+		
+			
+
+<script src="https://secure.telegraph.co.uk/customer/lib/tmgrefresh.js" defer></script>
+<script>
+	RUM.mark( 'js_load_customer' );
+</script>
+
+		
+
+		
+	
+
+
+
+
+
+
+
+
+
+
+
+</head>
+	
+
+
+
+<body class="segment--404page " data-test="body">
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="site-header-wrapper">
+	
+
+
+	
+	
+		
+
+	
+
+	<header class="site-header
+				   
+				   " id="navigation" data-test="site-header">
+
+		<div class="site-header__primary-wrapper" data-test="site-header-primary">
+			<div class="site-header__container site-header__primary-content">
+
+				
+				<div class="site-header__masthead
+						">
+					<div class="site-header__logo
+								" data-track-wrapper="header-logobar" data-test="site-header-logo">
+						
+	
+
+
+
+	<div class="e-site-logo__award">UK News Website of the Year <span class="e-site-logo__award-year">2024</span></div>
+
+	<a href="/" class="e-site-logo" data-track-img>
+		<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="site-logo-title" class="e-site-logo__image" id="site-logo" viewBox="0 0 320 52">
+			<path d="M2.7,25.7c0-7,5.2-11.8,10.2-14.1l0.4,0.6c-1.8,2-3.2,4-3.2,8.1c0,4.8,1.3,8.1,3.3,10.3
+			c0.7-0.8,1.1-1.9,1.1-2.9v-6.8l8.8-6.3l0.5,0.7c-0.8,1.1-1.3,2.4-1.3,3.8v4.2c0,3.3-5.2,6.7-8.6,8c2.1,1.9,5,2.7,8.1,2.7
+			c1.2,0,2.3-0.1,3.5-0.2V13.9c-2.6-0.2-5.1-0.7-7.6-1.5c-2.7-0.8-6.4-1.8-8.7-1.8c-3.5,0-7.6,1.2-7.7,6.2c0,0.5,0.1,1,0.1,1.5
+			l-0.8,0.3C0.3,17.2,0,15.6,0,14C-0.1,7.7,4.5,2.2,11.9,2.2c3.1,0,6.7,1,9.3,1.7c2.8,0.8,5.5,1.5,8.1,1.5c1.3,0,2.1-0.7,2.1-2
+			c0-1.3-0.7-1.9-1.8-2.2l0.2-0.9C33,1,36.5,2.9,36.5,6.9c0,4.7-3.5,7.1-9.3,7.1h-0.5v19.5c1.6-0.3,3.2-0.9,4.5-1.9
+			c1.4-0.9,2.5-2.2,3.4-3.6l0.8,0.4c-2,6.7-7.3,13.3-16.2,13.3C10.1,41.7,2.7,36.6,2.7,25.7 M41.7,48.2c10.9-0.8,19-5.3,19-12.6V19.5
+			c0-0.5,0.1-1,0.3-1.5c0.2-0.5,0.5-0.9,0.9-1.2v-1.3c-0.4,0.3-1,0.4-1.5,0.4c-0.3,0-0.6-0.1-0.9-0.2c-0.5-0.3-3.7-3.2-4.2-3.7h-0.7
+			l-7,6.6V6.8c0-2.8,1.4-4,2.3-4.2V1.8c-0.6-0.1-1.2-0.2-1.8-0.2c-0.9,0-1.7,0.2-2.5,0.6c-0.8,0.4-1.4,1-1.9,1.7h-0.2
+			c-0.5-1.2-2.3-2.3-4.1-2.3c-0.8,0-1.7,0.1-2.5,0.4v0.7c1.2,0.3,3.1,1.4,3.1,3.6v29.1l-1.4,1.4l5.4,4.6h0.6l5.4-4.9l-2.4-2.2V20.1
+			l2.8-2.6l2.5,2.5v19c0,6-5.7,7.6-11.4,8.1V48.2z M65.3,30.4c0,3-0.3,5.4-0.7,6.5c2.8,1.5,6.9,3.3,10.1,4.6h0.8l9.5-9.4l-0.7-0.7
+			l-4.8,4.7c-2.3-0.9-4.5-1.9-6.6-3.1v-4.5l11.6-7.8v-0.8c-2.6-2.3-5.5-5.6-7.6-7.8h-0.7c-3.5,2.4-7.2,4.6-11,6.6V30.4z M72.8,17.9
+			c1.5,1.7,3.3,3.8,5.1,5.8l-5.1,3.5V17.9z M101.7,25.6c0,10.9,7.4,16,16.4,16c8.9,0,14.2-6.6,16.2-13.3l-0.8-0.4
+			c-0.9,1.4-2,2.6-3.4,3.6c-1.4,0.9-2.9,1.6-4.5,1.9V13.9h0.5c5.8,0,9.3-2.4,9.3-7.1c0-4-3.5-5.9-6.7-6.5l-0.2,0.9
+			c0.5,0.1,1,0.3,1.3,0.7c0.3,0.4,0.5,0.9,0.5,1.4c0,1.3-0.8,2-2.1,2c-2.6,0-5.4-0.7-8.1-1.5c-2.5-0.7-6.2-1.7-9.3-1.7
+			C103.5,2.1,99,7.6,99,13.9c0,1.6,0.3,3.2,0.9,4.7l0.8-0.3c-0.1-0.6-0.1-1.1-0.1-1.5c0.1-5,4.3-6.2,7.7-6.2c2.4,0,6,1,8.7,1.8
+			c2.5,0.8,5,1.3,7.6,1.5v19.8c-1.1,0.2-2.3,0.2-3.5,0.2c-3.1,0-6-0.8-8.1-2.7c3.3-1.4,8.6-4.7,8.6-8v-4.2c0-1.4,0.5-2.7,1.3-3.8
+			l-0.5-0.7l-8.8,6.3v6.8c0,1.1-0.4,2.1-1.1,2.9c-2-2.2-3.3-5.5-3.3-10.3c0-4.1,1.4-6.1,3.2-8.1l-0.4-0.6
+			C107,13.8,101.7,18.6,101.7,25.6 M137.7,30.3c0,3-0.3,5.4-0.7,6.5c2.8,1.5,6.9,3.3,10,4.6h0.8l9.5-9.4l-0.7-0.7l-4.8,4.7
+			c-2.3-0.9-4.5-1.9-6.6-3.1v-4.5l11.6-7.8v-0.8c-2.6-2.3-5.5-5.6-7.6-7.8h-0.6c-3.5,2.4-7.2,4.6-11,6.6V30.3z M145.3,17.9
+			c1.5,1.7,3.3,3.8,5,5.8l-5,3.5V17.9z M163.8,1.5h-0.6l-7,7.1l0.7,0.7l1.9-1.9l1.5,1.6v26.4c0,3.7,3.2,5.8,5.6,6.1h0.4l6.2-6.3
+			l-0.6-0.7l-1.8,1.8c-1.1-0.2-2.2-1.3-2.2-2.4V5.3L163.8,1.5z M175.2,30.3c0,3-0.3,5.4-0.7,6.5c2.8,1.5,6.9,3.3,10.1,4.6h0.8l9.5-9.4
+			l-0.7-0.7l-4.8,4.7c-2.3-0.9-4.5-1.9-6.6-3.1v-4.5l11.6-7.8v-0.8c-2.6-2.3-5.5-5.6-7.6-7.8h-0.7c-3.5,2.4-7.2,4.6-11,6.6V30.3z
+			M182.8,17.9c1.5,1.7,3.3,3.8,5.1,5.8l-5.1,3.5V17.9z M204.1,41.4h0.6l5.4-5.3c0.1,3.5,1.9,8.1,4.1,10.4c-3.1-1.8-6.6-2.9-9.4-2.9
+			c-4.5,0-8.1,3.9-9.7,7.8l0.6,0.5c1.8-1.4,4.1-2.1,6.3-2c2.9,0,5.7,0.7,8.3,2h0.6c2.1-2.6,7-7.8,9-9.9v-0.8c-1.4-1.4-2.1-3.5-2.1-7
+			v-15c0.1-0.9,0.5-1.8,1.2-2.4v-1.3c-0.6,0.3-1.2,0.5-1.9,0.5c-0.3,0-0.7-0.1-1-0.2c-0.7-0.3-6.4-2.9-8.6-3.8h-0.8l-9.6,6.7v18.1
+			L204.1,41.4z M208.2,36.5l-3.4-2.2V17.7l5.3,2.4v14.6L208.2,36.5z M234.5,18.1c0.9,0.9,2.6,2.4,3.8,3.5h0.1l4.6-5.5V16
+			c-1.5-1.2-3-2.5-4.3-3.9h-0.6l-5.3,6.3v-2.2l-4.2-4.1H228l-7,7l0.7,0.7l1.9-1.9l1.5,1.6v15.8c0,3.7,3.2,5.8,5.6,6.1h0.4l6.1-6.3
+			l-0.6-0.7l-1.8,1.8c-1.1-0.2-2.2-1.3-2.2-2.4V20L234.5,18.1z M250.1,23.8c-1.7,1.2-5.1,3.7-6.7,4.7V37l6.7,4.4h0.5l5.6-5.5
+			c0.3,1.3,1,2.5,2,3.5c1,1,2.1,1.6,3.5,2h0.5l6.1-6.3l-0.6-0.7l-1.8,1.8c-0.6-0.1-1.2-0.4-1.6-0.9c-0.4-0.5-0.6-1.1-0.6-1.7v-14
+			c0-0.5,0.1-1,0.3-1.4c0.2-0.4,0.6-0.8,1-1v-1.3c-0.5,0.3-1.1,0.4-1.7,0.4c-0.4,0-0.8-0.1-1.2-0.3c-0.3-0.2-8.2-3.9-8.2-3.9h-0.7
+			c-2.8,2.5-5.9,4.7-9.2,6.5v0.8c2.2,2.8,7.5,5.8,12.1,7v8.4l-2,1.9l-3.1-1.8V24.1L250.1,23.8z M256,25.2c-4.3-1.1-9.1-3.8-10.9-6.2
+			c0.7-0.4,2.7-1.7,3.3-2.1l7.5,4V25.2 M279.9,16.2l-4.2-4.1h-0.6l-7,7l0.7,0.7l1.9-1.9l1.5,1.6v14.7c-0.1,0.8-0.3,1.6-0.8,2.2
+			c-0.4,0.7-1,1.2-1.7,1.6v1c0.8,0.1,1.8,0.3,2.4,0.4v5.6l-1.5,1.6l5.9,4.6h0.4l5.3-4.9l-2.4-2.3v-3l4.6,1h0.2
+			c2.6-3.1,5.1-4.7,8.1-5.4V19.5c0-0.5,0.1-1,0.3-1.5c0.2-0.5,0.5-0.9,0.9-1.2v-1.3c-0.5,0.3-1,0.4-1.5,0.4c-0.3,0-0.6-0.1-0.9-0.2
+			c-0.5-0.3-3.7-3.2-4.2-3.7h-0.7l-7,6.6V16.2z M285.3,35.2c-1-0.2-3.5-0.6-5.3-1V20.1l2.9-2.6l2.5,2.5V35.2 M299.8,48.2
+			c10.9-0.8,19-5.3,19-12.6V19.5c0-0.5,0.1-1,0.3-1.5c0.2-0.5,0.5-0.9,0.9-1.2v-1.3c-0.4,0.3-1,0.4-1.5,0.4c-0.3,0-0.6-0.1-0.9-0.2
+			c-0.5-0.3-3.7-3.2-4.2-3.7h-0.7l-7,6.6V6.8c0-2.8,1.4-4,2.3-4.2V1.7c-0.6-0.1-1.2-0.2-1.8-0.2c-0.9,0-1.7,0.2-2.5,0.6
+			c-0.8,0.4-1.4,1-1.9,1.7h-0.2c-0.5-1.2-2.3-2.3-4.1-2.3c-0.8,0-1.7,0.1-2.5,0.4v0.7c1.2,0.3,3.1,1.4,3.1,3.6v29.1l-1.4,1.4l5.4,4.6
+			h0.6l5.4-4.9l-2.4-2.2V20.1l2.8-2.6l2.5,2.5v19c0,6-5.7,7.6-11.4,8.1V48.2z"/>
+		</svg>
+
+		
+	</a>
+
+
+					</div>
+
+					
+					
+
+				</div>
+
+				
+				
+					<div class="site-header__primary-navigation-wrapper">
+						<div class="site-header__navigation" data-drag-scroll>
+
+							<nav aria-label="Global website navigation" class="site-navigation" role="navigation" data-test="site-navigation">
+								
+
+	
+		
+			<div class="e-site-header-button e-site-header-button--search">
+				<a href="/search/" class="e-site-header-button__link" aria-label="Search The Telegraph" data-test="site-header-search-link">
+					
+	<svg class="e-site-header-button__icon e-site-header-button__icon-search" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 16">
+		<title>Search Icon</title>
+		<path d="M12,14.91l-3.24-5A5.5,5.5,0,1,0,5.5,11a5.27,5.27,0,0,0,1.44-.2L10.32,16ZM2,5.5A3.5,3.5,0,1,1,5.5,9,3.5,3.5,0,0,1,2,5.5Z"/>
+	</svg>
+
+				</a>
+			</div>
+		
+		<ul class="site-navigation__list
+				   
+				   site-navigation__list--primary
+				   " data-track-wrapper="header-nav-primary" data-test="site-nav-list-primary">
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					e-navigation-primary-item--first
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/your-say/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Your Say
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/news/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						News
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/sport/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Sport
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/business/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Business
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/money/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Money
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/opinion/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Opinion
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/russia-ukraine-war/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Ukraine
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/travel/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Travel
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/health-fitness/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Health
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/lifestyle/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Lifestyle
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/culture/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Culture
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="https://www.telegraph.co.uk/puzzles/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Puzzles
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		<li class="e-navigation-primary-item
+					
+					
+					
+					
+					" data-accordion-max-screen-width="1024">
+
+			<a class="e-navigation-primary-item__link" href="/podcasts/" data-track-txt data-test="site-navigation-link">
+
+				<span class="e-navigation-primary-item__link-content">
+					<span class="e-navigation-primary-item__link-text e-navigation-border">
+						Podcasts
+					</span>
+
+					
+				</span>
+			</a>
+
+			
+			
+
+		</li>
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		
+			
+
+	
+	
+	
+	
+	
+	
+	
+
+		</ul>
+
+	
+	
+	<script>
+		(function () {
+			document.querySelectorAll('.site-header__navigation .e-site-header-button__link').forEach(link => {
+				link.addEventListener('click', (e) => {
+					eVar94 = "header-search-icon-mobile";
+					eVar95 = link.textContent.trim();
+					eVar96 = "img";
+					eVar97 = document.title;
+					tmgComponentString = eVar94+";"+eVar95+"_"+eVar96+";"+eVar97;
+					localStorage.setItem("tmgComponentTracking", tmgComponentString);
+				});
+			});
+		})();
+	</script>
+
+							</nav>
+
+						</div>
+					</div>
+				
+
+				
+				
+				
+
+				<div class="site-header__country-selector" data-test="country-selector" data-js="country-selector">
+					<div class="e-site-header-country-selector" data-js="country-selector-inner-wrapper">
+						<div class="e-site-header-country-selector__wrapper">
+							<button class="e-site-header-country-selector__name" data-js="country-selector__button">
+
+								
+								
+
+    <span data-js="country-selector__button-icon" class="e-site-header-country-selector__icon-flag">
+        <img src="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/flags/UK-SVG.svg" fetchpriority="high" role="presentation" data-test="country-selector-flag-icon"/>
+    </span>
+    <span data-js="country-selector__button-text" data-test="country-selector-button-text">
+        UK Edition
+    </span>
+
+
+
+							</button>
+							<svg class="e-site-header-country-selector__icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+								<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"></path>
+							</svg>
+						</div>
+
+						<ul class="e-site-header-country-selector__list">
+
+							
+
+        <li class="e-site-header-country-selector__item" data-track-wrapper="country-selector-us">
+            <a href="/us/" class="e-site-header-country-selector__link" data-country="us" data-js="country-selector-link" data-track-txt data-track-destination="/us/">
+                <span class="e-site-header-country-selector__title">
+                    <img class="e-site-header-country-selector__icon-flag" src="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/flags/USA-SVG.svg" fetchpriority="high" role="presentation" data-test="country-selector-flag-icon"/>
+                    US Edition
+                </span>
+            </a>
+        </li>
+
+
+							
+
+						</ul>
+					</div>
+				</div>
+				
+
+				
+				<div class="site-header__buttons">
+					<div class="e-site-header-button e-site-header-button--search">
+						<a href="/search/" class="e-site-header-button__link" aria-label="Search The Telegraph" data-test="site-header-search-link">
+							
+	<svg class="e-site-header-button__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 16">
+		<title>Search Icon</title>
+		<path d="M12,14.91l-3.24-5A5.5,5.5,0,1,0,5.5,11a5.27,5.27,0,0,0,1.44-.2L10.32,16ZM2,5.5A3.5,3.5,0,1,1,5.5,9,3.5,3.5,0,0,1,2,5.5Z"/>
+	</svg>
+
+						</a>
+					</div>
+
+					
+
+					<esi:choose>
+						<esi:when test="$(isSubscribed)=='0'">
+							<div class="e-site-header-button e-site-header-button--subscribe">
+								<a href="https://secure.telegraph.co.uk/customer/subscribe/" class="e-site-header-button__link" data-icid="{ 'product': 'premiumsub', 'contentLocation': 'topnav' }" data-test="site-header-subscribe-link" rel="nofollow">
+									<span class="e-site-header-button__link-text-wrap">
+										<span class="e-site-header-button__link-text e-site-header-button__link-text--message">
+											Subscribe now
+										</span>
+									</span>
+								</a>
+							</div>
+						</esi:when>
+					</esi:choose>
+
+					<div class="e-site-header-button e-site-header-button--sign-in">
+
+						<!--esi
+						<esi:choose>
+							<esi:when test="($(isRegistered)=='0')&($(isSubscribed)=='0')">
+								<a href="https://secure.telegraph.co.uk/customer/secure/login/?redirectTo=" class="e-site-header-button__link e-site-header-button__link--no-border" data-redirect-current rel="nofollow">
+									Log in
+								</a>
+							</esi:when>
+							<esi:otherwise>
+								<a href="/mytelegraph/" class="e-site-header-button__link">
+									My Feed
+								</a>
+							</esi:otherwise>
+						</esi:choose>
+						-->
+
+					</div>
+
+					<div class="e-site-header-button e-site-header-button--menu">
+						<a href="/all-sections/" class="e-site-header-button__link" aria-label="View all sections" data-modal-open-button data-test="site-header-all-sections-link">
+							<span class="e-site-header-button__icon"></span>
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		
+
+		
+
+		
+		
+
+	</header>
+
+	
+		<div class="all-sections-modal all-sections-modal--hidden" aria-hidden="true" role="dialog" aria-label="Navigation modal containing links for all sections of the site" data-all-sections-modal="">
+			<div class="container all-sections__container" data-modal-content-wrapper>
+					<div class="allSectionsRenderer indexRenderer _abstractPageRenderer skeletonRenderer page basicpage">
+	<!--esi
+        <esi:choose>
+            <esi:when test="$(HTTP_COOKIE{'tmg_session'}) & ($(HTTP_COOKIE{'tmg_p13n'}) matches '''(subscriptionType:[\'\"]All Digital Access[\'\"])''')">
+                <esi:assign name="isSubscribed" value="1"/>
+                <esi:assign name="isRegistered" value="1"/>
+                <esi:assign name="isAdLite" value="1"/>
+            </esi:when>
+            <esi:when test="$(HTTP_COOKIE{'tmg_session'}) & ($(HTTP_COOKIE{'tmg_p13n'}) matches '''(readerType:[\'\"]registered[\'\"])''')">
+                <esi:assign name="isSubscribed" value="0"/>
+                <esi:assign name="isRegistered" value="1"/>
+                <esi:assign name="isAdLite" value="0"/>
+            </esi:when>
+            <esi:when test="$(HTTP_COOKIE{'tmg_session'}) & ($(HTTP_COOKIE{'tmg_p13n'}) matches '''(readerType:[\'\"]subscriber[\'\"])''')">
+                <esi:assign name="isSubscribed" value="1"/>
+                <esi:assign name="isRegistered" value="1"/>
+                <esi:assign name="isAdLite" value="0"/>
+            </esi:when>
+            <esi:otherwise>
+                <esi:assign name="isSubscribed" value="0"/>
+                <esi:assign name="isRegistered" value="0"/>
+                <esi:assign name="isAdLite" value="0"/>
+            </esi:otherwise>
+        </esi:choose>
+
+        <esi:choose>
+            <esi:when test="!$exists( $(HTTP_COOKIE{'tmg_p13n'}) )">
+                <esi:assign name="isUser" value="1"/>
+            </esi:when>
+            <esi:otherwise>
+                <esi:assign name="isUser" value="0"/>
+            </esi:otherwise>
+        </esi:choose>
+    -->
+
+
+
+	<div class="all-sections grid ">
+
+		
+		<div class="all-sections__navigation grid-col grid-col-12 grid-col-md-7">
+
+			<div class="all-section__wrapper">
+				<span class="all-sections__heading all-sections__main-heading u-heading-2" data-test="all-sections-heading">Sections</span>
+
+				
+				
+				
+
+				<div class="all-section__country-selector" data-test="country-selector" data-js="country-selector-all-section">
+					<div class="all-section-country-selector" data-js="country-selector-inner-wrapper">
+						<div class="all-section-country-selector__wrapper">
+							<button class="all-section-country-selector__name" data-js="country-selector__button">
+
+								
+								
+
+    <span data-js="country-selector__button-icon" class="all-section-country-selector__icon-flag">
+        <img src="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/flags/UK-SVG.svg" fetchpriority="high" role="presentation" data-test="country-selector-flag-icon"/>
+    </span>
+    <span data-js="country-selector__button-text" data-test="country-selector-button-text">
+        UK Edition
+    </span>
+
+
+
+							</button>
+							<svg class="all-section-country-selector__icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+								<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"></path>
+							</svg>
+						</div>
+
+						<ul class="all-section-country-selector__list">
+
+							
+
+        <li class="all-section-country-selector__item" data-track-wrapper="country-selector-us">
+            <a href="/us/" class="all-section-country-selector__link" data-country="us" data-js="country-selector-link" data-track-txt data-track-destination="/us/">
+                <span class="all-section-country-selector__title">
+                    <img class="e-site-header-country-selector__icon-flag" src="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/flags/USA-SVG.svg" fetchpriority="high" role="presentation" data-test="country-selector-flag-icon"/>
+                    US Edition
+                </span>
+            </a>
+        </li>
+
+
+							
+
+						</ul>
+					</div>
+				</div>
+				
+
+			</div>
+
+			
+			
+				<nav aria-label="All sections website navigation" role="navigation">
+					<ul class="all-sections__list" data-track-wrapper="all-sections-nav">
+						<li class="all-sections__item " id="your-say" data-accordion-max-screen-width="1024">
+							<a class="all-sections__link all-sections__link--is-primary" href="/your-say/" data-track-txt data-test="all-sections-link">
+								<span class="all-sections__link-heading">Your Say</span>
+
+								
+							</a>
+
+							
+							
+
+							
+							
+
+						</li>
+					
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="news" data-accordion-max-screen-width="1024" data-accordion-modal>
+							<a class="all-sections__link all-sections__link--is-primary" href="/news/" data-track-txt data-test="all-sections-link" data-accordion-trigger>
+								<span class="all-sections__link-heading">News</span>
+
+								
+									
+	<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+								
+							</a>
+
+							
+							
+
+							
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content>
+
+								<li class="all-sections__secondary-item
+										all-sections__secondary-item--first
+										all-sections__secondary-item--is-home-link">
+									<a class="all-sections__link" href="/news/" data-track-txt data-test="all-sections-secondary-link">
+										News home
+									</a>
+								</li>
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/news/uk/" data-track-txt>
+										UK news
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/politics/" data-track-txt>
+										Politics
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/world-news/" data-track-txt>
+										World
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/donald-trump/" data-track-txt>
+										Donald Trump
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/health-news/" data-track-txt>
+										Health news
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/news/defence/" data-track-txt>
+										Defence
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/science/" data-track-txt>
+										Science
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/education-news/" data-track-txt>
+										Education
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/environment/" data-track-txt>
+										Environment
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/investigations/" data-track-txt>
+										Investigations
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/global-health/" data-track-txt>
+										Global Health Security
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/royal-family/" data-track-txt>
+										Royals
+									</a>
+								</li>
+
+							</ul>
+
+						</li>
+					
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="sport" data-accordion-max-screen-width="1024" data-accordion-modal>
+							<a class="all-sections__link all-sections__link--is-primary" href="/sport/" data-track-txt data-test="all-sections-link" data-accordion-trigger>
+								<span class="all-sections__link-heading">Sport</span>
+
+								
+									
+	<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+								
+							</a>
+
+							
+							
+
+							
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content>
+
+								<li class="all-sections__secondary-item
+										all-sections__secondary-item--first
+										all-sections__secondary-item--is-home-link">
+									<a class="all-sections__link" href="/sport/" data-track-txt data-test="all-sections-secondary-link">
+										Sport home
+									</a>
+								</li>
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/football/" data-track-txt>
+										Football
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/rugby-union/" data-track-txt>
+										Rugby Union
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/cricket/" data-track-txt>
+										Cricket
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/formula-1/" data-track-txt>
+										F1
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/golf/" data-track-txt>
+										Golf
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/tennis/" data-track-txt>
+										Tennis
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/womens-sport/" data-track-txt>
+										Women&#39;s Sport
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/racing/" data-track-txt>
+										Racing
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/cycling/" data-track-txt>
+										Cycling
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/boxing/" data-track-txt>
+										Boxing
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/betting/" data-track-txt>
+										Betting
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/sport-all/" data-track-txt>
+										More... 
+									</a>
+								</li>
+
+							</ul>
+
+						</li>
+					
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="business" data-accordion-max-screen-width="1024" data-accordion-modal>
+							<a class="all-sections__link all-sections__link--is-primary" href="/business/" data-track-txt data-test="all-sections-link" data-accordion-trigger>
+								<span class="all-sections__link-heading">Business</span>
+
+								
+									
+	<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+								
+							</a>
+
+							
+							
+
+							
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content>
+
+								<li class="all-sections__secondary-item
+										all-sections__secondary-item--first
+										all-sections__secondary-item--is-home-link">
+									<a class="all-sections__link" href="/business/" data-track-txt data-test="all-sections-secondary-link">
+										Business home
+									</a>
+								</li>
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/business/economy/" data-track-txt>
+										Economy
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/business/companies/" data-track-txt>
+										Companies
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/business/markets/" data-track-txt>
+										Markets
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/technology/" data-track-txt>
+										Tech
+									</a>
+								</li>
+
+							</ul>
+
+						</li>
+					
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="money" data-accordion-max-screen-width="1024" data-accordion-modal>
+							<a class="all-sections__link all-sections__link--is-primary" href="/money/" data-track-txt data-test="all-sections-link" data-accordion-trigger>
+								<span class="all-sections__link-heading">Money</span>
+
+								
+									
+	<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+								
+							</a>
+
+							
+							
+
+							
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content>
+
+								<li class="all-sections__secondary-item
+										all-sections__secondary-item--first
+										all-sections__secondary-item--is-home-link">
+									<a class="all-sections__link" href="/money/" data-track-txt data-test="all-sections-secondary-link">
+										Money home
+									</a>
+								</li>
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/money/property/" data-track-txt>
+										Property
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/money/tax/" data-track-txt>
+										Tax
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/money/pensions/" data-track-txt>
+										Pensions
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/money/banking/" data-track-txt>
+										Banking
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/money/investing/" data-track-txt>
+										Investing
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/money/net-zero/" data-track-txt>
+										Net Zero
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/money/tools/" data-track-txt>
+										Calculators
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/money/guides/" data-track-txt>
+										Guides
+									</a>
+								</li>
+
+							</ul>
+
+						</li>
+					
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="opinion" data-accordion-max-screen-width="1024" data-accordion-modal>
+							<a class="all-sections__link all-sections__link--is-primary" href="/opinion/" data-track-txt data-test="all-sections-link" data-accordion-trigger>
+								<span class="all-sections__link-heading">Opinion</span>
+
+								
+									
+	<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+								
+							</a>
+
+							
+							
+
+							
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content>
+
+								<li class="all-sections__secondary-item
+										all-sections__secondary-item--first
+										all-sections__secondary-item--is-home-link">
+									<a class="all-sections__link" href="/opinion/" data-track-txt data-test="all-sections-secondary-link">
+										Opinion home
+									</a>
+								</li>
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/obituaries/" data-track-txt>
+										Obituaries
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/opinion/letters/" data-track-txt>
+										Letters to the Editor
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/opinion/telegraph-view/" data-track-txt>
+										Telegraph View
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/opinion/columnists/" data-track-txt>
+										Our columnists
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/opinion/cartoons/" data-track-txt>
+										Cartoons
+									</a>
+								</li>
+
+							</ul>
+
+						</li>
+					
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="ukraine" data-accordion-max-screen-width="1024" data-accordion-modal>
+							<a class="all-sections__link all-sections__link--is-primary" href="/russia-ukraine-war/" data-track-txt data-test="all-sections-link" data-accordion-trigger>
+								<span class="all-sections__link-heading">Ukraine</span>
+
+								
+									
+	<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+								
+							</a>
+
+							
+							
+
+							
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content>
+
+								<li class="all-sections__secondary-item
+										all-sections__secondary-item--first
+										all-sections__secondary-item--is-home-link">
+									<a class="all-sections__link" href="/russia-ukraine-war/" data-track-txt data-test="all-sections-secondary-link">
+										Ukraine home
+									</a>
+								</li>
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="https://www.telegraph.co.uk/news/2022/03/02/russia-ukraine-war-listen-daily-podcast/" data-track-txt>
+										Daily podcast
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="https://www.telegraph.co.uk/secure/newsletter/dispatches" data-track-txt>
+										Daily newsletter
+									</a>
+								</li>
+
+							</ul>
+
+						</li>
+					
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="travel" data-accordion-max-screen-width="1024" data-accordion-modal>
+							<a class="all-sections__link all-sections__link--is-primary" href="/travel/" data-track-txt data-test="all-sections-link" data-accordion-trigger>
+								<span class="all-sections__link-heading">Travel</span>
+
+								
+									
+	<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+								
+							</a>
+
+							
+							
+
+							
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content>
+
+								<li class="all-sections__secondary-item
+										all-sections__secondary-item--first
+										all-sections__secondary-item--is-home-link">
+									<a class="all-sections__link" href="/travel/" data-track-txt data-test="all-sections-secondary-link">
+										Travel home
+									</a>
+								</li>
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/travel/destinations/europe/" data-track-txt>
+										Europe
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/travel/destinations/europe/united-kingdom/" data-track-txt>
+										UK
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/travel/destinations/worldwide/" data-track-txt>
+										Worldwide
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/travel/city-breaks/" data-track-txt>
+										City breaks
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/travel/hotels/" data-track-txt>
+										Hotels
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/travel/cruises/" data-track-txt>
+										Cruise
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/travel/ski/" data-track-txt>
+										Ski
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/travel/advice/" data-track-txt>
+										Advice
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="https://www.telegraph.co.uk/travel/affordable-travel/" data-track-txt>
+										Affordable travel
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" data-track-txt>
+										
+									</a>
+								</li>
+
+							</ul>
+
+						</li>
+					
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="health" data-accordion-max-screen-width="1024" data-accordion-modal>
+							<a class="all-sections__link all-sections__link--is-primary" href="/health-fitness/" data-track-txt data-test="all-sections-link" data-accordion-trigger>
+								<span class="all-sections__link-heading">Health</span>
+
+								
+									
+	<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+								
+							</a>
+
+							
+							
+
+							
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content>
+
+								<li class="all-sections__secondary-item
+										all-sections__secondary-item--first
+										all-sections__secondary-item--is-home-link">
+									<a class="all-sections__link" href="/health-fitness/" data-track-txt data-test="all-sections-secondary-link">
+										Health home
+									</a>
+								</li>
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/health-fitness/diet/" data-track-txt>
+										Diet
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/health-fitness/fitness/" data-track-txt>
+										Fitness
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/health-fitness/conditions/" data-track-txt>
+										Conditions
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/health-fitness/wellbeing/" data-track-txt>
+										Wellbeing
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/health-fitness/parenting/" data-track-txt>
+										Parenting
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/health-fitness/guides/" data-track-txt>
+										Guides
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/health-fitness/tools/" data-track-txt>
+										Tools
+									</a>
+								</li>
+
+							</ul>
+
+						</li>
+					
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="lifestyle" data-accordion-max-screen-width="1024" data-accordion-modal>
+							<a class="all-sections__link all-sections__link--is-primary" href="/lifestyle/" data-track-txt data-test="all-sections-link" data-accordion-trigger>
+								<span class="all-sections__link-heading">Lifestyle</span>
+
+								
+									
+	<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+								
+							</a>
+
+							
+							
+
+							
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content>
+
+								<li class="all-sections__secondary-item
+										all-sections__secondary-item--first
+										all-sections__secondary-item--is-home-link">
+									<a class="all-sections__link" href="/lifestyle/" data-track-txt data-test="all-sections-secondary-link">
+										Lifestyle home
+									</a>
+								</li>
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/recipes/" data-track-txt>
+										Recipes
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/food-and-drink/" data-track-txt>
+										Food &amp; Drink
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/fashion/" data-track-txt>
+										Fashion
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/beauty/" data-track-txt>
+										Beauty
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/luxury/" data-track-txt>
+										Luxury
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/cars/" data-track-txt>
+										Cars
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/gardening/" data-track-txt>
+										Gardening
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/recommended/" data-track-txt>
+										Recommended
+									</a>
+								</li>
+
+							</ul>
+
+						</li>
+					
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="culture" data-accordion-max-screen-width="1024" data-accordion-modal>
+							<a class="all-sections__link all-sections__link--is-primary" href="/culture/" data-track-txt data-test="all-sections-link" data-accordion-trigger>
+								<span class="all-sections__link-heading">Culture</span>
+
+								
+									
+	<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+								
+							</a>
+
+							
+							
+
+							
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content>
+
+								<li class="all-sections__secondary-item
+										all-sections__secondary-item--first
+										all-sections__secondary-item--is-home-link">
+									<a class="all-sections__link" href="/culture/" data-track-txt data-test="all-sections-secondary-link">
+										Culture home
+									</a>
+								</li>
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/tv/" data-track-txt>
+										TV
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/films/" data-track-txt>
+										Film
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/music/" data-track-txt>
+										Music
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/books/" data-track-txt>
+										Books
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/theatre/" data-track-txt>
+										Theatre
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/comedy/" data-track-txt>
+										Comedy
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/dance/" data-track-txt>
+										Dance
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/opera/" data-track-txt>
+										Opera
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/music/classical-music/" data-track-txt>
+										Classical
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="/art/" data-track-txt>
+										Art
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" data-track-txt>
+										
+									</a>
+								</li>
+
+							
+
+								
+
+								<li class="all-sections__secondary-item">
+									<a class="all-sections__link" href="https://www.telegraph.co.uk/theatre/tickets/" data-track-txt>
+										Telegraph Tickets
+									</a>
+								</li>
+
+							</ul>
+
+						</li>
+					
+						<li class="all-sections__item " id="puzzles" data-accordion-max-screen-width="1024">
+							<a class="all-sections__link all-sections__link--is-primary" href="https://www.telegraph.co.uk/puzzles/" data-track-txt data-test="all-sections-link">
+								<span class="all-sections__link-heading">Puzzles</span>
+
+								
+							</a>
+
+							
+							
+
+							
+							
+
+						</li>
+					
+						<li class="all-sections__item " id="podcasts" data-accordion-max-screen-width="1024">
+							<a class="all-sections__link all-sections__link--is-primary" href="/podcasts/" data-track-txt data-test="all-sections-link">
+								<span class="all-sections__link-heading">Podcasts</span>
+
+								
+							</a>
+
+							
+							
+
+							
+							
+
+						</li>
+					</ul>
+				</nav>
+			
+		</div>
+
+		<!-- Country selector -->
+		
+		
+
+		<aside class="all-section__selector grid-col grid-col-12 grid-col-md-5 grid-col-lg-4" data-test="country-selector-all-section">
+			<div class="all-sections__navigation grid-col grid-col-12 grid-col-md-7" data-js="country-selector-all-section">
+				<nav aria-label="All sections website navigation" role="navigation">
+					<ul class="all-sections__list">
+
+						<li class="all-sections__item all-sections__item--has-children accordion accordion--sm accordion--is-collapsed" id="country" data-accordion-max-screen-width="1024" data-accordion-modal="">
+							<a class="all-sections__link all-sections__link--is-primary" href="/" data-track-txt="" data-test="all-sections-link" data-accordion-trigger="">
+								<span class="all-sections__link-heading" data-js="country-selector__button">
+
+									
+									
+
+    <span data-js="country-selector__button-icon" class="all-sections-country-selector__icon-flag">
+        <img src="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/flags/UK-SVG.svg" fetchpriority="high" role="presentation" class="all-sections-country-selector__icon-flag-link" data-test="country-selector-flag-icon"/>
+    </span>
+    <span data-js="country-selector__button-text" data-test="country-selector-button-text">
+        UK Edition
+    </span>
+
+
+
+								</span>
+								<svg class="all-sections__arrow-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+									<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"></path>
+								</svg>
+							</a>
+							<ul class="all-sections__secondary-list accordion__content" data-test="all-sections-secondary-list" data-accordion-content="">
+
+								
+
+        <li class="all-sections__secondary-item" data-track-wrapper="country-selector-us">
+            <a href="/us/" class="all-sections__link" data-country="us" data-js="country-selector-link" data-track-txt data-track-destination="/us/">
+                <span class="all-sections-country-selector__wrapper">
+                    <img class="e-site-header-country-selector__icon-flag" src="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/flags/USA-SVG.svg" fetchpriority="high" role="presentation" data-test="country-selector-flag-icon"/>
+                    US Edition
+                </span>
+            </a>
+        </li>
+
+
+								
+
+							</ul>
+						</li>
+
+					</ul>
+				</nav>
+			</div>
+		</aside>
+		<!-- Country selector -->
+
+		<aside class="all-sections__utilities grid-col grid-col-12 grid-col-md-5 grid-col-lg-4">
+
+			<esi:choose>
+				<esi:when test="$(isSubscribed)=='0'">
+					<div class="all-sections__subscribe-button">
+						<a href="https://secure.telegraph.co.uk/customer/subscribe/" class="all-sections__subscribe-button-link" data-icid="{ 'product': 'premiumsub', 'contentLocation': 'all-sections-nav' }">
+							<span class="all-sections__subscribe-button-text all-sections__subscribe-button-text--message">
+								Subscribe now
+							</span>
+						</a>
+					</div>
+				</esi:when>
+			</esi:choose>
+
+			<div class="all-sections__utilities-inner">
+
+				<div class="all-sections__user-state-wrapper">
+
+					<esi:choose>
+						<esi:when test="$(isRegistered)=='1'">
+							<div class="all-sections__user-state all-sections__user-state--is-first">
+								<a href="https://secure.telegraph.co.uk/customer/secure/account" class="all-sections__user-state-link" aria-label="Visit your Telegraph account" data-test="my-account-link" rel="nofollow">
+									<span class="all-sections__user-state-text">My Account</span>
+									
+	<svg class="all-sections__user-state-icon all-sections__user-state-icon--myaccount" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<title>My Account icon</title>
+		<path fill-rule="evenodd" clip-rule="evenodd" d="M14.8125 11.5625H5.1875C4.25552 11.5625 3.5 12.318 3.5 13.25V15.5H16.5V13.25C16.5 12.318 15.7445 11.5625 14.8125 11.5625ZM5.1875 10.0625C3.42709 10.0625 2 11.4896 2 13.25V17H18V13.25C18 11.4896 16.5729 10.0625 14.8125 10.0625H5.1875Z"/>
+		<path fill-rule="evenodd" clip-rule="evenodd" d="M10.0033 3.5L10 3.50001C9.70333 3.50001 9.41332 3.58798 9.16665 3.7528C8.91998 3.91762 8.72772 4.15189 8.61419 4.42598C8.50066 4.70007 8.47095 5.00167 8.52883 5.29264C8.58671 5.58361 8.72957 5.85088 8.93935 6.06066C9.14913 6.27044 9.4164 6.4133 9.70737 6.47118C9.99834 6.52905 10.2999 6.49935 10.574 6.38582C10.8481 6.27229 11.0824 6.08003 11.2472 5.83335C11.412 5.58668 11.5 5.29667 11.5 5V4.99666C11.5004 4.79999 11.462 4.60518 11.387 4.4234C11.3119 4.24161 11.2017 4.07645 11.0626 3.93739C10.9236 3.79832 10.7584 3.6881 10.5766 3.61304C10.3948 3.53798 10.2 3.49957 10.0033 3.5ZM13 5C13 5.59335 12.8241 6.17336 12.4944 6.66671C12.1648 7.16006 11.6962 7.54457 11.1481 7.77164C10.5999 7.9987 9.99668 8.05811 9.41473 7.94235C8.83279 7.8266 8.29824 7.54088 7.87869 7.12132C7.45913 6.70176 7.17341 6.16721 7.05765 5.58527C6.9419 5.00333 7.00131 4.40013 7.22837 3.85195C7.45543 3.30378 7.83995 2.83524 8.3333 2.5056C8.82664 2.17595 9.40666 2.00001 10 2.00001C10.3942 1.99913 10.7847 2.07613 11.1491 2.22658C11.5135 2.37703 11.8445 2.59798 12.1233 2.87673C12.402 3.15548 12.623 3.48654 12.7734 3.85092C12.9239 4.21529 13.0009 4.60579 13 5Z"/>
+	</svg>
+
+								</a>
+							</div>
+
+							<div class="all-sections__user-state all-sections__user-state--is-second">
+								<a href="/saved-articles/" class="all-sections__user-state-link" aria-label="Visit your saved articles page" data-test="saved-articles-link">
+									<span class="all-sections__user-state-text">Saved articles</span>
+									<span class='all-sections__user-state-icon all-sections__user-state-icon--save'>
+										
+	<svg data-test="save-icon" class="e-save-article__icon" xmlns="http://www.w3.org/2000/svg" width="12" height="14" viewBox="0 0 12 14" fill="none">
+		<path class="ribbon--outline" fill-rule="evenodd" clip-rule="evenodd" d="M1.79344 13.1342L5.45656 11.3658C5.7999 11.2 6.2001 11.2 6.54344 11.3658L10.2066 13.1342C11.0366 13.5349 12 12.9302 12 12.0085V1.25C12 0.559644 11.4404 0 10.75 0H1.25C0.559644 0 0 0.559644 0 1.25V12.0085C0 12.9302 0.963437 13.5349 1.79344 13.1342ZM10.75 1.25H1.25V12.0085L4.91313 10.2401C5.59979 9.90861 6.40021 9.90861 7.08687 10.2401L10.75 12.0085V1.25Z" fill="#222222"/>
+		<path class="ribbon--inside" d="M10.75 0H1.25C0.559644 0 0 0.559644 0 1.25V12.0085C0 12.9302 0.963437 13.5349 1.79344 13.1342L5.45656 11.3658C5.7999 11.2 6.2001 11.2 6.54344 11.3658L10.2066 13.1342C11.0366 13.5349 12 12.9302 12 12.0085V1.25C12 0.559644 11.4404 0 10.75 0Z" fill="#222222"/>
+	</svg>
+
+									</span>
+								</a>
+							</div>
+
+							<div class="all-sections__user-state">
+								<a href="https://secure.telegraph.co.uk/customer/secure/logout" class="all-sections__user-state-link" aria-label="Log out of The Telegraph" rel="nofollow">
+									<span class="all-sections__user-state-text">Log out</span>
+									
+	<svg class="all-sections__user-state-icon all-sections__user-state-icon--logout" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<title>Logout icon</title>
+		<path d="M11 2H5C3.89543 2 3 2.89543 3 4V16C3 17.1046 3.89543 18 5 18H11V16.5H5C4.72386 16.5 4.5 16.2761 4.5 16V4C4.5 3.72386 4.72386 3.5 5 3.5H11V2Z"/>
+		<path d="M16.0183 9.25H9.39998V10.75H16.0184L13.7 14.36L14.5 15L19 10L14.5 5L13.7 5.64L16.0183 9.25Z"/>
+	</svg>
+
+								</a>
+							</div>
+						</esi:when>
+						<esi:otherwise>
+							<div class="all-sections__user-state all-sections__user-state">
+								<a href="https://secure.telegraph.co.uk/customer/secure/login/?redirectTo=" class="all-sections__user-state-link" aria-label="Log in to The Telegraph" data-redirect-current rel="nofollow">
+									<span class="all-sections__user-state-text">Log in</span>
+									
+	<svg class="all-sections__user-state-icon all-sections__user-state-icon--login" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<title>Login icon</title>
+		<path d="M15 2H9.00002V3.5H15C15.2762 3.5 15.5 3.72386 15.5 4V16C15.5 16.2761 15.2762 16.5 15 16.5H9.00002V18H15C16.1046 18 17 17.1046 17 16V4C17 2.89543 16.1046 2 15 2ZM1 9.25H7.61837L5.30004 5.64L6.10003 5L10.6 10L6.10003 15L5.30004 14.36L7.61839 10.75H1V9.25Z"/>
+	</svg>
+
+								</a>
+							</div>
+						</esi:otherwise>
+					</esi:choose>
+				</div>
+
+				
+				
+					<div class="all-sections__social-bar" data-test="all-sections-social-bar">
+						
+
+	
+
+	<span class="all-sections__social-description">Follow us on:</span>
+	<ul class="all-sections__social-links" data-test="social-links">
+		<li class="all-sections__social-item">
+			<a href="https://www.facebook.com/TELEGRAPH.CO.UK/" class="all-sections__social-link" data-test="social-link-facebook" aria-label="Visit our Facebook page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="all-sections__social-icon">
+		<title>Facebook icon</title>
+		<path d="M11.1973 18V10.7122H13.5654L13.9202 7.85967H11.1973V6.04325C11.1973 5.21877 11.4173 4.65746 12.5561 4.65746H14V2.11226C13.7481 2.07729 12.8878 2 11.8856 2C9.79246 2 8.3592 3.32505 8.3592 5.75983V7.85967H6V10.7122H8.3592V18H11.1973Z"/>
+	</svg>
+
+			</a>
+		</li>
+
+		<li class="all-sections__social-item">
+			<a href="https://www.instagram.com/telegraph/" class="all-sections__social-link" data-test="social-link-instagram" aria-label="Visit our Instagram page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="all-sections__social-icon">
+		<title>Instagram icon</title>
+		<path fill-rule="evenodd" clip-rule="evenodd" d="M9.99683 3.44156C12.1333 3.44156 12.3841 3.45108 13.2286 3.48918C14.0095 3.52411 14.4317 3.6543 14.7143 3.76543C15.0889 3.91149 15.3556 4.08295 15.6349 4.36237C15.9143 4.64179 16.0889 4.90851 16.2317 5.28319C16.3397 5.56579 16.473 5.98809 16.5079 6.7692C16.546 7.61381 16.5556 7.86466 16.5556 10.0016C16.5556 12.1385 16.546 12.3894 16.5079 13.234C16.473 14.0151 16.3429 14.4374 16.2317 14.72C16.0857 15.0947 15.9143 15.3614 15.6349 15.6408C15.3556 15.9202 15.0889 16.0949 14.7143 16.2377C14.4317 16.3457 14.0095 16.4791 13.2286 16.514C12.3841 16.5521 12.1333 16.5616 9.99683 16.5616C7.86032 16.5616 7.60952 16.5521 6.76508 16.514C5.98413 16.4791 5.56191 16.3489 5.27937 16.2377C4.90476 16.0917 4.6381 15.9202 4.35873 15.6408C4.07937 15.3614 3.90476 15.0947 3.7619 14.72C3.65397 14.4374 3.52064 14.0151 3.48571 13.234C3.44762 12.3894 3.4381 12.1385 3.4381 10.0016C3.4381 7.86466 3.44762 7.61381 3.48571 6.7692C3.52064 5.98809 3.65079 5.56579 3.7619 5.28319C3.90794 4.90851 4.07937 4.64179 4.35873 4.36237C4.6381 4.08295 4.90476 3.90832 5.27937 3.76543C5.56191 3.65747 5.98413 3.52411 6.76508 3.48918C7.60952 3.44791 7.86349 3.44156 9.99683 3.44156ZM9.99683 2C7.8254 2 7.55238 2.00953 6.69841 2.04763C5.84762 2.08573 5.26667 2.22227 4.75873 2.41913C4.23175 2.62235 3.7873 2.89859 3.34286 3.34312C2.89841 3.78766 2.6254 4.23536 2.41905 4.75928C2.22222 5.26732 2.08571 5.84838 2.04762 6.70252C2.00952 7.55348 2 7.82655 2 9.99841C2 12.1703 2.00952 12.4433 2.04762 13.2975C2.08571 14.1484 2.22222 14.7295 2.41905 15.2407C2.62222 15.7678 2.89841 16.2123 3.34286 16.6569C3.7873 17.1014 4.23492 17.3745 4.75873 17.5809C5.26667 17.7777 5.84762 17.9143 6.70159 17.9524C7.55556 17.9905 7.8254 18 10 18C12.1746 18 12.4444 17.9905 13.2984 17.9524C14.1492 17.9143 14.7302 17.7777 15.2413 17.5809C15.7683 17.3777 16.2127 17.1014 16.6571 16.6569C17.1016 16.2123 17.3746 15.7646 17.581 15.2407C17.7778 14.7327 17.9143 14.1516 17.9524 13.2975C17.9905 12.4433 18 12.1734 18 9.99841C18 7.82338 17.9905 7.55348 17.9524 6.69935C17.9143 5.84838 17.7778 5.26732 17.581 4.7561C17.3778 4.22901 17.1016 3.78448 16.6571 3.33995C16.2127 2.89542 15.7651 2.62235 15.2413 2.41596C14.7333 2.21909 14.1524 2.08256 13.2984 2.04445C12.4413 2.00953 12.1683 2 9.99683 2ZM9.99661 5.89313C7.72994 5.89313 5.88867 7.73159 5.88867 10.0019C5.88867 12.2722 7.72677 14.1106 9.99661 14.1106C12.2665 14.1106 14.1045 12.2722 14.1045 10.0019C14.1045 7.73159 12.2665 5.89313 9.99661 5.89313ZM9.99661 12.6659C8.52359 12.6659 7.32994 11.472 7.32994 9.9987C7.32994 8.5254 8.52359 7.33151 9.99661 7.33151C11.4696 7.33151 12.6633 8.5254 12.6633 9.9987C12.6633 11.472 11.4696 12.6659 9.99661 12.6659ZM15.2258 5.72778C15.2258 6.25738 14.7966 6.6867 14.2671 6.6867C13.7376 6.6867 13.3083 6.25738 13.3083 5.72778C13.3083 5.19818 13.7376 4.76886 14.2671 4.76886C14.7966 4.76886 15.2258 5.19818 15.2258 5.72778Z"/>
+	</svg>
+
+			</a>
+		</li>
+
+		<li class="all-sections__social-item">
+			<a href="https://twitter.com/@Telegraph" class="all-sections__social-link" data-test="social-link-twitter" aria-label="Visit our Twitter page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="all-sections__social-icon">
+		<title>X icon</title>
+		<path d="M11.4894 8.77491L17.3177 2H15.9366L10.8759 7.88256L6.83392 2H2.172L8.28424 10.8955L2.172 18H3.55319L8.89742 11.7878L13.166 18H17.828L11.4891 8.77491H11.4894ZM9.59768 10.9738L8.97839 10.0881L4.05086 3.03974H6.17229L10.1489 8.72795L10.7682 9.61374L15.9372 17.0075H13.8158L9.59768 10.9742V10.9738Z"/>
+	</svg>
+
+			</a>
+		</li>
+
+		<li class="all-sections__social-item">
+			<a href="https://www.snapchat.com/discover/The_Telegraph/8148798159" class="all-sections__social-link" data-test="social-link-snapchat" aria-label="Visit our Snapchat page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="all-sections__social-icon">
+		<title>Snapchat icon</title>
+		<path d="M17.9422 13.7043C17.8318 13.3971 17.6194 13.2311 17.3783 13.0983C17.3334 13.0734 17.2925 13.0485 17.2558 13.0319C17.1822 12.9946 17.1087 12.9572 17.0351 12.9198C16.2834 12.5131 15.695 12.0067 15.2905 11.4008C15.1761 11.2306 15.074 11.048 14.9923 10.8612C14.9555 10.7616 14.9596 10.7035 14.9841 10.6495C15.0086 10.608 15.0413 10.5748 15.0821 10.5458C15.2129 10.4586 15.3436 10.3715 15.4335 10.3134C15.5929 10.2054 15.7236 10.1224 15.8053 10.0643C16.1118 9.84436 16.3283 9.61193 16.4631 9.35045C16.6552 8.98521 16.6797 8.55772 16.5326 8.17172C16.3283 7.62386 15.8217 7.28768 15.2047 7.28768C15.074 7.28768 14.9473 7.30013 14.8166 7.32918C14.7839 7.33748 14.7471 7.34578 14.7144 7.35409C14.7185 6.98054 14.7103 6.58625 14.6777 6.19611C14.5633 4.83061 14.0893 4.11673 13.599 3.54812C13.2844 3.19118 12.9167 2.8882 12.5041 2.65162C11.7605 2.21997 10.9147 2 9.99542 2C9.07613 2 8.23447 2.21997 7.49087 2.65162C7.07821 2.8882 6.7105 3.19118 6.39589 3.54812C5.90561 4.11673 5.43575 4.83476 5.31726 6.19611C5.28458 6.58625 5.27641 6.98054 5.28049 7.35409C5.24781 7.34578 5.21512 7.33748 5.17835 7.32918C5.05169 7.30013 4.92095 7.28768 4.79429 7.28768C4.17735 7.28768 3.67072 7.62802 3.46643 8.17172C3.31934 8.55772 3.34386 8.98521 3.53589 9.35045C3.67072 9.61193 3.88726 9.84436 4.19369 10.0643C4.2754 10.1224 4.40206 10.2054 4.56549 10.3134C4.65129 10.3715 4.77795 10.4545 4.90461 10.5375C4.94955 10.5665 4.98632 10.6039 5.01492 10.6495C5.03943 10.7035 5.04352 10.7616 5.00266 10.8695C4.92095 11.0521 4.82289 11.2306 4.70849 11.3966C4.31218 11.986 3.74017 12.4882 3.01291 12.8908C2.62886 13.0983 2.22846 13.2353 2.05685 13.7043C1.9302 14.0571 2.01191 14.4555 2.33468 14.7959C2.45317 14.9204 2.59208 15.0283 2.74326 15.1113C3.05786 15.2856 3.39289 15.4226 3.74426 15.518C3.8178 15.5388 3.88317 15.5678 3.94446 15.6093C4.06295 15.7131 4.0466 15.8708 4.20186 16.1032C4.27949 16.2236 4.38163 16.3274 4.49603 16.4104C4.82698 16.6428 5.19878 16.6553 5.59101 16.6719C5.94647 16.6843 6.34687 16.7009 6.80855 16.8545C7.00058 16.9167 7.1967 17.0412 7.4255 17.1865C7.97707 17.531 8.72884 18 9.99133 18C11.2538 18 12.0097 17.5268 12.5653 17.1824C12.7941 17.0412 12.9903 16.9167 13.1741 16.8545C13.6317 16.7009 14.0362 16.6843 14.3917 16.6719C14.7839 16.6553 15.1557 16.6428 15.4866 16.4104C15.6255 16.3108 15.7399 16.1863 15.8217 16.0368C15.9361 15.8418 15.932 15.7048 16.0382 15.6093C16.0954 15.5678 16.1608 15.5388 16.2262 15.5222C16.5775 15.4267 16.9207 15.2898 17.2394 15.1113C17.3988 15.0241 17.5458 14.9079 17.6684 14.7709L17.6725 14.7668C17.9912 14.4348 18.0688 14.0446 17.9422 13.7043ZM16.8227 14.3144C16.1404 14.6962 15.6827 14.6547 15.3314 14.8872C15.029 15.0822 15.2088 15.5056 14.9923 15.6591C14.7226 15.8459 13.93 15.6467 12.9085 15.9912C12.0628 16.2734 11.5276 17.0911 10.0077 17.0911C8.48779 17.0911 7.96481 16.2776 7.10681 15.9912C6.08538 15.6467 5.29275 15.8501 5.02309 15.6591C4.80655 15.5056 4.98223 15.0822 4.68398 14.8872C4.32852 14.6547 3.875 14.6962 3.19269 14.3144C2.75551 14.0695 3.00474 13.9201 3.14774 13.8495C5.62369 12.6335 6.02001 10.7533 6.03635 10.6122C6.05678 10.442 6.08129 10.3092 5.89744 10.139C5.72175 9.97302 4.93729 9.47912 4.71666 9.32555C4.35712 9.06822 4.19777 8.81505 4.31626 8.49961C4.39798 8.28379 4.59818 8.20078 4.80655 8.20078C4.87192 8.20078 4.93729 8.20908 5.00266 8.22153C5.39898 8.30869 5.78304 8.50791 6.00367 8.56602C6.03227 8.57432 6.05678 8.57847 6.08538 8.57847C6.20387 8.57847 6.24472 8.51621 6.23655 8.37925C6.21204 7.9393 6.15075 7.08431 6.22021 6.28327C6.31418 5.1834 6.66147 4.63554 7.07821 4.15409C7.27841 3.92166 8.21404 2.91725 10.0077 2.91725C11.8013 2.91725 12.7369 3.91751 12.9371 4.14994C13.3539 4.63139 13.7012 5.17925 13.7951 6.27912C13.8646 7.08016 13.8033 7.93515 13.7747 8.3751C13.7665 8.52036 13.8074 8.57432 13.9259 8.57432C13.9545 8.57432 13.979 8.57017 14.0076 8.56187C14.2282 8.50791 14.6123 8.30454 15.0086 8.21738C15.074 8.20078 15.1393 8.19663 15.2047 8.19663C15.4131 8.19663 15.6133 8.27964 15.695 8.49546C15.8135 8.81089 15.6541 9.06407 15.2946 9.3214C15.0781 9.47497 14.2936 9.96887 14.1138 10.1349C13.93 10.3051 13.9545 10.4379 13.9749 10.608C13.9913 10.7492 14.3876 12.6293 16.8635 13.8454C17.0106 13.916 17.2558 14.0695 16.8227 14.3144Z"/>
+	</svg>
+
+			</a>
+		</li>
+
+		<li class="all-sections__social-item">
+			<a href="https://www.linkedin.com/company/9053/" class="all-sections__social-link" data-test="social-link-linkedin" aria-label="Visit our LinkedIn page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="all-sections__social-icon">
+		<title>LinkedIn icon</title>
+		<path d="M5.51774 18H2.22695V7.33333H5.51774V18ZM3.92907 5.85816C2.9078 5.85816 2 4.95035 2 3.92908C2 2.9078 2.9078 2 3.92907 2C4.95035 2 5.85815 2.9078 5.85815 3.92908C5.85815 4.95035 4.95035 5.85816 3.92907 5.85816ZM18 18H14.7092V12.7801C14.7092 11.5319 14.7092 9.94326 13.0071 9.94326C11.305 9.94326 10.9645 11.305 10.9645 12.6667V17.8865H7.67376V7.21986H10.8511V8.69504C11.5319 7.56028 12.6667 6.87943 14.0284 6.99291C17.4326 6.99291 18 9.14894 18 12.0993V18Z"/>
+	</svg>
+
+			</a>
+		</li>
+
+		<li class="all-sections__social-item">
+			<a href="https://www.youtube.com/channel/UCPgLNge0xqQHWM5B5EFH9Cg" class="all-sections__social-link" data-test="social-link-youtube" aria-label="Visit our YouTube page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="all-sections__social-icon">
+		<title>YouTube icon</title>
+		<path d="M17.6636 6.07372C17.4818 5.37326 16.9364 4.82027 16.2455 4.62672C15 4.28571 10 4.28571 10 4.28571C10 4.28571 5 4.28571 3.74545 4.62672C3.05455 4.81105 2.51818 5.36405 2.32727 6.07372C2 7.34561 2 9.99999 2 9.99999C2 9.99999 2 12.6544 2.33636 13.9263C2.51818 14.6267 3.06364 15.1797 3.75455 15.3733C5 15.7143 10 15.7143 10 15.7143C10 15.7143 15 15.7143 16.2545 15.3733C16.9455 15.1889 17.4818 14.6359 17.6727 13.9263C18 12.6544 18 9.99999 18 9.99999C18 9.99999 18 7.34561 17.6636 6.07372Z"/>
+		<path class="youtube-arrow" d="M8.36353 12.4141L12.5454 9.99937L8.36353 7.58463V12.4141Z"/>
+	</svg>
+
+			</a>
+		</li>
+	</ul>
+
+					</div>
+				
+
+			</div>
+		</aside>
+
+		<aside class="all-sections__more-container grid-col grid-col-12 grid-col-md-5 grid-col-lg-4">
+			<span class="all-sections__heading all-sections__more-heading u-heading-3" data-test="all-sections-more-heading">More from The Telegraph</span>
+			
+				<nav aria-label="More from the Telegraph navigation" role="navigation">
+					<ul class="all-sections__more-list" data-test="all-sections-more-list">
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.telegraph.co.uk/customer/subsdigitaleditionapp/" data-test="all-sections-more-link">
+								Download our app
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.telegraph.co.uk/newsletters" data-test="all-sections-more-link">
+								Newsletters
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="/recommended/" data-test="all-sections-more-link">
+								Recommended
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.telegraph.co.uk/financial-services/" data-test="all-sections-more-link">
+								Financial Solutions
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.telegraph.co.uk/events/" data-test="all-sections-more-link">
+								Events
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://dating.telegraph.co.uk/s/a/20500?utm_source=hamburger&utm_medium=TMGmain" data-test="all-sections-more-link">
+								Dating
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.telegraph.co.uk/promotions/" data-test="all-sections-more-link">
+								Offers
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.telegraph.co.uk/travel/travel-solutions/" data-test="all-sections-more-link">
+								Travel offers
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://shop.telegraph.co.uk/" data-test="all-sections-more-link">
+								Shop
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://gardenshop.telegraph.co.uk/" data-test="all-sections-more-link">
+								Garden shop
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://books.telegraph.co.uk/" data-test="all-sections-more-link">
+								Bookshop
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://tickets.telegraph.co.uk/?utm_source=TMG+main&utm_medium=hamburger+menu&utm_campaign=evergreen" data-test="all-sections-more-link">
+								Tickets
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.telegraph.co.uk/puzzles/" data-test="all-sections-more-link">
+								Puzzles
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://fantasyfootball.telegraph.co.uk/" data-test="all-sections-more-link">
+								Fantasy Football
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.telegraph.co.uk/about-us/work-at-the-telegraph/" data-test="all-sections-more-link">
+								Work at The Telegraph
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://corporate.telegraph.co.uk/" data-test="all-sections-more-link">
+								Telegraph Corporate
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="/contact-us/" data-test="all-sections-more-link">
+								Help and support
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.chelseamagazines.com/brands/" data-test="all-sections-more-link">
+								The Chelsea Magazine Company
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.telegraph.co.uk/compare" data-test="all-sections-more-link">
+								Broadband and Mobile Deals
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes" data-test="all-sections-more-link">
+								Voucher codes
+							</a>
+
+							
+							
+							
+
+							
+								<section class="all-sections__more-secondary-item accordion accordion--is-collapsed" data-test="all-sections-more-secondary-item" data-accordion-max-screen-width="0" id="voucher-codes" data-accordion-modal>
+									<button class="all-sections__more-secondary-cta" aria-controls="voucher-codes-content" aria-label="Show See top shops sub-navigation" data-test="all-sections-more-secondary-cta" aria-expanded="false" toggle-aria-label data-accordion-trigger>
+										<span>See top shops</span>
+										
+	<svg class="all-sections__more-secondary-item-icon accordion__arrow-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+									</button>
+
+									<ul class="all-sections__more-secondary-list accordion__content" data-test="all-sections-more-secondary-list" data-accordion-content id="voucher-codes-content">
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes/samsung" data-test="all-sections-more-secondary-link" data-track-txt>
+												Samsung
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes/nike-com" data-test="all-sections-more-secondary-link" data-track-txt>
+												Nike
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes/asos" data-test="all-sections-more-secondary-link" data-track-txt>
+												ASOS
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes/ebay" data-test="all-sections-more-secondary-link" data-track-txt>
+												eBay
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes/currys" data-test="all-sections-more-secondary-link" data-track-txt>
+												Currys
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes/wayfair" data-test="all-sections-more-secondary-link" data-track-txt>
+												Wayfair
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes/tui" data-test="all-sections-more-secondary-link" data-track-txt>
+												TUI
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes/jd-sports" data-test="all-sections-more-secondary-link" data-track-txt>
+												JD Sports
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes/travelodge" data-test="all-sections-more-secondary-link" data-track-txt>
+												Travelodge
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/vouchercodes/adidas" data-test="all-sections-more-secondary-link" data-track-txt>
+												Adidas
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/compare/broadband" data-test="all-sections-more-secondary-link" data-track-txt>
+												Broadband deals
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/compare/broadband/cheap-broadband" data-test="all-sections-more-secondary-link" data-track-txt>
+												Cheap broadband
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/compare/broadband/in-my-area" data-test="all-sections-more-secondary-link" data-track-txt>
+												Broadband in my area
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/compare/broadband/broadband-tv-deals" data-test="all-sections-more-secondary-link" data-track-txt>
+												Broadband and TV deals
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/compare/mobile" data-test="all-sections-more-secondary-link" data-track-txt>
+												Mobile deals
+											</a>
+										</li>
+									
+
+										<li class="all-sections__more-item">
+											<a class="all-sections__more-link" href="https://www.telegraph.co.uk/compare/mobile/sim-only-deals" data-test="all-sections-more-secondary-link" data-track-txt>
+												SIM-only deals
+											</a>
+										</li>
+									</ul>
+								</section>
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" data-test="all-sections-more-link">
+								
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					
+						<li class="all-sections__more-item" data-test="all-sections-more-item">
+							<a class="all-sections__more-link" data-test="all-sections-more-link">
+								
+							</a>
+
+							
+							
+							
+
+							
+						</li>
+					</ul>
+				</nav>
+			
+		</aside>
+
+	</div>
+
+
+</div>
+
+			</div>
+		</div>
+	
+
+	<script>
+		(function () {
+			document.querySelectorAll('.site-header__buttons .e-site-header-button__link').forEach(link => {
+				link.addEventListener('click', (e) => {
+					eVar94 = "header-search-icon-desktop";
+					eVar95 = link.textContent.trim();
+					eVar96 = "img";
+					eVar97 = document.title;
+					tmgComponentString = eVar94+";"+eVar95+"_"+eVar96+";"+eVar97;
+					localStorage.setItem("tmgComponentTracking", tmgComponentString);
+				});
+			});
+		})();
+	</script>
+
+
+	
+
+
+
+
+</div>
+
+
+
+
+<main class="container" itemscope itemtype="https://schema.org/WebPage">
+	
+	<article class="grid error-message">
+		
+		
+		<div class="error-message__text grid-col grid-col-12">
+	<header>
+		<h1 class="error-message__heading" data-test="error-heading">404 – Sorry, page not found</h1>
+	</header>
+
+	<h2 class="error-message__sub-heading" data-test="error-sub-heading">Perhaps this page has been moved or the URL has been mistyped</h2>
+
+	<p class="error-message__description" data-test="error-description">Use the link below to return to the homepage or visit our help centre to let us know about this issue. Alternatively find something different to read from the list below.</p>
+
+	<div class="error-message__buttons" data-track-wrapper="error_page">
+		<a href="/" class="e-button e-button--large e-button--centered-text" data-test="error-homepage-link" data-track-txt>Go to homepage</a>
+		<span class="error-message__divider">or</span>
+		<a href="/contact-us/" class="error-message__contact" data-test="error-contact-link" data-track-txt>Visit our help centre</a>
+	</div>
+</div>
+
+
+		
+		
+
+<div class="error-message__image-wrapper grid-col grid-col-6">
+
+	
+
+	
+	
+	
+	
+	
+
+	
+
+	
+
+	
+
+   
+   
+
+    <picture class="picture--block error-message__image  ">
+		  
+        
+        
+          <source srcset="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/error-message.png?imwidth=480&amp;imdensity=2" media="( min-width: 1024px ) and ( -webkit-min-device-pixel-ratio: 2 )"/>
+          
+		  
+        
+        
+          <source srcset="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/error-message.png?imwidth=480" media="( min-width: 1024px )"/>
+          
+		  
+        
+        
+          <source srcset="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/error-message.png?imwidth=320&amp;imdensity=2" media="( min-width: 768px ) and ( -webkit-min-device-pixel-ratio: 2 )"/>
+          
+		  
+        
+        
+          <source srcset="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/error-message.png?imwidth=320" media="( min-width: 768px )"/>
+          
+		  
+        
+        
+          <source srcset="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/error-message.png?imwidth=160&amp;imdensity=2" media="( min-width: 350px ) and ( -webkit-min-device-pixel-ratio: 2 )"/>
+          
+		  
+		<img src="/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/error-message.png?imwidth=480" alt="Sorry, page not found" data-test="error-image" width="1335px" height="1014px" onerror="this.src='/etc.clientlibs/settings/wcm/designs/telegraph/core/clientlibs/ui/dist/static/resources/images/liftIgniter-moreStories-placeholder.svg';this.onerror='';"/>
+	</picture>
+
+
+</div>
+
+
+	</article>
+
+</main>
+
+
+<aside class="container u-separator-four-lines">
+	<div class="grid">
+		<div class="grid-col grid-col-12">
+			<div data-test="more-stories" class="more-stories more-stories--no-border section">
+				
+				<div class="article-list__heading">
+					<div class="article-list__heading-link-wrapper u-separator-bottom--loose">
+						<h2 class="article-list__heading-title u-heading-2">More from The Telegraph</h2>
+					</div>
+				</div>
+				
+				<div class="article-list more-stories__list grid more-stories__list--column error-message__more-stories" data-liftigniter="{
+						'widget': 'liftigniter-onward-journey',
+						'maxStories': 6,
+						'layout': 'column',
+						'trackingName': 'More from The Telegraph'
+					}">
+				</div>
+
+			</div>
+		</div>
+	</div>
+</aside>
+
+
+
+
+
+	
+		
+
+	 
+
+
+<footer class="site-footer" data-test="site-footer">
+	<div class="site-footer__container site-footer__container--top">
+		<div class="site-footer__masthead" data-track-wrapper="bottom_logo">
+			<div class="site-footer__logo-wrapper">
+				<a href="/" class="site-footer__logo-link" data-track-img data-test="site-footer-logo-link">
+					<svg class="site-footer__logo" viewBox="0 0 320 52" xmlns="http://www.w3.org/2000/svg" data-test="site-footer-logo">
+						<title id="site-footer-logo-title">The Telegraph</title>
+						<use xlink:href="#site-logo"/>
+					</svg>
+					
+				</a>
+			</div>
+			<div class="site-footer__back-to-top">
+				<a href="#navigation" class="site-footer__back-to-top-link" data-back-to-top-event data-test="site-footer-back-to-top">
+					<span class="site-footer__back-to-top-text">Back to top</span>
+					
+	<svg class="site-footer__back-to-top-icon  tmg-svg-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 5">
+		<path d="M.312 0L5 2.353 9.687 0 10 .294 5 5 0 .294.312 0z"/>
+	</svg>
+
+				</a>
+			</div>
+			<div class="site-footer__social" data-test="site-footer-social">
+				
+
+	
+
+	<span class="site-footer__social-description">Follow us on:</span>
+	<ul class="site-footer__social-links" data-test="social-links">
+		<li class="site-footer__social-item">
+			<a href="https://www.facebook.com/TELEGRAPH.CO.UK/" class="site-footer__social-link" data-test="social-link-facebook" aria-label="Visit our Facebook page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="site-footer__social-icon">
+		<title>Facebook icon</title>
+		<path d="M11.1973 18V10.7122H13.5654L13.9202 7.85967H11.1973V6.04325C11.1973 5.21877 11.4173 4.65746 12.5561 4.65746H14V2.11226C13.7481 2.07729 12.8878 2 11.8856 2C9.79246 2 8.3592 3.32505 8.3592 5.75983V7.85967H6V10.7122H8.3592V18H11.1973Z"/>
+	</svg>
+
+			</a>
+		</li>
+
+		<li class="site-footer__social-item">
+			<a href="https://www.instagram.com/telegraph/" class="site-footer__social-link" data-test="social-link-instagram" aria-label="Visit our Instagram page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="site-footer__social-icon">
+		<title>Instagram icon</title>
+		<path fill-rule="evenodd" clip-rule="evenodd" d="M9.99683 3.44156C12.1333 3.44156 12.3841 3.45108 13.2286 3.48918C14.0095 3.52411 14.4317 3.6543 14.7143 3.76543C15.0889 3.91149 15.3556 4.08295 15.6349 4.36237C15.9143 4.64179 16.0889 4.90851 16.2317 5.28319C16.3397 5.56579 16.473 5.98809 16.5079 6.7692C16.546 7.61381 16.5556 7.86466 16.5556 10.0016C16.5556 12.1385 16.546 12.3894 16.5079 13.234C16.473 14.0151 16.3429 14.4374 16.2317 14.72C16.0857 15.0947 15.9143 15.3614 15.6349 15.6408C15.3556 15.9202 15.0889 16.0949 14.7143 16.2377C14.4317 16.3457 14.0095 16.4791 13.2286 16.514C12.3841 16.5521 12.1333 16.5616 9.99683 16.5616C7.86032 16.5616 7.60952 16.5521 6.76508 16.514C5.98413 16.4791 5.56191 16.3489 5.27937 16.2377C4.90476 16.0917 4.6381 15.9202 4.35873 15.6408C4.07937 15.3614 3.90476 15.0947 3.7619 14.72C3.65397 14.4374 3.52064 14.0151 3.48571 13.234C3.44762 12.3894 3.4381 12.1385 3.4381 10.0016C3.4381 7.86466 3.44762 7.61381 3.48571 6.7692C3.52064 5.98809 3.65079 5.56579 3.7619 5.28319C3.90794 4.90851 4.07937 4.64179 4.35873 4.36237C4.6381 4.08295 4.90476 3.90832 5.27937 3.76543C5.56191 3.65747 5.98413 3.52411 6.76508 3.48918C7.60952 3.44791 7.86349 3.44156 9.99683 3.44156ZM9.99683 2C7.8254 2 7.55238 2.00953 6.69841 2.04763C5.84762 2.08573 5.26667 2.22227 4.75873 2.41913C4.23175 2.62235 3.7873 2.89859 3.34286 3.34312C2.89841 3.78766 2.6254 4.23536 2.41905 4.75928C2.22222 5.26732 2.08571 5.84838 2.04762 6.70252C2.00952 7.55348 2 7.82655 2 9.99841C2 12.1703 2.00952 12.4433 2.04762 13.2975C2.08571 14.1484 2.22222 14.7295 2.41905 15.2407C2.62222 15.7678 2.89841 16.2123 3.34286 16.6569C3.7873 17.1014 4.23492 17.3745 4.75873 17.5809C5.26667 17.7777 5.84762 17.9143 6.70159 17.9524C7.55556 17.9905 7.8254 18 10 18C12.1746 18 12.4444 17.9905 13.2984 17.9524C14.1492 17.9143 14.7302 17.7777 15.2413 17.5809C15.7683 17.3777 16.2127 17.1014 16.6571 16.6569C17.1016 16.2123 17.3746 15.7646 17.581 15.2407C17.7778 14.7327 17.9143 14.1516 17.9524 13.2975C17.9905 12.4433 18 12.1734 18 9.99841C18 7.82338 17.9905 7.55348 17.9524 6.69935C17.9143 5.84838 17.7778 5.26732 17.581 4.7561C17.3778 4.22901 17.1016 3.78448 16.6571 3.33995C16.2127 2.89542 15.7651 2.62235 15.2413 2.41596C14.7333 2.21909 14.1524 2.08256 13.2984 2.04445C12.4413 2.00953 12.1683 2 9.99683 2ZM9.99661 5.89313C7.72994 5.89313 5.88867 7.73159 5.88867 10.0019C5.88867 12.2722 7.72677 14.1106 9.99661 14.1106C12.2665 14.1106 14.1045 12.2722 14.1045 10.0019C14.1045 7.73159 12.2665 5.89313 9.99661 5.89313ZM9.99661 12.6659C8.52359 12.6659 7.32994 11.472 7.32994 9.9987C7.32994 8.5254 8.52359 7.33151 9.99661 7.33151C11.4696 7.33151 12.6633 8.5254 12.6633 9.9987C12.6633 11.472 11.4696 12.6659 9.99661 12.6659ZM15.2258 5.72778C15.2258 6.25738 14.7966 6.6867 14.2671 6.6867C13.7376 6.6867 13.3083 6.25738 13.3083 5.72778C13.3083 5.19818 13.7376 4.76886 14.2671 4.76886C14.7966 4.76886 15.2258 5.19818 15.2258 5.72778Z"/>
+	</svg>
+
+			</a>
+		</li>
+
+		<li class="site-footer__social-item">
+			<a href="https://twitter.com/@Telegraph" class="site-footer__social-link" data-test="social-link-twitter" aria-label="Visit our Twitter page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="site-footer__social-icon">
+		<title>X icon</title>
+		<path d="M11.4894 8.77491L17.3177 2H15.9366L10.8759 7.88256L6.83392 2H2.172L8.28424 10.8955L2.172 18H3.55319L8.89742 11.7878L13.166 18H17.828L11.4891 8.77491H11.4894ZM9.59768 10.9738L8.97839 10.0881L4.05086 3.03974H6.17229L10.1489 8.72795L10.7682 9.61374L15.9372 17.0075H13.8158L9.59768 10.9742V10.9738Z"/>
+	</svg>
+
+			</a>
+		</li>
+
+		<li class="site-footer__social-item">
+			<a href="https://www.snapchat.com/discover/The_Telegraph/8148798159" class="site-footer__social-link" data-test="social-link-snapchat" aria-label="Visit our Snapchat page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="site-footer__social-icon">
+		<title>Snapchat icon</title>
+		<path d="M17.9422 13.7043C17.8318 13.3971 17.6194 13.2311 17.3783 13.0983C17.3334 13.0734 17.2925 13.0485 17.2558 13.0319C17.1822 12.9946 17.1087 12.9572 17.0351 12.9198C16.2834 12.5131 15.695 12.0067 15.2905 11.4008C15.1761 11.2306 15.074 11.048 14.9923 10.8612C14.9555 10.7616 14.9596 10.7035 14.9841 10.6495C15.0086 10.608 15.0413 10.5748 15.0821 10.5458C15.2129 10.4586 15.3436 10.3715 15.4335 10.3134C15.5929 10.2054 15.7236 10.1224 15.8053 10.0643C16.1118 9.84436 16.3283 9.61193 16.4631 9.35045C16.6552 8.98521 16.6797 8.55772 16.5326 8.17172C16.3283 7.62386 15.8217 7.28768 15.2047 7.28768C15.074 7.28768 14.9473 7.30013 14.8166 7.32918C14.7839 7.33748 14.7471 7.34578 14.7144 7.35409C14.7185 6.98054 14.7103 6.58625 14.6777 6.19611C14.5633 4.83061 14.0893 4.11673 13.599 3.54812C13.2844 3.19118 12.9167 2.8882 12.5041 2.65162C11.7605 2.21997 10.9147 2 9.99542 2C9.07613 2 8.23447 2.21997 7.49087 2.65162C7.07821 2.8882 6.7105 3.19118 6.39589 3.54812C5.90561 4.11673 5.43575 4.83476 5.31726 6.19611C5.28458 6.58625 5.27641 6.98054 5.28049 7.35409C5.24781 7.34578 5.21512 7.33748 5.17835 7.32918C5.05169 7.30013 4.92095 7.28768 4.79429 7.28768C4.17735 7.28768 3.67072 7.62802 3.46643 8.17172C3.31934 8.55772 3.34386 8.98521 3.53589 9.35045C3.67072 9.61193 3.88726 9.84436 4.19369 10.0643C4.2754 10.1224 4.40206 10.2054 4.56549 10.3134C4.65129 10.3715 4.77795 10.4545 4.90461 10.5375C4.94955 10.5665 4.98632 10.6039 5.01492 10.6495C5.03943 10.7035 5.04352 10.7616 5.00266 10.8695C4.92095 11.0521 4.82289 11.2306 4.70849 11.3966C4.31218 11.986 3.74017 12.4882 3.01291 12.8908C2.62886 13.0983 2.22846 13.2353 2.05685 13.7043C1.9302 14.0571 2.01191 14.4555 2.33468 14.7959C2.45317 14.9204 2.59208 15.0283 2.74326 15.1113C3.05786 15.2856 3.39289 15.4226 3.74426 15.518C3.8178 15.5388 3.88317 15.5678 3.94446 15.6093C4.06295 15.7131 4.0466 15.8708 4.20186 16.1032C4.27949 16.2236 4.38163 16.3274 4.49603 16.4104C4.82698 16.6428 5.19878 16.6553 5.59101 16.6719C5.94647 16.6843 6.34687 16.7009 6.80855 16.8545C7.00058 16.9167 7.1967 17.0412 7.4255 17.1865C7.97707 17.531 8.72884 18 9.99133 18C11.2538 18 12.0097 17.5268 12.5653 17.1824C12.7941 17.0412 12.9903 16.9167 13.1741 16.8545C13.6317 16.7009 14.0362 16.6843 14.3917 16.6719C14.7839 16.6553 15.1557 16.6428 15.4866 16.4104C15.6255 16.3108 15.7399 16.1863 15.8217 16.0368C15.9361 15.8418 15.932 15.7048 16.0382 15.6093C16.0954 15.5678 16.1608 15.5388 16.2262 15.5222C16.5775 15.4267 16.9207 15.2898 17.2394 15.1113C17.3988 15.0241 17.5458 14.9079 17.6684 14.7709L17.6725 14.7668C17.9912 14.4348 18.0688 14.0446 17.9422 13.7043ZM16.8227 14.3144C16.1404 14.6962 15.6827 14.6547 15.3314 14.8872C15.029 15.0822 15.2088 15.5056 14.9923 15.6591C14.7226 15.8459 13.93 15.6467 12.9085 15.9912C12.0628 16.2734 11.5276 17.0911 10.0077 17.0911C8.48779 17.0911 7.96481 16.2776 7.10681 15.9912C6.08538 15.6467 5.29275 15.8501 5.02309 15.6591C4.80655 15.5056 4.98223 15.0822 4.68398 14.8872C4.32852 14.6547 3.875 14.6962 3.19269 14.3144C2.75551 14.0695 3.00474 13.9201 3.14774 13.8495C5.62369 12.6335 6.02001 10.7533 6.03635 10.6122C6.05678 10.442 6.08129 10.3092 5.89744 10.139C5.72175 9.97302 4.93729 9.47912 4.71666 9.32555C4.35712 9.06822 4.19777 8.81505 4.31626 8.49961C4.39798 8.28379 4.59818 8.20078 4.80655 8.20078C4.87192 8.20078 4.93729 8.20908 5.00266 8.22153C5.39898 8.30869 5.78304 8.50791 6.00367 8.56602C6.03227 8.57432 6.05678 8.57847 6.08538 8.57847C6.20387 8.57847 6.24472 8.51621 6.23655 8.37925C6.21204 7.9393 6.15075 7.08431 6.22021 6.28327C6.31418 5.1834 6.66147 4.63554 7.07821 4.15409C7.27841 3.92166 8.21404 2.91725 10.0077 2.91725C11.8013 2.91725 12.7369 3.91751 12.9371 4.14994C13.3539 4.63139 13.7012 5.17925 13.7951 6.27912C13.8646 7.08016 13.8033 7.93515 13.7747 8.3751C13.7665 8.52036 13.8074 8.57432 13.9259 8.57432C13.9545 8.57432 13.979 8.57017 14.0076 8.56187C14.2282 8.50791 14.6123 8.30454 15.0086 8.21738C15.074 8.20078 15.1393 8.19663 15.2047 8.19663C15.4131 8.19663 15.6133 8.27964 15.695 8.49546C15.8135 8.81089 15.6541 9.06407 15.2946 9.3214C15.0781 9.47497 14.2936 9.96887 14.1138 10.1349C13.93 10.3051 13.9545 10.4379 13.9749 10.608C13.9913 10.7492 14.3876 12.6293 16.8635 13.8454C17.0106 13.916 17.2558 14.0695 16.8227 14.3144Z"/>
+	</svg>
+
+			</a>
+		</li>
+
+		<li class="site-footer__social-item">
+			<a href="https://www.linkedin.com/company/9053/" class="site-footer__social-link" data-test="social-link-linkedin" aria-label="Visit our LinkedIn page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="site-footer__social-icon">
+		<title>LinkedIn icon</title>
+		<path d="M5.51774 18H2.22695V7.33333H5.51774V18ZM3.92907 5.85816C2.9078 5.85816 2 4.95035 2 3.92908C2 2.9078 2.9078 2 3.92907 2C4.95035 2 5.85815 2.9078 5.85815 3.92908C5.85815 4.95035 4.95035 5.85816 3.92907 5.85816ZM18 18H14.7092V12.7801C14.7092 11.5319 14.7092 9.94326 13.0071 9.94326C11.305 9.94326 10.9645 11.305 10.9645 12.6667V17.8865H7.67376V7.21986H10.8511V8.69504C11.5319 7.56028 12.6667 6.87943 14.0284 6.99291C17.4326 6.99291 18 9.14894 18 12.0993V18Z"/>
+	</svg>
+
+			</a>
+		</li>
+
+		<li class="site-footer__social-item">
+			<a href="https://www.youtube.com/channel/UCPgLNge0xqQHWM5B5EFH9Cg" class="site-footer__social-link" data-test="social-link-youtube" aria-label="Visit our YouTube page" target="_blank" rel="noopener noreferrer">
+				
+	<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" class="site-footer__social-icon">
+		<title>YouTube icon</title>
+		<path d="M17.6636 6.07372C17.4818 5.37326 16.9364 4.82027 16.2455 4.62672C15 4.28571 10 4.28571 10 4.28571C10 4.28571 5 4.28571 3.74545 4.62672C3.05455 4.81105 2.51818 5.36405 2.32727 6.07372C2 7.34561 2 9.99999 2 9.99999C2 9.99999 2 12.6544 2.33636 13.9263C2.51818 14.6267 3.06364 15.1797 3.75455 15.3733C5 15.7143 10 15.7143 10 15.7143C10 15.7143 15 15.7143 16.2545 15.3733C16.9455 15.1889 17.4818 14.6359 17.6727 13.9263C18 12.6544 18 9.99999 18 9.99999C18 9.99999 18 7.34561 17.6636 6.07372Z"/>
+		<path class="youtube-arrow" d="M8.36353 12.4141L12.5454 9.99937L8.36353 7.58463V12.4141Z"/>
+	</svg>
+
+			</a>
+		</li>
+	</ul>
+
+			</div>
+		</div>
+	</div>
+	<div class="site-footer__primary-content">
+		<div class="site-footer__container">
+			<nav class="site-footer__navigation">
+				<ul class="site-footer__navigation-list grid" data-track-wrapper="footer_nav" data-test="site-footer-navigation">
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/contact-us/download-app/" data-track-txt>Download the Telegraph App</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/contact-us/" data-track-txt>Help Centre</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="https://telegraphmediagroup.com/about-us/" data-track-txt>About us</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="https://telegraph.newsprints.co.uk/" data-track-txt>Reader Prints</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/branded-content/" data-track-txt>Branded Content</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/syndication/" data-track-txt>Syndication and Commissioning</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="https://fantasyfootball.telegraph.co.uk/" data-track-txt>Fantasy Sport</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="https://www.telegraph.co.uk/vouchercodes" data-track-txt>UK Voucher Codes</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="https://www.telegraph.co.uk/betting/sport/free-bets/" data-track-txt>Betting Offers</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/about-us/press-acquisitions-limited-tax-strategy-financial-year-2024/" data-track-txt>Tax Strategy</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="https://www.telegraph.co.uk/compare" data-track-txt>Broadband and Mobile Deals</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="https://telegraph.co.uk/newsletters" data-track-txt>Newsletters</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/about-us/privacy-and-cookie-policy/" data-track-txt>Privacy</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/about-us/terms-and-conditions/" data-track-txt>Terms &amp; Conditions</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/contact-us/subscription-terms-conditions/" data-track-txt>Subscription Terms &amp; Conditions</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/about-us/modern-slavery-statement/" data-track-txt>Modern Slavery</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/about-us/advertising-terms-and-conditions/" data-track-txt>Advertising terms</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="/about-us/editorial-and-commercial-guidelines/" data-track-txt>Guidelines</a>
+					</li>
+				
+
+					<li class="site-footer__navigation-item grid-col grid-col-6 grid-col-sm-4 grid-col-lg-3">
+						<a class="site-footer__navigation-link" href="https://www.chelseamagazines.com/" data-track-txt>The Chelsea Magazine Company</a>
+					</li>
+				</ul>
+				<div class="site-footer__navigation-text" data-test="site-footer-copyright">&copy; Telegraph Media Group Holdings Limited 2025</div>
+			</nav>
+		</div>
+	</div>
+</footer>
+
+
+	
+
+	
+
+
+
+
+
+
+<script type="text/javascript">
+	window.addEventListener( 'DOMContentLoaded', function() {
+		_satellite.pageBottom();
+	});
+</script>
+
+
+
+
+
+	
+	<!--esi
+		<esi:choose>
+			<esi:when test="$(isAdLite)=='1'">
+				<esi:assign name="adLiteAdvert" value="'advert--lite'"/>
+				<esi:assign name="dataAdSlotHidden" value="'true'"/>
+			</esi:when>
+			<esi:otherwise>
+				<esi:assign name="dataAdSlotHidden" value="'false'"/>
+			</esi:otherwise>
+		</esi:choose>
+	-->
+
+	
+
+
+
+	
+	<!--esi
+		<esi:choose>
+			<esi:when test="$(isAdLite)=='1'">
+				<esi:assign name="adLiteAdvert" value="'advert--lite'"/>
+				<esi:assign name="dataAdSlotHidden" value="'true'"/>
+			</esi:when>
+			<esi:otherwise>
+				<esi:assign name="dataAdSlotHidden" value="'false'"/>
+			</esi:otherwise>
+		</esi:choose>
+	-->
+
+	
+
+
+
+
+</body>
+
+</html>
