@@ -1,21 +1,21 @@
 "use client"
 
-import { PagesLayout } from "@/components/layout/PagesLayout"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
-import { Info } from "lucide-react"
-import Link from "next/link"
-import { type TipoVaga } from "@/types"
-import { api } from "@/utils/api"
-import { useDialogState } from "@/hooks/useDialogState"
-import { useScholarshipAllocation } from "@/hooks/features/useScholarshipAllocation"
-import { FilterForm } from "@/components/features/admin/scholarship/FilterForm"
-import { ProgradManagementCard } from "@/components/features/admin/scholarship/ProgradManagementCard"
 import { AllocationStats } from "@/components/features/admin/scholarship/AllocationStats"
 import { AllocationTable } from "@/components/features/admin/scholarship/AllocationTable"
-import { ProgradDialog } from "@/components/features/admin/scholarship/ProgradDialog"
 import { CandidateSelectionDialog } from "@/components/features/admin/scholarship/CandidateSelectionDialog"
+import { FilterForm } from "@/components/features/admin/scholarship/FilterForm"
+import { ProgradDialog } from "@/components/features/admin/scholarship/ProgradDialog"
+import { ProgradManagementCard } from "@/components/features/admin/scholarship/ProgradManagementCard"
+import { PagesLayout } from "@/components/layout/PagesLayout"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useScholarshipAllocation } from "@/hooks/features/useScholarshipAllocation"
+import { useDialogState } from "@/hooks/useDialogState"
+import { type TipoVaga } from "@/types"
+import { api } from "@/utils/api"
+import { Info } from "lucide-react"
+import Link from "next/link"
 
 export default function ScholarshipAllocationPage() {
   const {
@@ -131,7 +131,11 @@ export default function ScholarshipAllocationPage() {
           isOpen={progradDialog.isOpen}
           onClose={progradDialog.close}
           filters={filters}
-          onSave={(data) => setProgradTotalMutation.mutate(data)}
+          onSave={(data) =>
+            setProgradTotalMutation.mutate(data, {
+              onSuccess: () => progradDialog.close(),
+            })
+          }
           isSaving={setProgradTotalMutation.isPending}
         />
 
