@@ -83,7 +83,7 @@ export const createAuthRepository = (database: Database) => {
       await database.insert(alunoTable).values({
         userId: data.userId,
         nomeCompleto: data.nomeCompleto,
-      } as typeof alunoTable.$inferInsert)
+      })
     },
 
     async updateVerificationToken(userId: number, token: string, expiresAt: Date) {
