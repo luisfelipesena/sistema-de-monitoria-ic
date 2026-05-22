@@ -11,7 +11,7 @@ import {
   verifyEmailSchema,
 } from '@/types'
 import { TRPCError } from '@trpc/server'
-import { BusinessError, ValidationError} from '@/server/lib/errors'
+import { BusinessError, ValidationError } from '@/server/lib/errors'
 
 const handleBusinessError = (error: unknown): never => {
   if (error instanceof ValidationError) {
