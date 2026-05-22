@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { use, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -12,13 +12,10 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/hooks/use-auth"
 import { LoginUserInput, loginUserSchema } from "@/types"
 import { toast } from "sonner"
-import { useSearchParams } from "next/navigation"
-import { clear } from "console"
 
 export default function LoginPage() {
   const { signInLocal, errors, clearErrors } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
-  const searchParams = useSearchParams()  
 
   const form = useForm<LoginUserInput>({
     resolver: zodResolver(loginUserSchema),
