@@ -100,6 +100,28 @@ describe('editalRouter', () => {
       }
       await expect(caller.createEdital(input)).rejects.toThrowError('Este número de edital já está em uso.')
     })
+
+    it('should reject selection dates that start before the registration period ends', async () => {
+      const mockContext = createMockContext(mockAdminUser)
+      const caller = editalRouter.createCaller(mockContext)
+
+      vi.spyOn(mockContext.db.query.editalTable, 'findFirst').mockResolvedValue(undefined)
+
+      const input = {
+        numeroEdital: '001/2024',
+        titulo: 'Edital Teste',
+        ano: 2024,
+        semestre: 'SEMESTRE_1' as const,
+        dataInicioInscricao: new Date('2024-01-01'),
+        dataFimInscricao: new Date('2024-01-31'),
+        dataInicioSelecao: new Date('2024-01-20'),
+        dataFimSelecao: new Date('2024-01-25'),
+      }
+
+      await expect(caller.createEdital(input)).rejects.toThrowError(
+        'A data de início da seleção deve ser posterior ao fim da inscrição'
+      )
+    })
   })
 
   describe('publishEdital', () => {
@@ -177,6 +199,123 @@ describe('editalRouter', () => {
 
       const result = await caller.publishEdital({ id: 1 })
       expect(result.publicado).toBe(true)
+    })
+  })
+
+  describe('updateEdital', () => {
+    it('should reject selection start dates before the registration period ends', async () => {
+      const mockContext = createMockContext(mockAdminUser)
+      const caller = editalRouter.createCaller(mockContext)
+
+      vi.spyOn(mockContext.db.query.editalTable, 'findFirst').mockResolvedValue({
+        id: 1,
+        titulo: 'Edital Teste',
+        descricaoHtml: '<p>Descrição do edital</p>',
+        fileIdAssinado: 'signed-file-id',
+        fileIdPdfExterno: null,
+        tipo: 'DCC' as const,
+        publicado: false,
+        numeroEdital: '001/2024',
+        valorBolsa: '400.00',
+        criadoPorUserId: 1,
+        createdAt: new Date(),
+        updatedAt: null,
+        dataPublicacao: null,
+        periodoInscricaoId: 1,
+        dataInicioSelecao: null,
+        dataFimSelecao: null,
+        datasProvasDisponiveis: null,
+        dataDivulgacaoResultado: null,
+        linkFormularioInscricao: null,
+        chefeAssinouEm: null,
+        chefeAssinatura: null,
+        chefeDepartamentoId: null,
+        periodoInscricao: {
+          id: 1,
+          createdAt: new Date(),
+          updatedAt: null,
+          ano: 2024,
+          semestre: 'SEMESTRE_1' as const,
+          dataInicio: new Date('2024-01-01'),
+          dataFim: new Date('2024-01-31'),
+          totalBolsasPrograd: null,
+          numeroEditalPrograd: null,
+          status: 'ATIVO' as const,
+          totalProjetos: 0,
+          totalInscricoes: 0,
+        },
+        criadoPor: {
+          id: 1,
+          username: 'admin',
+          email: 'admin@test.com',
+        },
+      } as any)
+
+      await expect(
+        caller.updateEdital({
+          id: 1,
+          dataInicioSelecao: new Date('2024-01-20'),
+          dataFimSelecao: new Date('2024-02-05'),
+        })
+      ).rejects.toThrowError('A data de início da seleção deve ser posterior ao fim da inscrição')
+    })
+
+    it('should reject result disclosure dates before the selection ends', async () => {
+      const mockContext = createMockContext(mockAdminUser)
+      const caller = editalRouter.createCaller(mockContext)
+
+      vi.spyOn(mockContext.db.query.editalTable, 'findFirst').mockResolvedValue({
+        id: 1,
+        titulo: 'Edital Teste',
+        descricaoHtml: '<p>Descrição do edital</p>',
+        fileIdAssinado: 'signed-file-id',
+        fileIdPdfExterno: null,
+        tipo: 'DCC' as const,
+        publicado: false,
+        numeroEdital: '001/2024',
+        valorBolsa: '400.00',
+        criadoPorUserId: 1,
+        createdAt: new Date(),
+        updatedAt: null,
+        dataPublicacao: null,
+        periodoInscricaoId: 1,
+        dataInicioSelecao: new Date('2024-03-01'),
+        dataFimSelecao: new Date('2024-03-10'),
+        datasProvasDisponiveis: null,
+        dataDivulgacaoResultado: null,
+        linkFormularioInscricao: null,
+        chefeAssinouEm: null,
+        chefeAssinatura: null,
+        chefeDepartamentoId: null,
+        periodoInscricao: {
+          id: 1,
+          createdAt: new Date(),
+          updatedAt: null,
+          ano: 2024,
+          semestre: 'SEMESTRE_1' as const,
+          dataInicio: new Date('2024-01-01'),
+          dataFim: new Date('2024-01-31'),
+          totalBolsasPrograd: null,
+          numeroEditalPrograd: null,
+          status: 'ATIVO' as const,
+          totalProjetos: 0,
+          totalInscricoes: 0,
+        },
+        criadoPor: {
+          id: 1,
+          username: 'admin',
+          email: 'admin@test.com',
+        },
+      } as any)
+
+      await expect(
+        caller.updateEdital({
+          id: 1,
+          dataDivulgacaoResultado: new Date('2024-03-05'),
+        })
+      ).rejects.toThrowError(
+        'A data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção'
+      )
     })
   })
 })

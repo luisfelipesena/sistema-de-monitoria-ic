@@ -196,6 +196,30 @@ export const editalFormSchema = z
   })
   .refine(
     (data) => {
+      if (data.dataInicioSelecao) {
+        return data.dataInicioSelecao > data.dataFimInscricao
+      }
+      return true
+    },
+    {
+      message: 'Data de início da seleção deve ser posterior ao fim da inscrição',
+      path: ['dataInicioSelecao'],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.dataFimSelecao) {
+        return data.dataFimSelecao > data.dataFimInscricao
+      }
+      return true
+    },
+    {
+      message: 'Data de fim da seleção deve ser posterior ao fim da inscrição',
+      path: ['dataFimSelecao'],
+    }
+  )
+  .refine(
+    (data) => {
       if (data.dataInicioSelecao && data.dataFimSelecao) {
         return data.dataFimSelecao >= data.dataInicioSelecao
       }
@@ -204,6 +228,19 @@ export const editalFormSchema = z
     {
       message: 'Data fim de seleção deve ser posterior ou igual à data início',
       path: ['dataFimSelecao'],
+    }
+  )
+  .refine(
+    (data) => {
+      const dataLimiteSelecao = data.dataFimSelecao ?? data.dataInicioSelecao
+      if (data.dataDivulgacaoResultado && dataLimiteSelecao) {
+        return data.dataDivulgacaoResultado >= dataLimiteSelecao
+      }
+      return true
+    },
+    {
+      message: 'Data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção',
+      path: ['dataDivulgacaoResultado'],
     }
   )
 
