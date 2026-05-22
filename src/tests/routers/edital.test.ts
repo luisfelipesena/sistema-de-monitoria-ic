@@ -313,9 +313,7 @@ describe('editalRouter', () => {
           id: 1,
           dataDivulgacaoResultado: new Date('2024-03-05'),
         })
-      ).rejects.toThrowError(
-        'A data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção'
-      )
+      ).rejects.toThrowError('A data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção')
     })
   })
 })

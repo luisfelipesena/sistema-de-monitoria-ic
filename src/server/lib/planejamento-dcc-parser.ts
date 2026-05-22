@@ -7,7 +7,7 @@ const HEADER_DISCIPLINA_MARKER = 'DISCIPLINA' as const
 function normalizeHeader(value: string): string {
   return value
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\u0300-\u036f]+/g, '')
     .replace(/\s+/g, ' ')
     .toLowerCase()
     .trim()

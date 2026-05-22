@@ -16,12 +16,9 @@ const log = logger.child({ context: 'EditalCrudService' })
 
 const TOKEN_EXPIRY_HOURS = 72 // Token expires in 72 hours
 const INSCRICAO_PATH = '/home/student/inscricao-monitoria'
-const DATA_INICIO_SELECAO_INVALIDA_MESSAGE =
-  'A data de início da seleção deve ser posterior ao fim da inscrição'
-const DATA_FIM_SELECAO_INVALIDA_MESSAGE =
-  'A data de fim da seleção deve ser posterior ao fim da inscrição'
-const DATA_DIVULGACAO_RESULTADO_INVALIDA_MESSAGE =
-  'A data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção'
+const DATA_INICIO_SELECAO_INVALIDA_MESSAGE = 'A data de início da seleção deve ser posterior ao fim da inscrição'
+const DATA_FIM_SELECAO_INVALIDA_MESSAGE = 'A data de fim da seleção deve ser posterior ao fim da inscrição'
+const DATA_DIVULGACAO_RESULTADO_INVALIDA_MESSAGE = 'A data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção'
 
 function generateSecureToken(): string {
   return randomBytes(32).toString('hex')
@@ -72,17 +69,9 @@ export function createEditalCrudService(
         throw new ConflictError('Este número de edital já está em uso.')
       }
 
-      validateDataSelecaoPosteriorInscricao(
-        input.dataInicioSelecao,
-        input.dataFimSelecao,
-        input.dataFimInscricao
-      )
+      validateDataSelecaoPosteriorInscricao(input.dataInicioSelecao, input.dataFimSelecao, input.dataFimInscricao)
 
-      validateDataDivulgacaoResultado(
-        input.dataDivulgacaoResultado,
-        input.dataInicioSelecao,
-        input.dataFimSelecao
-      )
+      validateDataDivulgacaoResultado(input.dataDivulgacaoResultado, input.dataInicioSelecao, input.dataFimSelecao)
 
       const periodoSobreposicao = await repo.findOverlappingPeriodo(
         input.ano,
@@ -286,11 +275,7 @@ export function createEditalCrudService(
         throw new ValidationError('Datas de prova só podem ser definidas para editais internos DCC')
       }
 
-      validateDataDivulgacaoResultado(
-        dataDivulgacaoResultado,
-        edital.dataInicioSelecao,
-        edital.dataFimSelecao
-      )
+      validateDataDivulgacaoResultado(dataDivulgacaoResultado, edital.dataInicioSelecao, edital.dataFimSelecao)
 
       const updated = await repo.update(id, {
         datasProvasDisponiveis: JSON.stringify(datasProvasDisponiveis),
