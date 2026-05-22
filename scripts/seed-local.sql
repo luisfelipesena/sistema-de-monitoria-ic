@@ -1,5 +1,5 @@
 -- Fast local seed: runs in ~100ms via docker compose exec db psql
--- Usage: docker compose exec db psql -U postgres -d sistema_de_monitoria_ic -f /backup/seed-local.sql
+-- Usage: docker-compose exec -T db psql -U postgres -d sistema_de_monitoria_ic < scripts/seed-local.sql
 -- Or:    npm run db:seed:fast
 
 -- bcrypt hash of 'password123' (12 rounds)
