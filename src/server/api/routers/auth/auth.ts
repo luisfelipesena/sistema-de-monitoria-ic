@@ -11,9 +11,16 @@ import {
   verifyEmailSchema,
 } from '@/types'
 import { TRPCError } from '@trpc/server'
-import { BusinessError } from '@/server/lib/errors'
+import { BusinessError, ValidationError} from '@/server/lib/errors'
 
 const handleBusinessError = (error: unknown): never => {
+  if (error instanceof ValidationError) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: error.message,
+    })
+  }
+
   if (error instanceof BusinessError) {
     throw new TRPCError({
       code: error.code as 'NOT_FOUND' | 'CONFLICT' | 'UNAUTHORIZED' | 'FORBIDDEN' | 'BAD_REQUEST',
