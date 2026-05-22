@@ -18,7 +18,8 @@ const TOKEN_EXPIRY_HOURS = 72 // Token expires in 72 hours
 const INSCRICAO_PATH = '/home/student/inscricao-monitoria'
 const DATA_INICIO_SELECAO_INVALIDA_MESSAGE = 'A data de início da seleção deve ser posterior ao fim da inscrição'
 const DATA_FIM_SELECAO_INVALIDA_MESSAGE = 'A data de fim da seleção deve ser posterior ao fim da inscrição'
-const DATA_DIVULGACAO_RESULTADO_INVALIDA_MESSAGE = 'A data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção'
+const DATA_DIVULGACAO_RESULTADO_INVALIDA_MESSAGE =
+  'A data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção'
 
 function generateSecureToken(): string {
   return randomBytes(32).toString('hex')
