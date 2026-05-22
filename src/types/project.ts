@@ -143,7 +143,7 @@ export interface ProjetoFilters {
   status?: ProjetoStatus[]
   disciplina?: string
   professorNome?: string
-  departamentoId?: number[] 
+  departamentoId?: number[]
   limit?: number
   offset?: number
 }
