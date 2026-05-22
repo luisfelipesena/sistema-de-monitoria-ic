@@ -89,7 +89,7 @@ export interface DashboardProjectItem {
   status: string
   departamentoId: number | null
   departamentoNome: string | null
-  departamentoSigla: string | null
+  departamentoSigla?: string | null
   semestre: string
   ano: number
   bolsasDisponibilizadas?: number | null | undefined
@@ -104,7 +104,7 @@ export interface ManageProjectItem {
   status: string
   departamentoId: number | null
   departamentoNome: string | null
-  departamentoSigla: string | null
+  departamentoSigla?: string | null
   semestre: string
   ano: number
   bolsasDisponibilizadas?: number | null | undefined
@@ -135,6 +135,17 @@ export interface ProjetoDisponivelListItem {
   totalInscritos: number
   inscricaoAberta: boolean
   jaInscrito: boolean
+}
+
+export interface ProjetoFilters {
+  ano?: number[]
+  semestre?: Semestre[]
+  status?: ProjetoStatus[]
+  disciplina?: string
+  professorNome?: string
+  departamentoId?: number[] 
+  limit?: number
+  offset?: number
 }
 
 export interface MonitoriaFormData {
@@ -424,7 +435,7 @@ export const projectListItemSchema = z.object({
   titulo: z.string(),
   departamentoId: z.number().int().positive().nullable(),
   departamentoNome: z.string().nullable(),
-  departamentoSigla: z.string().nullable(),
+  departamentoSigla: z.string().nullable().optional(),
   professorResponsavelId: z.number().int().positive(),
   professorResponsavelNome: z.string(),
   status: z.string(),

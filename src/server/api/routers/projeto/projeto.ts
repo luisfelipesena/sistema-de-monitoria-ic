@@ -78,6 +78,7 @@ export const projetoRouter = createTRPCRouter({
         status: z.array(projetoStatusSchema).optional(),
         disciplina: z.string().optional(),
         professorNome: z.string().optional(),
+        departamentoId: z.array(z.number()).optional(),
         limit: z.number().min(1).max(100).default(20),
         offset: z.number().min(0).default(0),
       })
@@ -103,6 +104,7 @@ export const projetoRouter = createTRPCRouter({
             status: input.status,
             disciplina: input.disciplina,
             professorNome: input.professorNome,
+            departamentoId: input.departamentoId,
             limit: input.limit,
             offset: input.offset,
           },

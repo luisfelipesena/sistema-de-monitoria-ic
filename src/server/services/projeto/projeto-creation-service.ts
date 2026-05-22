@@ -30,6 +30,7 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
       requireAdminOrProfessor(input.userRole)
 
       let professorResponsavelId: number
+      let _professorDepartamentoId: number | null = null
 
       if (isProfessor(input.userRole) && !isAdmin(input.userRole)) {
         const professor = await repo.findProfessorByUserId(input.userId)
@@ -37,6 +38,7 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
           throw new NotFoundError('Professor', input.userId)
         }
         professorResponsavelId = professor.id
+        _professorDepartamentoId = professor.departamentoId ?? null
       } else {
         // Admin
         if (!input.professorResponsavelId) {
@@ -47,6 +49,7 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
           throw new NotFoundError('Professor', input.professorResponsavelId)
         }
         professorResponsavelId = input.professorResponsavelId
+        _professorDepartamentoId = professor.departamentoId ?? null
       }
 
       // Use disciplinaIds or disciplinas

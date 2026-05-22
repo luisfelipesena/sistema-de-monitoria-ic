@@ -32,13 +32,16 @@ export interface ProjetoFilters {
   status?: ProjetoStatus[]
   disciplina?: string // LIKE search on disciplina codigo or nome
   professorNome?: string // LIKE search on professor name
-  departamentoId?: number
-  departamento?: string
+  departamentoId?: number[]
   limit?: number
   offset?: number
 }
 
 export function createProjetoRepository(db: Database) {
+  const resolvedDepartamentoIdExpr = sql<
+    number | null
+  >`coalesce(${projetoTable.departamentoId}, ${professorTable.departamentoId})`
+
   return {
     // Basic CRUD
     async findById(id: number) {
@@ -62,7 +65,7 @@ export function createProjetoRepository(db: Database) {
         .select({
           id: projetoTable.id,
           titulo: projetoTable.titulo,
-          departamentoId: projetoTable.departamentoId,
+          departamentoId: resolvedDepartamentoIdExpr,
           departamentoNome: departamentoTable.nome,
           departamentoSigla: departamentoTable.sigla,
           professorResponsavelId: projetoTable.professorResponsavelId,
@@ -89,8 +92,8 @@ export function createProjetoRepository(db: Database) {
           deletedAt: projetoTable.deletedAt,
         })
         .from(projetoTable)
-        .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .leftJoin(departamentoTable, sql`${departamentoTable.id} = ${resolvedDepartamentoIdExpr}`)
         .where(and(eq(projetoTable.professorResponsavelId, professorId), isNull(projetoTable.deletedAt)))
         .orderBy(projetoTable.createdAt)
     },
@@ -99,14 +102,14 @@ export function createProjetoRepository(db: Database) {
       const conditions = [isNull(projetoTable.deletedAt)]
 
       if (departamentoId) {
-        conditions.push(eq(projetoTable.departamentoId, departamentoId))
+        conditions.push(eq(resolvedDepartamentoIdExpr, departamentoId))
       }
 
       return db
         .select({
           id: projetoTable.id,
           titulo: projetoTable.titulo,
-          departamentoId: projetoTable.departamentoId,
+          departamentoId: resolvedDepartamentoIdExpr,
           departamentoNome: departamentoTable.nome,
           departamentoSigla: departamentoTable.sigla,
           professorResponsavelId: projetoTable.professorResponsavelId,
@@ -133,8 +136,8 @@ export function createProjetoRepository(db: Database) {
           deletedAt: projetoTable.deletedAt,
         })
         .from(projetoTable)
-        .innerJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .leftJoin(departamentoTable, sql`${departamentoTable.id} = ${resolvedDepartamentoIdExpr}`)
         .where(and(...conditions))
         .orderBy(projetoTable.createdAt)
     },
@@ -166,15 +169,8 @@ export function createProjetoRepository(db: Database) {
       }
 
       // Filter by departamento ID
-      if (filters.departamentoId) {
-        conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
-      }
-
-      // Filter by departamento nome OU sigla (ILIKE)
-      if (filters.departamento) {
-        const search = `%${filters.departamento}%`
-
-        conditions.push(or(ilike(departamentoTable.nome, search), ilike(departamentoTable.sigla, search)) as SQL)
+      if (filters.departamentoId && filters.departamentoId.length > 0) {
+        conditions.push(inArray(resolvedDepartamentoIdExpr, filters.departamentoId))
       }
 
       // Filter by disciplina code/name OR professor name (SQL-level, before pagination)
@@ -198,7 +194,7 @@ export function createProjetoRepository(db: Database) {
         .select({
           id: projetoTable.id,
           titulo: projetoTable.titulo,
-          departamentoId: projetoTable.departamentoId,
+          departamentoId: resolvedDepartamentoIdExpr,
           departamentoNome: departamentoTable.nome,
           departamentoSigla: departamentoTable.sigla,
           professorResponsavelId: projetoTable.professorResponsavelId,
@@ -225,8 +221,8 @@ export function createProjetoRepository(db: Database) {
           deletedAt: projetoTable.deletedAt,
         })
         .from(projetoTable)
-        .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .leftJoin(departamentoTable, sql`${departamentoTable.id} = ${resolvedDepartamentoIdExpr}`)
         .where(and(...conditions))
         .orderBy(desc(projetoTable.ano), desc(projetoTable.semestre), asc(projetoTable.titulo))
 
@@ -263,14 +259,8 @@ export function createProjetoRepository(db: Database) {
         conditions.push(ilike(professorTable.nomeCompleto, `%${filters.professorNome}%`))
       }
 
-      if (filters.departamentoId) {
-        conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
-      }
-      // Filter by departamento nome OU sigla (ILIKE)
-      if (filters.departamento) {
-        const search = `%${filters.departamento}%`
-
-        conditions.push(or(ilike(departamentoTable.nome, search), ilike(departamentoTable.sigla, search)) as SQL)
+      if (filters.departamentoId && filters.departamentoId.length > 0) {
+        conditions.push(inArray(resolvedDepartamentoIdExpr, filters.departamentoId))
       }
 
       // Same EXISTS pattern as findAllFiltered for consistency
@@ -292,8 +282,8 @@ export function createProjetoRepository(db: Database) {
       const [result] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(projetoTable)
-        .leftJoin(departamentoTable, eq(projetoTable.departamentoId, departamentoTable.id))
         .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+        .leftJoin(departamentoTable, sql`${departamentoTable.id} = ${resolvedDepartamentoIdExpr}`)
         .where(and(...conditions))
 
       return result?.count || 0

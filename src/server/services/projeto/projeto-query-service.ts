@@ -216,10 +216,9 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
         status: filters.status,
         disciplina: filters.disciplina,
         professorNome: filters.professorNome,
-        departamento: filters.departamento,
         limit: filters.limit,
         offset: filters.offset,
-        departamentoId: professor?.departamentoId ?? undefined,
+        departamentoId: professor?.departamentoId ? [professor.departamentoId] : undefined,
       }
 
       const [projetos, total] = await Promise.all([

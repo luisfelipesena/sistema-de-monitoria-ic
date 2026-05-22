@@ -45,11 +45,34 @@ interface ProcessedRow {
   disciplinaNome: string
   professoresSiapes: string[]
   vagas: number
+  departamento?: string
 }
 
 export function createImportProjectsService(db: Database) {
   const repo = createImportProjectsRepository(db)
   const auditService = createAuditService(db)
+
+  async function resolveDepartamentoIdForImport(
+    rowDepartamento: string | undefined,
+    professorDepartamentoId: number | null,
+    warnings: string[],
+    contexto: string
+  ): Promise<number | null> {
+    const departamentoFromSheet = rowDepartamento?.trim()
+    if (departamentoFromSheet) {
+      const bySigla = await repo.findDepartamentoBySigla(departamentoFromSheet)
+      if (bySigla) return bySigla.id
+
+      const byNome = await repo.findDepartamentoByNome(departamentoFromSheet)
+      if (byNome) return byNome.id
+
+      warnings.push(
+        `${contexto}: valor de departamento "${departamentoFromSheet}" não encontrado. Usando departamento do professor como fallback.`
+      )
+    }
+
+    return professorDepartamentoId ?? null
+  }
 
   // Helper function to create a project for a single professor
   async function createProjetoForProfessor(
@@ -73,9 +96,16 @@ export function createImportProjectsService(db: Database) {
       return 0
     }
 
-    if (!professor.departamentoId) {
+    const departamentoId = await resolveDepartamentoIdForImport(
+      row.departamento,
+      professor.departamentoId,
+      warnings,
+      `Disciplina ${codigoSanitizado}`
+    )
+
+    if (!departamentoId) {
       erros.push(
-        `Disciplina ${codigoSanitizado}: Professor ${professor.nomeCompleto} não possui departamento associado`
+        `Disciplina ${codigoSanitizado}: sem departamento na planilha e professor ${professor.nomeCompleto} sem departamento associado`
       )
       return 0
     }
@@ -112,7 +142,7 @@ export function createImportProjectsService(db: Database) {
       titulo,
       descricao,
       professorResponsavelId: professor.id,
-      departamentoId: professor.departamentoId,
+      departamentoId,
       disciplinaNome: titulo,
       ano: importacao.ano,
       semestre: importacao.semestre,
@@ -341,9 +371,16 @@ export function createImportProjectsService(db: Database) {
 
             // Create a project for each professor
             for (const professor of professores) {
-              if (!professor.departamentoId) {
+              const departamentoId = await resolveDepartamentoIdForImport(
+                row.departamento,
+                professor.departamentoId,
+                warnings,
+                `Disciplina ${codigoSanitizado}`
+              )
+
+              if (!departamentoId) {
                 erros.push(
-                  `Disciplina ${codigoSanitizado}: Professor ${professor.nomeCompleto} não possui departamento associado`
+                  `Disciplina ${codigoSanitizado}: sem departamento na planilha e professor ${professor.nomeCompleto} sem departamento associado`
                 )
                 projetosComErro++
                 continue
@@ -355,7 +392,7 @@ export function createImportProjectsService(db: Database) {
                 const result = await repo.findOrCreateDisciplina({
                   codigo: codigoSanitizado,
                   nome: nomeSanitizado,
-                  departamentoId: professor.departamentoId,
+                  departamentoId,
                 })
                 disciplina = result.disciplina
                 if (result.created) {
@@ -388,9 +425,16 @@ export function createImportProjectsService(db: Database) {
           const tipoProposicao = professores.length > 1 ? TIPO_PROPOSICAO_COLETIVA : TIPO_PROPOSICAO_INDIVIDUAL
           const professorResponsavel = professores[0]
 
-          if (!professorResponsavel.departamentoId) {
+          const departamentoId = await resolveDepartamentoIdForImport(
+            row.departamento,
+            professorResponsavel.departamentoId,
+            warnings,
+            `Disciplina ${codigoSanitizado}`
+          )
+
+          if (!departamentoId) {
             erros.push(
-              `Disciplina ${codigoSanitizado}: Professor ${professorResponsavel.nomeCompleto} não possui departamento associado`
+              `Disciplina ${codigoSanitizado}: sem departamento na planilha e professor ${professorResponsavel.nomeCompleto} sem departamento associado`
             )
             projetosComErro++
             continue
@@ -401,7 +445,7 @@ export function createImportProjectsService(db: Database) {
             const result = await repo.findOrCreateDisciplina({
               codigo: codigoSanitizado,
               nome: nomeSanitizado,
-              departamentoId: professorResponsavel.departamentoId,
+              departamentoId,
             })
             disciplina = result.disciplina
 
@@ -469,7 +513,7 @@ export function createImportProjectsService(db: Database) {
             titulo,
             descricao,
             professorResponsavelId: professorResponsavel.id,
-            departamentoId: professorResponsavel.departamentoId,
+            departamentoId,
             disciplinaNome: titulo,
             ano: importacao.ano,
             semestre: importacao.semestre,
@@ -769,6 +813,7 @@ export function createImportProjectsService(db: Database) {
             disciplinaNome: nomeSanitizado,
             professoresSiapes: [],
             vagas: 0,
+            departamento: firstEntry.departamento,
           }
 
           for (const professor of professores) {
