@@ -188,15 +188,7 @@ function extractValue(obj: Record<string, unknown>, possibleKeys: string[]): str
 }
 
 function normalizeKey(value: string): string {
-  return (
-    value
-      .normalize('NFD')
-      // biome-ignore lint/suspicious/noMisleadingCharacterClass: Unicode combining marks range
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, '_')
-      .toLowerCase()
-      .trim()
-  )
+  return value.normalize('NFD').replace(/\p{M}/gu, '').replace(/\s+/g, '_').toLowerCase().trim()
 }
 
 /**

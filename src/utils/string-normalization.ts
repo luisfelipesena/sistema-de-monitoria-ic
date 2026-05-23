@@ -14,15 +14,7 @@
  * @example normalizeForMatch("  GUSTAVO  Silva ") // "gustavo silva"
  */
 export function normalizeForMatch(str: string): string {
-  return (
-    str
-      .normalize('NFD')
-      // biome-ignore lint/suspicious/noMisleadingCharacterClass: Standard Unicode diacritic removal pattern
-      .replace(/[\u0300-\u036f]/g, '') // remove diacritics
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, ' ')
-  )
+  return str.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim().replace(/\s+/g, ' ')
 }
 
 /**
@@ -120,14 +112,11 @@ export function sanitizeSiape(siape: string): string {
  * @example sanitizeForFilename("Maria da Silva") // "MARIA_DA_SILVA"
  */
 export function sanitizeForFilename(name: string): string {
-  return (
-    name
-      .normalize('NFD')
-      // biome-ignore lint/suspicious/noMisleadingCharacterClass: Standard Unicode diacritic removal pattern
-      .replace(/[\u0300-\u036f]/g, '') // remove diacritics
-      .toUpperCase()
-      .trim()
-      .replace(/\s+/g, '_') // Replace spaces with underscores
-      .replace(/[^A-Z0-9_]/g, '') // Remove special characters, keep only alphanumeric and underscores
-  )
+  return name
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toUpperCase()
+    .trim()
+    .replace(/\s+/g, '_') // Replace spaces with underscores
+    .replace(/[^A-Z0-9_]/g, '') // Remove special characters, keep only alphanumeric and underscores
 }

@@ -78,7 +78,6 @@ export default function ForgotPasswordPage() {
                   )}
                 />
 
-                {successMsg && <p className="text-green-600 text-center text-sm">{successMsg}</p>}
                 {errors ? <p className="text-sm text-red-600 text-center">{errors}</p> : null}
 
                 <Button type="submit" className="w-full h-12 text-base font-medium">

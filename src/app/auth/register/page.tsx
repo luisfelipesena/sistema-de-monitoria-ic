@@ -1,9 +1,9 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,7 @@ import { toast } from "sonner"
 
 export default function RegisterPage() {
   const { registerLocal, errors, clearErrors } = useAuth()
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
   const form = useForm<RegisterUserInput>({
@@ -37,13 +38,16 @@ export default function RegisterPage() {
   }, [clearErrors])
 
   const onSubmit = async (data: RegisterUserInput) => {
-    await registerLocal(data)
-    toast.success("Cadastro realizado!", {
-      description: "Verifique seu e-mail para ativar sua conta.",
-    })
-    router.push("/auth/login")
+    try {
+      await registerLocal(data)
+      toast.success("Cadastro realizado!", {
+        description: "Verifique seu e-mail para ativar sua conta.",
+      })
+      router.push("/auth/login?registered=true")
+    } catch {
+     //Erro já foi capturado pelo onError do useAuth
+    }
   }
-
   return (
     <div className="space-y-6">
       <div className="flex justify-center">
@@ -99,13 +103,27 @@ export default function RegisterPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <Input
-                          label="Senha"
-                          type="password"
-                          placeholder="Crie uma senha forte"
-                          className="h-12"
+                        <div className="relative">
+                          <Input          
+                            label="Senha"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Crie uma senha forte"
+                            className="h-12"
                           {...field}
-                        />
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            className="absolute right-3 top-1/2 -translate-y-1/5 text-slate-400 hover:text-slate-600 transition-colors"
+                            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-5 w-5" />
+                            ) : (
+                              <Eye className="h-5 w-5" />
+                            )}
+                          </button>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>

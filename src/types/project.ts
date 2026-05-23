@@ -89,6 +89,7 @@ export interface DashboardProjectItem {
   status: string
   departamentoId: number | null
   departamentoNome: string | null
+  departamentoSigla?: string | null
   semestre: string
   ano: number
   bolsasDisponibilizadas?: number | null | undefined
@@ -134,6 +135,17 @@ export interface ProjetoDisponivelListItem {
   totalInscritos: number
   inscricaoAberta: boolean
   jaInscrito: boolean
+}
+
+export interface ProjetoFilters {
+  ano?: number[]
+  semestre?: Semestre[]
+  status?: ProjetoStatus[]
+  disciplina?: string
+  professorNome?: string
+  departamentoId?: number[]
+  limit?: number
+  offset?: number
 }
 
 export interface MonitoriaFormData {

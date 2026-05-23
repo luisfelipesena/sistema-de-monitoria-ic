@@ -1,6 +1,6 @@
 "use client"
 
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider } from "@/hooks/use-auth"
 import { api } from "@/utils/api"
 import { env } from "@/utils/env"

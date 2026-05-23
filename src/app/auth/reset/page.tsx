@@ -3,12 +3,12 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Suspense, useEffect } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/hooks/use-auth"
@@ -17,13 +17,13 @@ import { z } from "zod"
 import { passwordSchema, ResetPasswordWithTokenInput } from "@/types"
 
 const resetPasswordFormSchema = z
-  .object({
-    token: z.string().min(1),
-    password: passwordSchema,
-    confirmPassword: passwordSchema,
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Senhas não coincidem",
+.object({
+  token: z.string().min(1),
+  password: passwordSchema,
+  confirmPassword: passwordSchema,
+})
+.refine((data) => data.password === data.confirmPassword, {
+  message: "Senhas não coincidem",
     path: ["confirmPassword"],
   })
 
@@ -38,7 +38,7 @@ function ResetPasswordContent() {
 function ResetPasswordInner({ token }: { token: string }) {
   const router = useRouter()
   const { resetPassword, errors, clearErrors } = useAuth()
-
+  
   const form = useForm<ResetPasswordFormInput>({
     resolver: zodResolver(resetPasswordFormSchema),
     defaultValues: {
@@ -51,13 +51,15 @@ function ResetPasswordInner({ token }: { token: string }) {
   useEffect(() => {
     form.setValue("token", token)
   }, [form, token])
-
+  
   useEffect(() => {
     return () => {
       clearErrors()
     }
   }, [clearErrors])
 
+  const [showPassword1, setShowPassword1] = useState(false)
+  const [showPassword2, setShowPassword2] = useState(false)
   const onSubmit = async (data: ResetPasswordFormInput) => {
     const payload: ResetPasswordWithTokenInput = {
       token: data.token,
@@ -109,7 +111,21 @@ function ResetPasswordInner({ token }: { token: string }) {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input type="password" label="Nova senha" placeholder="Crie uma senha forte" {...field} />
+                    <div className="relative">
+                      <Input type={showPassword1 ? "text" : "password"} label="Nova senha" placeholder="Crie uma senha forte" {...field} />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword1((prev) => !prev)}
+                        className="absolute right-3 top-1/2 -translate-y-1/5 text-slate-400 hover:text-slate-600 transition-colors"
+                        aria-label={showPassword1 ? "Ocultar senha" : "Mostrar senha"}
+                      >
+                        {showPassword1 ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -122,7 +138,21 @@ function ResetPasswordInner({ token }: { token: string }) {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input type="password" label="Confirmar nova senha" placeholder="Repita a senha" {...field} />
+                    <div className="relative">
+                      <Input type={showPassword2 ? "text" : "password"} label="Confirmar nova senha" placeholder="Repita a senha" {...field} />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword2((prev) => !prev)}
+                        className="absolute right-3 top-1/2 -translate-y-1/5 text-slate-400 hover:text-slate-600 transition-colors"
+                        aria-label={showPassword2 ? "Ocultar senha" : "Mostrar senha"}
+                      >
+                        {showPassword2 ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
