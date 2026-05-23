@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  EditalFormData,
-  EditalFormDialog,
+    EditalFormData,
+    EditalFormDialog,
 } from "@/components/features/edital/EditalFormDialog";
 import { EditalStatsCards } from "@/components/features/edital/EditalStatsCards";
 import { createEditalTableColumns } from "@/components/features/edital/EditalTableColumns";
@@ -11,29 +11,29 @@ import { PagesLayout } from "@/components/layout/PagesLayout";
 import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEditalPdf } from "@/hooks/use-files";
 import { useToast } from "@/hooks/use-toast";
 import {
-  EditalListItem,
-  PERIODO_INSCRICAO_STATUS_ATIVO,
-  SEMESTRE_1,
-  SEMESTRE_2,
-  TIPO_EDITAL_DCC,
-  TIPO_EDITAL_DCI,
+    EditalListItem,
+    PERIODO_INSCRICAO_STATUS_ATIVO,
+    SEMESTRE_1,
+    SEMESTRE_2,
+    TIPO_EDITAL_DCC,
+    TIPO_EDITAL_DCI,
 } from "@/types";
 import { api } from "@/utils/api";
 import { getCurrentSemester } from "@/utils/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -44,7 +44,6 @@ const editalFormSchema = z
     numeroEdital: z.string().min(1, "Número do edital é obrigatório"),
     titulo: z.string().min(1, "Título é obrigatório"),
     descricaoHtml: z.string().optional(),
-    valorBolsa: z.string(),
     ano: z.number().int().min(2000).max(2100),
     semestre: z.enum([SEMESTRE_1, SEMESTRE_2]),
     // Datas de INSCRIÇÃO
@@ -55,6 +54,18 @@ const editalFormSchema = z
     dataFimSelecao: z.date().optional(),
     // Data divulgação
     dataDivulgacaoResultado: z.date().optional(),
+    valorBolsa: z
+      .string()
+      .refine(
+        (value) => {
+          const normalized = value.replace(',', '.').trim()
+          const parsed = Number(normalized)
+          return normalized.length > 0 && !Number.isNaN(parsed) && parsed >= 0
+        },
+        {
+          message: 'Valor da bolsa deve ser um número válido e não pode ser negativo',
+        }
+      ),
   })
   .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
     message: "Data fim de inscrição deve ser posterior à data início",
@@ -379,7 +390,7 @@ export default function EditalManagementPage() {
       numeroEdital: edital.numeroEdital,
       titulo: edital.titulo,
       descricaoHtml: edital.descricaoHtml || "",
-      valorBolsa: "400.00",
+      valorBolsa: edital.valorBolsa || "400.00",
       ano: edital.periodoInscricao?.ano || currentYear,
       semestre: edital.periodoInscricao?.semestre || currentSemester,
       dataInicioInscricao: edital.periodoInscricao?.dataInicio

@@ -1,31 +1,31 @@
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { SEMESTRE_1, SEMESTRE_2, TIPO_EDITAL_DCC, TIPO_EDITAL_DCI, type Semestre, type TipoEdital } from "@/types";
 import { UseFormReturn } from "react-hook-form";
 
@@ -223,7 +223,13 @@ export function EditalFormDialog({
                   <FormItem>
                     <FormLabel>Valor da Bolsa (R$)</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="400.00" />
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        {...field}
+                        placeholder="400.00"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
