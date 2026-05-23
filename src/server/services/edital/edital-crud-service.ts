@@ -16,9 +16,42 @@ const log = logger.child({ context: 'EditalCrudService' })
 
 const TOKEN_EXPIRY_HOURS = 72 // Token expires in 72 hours
 const INSCRICAO_PATH = '/home/student/inscricao-monitoria'
+const DATA_INICIO_SELECAO_INVALIDA_MESSAGE = 'A data de início da seleção deve ser posterior ao fim da inscrição'
+const DATA_FIM_SELECAO_INVALIDA_MESSAGE = 'A data de fim da seleção deve ser posterior ao fim da inscrição'
+const DATA_DIVULGACAO_RESULTADO_INVALIDA_MESSAGE =
+  'A data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção'
 
 function generateSecureToken(): string {
   return randomBytes(32).toString('hex')
+}
+
+function validateDataDivulgacaoResultado(
+  dataDivulgacaoResultado: Date | null | undefined,
+  dataInicioSelecao: Date | null | undefined,
+  dataFimSelecao: Date | null | undefined
+) {
+  if (!dataDivulgacaoResultado) {
+    return
+  }
+
+  const dataLimiteSelecao = dataFimSelecao ?? dataInicioSelecao
+  if (dataLimiteSelecao && dataDivulgacaoResultado < dataLimiteSelecao) {
+    throw new ValidationError(DATA_DIVULGACAO_RESULTADO_INVALIDA_MESSAGE)
+  }
+}
+
+function validateDataSelecaoPosteriorInscricao(
+  dataInicioSelecao: Date | null | undefined,
+  dataFimSelecao: Date | null | undefined,
+  dataFimInscricao: Date
+) {
+  if (dataInicioSelecao && dataInicioSelecao <= dataFimInscricao) {
+    throw new ValidationError(DATA_INICIO_SELECAO_INVALIDA_MESSAGE)
+  }
+
+  if (dataFimSelecao && dataFimSelecao <= dataFimInscricao) {
+    throw new ValidationError(DATA_FIM_SELECAO_INVALIDA_MESSAGE)
+  }
 }
 
 function generateInscricaoLink(): string {
@@ -36,6 +69,10 @@ export function createEditalCrudService(
       if (numeroEditalExistente) {
         throw new ConflictError('Este número de edital já está em uso.')
       }
+
+      validateDataSelecaoPosteriorInscricao(input.dataInicioSelecao, input.dataFimSelecao, input.dataFimInscricao)
+
+      validateDataDivulgacaoResultado(input.dataDivulgacaoResultado, input.dataInicioSelecao, input.dataFimSelecao)
 
       const periodoSobreposicao = await repo.findOverlappingPeriodo(
         input.ano,
@@ -105,6 +142,12 @@ export function createEditalCrudService(
           throw new ValidationError('Dados do período de inscrição incompletos')
         }
 
+        validateDataSelecaoPosteriorInscricao(
+          input.dataInicioSelecao ?? edital.dataInicioSelecao,
+          input.dataFimSelecao ?? edital.dataFimSelecao,
+          novaDataFim
+        )
+
         const periodoSobreposicao = await repo.findOverlappingPeriodo(
           novoAno,
           novoSemestre,
@@ -130,6 +173,26 @@ export function createEditalCrudService(
         })
       }
 
+      const dataFimInscricaoAtualizada = input.dataFimInscricao ?? edital.periodoInscricao?.dataFim
+      const dataInicioSelecaoAtualizada = input.dataInicioSelecao ?? edital.dataInicioSelecao
+      const dataFimSelecaoAtualizada = input.dataFimSelecao ?? edital.dataFimSelecao
+
+      if (
+        input.dataInicioSelecao !== undefined ||
+        input.dataFimSelecao !== undefined ||
+        input.dataFimInscricao !== undefined
+      ) {
+        if (!dataFimInscricaoAtualizada) {
+          throw new ValidationError('Dados do período de inscrição incompletos')
+        }
+
+        validateDataSelecaoPosteriorInscricao(
+          dataInicioSelecaoAtualizada,
+          dataFimSelecaoAtualizada,
+          dataFimInscricaoAtualizada
+        )
+      }
+
       const updateData: Record<string, unknown> = {}
       if (input.numeroEdital !== undefined) updateData.numeroEdital = input.numeroEdital
       if (input.titulo !== undefined) updateData.titulo = input.titulo
@@ -143,6 +206,15 @@ export function createEditalCrudService(
           : null
       }
       if (input.dataDivulgacaoResultado !== undefined) {
+        const dataInicioSelecaoAtualizada = input.dataInicioSelecao ?? edital.dataInicioSelecao
+        const dataFimSelecaoAtualizada = input.dataFimSelecao ?? edital.dataFimSelecao
+
+        validateDataDivulgacaoResultado(
+          input.dataDivulgacaoResultado,
+          dataInicioSelecaoAtualizada,
+          dataFimSelecaoAtualizada
+        )
+
         updateData.dataDivulgacaoResultado = input.dataDivulgacaoResultado || null
       }
 
@@ -203,6 +275,8 @@ export function createEditalCrudService(
       if (edital.tipo !== TIPO_EDITAL_DCC) {
         throw new ValidationError('Datas de prova só podem ser definidas para editais internos DCC')
       }
+
+      validateDataDivulgacaoResultado(dataDivulgacaoResultado, edital.dataInicioSelecao, edital.dataFimSelecao)
 
       const updated = await repo.update(id, {
         datasProvasDisponiveis: JSON.stringify(datasProvasDisponiveis),

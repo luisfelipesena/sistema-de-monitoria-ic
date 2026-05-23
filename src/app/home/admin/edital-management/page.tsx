@@ -33,7 +33,7 @@ import {
 import { api } from "@/utils/api";
 import { getCurrentSemester } from "@/utils/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -56,9 +56,42 @@ const editalFormSchema = z
     // Data divulgação
     dataDivulgacaoResultado: z.date().optional(),
   })
-  .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
-    message: "Data fim de inscrição deve ser posterior à data início",
-    path: ["dataFimInscricao"],
+  .superRefine((data, ctx) => {
+    if (data.dataFimInscricao <= data.dataInicioInscricao) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Data fim de inscrição deve ser posterior à data início",
+        path: ["dataFimInscricao"],
+      });
+    }
+
+    if (data.dataInicioSelecao && data.dataInicioSelecao <= data.dataFimInscricao) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Data de início da seleção deve ser posterior ao fim da inscrição",
+        path: ["dataInicioSelecao"],
+      });
+    }
+
+    if (data.dataFimSelecao && data.dataFimSelecao <= data.dataFimInscricao) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Data de fim da seleção deve ser posterior ao fim da inscrição",
+        path: ["dataFimSelecao"],
+      });
+    }
+
+    if (
+      data.dataInicioSelecao &&
+      data.dataFimSelecao &&
+      data.dataFimSelecao < data.dataInicioSelecao
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Data fim de seleção deve ser posterior ou igual à data início",
+        path: ["dataFimSelecao"],
+      });
+    }
   });
 
 export default function EditalManagementPage() {
