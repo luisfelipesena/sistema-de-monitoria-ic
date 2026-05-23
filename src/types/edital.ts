@@ -63,6 +63,7 @@ export interface EditalListItem {
   fileIdPdfExterno: string | null
   dataPublicacao: Date | null
   publicado: boolean
+  valorBolsa: string
   tipo?: TipoEdital
   // Datas de seleção
   dataInicioSelecao?: Date | null
