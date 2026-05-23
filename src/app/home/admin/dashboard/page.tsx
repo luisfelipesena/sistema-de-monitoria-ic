@@ -30,7 +30,7 @@ export default function DashboardAdmin() {
   const dashboardActions = <DashboardActions abaAtiva={abaAtiva} />
 
   return (
-    <PagesLayout title="Dashboard" actions={dashboardActions}>
+    <PagesLayout title="Projetos" actions={dashboardActions}>
       <DashboardTabs activeTab={abaAtiva} onTabChange={setAbaAtiva} />
 
       {abaAtiva === "projetos" && (

@@ -72,7 +72,7 @@ const menuConfig: MenuConfig[] = [
   // ============ ADMIN MENU ============
   // 1. Dashboard
   {
-    label: "Dashboard",
+    label: "Painel Geral",
     href: (role) => `/home/${role}/dashboard`,
     icon: LayoutDashboard,
     roles: ["admin", "student"],
