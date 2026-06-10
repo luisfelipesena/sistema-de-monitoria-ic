@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button"
 import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
 import type { ManageProjectItem } from "@/types"
 import {
-  PROJETO_STATUS_APPROVED,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_LABELS,
-  PROJETO_STATUS_PENDING_SIGNATURE,
-  PROJETO_STATUS_REJECTED,
-  PROJETO_STATUS_SUBMITTED,
+    PROJETO_STATUS_APPROVED,
+    PROJETO_STATUS_DRAFT,
+    PROJETO_STATUS_LABELS,
+    PROJETO_STATUS_PENDING_SIGNATURE,
+    PROJETO_STATUS_REJECTED,
+    PROJETO_STATUS_SUBMITTED,
 } from "@/types"
 import type { ColumnDef, FilterFn } from "@tanstack/react-table"
 import { Download, Eye, FileText, List, Trash2 } from "lucide-react"
@@ -81,17 +81,6 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
           </div>
         )
       },
-    },
-    {
-      id: "departamento",
-      header: () => <div className="text-center">Departamento</div>,
-      accessorKey: "departamentoSigla",
-      size: 120,
-      cell: ({ row }) => (
-        <div className="text-center font-medium">
-          {row.original.departamentoSigla ?? "—"}
-        </div>
-      ),
     },
     {
       header: createFilterableHeader<ManageProjectItem>({
