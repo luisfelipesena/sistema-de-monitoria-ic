@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
+import { formatCep, lookupCep, normalizeCep } from "@/lib/cep"
 import {
   GENERO_FEMININO,
   GENERO_MASCULINO,
@@ -64,7 +65,9 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
   const [disciplinaEquivalenteQuery, setDisciplinaEquivalenteQuery] = useState("")
   const [localAssinatura, setLocalAssinatura] = useState("Salvador")
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null)
+  const [isCepLookupLoading, setIsCepLookupLoading] = useState(false)
   const signatureRef = useRef<SignatureCanvas>(null)
+  const cepLookupRequestIdRef = useRef(0)
 
   // Profile patch
   const [patch, setPatch] = useState<{
@@ -193,6 +196,60 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
     if (!localAssinatura) return "Informe o local"
     return null
   }
+
+  useEffect(() => {
+    const cep = patch.endereco?.cep ?? ""
+    const normalizedCep = normalizeCep(cep)
+
+    if (normalizedCep.length !== 8) {
+      setIsCepLookupLoading(false)
+      return
+    }
+
+    const currentRequestId = ++cepLookupRequestIdRef.current
+    let isActive = true
+
+    const loadAddress = async () => {
+      setIsCepLookupLoading(true)
+
+      try {
+        const cepAddress = await lookupCep(normalizedCep)
+
+        if (!isActive || cepLookupRequestIdRef.current !== currentRequestId || !cepAddress) {
+          return
+        }
+
+        setPatch((current) => {
+          if (normalizeCep(current.endereco?.cep ?? "") !== normalizedCep) {
+            return current
+          }
+
+          return {
+            ...current,
+            endereco: {
+              ...(current.endereco ?? ({} as never)),
+              rua: cepAddress.rua,
+              bairro: cepAddress.bairro,
+              cidade: cepAddress.cidade,
+              estado: cepAddress.estado,
+              complemento: current.endereco?.complemento ?? cepAddress.complemento ?? "",
+              cep: formatCep(normalizedCep),
+            },
+          }
+        })
+      } finally {
+        if (isActive && cepLookupRequestIdRef.current === currentRequestId) {
+          setIsCepLookupLoading(false)
+        }
+      }
+    }
+
+    void loadAddress()
+
+    return () => {
+      isActive = false
+    }
+  }, [patch.endereco?.cep])
 
   const handleStepAdvance = () => {
     let error: string | null = null
@@ -424,6 +481,21 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
               <div className="md:col-span-2 border-t pt-4">
                 <h4 className="font-medium mb-2">Endereço residencial *</h4>
                 <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>CEP</Label>
+                    <Input
+                      value={patch.endereco?.cep ?? ""}
+                      onChange={(e) => {
+                        const cep = formatCep(e.target.value)
+                        setPatch((p) => ({ ...p, endereco: { ...(p.endereco ?? ({} as never)), cep } }))
+                      }}
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {isCepLookupLoading
+                        ? "Buscando endereço..."
+                        : "Digite 8 números para preencher rua, bairro, cidade e estado automaticamente."}
+                    </p>
+                  </div>
                   <div className="col-span-2">
                     <Label>Rua</Label>
                     <Input
@@ -482,15 +554,6 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
                           ...p,
                           endereco: { ...(p.endereco ?? ({} as never)), estado: e.target.value },
                         }))
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label>CEP</Label>
-                    <Input
-                      value={patch.endereco?.cep ?? ""}
-                      onChange={(e) =>
-                        setPatch((p) => ({ ...p, endereco: { ...(p.endereco ?? ({} as never)), cep: e.target.value } }))
                       }
                     />
                   </div>
