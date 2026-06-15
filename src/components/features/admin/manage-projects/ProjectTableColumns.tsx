@@ -5,26 +5,15 @@ import { Button } from "@/components/ui/button"
 import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
 import type { ManageProjectItem } from "@/types"
 import {
-  PROJETO_STATUS_APPROVED,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_LABELS,
-  PROJETO_STATUS_PENDING_SIGNATURE,
-  PROJETO_STATUS_REJECTED,
-  PROJETO_STATUS_SUBMITTED,
+    PROJETO_STATUS_APPROVED,
+    PROJETO_STATUS_DRAFT,
+    PROJETO_STATUS_LABELS,
+    PROJETO_STATUS_PENDING_SIGNATURE,
+    PROJETO_STATUS_REJECTED,
+    PROJETO_STATUS_SUBMITTED,
 } from "@/types"
-import type { ColumnDef, FilterFn } from "@tanstack/react-table"
+import type { ColumnDef } from "@tanstack/react-table"
 import { Download, Eye, FileText, List, Trash2 } from "lucide-react"
-
-// Custom filter: matches disciplina code, nome, or professor name
-const disciplinaFilterFn: FilterFn<ManageProjectItem> = (row, columnId, filterValue) => {
-  if (!filterValue || filterValue === "") return true
-  const searchValue = String(filterValue).toLowerCase()
-  const disciplinas = row.original.disciplinas
-  const professorNome = (row.original.professorResponsavelNome || "").toLowerCase()
-  const matchDisciplina =
-    disciplinas?.some((d) => d.codigo.toLowerCase().includes(searchValue) || d.nome.toLowerCase().includes(searchValue)) ?? false
-  return matchDisciplina || professorNome.includes(searchValue)
-}
 
 interface ColumnActions {
   onPreview: (projeto: ManageProjectItem) => void
@@ -34,6 +23,7 @@ interface ColumnActions {
   loadingPdfProjetoId: number | null
   isDeletingProject: boolean
   disciplinaFilterOptions?: { value: string; label: string }[]
+  professorFilterOptions?: { value: string; label: string }[]
   departamentoFilterOptions?: { value: string; label: string }[]
 }
 
@@ -54,44 +44,44 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
       header: createFilterableHeader<ManageProjectItem>({
         title: "Projeto",
         filterType: "text",
-        filterPlaceholder: "Buscar código, nome ou professor...",
+        filterPlaceholder: "Buscar projeto...",
         wide: true,
+      }),
+      accessorKey: "titulo",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <List className="h-4 w-4 text-gray-400 flex-shrink-0" />
+          <div>
+            <span className="font-semibold text-base text-gray-900">{row.original.titulo}</span>
+            {groupedView && <div className="text-xs text-muted-foreground">{row.original.departamentoNome}</div>}
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: createFilterableHeader<ManageProjectItem>({
+        title: "Disciplina",
+        filterType: "text",
+        filterPlaceholder: "Buscar código da disciplina...",
         autocompleteOptions: actions.disciplinaFilterOptions,
       }),
-      accessorKey: "disciplina",
-      filterFn: disciplinaFilterFn,
-      sortingFn: (rowA, rowB) => {
-        const codeA = rowA.original.disciplinas[0]?.codigo ?? ""
-        const codeB = rowB.original.disciplinas[0]?.codigo ?? ""
-        return codeA.localeCompare(codeB)
-      },
+      id: "disciplina",
+      accessorFn: (row) => row.disciplinas[0]?.codigo ?? "",
       cell: ({ row }) => {
-        const disciplinas = row.original.disciplinas
-        const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
-        return (
-          <div className="flex items-center gap-2">
-            <List className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <div>
-              <span className="font-semibold text-base text-gray-900">{row.original.titulo}</span>
-              <div className="text-xs text-muted-foreground">
-                {codigoDisciplina} • {row.original.professorResponsavelNome}
-              </div>
-              {groupedView && <div className="text-xs text-muted-foreground">{row.original.departamentoNome}</div>}
-            </div>
-          </div>
-        )
+        const codigoDisciplina = row.original.disciplinas.length > 0 ? row.original.disciplinas[0].codigo : "—"
+        return <div className="font-medium text-gray-600">{codigoDisciplina}</div>
       },
     },
     {
-      id: "departamento",
-      header: () => <div className="text-center">Departamento</div>,
-      accessorKey: "departamentoSigla",
-      size: 120,
-      cell: ({ row }) => (
-        <div className="text-center font-medium">
-          {row.original.departamentoSigla ?? "—"}
-        </div>
-      ),
+      header: createFilterableHeader<ManageProjectItem>({
+        title: "Professor",
+        filterType: "text",
+        filterPlaceholder: "Buscar professor...",
+        autocompleteOptions: actions.professorFilterOptions,
+      }),
+      id: "professorNome",
+      accessorKey: "professorResponsavelNome",
+      cell: ({ row }) => <div className="font-medium text-gray-600">{row.original.professorResponsavelNome ?? "—"}</div>,
     },
     {
       header: createFilterableHeader<ManageProjectItem>({
