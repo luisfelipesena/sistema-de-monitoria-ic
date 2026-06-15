@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button"
 import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
 import type { ManageProjectItem } from "@/types"
 import {
-  PROJETO_STATUS_APPROVED,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_LABELS,
-  PROJETO_STATUS_PENDING_SIGNATURE,
-  PROJETO_STATUS_REJECTED,
-  PROJETO_STATUS_SUBMITTED,
+    PROJETO_STATUS_APPROVED,
+    PROJETO_STATUS_DRAFT,
+    PROJETO_STATUS_LABELS,
+    PROJETO_STATUS_PENDING_SIGNATURE,
+    PROJETO_STATUS_REJECTED,
+    PROJETO_STATUS_SUBMITTED,
 } from "@/types"
 import type { ColumnDef, FilterFn } from "@tanstack/react-table"
 import { Download, Eye, FileText, List, Trash2 } from "lucide-react"
@@ -119,6 +119,16 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
     },
     {
       header: createFilterableHeader<ManageProjectItem>({
+        title: "Semestre",
+        filterType: "multiselect",
+        filterOptions: createSemesterFilterOptions(),
+      }),
+      accessorKey: "semestre",
+      filterFn: multiselectFilterFn,
+      cell: ({ row }) => <div className="text-center">{row.original.semestre === "SEMESTRE_1" ? "1º" : "2º"}</div>,
+    },
+    {
+      header: createFilterableHeader<ManageProjectItem>({
         title: "Ano",
         filterType: "number",
         filterOptions: createYearFilterOptions(),
@@ -127,16 +137,6 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
       accessorKey: "ano",
       filterFn: multiselectFilterFn,
       cell: ({ row }) => <div className="text-center">{row.original.ano}</div>,
-    },
-    {
-      header: createFilterableHeader<ManageProjectItem>({
-        title: "Semestre",
-        filterType: "multiselect",
-        filterOptions: createSemesterFilterOptions(),
-      }),
-      accessorKey: "semestre",
-      filterFn: multiselectFilterFn,
-      cell: ({ row }) => <div className="text-center">{row.original.semestre === "SEMESTRE_1" ? "1º" : "2º"}</div>,
     },
     {
       header: () => <div className="text-center">Vagas</div>,
