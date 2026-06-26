@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EditalListItem, SEMESTRE_1, TIPO_EDITAL_DCC } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { Edit, Eye, FileText, Trash2, Upload, Send, Pencil } from "lucide-react";
+import { Edit, Eye, FileText, Pencil, Send, Trash2, Upload } from "lucide-react";
 import { EditalStatusBadge, getPeriodStatusBadge } from "./EditalStatusBadge";
 
 interface EditalTableColumnsProps {
@@ -110,17 +110,22 @@ export function createEditalTableColumns({
       },
     },
     {
-      id: "status",
-      header: "Status",
+      id: "status1",
+      header: "Status1",
       cell: ({ row }) => {
         const edital = row.original;
-        return (
-          <div className="space-y-1">
-            <EditalStatusBadge edital={edital} />
-            {edital.periodoInscricao && (
-              <div>{getPeriodStatusBadge(edital.periodoInscricao.status)}</div>
-            )}
-          </div>
+        return <EditalStatusBadge edital={edital} />;
+      },
+    },
+    {
+      id: "status2",
+      header: "Status2",
+      cell: ({ row }) => {
+        const edital = row.original;
+        return edital.periodoInscricao ? (
+          <div>{getPeriodStatusBadge(edital.periodoInscricao.status)}</div>
+        ) : (
+          <span className="text-muted-foreground">-</span>
         );
       },
     },
