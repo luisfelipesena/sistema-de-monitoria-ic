@@ -62,9 +62,14 @@ export default function ManageProjectsPage() {
       }
     }
 
-    // Add unique professor names from current page data as suggestions
+    return options
+  }, [disciplinas])
+
+  const professorFilterOptions = useMemo(() => {
+    const options: { value: string; label: string }[] = []
+    const seenNames = new Set<string>()
+
     if (projetos) {
-      const seenNames = new Set<string>()
       for (const p of projetos) {
         const nome = p.professorResponsavelNome
         if (nome && !seenNames.has(nome)) {
@@ -75,7 +80,7 @@ export default function ManageProjectsPage() {
     }
 
     return options
-  }, [disciplinas, projetos])
+  }, [projetos])
 
   const departamentoFilterOptions = useMemo(() => {
     if (!departamentos) return []
@@ -99,6 +104,7 @@ export default function ManageProjectsPage() {
           loadingPdfProjetoId,
           isDeletingProject: isDeleting,
           disciplinaFilterOptions,
+          professorFilterOptions,
           departamentoFilterOptions,
         },
         groupedView
@@ -112,6 +118,7 @@ export default function ManageProjectsPage() {
       isDeleting,
       groupedView,
       disciplinaFilterOptions,
+      professorFilterOptions,
       departamentoFilterOptions,
     ]
   )
