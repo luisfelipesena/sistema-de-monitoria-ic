@@ -108,6 +108,16 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
     },
     {
       header: createFilterableHeader<ManageProjectItem>({
+        title: "Semestre",
+        filterType: "multiselect",
+        filterOptions: createSemesterFilterOptions(),
+      }),
+      accessorKey: "semestre",
+      filterFn: multiselectFilterFn,
+      cell: ({ row }) => <div className="text-center">{row.original.semestre === "SEMESTRE_1" ? "1º" : "2º"}</div>,
+    },
+    {
+      header: createFilterableHeader<ManageProjectItem>({
         title: "Ano",
         filterType: "number",
         filterOptions: createYearFilterOptions(),
@@ -116,16 +126,6 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
       accessorKey: "ano",
       filterFn: multiselectFilterFn,
       cell: ({ row }) => <div className="text-center">{row.original.ano}</div>,
-    },
-    {
-      header: createFilterableHeader<ManageProjectItem>({
-        title: "Semestre",
-        filterType: "multiselect",
-        filterOptions: createSemesterFilterOptions(),
-      }),
-      accessorKey: "semestre",
-      filterFn: multiselectFilterFn,
-      cell: ({ row }) => <div className="text-center">{row.original.semestre === "SEMESTRE_1" ? "1º" : "2º"}</div>,
     },
     {
       header: () => <div className="text-center">Vagas</div>,
