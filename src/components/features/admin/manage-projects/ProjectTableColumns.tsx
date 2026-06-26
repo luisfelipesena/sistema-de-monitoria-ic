@@ -74,17 +74,6 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
     },
     {
       header: createFilterableHeader<ManageProjectItem>({
-        title: "Professor",
-        filterType: "text",
-        filterPlaceholder: "Buscar professor...",
-        autocompleteOptions: actions.professorFilterOptions,
-      }),
-      id: "professorNome",
-      accessorKey: "professorResponsavelNome",
-      cell: ({ row }) => <div className="font-medium text-gray-600">{row.original.professorResponsavelNome ?? "—"}</div>,
-    },
-    {
-      header: createFilterableHeader<ManageProjectItem>({
         title: "Departamento",
         filterType: "multiselect",
         filterOptions: departamentoFilterOptions,
