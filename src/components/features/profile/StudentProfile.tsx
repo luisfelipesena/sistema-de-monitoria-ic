@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
+import { formatCPF, getCPFValidationMessage } from "@/lib/validators"
 import { api } from "@/utils/api"
 import { useEffect, useState } from "react"
 
@@ -25,6 +26,7 @@ export function StudentProfile() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
+  const [cpfError, setCpfError] = useState<string | null>(null)
   const [formData, setFormData] = useState<StudentFormData>({
     nomeCompleto: "",
     matricula: "",
@@ -41,6 +43,12 @@ export function StudentProfile() {
   const updateProfileMutation = api.user.updateProfile.useMutation()
 
   const aluno = userProfile?.studentProfile
+
+  const validateCpf = () => {
+    const message = getCPFValidationMessage(formData.cpf)
+    setCpfError(message)
+    return !message
+  }
 
   useEffect(() => {
     if (aluno) {
@@ -60,11 +68,20 @@ export function StudentProfile() {
 
   const handleSave = async () => {
     try {
+      if (!validateCpf()) {
+        toast({
+          title: "CPF inválido",
+          description: "Informe um CPF válido antes de salvar",
+          variant: "destructive",
+        })
+        return
+      }
+
       await updateProfileMutation.mutateAsync({
         studentData: {
           nomeCompleto: formData.nomeCompleto,
           matricula: formData.matricula,
-          cpf: formData.cpf,
+          cpf: formatCPF(formData.cpf),
           cursoNome: formData.cursoNome,
           cr: formData.cr,
           banco: formData.banco,
@@ -157,9 +174,18 @@ export function StudentProfile() {
               <Input
                 id="cpf"
                 value={formData.cpf}
-                onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                onChange={(e) => {
+                  const value = e.target.value
+                  setFormData({ ...formData, cpf: value })
+                  if (cpfError && !getCPFValidationMessage(value)) {
+                    setCpfError(null)
+                  }
+                }}
+                onBlur={validateCpf}
                 disabled={!isEditing}
+                aria-invalid={!!cpfError}
               />
+              {cpfError && <p className="mt-1 text-sm text-destructive">{cpfError}</p>}
             </div>
 
             <div>

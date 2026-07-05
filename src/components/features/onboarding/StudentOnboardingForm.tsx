@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { formatCPF, getCPFValidationMessage } from "@/lib/validators"
 import type { OnboardingStatusResponse } from "@/server/api/routers/onboarding/onboarding"
 import { GENERO_FEMININO, GENERO_MASCULINO, GENERO_OUTRO, type Genero } from "@/types"
 import { api } from "@/utils/api"
@@ -22,6 +23,7 @@ interface StudentOnboardingFormProps {
 export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFormProps) {
   const { toast } = useToast()
   const router = useRouter()
+  const [cpfError, setCpfError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     nomeCompleto: "",
     matricula: "",
@@ -45,6 +47,12 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
   const uploadedDocs = onboardingStatus.documents.uploaded
   const missingDocs = onboardingStatus.documents.missing
 
+  const validateCpf = () => {
+    const message = getCPFValidationMessage(formData.cpf)
+    setCpfError(message)
+    return !message
+  }
+
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -64,6 +72,15 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
       return
     }
 
+    if (!validateCpf()) {
+      toast({
+        title: "Erro",
+        description: "CPF inválido",
+        variant: "destructive",
+      })
+      return
+    }
+
     const crValue = parseFloat(formData.cr)
     if (isNaN(crValue) || crValue < 0 || crValue > 10) {
       toast({
@@ -78,6 +95,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
     try {
       await createProfileMutation.mutateAsync({
         ...formData,
+        cpf: formatCPF(formData.cpf),
         cr: crValue,
         genero: formData.genero as Genero,
       })
@@ -195,11 +213,20 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                     <Input
                       id="cpf"
                       value={formData.cpf}
-                      onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setFormData({ ...formData, cpf: value })
+                        if (cpfError && !getCPFValidationMessage(value)) {
+                          setCpfError(null)
+                        }
+                      }}
+                      onBlur={validateCpf}
                       placeholder="000.000.000-00"
                       required
                       className="mt-1"
+                      aria-invalid={!!cpfError}
                     />
+                    {cpfError && <p className="mt-1 text-sm text-destructive">{cpfError}</p>}
                   </div>
 
                   <div>

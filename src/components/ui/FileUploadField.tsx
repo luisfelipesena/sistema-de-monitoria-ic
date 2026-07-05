@@ -22,6 +22,7 @@ interface FileUploadFieldProps {
   required?: boolean
   description?: string
   disabled?: boolean
+  maxSizeInMB?: number
 }
 
 type UploadState = "idle" | "dragging" | "uploading" | "success" | "error"
@@ -37,6 +38,7 @@ export function FileUploadField({
   required = false,
   description,
   disabled = false,
+  maxSizeInMB = 10,
 }: FileUploadFieldProps) {
   const { toast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -123,8 +125,8 @@ export function FileUploadField({
   }
 
   const validateFile = (file: File): string | null => {
-    if (file.size > 10 * 1024 * 1024) {
-      return "Arquivo muito grande. Máximo 10MB permitido."
+    if (file.size > maxSizeInMB * 1024 * 1024) {
+      return `Arquivo muito grande. Máximo ${maxSizeInMB}MB permitido.`
     }
 
     const allowedTypes = accept.split(",").map((t) => t.trim())
@@ -439,7 +441,7 @@ export function FileUploadField({
                       {isDragging ? "Solte o arquivo aqui" : "Arraste um arquivo ou clique para selecionar"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {accept.replace(/\./g, "").toUpperCase()} • Máx: 10MB
+                      {accept.replace(/\./g, "").toUpperCase()} • Máx: {maxSizeInMB}MB
                     </p>
                   </div>
                 )}
