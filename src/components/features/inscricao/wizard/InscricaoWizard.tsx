@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
 import { formatCep, lookupCep, normalizeCep } from "@/lib/cep"
+import { formatCPF, getCPFValidationMessage } from "@/lib/validators"
 import {
   GENERO_FEMININO,
   GENERO_MASCULINO,
@@ -66,6 +67,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
   const [localAssinatura, setLocalAssinatura] = useState("Salvador")
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null)
   const [isCepLookupLoading, setIsCepLookupLoading] = useState(false)
+  const [cpfError, setCpfError] = useState<string | null>(null)
   const signatureRef = useRef<SignatureCanvas>(null)
   const cepLookupRequestIdRef = useRef(0)
 
@@ -164,6 +166,8 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
   const validateDadosStep = (): string | null => {
     if (!patch.nomeCompleto) return "Nome completo é obrigatório"
     if (!patch.cpf) return "CPF é obrigatório"
+    const cpfMessage = getCPFValidationMessage(patch.cpf)
+    if (cpfMessage) return cpfMessage
     if (!patch.rg) return "RG é obrigatório"
     if (!patch.dataNascimento) return "Data de nascimento é obrigatória"
     if (!patch.cursoNome) return "Curso é obrigatório"
@@ -302,7 +306,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
         profilePatch: {
           nomeCompleto: patch.nomeCompleto,
           nomeSocial: patch.nomeSocial || null,
-          cpf: patch.cpf,
+          cpf: formatCPF(patch.cpf ?? ""),
           rg: patch.rg,
           dataNascimento: patch.dataNascimento ? new Date(patch.dataNascimento) : undefined,
           genero: patch.genero,
@@ -426,7 +430,19 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
               </div>
               <div>
                 <Label>CPF *</Label>
-                <Input value={patch.cpf ?? ""} onChange={(e) => setPatch((p) => ({ ...p, cpf: e.target.value }))} />
+                <Input
+                  value={patch.cpf ?? ""}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    setPatch((p) => ({ ...p, cpf: value }))
+                    if (cpfError && !getCPFValidationMessage(value)) {
+                      setCpfError(null)
+                    }
+                  }}
+                  onBlur={() => setCpfError(getCPFValidationMessage(patch.cpf ?? ""))}
+                  aria-invalid={!!cpfError}
+                />
+                {cpfError && <p className="mt-1 text-sm text-destructive">{cpfError}</p>}
               </div>
               <div>
                 <Label>RG *</Label>

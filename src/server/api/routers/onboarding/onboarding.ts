@@ -1,5 +1,6 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import {
+  cpfSchema,
   generoSchema,
   onboardingStatusResponseSchema,
   regimeSchema,
@@ -49,7 +50,7 @@ export const onboardingRouter = createTRPCRouter({
       z.object({
         nomeCompleto: z.string().min(1),
         matricula: z.string().min(1),
-        cpf: z.string().min(11),
+        cpf: cpfSchema,
         cr: z.number().min(0).max(10),
         cursoNome: z.string().min(1),
         telefone: z.string().optional(),
@@ -84,7 +85,7 @@ export const onboardingRouter = createTRPCRouter({
       z.object({
         nomeCompleto: z.string().min(1),
         matriculaSiape: z.string().min(1),
-        cpf: z.string().min(11),
+        cpf: cpfSchema,
         telefone: z.string().optional(),
         telefoneInstitucional: z.string().optional(),
         regime: regimeSchema,

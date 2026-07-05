@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/hooks/use-auth"
 import { useToast } from "@/hooks/use-toast"
+import { formatCPF, getCPFValidationMessage } from "@/lib/validators"
 import type { OnboardingStatusResponse } from "@/server/api/routers/onboarding/onboarding"
 import {
   GENERO_FEMININO,
@@ -59,6 +60,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSignatureDialog, setShowSignatureDialog] = useState(false)
   const [signatureMode, setSignatureMode] = useState<"draw" | "upload">("draw")
+  const [cpfError, setCpfError] = useState<string | null>(null)
   const signatureRef = useRef<SignatureCanvas>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -88,6 +90,12 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
   const needsSignatureOnly = hasProfile && hasRequiredFields && !hasSignature && !isReactivation
   const [signatureDataURL, setSignatureDataURL] = useState<string | null>(null)
 
+  const validateCpf = () => {
+    const message = getCPFValidationMessage(formData.cpf)
+    setCpfError(message)
+    return !message
+  }
+
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -102,6 +110,15 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!validateCpf()) {
+      toast({
+        title: "Erro",
+        description: "CPF inválido",
         variant: "destructive",
       })
       return
@@ -122,6 +139,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
       // 1. Criar perfil
       await createProfileMutation.mutateAsync({
         ...formData,
+        cpf: formatCPF(formData.cpf),
         regime: formData.regime as Regime,
         genero: formData.genero as Genero,
       })
@@ -264,11 +282,20 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     <Input
                       id="cpf"
                       value={formData.cpf}
-                      onChange={(e) => setFormData({ ...formData, cpf: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setFormData({ ...formData, cpf: value })
+                        if (cpfError && !getCPFValidationMessage(value)) {
+                          setCpfError(null)
+                        }
+                      }}
+                      onBlur={validateCpf}
                       placeholder="000.000.000-00"
                       required
                       className="mt-1"
+                      aria-invalid={!!cpfError}
                     />
+                    {cpfError && <p className="mt-1 text-sm text-destructive">{cpfError}</p>}
                   </div>
 
                   <div>
