@@ -1,42 +1,42 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  useSidebar,
+    Sidebar,
+    SidebarContent,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
+    useSidebar,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/hooks/use-auth"
 import { useLocalStorage } from "@/hooks/use-local-storage"
 import {
-  ArrowLeftRight,
-  Award,
-  BookOpen,
-  Building,
-  ChevronRight,
-  ClipboardCheck,
-  FileCheck,
-  FilePlus,
-  FileSignature,
-  FileSpreadsheet,
-  FileText,
-  GraduationCap,
-  LayoutDashboard,
-  Mail,
-  ScrollText,
-  Settings,
-  TrendingUp,
-  Upload,
-  User,
-  UserCog,
-  UserPlus,
-  Users,
-  type LucideIcon,
+    ArrowLeftRight,
+    Award,
+    BookOpen,
+    Building,
+    ChevronRight,
+    ClipboardCheck,
+    FileCheck,
+    FilePlus,
+    FileSignature,
+    FileSpreadsheet,
+    FileText,
+    GraduationCap,
+    LayoutDashboard,
+    Mail,
+    ScrollText,
+    Settings,
+    TrendingUp,
+    Upload,
+    User,
+    UserCog,
+    UserPlus,
+    Users,
+    type LucideIcon,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -552,12 +552,16 @@ export function SidebarLayout({ pathname }: SidebarLayoutProps) {
     return config.roles.includes(user.role as UserRole)
   })
 
+  const dashboardHref = user?.role ? `/home/${user.role}/dashboard` : "/home"
+
   return (
     <Sidebar className="z-30">
       <SidebarHeader>
         <div className="flex flex-col items-center gap-2 mb-4">
-          <img src="/images/ic-logo-clean.png" alt="Monitoria IC" className="h-32 w-18" />
-          <span className="text-xl font-semibold">Monitoria IC</span>
+          <Link href={dashboardHref} className="flex flex-col items-center gap-2">
+            <img src="/images/ic-logo-clean.png" alt="Monitoria IC" className="h-32 w-18" />
+            <span className="text-xl font-semibold">Monitoria IC</span>
+          </Link>
         </div>
       </SidebarHeader>
       <SidebarContent>
