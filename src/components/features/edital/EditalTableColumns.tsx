@@ -111,7 +111,7 @@ export function createEditalTableColumns({
     },
     {
       id: "status1",
-      header: "Status1",
+      header: "Publicação",
       cell: ({ row }) => {
         const edital = row.original;
         return <EditalStatusBadge edital={edital} />;
@@ -119,7 +119,7 @@ export function createEditalTableColumns({
     },
     {
       id: "status2",
-      header: "Status2",
+      header: "Status",
       cell: ({ row }) => {
         const edital = row.original;
         return edital.periodoInscricao ? (
