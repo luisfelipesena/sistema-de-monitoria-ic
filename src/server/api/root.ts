@@ -26,6 +26,7 @@ import { selecaoRouter } from '@/server/api/routers/selecao/selecao'
 import { signatureRouter } from '@/server/api/routers/signature/signature'
 import { termosRouter } from '@/server/api/routers/termos/termos'
 import { userRouter } from '@/server/api/routers/user/user'
+import { userSupportRouter } from '@/server/api/routers/user/user-support'
 import { vagasRouter } from '@/server/api/routers/vagas/vagas'
 import { createTRPCRouter } from './trpc'
 
@@ -42,6 +43,7 @@ export const appRouter = createTRPCRouter({
   inscricao: inscricaoRouter,
   signature: signatureRouter,
   user: userRouter,
+  userSupport: userSupportRouter,
   importProjects: importProjectsRouter,
   scholarshipAllocation: scholarshipAllocationRouter,
   inviteProfessor: inviteProfessorRouter,

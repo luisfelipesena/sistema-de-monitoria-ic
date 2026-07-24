@@ -35,7 +35,14 @@ export default function ForgotPasswordPage() {
   }, [clearErrors])
 
   const onSubmit = async (data: RequestPasswordResetInput) => {
-    await requestPasswordReset(data)
+    // The mutation now rejects when e-mail delivery is down; the failure is rendered
+    // by `errors` and must not be reported as a success.
+    try {
+      await requestPasswordReset(data)
+    } catch {
+      return
+    }
+
     toast.success("Solicitação recebida", {
       description: "Caso exista uma conta, enviaremos as instruções por e-mail.",
     })

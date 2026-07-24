@@ -1,6 +1,6 @@
 import type { db } from '@/server/db'
 import { alunoTable, professorTable, userTable } from '@/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { asc, eq, sql } from 'drizzle-orm'
 import type { UserRole } from '@/types'
 
 type Database = typeof db
@@ -30,9 +30,13 @@ export interface UpdatePasswordData {
 
 export const createAuthRepository = (database: Database) => {
   return {
+    // Callers always pass normalizeEmail() output (see auth-service.ts). Ordered by id
+    // because production still holds rows that differ only by case; without it the
+    // matched row would be arbitrary until the data is deduped.
     async findByEmail(email: string) {
       return database.query.userTable.findFirst({
-        where: eq(userTable.email, email),
+        where: sql`lower(${userTable.email}) = ${email}`,
+        orderBy: asc(userTable.id),
       })
     },
 

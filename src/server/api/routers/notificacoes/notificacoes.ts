@@ -1,8 +1,17 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { BusinessError } from '@/server/lib/errors'
 import { createNotificacoesService } from '@/server/services/notificacoes/notificacoes-service'
 import { createProactiveReminderService } from '@/server/services/notificacoes/proactive-reminder-service'
 import { createReminderService } from '@/server/services/notificacoes/reminder-service'
-import { notificationPrioritySchema, notificationTypeSchema, semestreSchema, statsPeriodSchema } from '@/types'
+import {
+  emailHealthSchema,
+  emailSchema,
+  notificationPrioritySchema,
+  notificationTypeSchema,
+  semestreSchema,
+  statsPeriodSchema,
+} from '@/types'
+import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
 
 export const notificacoesRouter = createTRPCRouter({
@@ -118,7 +127,7 @@ export const notificacoesRouter = createTRPCRouter({
     ]
   }),
 
-  getHistory: protectedProcedure
+  getHistory: adminProtectedProcedure
     .input(
       z.object({
         limite: z.number().min(1).max(100).default(50),
@@ -168,7 +177,7 @@ export const notificacoesRouter = createTRPCRouter({
       return service.createNotification(input, ctx.user.id, ctx.user.role, ctx.user.username)
     }),
 
-  getStats: protectedProcedure
+  getStats: adminProtectedProcedure
     .input(
       z.object({
         periodo: statsPeriodSchema.default('30d'),
@@ -178,4 +187,29 @@ export const notificacoesRouter = createTRPCRouter({
       const service = createNotificacoesService(ctx.db)
       return service.getStats(input.periodo, ctx.user.role)
     }),
+
+  // ============================================
+  // EMAIL HEALTH
+  // ============================================
+
+  /**
+   * Transport status plus persisted failures, so a dead SMTP credential is visible
+   * in the product instead of only in the container logs.
+   */
+  emailHealth: adminProtectedProcedure.output(emailHealthSchema).query(async ({ ctx }) => {
+    const service = createNotificacoesService(ctx.db)
+    return service.getEmailHealth(ctx.user.role)
+  }),
+
+  sendTestEmail: adminProtectedProcedure.input(z.object({ to: emailSchema })).mutation(async ({ input, ctx }) => {
+    try {
+      const service = createNotificacoesService(ctx.db)
+      return await service.sendTestEmail(input.to, ctx.user.id, ctx.user.role)
+    } catch (error) {
+      if (error instanceof BusinessError) {
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message })
+      }
+      throw error
+    }
+  }),
 })

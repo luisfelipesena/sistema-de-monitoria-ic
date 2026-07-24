@@ -1,11 +1,24 @@
 import { db } from '@/server/db'
-import { BusinessError, NotFoundError, ValidationError } from '@/server/lib/errors'
+import { BusinessError, ConflictError, NotFoundError, ValidationError } from '@/server/lib/errors'
+import { createAuditService } from '@/server/services/audit/audit-service'
+import { createAuthRepository } from '@/server/services/auth/auth-repository'
 import type { AdminType, Regime, TipoProfessor, UserRole } from '@/types'
-import { ADMIN, PROFESSOR, PROFESSOR_STATUS_ATIVO, PROFESSOR_STATUS_INATIVO, STUDENT } from '@/types'
+import {
+  ADMIN,
+  AUDIT_ACTION_DELETE,
+  AUDIT_ACTION_UPDATE,
+  AUDIT_ENTITY_USER,
+  PROFESSOR,
+  PROFESSOR_STATUS_ATIVO,
+  PROFESSOR_STATUS_INATIVO,
+  STUDENT,
+} from '@/types'
 import { createUserRepository, type UpdateProfileData, type UserFilters } from './user-repository'
 
 export const createUserService = (database: typeof db) => {
   const userRepository = createUserRepository(database)
+  const authRepository = createAuthRepository(database)
+  const auditService = createAuditService(database)
 
   return {
     async listUsers(filters: UserFilters) {
@@ -164,19 +177,33 @@ export const createUserService = (database: typeof db) => {
       return user
     },
 
-    async updateUser(id: number, data: { username?: string; email?: string; role?: UserRole }) {
+    async updateUser(id: number, data: { username?: string; email?: string; role?: UserRole }, actorId: number) {
       const user = await userRepository.findById(id)
 
       if (!user) {
         throw new NotFoundError('User', id)
       }
 
-      await userRepository.update(id, data)
+      const email = data.email?.trim().toLowerCase()
+      if (email && email !== user.email.toLowerCase()) {
+        const existing = await authRepository.findByEmail(email)
+        if (existing && existing.id !== id) {
+          throw new ConflictError('Já existe outro usuário com este e-mail')
+        }
+      }
+
+      await userRepository.update(id, email ? { ...data, email } : data)
+
+      await auditService.logAction(actorId, AUDIT_ACTION_UPDATE, AUDIT_ENTITY_USER, id, {
+        previous: { username: user.username, email: user.email, role: user.role },
+        updated: data,
+      })
     },
 
     async updateProfessorStatus(
       userId: number,
-      status: typeof PROFESSOR_STATUS_ATIVO | typeof PROFESSOR_STATUS_INATIVO
+      status: typeof PROFESSOR_STATUS_ATIVO | typeof PROFESSOR_STATUS_INATIVO,
+      actorId: number
     ) {
       const user = await userRepository.findById(userId)
 
@@ -189,6 +216,12 @@ export const createUserService = (database: typeof db) => {
       }
 
       await userRepository.updateProfessorStatus(userId, status)
+
+      await auditService.logAction(actorId, AUDIT_ACTION_UPDATE, AUDIT_ENTITY_USER, userId, {
+        operation: 'UPDATE_PROFESSOR_STATUS',
+        targetEmail: user.email,
+        status,
+      })
 
       return {
         success: true,
@@ -208,6 +241,13 @@ export const createUserService = (database: typeof db) => {
       }
 
       await userRepository.updateAdminType(userId, adminType)
+
+      await auditService.logAction(userId, AUDIT_ACTION_UPDATE, AUDIT_ENTITY_USER, userId, {
+        operation: 'UPDATE_ADMIN_TYPE',
+        targetEmail: user.email,
+        previousAdminType: user.adminType,
+        adminType,
+      })
 
       return {
         success: true,
@@ -250,6 +290,13 @@ export const createUserService = (database: typeof db) => {
       }
 
       await userRepository.deleteUser(userId)
+
+      // Hard delete, so entityId dangles: snapshot the identity into details.
+      await auditService.logAction(currentUserId, AUDIT_ACTION_DELETE, AUDIT_ENTITY_USER, userId, {
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      })
 
       return {
         success: true,

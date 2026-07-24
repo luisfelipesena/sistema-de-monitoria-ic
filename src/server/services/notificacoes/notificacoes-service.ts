@@ -1,12 +1,16 @@
 import type { db } from '@/server/db'
 import { emailService } from '@/server/lib/email'
+import { checkEmailTransport } from '@/server/lib/email/email-transport'
 import { BusinessError, ForbiddenError } from '@/server/lib/errors'
-import type { NotificationPriority, NotificationType, StatsPeriod, UserRole } from '@/types'
+import type { EmailHealth, NotificationPriority, NotificationType, StatsPeriod, UserRole } from '@/types'
 import { ADMIN } from '@/types'
 import { createNotificacoesRepository } from './notificacoes-repository'
 import { createReminderService } from './reminder-service'
 
 type Database = typeof db
+
+const RECENT_FAILURES_LIMIT = 20
+const FAILURES_WINDOW_MS = 24 * 60 * 60 * 1000
 
 interface SendRemindersInput {
   tipo: NotificationType
@@ -176,6 +180,52 @@ export function createNotificacoesService(db: Database) {
         urgentes: Number(stats?.urgentes) || 0,
         taxaEntrega: stats?.total ? Math.round((Number(stats.enviadas) / Number(stats.total)) * 100) : 0,
       }
+    },
+
+    async getEmailHealth(userRole: UserRole): Promise<EmailHealth> {
+      if (userRole !== ADMIN) {
+        throw new ForbiddenError('Apenas administradores podem ver a saúde do envio de e-mails')
+      }
+
+      const dataInicio = new Date(Date.now() - FAILURES_WINDOW_MS)
+
+      const [transport, failuresLast24h, recentFailures] = await Promise.all([
+        checkEmailTransport(),
+        repo.countFailuresSince(dataInicio),
+        repo.findRecentFailures(RECENT_FAILURES_LIMIT),
+      ])
+
+      return { transport, failuresLast24h, recentFailures }
+    },
+
+    async sendTestEmail(to: string, userId: number, userRole: UserRole) {
+      if (userRole !== ADMIN) {
+        throw new ForbiddenError('Apenas administradores podem enviar e-mails de teste')
+      }
+
+      try {
+        await emailService.sendGenericEmail({
+          to,
+          subject: '[Sistema de Monitoria] Teste de envio de e-mail',
+          html: `
+<!DOCTYPE html>
+<html lang="pt-br">
+  <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <h2 style="color: #1d4ed8;">Teste de envio de e-mail</h2>
+    <p>Se você recebeu esta mensagem, o envio de e-mails do Sistema de Monitoria IC está funcionando.</p>
+    <p style="margin-top: 24px;">Enviado em ${new Date().toLocaleString('pt-BR')}.</p>
+  </body>
+</html>`,
+          tipoNotificacao: 'TESTE_SMTP',
+          remetenteUserId: userId,
+        })
+      } catch (error) {
+        // Surfaced verbatim: the whole point of the test is to read the SMTP error.
+        const message = error instanceof Error ? error.message : 'Erro desconhecido ao enviar e-mail'
+        throw new BusinessError(`Falha ao enviar e-mail de teste: ${message}`, 'TEST_EMAIL_FAILED')
+      }
+
+      return { success: true, to }
     },
   }
 }

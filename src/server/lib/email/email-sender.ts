@@ -1,18 +1,10 @@
-import { env } from '@/utils/env'
-import nodemailer from 'nodemailer'
 import { db } from '@/server/db'
-import { notificacaoHistoricoTable, statusEnvioEnum } from '@/server/db/schema'
+import { notificacaoHistoricoTable } from '@/server/db/schema'
+import { STATUS_ENVIO_ENVIADO, STATUS_ENVIO_FALHOU } from '@/types'
 import { logger } from '@/utils/logger'
+import { emailFromAddress, transporter } from './email-transport'
 
 const log = logger.child({ context: 'EmailSender' })
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: env.EMAIL_USER,
-    pass: env.EMAIL_PASS,
-  },
-})
 
 export interface SendEmailParams {
   to: string | string[]
@@ -29,6 +21,11 @@ export interface SendEmailParams {
   alunoId?: number
 }
 
+export interface SendBatchResult {
+  sent: number
+  failed: Array<{ to: string; error: string }>
+}
+
 export const emailSender = {
   async send(params: SendEmailParams): Promise<void> {
     const recipients = Array.isArray(params.to) ? params.to : [params.to]
@@ -36,7 +33,7 @@ export const emailSender = {
     for (const recipient of recipients) {
       try {
         await transporter.sendMail({
-          from: `"Sistema de Monitoria IC - UFBA" <${env.EMAIL_USER}>`,
+          from: emailFromAddress,
           to: recipient,
           subject: params.subject,
           html: params.html,
@@ -47,7 +44,7 @@ export const emailSender = {
           destinatarioEmail: recipient,
           assunto: params.subject,
           tipoNotificacao: params.tipoNotificacao,
-          statusEnvio: statusEnvioEnum.enumValues[0], // ENVIADO
+          statusEnvio: STATUS_ENVIO_ENVIADO,
           remetenteUserId: params.remetenteUserId,
           projetoId: params.projetoId,
           alunoId: params.alunoId,
@@ -63,7 +60,7 @@ export const emailSender = {
             destinatarioEmail: recipient,
             assunto: params.subject,
             tipoNotificacao: params.tipoNotificacao,
-            statusEnvio: statusEnvioEnum.enumValues[1], // FALHOU
+            statusEnvio: STATUS_ENVIO_FALHOU,
             mensagemErro: errorMessage,
             remetenteUserId: params.remetenteUserId,
             projetoId: params.projetoId,
@@ -78,7 +75,28 @@ export const emailSender = {
     }
   },
 
-  async sendBatch(emails: SendEmailParams[]): Promise<void> {
-    await Promise.allSettled(emails.map((email) => this.send(email)))
+  async sendBatch(emails: SendEmailParams[]): Promise<SendBatchResult> {
+    const results = await Promise.allSettled(emails.map((email) => this.send(email)))
+
+    // send() aborts on the first failing recipient, so a rejected entry counts as
+    // failed for all of its addresses.
+    return results.reduce<SendBatchResult>(
+      (tally, result, index) => {
+        const { to } = emails[index]
+        const recipients = Array.isArray(to) ? to : [to]
+
+        if (result.status === 'fulfilled') {
+          tally.sent += recipients.length
+          return tally
+        }
+
+        const errorMessage = result.reason instanceof Error ? result.reason.message : 'Unknown error sending email'
+        for (const recipient of recipients) {
+          tally.failed.push({ to: recipient, error: errorMessage })
+        }
+        return tally
+      },
+      { sent: 0, failed: [] }
+    )
   },
 }

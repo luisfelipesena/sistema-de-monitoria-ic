@@ -6,12 +6,15 @@ import { multiselectFilterFn, TableComponent } from "@/components/layout/TableCo
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { useServerPagination } from "@/hooks/useServerPagination"
 import { ADMIN, PROFESSOR, STUDENT, type UserListItem, type UserRole, type Regime, type TipoProfessor } from "@/types"
 import { api } from "@/utils/api"
 import { formatUsernameToProperName } from "@/utils/username-formatter"
 import type { ColumnDef } from "@tanstack/react-table"
-import { BookOpen, GraduationCap, Loader, Pencil, Trash2, User, UserCheck, Users } from "lucide-react"
+import { BookOpen, Copy, GraduationCap, KeyRound, Loader, Pencil, Trash2, User, UserCheck, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -25,6 +28,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 // Role filter options
 const roleFilterOptions = [
@@ -87,6 +98,49 @@ export default function UsersPage() {
 
   const handleEditUser = (userId: number) => {
     router.push(`/home/admin/users/${userId}/edit`)
+  }
+
+  // Password reset link state
+  const [userToReset, setUserToReset] = useState<UserListItem | null>(null)
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
+  const [resetMotivo, setResetMotivo] = useState("")
+  const [generatedReset, setGeneratedReset] = useState<{ resetLink: string; emailSent: boolean } | null>(null)
+
+  const generateResetLinkMutation = api.userSupport.generatePasswordResetLink.useMutation({
+    onSuccess: (data) => {
+      setGeneratedReset({ resetLink: data.resetLink, emailSent: data.emailSent })
+    },
+    onError: (error) => {
+      toast.error(error.message || "Erro ao gerar link de redefinição")
+    },
+  })
+
+  const handleResetClick = (user: UserListItem) => {
+    setUserToReset(user)
+    setResetMotivo("")
+    setGeneratedReset(null)
+    setIsResetDialogOpen(true)
+  }
+
+  const handleGenerateResetLink = () => {
+    if (userToReset) {
+      generateResetLinkMutation.mutate({ userId: userToReset.id, motivo: resetMotivo.trim() })
+    }
+  }
+
+  // The link is shown once and never stored, so closing discards it.
+  const handleResetDialogChange = (open: boolean) => {
+    setIsResetDialogOpen(open)
+    if (!open) {
+      setUserToReset(null)
+      setResetMotivo("")
+      setGeneratedReset(null)
+    }
+  }
+
+  const copyResetLink = (link: string) => {
+    navigator.clipboard.writeText(link)
+    toast.success("Link copiado para a área de transferência!")
   }
 
   // Stats from server total (accurate across all pages)
@@ -251,6 +305,17 @@ export default function UsersPage() {
               </Button>
               {!isAdmin && (
                 <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleResetClick(user)}
+                  disabled={generateResetLinkMutation.isPending}
+                >
+                  <KeyRound className="h-4 w-4 mr-1" />
+                  Redefinir senha
+                </Button>
+              )}
+              {!isAdmin && (
+                <Button
                   variant="destructive"
                   size="sm"
                   onClick={() => handleDeleteClick(user)}
@@ -265,7 +330,7 @@ export default function UsersPage() {
         },
       },
     ],
-    [departamentos, departamentoFilterOptions, deleteUserMutation.isPending]
+    [departamentos, departamentoFilterOptions, deleteUserMutation.isPending, generateResetLinkMutation.isPending]
   )
 
   const getUserDisplayName = (user: UserListItem) => {
@@ -370,6 +435,88 @@ export default function UsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Password Reset Link Dialog */}
+      <Dialog open={isResetDialogOpen} onOpenChange={handleResetDialogChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Redefinir senha</DialogTitle>
+            <DialogDescription>
+              Gere um link de redefinição para <strong>{userToReset ? getUserDisplayName(userToReset) : ""}</strong> (
+              {userToReset?.email}). O usuário escolhe a nova senha; você nunca tem acesso a ela.
+            </DialogDescription>
+          </DialogHeader>
+
+          {generatedReset ? (
+            <div className="space-y-4">
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 font-medium mb-2">Copie o link agora</p>
+                <p className="text-yellow-700 text-sm">
+                  Ao fechar esta janela o link não poderá ser exibido novamente. Ele expira em 15 minutos e deve ser
+                  entregue diretamente à pessoa.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Link de redefinição</Label>
+                <div className="flex items-center space-x-2">
+                  <Input value={generatedReset.resetLink} readOnly className="font-mono text-sm" />
+                  <Button variant="outline" size="icon" onClick={() => copyResetLink(generatedReset.resetLink)}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                {generatedReset.emailSent
+                  ? "Também enviamos o link por e-mail."
+                  : "Não foi possível enviar por e-mail. Entregue o link diretamente à pessoa."}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="resetMotivo">Motivo</Label>
+                <Textarea
+                  id="resetMotivo"
+                  placeholder="Ex: aluno relatou que não recebe o e-mail de redefinição"
+                  value={resetMotivo}
+                  onChange={(e) => setResetMotivo(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Obrigatório e registrado no log de auditoria (mínimo 5 caracteres).
+                </p>
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                O link expira em 15 minutos e deve ser entregue diretamente à pessoa.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter>
+            {generatedReset ? (
+              <Button onClick={() => handleResetDialogChange(false)}>Fechar</Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => handleResetDialogChange(false)}
+                  disabled={generateResetLinkMutation.isPending}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleGenerateResetLink}
+                  disabled={generateResetLinkMutation.isPending || resetMotivo.trim().length < 5}
+                >
+                  {generateResetLinkMutation.isPending ? "Gerando..." : "Gerar link"}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PagesLayout>
   )
 }

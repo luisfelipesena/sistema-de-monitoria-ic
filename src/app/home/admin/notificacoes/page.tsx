@@ -1,15 +1,45 @@
 "use client"
 
+import { TableComponent } from "@/components/layout/TableComponent"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useProactiveReminders } from "@/hooks/use-proactive-reminders"
+import type { EmailFailure } from "@/types"
 import { api } from "@/utils/api"
+import type { ColumnDef } from "@tanstack/react-table"
 import { format, formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { Bell, CheckCircle, Clock, History, Mail, Play, RefreshCw, Send, Zap } from "lucide-react"
+import {
+  AlertTriangle,
+  Bell,
+  CheckCircle,
+  Clock,
+  History,
+  Mail,
+  MailWarning,
+  Play,
+  RefreshCw,
+  Send,
+  TrendingUp,
+  XCircle,
+  Zap,
+} from "lucide-react"
+import { useMemo, useState } from "react"
+import { toast } from "sonner"
 
 const REMINDER_TYPE_ICONS: Record<string, React.ReactNode> = {
   assinatura_projeto_pendente: <Mail className="h-4 w-4" />,
@@ -26,6 +56,70 @@ export default function NotificacoesAdminPage() {
 
   const { data: executionHistory, isLoading: isLoadingHistory } = api.notificacoes.getReminderExecutionHistory.useQuery(
     { limit: 20 }
+  )
+
+  const {
+    data: emailHealth,
+    isLoading: isLoadingEmailHealth,
+    refetch: refetchEmailHealth,
+  } = api.notificacoes.emailHealth.useQuery()
+  const { data: emailStats } = api.notificacoes.getStats.useQuery({})
+
+  const [testDialogOpen, setTestDialogOpen] = useState(false)
+  const [testEmail, setTestEmail] = useState("")
+
+  const sendTestEmail = api.notificacoes.sendTestEmail.useMutation({
+    onSuccess: (result) => {
+      toast.success(`E-mail de teste enviado para ${result.to}`)
+      setTestDialogOpen(false)
+      setTestEmail("")
+      void refetchEmailHealth()
+    },
+    onError: (error) => {
+      toast.error(error.message)
+      void refetchEmailHealth()
+    },
+  })
+
+  const unhealthyEmail =
+    emailHealth && (!emailHealth.transport.healthy || emailHealth.failuresLast24h > 0) ? emailHealth : null
+
+  const failureColumns = useMemo<ColumnDef<EmailFailure>[]>(
+    () => [
+      {
+        id: "dataEnvio",
+        accessorKey: "dataEnvio",
+        header: "Data/Hora",
+        cell: ({ row }) => (
+          <span className="font-mono text-sm">
+            {format(new Date(row.original.dataEnvio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+          </span>
+        ),
+      },
+      {
+        id: "destinatarioEmail",
+        accessorKey: "destinatarioEmail",
+        header: "Destinatário",
+        cell: ({ row }) => <span className="text-sm">{row.original.destinatarioEmail}</span>,
+      },
+      {
+        id: "assunto",
+        accessorKey: "assunto",
+        header: "Assunto",
+        cell: ({ row }) => <span className="text-sm">{row.original.assunto}</span>,
+      },
+      {
+        id: "mensagemErro",
+        accessorKey: "mensagemErro",
+        header: "Erro",
+        cell: ({ row }) => (
+          <span className="text-sm text-red-600 dark:text-red-400 break-all">
+            {row.original.mensagemErro ?? "Sem detalhes"}
+          </span>
+        ),
+      },
+    ],
+    []
   )
 
   return (
@@ -69,6 +163,164 @@ export default function NotificacoesAdminPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Email Health Alert */}
+      {unhealthyEmail && (
+        <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+              <AlertTriangle className="h-5 w-5" />
+              <span className="font-medium">
+                Envio de e-mail com falhas: {unhealthyEmail.failuresLast24h} falhas nas últimas 24h
+              </span>
+            </div>
+            {unhealthyEmail.transport.error && (
+              <p className="text-sm text-red-600 dark:text-red-500 mt-1 break-all">
+                Conexão SMTP: {unhealthyEmail.transport.error}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Email Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de E-mails</CardTitle>
+            <Mail className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-700">{emailStats?.total ?? 0}</div>
+            <p className="text-xs text-muted-foreground">Últimos 30 dias</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Enviados</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{emailStats?.enviadas ?? 0}</div>
+            <p className="text-xs text-muted-foreground">Entregues ao servidor SMTP</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Falharam</CardTitle>
+            <XCircle className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{emailStats?.falharam ?? 0}</div>
+            <p className="text-xs text-muted-foreground">{emailHealth?.failuresLast24h ?? 0} nas últimas 24h</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Taxa de Entrega</CardTitle>
+            <TrendingUp className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{emailStats?.taxaEntrega ?? 0}%</div>
+            <p className="text-xs text-muted-foreground">Últimos 30 dias</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Email Health */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <MailWarning className="h-5 w-5 text-red-500" />
+                <CardTitle>Saúde do Envio de E-mails</CardTitle>
+              </div>
+              <CardDescription className="mt-1">
+                Estado da conexão SMTP e últimas falhas registradas pelo sistema
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              {emailHealth &&
+                (emailHealth.transport.healthy ? (
+                  <Badge
+                    variant="outline"
+                    className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                  >
+                    Conexão SMTP ok
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                    Conexão SMTP falhando
+                  </Badge>
+                ))}
+              <Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Send className="h-4 w-4 mr-2" />
+                    Enviar e-mail de teste
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Enviar e-mail de teste</DialogTitle>
+                    <DialogDescription>
+                      Envia uma mensagem real pelo servidor SMTP configurado e mostra o erro exato em caso de falha.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-2">
+                    <Label htmlFor="test-email">Destinatário</Label>
+                    <Input
+                      id="test-email"
+                      type="email"
+                      placeholder="voce@ufba.br"
+                      value={testEmail}
+                      onChange={(e) => setTestEmail(e.target.value)}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      onClick={() => sendTestEmail.mutate({ to: testEmail })}
+                      disabled={!testEmail || sendTestEmail.isPending}
+                    >
+                      {sendTestEmail.isPending ? (
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4 mr-2" />
+                      )}
+                      Enviar
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoadingEmailHealth ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : emailHealth && emailHealth.recentFailures.length > 0 ? (
+            <TableComponent
+              columns={failureColumns}
+              data={emailHealth.recentFailures}
+              showPagination={false}
+              emptyMessage="Nenhuma falha registrada."
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <CheckCircle className="h-12 w-12 text-green-500/50 mb-4" />
+              <p className="text-muted-foreground">Nenhuma falha de envio registrada</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Proactive Reminders Status */}
       <Card>
