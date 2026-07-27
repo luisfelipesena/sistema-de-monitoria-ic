@@ -10,15 +10,15 @@ import { useAuth } from "@/hooks/use-auth"
 import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
 import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
 import {
-  ADMIN,
-  DashboardProjectItem,
-  MonitoriaFormData,
-  PROFESSOR,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_LABELS,
-  PROJETO_STATUS_PENDING_SIGNATURE,
-  SEMESTRE_1,
-  SIGNING_MODE_PROFESSOR,
+    ADMIN,
+    DashboardProjectItem,
+    MonitoriaFormData,
+    PROFESSOR,
+    PROJETO_STATUS_DRAFT,
+    PROJETO_STATUS_LABELS,
+    PROJETO_STATUS_PENDING_SIGNATURE,
+    SEMESTRE_1,
+    SIGNING_MODE_PROFESSOR,
 } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
@@ -125,6 +125,8 @@ function DocumentSigningContent() {
       estimativaPessoasBenificiadas: selectedProject.estimativaPessoasBenificiadas || 0,
       disciplinas: selectedProject.disciplinas || [],
       atividades,
+      pontosProva: selectedProject.pontosProva || "",
+      bibliografia: selectedProject.bibliografia || "",
       user: {
         username: user?.username,
         email: user?.email,

@@ -22,6 +22,8 @@ const templateSchema = z.object({
   numeroSemanasDefault: z.number().int().positive().optional(),
   publicoAlvoDefault: z.string().optional(),
   atividadesDefault: z.array(z.string()).optional(),
+  pontosProvaDefault: z.string().optional(),
+  bibliografiaDefault: z.string().optional(),
 })
 
 type TemplateFormData = z.infer<typeof templateSchema>
@@ -93,6 +95,28 @@ export function useProjectCreation() {
         await apiUtils.projetoTemplates.getTemplateByDisciplinaForProfessor.invalidate({
           disciplinaId: selectedDisciplinaId,
         })
+
+        const templateValues = templateForm.getValues()
+        const disciplina = disciplinas?.find((d) => d.id === selectedDisciplinaId)
+        if (disciplina) {
+          form.reset({
+            titulo: templateValues.tituloDefault || `Monitoria de ${disciplina.nome}`,
+            descricao: templateValues.descricaoDefault || '',
+            departamentoId: disciplina.departamentoId,
+            ano: new Date().getFullYear(),
+            semestre: SEMESTRE_1,
+            tipoProposicao: TIPO_PROPOSICAO_INDIVIDUAL,
+            bolsasSolicitadas: 1,
+            voluntariosSolicitados: 2,
+            cargaHorariaSemana: templateValues.cargaHorariaSemanaDefault || 12,
+            numeroSemanas: templateValues.numeroSemanasDefault || 16,
+            publicoAlvo: templateValues.publicoAlvoDefault || 'Estudantes de graduação',
+            estimativaPessoasBenificiadas: 50,
+            disciplinas: [selectedDisciplinaId],
+            pontosProva: templateValues.pontosProvaDefault || '',
+            bibliografia: templateValues.bibliografiaDefault || '',
+          })
+        }
       }
       setIsEditingTemplate(false)
     },
@@ -123,6 +147,8 @@ export function useProjectCreation() {
       publicoAlvo: 'Estudantes de graduação',
       estimativaPessoasBenificiadas: 50,
       disciplinas: [],
+      pontosProva: '',
+      bibliografia: '',
     },
   })
 
@@ -135,6 +161,8 @@ export function useProjectCreation() {
       numeroSemanasDefault: 16,
       publicoAlvoDefault: 'Estudantes de graduação',
       atividadesDefault: [],
+      pontosProvaDefault: '',
+      bibliografiaDefault: '',
     },
   })
 
@@ -156,6 +184,8 @@ export function useProjectCreation() {
         numeroSemanasDefault: currentTemplate.numeroSemanasDefault || 16,
         publicoAlvoDefault: currentTemplate.publicoAlvoDefault || 'Estudantes de graduação',
         atividadesDefault: currentTemplate.atividadesDefault || [],
+        pontosProvaDefault: currentTemplate.pontosProvaDefault || '',
+        bibliografiaDefault: currentTemplate.bibliografiaDefault || '',
       })
 
       if (currentTemplate.atividadesDefault?.length) {
@@ -191,6 +221,8 @@ export function useProjectCreation() {
         publicoAlvo: currentTemplate.publicoAlvoDefault || 'Estudantes de graduação',
         estimativaPessoasBenificiadas: 50,
         disciplinas: [selectedDisciplinaId],
+        pontosProva: currentTemplate.pontosProvaDefault || '',
+        bibliografia: currentTemplate.bibliografiaDefault || '',
       })
 
       if (currentTemplate.atividadesDefault?.length) {
@@ -271,6 +303,8 @@ export function useProjectCreation() {
           estimativaPessoasBenificiadas: 50,
           disciplinas: [{ id: disciplina.id, codigo: disciplina.codigo, nome: disciplina.nome }],
           atividades: atividades.filter((atividade) => atividade.trim() !== ''),
+          pontosProva: templateValues.pontosProvaDefault || '',
+          bibliografia: templateValues.bibliografiaDefault || '',
           user: {
             email: professor?.emailInstitucional || 'professor@ufba.br',
             nomeCompleto: professor?.nomeCompleto || 'Professor',
@@ -313,6 +347,8 @@ export function useProjectCreation() {
         estimativaPessoasBenificiadas: projectValues.estimativaPessoasBenificiadas || 0,
         disciplinas: [{ id: disciplina.id, codigo: disciplina.codigo, nome: disciplina.nome }],
         atividades: atividades.filter((atividade) => atividade.trim() !== ''),
+        pontosProva: projectValues.pontosProva || '',
+        bibliografia: projectValues.bibliografia || '',
         user: {
           email: professor?.emailInstitucional || 'professor@ufba.br',
           nomeCompleto: professor?.nomeCompleto || 'Professor',
@@ -366,6 +402,8 @@ export function useProjectCreation() {
       disciplinaId: selectedDisciplinaId,
       ...data,
       atividadesDefault: atividades.filter((a) => a.trim() !== ''),
+      pontosProvaDefault: data.pontosProvaDefault || undefined,
+      bibliografiaDefault: data.bibliografiaDefault || undefined,
     }
 
     await upsertTemplate.mutateAsync(templateData)
@@ -387,6 +425,8 @@ export function useProjectCreation() {
           numeroSemanasDefault: data.numeroSemanas,
           publicoAlvoDefault: data.publicoAlvo,
           atividadesDefault: atividadesFiltradas,
+          pontosProvaDefault: data.pontosProva || undefined,
+          bibliografiaDefault: data.bibliografia || undefined,
         })
       } catch (err) {
         console.warn('Failed to auto-save template:', err)
@@ -398,6 +438,8 @@ export function useProjectCreation() {
       disciplinaIds: data.disciplinas,
       atividades: atividadesFiltradas,
       status: PROJETO_STATUS_DRAFT,
+      pontosProva: data.pontosProva || undefined,
+      bibliografia: data.bibliografia || undefined,
     }
 
     await createProjeto.mutateAsync(projetoData)

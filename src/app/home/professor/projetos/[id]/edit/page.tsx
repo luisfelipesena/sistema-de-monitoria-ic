@@ -9,14 +9,14 @@ import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import {
-  formatErrorResponse,
-  MonitoriaFormData,
-  projectFormSchema,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_PENDING_REVISION,
-  PROJETO_STATUS_PENDING_SIGNATURE,
-  SEMESTRE_1,
-  TIPO_PROPOSICAO_INDIVIDUAL,
+    formatErrorResponse,
+    MonitoriaFormData,
+    projectFormSchema,
+    PROJETO_STATUS_DRAFT,
+    PROJETO_STATUS_PENDING_REVISION,
+    PROJETO_STATUS_PENDING_SIGNATURE,
+    SEMESTRE_1,
+    TIPO_PROPOSICAO_INDIVIDUAL,
 } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -42,6 +42,8 @@ const templateSchema = z.object({
   numeroSemanasDefault: z.number().int().positive().optional(),
   publicoAlvoDefault: z.string().optional(),
   atividadesDefault: z.array(z.string()).optional(),
+  pontosProvaDefault: z.string().optional(),
+  bibliografiaDefault: z.string().optional(),
 })
 
 type TemplateFormData = z.infer<typeof templateSchema>
@@ -154,6 +156,8 @@ export default function EditProjetoPage() {
       publicoAlvo: "Estudantes de graduação",
       estimativaPessoasBenificiadas: 0,
       disciplinas: [],
+      pontosProva: "",
+      bibliografia: "",
     },
   })
 
@@ -207,6 +211,8 @@ export default function EditProjetoPage() {
       publicoAlvo: projeto.publicoAlvo,
       estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas ?? undefined,
       disciplinas: projeto.disciplinas?.map((d) => d.id) || [],
+      pontosProva: projeto.pontosProva || "",
+      bibliografia: projeto.bibliografia || "",
     }
     form.reset(formData)
 
@@ -333,6 +339,8 @@ export default function EditProjetoPage() {
             nome: d.nome,
           })),
           atividades: atividades.filter((a) => a.trim() !== ""),
+          pontosProva: templateValues.pontosProvaDefault || "",
+          bibliografia: templateValues.bibliografiaDefault || "",
           professorResponsavel: {
             id: professor.id,
             nomeCompleto: professor.nomeCompleto,
@@ -378,6 +386,8 @@ export default function EditProjetoPage() {
           nome: d.nome,
         })),
         atividades: atividades.filter((a) => a.trim() !== ""),
+        pontosProva: projectValues.pontosProva || "",
+        bibliografia: projectValues.bibliografia || "",
         professorResponsavel: {
           id: professor.id,
           nomeCompleto: professor.nomeCompleto,
@@ -509,6 +519,8 @@ export default function EditProjetoPage() {
             numeroSemanasDefault: data.numeroSemanas,
             publicoAlvoDefault: data.publicoAlvo,
             atividadesDefault: atividadesFiltradas,
+            pontosProvaDefault: data.pontosProva || undefined,
+            bibliografiaDefault: data.bibliografia || undefined,
           })
         } catch (err) {
           console.warn("Failed to auto-save template:", err)

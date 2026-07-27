@@ -3,18 +3,18 @@
 import { MonitoriaFormTemplate } from "@/components/features/projects/MonitoriaFormTemplate"
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import type { ManageProjectItem, MonitoriaFormData } from "@/types"
 import { api } from "@/utils/api"
-import { Check, X, Loader2, MessageSquare } from "lucide-react"
+import { Check, Loader2, MessageSquare, X } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useMemo, useState } from "react"
 
@@ -115,6 +115,8 @@ export function ProjectAnalysisDialog({
         nome: d.nome,
       })) ?? [],
       atividades: fullProject.atividades?.map((a) => a.descricao) ?? [],
+      pontosProva: (fullProject as any).pontosProva || "",
+      bibliografia: (fullProject as any).bibliografia || "",
       professorResponsavel: fullProject.professorResponsavel
         ? {
             id: fullProject.professorResponsavel.id,

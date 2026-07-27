@@ -1,4 +1,4 @@
-import type { UserRole, Semestre, TipoProposicao, ProjetoStatus } from './enums'
+import type { ProjetoStatus, Semestre, TipoProposicao, UserRole } from './enums'
 
 export type CreateProjetoInput = {
   userId: number
@@ -21,6 +21,8 @@ export type CreateProjetoInput = {
   atividades?: string[]
   professorResponsavelId?: number
   status?: ProjetoStatus
+  pontosProva?: string
+  bibliografia?: string
 }
 
 export type UpdateProjetoInput = Partial<CreateProjetoInput> & { id: number }

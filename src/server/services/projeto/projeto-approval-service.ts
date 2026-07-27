@@ -4,13 +4,13 @@ import { BusinessError, ForbiddenError, NotFoundError } from '@/server/lib/error
 import { ensurePngDataUrl } from '@/server/lib/image-utils'
 import { PDFService } from '@/server/lib/pdf-service'
 import {
-  PROJETO_STATUS_APPROVED,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_PENDING_REVISION,
-  PROJETO_STATUS_PENDING_SIGNATURE,
-  PROJETO_STATUS_REJECTED,
-  PROJETO_STATUS_SUBMITTED,
-  type UserRole,
+    PROJETO_STATUS_APPROVED,
+    PROJETO_STATUS_DRAFT,
+    PROJETO_STATUS_PENDING_REVISION,
+    PROJETO_STATUS_PENDING_SIGNATURE,
+    PROJETO_STATUS_REJECTED,
+    PROJETO_STATUS_SUBMITTED,
+    type UserRole,
 } from '@/types'
 import { logger } from '@/utils/logger'
 import type { ProjetoRepository } from './projeto-repository'
@@ -179,6 +179,8 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
         disciplinas,
         professoresParticipantes: projeto.professoresParticipantes || '',
         atividades: atividades.map((a) => a.descricao),
+        pontosProva: projeto.pontosProva || '',
+        bibliografia: projeto.bibliografia || '',
         assinaturaProfessor: normalizedSignature,
         dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
         signingMode: 'professor' as const,
