@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isValidCPF } from '@/lib/validators'
 
 // ========================================
 // COMMON VALIDATION SCHEMAS
@@ -104,7 +105,11 @@ export const errorResponseSchema = z.object({
 export const gradeSchema = z.number().min(0).max(10)
 
 // Document validation schemas
-export const cpfSchema = z.string().min(1, 'CPF é obrigatório')
+export const cpfSchema = z
+  .string()
+  .trim()
+  .min(1, 'CPF é obrigatório')
+  .refine((cpf) => isValidCPF(cpf), 'CPF inválido')
 
 // Academic record schemas
 export const matriculaSchema = z.string().min(8, 'Matrícula deve ter pelo menos 8 caracteres')

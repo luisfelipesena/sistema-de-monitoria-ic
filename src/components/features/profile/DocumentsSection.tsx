@@ -1,10 +1,10 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileUploadField } from "@/components/ui/FileUploadField"
-import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-auth"
+import { useToast } from "@/hooks/use-toast"
 import { ADMIN, PROFESSOR, STUDENT } from "@/types"
 import { api } from "@/utils/api"
 import { FileText, Upload } from "lucide-react"
@@ -14,6 +14,7 @@ interface DocumentConfig {
   name: string
   description: string
   required: boolean
+  maxSizeInMB: number
 }
 
 export function DocumentsSection() {
@@ -65,12 +66,14 @@ export function DocumentsSection() {
           name: "Histórico Escolar",
           description: "Histórico escolar atualizado",
           required: true,
+          maxSizeInMB: 5,
         },
         {
           id: "comprovante_matricula",
           name: "Comprovante de Matrícula",
           description: "Comprovante de matrícula atual",
           required: true,
+          maxSizeInMB: 2,
         },
       ]
     }
@@ -82,12 +85,14 @@ export function DocumentsSection() {
           name: "Curriculum Vitae",
           description: "CV atualizado",
           required: false,
+          maxSizeInMB: 10,
         },
         {
           id: "comprovante_vinculo",
           name: "Comprovante de Vínculo",
           description: "Comprovante de vínculo institucional",
           required: false,
+          maxSizeInMB: 10,
         },
       ]
     }
@@ -188,6 +193,7 @@ export function DocumentsSection() {
                     currentFileId={currentFileId}
                     onFileUploaded={(fileId, fileName) => handleDocumentUpload(doc.id, fileId, fileName)}
                     required={doc.required}
+                    maxSizeInMB={doc.maxSizeInMB}
                   />
                 </div>
               )
@@ -212,7 +218,7 @@ export function DocumentsSection() {
                 <ul className="text-sm text-blue-800 mt-2 space-y-1">
                   <li>• Documentos obrigatórios são necessários para participar do processo seletivo</li>
                   <li>• Aceitos formatos: PDF, DOC, DOCX, JPG, PNG</li>
-                  <li>• Tamanho máximo: 10MB por arquivo</li>
+                  <li>• Tamanho máximo varia por documento</li>
                   <li>• Mantenha seus documentos sempre atualizados</li>
                 </ul>
               </div>

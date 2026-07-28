@@ -18,7 +18,7 @@ import {
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
-import { BusinessError, NotFoundError, ValidationError } from '@/server/lib/errors'
+import { BusinessError, ConflictError, NotFoundError, ValidationError } from '@/server/lib/errors'
 
 const log = logger.child({ context: 'UserRouter' })
 
@@ -199,16 +199,22 @@ export const userRouter = createTRPCRouter({
         role: userRoleSchema.optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       try {
         const { id, ...updateData } = input
-        await userService.updateUser(id, updateData)
+        await userService.updateUser(id, updateData, ctx.user.id)
         log.info({ userId: id }, 'User updated successfully')
         return { success: true }
       } catch (error) {
         if (error instanceof NotFoundError) {
           throw new TRPCError({
             code: 'NOT_FOUND',
+            message: error.message,
+          })
+        }
+        if (error instanceof ConflictError) {
+          throw new TRPCError({
+            code: 'CONFLICT',
             message: error.message,
           })
         }
@@ -242,9 +248,9 @@ export const userRouter = createTRPCRouter({
         message: z.string(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       try {
-        const result = await userService.updateProfessorStatus(input.id, input.status)
+        const result = await userService.updateProfessorStatus(input.id, input.status, ctx.user.id)
         log.info({ userId: input.id, newStatus: input.status }, 'Professor status updated successfully')
         return result
       } catch (error) {

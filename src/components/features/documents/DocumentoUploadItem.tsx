@@ -1,10 +1,9 @@
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/hooks/use-toast'
-import { api } from '@/utils/api'
-import { Eye, Upload, FileText } from 'lucide-react'
+import { Eye, FileText, Upload } from 'lucide-react'
 import { useState } from 'react'
 
 interface DocumentoUploadItemProps {
@@ -22,6 +21,7 @@ interface DocumentoUploadItemProps {
   onView?: (fileId: string) => void
   isUploading?: boolean
   showActions?: boolean
+  maxSizeInMB?: number
 }
 
 export function DocumentoUploadItem({
@@ -30,6 +30,7 @@ export function DocumentoUploadItem({
   onView,
   isUploading = false,
   showActions = true,
+  maxSizeInMB = 10,
 }: DocumentoUploadItemProps) {
   const { toast } = useToast()
   const [isViewing, setIsViewing] = useState(false)
@@ -48,12 +49,10 @@ export function DocumentoUploadItem({
       return
     }
 
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (file.size > maxSize) {
+    if (file.size > maxSizeInMB * 1024 * 1024) {
       toast({
         title: 'Arquivo muito grande',
-        description: 'O arquivo deve ter no máximo 10MB',
+        description: `O arquivo deve ter no máximo ${maxSizeInMB}MB`,
         variant: 'destructive',
       })
       return

@@ -1,6 +1,7 @@
 import { db } from '@/server/db'
 import { apiKeyTable, User, userTable } from '@/server/db/schema'
 import { lucia } from '@/server/lib/lucia'
+import { consume, RATE_LIMITS, type RateLimitConfig } from '@/server/lib/rate-limit'
 import { LUCIA_SESSION_COOKIE_NAME } from '@/utils/utils'
 import { initTRPC, TRPCError } from '@trpc/server'
 import { createHash } from 'crypto'
@@ -106,6 +107,42 @@ const t = initTRPC
   })
 
 export const publicProcedure = t.procedure
+
+export { RATE_LIMITS }
+
+/**
+ * Security: public procedure with a rate limit budget
+ * Lives at procedure level because tRPC batches several calls into one HTTP
+ * request, so an HTTP-route guard would count a batch of N attempts as one.
+ */
+export const rateLimited = (config: RateLimitConfig) =>
+  publicProcedure.use(async ({ next, getRawInput }) => {
+    const headersList = await headers()
+    const ip = (headersList.get('x-forwarded-for') ?? '').split(',')[0]?.trim() || 'unknown'
+
+    const rawInput = await getRawInput()
+    const email =
+      typeof rawInput === 'object' && rawInput !== null && 'email' in rawInput
+        ? String((rawInput as { email: unknown }).email)
+            .trim()
+            .toLowerCase()
+        : null
+
+    // Email bucket is the primary one: UFBA lab networks NAT behind a single IP,
+    // so a pure-IP budget would lock out an entire computer lab at once.
+    const ipKey = `${config.keyPrefix}:i:${ip}`
+    const keys = email ? [`${config.keyPrefix}:e:${email}`, ipKey] : [ipKey]
+
+    for (const key of keys) {
+      const { allowed } = consume(key, key === ipKey ? { ...config, limit: config.limit * 5 } : config)
+      if (!allowed) {
+        throw new TRPCError({ code: 'TOO_MANY_REQUESTS', message: 'Muitas tentativas. Aguarde alguns minutos.' })
+      }
+    }
+
+    return next()
+  })
+
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
   if (!ctx.user) {
     throw new TRPCError({ code: 'UNAUTHORIZED' })

@@ -73,10 +73,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })
 
   const resendVerificationMutation = api.auth.resendVerification.useMutation({
-    onSuccess: () => {
+    onSuccess: (res) => {
       setErrors(null)
+      setSuccessMsg(res?.message ?? "Se o e-mail existir, reenviaremos a confirmação.")
     },
     onError: (error) => {
+      setSuccessMsg(null)
       setErrors(error.message || "Erro ao reenviar verificação")
     },
   })
@@ -96,6 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSuccessMsg(res?.message ?? "Se o e-mail existir, enviaremos instruções.");
     },
     onError: (error) => {
+      setSuccessMsg(null)
       setErrors(error.message || "Erro ao solicitar redefinição de senha")
     },
   })

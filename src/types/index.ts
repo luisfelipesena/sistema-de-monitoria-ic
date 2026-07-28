@@ -31,6 +31,7 @@ export {
 export * from './projeto-inputs'
 export * from './edital-inputs'
 export * from './selecao-inputs'
+export * from './user-inputs'
 
 // ========================================
 // DOMAIN-SPECIFIC TYPES

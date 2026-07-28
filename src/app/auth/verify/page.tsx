@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/use-auth"
 function VerifyEmailContent() {
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
-  const { confirmEmail, resendVerification, errors, clearErrors } = useAuth()
+  const { confirmEmail, resendVerification, errors, clearErrors, successMsg } = useAuth()
   const [message, setMessage] = useState<string | null>(null)
   const [email, setEmail] = useState<string>("")
   const confirmEmailRef = useRef(confirmEmail)
@@ -91,12 +91,19 @@ function VerifyEmailContent() {
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
               />
-              <Button type="button" variant="secondary" onClick={() => resendVerification({ email })} disabled={!email}>
+              <Button
+                type="button"
+                variant="secondary"
+                // Rejections are already rendered through `errors`; swallow so they do
+                // not escape as an unhandled promise rejection.
+                onClick={() => void resendVerification({ email }).catch(() => {})}
+                disabled={!email}
+              >
                 Reenviar
               </Button>
             </div>
             {errors ? <p className="text-sm text-red-600">{errors}</p> : null}
-            {message ? <p className="text-sm text-green-600">{message}</p> : null}
+            {successMsg ? <p className="text-sm text-green-600">{successMsg}</p> : null}
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 import type { db } from '@/server/db'
 import { inscricaoTable, notificacaoHistoricoTable, projetoTable, userTable, vagaTable } from '@/server/db/schema'
-import { ADMIN, PROJETO_STATUS_SUBMITTED, STATUS_INSCRICAO_SUBMITTED } from '@/types'
+import { ADMIN, PROJETO_STATUS_SUBMITTED, STATUS_ENVIO_FALHOU, STATUS_INSCRICAO_SUBMITTED } from '@/types'
 import type { InferInsertModel } from 'drizzle-orm'
 import { and, desc, eq, sql } from 'drizzle-orm'
 
@@ -95,6 +95,36 @@ export function createNotificacoesRepository(db: Database) {
         .where(sql`${notificacaoHistoricoTable.dataEnvio} >= ${dataInicio}`)
 
       return stats
+    },
+
+    async countFailuresSince(dataInicio: Date) {
+      const [result] = await db
+        .select({ total: sql<number>`COUNT(*)` })
+        .from(notificacaoHistoricoTable)
+        .where(
+          and(
+            eq(notificacaoHistoricoTable.statusEnvio, STATUS_ENVIO_FALHOU),
+            sql`${notificacaoHistoricoTable.dataEnvio} >= ${dataInicio}`
+          )
+        )
+
+      return Number(result?.total) || 0
+    },
+
+    async findRecentFailures(limite: number) {
+      return db.query.notificacaoHistoricoTable.findMany({
+        where: eq(notificacaoHistoricoTable.statusEnvio, STATUS_ENVIO_FALHOU),
+        columns: {
+          id: true,
+          destinatarioEmail: true,
+          assunto: true,
+          tipoNotificacao: true,
+          mensagemErro: true,
+          dataEnvio: true,
+        },
+        orderBy: [desc(notificacaoHistoricoTable.dataEnvio)],
+        limit: limite,
+      })
     },
 
     async findUsersByIds(userIds: number[]) {

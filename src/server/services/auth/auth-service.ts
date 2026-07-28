@@ -1,9 +1,11 @@
 import { db } from '@/server/db'
 import { createAuthRepository } from './auth-repository'
-import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from '@/server/lib/errors'
+import { BusinessError, ConflictError, NotFoundError, UnauthorizedError, ValidationError } from '@/server/lib/errors'
 import { emailService } from '@/server/lib/email'
+import { checkEmailTransport } from '@/server/lib/email/email-transport'
 import { lucia } from '@/server/lib/lucia'
 import { env } from '@/utils/env'
+import { logger } from '@/utils/logger'
 import { emailToUsername } from '@/utils/username-formatter'
 import { ensureAdminRole } from '@/utils/admins'
 import { compare, hash } from 'bcryptjs'
@@ -19,10 +21,16 @@ import type {
 } from '@/types'
 import { STUDENT, PROFESSOR } from '@/types'
 
+const log = logger.child({ context: 'AuthService' })
+
 const SALT_ROUNDS = 12
 const TOKEN_LENGTH = 48
 const TOKEN_EXPIRATION_HOURS = 24
 const PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES = 60
+
+const GENERIC_PASSWORD_RESET_MESSAGE = 'Se o e-mail existir, enviaremos instruções para redefinir a senha.'
+const EMAIL_DELIVERY_FAILURE_MESSAGE =
+  'Não foi possível enviar o e-mail de redefinição no momento. Procure um administrador do sistema.'
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase()
 
@@ -77,20 +85,35 @@ export const createAuthService = (database: typeof db) => {
         })
       }
 
-      await emailService.sendEmailVerification({
-        to: newUser.email,
-        verificationLink: buildVerificationLink(verificationToken),
-      })
+      // The account is already persisted, so a send failure must not surface as an error:
+      // it would leave an orphan account the user cannot re-register.
+      let emailSent = true
+      try {
+        await emailService.sendEmailVerification({
+          to: newUser.email,
+          verificationLink: buildVerificationLink(verificationToken),
+        })
+      } catch (error) {
+        emailSent = false
+        log.error({ error, userId: newUser.id }, 'Verification email send failed after user creation')
+      }
 
-      return { success: true, message: 'Cadastro realizado. Verifique seu e-mail para ativar a conta.' }
+      return {
+        success: true,
+        emailSent,
+        message: emailSent
+          ? 'Cadastro realizado. Verifique seu e-mail para ativar a conta.'
+          : 'Conta criada, mas não conseguimos enviar o e-mail de verificação. Use "Reenviar verificação" ou procure um administrador.',
+      }
     },
 
     async resendVerification(data: ResendVerificationInput) {
       const email = normalizeEmail(data.email)
       const user = await authRepository.findByEmail(email)
 
+      // Generic answer so the endpoint cannot be used to enumerate accounts.
       if (!user) {
-        throw new NotFoundError('User', email)
+        return { success: true, message: 'Se o e-mail existir, reenviaremos a confirmação.' }
       }
 
       if (user.emailVerifiedAt) {
@@ -103,7 +126,7 @@ export const createAuthService = (database: typeof db) => {
       await authRepository.updateVerificationToken(user.id, verificationToken, expires)
 
       await emailService.sendEmailVerification({
-        to: email,
+        to: user.email,
         verificationLink: buildVerificationLink(verificationToken),
       })
 
@@ -163,37 +186,37 @@ export const createAuthService = (database: typeof db) => {
     async requestPasswordReset(data: RequestPasswordResetInput) {
       const email = normalizeEmail(data.email)
 
+      // Checked before the lookup so an outage fails identically for existing and
+      // unknown addresses and cannot be used as an enumeration oracle.
+      const health = await checkEmailTransport()
+      if (!health.healthy) {
+        log.error({ error: health.error }, 'Password reset blocked: SMTP transport unhealthy')
+        throw new BusinessError(EMAIL_DELIVERY_FAILURE_MESSAGE, 'INTERNAL_SERVER_ERROR')
+      }
+
+      const user = await authRepository.findByEmail(email)
+
+      if (!user) {
+        return { success: true, message: GENERIC_PASSWORD_RESET_MESSAGE }
+      }
+
+      const token = randomBytes(TOKEN_LENGTH).toString('hex')
+      const expires = new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES * 60 * 1000)
+
+      await authRepository.updatePasswordResetToken(user.id, token, expires)
+
       try {
-        const user = await authRepository.findByEmail(email)
-
-        if (!user) {
-          return {
-            success: true,
-            message: 'Se o e-mail existir, enviaremos instruções para redefinir a senha.',
-          }
-        }
-
-        const token = randomBytes(TOKEN_LENGTH).toString('hex')
-        const expires = new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION_MINUTES * 60 * 1000)
-
-        await authRepository.updatePasswordResetToken(user.id, token, expires)
-
         await emailService.sendPasswordResetEmail({
-          to: email,
+          to: user.email,
           resetLink: buildPasswordResetLink(token),
         })
-
-        return {
-          success: true,
-          message: 'Se o e-mail existir, enviaremos instruções para redefinir a senha.',
-        }
       } catch (error) {
-        console.error('[requestPasswordReset] Erro ao processar reset de senha:', error)
-        return {
-          success: true,
-          message: 'Se o e-mail existir, enviaremos instruções para redefinir a senha.',
-        }
+        // The token is deliberately left valid so a retry or an admin can still use it.
+        log.error({ error, userId: user.id }, 'Password reset email send failed')
+        throw new BusinessError(EMAIL_DELIVERY_FAILURE_MESSAGE, 'INTERNAL_SERVER_ERROR')
       }
+
+      return { success: true, message: GENERIC_PASSWORD_RESET_MESSAGE }
     },
 
     async resetPassword(data: ResetPasswordWithTokenInput) {
@@ -217,6 +240,10 @@ export const createAuthService = (database: typeof db) => {
         verificationToken: null,
         verificationTokenExpiresAt: null,
       })
+
+      // Sessions live 30 days, so a reset triggered by a suspected compromise has to
+      // drop whatever is already logged in.
+      await lucia.invalidateUserSessions(user.id)
 
       await ensureAdminRole(user.id, user.email)
 
@@ -254,6 +281,15 @@ export const createAuthService = (database: typeof db) => {
         verificationToken: null,
         verificationTokenExpiresAt: null,
       })
+
+      // Same reasoning as resetPassword, but the caller is authenticated: re-issue the
+      // cookie right away so changing the password does not log out the current tab.
+      await lucia.invalidateUserSessions(dbUser.id)
+      const session = await lucia.createSession(dbUser.id, {})
+      const sessionCookie = lucia.createSessionCookie(session.id)
+      const { cookies: getCookies } = await import('next/headers')
+      const cookieStore = await getCookies()
+      cookieStore.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
 
       await ensureAdminRole(dbUser.id, dbUser.email)
 

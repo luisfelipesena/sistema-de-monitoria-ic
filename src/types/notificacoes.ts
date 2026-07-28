@@ -46,3 +46,30 @@ export const createNotificationSchema = z.object({
 })
 
 export type CreateNotificationData = z.infer<typeof createNotificationSchema>
+
+// ========================================
+// EMAIL HEALTH
+// ========================================
+
+// Historical rows are not re-validated on read, so recipients stay loose strings.
+export const emailFailureSchema = z.object({
+  id: z.number(),
+  destinatarioEmail: z.string(),
+  assunto: z.string(),
+  tipoNotificacao: z.string(),
+  mensagemErro: z.string().nullable(),
+  dataEnvio: z.date(),
+})
+
+export const emailHealthSchema = z.object({
+  transport: z.object({
+    healthy: z.boolean(),
+    checkedAt: z.date(),
+    error: z.string().nullable(),
+  }),
+  failuresLast24h: z.number(),
+  recentFailures: z.array(emailFailureSchema),
+})
+
+export type EmailFailure = z.infer<typeof emailFailureSchema>
+export type EmailHealth = z.infer<typeof emailHealthSchema>

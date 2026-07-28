@@ -39,6 +39,14 @@ export const env = createEnv({
     EMAIL_PASS: z.string().optional(),
     EMAIL_VERIFICATION_URL: z.string().url().optional(),
     PASSWORD_RESET_URL: z.string().url().optional(),
+    EMAIL_FROM_NAME: z.string().default('Sistema de Monitoria IC - UFBA'),
+
+    // SMTP (optional override; without SMTP_HOST the Gmail service transport is used)
+    SMTP_HOST: z.string().optional(),
+    SMTP_PORT: z.coerce.number().int().positive().optional(),
+    SMTP_SECURE: z.enum(['true', 'false']).optional(),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASS: z.string().optional(),
 
     // API Auth
     JWT_SECRET: z.string().min(32).optional(),
@@ -68,6 +76,12 @@ export const env = createEnv({
     EMAIL_PASS: process.env.EMAIL_PASS,
     EMAIL_VERIFICATION_URL: process.env.EMAIL_VERIFICATION_URL,
     PASSWORD_RESET_URL: process.env.PASSWORD_RESET_URL,
+    EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_PORT: process.env.SMTP_PORT,
+    SMTP_SECURE: process.env.SMTP_SECURE,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASS: process.env.SMTP_PASS,
     JWT_SECRET: process.env.JWT_SECRET,
   },
 
