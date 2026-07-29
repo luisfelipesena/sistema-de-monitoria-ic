@@ -1,11 +1,11 @@
 import { emailService } from '@/server/lib/email'
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import {
-  SEMESTRE_LABELS,
-  TIPO_EDITAL_DCC,
-  type CreateEditalInput,
-  type EditalWithPeriodoStatus,
-  type UpdateEditalInput,
+    SEMESTRE_LABELS,
+    TIPO_EDITAL_DCC,
+    type CreateEditalInput,
+    type EditalWithPeriodoStatus,
+    type UpdateEditalInput,
 } from '@/types'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
@@ -111,6 +111,14 @@ export function createEditalCrudService(
       })
 
       log.info({ editalId: novoEdital.id, periodoId: novoPeriodo.id }, 'Novo edital e período criados')
+
+      // Link approved projects from the same ano/semestre to this edital
+      if (input.tipo === TIPO_EDITAL_DCC) {
+        const linked = await repo.linkApprovedProjectsToEdital(novoEdital.id, input.ano, input.semestre)
+        if (linked.length > 0) {
+          log.info({ editalId: novoEdital.id, linkedCount: linked.length }, 'Projetos aprovados vinculados ao edital')
+        }
+      }
 
       // Return the edital with relations (matching getEdital return type)
       const edital = await getEdital(novoEdital.id)

@@ -27,7 +27,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { SEMESTRE_1, SEMESTRE_2, TIPO_EDITAL_DCC, TIPO_EDITAL_DCI, type Semestre, type TipoEdital } from "@/types";
+import type { SlotDataHorario } from "@/types/selecao-inputs";
 import { UseFormReturn } from "react-hook-form";
+import { SlotDateTimePicker } from "./SlotDateTimePicker";
 
 export interface EditalFormData {
   tipo: TipoEdital;
@@ -47,6 +49,8 @@ export interface EditalFormData {
   dataDivulgacaoResultado?: Date;
   // Edital PROGRAD
   numeroEditalPrograd?: string;
+  // Datas disponíveis para provas (slots estruturados)
+  datasProvasDisponiveis: SlotDataHorario[];
 }
 
 interface EditalFormDialogProps {
@@ -329,6 +333,32 @@ export function EditalFormDialog({
                   )}
                 />
               </div>
+            </div>
+
+            <Separator />
+
+            {/* Datas disponíveis para provas */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Datas Disponíveis para Provas</h3>
+              <p className="text-xs text-muted-foreground">
+                Defina entre 2 e 3 opções de data/horário para os professores escolherem a data da seleção
+              </p>
+              <FormField
+                control={form.control}
+                name="datasProvasDisponiveis"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <SlotDateTimePicker
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <Separator />

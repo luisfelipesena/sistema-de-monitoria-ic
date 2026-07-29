@@ -1,17 +1,18 @@
 "use client"
 
+import { DadosSelecaoSection } from "@/components/features/projeto/DadosSelecaoSection"
 import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,19 +20,19 @@ import { useToast } from "@/hooks/use-toast"
 import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
 import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
 import {
-  DashboardProjectItem,
-  PROJETO_STATUS_APPROVED,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_LABELS,
-  PROJETO_STATUS_PENDING_REVISION,
-  PROJETO_STATUS_PENDING_SIGNATURE,
-  PROJETO_STATUS_REJECTED,
-  PROJETO_STATUS_SUBMITTED,
+    DashboardProjectItem,
+    PROJETO_STATUS_APPROVED,
+    PROJETO_STATUS_DRAFT,
+    PROJETO_STATUS_LABELS,
+    PROJETO_STATUS_PENDING_REVISION,
+    PROJETO_STATUS_PENDING_SIGNATURE,
+    PROJETO_STATUS_REJECTED,
+    PROJETO_STATUS_SUBMITTED,
 } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import { Download, Edit, Eye, FileSignature, List, Loader, Plus, Trash2, Users } from "lucide-react"
 
@@ -59,6 +60,14 @@ export default function DashboardProfessor() {
   const { columnFilters, setColumnFilters } = useUrlColumnFilters({
     useCurrentSemester: false,
   })
+
+  // Filter approved projects that are linked to an internal edital
+  const projetosComEdital = useMemo(() => {
+    if (!projetos) return []
+    return projetos.filter(
+      (p) => p.status === PROJETO_STATUS_APPROVED && p.editalInternoId
+    ) as (DashboardProjectItem & { editalInternoId: number })[]
+  }, [projetos])
 
   const handleDeleteProjeto = (projeto: DashboardProjectItem) => {
     setProjetoToDelete(projeto)
@@ -350,13 +359,35 @@ export default function DashboardProfessor() {
           <span className="ml-2">Carregando projetos...</span>
         </div>
       ) : projetos && projetos.length > 0 ? (
-        <TableComponent
-          columns={colunasProjetos}
-          data={projetos}
-          columnFilters={columnFilters}
-          onColumnFiltersChange={setColumnFilters}
-          defaultSorting={[{ id: "ano", desc: true }, { id: "semestre", desc: true }, { id: "titulo", desc: false }]}
-        />
+        <>
+          <TableComponent
+            columns={colunasProjetos}
+            data={projetos}
+            columnFilters={columnFilters}
+            onColumnFiltersChange={setColumnFilters}
+            defaultSorting={[{ id: "ano", desc: true }, { id: "semestre", desc: true }, { id: "titulo", desc: false }]}
+          />
+
+          {/* Seção "Dados da Seleção" para projetos aprovados vinculados a edital interno */}
+          {projetosComEdital.length > 0 && (
+            <div className="mt-8 space-y-4">
+              <h2 className="text-lg font-semibold">Dados da Seleção</h2>
+              <p className="text-sm text-muted-foreground">
+                Configure data/horário, voluntários, pontos de prova e bibliografia para seus projetos aprovados.
+              </p>
+              <div className="space-y-4">
+                {projetosComEdital.map((projeto) => (
+                  <div key={projeto.id}>
+                    <h3 className="text-sm font-medium text-gray-700">
+                      {projeto.disciplinas[0]?.codigo ?? "N/A"} — {projeto.disciplinas[0]?.nome ?? projeto.titulo}
+                    </h3>
+                    <DadosSelecaoSection projetoId={projeto.id} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <div className="text-center py-12 border rounded-md bg-muted/20">
           <List className="mx-auto h-12 w-12 text-muted-foreground mb-4" />

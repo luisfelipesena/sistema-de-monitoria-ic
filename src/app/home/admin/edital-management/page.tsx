@@ -30,6 +30,8 @@ import {
     TIPO_EDITAL_DCC,
     TIPO_EDITAL_DCI,
 } from "@/types";
+import type { SlotDataHorario } from "@/types/selecao-inputs";
+import { datasProvasDisponiveisSchema } from "@/types/selecao-inputs";
 import { api } from "@/utils/api";
 import { getCurrentSemester } from "@/utils/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +39,37 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
+/**
+ * Parses the datasProvasDisponiveis JSON string from the edital response.
+ * Supports both new format (array of objects) and legacy format (array of strings).
+ */
+function parseSlotsFromString(raw: string | null | undefined): SlotDataHorario[] {
+  if (!raw) return [{ data: "", horario: "" }, { data: "", horario: "" }]
+
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return [{ data: "", horario: "" }, { data: "", horario: "" }]
+    if (parsed.length === 0) return [{ data: "", horario: "" }, { data: "", horario: "" }]
+
+    // Legacy format: array of strings
+    if (typeof parsed[0] === 'string') {
+      return parsed.map((s: string) => {
+        const [data, horario] = s.split(' ')
+        return { data: data || '', horario: horario || '' }
+      })
+    }
+
+    // New format: array of objects
+    return parsed.filter((s: unknown) => {
+      if (typeof s !== 'object' || s === null) return false
+      const slot = s as Record<string, unknown>
+      return typeof slot.data === 'string' && typeof slot.horario === 'string'
+    }) as SlotDataHorario[]
+  } catch {
+    return [{ data: "", horario: "" }, { data: "", horario: "" }]
+  }
+}
 
 const editalFormSchema = z
   .object({
@@ -66,6 +99,8 @@ const editalFormSchema = z
           message: 'Valor da bolsa deve ser um número válido e não pode ser negativo',
         }
       ),
+    // Datas disponíveis para provas (slots estruturados)
+    datasProvasDisponiveis: datasProvasDisponiveisSchema,
   })
   .superRefine((data, ctx) => {
     if (data.dataFimInscricao <= data.dataInicioInscricao) {
@@ -266,6 +301,10 @@ export default function EditalManagementPage() {
       dataInicioSelecao: undefined,
       dataFimSelecao: undefined,
       dataDivulgacaoResultado: undefined,
+      datasProvasDisponiveis: [
+        { data: "", horario: "" },
+        { data: "", horario: "" },
+      ],
     },
   });
 
@@ -284,6 +323,10 @@ export default function EditalManagementPage() {
       dataInicioSelecao: undefined,
       dataFimSelecao: undefined,
       dataDivulgacaoResultado: undefined,
+      datasProvasDisponiveis: [
+        { data: "", horario: "" },
+        { data: "", horario: "" },
+      ],
     },
   });
 
@@ -302,6 +345,7 @@ export default function EditalManagementPage() {
       dataFimSelecao: data.dataFimSelecao,
       dataDivulgacaoResultado: data.dataDivulgacaoResultado,
       numeroEditalPrograd: data.numeroEditalPrograd,
+      datasProvasDisponiveis: data.datasProvasDisponiveis,
     });
   };
 
@@ -321,6 +365,7 @@ export default function EditalManagementPage() {
       dataFimSelecao: data.dataFimSelecao,
       dataDivulgacaoResultado: data.dataDivulgacaoResultado,
       numeroEditalPrograd: data.numeroEditalPrograd,
+      datasProvasDisponiveis: data.datasProvasDisponiveis,
     });
   };
 
@@ -438,6 +483,7 @@ export default function EditalManagementPage() {
         ? new Date(edital.dataDivulgacaoResultado)
         : undefined,
       numeroEditalPrograd: edital.periodoInscricao?.numeroEditalPrograd || "",
+      datasProvasDisponiveis: parseSlotsFromString(edital.datasProvasDisponiveis),
     });
     setIsEditDialogOpen(true);
   };

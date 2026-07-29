@@ -1,4 +1,5 @@
-import type { TipoEdital, Semestre } from './enums'
+import type { Semestre, TipoEdital } from './enums'
+import type { SlotDataHorario } from './selecao-inputs'
 
 export type CreateEditalInput = {
   tipo: TipoEdital
@@ -18,7 +19,7 @@ export type CreateEditalInput = {
   dataDivulgacaoResultado?: Date
   // Legacy/external
   fileIdPdfExterno?: string
-  datasProvasDisponiveis?: string[]
+  datasProvasDisponiveis?: SlotDataHorario[]
   criadoPorUserId: number
   numeroEditalPrograd?: string
 }
@@ -39,7 +40,7 @@ export type UpdateEditalInput = {
   dataFimSelecao?: Date | null
   // Divulgação
   dataDivulgacaoResultado?: Date | null
-  // Legacy
-  datasProvasDisponiveis?: string[]
+  // Slots de data/horário para provas (objetos estruturados)
+  datasProvasDisponiveis?: SlotDataHorario[]
   numeroEditalPrograd?: string
 }

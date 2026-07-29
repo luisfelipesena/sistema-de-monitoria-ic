@@ -1,18 +1,18 @@
 import type { db } from '@/server/db'
 import {
-  alunoTable,
-  ataSelecaoTable,
-  atividadeProjetoTable,
-  departamentoTable,
-  disciplinaProfessorResponsavelTable,
-  disciplinaTable,
-  inscricaoTable,
-  periodoInscricaoTable,
-  professorTable,
-  projetoDisciplinaTable,
-  projetoProfessorParticipanteTable,
-  projetoTable,
-  userTable,
+    alunoTable,
+    ataSelecaoTable,
+    atividadeProjetoTable,
+    departamentoTable,
+    disciplinaProfessorResponsavelTable,
+    disciplinaTable,
+    inscricaoTable,
+    periodoInscricaoTable,
+    professorTable,
+    projetoDisciplinaTable,
+    projetoProfessorParticipanteTable,
+    projetoTable,
+    userTable,
 } from '@/server/db/schema'
 import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
 import { ADMIN, PROJETO_STATUS_APPROVED, TIPO_PROPOSICAO_COLETIVA } from '@/types'
@@ -56,6 +56,15 @@ export function createProjetoRepository(db: Database) {
         with: {
           departamento: true,
           professorResponsavel: true,
+        },
+      })
+    },
+
+    async findByIdWithEdital(id: number) {
+      return db.query.projetoTable.findFirst({
+        where: and(eq(projetoTable.id, id), isNull(projetoTable.deletedAt)),
+        with: {
+          editalInterno: true,
         },
       })
     },
@@ -544,6 +553,7 @@ export function createProjetoRepository(db: Database) {
         with: {
           edital: {
             columns: {
+              id: true,
               numeroEdital: true,
               publicado: true,
             },

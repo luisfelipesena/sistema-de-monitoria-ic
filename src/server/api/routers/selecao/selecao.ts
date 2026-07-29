@@ -1,9 +1,10 @@
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { createProjetoService } from '@/server/services/projeto/projeto-service'
 import { createSelecaoService } from '@/server/services/selecao/selecao-service'
-import { NotFoundError, ForbiddenError, ValidationError, BusinessError } from '@/types/errors'
+import { anoSchema, semestreSchema } from '@/types'
+import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@/types/errors'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
-import { anoSchema, semestreSchema } from '@/types'
 
 function handleServiceError(error: unknown): never {
   if (error instanceof NotFoundError) {
@@ -191,6 +192,96 @@ export const selecaoRouter = createTRPCRouter({
       const service = createSelecaoService(ctx.db)
       try {
         return await service.getAllAtasForAdmin(input)
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
+  // ========================================
+  // SELEÇÃO DATA/HORÁRIO ENDPOINTS
+  // ========================================
+
+  getProjetoSelecaoInfo: protectedProcedure
+    .input(
+      z.object({
+        projetoId: z.number(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const service = createProjetoService(ctx.db)
+      try {
+        return await service.getSelecaoInfo(
+          input.projetoId,
+          ctx.user.id,
+          ctx.user.role
+        )
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
+  chooseSelecaoSlot: protectedProcedure
+    .input(
+      z.object({
+        projetoId: z.number(),
+        data: z.string(),
+        horario: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const service = createProjetoService(ctx.db)
+      try {
+        return await service.chooseSlot(
+          input.projetoId,
+          input.data,
+          input.horario,
+          ctx.user.id,
+          ctx.user.role
+        )
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
+  updateVoluntarios: protectedProcedure
+    .input(
+      z.object({
+        projetoId: z.number(),
+        voluntariosSolicitados: z.number().int().min(0),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const service = createProjetoService(ctx.db)
+      try {
+        return await service.updateVoluntarios(
+          input.projetoId,
+          input.voluntariosSolicitados,
+          ctx.user.id,
+          ctx.user.role
+        )
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
+  updateSelecaoData: protectedProcedure
+    .input(
+      z.object({
+        projetoId: z.number(),
+        pontosProva: z.string().optional(),
+        bibliografia: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const service = createProjetoService(ctx.db)
+      try {
+        return await service.updateSelecaoData(
+          input.projetoId,
+          input.pontosProva,
+          input.bibliografia,
+          ctx.user.id,
+          ctx.user.role
+        )
       } catch (error) {
         handleServiceError(error)
       }

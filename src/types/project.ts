@@ -96,6 +96,7 @@ export interface DashboardProjectItem {
   voluntariosSolicitados?: number | null | undefined
   totalInscritos: number
   disciplinas: Array<{ codigo: string; nome: string }>
+  editalInternoId?: number | null
 }
 
 export interface ManageProjectItem {
@@ -464,6 +465,7 @@ export const projectListItemSchema = z.object({
   feedbackAdmin: z.string().nullable().optional(),
   mensagemRevisao: z.string().nullable().optional(),
   revisaoSolicitadaEm: z.date().nullable().optional(),
+  editalInternoId: z.number().int().positive().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date().nullable().optional(),
   deletedAt: z.date().nullable().optional(),

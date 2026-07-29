@@ -1,13 +1,14 @@
 import { NotFoundError } from '@/server/lib/errors'
 import type { Semestre, TipoEdital } from '@/types'
 import {
-  PERIODO_INSCRICAO_STATUS_ATIVO,
-  PERIODO_INSCRICAO_STATUS_FINALIZADO,
-  PERIODO_INSCRICAO_STATUS_FUTURO,
-  type PeriodoInscricaoStatus,
+    PERIODO_INSCRICAO_STATUS_ATIVO,
+    PERIODO_INSCRICAO_STATUS_FINALIZADO,
+    PERIODO_INSCRICAO_STATUS_FUTURO,
+    type PeriodoInscricaoStatus,
 } from '@/types/schemas'
 import { logger } from '@/utils/logger'
 import type { EditalRepository } from './edital-repository'
+import { parseSlots } from './parse-slots'
 
 const _log = logger.child({ context: 'EditalQueryService' })
 
@@ -170,7 +171,7 @@ export function createEditalQueryService(repo: EditalRepository) {
       }
 
       return {
-        datasProvasDisponiveis: edital.datasProvasDisponiveis ? JSON.parse(edital.datasProvasDisponiveis) : null,
+        datasProvasDisponiveis: parseSlots(edital.datasProvasDisponiveis ?? null),
         dataDivulgacaoResultado: edital.dataDivulgacaoResultado,
       }
     },

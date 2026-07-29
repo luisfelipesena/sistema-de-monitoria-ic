@@ -1,10 +1,11 @@
 import type { db } from '@/server/db'
 import {
-  editalSignatureTokenTable,
-  editalTable,
-  periodoInscricaoTable,
-  professorTable,
-  projetoTable,
+    editalSignatureTokenTable,
+    editalTable,
+    periodoInscricaoTable,
+    professorTable,
+    projetoTable,
+    projetoTemplateTable
 } from '@/server/db/schema'
 import type { Semestre, TipoEdital } from '@/types'
 import { APPROVED, TIPO_EDITAL_DCC } from '@/types'
@@ -287,6 +288,33 @@ export function createEditalRepository(db: Database) {
           disciplinaEquivalente: true,
         },
       })
+    },
+
+    async findTemplatesByDisciplinaIds(disciplinaIds: number[]) {
+      if (disciplinaIds.length === 0) return []
+      return db.query.projetoTemplateTable.findMany({
+        where: inArray(projetoTemplateTable.disciplinaId, disciplinaIds),
+      })
+    },
+
+    /**
+     * Links all approved projects for a given ano/semestre to the specified edital interno.
+     * Sets `editalInternoId` on projects that don't already have one set.
+     */
+    async linkApprovedProjectsToEdital(editalId: number, ano: number, semestre: Semestre) {
+      const result = await db
+        .update(projetoTable)
+        .set({ editalInternoId: editalId })
+        .where(
+          and(
+            eq(projetoTable.ano, ano),
+            eq(projetoTable.semestre, semestre),
+            eq(projetoTable.status, APPROVED),
+            isNull(projetoTable.editalInternoId)
+          )
+        )
+        .returning({ id: projetoTable.id })
+      return result
     },
   }
 }
