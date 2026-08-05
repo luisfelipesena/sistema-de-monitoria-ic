@@ -1,9 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EditalListItem, SEMESTRE_1, TIPO_EDITAL_DCC } from "@/types";
+import { PERIODO_INSCRICAO_STATUS_ATIVO, PERIODO_INSCRICAO_STATUS_FINALIZADO } from "@/types/schemas";
 import { ColumnDef } from "@tanstack/react-table";
-import { Edit, Eye, FileText, Pencil, Send, Trash2, Upload } from "lucide-react";
-import { EditalStatusBadge, getPeriodStatusBadge } from "./EditalStatusBadge";
+import { CheckCircle, Clock, Edit, Eye, FileText, Pencil, Send, Trash2, Upload } from "lucide-react";
+import { EditalStatusBadge } from "./EditalStatusBadge";
 
 interface EditalTableColumnsProps {
   onEdit: (edital: EditalListItem) => void;
@@ -118,35 +119,64 @@ export function createEditalTableColumns({
       },
     },
     {
-      id: "status2",
+      id: "assinaturas",
       header: "Status",
       cell: ({ row }) => {
         const edital = row.original;
-        return edital.periodoInscricao ? (
-          <div>{getPeriodStatusBadge(edital.periodoInscricao.status)}</div>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        );
-      },
-    },
-    {
-      id: "assinaturas",
-      header: "Assinaturas",
-      cell: ({ row }) => {
-        const edital = row.original;
+        const periodo = edital.periodoInscricao;
+
+        const getStatusBadge = () => {
+          if (edital.publicado && periodo?.status === PERIODO_INSCRICAO_STATUS_ATIVO) {
+            return (
+              <Badge variant="default" className="bg-green-500">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Inscrições Abertas
+              </Badge>
+            );
+          }
+          if (edital.publicado && periodo?.status === PERIODO_INSCRICAO_STATUS_FINALIZADO) {
+            return (
+              <Badge variant="outline" className="border-red-500 text-red-700">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Finalizado
+              </Badge>
+            );
+          }
+          if (edital.publicado) {
+            return (
+              <Badge variant="default" className="bg-green-500">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Publicado
+              </Badge>
+            );
+          }
+          if (edital.chefeAssinouEm) {
+            return (
+              <Badge variant="outline" className="border-purple-500 text-purple-700">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Assinado
+              </Badge>
+            );
+          }
+          if (edital.fileIdAssinado) {
+            return (
+              <Badge variant="outline" className="border-blue-500 text-blue-700">
+                <FileText className="h-3 w-3 mr-1" />
+                PDF Assinado
+              </Badge>
+            );
+          }
+          return (
+            <Badge variant="outline" className="border-emerald-400 text-emerald-600">
+              <Clock className="h-3 w-3 mr-1" />
+              Pendente
+            </Badge>
+          );
+        };
+
         return (
-          <div className="text-sm">
-            {edital.chefeAssinouEm && (
-              <div className="text-green-600">
-                ✓ Chefe: {formatDate(edital.chefeAssinouEm)}
-              </div>
-            )}
-            {edital.fileIdAssinado && (
-              <div className="text-blue-600">✓ PDF Assinado</div>
-            )}
-            {!edital.chefeAssinouEm && !edital.fileIdAssinado && (
-              <span className="text-muted-foreground">Sem assinaturas</span>
-            )}
+          <div className="flex flex-col gap-1">
+            {getStatusBadge()}
           </div>
         );
       },
