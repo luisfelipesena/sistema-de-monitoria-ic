@@ -30,25 +30,25 @@ export const createConfiguracoesRepository = (database: Database) => {
         .where(eq(departamentoTable.id, departamentoId))
     },
 
-    async createDepartamento(data: { nome: string; sigla?: string | null; emailInstituto?: string | null; unidadeUniversitaria: string }) {
-      const [created] = await database
-        .insert(departamentoTable)
-        .values(data)
-        .returning({ id: departamentoTable.id })
+    async createDepartamento(data: {
+      nome: string
+      sigla?: string | null
+      emailInstituto?: string | null
+      unidadeUniversitaria: string
+    }) {
+      const [created] = await database.insert(departamentoTable).values(data).returning({ id: departamentoTable.id })
       return created
     },
 
-    async updateDepartamento(departamentoId: number, data: { nome?: string; sigla?: string | null; emailInstituto?: string | null }) {
-      await database
-        .update(departamentoTable)
-        .set(data)
-        .where(eq(departamentoTable.id, departamentoId))
+    async updateDepartamento(
+      departamentoId: number,
+      data: { nome?: string; sigla?: string | null; emailInstituto?: string | null }
+    ) {
+      await database.update(departamentoTable).set(data).where(eq(departamentoTable.id, departamentoId))
     },
 
     async deleteDepartamento(departamentoId: number) {
-      await database
-        .delete(departamentoTable)
-        .where(eq(departamentoTable.id, departamentoId))
+      await database.delete(departamentoTable).where(eq(departamentoTable.id, departamentoId))
     },
 
     async getConfiguracaoSistema(chave: string) {

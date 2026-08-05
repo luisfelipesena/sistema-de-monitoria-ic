@@ -1,17 +1,17 @@
 import { z } from 'zod'
 import {
-    Genero,
-    generoSchema,
-    PROJETO_STATUS_DRAFT,
-    ProjetoStatus,
-    projetoStatusSchema,
-    Regime,
-    regimeSchema,
-    Semestre,
-    semestreSchema,
-    SigningMode,
-    TipoProposicao,
-    tipoProposicaoSchema,
+  Genero,
+  generoSchema,
+  PROJETO_STATUS_DRAFT,
+  ProjetoStatus,
+  projetoStatusSchema,
+  Regime,
+  regimeSchema,
+  Semestre,
+  semestreSchema,
+  SigningMode,
+  TipoProposicao,
+  tipoProposicaoSchema,
 } from './enums'
 
 // ========================================

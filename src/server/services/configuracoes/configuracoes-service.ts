@@ -37,7 +37,12 @@ export const createConfiguracoesService = (database: typeof db) => {
       return result
     },
 
-    async updateDepartamento(input: { departamentoId: number; nome?: string; sigla?: string | null; email?: string | null }) {
+    async updateDepartamento(input: {
+      departamentoId: number
+      nome?: string
+      sigla?: string | null
+      email?: string | null
+    }) {
       const data: { nome?: string; sigla?: string | null; emailInstituto?: string | null } = {}
       if (input.nome !== undefined) data.nome = input.nome
       if (input.sigla !== undefined) data.sigla = input.sigla

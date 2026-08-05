@@ -44,18 +44,12 @@ describe('parseSlots', () => {
     })
 
     it('filtra objetos sem campo data', () => {
-      const input = [
-        { data: '2025-03-15', horario: '14:00-16:00' },
-        { horario: '10:00-12:00' },
-      ]
+      const input = [{ data: '2025-03-15', horario: '14:00-16:00' }, { horario: '10:00-12:00' }]
       expect(parseSlots(JSON.stringify(input))).toEqual([{ data: '2025-03-15', horario: '14:00-16:00' }])
     })
 
     it('filtra objetos sem campo horario', () => {
-      const input = [
-        { data: '2025-03-15', horario: '14:00-16:00' },
-        { data: '2025-03-17' },
-      ]
+      const input = [{ data: '2025-03-15', horario: '14:00-16:00' }, { data: '2025-03-17' }]
       expect(parseSlots(JSON.stringify(input))).toEqual([{ data: '2025-03-15', horario: '14:00-16:00' }])
     })
 

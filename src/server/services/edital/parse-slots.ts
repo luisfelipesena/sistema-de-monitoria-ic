@@ -24,7 +24,10 @@ export function parseSlots(raw: string | null): SlotDataHorario[] {
 
     // Formato legado: array de strings
     if (typeof parsed[0] === 'string') {
-      log.warn({ sampleValue: parsed[0] }, 'Formato legado detectado em datasProvasDisponiveis. Convertendo strings para objetos SlotDataHorario.')
+      log.warn(
+        { sampleValue: parsed[0] },
+        'Formato legado detectado em datasProvasDisponiveis. Convertendo strings para objetos SlotDataHorario.'
+      )
       return parsed.map((s: string) => {
         const [data, horario] = s.split(' ')
         return { data: data || '', horario: horario || '' }

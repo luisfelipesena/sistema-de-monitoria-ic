@@ -41,11 +41,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
    * Verifies authorization: professor can only edit their own project.
    * Admins can edit any project.
    */
-  async function verifyAuthorization(
-    projeto: { professorResponsavelId: number },
-    userId: number,
-    userRole: UserRole
-  ) {
+  async function verifyAuthorization(projeto: { professorResponsavelId: number }, userId: number, userRole: UserRole) {
     if (isProfessor(userRole) && !isAdmin(userRole)) {
       const professor = await repo.findProfessorByUserId(userId)
       if (!professor || projeto.professorResponsavelId !== professor.id) {
@@ -60,13 +56,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
      * Validates that the submitted {data, horario} pair matches one of the
      * edital's datasProvasDisponiveis slots.
      */
-    async chooseSlot(
-      projetoId: number,
-      data: string,
-      horario: string,
-      userId: number,
-      userRole: UserRole
-    ) {
+    async chooseSlot(projetoId: number, data: string, horario: string, userId: number, userRole: UserRole) {
       const projeto = await repo.findByIdWithEdital(projetoId)
       if (!projeto) {
         throw new NotFoundError('Projeto', projetoId)
@@ -80,9 +70,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       const availableSlots = parseSlots(projeto.editalInterno.datasProvasDisponiveis)
 
-      const slotExists = availableSlots.some(
-        (slot) => slot.data === data && slot.horario === horario
-      )
+      const slotExists = availableSlots.some((slot) => slot.data === data && slot.horario === horario)
 
       if (!slotExists) {
         throw new ValidationError('Opção de data/horário inválida')
@@ -101,12 +89,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
      * Update the number of requested volunteers for the projeto.
      * Validates that the value is >= 0.
      */
-    async updateVoluntarios(
-      projetoId: number,
-      value: number,
-      userId: number,
-      userRole: UserRole
-    ) {
+    async updateVoluntarios(projetoId: number, value: number, userId: number, userRole: UserRole) {
       if (value < 0) {
         throw new ValidationError('Valor deve ser zero ou positivo')
       }
@@ -160,11 +143,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
     /**
      * Get selection info for a project: current selection state + available slots from its edital.
      */
-    async getSelecaoInfo(
-      projetoId: number,
-      userId: number,
-      userRole: UserRole
-    ) {
+    async getSelecaoInfo(projetoId: number, userId: number, userRole: UserRole) {
       const projeto = await repo.findByIdWithEdital(projetoId)
       if (!projeto) {
         throw new NotFoundError('Projeto', projetoId)
@@ -172,9 +151,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       await verifyAuthorization(projeto, userId, userRole)
 
-      const slotsDisponiveis = projeto.editalInterno
-        ? parseSlots(projeto.editalInterno.datasProvasDisponiveis)
-        : []
+      const slotsDisponiveis = projeto.editalInterno ? parseSlots(projeto.editalInterno.datasProvasDisponiveis) : []
 
       return {
         projetoId: projeto.id,

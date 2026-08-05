@@ -210,11 +210,7 @@ export const selecaoRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       const service = createProjetoService(ctx.db)
       try {
-        return await service.getSelecaoInfo(
-          input.projetoId,
-          ctx.user.id,
-          ctx.user.role
-        )
+        return await service.getSelecaoInfo(input.projetoId, ctx.user.id, ctx.user.role)
       } catch (error) {
         handleServiceError(error)
       }
@@ -231,13 +227,7 @@ export const selecaoRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const service = createProjetoService(ctx.db)
       try {
-        return await service.chooseSlot(
-          input.projetoId,
-          input.data,
-          input.horario,
-          ctx.user.id,
-          ctx.user.role
-        )
+        return await service.chooseSlot(input.projetoId, input.data, input.horario, ctx.user.id, ctx.user.role)
       } catch (error) {
         handleServiceError(error)
       }

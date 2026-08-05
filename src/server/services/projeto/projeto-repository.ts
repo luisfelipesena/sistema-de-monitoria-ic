@@ -1,18 +1,18 @@
 import type { db } from '@/server/db'
 import {
-    alunoTable,
-    ataSelecaoTable,
-    atividadeProjetoTable,
-    departamentoTable,
-    disciplinaProfessorResponsavelTable,
-    disciplinaTable,
-    inscricaoTable,
-    periodoInscricaoTable,
-    professorTable,
-    projetoDisciplinaTable,
-    projetoProfessorParticipanteTable,
-    projetoTable,
-    userTable,
+  alunoTable,
+  ataSelecaoTable,
+  atividadeProjetoTable,
+  departamentoTable,
+  disciplinaProfessorResponsavelTable,
+  disciplinaTable,
+  inscricaoTable,
+  periodoInscricaoTable,
+  professorTable,
+  projetoDisciplinaTable,
+  projetoProfessorParticipanteTable,
+  projetoTable,
+  userTable,
 } from '@/server/db/schema'
 import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
 import { ADMIN, PROJETO_STATUS_APPROVED, TIPO_PROPOSICAO_COLETIVA } from '@/types'
