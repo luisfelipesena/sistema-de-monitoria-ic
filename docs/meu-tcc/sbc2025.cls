@@ -288,10 +288,9 @@
   \addtolength{\topmargin}{-8.90002pt}
   \fancyhf{}
   \lhead[L]{\footnotesize%
-    \emph{\vskip6pt \@jtitle}\ifdefempty{\@jid}{}%
-    %\ifdefempty{\@issn}{}{\par \vskip3pt ISSN:\space\href{https://portal.issn.org/resource/ISSN/\@issn}{\@issn}}%
-    %\ifdefempty{\@doi}{}{~~$\bullet$~~doi:\space\href{https://doi.org/\@doi}{\@doi}}\\%
-											  
+    \emph{\vskip6pt \@jtitle}%
+    \ifdefempty{\@issn}{}{\par \vskip3pt ISSN:\space\href{https://portal.issn.org/resource/ISSN/\@issn}{\@issn}}%
+    \ifdefempty{\@doi}{}{~~$\bullet$~~doi:\space\href{https://doi.org/\@doi}{\@doi}}\\%
     \scriptsize \ifdefempty{\@copyrightstatement}{}{\vskip3pt \faCreativeCommons~~\@copyrightstatement.\\}%
   }
 % \cfoot{\thepage}
