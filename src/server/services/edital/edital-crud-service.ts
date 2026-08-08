@@ -358,9 +358,14 @@ export function createEditalCrudService(
         { editalId: id, chefeEmail, requestedBy: requestedByUserId },
         'Solicitação de assinatura enviada ao chefe'
       )
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+      const link = `${clientUrl}/assinar-edital?token=${token}`
+
       return {
         success: true,
         message: `Link de assinatura enviado para ${chefeEmail}. O link expira em ${TOKEN_EXPIRY_HOURS} horas.`,
+        token,
+        link,
         expiresAt,
       }
     },

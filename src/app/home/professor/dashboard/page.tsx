@@ -61,12 +61,12 @@ export default function DashboardProfessor() {
     useCurrentSemester: false,
   })
 
-  // Filter approved projects that are linked to an internal edital
+  // Filter approved projects to display the "Dados da Seleção" section
   const projetosComEdital = useMemo(() => {
     if (!projetos) return []
     return projetos.filter(
-      (p) => p.status === PROJETO_STATUS_APPROVED && p.editalInternoId
-    ) as (DashboardProjectItem & { editalInternoId: number })[]
+      (p) => p.status === PROJETO_STATUS_APPROVED
+    ) as DashboardProjectItem[]
   }, [projetos])
 
   const handleDeleteProjeto = (projeto: DashboardProjectItem) => {

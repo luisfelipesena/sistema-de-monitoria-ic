@@ -19,8 +19,7 @@ export function useProjectList() {
 
   const projetos: ProfessorProjetoListItem[] =
     projetosData
-      ?.filter((projeto) => projeto.professorResponsavelId === user?.id)
-      .map((projeto: ProjectListItemData & { editalNumero?: string | null; editalPublicado?: boolean }) => ({
+      ?.map((projeto: ProjectListItemData & { editalNumero?: string | null; editalPublicado?: boolean }) => ({
         id: projeto.id,
         titulo: projeto.titulo,
         descricao: projeto.descricao,

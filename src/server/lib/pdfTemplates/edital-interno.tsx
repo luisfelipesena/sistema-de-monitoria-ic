@@ -125,21 +125,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#000",
   },
-  tableColHeader: {
+  tableHeaderCell: {
     padding: 4,
-    fontSize: 9,
-    fontFamily: "Times-Bold",
-    textAlign: "center",
     borderRightWidth: 1,
     borderColor: "#000",
     justifyContent: "center",
+    alignItems: "center",
   },
-  tableColHeaderLast: {
+  tableHeaderCellLast: {
     padding: 4,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  tableColHeaderText: {
     fontSize: 9,
     fontFamily: "Times-Bold",
     textAlign: "center",
-    justifyContent: "center",
   },
   tableCol: {
     padding: 4,
@@ -361,17 +362,17 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
           {/* Table of disciplines */}
           <View style={styles.table}>
             <View style={styles.tableHeader}>
-              <View style={styles.colComponente}>
-                <Text style={styles.tableColHeader}>Componente Curricular</Text>
+              <View style={[styles.colComponente, styles.tableHeaderCell]}>
+                <Text style={styles.tableColHeaderText}>Componente Curricular</Text>
               </View>
-              <View style={styles.colVagasBolsa}>
-                <Text style={styles.tableColHeader}>Vagas{"\n"}BOLSISTAS</Text>
+              <View style={[styles.colVagasBolsa, styles.tableHeaderCell]}>
+                <Text style={styles.tableColHeaderText}>Vagas{"\n"}BOLSISTAS</Text>
               </View>
-              <View style={styles.colVagasVol}>
-                <Text style={styles.tableColHeader}>Vagas{"\n"}VOLUNTÁRIOS</Text>
+              <View style={[styles.colVagasVol, styles.tableHeaderCell]}>
+                <Text style={styles.tableColHeaderText}>Vagas{"\n"}VOLUNTÁRIOS</Text>
               </View>
-              <View style={styles.colProfessor}>
-                <Text style={styles.tableColHeaderLast}>Professor Responsável</Text>
+              <View style={[styles.colProfessor, styles.tableHeaderCellLast]}>
+                <Text style={styles.tableColHeaderText}>Professor Responsável</Text>
               </View>
             </View>
 
@@ -554,17 +555,17 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
           {hasExamSchedule && (
             <View style={styles.table}>
               <View style={styles.tableHeader}>
-                <View style={styles.colExamComponente}>
-                  <Text style={styles.tableColHeader}>Componente Curricular</Text>
+                <View style={[styles.colExamComponente, styles.tableHeaderCell]}>
+                  <Text style={styles.tableColHeaderText}>Componente Curricular</Text>
                 </View>
-                <View style={styles.colExamData}>
-                  <Text style={styles.tableColHeader}>Data</Text>
+                <View style={[styles.colExamData, styles.tableHeaderCell]}>
+                  <Text style={styles.tableColHeaderText}>Data</Text>
                 </View>
-                <View style={styles.colExamHora}>
-                  <Text style={styles.tableColHeader}>Hora</Text>
+                <View style={[styles.colExamHora, styles.tableHeaderCell]}>
+                  <Text style={styles.tableColHeaderText}>Hora</Text>
                 </View>
-                <View style={styles.colExamProfessor}>
-                  <Text style={styles.tableColHeaderLast}>Professor Responsável</Text>
+                <View style={[styles.colExamProfessor, styles.tableHeaderCellLast]}>
+                  <Text style={styles.tableColHeaderText}>Professor Responsável</Text>
                 </View>
               </View>
 

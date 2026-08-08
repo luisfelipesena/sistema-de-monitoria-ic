@@ -26,7 +26,7 @@ export function createEditalPublicationService(
         throw new ValidationError('O edital precisa ter uma descrição antes de ser publicado.')
       }
 
-      if (!edital.fileIdAssinado) {
+      if (!edital.fileIdAssinado && !edital.chefeAssinouEm) {
         throw new ValidationError('O edital precisa estar assinado antes de ser publicado.')
       }
 

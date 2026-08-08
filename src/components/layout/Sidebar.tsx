@@ -302,6 +302,12 @@ const menuConfig: MenuConfig[] = [
         roles: ["professor"],
       },
       {
+        label: "Gerenciar Projetos",
+        href: "/home/professor/projetos",
+        icon: FileText,
+        roles: ["professor"],
+      },
+      {
         label: "Novo Projeto",
         href: "/home/professor/projetos/novo",
         icon: FilePlus,

@@ -1,3 +1,4 @@
+import React from 'react'
 import { Button as EmailButton } from '@react-email/components'
 import { colors } from './BaseLayout'
 

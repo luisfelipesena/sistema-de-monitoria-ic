@@ -268,7 +268,19 @@ export default function EditalManagementPage() {
     onSuccess: (data) => {
       toast({
         title: "Link de assinatura enviado!",
-        description: data.message,
+        description: (
+          <div className="space-y-2">
+            <p>{data.message}</p>
+            {data.link && (
+              <p className="text-xs font-mono break-all mt-1">
+                Link direto:{" "}
+                <a href={data.link} target="_blank" rel="noreferrer" className="underline text-blue-600 font-bold">
+                  {data.link}
+                </a>
+              </p>
+            )}
+          </div>
+        ),
       });
       setIsSignatureDialogOpen(false);
       setSelectedEdital(null);

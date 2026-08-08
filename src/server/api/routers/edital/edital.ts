@@ -561,7 +561,15 @@ export const editalRouter = createTRPCRouter({
         chefeNome: z.string().optional(),
       })
     )
-    .output(z.object({ success: z.boolean(), message: z.string(), expiresAt: z.date().optional() }))
+    .output(
+      z.object({
+        success: z.boolean(),
+        message: z.string(),
+        token: z.string().optional(),
+        link: z.string().optional(),
+        expiresAt: z.date().optional(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createEditalService(ctx.db)
