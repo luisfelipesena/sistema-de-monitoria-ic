@@ -265,6 +265,32 @@ export class ProfessorInscricaoService {
     const tipoMonitoria: TipoVaga = inscricao.status === ACCEPTED_BOLSISTA ? TIPO_VAGA_BOLSISTA : TIPO_VAGA_VOLUNTARIO
     const numeroTermo = `${inscricao.projeto.ano}${inscricao.projeto.semestre === SEMESTRE_1 ? '1' : '2'}-${inscricao.id.toString().padStart(4, '0')}`
 
+    const monitorAssinatura = inscricao.assinaturaAlunoFileId || null
+    let professorAssinatura: string | null = null
+
+    try {
+      const profUserId = inscricao.projeto.professorResponsavel?.userId
+
+      const profSig = await this.repository.db.query.assinaturaDocumentoTable.findFirst({
+        where: (sigs, { and, eq, or, inArray }) =>
+          and(
+            or(
+              eq(sigs.projetoId, inscricao.projetoId),
+              profUserId ? eq(sigs.userId, profUserId) : undefined
+            ),
+            inArray(sigs.tipoAssinatura, [
+              'ATA_SELECAO_PROFESSOR',
+              'PROJETO_PROFESSOR_RESPONSAVEL',
+            ])
+          ),
+      })
+      if (profSig) {
+        professorAssinatura = profSig.assinaturaData
+      }
+    } catch (err) {
+      log.error({ err }, 'Erro ao buscar assinatura do professor')
+    }
+
     return {
       monitor: {
         nome: inscricao.aluno.nomeCompleto,
@@ -272,6 +298,7 @@ export class ProfessorInscricaoService {
         email: inscricao.aluno.user.email,
         ...(inscricao.aluno.telefone && { telefone: inscricao.aluno.telefone }),
         cr: inscricao.aluno.cr,
+        assinaturaBase64: monitorAssinatura,
       },
       professor: {
         nome: inscricao.projeto.professorResponsavel.nomeCompleto,
@@ -280,6 +307,7 @@ export class ProfessorInscricaoService {
         }),
         email: inscricao.projeto.professorResponsavel.emailInstitucional,
         departamento: inscricao.projeto.departamento?.nome || 'N/A',
+        assinaturaBase64: professorAssinatura,
       },
       projeto: {
         titulo: inscricao.projeto.titulo,

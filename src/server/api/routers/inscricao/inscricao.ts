@@ -434,12 +434,14 @@ export const inscricaoRouter = createTRPCRouter({
           email: z.string(),
           telefone: z.string().optional(),
           cr: z.number().nullable(),
+          assinaturaBase64: z.string().nullable().optional(),
         }),
         professor: z.object({
           nome: z.string(),
           matriculaSiape: z.string().optional(),
           email: z.string().nullable(),
           departamento: z.string(),
+          assinaturaBase64: z.string().nullable().optional(),
         }),
         projeto: z.object({
           titulo: z.string(),
@@ -477,12 +479,14 @@ export const inscricaoRouter = createTRPCRouter({
           email: string
           telefone?: string
           cr: number | null
+          assinaturaBase64?: string | null
         }
         professor: {
           nome: string
           matriculaSiape?: string
           email: string | null
           departamento: string
+          assinaturaBase64?: string | null
         }
         projeto: {
           titulo: string

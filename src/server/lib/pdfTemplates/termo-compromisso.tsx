@@ -1,5 +1,5 @@
 import { getSemestreNumero, TermoCompromissoData, TIPO_VAGA_BOLSISTA, type Semestre } from "@/types"
-import { Document, Font, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+import { Document, Font, Page, StyleSheet, Text, View, Image } from "@react-pdf/renderer"
 
 // Register fonts (optional, but good for better text rendering)
 Font.register({
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   signatureBox: {
-    width: "45%",
+    width: "100%",
     borderTopWidth: 1,
     borderTopStyle: "solid",
     paddingTop: 5,
@@ -300,13 +300,28 @@ export default function TermoCompromisso({ data }: { data: TermoCompromissoData 
 
         {/* Signature Section */}
         <View style={styles.signatureSection}>
-          <View style={styles.signatureBox}>
-            <Text style={styles.signatureLabel}>Monitor</Text>
-            <Text style={[styles.signatureLabel, { marginTop: 5, fontSize: 9 }]}>{monitor.nome}</Text>
+          <View style={{ width: '45%' }}>
+            <View style={{ height: 40, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 2 }}>
+              {monitor.assinaturaBase64 ? (
+                <Image src={monitor.assinaturaBase64} style={{ height: 38, width: 130 }} />
+              ) : null}
+            </View>
+            <View style={styles.signatureBox}>
+              <Text style={styles.signatureLabel}>Monitor</Text>
+              <Text style={[styles.signatureLabel, { marginTop: 5, fontSize: 9 }]}>{monitor.nome}</Text>
+            </View>
           </View>
-          <View style={styles.signatureBox}>
-            <Text style={styles.signatureLabel}>Professor Responsável</Text>
-            <Text style={[styles.signatureLabel, { marginTop: 5, fontSize: 9 }]}>{professor.nome}</Text>
+
+          <View style={{ width: '45%' }}>
+            <View style={{ height: 40, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 2 }}>
+              {professor.assinaturaBase64 ? (
+                <Image src={professor.assinaturaBase64} style={{ height: 38, width: 130 }} />
+              ) : null}
+            </View>
+            <View style={styles.signatureBox}>
+              <Text style={styles.signatureLabel}>Professor Responsável</Text>
+              <Text style={[styles.signatureLabel, { marginTop: 5, fontSize: 9 }]}>{professor.nome}</Text>
+            </View>
           </View>
         </View>
 

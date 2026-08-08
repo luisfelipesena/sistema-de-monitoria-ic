@@ -42,7 +42,7 @@ export function createSelecaoService(db: Database) {
         throw new NotFoundError('Projeto', 'não encontrado')
       }
 
-      if (!isAdmin(userRole) && projetoData.professorResponsavelId !== userId) {
+      if (!isAdmin(userRole) && projetoData.professorResponsavel?.userId !== userId) {
         throw new ForbiddenError('Você só pode gerar atas para seus próprios projetos')
       }
 
@@ -115,7 +115,7 @@ export function createSelecaoService(db: Database) {
         throw new NotFoundError('Ata', 'não encontrada')
       }
 
-      if (ata.projeto.professorResponsavelId !== userId) {
+      if (ata.projeto.professorResponsavel?.userId !== userId) {
         throw new ForbiddenError('Você só pode assinar atas de seus próprios projetos')
       }
 
@@ -156,7 +156,7 @@ export function createSelecaoService(db: Database) {
         throw new NotFoundError('Projeto', 'não encontrado')
       }
 
-      if (!isAdmin(userRole) && projetoData.professorResponsavelId !== userId) {
+      if (!isAdmin(userRole) && projetoData.professorResponsavel?.userId !== userId) {
         throw new ForbiddenError('Você só pode publicar resultados para seus próprios projetos')
       }
 

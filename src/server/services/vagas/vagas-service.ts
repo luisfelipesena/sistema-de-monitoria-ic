@@ -20,7 +20,7 @@ import {
   type VagaStatus,
 } from '@/types'
 import { and, eq, sql } from 'drizzle-orm'
-import { inscricaoTable, projetoTable, vagaTable } from '@/server/db/schema'
+import { inscricaoTable, professorTable, projetoTable, vagaTable } from '@/server/db/schema'
 import { NotFoundError, ForbiddenError, BusinessError, ValidationError } from '@/server/lib/errors'
 import { requireStudent, requireAdminOrProfessor, requireAdmin, isProfessor } from '@/server/lib/auth-helpers'
 
@@ -116,29 +116,35 @@ export function createVagasService(db: Database) {
       })
 
       try {
-        await emailService.sendGenericEmail({
-          to: inscricaoData.projeto.professorResponsavel.user.email,
-          subject: `Vaga aceita - ${inscricaoData.aluno.user.username}`,
-          html: `
+        const profEmail = inscricaoData.projeto.professorResponsavel?.user?.email || inscricaoData.projeto.professorResponsavel?.emailInstitucional
+        const studentName = inscricaoData.aluno?.user?.username || inscricaoData.aluno?.nomeCompleto || 'Aluno'
+        const studentEmail = inscricaoData.aluno?.user?.email || ''
+
+        if (profEmail) {
+          await emailService.sendGenericEmail({
+            to: profEmail,
+            subject: `Vaga aceita - ${studentName}`,
+            html: `
 Olá ${inscricaoData.projeto.professorResponsavel.nomeCompleto},<br><br>
 
-O aluno ${inscricaoData.aluno.user.username} aceitou a vaga de ${tipoBolsa.toLowerCase()} para o projeto ${inscricaoData.projeto.titulo}.<br><br>
+O aluno ${studentName} aceitou a vaga de ${tipoBolsa.toLowerCase()} para o projeto ${inscricaoData.projeto.titulo}.<br><br>
 
 Dados do aluno:<br>
 - Nome: ${inscricaoData.aluno.nomeCompleto}<br>
 - Matrícula: ${inscricaoData.aluno.matricula}<br>
-- E-mail: ${inscricaoData.aluno.user.email}<br><br>
+- E-mail: ${studentEmail}<br><br>
 
 Próximos passos: O termo de compromisso deve ser gerado e assinado por ambas as partes.<br><br>
 
 Atenciosamente,<br>
 Sistema de Monitoria IC
-          `,
-          tipoNotificacao: 'VAGA_ACEITA',
-          remetenteUserId: userId,
-          projetoId: inscricaoData.projetoId,
-          alunoId: inscricaoData.alunoId,
-        })
+            `,
+            tipoNotificacao: 'VAGA_ACEITA',
+            remetenteUserId: userId,
+            projetoId: inscricaoData.projetoId,
+            alunoId: inscricaoData.alunoId,
+          })
+        }
       } catch (error) {
         log.error({ error }, 'Erro ao enviar notificação')
       }
@@ -231,7 +237,11 @@ Sistema de Monitoria IC
         throw new NotFoundError('Projeto', projetoId)
       }
 
-      if (isProfessor(userRole) && projeto.professorResponsavelId !== userId) {
+      const isOwner =
+        projeto.professorResponsavelId === userId ||
+        projeto.professorResponsavel?.userId === userId
+
+      if (isProfessor(userRole) && !isOwner) {
         throw new ForbiddenError('Você só pode ver vagas de seus próprios projetos')
       }
 
@@ -283,8 +293,8 @@ Sistema de Monitoria IC
 
       if (isProfessor(userRole)) {
         whereConditions.push(
-          sql`EXISTS (SELECT 1 FROM ${projetoTable} WHERE ${projetoTable.id} = ${vagaTable.projetoId}
-              AND ${projetoTable.professorResponsavelId} = ${userId})`
+          sql`EXISTS (SELECT 1 FROM ${projetoTable} JOIN ${professorTable} ON ${projetoTable.professorResponsavelId} = ${professorTable.id} WHERE ${projetoTable.id} = ${vagaTable.projetoId}
+              AND ${professorTable.userId} = ${userId})`
         )
       }
 

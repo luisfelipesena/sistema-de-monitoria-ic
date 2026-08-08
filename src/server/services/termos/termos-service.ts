@@ -6,6 +6,7 @@ import {
   PROFESSOR,
   STUDENT,
   TIPO_ASSINATURA_ATA_SELECAO,
+  TIPO_ASSINATURA_PROJETO_PROFESSOR,
   TIPO_ASSINATURA_TERMO_COMPROMISSO,
   TERMO_WORKFLOW_STATUS_ASSINADO_COMPLETO,
   TERMO_WORKFLOW_STATUS_PARCIALMENTE_ASSINADO,
@@ -31,11 +32,38 @@ export function createTermosService(db: Database) {
         throw new NotFoundError('Vaga', vagaId)
       }
 
-      if (userRole !== ADMIN && (userRole !== PROFESSOR || vagaData.projeto.professorResponsavelId !== userId)) {
+      const isAluno = userRole === STUDENT && vagaData.aluno.userId === userId
+      const isProfessor =
+        userRole === PROFESSOR &&
+        (vagaData.projeto.professorResponsavelId === userId ||
+          vagaData.projeto.professorResponsavel?.userId === userId)
+      const isAdmin = userRole === ADMIN
+
+      if (!isAluno && !isProfessor && !isAdmin) {
         throw new ForbiddenError('Você não tem permissão para gerar este termo')
       }
 
-      const pdfBuffer = await pdfGen.generateTermo(vagaData)
+      // Buscar assinaturas cadastradas para a vaga ou projeto
+      const signatures = await repo.findSignaturesByVagaId(vagaId, vagaData.projetoId)
+
+      // Assinatura do aluno: do termo ou do formulário de inscrição
+      const alunoSigRecord = signatures.find((s) => s.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
+      const alunoAssinaturaBase64 = alunoSigRecord?.assinaturaData || vagaData.inscricao?.assinaturaAlunoFileId || null
+
+      // Assinatura do professor
+      const profSigRecord = signatures.find(
+        (s) =>
+          s.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO ||
+          s.tipoAssinatura === TIPO_ASSINATURA_PROJETO_PROFESSOR
+      )
+      const professorAssinaturaBase64 = profSigRecord?.assinaturaData || null
+
+      const pdfBuffer = await pdfGen.generateTermo({
+        ...vagaData,
+        alunoAssinaturaBase64,
+        professorAssinaturaBase64,
+      })
+
       const fileName = pdfGen.generateFileName(vagaData.projeto.ano, vagaData.projeto.semestre, vagaData.id)
       const termoNumero = pdfGen.generateTermoNumero(vagaData.projeto.ano, vagaData.projeto.semestre, vagaData.id)
 
@@ -61,12 +89,18 @@ export function createTermosService(db: Database) {
       }
 
       const isAluno = userRole === STUDENT && vagaData.aluno.userId === userId
-      const isProfessor = userRole === PROFESSOR && vagaData.projeto.professorResponsavelId === userId
+      const isProfessor =
+        userRole === PROFESSOR &&
+        (vagaData.projeto.professorResponsavelId === userId ||
+          vagaData.projeto.professorResponsavel?.userId === userId)
       const isAdmin = userRole === ADMIN
 
       if (!isAluno && !isProfessor && !isAdmin) {
         throw new ForbiddenError('Você não tem permissão para baixar este termo')
       }
+
+      // Re-gerar o PDF do termo com as assinaturas atualizadas antes de gerar a URL de download
+      await this.generateTermo(vagaId, userId, userRole)
 
       const termoNumero = pdfGen.generateTermoNumero(vagaData.projeto.ano, vagaData.projeto.semestre, vagaData.id)
       const fileName = `termos/${termoNumero}.pdf`
@@ -90,7 +124,7 @@ export function createTermosService(db: Database) {
       assinaturaData: string,
       tipoAssinatura: SignatureTypeTermo,
       userId: number,
-      _userRole: UserRole
+      userRole: UserRole
     ) {
       const vagaData = await repo.findVagaSimple(vagaId)
 
@@ -98,10 +132,15 @@ export function createTermosService(db: Database) {
         throw new NotFoundError('Vaga', vagaId)
       }
 
-      if (tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO && vagaData.aluno.userId !== userId) {
+      const isAluno = vagaData.aluno.userId === userId
+      const isProfessor =
+        vagaData.projeto.professorResponsavelId === userId ||
+        vagaData.projeto.professorResponsavel?.userId === userId
+
+      if (tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO && !isAluno) {
         throw new ForbiddenError('Apenas o aluno pode assinar como aluno.')
       }
-      if (tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO && vagaData.projeto.professorResponsavelId !== userId) {
+      if (tipoAssinatura !== TIPO_ASSINATURA_TERMO_COMPROMISSO && !isProfessor) {
         throw new ForbiddenError('Apenas o professor responsável pode assinar.')
       }
 
@@ -111,18 +150,10 @@ export function createTermosService(db: Database) {
         throw new BusinessError('Este documento já foi assinado por você.', 'ALREADY_SIGNED')
       }
 
-      const fileName = pdfGen.generateFileName(vagaData.projeto.ano, vagaData.projeto.semestre, vagaData.id)
+      await repo.insertSignature(userId, vagaId, assinaturaData, tipoAssinatura)
 
-      await db.transaction(async (tx) => {
-        const txRepo = createTermosRepository(tx as unknown as Database)
-        const txPdfGen = createPdfGenerator()
-
-        await txRepo.insertSignature(userId, vagaId, assinaturaData, tipoAssinatura)
-
-        const allSignatures = await txRepo.findSignaturesByVagaId(vagaId)
-
-        await txPdfGen.embedSignatures(fileName, allSignatures)
-      })
+      // Re-gerar PDF com a nova assinatura
+      await this.generateTermo(vagaId, userId, userRole)
 
       log.info({ vagaId, tipoAssinatura, userId }, 'Termo assinado com sucesso')
 
@@ -150,7 +181,11 @@ export function createTermosService(db: Database) {
           if (!projeto) {
             throw new NotFoundError('Projeto', 'não encontrado')
           }
-          if (userRole === PROFESSOR && projeto.professorResponsavelId !== userId) {
+          const isOwner =
+            projeto.professorResponsavelId === userId ||
+            projeto.professorResponsavel?.userId === userId
+
+          if (userRole === PROFESSOR && !isOwner) {
             throw new ForbiddenError('Você só pode ver termos de seus próprios projetos')
           }
         }
@@ -164,7 +199,10 @@ export function createTermosService(db: Database) {
         vagas = [vaga]
 
         const isAluno = userRole === STUDENT && vaga.aluno.userId === userId
-        const isProfessor = userRole === PROFESSOR && vaga.projeto.professorResponsavelId === userId
+        const isProfessor =
+          userRole === PROFESSOR &&
+          (vaga.projeto.professorResponsavelId === userId ||
+            vaga.projeto.professorResponsavel?.userId === userId)
         const isAdmin = userRole === ADMIN
 
         if (!isAluno && !isProfessor && !isAdmin) {
@@ -174,15 +212,24 @@ export function createTermosService(db: Database) {
 
       const termosStatus = await Promise.all(
         vagas.map(async (vagaItem) => {
-          const assinaturas = await repo.findSignaturesByVagaId(vagaItem.id)
+          const assinaturas = await repo.findSignaturesByVagaId(vagaItem.id, vagaItem.projetoId)
 
-          const assinaturaAluno = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
-          const assinaturaProfessor = assinaturas.find((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
+          const temAssinaturaAluno =
+            assinaturas.some((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO) ||
+            !!(vagaItem as any).inscricao?.assinaturaAlunoFileId ||
+            !!(vagaItem as any).inscricao?.dataAssinaturaAluno
+
+          const temAssinaturaProfessor =
+            assinaturas.some(
+              (a) =>
+                a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO ||
+                a.tipoAssinatura === TIPO_ASSINATURA_PROJETO_PROFESSOR
+            ) || vagaItem.projeto.status === 'APPROVED'
 
           let statusTermo: TermoWorkflowStatus = TERMO_WORKFLOW_STATUS_PENDENTE_ASSINATURA
-          if (assinaturaAluno && assinaturaProfessor) {
+          if (temAssinaturaAluno && temAssinaturaProfessor) {
             statusTermo = TERMO_WORKFLOW_STATUS_ASSINADO_COMPLETO
-          } else if (assinaturaAluno || assinaturaProfessor) {
+          } else if (temAssinaturaAluno || temAssinaturaProfessor) {
             statusTermo = TERMO_WORKFLOW_STATUS_PARCIALMENTE_ASSINADO
           }
 
@@ -191,10 +238,10 @@ export function createTermosService(db: Database) {
             alunoNome: vagaItem.aluno.user.username,
             tipoVaga: vagaItem.tipo,
             statusTermo,
-            assinaturaAluno: !!assinaturaAluno,
-            assinaturaProfessor: !!assinaturaProfessor,
-            dataAssinaturaAluno: assinaturaAluno?.createdAt,
-            dataAssinaturaProfessor: assinaturaProfessor?.createdAt,
+            assinaturaAluno: temAssinaturaAluno,
+            assinaturaProfessor: temAssinaturaProfessor,
+            dataAssinaturaAluno: (vagaItem as any).inscricao?.dataAssinaturaAluno || null,
+            dataAssinaturaProfessor: null,
             termoNumero: pdfGen.generateTermoNumero(vagaItem.projeto.ano, vagaItem.projeto.semestre, vagaItem.id),
             observacoes: null,
           }

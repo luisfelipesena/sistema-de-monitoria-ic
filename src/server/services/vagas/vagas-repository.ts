@@ -1,5 +1,5 @@
 import type { db } from '@/server/db'
-import { alunoTable, assinaturaDocumentoTable, inscricaoTable, projetoTable, vagaTable } from '@/server/db/schema'
+import { alunoTable, assinaturaDocumentoTable, inscricaoTable, professorTable, projetoTable, vagaTable } from '@/server/db/schema'
 import type { Semestre, StatusInscricao } from '@/types'
 import { TIPO_VAGA_BOLSISTA } from '@/types'
 import type { InferInsertModel } from 'drizzle-orm'
@@ -12,17 +12,28 @@ type Database = typeof db
 export function createVagasRepository(db: Database) {
   return {
     async findBolsaExistente(alunoId: number, ano: number, semestre: Semestre, tipoBolsa: typeof TIPO_VAGA_BOLSISTA) {
-      return db.query.vagaTable.findFirst({
-        where: and(
-          eq(vagaTable.alunoId, alunoId),
-          eq(vagaTable.tipo, tipoBolsa),
-          sql`EXISTS (SELECT 1 FROM ${projetoTable} WHERE ${projetoTable.id} = ${vagaTable.projetoId}
-              AND ${projetoTable.ano} = ${ano} AND ${projetoTable.semestre} = ${semestre})`
-        ),
-        with: {
-          projeto: true,
-        },
-      })
+      const rows = await db
+        .select({
+          vaga: vagaTable,
+          projeto: projetoTable,
+        })
+        .from(vagaTable)
+        .innerJoin(projetoTable, eq(vagaTable.projetoId, projetoTable.id))
+        .where(
+          and(
+            eq(vagaTable.alunoId, alunoId),
+            eq(vagaTable.tipo, tipoBolsa),
+            eq(projetoTable.ano, ano),
+            eq(projetoTable.semestre, semestre)
+          )
+        )
+        .limit(1)
+
+      if (rows.length === 0) return null
+      return {
+        ...rows[0].vaga,
+        projeto: rows[0].projeto,
+      }
     },
 
     async findInscricaoById(inscricaoId: number) {
@@ -66,10 +77,13 @@ export function createVagasRepository(db: Database) {
     },
 
     async findVagasByAlunoUserId(userId: number) {
+      const aluno = await db.query.alunoTable.findFirst({
+        where: eq(alunoTable.userId, userId),
+      })
+      if (!aluno) return []
+
       return db.query.vagaTable.findMany({
-        where: sql`${vagaTable.alunoId} IN (
-          SELECT id FROM ${alunoTable} WHERE ${alunoTable.userId} = ${userId}
-        )`,
+        where: eq(vagaTable.alunoId, aluno.id),
         with: {
           projeto: {
             with: {
@@ -87,9 +101,18 @@ export function createVagasRepository(db: Database) {
       })
     },
 
+    async findProfessorByUserId(userId: number) {
+      return db.query.professorTable.findFirst({
+        where: eq(professorTable.userId, userId),
+      })
+    },
+
     async findProjetoById(projetoId: number) {
       return db.query.projetoTable.findFirst({
         where: eq(projetoTable.id, projetoId),
+        with: {
+          professorResponsavel: true,
+        },
       })
     },
 

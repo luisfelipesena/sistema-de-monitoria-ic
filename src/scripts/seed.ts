@@ -1,32 +1,34 @@
+import { hashSync } from 'bcryptjs'
+import { eq } from 'drizzle-orm'
 import { db } from '@/server/db'
 import {
-  alunoTable,
-  assinaturaDocumentoTable,
-  ataSelecaoTable,
-  departamentoTable,
-  disciplinaProfessorResponsavelTable,
-  disciplinaTable,
-  editalTable,
-  enderecoTable,
-  importacaoPlanejamentoTable,
-  inscricaoDocumentoTable,
-  inscricaoTable,
-  notaAlunoTable,
-  notificacaoHistoricoTable,
-  periodoInscricaoTable,
-  professorInvitationTable,
-  professorTable,
-  projetoDocumentoTable,
-  projetoDisciplinaTable,
-  projetoProfessorParticipanteTable,
-  projetoTable,
-  projetoTemplateTable,
-  relatorioFinalDisciplinaTable,
-  relatorioFinalMonitorTable,
-  relatorioTemplateTable,
-  sessionTable,
-  userTable,
-  vagaTable,
+    alunoTable,
+    assinaturaDocumentoTable,
+    ataSelecaoTable,
+    departamentoTable,
+    disciplinaProfessorResponsavelTable,
+    disciplinaTable,
+    editalTable,
+    enderecoTable,
+    importacaoPlanejamentoTable,
+    inscricaoDocumentoTable,
+    inscricaoTable,
+    notaAlunoTable,
+    notificacaoHistoricoTable,
+    periodoInscricaoTable,
+    professorInvitationTable,
+    professorTable,
+    projetoDisciplinaTable,
+    projetoDocumentoTable,
+    projetoProfessorParticipanteTable,
+    projetoTable,
+    projetoTemplateTable,
+    relatorioFinalDisciplinaTable,
+    relatorioFinalMonitorTable,
+    relatorioTemplateTable,
+    sessionTable,
+    userTable,
+    vagaTable,
 } from '@/server/db/schema'
 import { logger } from '@/utils/logger'
 
@@ -215,6 +217,8 @@ async function seedDatabase() {
 
     // 5. Criar Usuários
     log.info('👤 Criando usuários...')
+    const defaultPasswordHash = hashSync('123456', 10)
+    const now = new Date()
 
     const usuarios = await db
       .insert(userTable)
@@ -223,47 +227,65 @@ async function seedDatabase() {
           username: 'admin',
           email: 'admin@ufba.br',
           role: 'admin',
+          passwordHash: defaultPasswordHash,
+          emailVerifiedAt: now,
           assinaturaDefault: null,
         },
         {
           username: 'carlos.silva',
           email: 'carlos.silva@ufba.br',
           role: 'professor',
+          passwordHash: defaultPasswordHash,
+          emailVerifiedAt: now,
         },
         {
           username: 'ana.pereira',
           email: 'ana.pereira@ufba.br',
           role: 'professor',
+          passwordHash: defaultPasswordHash,
+          emailVerifiedAt: now,
         },
         {
           username: 'joao.santos',
           email: 'joao.santos@ufba.br',
           role: 'professor',
+          passwordHash: defaultPasswordHash,
+          emailVerifiedAt: now,
         },
         {
           username: 'maria.costa',
           email: 'maria.costa@ufba.br',
           role: 'professor',
+          passwordHash: defaultPasswordHash,
+          emailVerifiedAt: now,
         },
         {
           username: 'aluno1',
           email: 'aluno1@ufba.br',
           role: 'student',
+          passwordHash: defaultPasswordHash,
+          emailVerifiedAt: now,
         },
         {
           username: 'aluno2',
           email: 'aluno2@ufba.br',
           role: 'student',
+          passwordHash: defaultPasswordHash,
+          emailVerifiedAt: now,
         },
         {
           username: 'aluno3',
           email: 'aluno3@ufba.br',
           role: 'student',
+          passwordHash: defaultPasswordHash,
+          emailVerifiedAt: now,
         },
         {
           username: 'aluno4',
           email: 'aluno4@ufba.br',
           role: 'student',
+          passwordHash: defaultPasswordHash,
+          emailVerifiedAt: now,
         },
       ])
       .returning()
@@ -393,6 +415,20 @@ async function seedDatabase() {
           dataInicio: new Date('2025-07-15'),
           dataFim: new Date('2025-08-15'),
         },
+        {
+          semestre: 'SEMESTRE_1',
+          ano: 2026,
+          dataInicio: new Date('2026-01-15'),
+          dataFim: new Date('2026-02-15'),
+          totalBolsasPrograd: 10,
+        },
+        {
+          semestre: 'SEMESTRE_2',
+          ano: 2026,
+          dataInicio: new Date('2026-07-15'),
+          dataFim: new Date('2026-12-31'),
+          totalBolsasPrograd: 10,
+        },
       ])
       .returning()
 
@@ -402,32 +438,32 @@ async function seedDatabase() {
       {
         disciplinaId: disciplinas[0].id, // Introdução à Programação
         professorId: professores[0].id, // Carlos Silva
-        ano: 2025,
-        semestre: 'SEMESTRE_1',
+        ano: 2026,
+        semestre: 'SEMESTRE_2',
       },
       {
         disciplinaId: disciplinas[1].id, // POO
         professorId: professores[1].id, // Ana Pereira
-        ano: 2025,
-        semestre: 'SEMESTRE_1',
+        ano: 2026,
+        semestre: 'SEMESTRE_2',
       },
       {
         disciplinaId: disciplinas[2].id, // Estruturas de Dados
         professorId: professores[0].id, // Carlos Silva
-        ano: 2025,
-        semestre: 'SEMESTRE_1',
+        ano: 2026,
+        semestre: 'SEMESTRE_2',
       },
       {
         disciplinaId: disciplinas[10].id, // Cálculo I
         professorId: professores[2].id, // João Santos
-        ano: 2025,
-        semestre: 'SEMESTRE_1',
+        ano: 2026,
+        semestre: 'SEMESTRE_2',
       },
       {
         disciplinaId: disciplinas[19].id, // Física I
         professorId: professores[3].id, // Maria Costa
-        ano: 2025,
-        semestre: 'SEMESTRE_1',
+        ano: 2026,
+        semestre: 'SEMESTRE_2',
       },
     ])
 
@@ -438,11 +474,12 @@ async function seedDatabase() {
       .values([
         {
           departamentoId: departamentos[0].id,
-          ano: 2025,
-          semestre: 'SEMESTRE_1',
+          ano: 2026,
+          semestre: 'SEMESTRE_2',
           tipoProposicao: 'INDIVIDUAL',
-          bolsasSolicitadas: 2,
-          voluntariosSolicitados: 3,
+          bolsasSolicitadas: 4,
+          bolsasDisponibilizadas: 4,
+          voluntariosSolicitados: 2,
           cargaHorariaSemana: 12,
           numeroSemanas: 16,
           publicoAlvo: 'Estudantes de Ciência da Computação cursando disciplinas introdutórias',
@@ -455,10 +492,11 @@ async function seedDatabase() {
         },
         {
           departamentoId: departamentos[0].id,
-          ano: 2025,
-          semestre: 'SEMESTRE_1',
+          ano: 2026,
+          semestre: 'SEMESTRE_2',
           tipoProposicao: 'INDIVIDUAL',
-          bolsasSolicitadas: 1,
+          bolsasSolicitadas: 3,
+          bolsasDisponibilizadas: 3,
           voluntariosSolicitados: 2,
           cargaHorariaSemana: 8,
           numeroSemanas: 16,
@@ -468,14 +506,15 @@ async function seedDatabase() {
           titulo: 'Monitoria de Programação Orientada a Objetos',
           descricao:
             'Projeto de monitoria para apoiar estudantes na compreensão dos conceitos de programação orientada a objetos, incluindo herança, polimorfismo e encapsulamento.',
-          status: 'SUBMITTED',
+          status: 'APPROVED',
         },
         {
           departamentoId: departamentos[1].id,
-          ano: 2025,
-          semestre: 'SEMESTRE_1',
+          ano: 2026,
+          semestre: 'SEMESTRE_2',
           tipoProposicao: 'INDIVIDUAL',
-          bolsasSolicitadas: 1,
+          bolsasSolicitadas: 2,
+          bolsasDisponibilizadas: 2,
           voluntariosSolicitados: 1,
           cargaHorariaSemana: 10,
           numeroSemanas: 16,
@@ -485,12 +524,12 @@ async function seedDatabase() {
           titulo: 'Monitoria de Cálculo I',
           descricao:
             'Projeto de monitoria para auxiliar estudantes em conceitos fundamentais de cálculo diferencial e integral, com foco em resolução de exercícios e esclarecimento de dúvidas.',
-          status: 'DRAFT',
+          status: 'APPROVED',
         },
         {
           departamentoId: departamentos[3].id,
-          ano: 2025,
-          semestre: 'SEMESTRE_1',
+          ano: 2026,
+          semestre: 'SEMESTRE_2',
           tipoProposicao: 'INDIVIDUAL',
           bolsasSolicitadas: 1,
           voluntariosSolicitados: 2,
@@ -501,7 +540,7 @@ async function seedDatabase() {
           professorResponsavelId: professores[3].id,
           titulo: 'Monitoria de Física I',
           descricao:
-            'Projeto de monitoria para apoiar estudantes na compreensão dos conceitos de mecânica clássica, incluindo cinemática, dinâmica e leis de conservação.',
+            'Projeto de monitoria para suporte em conceitos de mecânica clássica e resolução de listas de exercícios.',
           status: 'APPROVED',
         },
       ])
@@ -527,6 +566,33 @@ async function seedDatabase() {
         disciplinaId: disciplinas[19].id, // Física I
       },
     ])
+
+    // 12. Criar Edital Interno de teste
+    log.info('📜 Criando edital de teste...')
+    const [edital] = await db
+      .insert(editalTable)
+      .values({
+        periodoInscricaoId: periodos[3].id, // 2026.2
+        tipo: 'DCC',
+        numeroEdital: '001/2026',
+        titulo: 'Edital Interno de Seleção de Monitores DCC 2026.2',
+        descricaoHtml: '<p>Edital interno de seleção para o semestre 2026.2.</p>',
+        valorBolsa: '400.00',
+        datasProvasDisponiveis: JSON.stringify([
+          { data: '2026-09-10', horario: '14:00-16:00' },
+          { data: '2026-09-11', horario: '09:00-11:00' },
+        ]),
+        dataInicioSelecao: new Date('2026-09-01'),
+        dataFimSelecao: new Date('2026-09-15'),
+        dataDivulgacaoResultado: new Date('2026-09-20'),
+        criadoPorUserId: usuarios[0].id,
+        publicado: false,
+      })
+      .returning()
+
+    for (const proj of projetos) {
+      await db.update(projetoTable).set({ editalInternoId: edital.id }).where(eq(projetoTable.id, proj.id))
+    }
 
     log.info('✅ Seed concluído com sucesso!')
     log.info(`📊 Dados criados:

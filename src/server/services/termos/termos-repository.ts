@@ -1,4 +1,4 @@
-import { and, eq, sql, type ExtractTablesWithRelations } from 'drizzle-orm'
+import { and, eq, or, sql, type ExtractTablesWithRelations } from 'drizzle-orm'
 import type { PgTransaction } from 'drizzle-orm/pg-core'
 import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js'
 import type { db } from '@/server/db'
@@ -24,6 +24,7 @@ export function createTermosRepository(db: Database | Transaction) {
           aluno: {
             with: { user: true },
           },
+          inscricao: true,
           projeto: {
             with: {
               departamento: true,
@@ -48,6 +49,7 @@ export function createTermosRepository(db: Database | Transaction) {
           aluno: {
             with: { user: true },
           },
+          inscricao: true,
           projeto: {
             with: {
               professorResponsavel: {
@@ -66,6 +68,7 @@ export function createTermosRepository(db: Database | Transaction) {
           aluno: {
             with: { user: true },
           },
+          inscricao: true,
           projeto: {
             with: {
               professorResponsavel: {
@@ -86,9 +89,11 @@ export function createTermosRepository(db: Database | Transaction) {
       })
     },
 
-    async findSignaturesByVagaId(vagaId: number) {
+    async findSignaturesByVagaId(vagaId: number, projetoId?: number) {
       return db.query.assinaturaDocumentoTable.findMany({
-        where: eq(assinaturaDocumentoTable.vagaId, vagaId),
+        where: projetoId
+          ? or(eq(assinaturaDocumentoTable.vagaId, vagaId), eq(assinaturaDocumentoTable.projetoId, projetoId))
+          : eq(assinaturaDocumentoTable.vagaId, vagaId),
         with: {
           user: true,
         },

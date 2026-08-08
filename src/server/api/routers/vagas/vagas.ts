@@ -3,7 +3,7 @@ import { semestreSchema, tipoVagaSchema } from '@/types'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
 import { createVagasService } from '@/server/services/vagas/vagas-service'
-import { NotFoundError, ValidationError, ForbiddenError, BusinessError } from '@/types/errors'
+import { NotFoundError, ValidationError, ForbiddenError, BusinessError } from '@/server/lib/errors'
 
 function mapDomainErrorToTRPCError(error: Error): TRPCError {
   if (error instanceof NotFoundError) {
@@ -18,7 +18,7 @@ function mapDomainErrorToTRPCError(error: Error): TRPCError {
   if (error instanceof BusinessError) {
     return new TRPCError({ code: 'BAD_REQUEST', message: error.message })
   }
-  throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro interno do servidor' })
+  return new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: error.message || 'Erro interno do servidor' })
 }
 
 export const vagasRouter = createTRPCRouter({

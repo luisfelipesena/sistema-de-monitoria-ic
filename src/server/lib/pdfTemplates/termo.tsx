@@ -1,17 +1,23 @@
-import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer'
 
 // Registrar fontes (mesmo padrão dos outros templates)
 Font.register({
-  family: 'Inter',
+  family: 'Roboto',
   fonts: [
-    { src: '/fonts/Inter-Regular.ttf', fontWeight: 'normal' },
-    { src: '/fonts/Inter-Bold.ttf', fontWeight: 'bold' },
+    {
+      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.1/fonts/Roboto/roboto-regular-webfont.ttf',
+      fontWeight: 'normal',
+    },
+    {
+      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.1/fonts/Roboto/roboto-bold-webfont.ttf',
+      fontWeight: 'bold',
+    },
   ],
 })
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Inter',
+    fontFamily: 'Roboto',
     fontSize: 11,
     padding: 40,
     lineHeight: 1.4,
@@ -83,13 +89,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   assinaturaBox: {
-    width: '45%',
+    width: '100%',
     textAlign: 'center',
-  },
-  assinaturaLinha: {
     borderTop: '1 solid #000',
-    marginBottom: 5,
-    paddingTop: 50,
+    paddingTop: 5,
   },
   assinaturaTexto: {
     fontSize: 10,
@@ -145,9 +148,16 @@ export interface TermoCompromissoProps {
     }
   }
   dataGeracao: Date
+  alunoAssinaturaBase64?: string
+  professorAssinaturaBase64?: string
 }
 
-export function TermoCompromissoTemplate({ vaga, dataGeracao }: TermoCompromissoProps) {
+export function TermoCompromissoTemplate({
+  vaga,
+  dataGeracao,
+  alunoAssinaturaBase64,
+  professorAssinaturaBase64,
+}: TermoCompromissoProps) {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -317,24 +327,36 @@ export function TermoCompromissoTemplate({ vaga, dataGeracao }: TermoCompromisso
 
         {/* Assinaturas */}
         <View style={styles.assinaturaSecao}>
-          <View style={styles.assinaturaBox}>
-            <View style={styles.assinaturaLinha} />
-            <Text style={styles.assinaturaTexto}>
-              {vaga.aluno.user.name}
-            </Text>
-            <Text style={styles.assinaturaTexto}>
-              Monitor(a)
-            </Text>
+          <View style={{ width: '45%' }}>
+            <View style={{ height: 40, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 2 }}>
+              {alunoAssinaturaBase64 ? (
+                <Image src={alunoAssinaturaBase64} style={{ height: 38, width: 130 }} />
+              ) : null}
+            </View>
+            <View style={styles.assinaturaBox}>
+              <Text style={styles.assinaturaTexto}>
+                {vaga.aluno.user.name}
+              </Text>
+              <Text style={styles.assinaturaTexto}>
+                Monitor(a)
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.assinaturaBox}>
-            <View style={styles.assinaturaLinha} />
-            <Text style={styles.assinaturaTexto}>
-              {vaga.projeto.professor.user.name}
-            </Text>
-            <Text style={styles.assinaturaTexto}>
-              Professor(a) Orientador(a)
-            </Text>
+          <View style={{ width: '45%' }}>
+            <View style={{ height: 40, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 2 }}>
+              {professorAssinaturaBase64 ? (
+                <Image src={professorAssinaturaBase64} style={{ height: 38, width: 130 }} />
+              ) : null}
+            </View>
+            <View style={styles.assinaturaBox}>
+              <Text style={styles.assinaturaTexto}>
+                {vaga.projeto.professor.user.name}
+              </Text>
+              <Text style={styles.assinaturaTexto}>
+                Professor(a) Orientador(a)
+              </Text>
+            </View>
           </View>
         </View>
 

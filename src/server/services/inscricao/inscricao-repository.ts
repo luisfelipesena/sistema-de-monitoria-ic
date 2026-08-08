@@ -67,7 +67,7 @@ export interface DocumentoData {
 }
 
 export class InscricaoRepository {
-  constructor(private db: Database) {}
+  constructor(public db: Database) {}
 
   async findStudentGradeWithEquivalents(alunoId: number, disciplinaId: number): Promise<number | null> {
     try {
