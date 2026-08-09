@@ -116,7 +116,9 @@ export function createVagasService(db: Database) {
       })
 
       try {
-        const profEmail = inscricaoData.projeto.professorResponsavel?.user?.email || inscricaoData.projeto.professorResponsavel?.emailInstitucional
+        const profEmail =
+          inscricaoData.projeto.professorResponsavel?.user?.email ||
+          inscricaoData.projeto.professorResponsavel?.emailInstitucional
         const studentName = inscricaoData.aluno?.user?.username || inscricaoData.aluno?.nomeCompleto || 'Aluno'
         const studentEmail = inscricaoData.aluno?.user?.email || ''
 
@@ -237,9 +239,7 @@ Sistema de Monitoria IC
         throw new NotFoundError('Projeto', projetoId)
       }
 
-      const isOwner =
-        projeto.professorResponsavelId === userId ||
-        projeto.professorResponsavel?.userId === userId
+      const isOwner = projeto.professorResponsavelId === userId || projeto.professorResponsavel?.userId === userId
 
       if (isProfessor(userRole) && !isOwner) {
         throw new ForbiddenError('Você só pode ver vagas de seus próprios projetos')

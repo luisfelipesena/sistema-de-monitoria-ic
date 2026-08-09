@@ -1,5 +1,12 @@
 import type { db } from '@/server/db'
-import { alunoTable, assinaturaDocumentoTable, inscricaoTable, professorTable, projetoTable, vagaTable } from '@/server/db/schema'
+import {
+  alunoTable,
+  assinaturaDocumentoTable,
+  inscricaoTable,
+  professorTable,
+  projetoTable,
+  vagaTable,
+} from '@/server/db/schema'
 import type { Semestre, StatusInscricao } from '@/types'
 import { TIPO_VAGA_BOLSISTA } from '@/types'
 import type { InferInsertModel } from 'drizzle-orm'

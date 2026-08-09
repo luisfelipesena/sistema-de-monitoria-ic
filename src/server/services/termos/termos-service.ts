@@ -35,8 +35,7 @@ export function createTermosService(db: Database) {
       const isAluno = userRole === STUDENT && vagaData.aluno.userId === userId
       const isProfessor =
         userRole === PROFESSOR &&
-        (vagaData.projeto.professorResponsavelId === userId ||
-          vagaData.projeto.professorResponsavel?.userId === userId)
+        (vagaData.projeto.professorResponsavelId === userId || vagaData.projeto.professorResponsavel?.userId === userId)
       const isAdmin = userRole === ADMIN
 
       if (!isAluno && !isProfessor && !isAdmin) {
@@ -53,8 +52,7 @@ export function createTermosService(db: Database) {
       // Assinatura do professor
       const profSigRecord = signatures.find(
         (s) =>
-          s.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO ||
-          s.tipoAssinatura === TIPO_ASSINATURA_PROJETO_PROFESSOR
+          s.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO || s.tipoAssinatura === TIPO_ASSINATURA_PROJETO_PROFESSOR
       )
       const professorAssinaturaBase64 = profSigRecord?.assinaturaData || null
 
@@ -91,8 +89,7 @@ export function createTermosService(db: Database) {
       const isAluno = userRole === STUDENT && vagaData.aluno.userId === userId
       const isProfessor =
         userRole === PROFESSOR &&
-        (vagaData.projeto.professorResponsavelId === userId ||
-          vagaData.projeto.professorResponsavel?.userId === userId)
+        (vagaData.projeto.professorResponsavelId === userId || vagaData.projeto.professorResponsavel?.userId === userId)
       const isAdmin = userRole === ADMIN
 
       if (!isAluno && !isProfessor && !isAdmin) {
@@ -134,8 +131,7 @@ export function createTermosService(db: Database) {
 
       const isAluno = vagaData.aluno.userId === userId
       const isProfessor =
-        vagaData.projeto.professorResponsavelId === userId ||
-        vagaData.projeto.professorResponsavel?.userId === userId
+        vagaData.projeto.professorResponsavelId === userId || vagaData.projeto.professorResponsavel?.userId === userId
 
       if (tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO && !isAluno) {
         throw new ForbiddenError('Apenas o aluno pode assinar como aluno.')
@@ -181,9 +177,7 @@ export function createTermosService(db: Database) {
           if (!projeto) {
             throw new NotFoundError('Projeto', 'não encontrado')
           }
-          const isOwner =
-            projeto.professorResponsavelId === userId ||
-            projeto.professorResponsavel?.userId === userId
+          const isOwner = projeto.professorResponsavelId === userId || projeto.professorResponsavel?.userId === userId
 
           if (userRole === PROFESSOR && !isOwner) {
             throw new ForbiddenError('Você só pode ver termos de seus próprios projetos')
@@ -201,8 +195,7 @@ export function createTermosService(db: Database) {
         const isAluno = userRole === STUDENT && vaga.aluno.userId === userId
         const isProfessor =
           userRole === PROFESSOR &&
-          (vaga.projeto.professorResponsavelId === userId ||
-            vaga.projeto.professorResponsavel?.userId === userId)
+          (vaga.projeto.professorResponsavelId === userId || vaga.projeto.professorResponsavel?.userId === userId)
         const isAdmin = userRole === ADMIN
 
         if (!isAluno && !isProfessor && !isAdmin) {

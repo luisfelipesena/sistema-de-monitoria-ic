@@ -1,12 +1,10 @@
 import { useState } from 'react'
-import { useAuth } from '@/hooks/use-auth'
 import { useTRPCMutation } from '@/hooks/useTRPCMutation'
 import { api } from '@/utils/api'
 import { ProfessorProjetoListItem, Semestre, ProjetoStatus } from '@/types'
 import type { ProjectListItemData } from '@/types'
 
 export function useProjectList() {
-  const { user } = useAuth()
   const [selectedProjeto, setSelectedProjeto] = useState<ProfessorProjetoListItem | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
@@ -18,35 +16,34 @@ export function useProjectList() {
   })
 
   const projetos: ProfessorProjetoListItem[] =
-    projetosData
-      ?.map((projeto: ProjectListItemData & { editalNumero?: string | null; editalPublicado?: boolean }) => ({
-        id: projeto.id,
-        titulo: projeto.titulo,
-        descricao: projeto.descricao,
-        departamento: {
-          id: projeto.departamentoId,
-          nome: projeto.departamentoNome,
-        },
-        ano: projeto.ano,
-        semestre: projeto.semestre as Semestre,
-        tipoProposicao: projeto.tipoProposicao as 'NOVO' | 'CONTINUACAO',
-        status: projeto.status as ProjetoStatus,
-        bolsasSolicitadas: projeto.bolsasSolicitadas,
-        voluntariosSolicitados: projeto.voluntariosSolicitados,
-        inscricoes: projeto.totalInscritos,
-        bolsasAlocadas: projeto.bolsasDisponibilizadas || 0,
-        voluntariosAlocados: 0,
-        cargaHorariaSemana: projeto.cargaHorariaSemana,
-        numeroSemanas: projeto.numeroSemanas,
-        publicoAlvo: projeto.publicoAlvo,
-        estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || 0,
-        disciplinas: projeto.disciplinas.map((d) => ({ id: d.id, nome: d.nome })),
-        assinaturaProfessor: projeto.assinaturaProfessor || undefined,
-        editalNumero: projeto.editalNumero,
-        editalPublicado: projeto.editalPublicado,
-        criadoEm: projeto.createdAt.toISOString(),
-        atualizadoEm: projeto.updatedAt?.toISOString() || projeto.createdAt.toISOString(),
-      })) || []
+    projetosData?.map((projeto: ProjectListItemData & { editalNumero?: string | null; editalPublicado?: boolean }) => ({
+      id: projeto.id,
+      titulo: projeto.titulo,
+      descricao: projeto.descricao,
+      departamento: {
+        id: projeto.departamentoId,
+        nome: projeto.departamentoNome,
+      },
+      ano: projeto.ano,
+      semestre: projeto.semestre as Semestre,
+      tipoProposicao: projeto.tipoProposicao as 'NOVO' | 'CONTINUACAO',
+      status: projeto.status as ProjetoStatus,
+      bolsasSolicitadas: projeto.bolsasSolicitadas,
+      voluntariosSolicitados: projeto.voluntariosSolicitados,
+      inscricoes: projeto.totalInscritos,
+      bolsasAlocadas: projeto.bolsasDisponibilizadas || 0,
+      voluntariosAlocados: 0,
+      cargaHorariaSemana: projeto.cargaHorariaSemana,
+      numeroSemanas: projeto.numeroSemanas,
+      publicoAlvo: projeto.publicoAlvo,
+      estimativaPessoasBenificiadas: projeto.estimativaPessoasBenificiadas || 0,
+      disciplinas: projeto.disciplinas.map((d) => ({ id: d.id, nome: d.nome })),
+      assinaturaProfessor: projeto.assinaturaProfessor || undefined,
+      editalNumero: projeto.editalNumero,
+      editalPublicado: projeto.editalPublicado,
+      criadoEm: projeto.createdAt.toISOString(),
+      atualizadoEm: projeto.updatedAt?.toISOString() || projeto.createdAt.toISOString(),
+    })) || []
 
   const handleViewProjeto = (projeto: ProfessorProjetoListItem) => {
     setSelectedProjeto(projeto)

@@ -274,14 +274,8 @@ export class ProfessorInscricaoService {
       const profSig = await this.repository.db.query.assinaturaDocumentoTable.findFirst({
         where: (sigs, { and, eq, or, inArray }) =>
           and(
-            or(
-              eq(sigs.projetoId, inscricao.projetoId),
-              profUserId ? eq(sigs.userId, profUserId) : undefined
-            ),
-            inArray(sigs.tipoAssinatura, [
-              'ATA_SELECAO_PROFESSOR',
-              'PROJETO_PROFESSOR_RESPONSAVEL',
-            ])
+            or(eq(sigs.projetoId, inscricao.projetoId), profUserId ? eq(sigs.userId, profUserId) : undefined),
+            inArray(sigs.tipoAssinatura, ['ATA_SELECAO_PROFESSOR', 'PROJETO_PROFESSOR_RESPONSAVEL'])
           ),
       })
       if (profSig) {
