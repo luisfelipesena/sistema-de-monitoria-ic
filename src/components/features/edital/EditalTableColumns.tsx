@@ -199,7 +199,7 @@ export function createEditalTableColumns({
       header: "Ações",
       cell: ({ row }) => {
         const edital = row.original;
-        const canPublish = edital.chefeAssinouEm && !edital.publicado;
+        const canPublish = (Boolean(edital.chefeAssinouEm) || Boolean(edital.fileIdAssinado)) && !edital.publicado;
         const canRequestSignature = !edital.chefeAssinouEm && !edital.publicado;
         const canUploadSigned = !edital.fileIdAssinado && !edital.publicado;
 

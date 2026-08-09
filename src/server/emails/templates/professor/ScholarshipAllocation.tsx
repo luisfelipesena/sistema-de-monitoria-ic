@@ -65,23 +65,23 @@ export function ScholarshipAllocation({
 
       <InfoBox variant="info" title="Próximos passos:">
         <ol style={listStyle}>
-          <li>Acesse o sistema e verifique a alocação de bolsas</li>
           <li>
-            Preencha as informações do edital interno DCC (datas de prova, pontos,
-            bibliografia)
+            <strong>Acesse o seu Dashboard:</strong> Confira as bolsas PROGRAD alocadas e confirme/defina o número de <strong>vagas voluntárias</strong> para os seus projetos.
           </li>
-          <li>Aguarde a publicação do edital para início das inscrições</li>
+          <li>
+            Preencha as informações do edital interno (datas de prova, pontos e bibliografia).
+          </li>
+          <li>Aguarde a publicação oficial do edital para o início das inscrições.</li>
         </ol>
       </InfoBox>
 
-      <Button href={linkProjetos}>Acessar Meus Projetos</Button>
+      <Button href={linkProjetos}>Acessar Dashboard do Professor</Button>
 
       <Text style={importantTextStyle}>
-        <strong>Importante:</strong> O número de bolsas alocadas é definido pela
-        coordenação e não pode ser alterado.{' '}
+        <strong>Atenção:</strong> As bolsas PROGRAD foram alocadas pela coordenação.{' '}
         {projetosSemBolsas > 0
-          ? `Os projetos que receberam 0 bolsa PROGRAD devem operar apenas com vagas voluntárias.`
-          : 'Você pode definir vagas voluntárias adicionais se desejar.'}
+          ? `Para as disciplinas que não receberam bolsas, acesse o Dashboard para alocar vagas voluntárias.`
+          : 'Você pode definir e confirmar vagas voluntárias adicionais caso deseje.'}
       </Text>
 
       <Text style={signatureStyle}>

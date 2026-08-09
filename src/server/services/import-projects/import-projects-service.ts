@@ -622,6 +622,15 @@ export function createImportProjectsService(db: Database) {
         )
       }
 
+      // Auto-notify professors if projects were created
+      if (projetosCriados > 0) {
+        try {
+          await notifyProfessorsInternal(importacaoId)
+        } catch (notifyErr) {
+          log.error({ notifyErr, importacaoId }, 'Erro ao notificar professores automaticamente pós-importação')
+        }
+      }
+
       return {
         projetosCriados,
         projetosComErro,
@@ -885,6 +894,15 @@ export function createImportProjectsService(db: Database) {
         )
       }
 
+      // Auto-notify professors if projects were created
+      if (projetosCriados > 0) {
+        try {
+          await notifyProfessorsInternal(importacaoId)
+        } catch (notifyErr) {
+          log.error({ notifyErr, importacaoId }, 'Erro ao notificar professores automaticamente pós-importação')
+        }
+      }
+
       return {
         projetosCriados,
         projetosComErro,
@@ -894,56 +912,69 @@ export function createImportProjectsService(db: Database) {
     },
 
     async notifyProfessors(importacaoId: number) {
-      const importacao = await repo.findImportacao(importacaoId)
-
-      if (!importacao) {
-        throw new NotFoundError('Importação', importacaoId)
-      }
-
-      if (importacao.professoresNotificadosEm) {
-        throw new BusinessError('Professores já foram notificados para esta importação', 'ALREADY_NOTIFIED')
-      }
-
-      const professores = await repo.findProfessoresByImportacao(importacaoId)
-
-      if (professores.length === 0) {
-        throw new BusinessError('Nenhum professor encontrado para notificar nesta importação', 'NO_PROFESSORS')
-      }
-
-      let emailsEnviados = 0
-      const errosEmail: string[] = []
-
-      for (const professor of professores) {
-        try {
-          await sendProjectCreationNotification({
-            to: professor.user.email,
-            professorName: professor.nomeCompleto,
-            ano: importacao.ano,
-            semestre: importacao.semestre as Semestre,
-          })
-          emailsEnviados++
-          log.info({ professorId: professor.id, email: professor.user.email }, 'Email enviado')
-        } catch (emailError) {
-          log.error(emailError, 'Erro ao enviar email para professor')
-          errosEmail.push(`Erro ao enviar email para ${professor.user.email}`)
-        }
-      }
-
-      await repo.updateImportacao(importacaoId, {
-        professoresNotificadosEm: new Date(),
-      })
-
-      log.info(
-        { importacaoId, emailsEnviados, totalProfessores: professores.length },
-        'Professores notificados manualmente'
-      )
-
-      return {
-        emailsEnviados,
-        totalProfessores: professores.length,
-        erros: errosEmail,
-      }
+      return notifyProfessorsInternal(importacaoId)
     },
+  }
+
+  async function notifyProfessorsInternal(importacaoId: number) {
+    const importacao = await repo.findImportacao(importacaoId)
+
+    if (!importacao) {
+      throw new NotFoundError('Importação', importacaoId)
+    }
+
+    if (importacao.professoresNotificadosEm) {
+      log.info({ importacaoId }, 'Professores já foram notificados anteriormente para esta importação')
+      return {
+        emailsEnviados: 0,
+        totalProfessores: 0,
+        erros: [],
+      }
+    }
+
+    const professores = await repo.findProfessoresByImportacao(importacaoId)
+
+    if (professores.length === 0) {
+      return {
+        emailsEnviados: 0,
+        totalProfessores: 0,
+        erros: [],
+      }
+    }
+
+    let emailsEnviados = 0
+    const errosEmail: string[] = []
+
+    for (const professor of professores) {
+      try {
+        await sendProjectCreationNotification({
+          to: professor.user.email,
+          professorName: professor.nomeCompleto,
+          ano: importacao.ano,
+          semestre: importacao.semestre as Semestre,
+        })
+        emailsEnviados++
+        log.info({ professorId: professor.id, email: professor.user.email }, 'Email enviado')
+      } catch (emailError) {
+        log.error(emailError, 'Erro ao enviar email para professor')
+        errosEmail.push(`Erro ao enviar email para ${professor.user.email}`)
+      }
+    }
+
+    await repo.updateImportacao(importacaoId, {
+      professoresNotificadosEm: new Date(),
+    })
+
+    log.info(
+      { importacaoId, emailsEnviados, totalProfessores: professores.length },
+      'Professores notificados com sucesso'
+    )
+
+    return {
+      emailsEnviados,
+      totalProfessores: professores.length,
+      erros: errosEmail,
+    }
   }
 }
 

@@ -263,7 +263,17 @@ export function EditalFormDialog({
                         <Input
                           type="date"
                           value={field.value?.toISOString().split("T")[0] || ""}
-                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const newStart = new Date(e.target.value)
+                              field.onChange(newStart)
+                              const newEnd = new Date(newStart)
+                              newEnd.setDate(newEnd.getDate() + 7)
+                              form.setValue("dataFimInscricao", newEnd)
+                            } else {
+                              field.onChange(undefined)
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

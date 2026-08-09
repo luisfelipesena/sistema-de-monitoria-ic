@@ -658,10 +658,10 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
           <Text style={styles.text}>6.5 Os critérios de desempate serão os seguintes, em ordem decrescente:</Text>
           <View style={{ marginLeft: 20, marginTop: 3, marginBottom: 5 }}>
             <Text style={styles.listItem}>
-              ■ Nota na disciplina associada ao projeto de monitoria, ou em disciplina equivalente;
+              6.5.1. Nota na disciplina associada ao projeto de monitoria, ou em disciplina equivalente;
             </Text>
-            <Text style={styles.listItem}>■ Coeficiente de rendimento;</Text>
-            <Text style={styles.listItem}>■ Avaliação de currículo;</Text>
+            <Text style={styles.listItem}>6.5.2. Coeficiente de rendimento;</Text>
+            <Text style={styles.listItem}>6.5.3. Avaliação de currículo;</Text>
           </View>
         </View>
 
