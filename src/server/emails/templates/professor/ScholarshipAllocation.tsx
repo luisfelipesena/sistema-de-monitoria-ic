@@ -1,5 +1,5 @@
-import React from 'react'
 import { Text } from '@react-email/components'
+import React from 'react'
 import { BaseLayout, Button, Heading, InfoBox, Table } from '../../components'
 
 interface Projeto {
@@ -70,6 +70,9 @@ export function ScholarshipAllocation({
           </li>
           <li>
             Preencha as informações do edital interno (datas de prova, pontos e bibliografia).
+          </li>
+          <li>
+            <strong>IMPORTANTE!</strong> Confirme o número de voluntários para seus projetos!
           </li>
           <li>Aguarde a publicação oficial do edital para o início das inscrições.</li>
         </ol>

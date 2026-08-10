@@ -2,9 +2,31 @@ import { db } from '@/server/db'
 import { notificacaoHistoricoTable } from '@/server/db/schema'
 import { STATUS_ENVIO_ENVIADO, STATUS_ENVIO_FALHOU } from '@/types'
 import { logger } from '@/utils/logger'
+import { existsSync, mkdirSync, writeFileSync } from 'fs'
+import { join } from 'path'
 import { emailFromAddress, transporter } from './email-transport'
 
 const log = logger.child({ context: 'EmailSender' })
+
+const EMAILS_DIR = join(process.cwd(), 'data', 'emails')
+
+function saveEmailToFile(to: string, subject: string, html: string) {
+  try {
+    if (!existsSync(EMAILS_DIR)) {
+      mkdirSync(EMAILS_DIR, { recursive: true })
+    }
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
+    const safeSubject = subject.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 50).trim().replace(/\s+/g, '_')
+    const fileName = `${timestamp}_${safeSubject}_${to.replace('@', '_at_')}.html`
+    const filePath = join(EMAILS_DIR, fileName)
+
+    const fullHtml = `<!-- To: ${to} -->\n<!-- Subject: ${subject} -->\n<!-- Date: ${new Date().toISOString()} -->\n${html}`
+    writeFileSync(filePath, fullHtml, 'utf-8')
+    log.info({ filePath, to, subject }, 'DEV: Email salvo em arquivo local')
+  } catch (err) {
+    log.warn({ err, to, subject }, 'DEV: Falha ao salvar email em arquivo')
+  }
+}
 
 export interface SendEmailParams {
   to: string | string[]
@@ -57,8 +79,11 @@ export const emailSender = {
         if (process.env.NODE_ENV !== 'production') {
           log.warn(
             { to: recipient, subject: params.subject, error: errorMessage },
-            'DEV MODE: SMTP indisponível/inválido. Simulando envio de e-mail localmente.'
+            'DEV MODE: SMTP indisponível/inválido. Salvando e-mail localmente em data/emails/'
           )
+
+          // Save email HTML to local file for inspection
+          saveEmailToFile(recipient, params.subject, params.html)
 
           try {
             await db.insert(notificacaoHistoricoTable).values({
