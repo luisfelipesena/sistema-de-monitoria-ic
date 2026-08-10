@@ -31,12 +31,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
   institutionHeader: {
-    fontSize: 9,
+    fontSize: 11,
     marginBottom: 1,
     textAlign: "center",
   },
   institutionHeaderBold: {
-    fontSize: 9,
+    fontSize: 11,
     fontFamily: "Times-Bold",
     marginBottom: 1,
     textAlign: "center",
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     fontFamily: "Times-Bold",
   },
   list: {
-    marginLeft: 20,
+    marginLeft: 40,
     marginBottom: 5,
   },
   listItem: {
@@ -623,21 +623,21 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                     return null
 
                   return (
-                    <View key={index} style={{ marginBottom: 10 }}>
+                    <View key={index} style={{ marginBottom: 10, marginLeft: 20 }}>
                       <Text style={[styles.listItem, { fontFamily: "Times-Bold" }]}>
                         ■ {disciplina.codigo} – {disciplina.nome}
                       </Text>
                       {disciplina.pontosSelecao && disciplina.pontosSelecao.length > 0 && (
-                        <View style={{ marginLeft: 15, marginTop: 2 }}>
+                        <View style={{ marginLeft: 20, marginTop: 2 }}>
                           <Text style={styles.pontosText}>
-                            Pontos: {disciplina.pontosSelecao.join("; ")}
+                            I - Pontos: {disciplina.pontosSelecao.join("; ")}
                             {disciplina.pontosSelecao[disciplina.pontosSelecao.length - 1]?.endsWith(".") ? "" : "."}
                           </Text>
                         </View>
                       )}
                       {disciplina.bibliografia && disciplina.bibliografia.length > 0 && (
-                        <View style={{ marginLeft: 15, marginTop: 2 }}>
-                          <Text style={styles.pontosText}>Bibliografia:</Text>
+                        <View style={{ marginLeft: 20, marginTop: 2 }}>
+                          <Text style={styles.pontosText}>II - Bibliografia:</Text>
                           {disciplina.bibliografia.map((bib, idx) => (
                             <Text key={idx} style={styles.bibliografiaItem}>
                               {bib}
@@ -656,12 +656,12 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
             6.4 Não será admitida a comunicação direta ou indireta entre os candidatos durante o processo seletivo;
           </Text>
           <Text style={styles.text}>6.5 Os critérios de desempate serão os seguintes, em ordem decrescente:</Text>
-          <View style={{ marginLeft: 20, marginTop: 3, marginBottom: 5 }}>
+          <View style={{ marginLeft: 40, marginTop: 3, marginBottom: 5 }}>
             <Text style={styles.listItem}>
-              6.5.1. Nota na disciplina associada ao projeto de monitoria, ou em disciplina equivalente;
+              I. Nota na disciplina associada ao projeto de monitoria, ou em disciplina equivalente;
             </Text>
-            <Text style={styles.listItem}>6.5.2. Coeficiente de rendimento;</Text>
-            <Text style={styles.listItem}>6.5.3. Avaliação de currículo;</Text>
+            <Text style={styles.listItem}>II. Coeficiente de rendimento;</Text>
+            <Text style={styles.listItem}>III. Avaliação de currículo;</Text>
           </View>
         </View>
 
