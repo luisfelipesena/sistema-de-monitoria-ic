@@ -1,4 +1,5 @@
 import type { db } from '@/server/db'
+import { logger } from '@/utils/logger'
 import { createEditalCrudService } from './edital-crud-service'
 import { createEditalPdfService } from './edital-pdf-service'
 import { createEditalPublicationService } from './edital-publication-service'
@@ -6,6 +7,8 @@ import { createEditalQueryService } from './edital-query-service'
 import { createEditalRepository } from './edital-repository'
 
 type Database = typeof db
+
+const log = logger.child({ context: 'EditalService' })
 
 /**
  * Main Edital Service - Orchestrates all edital-related operations
@@ -49,11 +52,38 @@ export function createEditalService(db: Database) {
     uploadSignedEdital: crudService.uploadSignedEdital,
     setAvailableExamDates: crudService.setAvailableExamDates,
     requestChefeSignature: crudService.requestChefeSignature,
-    signAsChefe: crudService.signAsChefe,
 
-    // Token-based signature operations (public)
+    // Sign as chefe + auto-generate signed PDF
+    async signAsChefe(id: number, assinatura: string, userId: number) {
+      const result = await crudService.signAsChefe(id, assinatura, userId)
+      // Auto-generate signed PDF and save reference
+      try {
+        const pdfResult = await pdfService.generateEditalPdf(id, userId)
+        await repo.update(id, { fileIdAssinado: pdfResult.fileId })
+        log.info({ editalId: id, fileId: pdfResult.fileId }, 'PDF assinado gerado e salvo automaticamente')
+      } catch (error) {
+        log.warn({ editalId: id, error }, 'Falha ao gerar PDF automaticamente (assinatura foi salva)')
+      }
+      return result
+    },
+
+    // Token-based signature operations (public) + auto-generate signed PDF
     getEditalByToken: crudService.getEditalByToken,
-    signEditalByToken: crudService.signEditalByToken,
+    async signEditalByToken(token: string, assinatura: string, chefeNome: string) {
+      const result = await crudService.signEditalByToken(token, assinatura, chefeNome)
+      // Auto-generate signed PDF and save reference
+      try {
+        const editalId = result.edital?.id
+        if (editalId) {
+          const pdfResult = await pdfService.generateEditalPdf(editalId, 0)
+          await repo.update(editalId, { fileIdAssinado: pdfResult.fileId })
+          log.info({ editalId, fileId: pdfResult.fileId }, 'PDF assinado gerado e salvo automaticamente via token')
+        }
+      } catch (error) {
+        log.warn({ error }, 'Falha ao gerar PDF automaticamente (assinatura foi salva)')
+      }
+      return result
+    },
 
     // Publication operations
     validateEditalForPublication: publicationService.validateEditalForPublication,
