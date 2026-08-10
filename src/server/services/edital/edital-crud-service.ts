@@ -1,11 +1,11 @@
 import { emailService } from '@/server/lib/email'
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import {
-  SEMESTRE_LABELS,
-  TIPO_EDITAL_DCC,
-  type CreateEditalInput,
-  type EditalWithPeriodoStatus,
-  type UpdateEditalInput,
+    SEMESTRE_LABELS,
+    TIPO_EDITAL_DCC,
+    type CreateEditalInput,
+    type EditalWithPeriodoStatus,
+    type UpdateEditalInput,
 } from '@/types'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
@@ -103,6 +103,8 @@ export function createEditalCrudService(
         fileIdPdfExterno: input.fileIdPdfExterno || null,
         dataInicioSelecao: input.dataInicioSelecao || null,
         dataFimSelecao: input.dataFimSelecao || null,
+        horarioInicioSelecao: input.horarioInicioSelecao || null,
+        horarioFimSelecao: input.horarioFimSelecao || null,
         linkFormularioInscricao: generateInscricaoLink(),
         datasProvasDisponiveis: input.datasProvasDisponiveis ? JSON.stringify(input.datasProvasDisponiveis) : null,
         dataDivulgacaoResultado: input.dataDivulgacaoResultado || null,
@@ -208,6 +210,8 @@ export function createEditalCrudService(
       if (input.valorBolsa !== undefined) updateData.valorBolsa = input.valorBolsa
       if (input.dataInicioSelecao !== undefined) updateData.dataInicioSelecao = input.dataInicioSelecao
       if (input.dataFimSelecao !== undefined) updateData.dataFimSelecao = input.dataFimSelecao
+      if (input.horarioInicioSelecao !== undefined) updateData.horarioInicioSelecao = input.horarioInicioSelecao
+      if (input.horarioFimSelecao !== undefined) updateData.horarioFimSelecao = input.horarioFimSelecao
       if (input.datasProvasDisponiveis !== undefined) {
         updateData.datasProvasDisponiveis = input.datasProvasDisponiveis
           ? JSON.stringify(input.datasProvasDisponiveis)

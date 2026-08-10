@@ -36,6 +36,41 @@ function parseSlots(raw: string | null): SlotDataHorario[] {
   }
 }
 
+/**
+ * Parses the datasSelecaoEscolhidas JSON string from the projeto into SlotDataHorario[].
+ */
+function parseDatasEscolhidas(raw: string | null): SlotDataHorario[] {
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((s: unknown): s is SlotDataHorario => {
+      if (typeof s !== 'object' || s === null) return false
+      const obj = s as Record<string, unknown>
+      return typeof obj.data === 'string' && typeof obj.horario === 'string'
+    })
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Validates that a slot is within the edital's allowed range.
+ */
+function isSlotWithinRange(
+  slot: SlotDataHorario,
+  dataInicio: string,
+  dataFim: string,
+  horarioInicio: string,
+  horarioFim: string
+): boolean {
+  // Validate date is within range
+  if (slot.data < dataInicio || slot.data > dataFim) return false
+  // Validate time is within range
+  if (slot.horario < horarioInicio || slot.horario > horarioFim) return false
+  return true
+}
+
 export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
   /**
    * Verifies authorization: professor can only edit their own project.
@@ -52,9 +87,67 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
   return {
     /**
-     * Choose a date/time slot for the projeto's selection exam.
-     * Validates that the submitted {data, horario} pair matches one of the
-     * edital's datasProvasDisponiveis slots.
+     * Choose date/time slots for the projeto's selection exam.
+     * Validates that each slot is within the edital's date/time range.
+     * Professor can choose up to 3 slots.
+     */
+    async chooseSlots(projetoId: number, slots: SlotDataHorario[], userId: number, userRole: UserRole) {
+      if (slots.length === 0 || slots.length > 3) {
+        throw new ValidationError('Selecione entre 1 e 3 datas/horários')
+      }
+
+      const projeto = await repo.findByIdWithEdital(projetoId)
+      if (!projeto) {
+        throw new NotFoundError('Projeto', projetoId)
+      }
+
+      await verifyAuthorization(projeto, userId, userRole)
+
+      if (!projeto.editalInterno) {
+        throw new ValidationError('Projeto não está vinculado a um edital interno')
+      }
+
+      const edital = projeto.editalInterno
+      const dataInicio = edital.dataInicioSelecao?.toISOString().split('T')[0]
+      const dataFim = edital.dataFimSelecao?.toISOString().split('T')[0]
+      const horarioInicio = edital.horarioInicioSelecao
+      const horarioFim = edital.horarioFimSelecao
+
+      // If range is defined, validate slots against it
+      if (dataInicio && dataFim && horarioInicio && horarioFim) {
+        for (const slot of slots) {
+          if (!isSlotWithinRange(slot, dataInicio, dataFim, horarioInicio, horarioFim)) {
+            throw new ValidationError(
+              `Data/horário ${slot.data} ${slot.horario} está fora do range permitido (${dataInicio} a ${dataFim}, ${horarioInicio} - ${horarioFim})`
+            )
+          }
+        }
+      } else {
+        // Legacy: validate against discrete slots
+        const availableSlots = parseSlots(edital.datasProvasDisponiveis)
+        for (const slot of slots) {
+          const slotExists = availableSlots.some((s) => s.data === slot.data && s.horario === slot.horario)
+          if (!slotExists) {
+            throw new ValidationError(`Opção de data/horário ${slot.data} ${slot.horario} inválida`)
+          }
+        }
+      }
+
+      // Save the chosen slots as JSON + keep legacy fields for backward compatibility
+      const updated = await repo.update(projetoId, {
+        datasSelecaoEscolhidas: JSON.stringify(slots),
+        // Keep first slot in legacy fields for backward compatibility
+        dataSelecaoEscolhida: new Date(slots[0].data),
+        horarioSelecao: slots[0].horario,
+      })
+
+      log.info({ projetoId, slots, userId }, 'Slots de seleção escolhidos')
+      return updated
+    },
+
+    /**
+     * Legacy: Choose a single date/time slot for the projeto's selection exam.
+     * Kept for backward compatibility.
      */
     async chooseSlot(projetoId: number, data: string, horario: string, userId: number, userRole: UserRole) {
       const projeto = await repo.findByIdWithEdital(projetoId)
@@ -79,6 +172,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       const updated = await repo.update(projetoId, {
         dataSelecaoEscolhida: new Date(data),
         horarioSelecao: horario,
+        datasSelecaoEscolhidas: JSON.stringify([{ data, horario }]),
       })
 
       log.info({ projetoId, data, horario, userId }, 'Slot de seleção escolhido')
@@ -141,7 +235,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
     },
 
     /**
-     * Get selection info for a project: current selection state + available slots from its edital.
+     * Get selection info for a project: current selection state + range/slots from its edital.
      */
     async getSelecaoInfo(projetoId: number, userId: number, userRole: UserRole) {
       const projeto = await repo.findByIdWithEdital(projetoId)
@@ -152,22 +246,37 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       await verifyAuthorization(projeto, userId, userRole)
 
       const slotsDisponiveis = projeto.editalInterno ? parseSlots(projeto.editalInterno.datasProvasDisponiveis) : []
+      const datasEscolhidas = parseDatasEscolhidas((projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null)
+
+      // Build range info from edital
+      const editalI = projeto.editalInterno
+      const rangeSelecao = editalI?.dataInicioSelecao && editalI?.dataFimSelecao
+        ? {
+            dataInicio: editalI.dataInicioSelecao.toISOString().split('T')[0],
+            dataFim: editalI.dataFimSelecao.toISOString().split('T')[0],
+            horarioInicio: editalI.horarioInicioSelecao ?? null,
+            horarioFim: editalI.horarioFimSelecao ?? null,
+          }
+        : null
 
       return {
         projetoId: projeto.id,
         dataSelecaoEscolhida: projeto.dataSelecaoEscolhida?.toISOString().split('T')[0] ?? null,
         horarioSelecao: projeto.horarioSelecao ?? null,
+        datasSelecaoEscolhidas: datasEscolhidas,
         voluntariosSolicitados: projeto.voluntariosSolicitados ?? 0,
         bolsasDisponibilizadas: projeto.bolsasDisponibilizadas ?? 0,
         pontosProva: projeto.pontosProva ?? null,
         bibliografia: projeto.bibliografia ?? null,
         slotsDisponiveis,
+        rangeSelecao,
         hasEditalInterno: !!projeto.editalInterno,
       }
     },
 
     /** Exposed for testing */
     parseSlots,
+    parseDatasEscolhidas,
   }
 }
 

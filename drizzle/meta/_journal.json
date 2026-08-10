@@ -428,6 +428,13 @@
       "when": 1776874221170,
       "tag": "0059_inscricao_wizard",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1786383054136,
+      "tag": "0060_next_thunderbolts",
+      "breakpoints": true
     }
   ]
 }

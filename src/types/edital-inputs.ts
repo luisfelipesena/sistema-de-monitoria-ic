@@ -12,9 +12,12 @@ export type CreateEditalInput = {
   // Datas de INSCRIÇÃO
   dataInicioInscricao: Date
   dataFimInscricao: Date
-  // Datas de SELEÇÃO (prova) - opcionais
+  // Datas de SELEÇÃO (range)
   dataInicioSelecao?: Date
   dataFimSelecao?: Date
+  // Range de horários para seleção
+  horarioInicioSelecao?: string
+  horarioFimSelecao?: string
   // Divulgação
   dataDivulgacaoResultado?: Date
   // Legacy/external
@@ -35,12 +38,15 @@ export type UpdateEditalInput = {
   // Datas de INSCRIÇÃO
   dataInicioInscricao?: Date
   dataFimInscricao?: Date
-  // Datas de SELEÇÃO (prova)
+  // Datas de SELEÇÃO (range)
   dataInicioSelecao?: Date | null
   dataFimSelecao?: Date | null
+  // Range de horários para seleção
+  horarioInicioSelecao?: string | null
+  horarioFimSelecao?: string | null
   // Divulgação
   dataDivulgacaoResultado?: Date | null
-  // Slots de data/horário para provas (objetos estruturados)
+  // Slots de data/horário para provas (legacy)
   datasProvasDisponiveis?: SlotDataHorario[]
   numeroEditalPrograd?: string
 }

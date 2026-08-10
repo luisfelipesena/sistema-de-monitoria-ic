@@ -42,6 +42,8 @@ export interface Edital {
   // Datas de seleção
   dataInicioSelecao?: Date
   dataFimSelecao?: Date
+  horarioInicioSelecao?: string
+  horarioFimSelecao?: string
   datasProvasDisponiveis?: string
   dataDivulgacaoResultado?: Date
   // Link para formulário
@@ -68,6 +70,8 @@ export interface EditalListItem {
   // Datas de seleção
   dataInicioSelecao?: Date | null
   dataFimSelecao?: Date | null
+  horarioInicioSelecao?: string | null
+  horarioFimSelecao?: string | null
   datasProvasDisponiveis?: string | null
   dataDivulgacaoResultado?: Date | null
   // Link formulário
@@ -113,6 +117,8 @@ export interface EditalWithPeriodoStatus {
   // Datas de seleção
   dataInicioSelecao: Date | null
   dataFimSelecao: Date | null
+  horarioInicioSelecao: string | null
+  horarioFimSelecao: string | null
   datasProvasDisponiveis: string | null
   dataDivulgacaoResultado: Date | null
   // Link formulário

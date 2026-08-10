@@ -31,7 +31,6 @@ import {
     TIPO_EDITAL_DCI,
 } from "@/types";
 import type { SlotDataHorario } from "@/types/selecao-inputs";
-import { datasProvasDisponiveisSchema } from "@/types/selecao-inputs";
 import { api } from "@/utils/api";
 import { getCurrentSemester } from "@/utils/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,9 +81,12 @@ const editalFormSchema = z
     // Datas de INSCRIÇÃO
     dataInicioInscricao: z.date(),
     dataFimInscricao: z.date(),
-    // Datas de SELEÇÃO (prova) - opcionais
+    // Datas de SELEÇÃO (range)
     dataInicioSelecao: z.date().optional(),
     dataFimSelecao: z.date().optional(),
+    // Range de horários para seleção
+    horarioInicioSelecao: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inválido').optional(),
+    horarioFimSelecao: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inválido').optional(),
     // Data divulgação
     dataDivulgacaoResultado: z.date().optional(),
     valorBolsa: z
@@ -99,8 +101,8 @@ const editalFormSchema = z
           message: 'Valor da bolsa deve ser um número válido e não pode ser negativo',
         }
       ),
-    // Datas disponíveis para provas (slots estruturados)
-    datasProvasDisponiveis: datasProvasDisponiveisSchema,
+    // Legacy: datas disponíveis para provas
+    datasProvasDisponiveis: z.array(z.object({ data: z.string(), horario: z.string() })).default([]),
   })
   .superRefine((data, ctx) => {
     if (data.dataFimInscricao <= data.dataInicioInscricao) {
@@ -313,10 +315,9 @@ export default function EditalManagementPage() {
       dataInicioSelecao: undefined,
       dataFimSelecao: undefined,
       dataDivulgacaoResultado: undefined,
-      datasProvasDisponiveis: [
-        { data: "", horario: "" },
-        { data: "", horario: "" },
-      ],
+      horarioInicioSelecao: "08:00",
+      horarioFimSelecao: "18:00",
+      datasProvasDisponiveis: [],
     },
   });
 
@@ -335,10 +336,9 @@ export default function EditalManagementPage() {
       dataInicioSelecao: undefined,
       dataFimSelecao: undefined,
       dataDivulgacaoResultado: undefined,
-      datasProvasDisponiveis: [
-        { data: "", horario: "" },
-        { data: "", horario: "" },
-      ],
+      horarioInicioSelecao: "08:00",
+      horarioFimSelecao: "18:00",
+      datasProvasDisponiveis: [],
     },
   });
 
@@ -355,6 +355,8 @@ export default function EditalManagementPage() {
       dataFimInscricao: data.dataFimInscricao,
       dataInicioSelecao: data.dataInicioSelecao,
       dataFimSelecao: data.dataFimSelecao,
+      horarioInicioSelecao: data.horarioInicioSelecao,
+      horarioFimSelecao: data.horarioFimSelecao,
       dataDivulgacaoResultado: data.dataDivulgacaoResultado,
       numeroEditalPrograd: data.numeroEditalPrograd,
       datasProvasDisponiveis: data.datasProvasDisponiveis,
@@ -375,6 +377,8 @@ export default function EditalManagementPage() {
       dataFimInscricao: data.dataFimInscricao,
       dataInicioSelecao: data.dataInicioSelecao,
       dataFimSelecao: data.dataFimSelecao,
+      horarioInicioSelecao: data.horarioInicioSelecao,
+      horarioFimSelecao: data.horarioFimSelecao,
       dataDivulgacaoResultado: data.dataDivulgacaoResultado,
       numeroEditalPrograd: data.numeroEditalPrograd,
       datasProvasDisponiveis: data.datasProvasDisponiveis,
@@ -491,6 +495,8 @@ export default function EditalManagementPage() {
         : new Date(),
       dataInicioSelecao: edital.dataInicioSelecao ? new Date(edital.dataInicioSelecao) : undefined,
       dataFimSelecao: edital.dataFimSelecao ? new Date(edital.dataFimSelecao) : undefined,
+      horarioInicioSelecao: edital.horarioInicioSelecao || "08:00",
+      horarioFimSelecao: edital.horarioFimSelecao || "18:00",
       dataDivulgacaoResultado: edital.dataDivulgacaoResultado
         ? new Date(edital.dataDivulgacaoResultado)
         : undefined,

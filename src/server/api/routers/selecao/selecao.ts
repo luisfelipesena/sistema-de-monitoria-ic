@@ -233,6 +233,25 @@ export const selecaoRouter = createTRPCRouter({
       }
     }),
 
+  chooseSelecaoSlots: protectedProcedure
+    .input(
+      z.object({
+        projetoId: z.number(),
+        slots: z.array(z.object({
+          data: z.string(),
+          horario: z.string(),
+        })).min(1).max(3),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const service = createProjetoService(ctx.db)
+      try {
+        return await service.chooseSlots(input.projetoId, input.slots, ctx.user.id, ctx.user.role)
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
   updateVoluntarios: protectedProcedure
     .input(
       z.object({

@@ -86,6 +86,21 @@ export function createEditalPdfService(repo: EditalRepository) {
             // Req 5.1, 5.3: dataSelecao only set when dataSelecaoEscolhida is non-null (section 6.2.3)
             dataSelecao: projeto.dataSelecaoEscolhida?.toISOString(),
             horarioSelecao: projeto.horarioSelecao || undefined,
+            datasSelecao: (() => {
+              // Try new multi-slot field first
+              const raw = (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
+              if (raw) {
+                try {
+                  const parsed = JSON.parse(raw)
+                  if (Array.isArray(parsed) && parsed.length > 0) return parsed
+                } catch { /* fall through */ }
+              }
+              // Fallback to legacy single slot
+              if (projeto.dataSelecaoEscolhida && projeto.horarioSelecao) {
+                return [{ data: projeto.dataSelecaoEscolhida.toISOString().split('T')[0], horario: projeto.horarioSelecao }]
+              }
+              return undefined
+            })(),
             localSelecao: projeto.localSelecao || undefined,
           }
         }),

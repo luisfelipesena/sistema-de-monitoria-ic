@@ -257,6 +257,7 @@ export interface EditalInternoData {
     bibliografia?: string[]
     dataSelecao?: string
     horarioSelecao?: string
+    datasSelecao?: Array<{ data: string; horario: string }>
     localSelecao?: string
   }>
   observacoes?: string
@@ -306,7 +307,7 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
     (d) => (d.pontosSelecao && d.pontosSelecao.length > 0) || (d.bibliografia && d.bibliografia.length > 0)
   )
 
-  const hasExamSchedule = data.disciplinas.some((d) => d.dataSelecao)
+  const hasExamSchedule = data.disciplinas.some((d) => d.datasSelecao && d.datasSelecao.length > 0) || data.disciplinas.some((d) => d.dataSelecao)
 
   return (
     <Document>
@@ -569,32 +570,56 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                 </View>
               </View>
 
-              {data.disciplinas
-                .filter((d) => d.dataSelecao)
-                .map((disciplina, index, arr) => {
-                  const isLast = index === arr.length - 1
+              {(() => {
+                // Build flat list of rows: one row per date per discipline
+                const rows: Array<{ codigo: string; nome: string; data: string; horario: string; professor: string }> = []
+                for (const disciplina of data.disciplinas) {
+                  if (disciplina.datasSelecao && disciplina.datasSelecao.length > 0) {
+                    for (const slot of disciplina.datasSelecao) {
+                      rows.push({
+                        codigo: disciplina.codigo,
+                        nome: disciplina.nome,
+                        data: slot.data,
+                        horario: slot.horario,
+                        professor: disciplina.professor.nome,
+                      })
+                    }
+                  } else if (disciplina.dataSelecao) {
+                    // Legacy fallback
+                    rows.push({
+                      codigo: disciplina.codigo,
+                      nome: disciplina.nome,
+                      data: disciplina.dataSelecao,
+                      horario: disciplina.horarioSelecao || "",
+                      professor: disciplina.professor.nome,
+                    })
+                  }
+                }
+                return rows.map((row, index) => {
+                  const isLast = index === rows.length - 1
                   const rowStyle = isLast ? styles.tableRowLast : styles.tableRow
                   return (
                     <View key={index} style={rowStyle}>
                       <View style={styles.colExamComponente}>
                         <Text style={styles.tableCol}>
-                          {disciplina.codigo} - {disciplina.nome}
+                          {row.codigo} - {row.nome}
                         </Text>
                       </View>
                       <View style={styles.colExamData}>
                         <Text style={styles.tableColCenter}>
-                          {disciplina.dataSelecao ? formatDateShort(disciplina.dataSelecao) : ""}
+                          {formatDateShort(row.data)}
                         </Text>
                       </View>
                       <View style={styles.colExamHora}>
-                        <Text style={styles.tableColCenter}>{disciplina.horarioSelecao || ""}</Text>
+                        <Text style={styles.tableColCenter}>{row.horario}</Text>
                       </View>
                       <View style={styles.colExamProfessor}>
-                        <Text style={styles.tableColLast}>{disciplina.professor.nome}</Text>
+                        <Text style={styles.tableColLast}>{row.professor}</Text>
                       </View>
                     </View>
                   )
-                })}
+                })
+              })()}
             </View>
           )}
 
