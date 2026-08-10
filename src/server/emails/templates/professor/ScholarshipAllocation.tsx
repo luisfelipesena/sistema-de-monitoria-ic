@@ -1,3 +1,4 @@
+import React from 'react'
 import { Text } from '@react-email/components'
 import React from 'react'
 import { BaseLayout, Button, Heading, InfoBox, Table } from '../../components'

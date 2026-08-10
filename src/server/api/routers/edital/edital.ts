@@ -23,8 +23,8 @@ export const editalSchema = z.object({
   // Datas de seleção (range)
   dataInicioSelecao: z.date().nullable(),
   dataFimSelecao: z.date().nullable(),
-  horarioInicioSelecao: z.string().nullable(),
-  horarioFimSelecao: z.string().nullable(),
+  horarioInicioSelecao: z.string().nullable().optional(),
+  horarioFimSelecao: z.string().nullable().optional(),
   datasProvasDisponiveis: z.string().nullable(),
   dataDivulgacaoResultado: z.date().nullable(),
   // Link formulário
