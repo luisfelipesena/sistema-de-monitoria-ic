@@ -181,7 +181,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
     /**
      * Update the number of requested volunteers for the projeto.
-     * Validates that the value is >= 0.
+     * Validates that the value is >= 0. Resets confirmation status.
      */
     async updateVoluntarios(projetoId: number, value: number, userId: number, userRole: UserRole) {
       if (value < 0) {
@@ -197,9 +197,30 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       const updated = await repo.update(projetoId, {
         voluntariosSolicitados: value,
+        voluntariosConfirmados: false,
       })
 
       log.info({ projetoId, value, userId }, 'Voluntários solicitados atualizado')
+      return updated
+    },
+
+    /**
+     * Confirm the number of volunteers for the projeto.
+     * Only after confirmation, the number appears in the edital PDF table.
+     */
+    async confirmVoluntarios(projetoId: number, userId: number, userRole: UserRole) {
+      const projeto = await repo.findById(projetoId)
+      if (!projeto) {
+        throw new NotFoundError('Projeto', projetoId)
+      }
+
+      await verifyAuthorization(projeto, userId, userRole)
+
+      const updated = await repo.update(projetoId, {
+        voluntariosConfirmados: true,
+      })
+
+      log.info({ projetoId, userId }, 'Voluntários confirmados pelo professor')
       return updated
     },
 
@@ -265,6 +286,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         horarioSelecao: projeto.horarioSelecao ?? null,
         datasSelecaoEscolhidas: datasEscolhidas,
         voluntariosSolicitados: projeto.voluntariosSolicitados ?? 0,
+        voluntariosConfirmados: projeto.voluntariosConfirmados ?? false,
         bolsasDisponibilizadas: projeto.bolsasDisponibilizadas ?? 0,
         pontosProva: projeto.pontosProva ?? null,
         bibliografia: projeto.bibliografia ?? null,

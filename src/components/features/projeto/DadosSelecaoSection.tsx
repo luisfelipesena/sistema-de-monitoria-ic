@@ -80,6 +80,18 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
     },
   })
 
+  const confirmVoluntariosMutation = api.selecao.confirmVoluntarios.useMutation({
+    onSuccess: async () => {
+      toast({ title: "Voluntários confirmados com sucesso!" })
+      setVoluntariosDirty(false)
+      await apiUtils.selecao.getProjetoSelecaoInfo.invalidate({ projetoId })
+      await apiUtils.projeto.getProjetos.invalidate()
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao confirmar voluntários", description: error.message, variant: "destructive" })
+    },
+  })
+
   const handleSlotsConfirm = useCallback(
     (slots: SlotDataHorario[]) => {
       chooseSlotsMutation.mutate({ projetoId, slots })
@@ -91,6 +103,10 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
   const handleSaveVoluntarios = useCallback(() => {
     updateVoluntariosMutation.mutate({ projetoId, voluntariosSolicitados: voluntarios })
   }, [projetoId, voluntarios, updateVoluntariosMutation])
+
+  const handleConfirmVoluntarios = useCallback(() => {
+    confirmVoluntariosMutation.mutate({ projetoId })
+  }, [projetoId, confirmVoluntariosMutation])
 
   const handleSaveSelecaoData = useCallback(() => {
     updateSelecaoDataMutation.mutate({
@@ -248,7 +264,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
           <Separator />
 
           {/* ── Bloco 2: Vagas ── */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -304,6 +320,34 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                 </div>
               </div>
             </div>
+
+            {/* Confirmation status + button */}
+            {selecaoInfo.voluntariosConfirmados ? (
+              <div className="flex items-center gap-2 rounded-md bg-green-50 border border-green-200 px-3 py-2">
+                <svg className="h-4 w-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm text-green-800 font-medium">Voluntários confirmados</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-3 rounded-md bg-amber-50 border border-amber-200 px-3 py-2">
+                <p className="text-xs text-amber-800">
+                  Confirme o número de voluntários para que apareça no edital.
+                </p>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={handleConfirmVoluntarios}
+                  disabled={confirmVoluntariosMutation.isPending || voluntariosDirty}
+                  className="shrink-0 bg-amber-600 hover:bg-amber-700"
+                >
+                  {confirmVoluntariosMutation.isPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                  ) : null}
+                  Confirmar
+                </Button>
+              </div>
+            )}
           </div>
 
           <Separator />

@@ -253,6 +253,7 @@ export interface EditalInternoData {
     numTurmas?: number
     numBolsistas: number
     numVoluntarios: number
+    voluntariosConfirmados?: boolean
     pontosSelecao?: string[]
     bibliografia?: string[]
     dataSelecao?: string
@@ -377,8 +378,10 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
               </View>
             </View>
 
-            {data.disciplinas.map((disciplina, index) => {
-              const isLast = index === data.disciplinas.length - 1
+            {data.disciplinas
+              .filter((d) => d.numBolsistas > 0 || d.voluntariosConfirmados)
+              .map((disciplina, index, arr) => {
+              const isLast = index === arr.length - 1
               const rowStyle = isLast ? styles.tableRowLast : styles.tableRow
               return (
                 <View key={index} style={rowStyle} wrap={false}>
@@ -388,10 +391,10 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                     </Text>
                   </View>
                   <View style={[styles.colVagasBolsa, styles.tableColCenter]}>
-                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.numBolsistas || ""}</Text>
+                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.numBolsistas}</Text>
                   </View>
                   <View style={[styles.colVagasVol, styles.tableColCenter]}>
-                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.numVoluntarios || ""}</Text>
+                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.numVoluntarios}</Text>
                   </View>
                   <View style={[styles.colProfessor, styles.tableColLast]}>
                     <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.professor.nome}</Text>

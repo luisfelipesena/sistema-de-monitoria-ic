@@ -273,6 +273,25 @@ export const selecaoRouter = createTRPCRouter({
       }
     }),
 
+  confirmVoluntarios: protectedProcedure
+    .input(
+      z.object({
+        projetoId: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const service = createProjetoService(ctx.db)
+      try {
+        return await service.confirmVoluntarios(
+          input.projetoId,
+          ctx.user.id,
+          ctx.user.role
+        )
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
   updateSelecaoData: protectedProcedure
     .input(
       z.object({

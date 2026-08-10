@@ -78,8 +78,9 @@ export function createEditalPdfService(repo: EditalRepository) {
             },
             tipoMonitoria: TIPO_PROPOSICAO_INDIVIDUAL,
             numBolsistas: projeto.bolsasDisponibilizadas ?? 0,
-            // Req 5.5: voluntariosSolicitados → numVoluntarios
-            numVoluntarios: projeto.voluntariosSolicitados ?? 0,
+            // Only show volunteers in PDF if professor confirmed them
+            numVoluntarios: projeto.voluntariosConfirmados ? (projeto.voluntariosSolicitados ?? 0) : 0,
+            voluntariosConfirmados: projeto.voluntariosConfirmados ?? false,
             // Req 5.2, 5.4: pontos/bibliografia with template fallback for section 6.3
             pontosSelecao: pontosSelecao && pontosSelecao.length > 0 ? pontosSelecao : undefined,
             bibliografia: bibliografia && bibliografia.length > 0 ? bibliografia : undefined,
