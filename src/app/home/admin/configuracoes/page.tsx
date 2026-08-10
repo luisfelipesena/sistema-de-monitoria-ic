@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { api } from '@/utils/api'
 import { type ColumnDef } from '@tanstack/react-table'
-import { Building2, Cog, Mail, Save } from 'lucide-react'
+import { Building2, Cog, Mail, Plus, Save, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 type DepartamentoEmail = {
@@ -30,9 +30,17 @@ type DepartamentoEmail = {
 export default function ConfiguracoesEmailPage() {
   const { toast } = useToast()
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [selectedDept, setSelectedDept] = useState<DepartamentoEmail | null>(null)
   const [deptEmail, setDeptEmail] = useState('')
+  const [deptNome, setDeptNome] = useState('')
+  const [deptSigla, setDeptSigla] = useState('')
+  const [editError, setEditError] = useState('')
   const [emailIC, setEmailIC] = useState('')
+  const [newSetorNome, setNewSetorNome] = useState('')
+  const [newSetorSigla, setNewSetorSigla] = useState('')
+  const [newSetorEmail, setNewSetorEmail] = useState('')
+  const [createError, setCreateError] = useState('')
 
   const { data: departamentos, isLoading } = api.configuracoes.getDepartamentos.useQuery()
   const { data: emailICData, isLoading: isLoadingEmailIC } = api.configuracoes.getEmailIC.useQuery()
@@ -56,34 +64,90 @@ export default function ConfiguracoesEmailPage() {
     },
   })
 
+  const createDepartamentoMutation = api.configuracoes.createDepartamento.useMutation({
+    onSuccess: () => {
+      apiUtils.configuracoes.getDepartamentos.invalidate()
+    },
+  })
+
+  const updateDepartamentoMutation = api.configuracoes.updateDepartamento.useMutation({
+    onSuccess: () => {
+      apiUtils.configuracoes.getDepartamentos.invalidate()
+    },
+  })
+
+  const deleteDepartamentoMutation = api.configuracoes.deleteDepartamento.useMutation({
+    onSuccess: () => {
+      apiUtils.configuracoes.getDepartamentos.invalidate()
+    },
+  })
+
   const handleEdit = (departamento: DepartamentoEmail) => {
     setSelectedDept(departamento)
+    setDeptNome(departamento.nome)
+    setDeptSigla(departamento.sigla || '')
     setDeptEmail(departamento.emailInstituto || '')
+    setEditError('')
     setIsEditDialogOpen(true)
   }
 
-  const handleUpdateDeptEmail = async () => {
+  const handleUpdateDept = async () => {
     if (!selectedDept) return
+    setEditError('')
+
+    if (!deptNome.trim()) {
+      setEditError('Nome é obrigatório.')
+      return
+    }
+
+    if (deptEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(deptEmail)) {
+      setEditError('Email inválido. Use o formato: exemplo@dominio.com')
+      return
+    }
 
     try {
-      await updateDeptEmailMutation.mutateAsync({
+      await updateDepartamentoMutation.mutateAsync({
         departamentoId: selectedDept.id,
-        email: deptEmail || null,
+        nome: deptNome.trim(),
+        sigla: deptSigla.trim() || null,
+        email: deptEmail.trim() || null,
       })
 
       toast({
         title: 'Sucesso!',
-        description: `Email do ${selectedDept.nome} atualizado.`,
+        description: `Setor "${deptNome.trim()}" atualizado.`,
       })
 
       setIsEditDialogOpen(false)
       setSelectedDept(null)
     } catch (error: any) {
-      toast({
-        title: 'Erro ao salvar',
-        description: error.message || 'Não foi possível atualizar o email.',
-        variant: 'destructive',
+      console.error('Erro ao atualizar setor:', error)
+      const message = error?.data?.zodError?.fieldErrors?.nome?.[0]
+        || error?.data?.zodError?.fieldErrors?.email?.[0]
+        || error?.message
+        || 'Não foi possível atualizar o setor.'
+      setEditError(message)
+    }
+  }
+
+  const handleDeleteDept = async () => {
+    if (!selectedDept) return
+
+    try {
+      await deleteDepartamentoMutation.mutateAsync({
+        departamentoId: selectedDept.id,
       })
+
+      toast({
+        title: 'Sucesso!',
+        description: `Setor "${selectedDept.nome}" removido.`,
+      })
+
+      setIsEditDialogOpen(false)
+      setSelectedDept(null)
+    } catch (error: any) {
+      console.error('Erro ao deletar setor:', error)
+      setEditError(error?.message || 'Não foi possível remover o setor. Ele pode estar vinculado a outros registros.')
     }
   }
 
@@ -103,10 +167,50 @@ export default function ConfiguracoesEmailPage() {
     }
   }
 
+  const handleCreateSetor = async () => {
+    setCreateError('')
+
+    if (!newSetorNome.trim()) {
+      setCreateError('Nome é obrigatório.')
+      return
+    }
+
+    if (newSetorEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newSetorEmail)) {
+      setCreateError('Email inválido. Use o formato: exemplo@dominio.com')
+      return
+    }
+
+    try {
+      await createDepartamentoMutation.mutateAsync({
+        nome: newSetorNome.trim(),
+        sigla: newSetorSigla.trim() || null,
+        email: newSetorEmail.trim() || null,
+      })
+
+      toast({
+        title: 'Sucesso!',
+        description: `Setor "${newSetorNome.trim()}" criado.`,
+      })
+
+      setIsCreateDialogOpen(false)
+      setNewSetorNome('')
+      setNewSetorSigla('')
+      setNewSetorEmail('')
+      setCreateError('')
+    } catch (error: any) {
+      console.error('Erro ao criar setor:', error)
+      const message = error?.data?.zodError?.fieldErrors?.nome?.[0]
+        || error?.data?.zodError?.fieldErrors?.email?.[0]
+        || error?.message
+        || 'Não foi possível criar o setor.'
+      setCreateError(message)
+    }
+  }
+
   const columns: ColumnDef<DepartamentoEmail>[] = [
     {
       accessorKey: 'nome',
-      header: 'Departamento',
+      header: 'Setor',
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.nome}</div>
@@ -116,7 +220,7 @@ export default function ConfiguracoesEmailPage() {
     },
     {
       accessorKey: 'emailInstituto',
-      header: 'Email do Departamento',
+      header: 'Email',
       cell: ({ row }) => (
         <span className={row.original.emailInstituto ? '' : 'text-muted-foreground'}>
           {row.original.emailInstituto || 'Não definido'}
@@ -127,7 +231,7 @@ export default function ConfiguracoesEmailPage() {
       id: 'actions',
       header: 'Ações',
       cell: ({ row }) => (
-        <Button variant="outline" size="sm" onClick={() => handleEdit(row.original)}>
+        <Button variant="outline" size="sm" onClick={() => handleEdit(row.original)} title="Editar">
           <Cog className="h-4 w-4" />
         </Button>
       ),
@@ -174,21 +278,27 @@ export default function ConfiguracoesEmailPage() {
 
         {/* Emails por Departamento */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Emails dos Departamentos
-            </CardTitle>
-            <CardDescription>
-              Email de cada departamento (DCC/DCI) para receber a planilha correspondente
-            </CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Emails
+              </CardTitle>
+              <CardDescription>
+                Email de cada setor para receber a planilha correspondente
+              </CardDescription>
+            </div>
+            <Button onClick={() => setIsCreateDialogOpen(true)} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar Setor
+            </Button>
           </CardHeader>
           <CardContent>
             <TableComponent
               columns={columns}
               data={departamentos || []}
               searchableColumn="nome"
-              searchPlaceholder="Buscar por nome do departamento..."
+              searchPlaceholder="Buscar por nome do setor..."
               isLoading={isLoading}
             />
           </CardContent>
@@ -198,29 +308,114 @@ export default function ConfiguracoesEmailPage() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Editar Email do Departamento</DialogTitle>
+            <DialogTitle>Editar Setor</DialogTitle>
             <DialogDescription>
-              {selectedDept?.nome} ({selectedDept?.sigla})
+              Atualize as informações do setor
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4">
-            <Label htmlFor="email-dept">Email</Label>
-            <Input
-              id="email-dept"
-              type="email"
-              value={deptEmail}
-              onChange={(e) => setDeptEmail(e.target.value)}
-              placeholder="departamento@ufba.br"
-            />
+          <div className="space-y-4 py-4">
+            {editError && (
+              <p className="text-sm text-red-500 font-medium">{editError}</p>
+            )}
+            <div>
+              <Label htmlFor="edit-nome">Nome *</Label>
+              <Input
+                id="edit-nome"
+                value={deptNome}
+                onChange={(e) => setDeptNome(e.target.value)}
+                placeholder="Ex: Departamento de Ciência da Computação"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-sigla">Sigla</Label>
+              <Input
+                id="edit-sigla"
+                value={deptSigla}
+                onChange={(e) => setDeptSigla(e.target.value)}
+                placeholder="Ex: DCC"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                value={deptEmail}
+                onChange={(e) => setDeptEmail(e.target.value)}
+                placeholder="Ex: setor@ufba.br"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <Button
+              variant="destructive"
+              onClick={handleDeleteDept}
+              disabled={deleteDepartamentoMutation.isPending}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {deleteDepartamentoMutation.isPending ? 'Removendo...' : 'Remover'}
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleUpdateDept} disabled={updateDepartamentoMutation.isPending}>
+                {updateDepartamentoMutation.isPending ? 'Salvando...' : 'Salvar'}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Adicionar Setor</DialogTitle>
+            <DialogDescription>
+              Crie um novo setor para configurar o email de recebimento
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {createError && (
+              <p className="text-sm text-red-500 font-medium">{createError}</p>
+            )}
+            <div>
+              <Label htmlFor="setor-nome">Nome *</Label>
+              <Input
+                id="setor-nome"
+                value={newSetorNome}
+                onChange={(e) => setNewSetorNome(e.target.value)}
+                placeholder="Ex: Departamento de Ciência da Computação"
+              />
+            </div>
+            <div>
+              <Label htmlFor="setor-sigla">Sigla</Label>
+              <Input
+                id="setor-sigla"
+                value={newSetorSigla}
+                onChange={(e) => setNewSetorSigla(e.target.value)}
+                placeholder="Ex: DCC"
+              />
+            </div>
+            <div>
+              <Label htmlFor="setor-email">Email</Label>
+              <Input
+                id="setor-email"
+                value={newSetorEmail}
+                onChange={(e) => setNewSetorEmail(e.target.value)}
+                placeholder="Ex: setor@ufba.br"
+              />
+            </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleUpdateDeptEmail} disabled={updateDeptEmailMutation.isPending}>
-              {updateDeptEmailMutation.isPending ? 'Salvando...' : 'Salvar'}
+            <Button onClick={handleCreateSetor} disabled={createDepartamentoMutation.isPending}>
+              {createDepartamentoMutation.isPending ? 'Criando...' : 'Criar Setor'}
             </Button>
           </DialogFooter>
         </DialogContent>

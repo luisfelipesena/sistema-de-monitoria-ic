@@ -414,6 +414,58 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
           </CardContent>
         </Card>
 
+        {/* Pontos de Prova */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Pontos de Prova</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="pontosProva"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Descreva os pontos de prova para seleção dos monitores..."
+                      rows={4}
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Bibliografia */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Bibliografia</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="bibliografia"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Liste a bibliografia da disciplina..."
+                      rows={4}
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
         {/* Ações */}
         <div className="flex justify-end space-x-4">
           <Button type="submit" disabled={isSubmitting} className="bg-[#1B2A50] text-white hover:bg-[#24376c]">

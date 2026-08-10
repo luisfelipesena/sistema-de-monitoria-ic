@@ -221,7 +221,7 @@ export const TemplateDialog: React.FC<TemplateDialogProps> = ({
             />
 
             <div className="space-y-4">
-              <FormLabel>Atividades Padrão</FormLabel>
+              <FormLabel>Responsabilidades</FormLabel>
               {atividades.map((atividade, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <Input
@@ -257,6 +257,44 @@ export const TemplateDialog: React.FC<TemplateDialogProps> = ({
                 Adicionar Atividade
               </Button>
             </div>
+
+            <FormField
+              control={form.control}
+              name="pontosProvaDefault"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pontos de Prova</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={4}
+                      placeholder="Descreva os pontos de prova padrão..."
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="bibliografiaDefault"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bibliografia</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={4}
+                      placeholder="Liste a bibliografia padrão da disciplina..."
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Salvando..." : submitText}

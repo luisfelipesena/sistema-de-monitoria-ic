@@ -1,17 +1,17 @@
 import { PDF_PAGE_SIZE_A4 } from "@/constants/pdf"
 import {
-  ADMIN,
-  GENERO_FEMININO,
-  GENERO_MASCULINO,
-  GENERO_OUTRO,
-  MonitoriaFormData,
-  REGIME_20H,
-  REGIME_40H,
-  REGIME_DE,
-  SEMESTRE_1,
-  SEMESTRE_2,
-  TIPO_PROPOSICAO_COLETIVA,
-  TIPO_PROPOSICAO_INDIVIDUAL,
+    ADMIN,
+    GENERO_FEMININO,
+    GENERO_MASCULINO,
+    GENERO_OUTRO,
+    MonitoriaFormData,
+    REGIME_20H,
+    REGIME_40H,
+    REGIME_DE,
+    SEMESTRE_1,
+    SEMESTRE_2,
+    TIPO_PROPOSICAO_COLETIVA,
+    TIPO_PROPOSICAO_INDIVIDUAL,
 } from "@/types"
 import { UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
 import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
@@ -444,7 +444,33 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                   </>
                 )}
 
-                <Text style={styles.sectionHeader}>5. DECLARAÇÃO</Text>
+                <Text style={styles.sectionHeader}>5. PONTOS DE PROVA</Text>
+                {data.pontosProva && data.pontosProva.trim() ? (
+                  data.pontosProva.split('\n').filter((p) => p.trim()).map((ponto, index) => (
+                    <View key={`ponto-col-${index}`} style={styles.formRow}>
+                      <Text>- {ponto}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.formRow}>
+                    <Text></Text>
+                  </View>
+                )}
+
+                <Text style={styles.sectionHeader}>6. BIBLIOGRAFIA</Text>
+                {data.bibliografia && data.bibliografia.trim() ? (
+                  data.bibliografia.split('\n').filter((b) => b.trim()).map((item, index) => (
+                    <View key={`bib-col-${index}`} style={styles.formRow}>
+                      <Text>- {item}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.formRow}>
+                    <Text></Text>
+                  </View>
+                )}
+
+                <Text style={styles.sectionHeader}>7. DECLARAÇÃO</Text>
                 <View style={styles.formRowTall}>
                   <Text>
                     Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das normas descritas no Edital
@@ -504,8 +530,36 @@ const MonitoriaFormTemplateComponent = ({ data }: { data: MonitoriaFormData }) =
                   </>
                 )}
 
-                {/* Section 5 */}
-                <Text style={styles.sectionHeader}>5. DECLARAÇÃO</Text>
+                {/* Section 5 - Pontos de Prova */}
+                <Text style={styles.sectionHeader}>5 PONTOS DE PROVA</Text>
+                {data.pontosProva && data.pontosProva.trim() ? (
+                  data.pontosProva.split('\n').filter((p) => p.trim()).map((ponto, index) => (
+                    <View key={`ponto-${index}`} style={styles.formRow}>
+                      <Text>{ponto}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.formRow}>
+                    <Text></Text>
+                  </View>
+                )}
+
+                {/* Section 6 - Bibliografia */}
+                <Text style={styles.sectionHeader}>6 BIBLIOGRAFIA</Text>
+                {data.bibliografia && data.bibliografia.trim() ? (
+                  data.bibliografia.split('\n').filter((b) => b.trim()).map((item, index) => (
+                    <View key={`bib-${index}`} style={styles.formRow}>
+                      <Text>{item}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.formRow}>
+                    <Text></Text>
+                  </View>
+                )}
+
+                {/* Section 7 - Declaração */}
+                <Text style={styles.sectionHeader}>7. DECLARAÇÃO</Text>
                 <View style={styles.formRowTall}>
                   <Text>
                     Declaro ter conhecimento da Resolução nº 05/2021 do CAE e das normas descritas no Edital

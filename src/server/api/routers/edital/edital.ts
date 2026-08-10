@@ -1,7 +1,8 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc'
 import { createEditalService } from '@/server/services/edital/edital-service'
-import { NotFoundError, ValidationError, ConflictError, ForbiddenError } from '@/types/errors'
-import { semestreSchema, tipoEditalSchema, periodoInscricaoStatusSchema } from '@/types'
+import { periodoInscricaoStatusSchema, semestreSchema, tipoEditalSchema } from '@/types'
+import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/types/errors'
+import { datasProvasDisponiveisSchema } from '@/types/selecao-inputs'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
@@ -54,7 +55,7 @@ export const newEditalSchema = z
     dataDivulgacaoResultado: z.date().optional(),
     // Legacy fields
     fileIdPdfExterno: z.string().optional(),
-    datasProvasDisponiveis: z.array(z.string()).optional(),
+    datasProvasDisponiveis: datasProvasDisponiveisSchema.optional(),
     // PROGRAD
     numeroEditalPrograd: z.string().optional(),
   })
@@ -92,8 +93,8 @@ export const updateEditalSchema = z
     dataFimSelecao: z.date().optional().nullable(),
     // Divulgação
     dataDivulgacaoResultado: z.date().optional().nullable(),
-    // Legacy
-    datasProvasDisponiveis: z.array(z.string()).optional(),
+    // Slots de data/horário para provas (objetos estruturados)
+    datasProvasDisponiveis: datasProvasDisponiveisSchema.optional(),
     // PROGRAD
     numeroEditalPrograd: z.string().optional(),
   })
@@ -530,7 +531,7 @@ export const editalRouter = createTRPCRouter({
     .input(z.object({ id: z.number() }))
     .output(
       z.object({
-        datasProvasDisponiveis: z.array(z.string()).nullable(),
+        datasProvasDisponiveis: z.array(z.object({ data: z.string(), horario: z.string() })),
         dataDivulgacaoResultado: z.date().nullable(),
       })
     )
@@ -560,7 +561,15 @@ export const editalRouter = createTRPCRouter({
         chefeNome: z.string().optional(),
       })
     )
-    .output(z.object({ success: z.boolean(), message: z.string(), expiresAt: z.date().optional() }))
+    .output(
+      z.object({
+        success: z.boolean(),
+        message: z.string(),
+        token: z.string().optional(),
+        link: z.string().optional(),
+        expiresAt: z.date().optional(),
+      })
+    )
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createEditalService(ctx.db)

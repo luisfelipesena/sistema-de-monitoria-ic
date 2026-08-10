@@ -60,6 +60,15 @@ export function createProjetoRepository(db: Database) {
       })
     },
 
+    async findByIdWithEdital(id: number) {
+      return db.query.projetoTable.findFirst({
+        where: and(eq(projetoTable.id, id), isNull(projetoTable.deletedAt)),
+        with: {
+          editalInterno: true,
+        },
+      })
+    },
+
     async findByProfessorId(professorId: number) {
       return db
         .select({
@@ -544,6 +553,7 @@ export function createProjetoRepository(db: Database) {
         with: {
           edital: {
             columns: {
+              id: true,
               numeroEdital: true,
               publicado: true,
             },

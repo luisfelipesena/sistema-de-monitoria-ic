@@ -1,6 +1,7 @@
 "use client"
 
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
+import { Toaster as RadixToaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/hooks/use-auth"
 import { api } from "@/utils/api"
 import { env } from "@/utils/env"
@@ -47,7 +48,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             {children}
-            <Toaster />
+            <SonnerToaster />
+            <RadixToaster />
             <ReactQueryDevtools initialIsOpen={false} />
           </AuthProvider>
         </QueryClientProvider>

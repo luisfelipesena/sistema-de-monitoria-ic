@@ -1,33 +1,35 @@
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { SEMESTRE_1, SEMESTRE_2, TIPO_EDITAL_DCC, TIPO_EDITAL_DCI, type Semestre, type TipoEdital } from "@/types";
+import type { SlotDataHorario } from "@/types/selecao-inputs";
 import { UseFormReturn } from "react-hook-form";
+import { SlotDateTimePicker } from "./SlotDateTimePicker";
 
 export interface EditalFormData {
   tipo: TipoEdital;
@@ -47,6 +49,8 @@ export interface EditalFormData {
   dataDivulgacaoResultado?: Date;
   // Edital PROGRAD
   numeroEditalPrograd?: string;
+  // Datas disponíveis para provas (slots estruturados)
+  datasProvasDisponiveis: SlotDataHorario[];
 }
 
 interface EditalFormDialogProps {
@@ -231,6 +235,9 @@ export function EditalFormDialog({
                         placeholder="400.00"
                       />
                     </FormControl>
+                    <FormDescription>
+                      Este valor será utilizado nos Termos de Compromisso e Relatórios de Bolsistas, não aparecerá no PDF do edital
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -256,7 +263,17 @@ export function EditalFormDialog({
                         <Input
                           type="date"
                           value={field.value?.toISOString().split("T")[0] || ""}
-                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              const newStart = new Date(e.target.value)
+                              field.onChange(newStart)
+                              const newEnd = new Date(newStart)
+                              newEnd.setDate(newEnd.getDate() + 7)
+                              form.setValue("dataFimInscricao", newEnd)
+                            } else {
+                              field.onChange(undefined)
+                            }
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -329,6 +346,32 @@ export function EditalFormDialog({
                   )}
                 />
               </div>
+            </div>
+
+            <Separator />
+
+            {/* Datas disponíveis para provas */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Datas Disponíveis para Provas</h3>
+              <p className="text-xs text-muted-foreground">
+                Defina entre 2 e 3 opções de data/horário para os professores escolherem a data da seleção
+              </p>
+              <FormField
+                control={form.control}
+                name="datasProvasDisponiveis"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <SlotDateTimePicker
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <Separator />

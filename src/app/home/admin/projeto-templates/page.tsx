@@ -10,12 +10,12 @@ import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DialogTrigger, Dialog } from "@/components/ui/dialog"
+import { Dialog, DialogTrigger } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import {
-  duplicateTemplateSchema,
-  projectTemplateSchema,
-  type ProjectTemplateItem,
+    duplicateTemplateSchema,
+    projectTemplateSchema,
+    type ProjectTemplateItem,
 } from "@/types"
 import { api } from "@/utils/api"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -143,6 +143,8 @@ export default function ProjetoTemplatesPage() {
       numeroSemanasDefault: undefined,
       publicoAlvoDefault: "",
       atividadesDefault: [],
+      pontosProvaDefault: "",
+      bibliografiaDefault: "",
     },
   })
 
@@ -156,6 +158,8 @@ export default function ProjetoTemplatesPage() {
       numeroSemanasDefault: undefined,
       publicoAlvoDefault: "",
       atividadesDefault: [],
+      pontosProvaDefault: "",
+      bibliografiaDefault: "",
     },
   })
 
@@ -208,6 +212,8 @@ export default function ProjetoTemplatesPage() {
       numeroSemanasDefault: template.numeroSemanasDefault || undefined,
       publicoAlvoDefault: template.publicoAlvoDefault || "",
       atividadesDefault: template.atividadesDefault || [],
+      pontosProvaDefault: template.pontosProvaDefault || "",
+      bibliografiaDefault: template.bibliografiaDefault || "",
     })
     setEditAtividades(template.atividadesDefault || [])
 

@@ -96,6 +96,7 @@ export interface DashboardProjectItem {
   voluntariosSolicitados?: number | null | undefined
   totalInscritos: number
   disciplinas: Array<{ codigo: string; nome: string }>
+  editalInternoId?: number | null
 }
 
 export interface ManageProjectItem {
@@ -187,6 +188,8 @@ export interface MonitoriaFormData {
     nome: string
   }>
   atividades?: string[]
+  pontosProva?: string
+  bibliografia?: string
   user?: {
     username?: string
     email?: string
@@ -211,6 +214,8 @@ export interface ProjectTemplateItem {
   numeroSemanasDefault?: number | null
   publicoAlvoDefault?: string | null
   atividadesDefault: string[]
+  pontosProvaDefault?: string | null
+  bibliografiaDefault?: string | null
   createdAt: Date
   updatedAt?: Date | null
   disciplina: {
@@ -334,6 +339,8 @@ export const projectTemplateSchema = z.object({
   numeroSemanasDefault: z.number().int().positive().optional(),
   publicoAlvoDefault: z.string().optional(),
   atividadesDefault: z.array(z.string()),
+  pontosProvaDefault: z.string().optional(),
+  bibliografiaDefault: z.string().optional(),
 })
 
 export const duplicateTemplateSchema = z.object({
@@ -359,6 +366,8 @@ export const projectFormSchema = z.object({
   professoresParticipantes: z.string().optional(),
   atividades: z.array(z.string()).optional(),
   professorResponsavelId: z.number().int().positive().optional(),
+  pontosProva: z.string().optional(),
+  bibliografia: z.string().optional(),
 })
 
 export const projectDetailSchema = z.object({
@@ -381,6 +390,8 @@ export const projectDetailSchema = z.object({
   editalNumero: z.string().nullable().optional(),
   assinaturaProfessor: z.string().nullable().optional(),
   feedbackAdmin: z.string().nullable().optional(),
+  pontosProva: z.string().nullable().optional(),
+  bibliografia: z.string().nullable().optional(),
   mensagemRevisao: z.string().nullable().optional(),
   revisaoSolicitadaEm: z.date().nullable().optional(),
   createdAt: z.date(),
@@ -454,6 +465,7 @@ export const projectListItemSchema = z.object({
   feedbackAdmin: z.string().nullable().optional(),
   mensagemRevisao: z.string().nullable().optional(),
   revisaoSolicitadaEm: z.date().nullable().optional(),
+  editalInternoId: z.number().int().positive().nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date().nullable().optional(),
   deletedAt: z.date().nullable().optional(),

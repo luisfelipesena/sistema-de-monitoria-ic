@@ -8,6 +8,7 @@ import {
 } from '@/types/schemas'
 import { logger } from '@/utils/logger'
 import type { EditalRepository } from './edital-repository'
+import { parseSlots } from './parse-slots'
 
 const _log = logger.child({ context: 'EditalQueryService' })
 
@@ -170,7 +171,7 @@ export function createEditalQueryService(repo: EditalRepository) {
       }
 
       return {
-        datasProvasDisponiveis: edital.datasProvasDisponiveis ? JSON.parse(edital.datasProvasDisponiveis) : null,
+        datasProvasDisponiveis: parseSlots(edital.datasProvasDisponiveis ?? null),
         dataDivulgacaoResultado: edital.dataDivulgacaoResultado,
       }
     },

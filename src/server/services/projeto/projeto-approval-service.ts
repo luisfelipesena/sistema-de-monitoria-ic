@@ -54,13 +54,18 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
         throw new BusinessError('Projeto não está aguardando aprovação', 'BAD_REQUEST')
       }
 
+      // Find if there's an existing edital interno for this project's period
+      const periodo = await repo.findPeriodoByProjetoSemestre(projeto.ano, projeto.semestre)
+      const editalInternoId = periodo?.edital?.id ?? null
+
       await repo.update(id, {
         status: PROJETO_STATUS_APPROVED,
         bolsasDisponibilizadas,
         feedbackAdmin,
+        ...(editalInternoId && { editalInternoId }),
       })
 
-      log.info({ projetoId: id }, 'Projeto aprovado pelo admin')
+      log.info({ projetoId: id, editalInternoId }, 'Projeto aprovado pelo admin')
     },
 
     async rejectProjeto(id: number, feedbackAdmin: string) {
@@ -179,6 +184,8 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
         disciplinas,
         professoresParticipantes: projeto.professoresParticipantes || '',
         atividades: atividades.map((a) => a.descricao),
+        pontosProva: projeto.pontosProva || '',
+        bibliografia: projeto.bibliografia || '',
         assinaturaProfessor: normalizedSignature,
         dataAssinaturaProfessor: new Date().toLocaleDateString('pt-BR'),
         signingMode: 'professor' as const,

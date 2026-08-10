@@ -174,14 +174,14 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
     if (!patch.endereco?.rua || !patch.endereco?.bairro || !patch.endereco?.cidade || !patch.endereco?.cep) {
       return "Endereço completo é obrigatório"
     }
-    if (tipoVaga === "BOLSISTA" && (!patch.banco || !patch.agencia || !patch.conta)) {
-      return "Dados bancários são obrigatórios para bolsista"
-    }
     return null
   }
 
   const validateDeclaracaoStep = (): string | null => {
     if (!tipoVaga) return "Escolha o tipo de vaga"
+    if (tipoVaga === "BOLSISTA" && (!patch.banco || !patch.agencia || !patch.conta)) {
+      return "Dados bancários são obrigatórios para bolsista"
+    }
     if (!cursouComponente) return "Informe se cursou o componente"
     if (cursouComponente === "nao" && !disciplinaEquivalenteId) return "Informe a disciplina equivalente"
     return null
@@ -334,7 +334,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
         title: "Inscrição enviada!",
         description: "Seus documentos oficiais foram gerados com sucesso.",
       })
-      router.push(`/home/student/minhas-inscricoes?success=${result.id}`)
+      router.push(`/home/student/dashboard?success=${result.id}`)
     } catch (error) {
       toast({
         title: "Erro ao enviar inscrição",
@@ -587,9 +587,41 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* STEP 2: DECLARAÇÃO */}
+        <TabsContent value="declaracao">
+          <Card>
+            <CardHeader>
+              <CardTitle>2. Tipo de vaga e declaração</CardTitle>
+              <CardDescription>Escolha o tipo de vaga e declare se já cursou o componente.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div>
+                <Label>Tipo de vaga pretendida *</Label>
+                <Select value={tipoVaga} onValueChange={(v) => setTipoVaga(v as typeof tipoVaga)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {hasBolsas && (
+                      <SelectItem value={TIPO_VAGA_BOLSISTA}>
+                        Bolsista ({projeto.bolsasDisponibilizadas} vaga(s))
+                      </SelectItem>
+                    )}
+                    {hasVoluntarios && (
+                      <SelectItem value={TIPO_VAGA_VOLUNTARIO}>
+                        Voluntário ({projeto.voluntariosSolicitados} vaga(s))
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {tipoVaga === "BOLSISTA" && (
-                <div className="md:col-span-2 border-t pt-4">
+                <div className="border-t pt-4">
                   <h4 className="font-medium mb-2">Dados bancários (apenas bolsista) *</h4>
                   <p className="text-xs text-muted-foreground mb-3">
                     Conta corrente de titularidade do monitor, não poupança, não conjunta.
@@ -626,38 +658,6 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* STEP 2: DECLARAÇÃO */}
-        <TabsContent value="declaracao">
-          <Card>
-            <CardHeader>
-              <CardTitle>2. Tipo de vaga e declaração</CardTitle>
-              <CardDescription>Escolha o tipo de vaga e declare se já cursou o componente.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div>
-                <Label>Tipo de vaga pretendida *</Label>
-                <Select value={tipoVaga} onValueChange={(v) => setTipoVaga(v as typeof tipoVaga)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {hasBolsas && (
-                      <SelectItem value={TIPO_VAGA_BOLSISTA}>
-                        Bolsista ({projeto.bolsasDisponibilizadas} vaga(s))
-                      </SelectItem>
-                    )}
-                    {hasVoluntarios && (
-                      <SelectItem value={TIPO_VAGA_VOLUNTARIO}>
-                        Voluntário ({projeto.voluntariosSolicitados} vaga(s))
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div>
                 <Label>Declara ter cursado com aprovação o componente? *</Label>

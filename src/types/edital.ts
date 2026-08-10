@@ -68,6 +68,7 @@ export interface EditalListItem {
   // Datas de seleção
   dataInicioSelecao?: Date | null
   dataFimSelecao?: Date | null
+  datasProvasDisponiveis?: string | null
   dataDivulgacaoResultado?: Date | null
   // Link formulário
   linkFormularioInscricao?: string | null

@@ -1,5 +1,5 @@
 import { BusinessError } from "@/server/lib/errors"
-import minioClient from "@/server/lib/minio"
+import minioClient, { bucketName, ensureBucketExists } from "@/server/lib/minio"
 import { TermoCompromissoTemplate, type TermoCompromissoProps } from "@/server/lib/pdfTemplates/termo"
 import { SEMESTRE_1, TIPO_ASSINATURA_ATA_SELECAO, TIPO_ASSINATURA_TERMO_COMPROMISSO } from "@/types"
 import { logger } from "@/utils/logger"
@@ -21,6 +21,8 @@ export type VagaData = {
   tipo: string
   dataInicio: Date | null
   projetoId: number
+  alunoAssinaturaBase64?: string | null
+  professorAssinaturaBase64?: string | null
   aluno: {
     user: {
       username: string
@@ -100,6 +102,8 @@ export function createPdfGenerator() {
           },
         },
         dataGeracao: new Date(),
+        alunoAssinaturaBase64: vagaData.alunoAssinaturaBase64 || undefined,
+        professorAssinaturaBase64: vagaData.professorAssinaturaBase64 || undefined,
       }
 
       try {
@@ -122,7 +126,8 @@ export function createPdfGenerator() {
 
     async uploadToMinio(fileName: string, buffer: Buffer): Promise<void> {
       try {
-        await minioClient.putObject("documents", fileName, buffer, buffer.length, {
+        await ensureBucketExists(bucketName)
+        await minioClient.putObject(bucketName, fileName, buffer, buffer.length, {
           "Content-Type": "application/pdf",
         })
       } catch (error) {
@@ -133,7 +138,8 @@ export function createPdfGenerator() {
 
     async getFromMinio(fileName: string): Promise<Buffer> {
       try {
-        const pdfStream = await minioClient.getObject("documents", fileName)
+        await ensureBucketExists(bucketName)
+        const pdfStream = await minioClient.getObject(bucketName, fileName)
         const chunks: Buffer[] = []
         for await (const chunk of pdfStream) {
           chunks.push(chunk)
@@ -147,8 +153,9 @@ export function createPdfGenerator() {
 
     async generatePresignedUrl(fileName: string): Promise<string> {
       try {
-        await minioClient.statObject("documents", fileName)
-        return await minioClient.presignedGetObject("documents", fileName, 24 * 60 * 60)
+        await ensureBucketExists(bucketName)
+        await minioClient.statObject(bucketName, fileName)
+        return await minioClient.presignedGetObject(bucketName, fileName, 24 * 60 * 60)
       } catch (error) {
         log.error({ error, fileName }, "Erro ao gerar URL pré-assinada")
         throw new BusinessError("Termo não encontrado. Gere o termo primeiro.", ERROR_CODES.minioPresignedFailed)

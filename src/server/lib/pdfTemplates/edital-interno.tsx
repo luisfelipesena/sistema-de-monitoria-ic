@@ -4,8 +4,8 @@ import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/render
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: "Helvetica",
-    fontSize: 10,
+    fontFamily: "Times-Roman",
+    fontSize: 11,
     paddingTop: 30,
     paddingLeft: 50,
     paddingRight: 50,
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   },
   institutionHeaderBold: {
     fontSize: 9,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Times-Bold",
     marginBottom: 1,
     textAlign: "center",
   },
@@ -54,48 +54,48 @@ const styles = StyleSheet.create({
   },
   editalTitle: {
     fontSize: 11,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Times-Bold",
     textDecoration: "underline",
     marginBottom: 5,
   },
   programTitle: {
     fontSize: 11,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Times-Bold",
     textAlign: "center",
   },
   section: {
     marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
+    fontSize: 11,
+    fontFamily: "Times-Bold",
     marginBottom: 5,
   },
   text: {
-    fontSize: 10,
+    fontSize: 11,
     marginBottom: 5,
     textAlign: "justify",
     textIndent: 30,
   },
   textNoIndent: {
-    fontSize: 10,
+    fontSize: 11,
     marginBottom: 5,
     textAlign: "justify",
   },
   textBold: {
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Times-Bold",
   },
   list: {
     marginLeft: 20,
     marginBottom: 5,
   },
   listItem: {
-    fontSize: 10,
+    fontSize: 11,
     marginBottom: 3,
     textAlign: "justify",
   },
   subListItem: {
-    fontSize: 10,
+    fontSize: 11,
     marginBottom: 2,
     marginLeft: 20,
     textAlign: "justify",
@@ -104,54 +104,59 @@ const styles = StyleSheet.create({
   table: {
     marginTop: 8,
     marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#000",
   },
   tableHeader: {
     flexDirection: "row",
-    borderBottomWidth: 1,
+    borderWidth: 1,
     borderColor: "#000",
     backgroundColor: "#f5f5f5",
   },
   tableRow: {
     flexDirection: "row",
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
     borderBottomWidth: 1,
     borderColor: "#000",
   },
   tableRowLast: {
     flexDirection: "row",
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#000",
   },
-  tableColHeader: {
+  tableHeaderCell: {
     padding: 4,
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
-    textAlign: "center",
     borderRightWidth: 1,
     borderColor: "#000",
     justifyContent: "center",
+    alignItems: "center",
   },
-  tableColHeaderLast: {
+  tableHeaderCellLast: {
     padding: 4,
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
-    textAlign: "center",
     justifyContent: "center",
+    alignItems: "center",
+  },
+  tableColHeaderText: {
+    fontSize: 9,
+    fontFamily: "Times-Bold",
+    textAlign: "center",
   },
   tableCol: {
     padding: 4,
-    fontSize: 8,
+    fontSize: 9,
     borderRightWidth: 1,
     borderColor: "#000",
     justifyContent: "center",
   },
   tableColLast: {
     padding: 4,
-    fontSize: 8,
+    fontSize: 9,
     justifyContent: "center",
   },
   tableColCenter: {
     padding: 4,
-    fontSize: 8,
+    fontSize: 9,
     textAlign: "center",
     borderRightWidth: 1,
     borderColor: "#000",
@@ -181,7 +186,7 @@ const styles = StyleSheet.create({
   },
   signatureName: {
     fontSize: 10,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Times-Bold",
     marginTop: 5,
   },
   signatureTitle: {
@@ -201,17 +206,19 @@ const styles = StyleSheet.create({
   },
   bibliografiaTitle: {
     fontSize: 10,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Times-Bold",
     marginBottom: 3,
   },
   bibliografiaItem: {
-    fontSize: 9,
+    fontSize: 10,
+    fontStyle: "italic",
     marginBottom: 2,
     marginLeft: 10,
     textAlign: "justify",
   },
   pontosText: {
-    fontSize: 9,
+    fontSize: 10,
+    fontStyle: "italic",
     marginBottom: 2,
     marginLeft: 10,
   },
@@ -355,17 +362,17 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
           {/* Table of disciplines */}
           <View style={styles.table}>
             <View style={styles.tableHeader}>
-              <View style={styles.colComponente}>
-                <Text style={styles.tableColHeader}>Componente Curricular</Text>
+              <View style={[styles.colComponente, styles.tableHeaderCell]}>
+                <Text style={styles.tableColHeaderText}>Componente Curricular</Text>
               </View>
-              <View style={styles.colVagasBolsa}>
-                <Text style={styles.tableColHeader}>Vagas{"\n"}BOLSISTAS</Text>
+              <View style={[styles.colVagasBolsa, styles.tableHeaderCell]}>
+                <Text style={styles.tableColHeaderText}>Vagas{"\n"}BOLSISTAS</Text>
               </View>
-              <View style={styles.colVagasVol}>
-                <Text style={styles.tableColHeader}>Vagas{"\n"}VOLUNTÁRIOS</Text>
+              <View style={[styles.colVagasVol, styles.tableHeaderCell]}>
+                <Text style={styles.tableColHeaderText}>Vagas{"\n"}VOLUNTÁRIOS</Text>
               </View>
-              <View style={styles.colProfessor}>
-                <Text style={styles.tableColHeaderLast}>Professor Responsável</Text>
+              <View style={[styles.colProfessor, styles.tableHeaderCellLast]}>
+                <Text style={styles.tableColHeaderText}>Professor Responsável</Text>
               </View>
             </View>
 
@@ -373,20 +380,20 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
               const isLast = index === data.disciplinas.length - 1
               const rowStyle = isLast ? styles.tableRowLast : styles.tableRow
               return (
-                <View key={index} style={rowStyle}>
-                  <View style={styles.colComponente}>
-                    <Text style={styles.tableCol}>
+                <View key={index} style={rowStyle} wrap={false}>
+                  <View style={[styles.colComponente, styles.tableCol]}>
+                    <Text style={{ fontSize: 9, textAlign: "center" }}>
                       {disciplina.codigo} - {disciplina.nome}
                     </Text>
                   </View>
-                  <View style={styles.colVagasBolsa}>
-                    <Text style={styles.tableColCenter}>{disciplina.numBolsistas || ""}</Text>
+                  <View style={[styles.colVagasBolsa, styles.tableColCenter]}>
+                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.numBolsistas || ""}</Text>
                   </View>
-                  <View style={styles.colVagasVol}>
-                    <Text style={styles.tableColCenter}>{disciplina.numVoluntarios || ""}</Text>
+                  <View style={[styles.colVagasVol, styles.tableColCenter]}>
+                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.numVoluntarios || ""}</Text>
                   </View>
-                  <View style={styles.colProfessor}>
-                    <Text style={styles.tableColLast}>{disciplina.professor.nome}</Text>
+                  <View style={[styles.colProfessor, styles.tableColLast]}>
+                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.professor.nome}</Text>
                   </View>
                 </View>
               )
@@ -503,28 +510,6 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
           </Text>
         </View>
 
-        {/* Page number */}
-        <Text
-          style={styles.pageNumber}
-          render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
-          fixed
-        />
-      </Page>
-
-      {/* Second page - Process selection */}
-      <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <Image src={UFBA_LOGO__FORM_BASE64} style={styles.logo} />
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.institutionHeader}>MINISTÉRIO DA EDUCAÇÃO</Text>
-            <Text style={styles.institutionHeaderBold}>UNIVERSIDADE FEDERAL DA BAHIA</Text>
-            <Text style={styles.institutionHeader}>INSTITUTO DE COMPUTAÇÃO</Text>
-            <Text style={styles.institutionHeaderBold}>DEPARTAMENTO DE CIÊNCIA DA COMPUTAÇÃO</Text>
-          </View>
-          <Image src={IC_LOGO_BASE64} style={styles.logo} />
-        </View>
-
         {/* 6. Do processo seletivo */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>6. Do processo seletivo</Text>
@@ -570,17 +555,17 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
           {hasExamSchedule && (
             <View style={styles.table}>
               <View style={styles.tableHeader}>
-                <View style={styles.colExamComponente}>
-                  <Text style={styles.tableColHeader}>Componente Curricular</Text>
+                <View style={[styles.colExamComponente, styles.tableHeaderCell]}>
+                  <Text style={styles.tableColHeaderText}>Componente Curricular</Text>
                 </View>
-                <View style={styles.colExamData}>
-                  <Text style={styles.tableColHeader}>Data</Text>
+                <View style={[styles.colExamData, styles.tableHeaderCell]}>
+                  <Text style={styles.tableColHeaderText}>Data</Text>
                 </View>
-                <View style={styles.colExamHora}>
-                  <Text style={styles.tableColHeader}>Hora</Text>
+                <View style={[styles.colExamHora, styles.tableHeaderCell]}>
+                  <Text style={styles.tableColHeaderText}>Hora</Text>
                 </View>
-                <View style={styles.colExamProfessor}>
-                  <Text style={styles.tableColHeaderLast}>Professor Responsável</Text>
+                <View style={[styles.colExamProfessor, styles.tableHeaderCellLast]}>
+                  <Text style={styles.tableColHeaderText}>Professor Responsável</Text>
                 </View>
               </View>
 
@@ -629,39 +614,41 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                 6.3 Para as provas escritas e/ou orais estão indicados os seguintes pontos e bibliografias:
               </Text>
 
-              {data.disciplinas.map((disciplina, index) => {
-                if (
-                  (!disciplina.pontosSelecao || disciplina.pontosSelecao.length === 0) &&
-                  (!disciplina.bibliografia || disciplina.bibliografia.length === 0)
-                )
-                  return null
+              <View style={styles.list}>
+                {data.disciplinas.map((disciplina, index) => {
+                  if (
+                    (!disciplina.pontosSelecao || disciplina.pontosSelecao.length === 0) &&
+                    (!disciplina.bibliografia || disciplina.bibliografia.length === 0)
+                  )
+                    return null
 
-                return (
-                  <View key={index} style={styles.bibliografiaSection}>
-                    <Text style={styles.bibliografiaTitle}>
-                      ■ {disciplina.codigo} – {disciplina.nome}
-                    </Text>
-                    {disciplina.pontosSelecao && disciplina.pontosSelecao.length > 0 && (
-                      <View>
-                        <Text style={styles.pontosText}>
-                          Pontos: {disciplina.pontosSelecao.join("; ")}
-                          {disciplina.pontosSelecao[disciplina.pontosSelecao.length - 1]?.endsWith(".") ? "" : "."}
-                        </Text>
-                      </View>
-                    )}
-                    {disciplina.bibliografia && disciplina.bibliografia.length > 0 && (
-                      <View>
-                        <Text style={styles.pontosText}>Bibliografia:</Text>
-                        {disciplina.bibliografia.map((bib, idx) => (
-                          <Text key={idx} style={styles.bibliografiaItem}>
-                            {bib}
+                  return (
+                    <View key={index} style={{ marginBottom: 10 }}>
+                      <Text style={[styles.listItem, { fontFamily: "Times-Bold" }]}>
+                        ■ {disciplina.codigo} – {disciplina.nome}
+                      </Text>
+                      {disciplina.pontosSelecao && disciplina.pontosSelecao.length > 0 && (
+                        <View style={{ marginLeft: 15, marginTop: 2 }}>
+                          <Text style={styles.pontosText}>
+                            Pontos: {disciplina.pontosSelecao.join("; ")}
+                            {disciplina.pontosSelecao[disciplina.pontosSelecao.length - 1]?.endsWith(".") ? "" : "."}
                           </Text>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                )
-              })}
+                        </View>
+                      )}
+                      {disciplina.bibliografia && disciplina.bibliografia.length > 0 && (
+                        <View style={{ marginLeft: 15, marginTop: 2 }}>
+                          <Text style={styles.pontosText}>Bibliografia:</Text>
+                          {disciplina.bibliografia.map((bib, idx) => (
+                            <Text key={idx} style={styles.bibliografiaItem}>
+                              {bib}
+                            </Text>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  )
+                })}
+              </View>
             </View>
           )}
 
@@ -669,12 +656,12 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
             6.4 Não será admitida a comunicação direta ou indireta entre os candidatos durante o processo seletivo;
           </Text>
           <Text style={styles.text}>6.5 Os critérios de desempate serão os seguintes, em ordem decrescente:</Text>
-          <View style={styles.list}>
+          <View style={{ marginLeft: 20, marginTop: 3, marginBottom: 5 }}>
             <Text style={styles.listItem}>
-              ■ Nota na disciplina associada ao projeto de monitoria, ou em disciplina equivalente;
+              6.5.1. Nota na disciplina associada ao projeto de monitoria, ou em disciplina equivalente;
             </Text>
-            <Text style={styles.listItem}>■ Coeficiente de rendimento;</Text>
-            <Text style={styles.listItem}>■ Avaliação de currículo;</Text>
+            <Text style={styles.listItem}>6.5.2. Coeficiente de rendimento;</Text>
+            <Text style={styles.listItem}>6.5.3. Avaliação de currículo;</Text>
           </View>
         </View>
 

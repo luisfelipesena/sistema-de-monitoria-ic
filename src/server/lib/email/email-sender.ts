@@ -53,6 +53,30 @@ export const emailSender = {
         log.info({ to: recipient, subject: params.subject, tipo: params.tipoNotificacao }, 'Email sent successfully')
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error sending email'
+
+        if (process.env.NODE_ENV !== 'production') {
+          log.warn(
+            { to: recipient, subject: params.subject, error: errorMessage },
+            'DEV MODE: SMTP indisponível/inválido. Simulando envio de e-mail localmente.'
+          )
+
+          try {
+            await db.insert(notificacaoHistoricoTable).values({
+              destinatarioEmail: recipient,
+              assunto: params.subject,
+              tipoNotificacao: params.tipoNotificacao,
+              statusEnvio: STATUS_ENVIO_ENVIADO,
+              remetenteUserId: params.remetenteUserId,
+              projetoId: params.projetoId,
+              alunoId: params.alunoId,
+            })
+          } catch (dbError) {
+            log.error({ dbError, to: recipient }, 'Failed to log simulated email to database')
+          }
+
+          return
+        }
+
         log.error({ to: recipient, subject: params.subject, error: errorMessage }, 'Failed to send email')
 
         try {

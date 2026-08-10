@@ -129,12 +129,6 @@ const menuConfig: MenuConfig[] = [
         icon: FileText,
         roles: ["admin"],
       },
-      {
-        label: "Alocação de Bolsas",
-        href: "/home/admin/scholarship-allocation",
-        icon: Award,
-        roles: ["admin"],
-      },
     ],
   },
 
@@ -148,6 +142,12 @@ const menuConfig: MenuConfig[] = [
         label: "Visualizar Inscrições",
         href: "/home/admin/inscricoes",
         icon: FilePlus,
+        roles: ["admin"],
+      },
+      {
+        label: "Alocação de Bolsas",
+        href: "/home/admin/scholarship-allocation",
+        icon: Award,
         roles: ["admin"],
       },
     ],
@@ -299,6 +299,12 @@ const menuConfig: MenuConfig[] = [
         label: "Dashboard",
         href: "/home/professor/dashboard",
         icon: LayoutDashboard,
+        roles: ["professor"],
+      },
+      {
+        label: "Gerenciar Projetos",
+        href: "/home/professor/projetos",
+        icon: FileText,
         roles: ["professor"],
       },
       {

@@ -22,13 +22,17 @@ export function createEditalPdfService(repo: EditalRepository) {
         repo.findAllEquivalencias(),
       ])
 
-      // Get discipline IDs from projects to filter relevant equivalencias
+      // Get discipline IDs from projects to filter relevant equivalencias and fetch templates
       const disciplinaIds = new Set<number>()
       projetos.forEach((projeto) => {
         projeto.disciplinas.forEach((d) => {
           disciplinaIds.add(d.disciplina.id)
         })
       })
+
+      // Fetch templates for fallback of pontosProva/bibliografia
+      const templates = await repo.findTemplatesByDisciplinaIds(Array.from(disciplinaIds))
+      const templateByDisciplinaId = new Map(templates.map((t) => [t.disciplinaId, t]))
 
       // Filter equivalencias that are relevant to the edital disciplines
       const relevantEquivalencias = equivalencias.filter(
@@ -53,22 +57,38 @@ export function createEditalPdfService(repo: EditalRepository) {
           cargo: 'Chefe do Departamento de Ciência da Computação',
           assinatura: edital.chefeAssinatura || undefined,
         },
-        disciplinas: projetos.map((projeto) => ({
-          codigo: projeto.disciplinas[0]?.disciplina.codigo || 'MON',
-          nome: projeto.disciplinas[0]?.disciplina.nome || projeto.titulo,
-          professor: {
-            nome: projeto.professorResponsavel.nomeCompleto,
-            email: projeto.professorResponsavel.user.email,
-          },
-          tipoMonitoria: TIPO_PROPOSICAO_INDIVIDUAL,
-          numBolsistas: projeto.bolsasDisponibilizadas || 0,
-          numVoluntarios: projeto.voluntariosSolicitados || 0,
-          pontosSelecao: projeto.pontosProva ? projeto.pontosProva.split('\n').filter((p) => p.trim()) : undefined,
-          bibliografia: projeto.bibliografia ? projeto.bibliografia.split('\n').filter((b) => b.trim()) : undefined,
-          dataSelecao: projeto.dataSelecaoEscolhida?.toISOString(),
-          horarioSelecao: projeto.horarioSelecao || undefined,
-          localSelecao: projeto.localSelecao || undefined,
-        })),
+        disciplinas: projetos.map((projeto) => {
+          const disciplinaId = projeto.disciplinas[0]?.disciplina.id
+          const template = disciplinaId ? templateByDisciplinaId.get(disciplinaId) : undefined
+
+          // Pontos de prova: project value → template fallback → undefined
+          const pontosRaw = projeto.pontosProva || template?.pontosProvaDefault
+          const pontosSelecao = pontosRaw ? pontosRaw.split('\n').filter((p) => p.trim()) : undefined
+
+          // Bibliografia: project value → template fallback → undefined
+          const bibRaw = projeto.bibliografia || template?.bibliografiaDefault
+          const bibliografia = bibRaw ? bibRaw.split('\n').filter((b) => b.trim()) : undefined
+
+          return {
+            codigo: projeto.disciplinas[0]?.disciplina.codigo || 'MON',
+            nome: projeto.disciplinas[0]?.disciplina.nome || projeto.titulo,
+            professor: {
+              nome: projeto.professorResponsavel.nomeCompleto,
+              email: projeto.professorResponsavel.user.email,
+            },
+            tipoMonitoria: TIPO_PROPOSICAO_INDIVIDUAL,
+            numBolsistas: projeto.bolsasDisponibilizadas ?? 0,
+            // Req 5.5: voluntariosSolicitados → numVoluntarios
+            numVoluntarios: projeto.voluntariosSolicitados ?? 0,
+            // Req 5.2, 5.4: pontos/bibliografia with template fallback for section 6.3
+            pontosSelecao: pontosSelecao && pontosSelecao.length > 0 ? pontosSelecao : undefined,
+            bibliografia: bibliografia && bibliografia.length > 0 ? bibliografia : undefined,
+            // Req 5.1, 5.3: dataSelecao only set when dataSelecaoEscolhida is non-null (section 6.2.3)
+            dataSelecao: projeto.dataSelecaoEscolhida?.toISOString(),
+            horarioSelecao: projeto.horarioSelecao || undefined,
+            localSelecao: projeto.localSelecao || undefined,
+          }
+        }),
         equivalencias:
           relevantEquivalencias.length > 0
             ? relevantEquivalencias.map((eq) => ({
@@ -79,11 +99,12 @@ export function createEditalPdfService(repo: EditalRepository) {
       }
 
       const pdfBuffer = await renderToBuffer(EditalInternoTemplate({ data: editalData }))
-      const fileName = `editais/edital-${edital.numeroEdital}-${edital.periodoInscricao.ano}-${edital.periodoInscricao.semestre}.pdf`
+      const timestamp = Date.now()
+      const fileName = `editais/edital-${edital.numeroEdital}-${edital.periodoInscricao.ano}-${edital.periodoInscricao.semestre}-${timestamp}.pdf`
 
       await minioClient.putObject(bucketName, fileName, pdfBuffer, pdfBuffer.length, {
         'Content-Type': 'application/pdf',
-        'Cache-Control': 'max-age=3600',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       })
 
       const presignedUrl = await minioClient.presignedGetObject(bucketName, fileName, 24 * 60 * 60)

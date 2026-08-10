@@ -23,7 +23,6 @@ interface TemplateFormProps {
   publicoAlvoCustom: string
   setPublicoAlvoCustom: (value: string) => void
 }
-
 export const TemplateForm: React.FC<TemplateFormProps> = ({
   form,
   onSubmit,
@@ -195,10 +194,10 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
           </CardContent>
         </Card>
 
-        {/* Atividades Padrão */}
+        {/* Responsabilidades */}
         <Card className="border-amber-200">
           <CardHeader>
-            <CardTitle className="text-amber-800">Atividades Padrão</CardTitle>
+            <CardTitle className="text-amber-800">Responsabilidades</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {atividades.map((atividade, index) => (
@@ -224,6 +223,62 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Atividade
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Pontos de Prova */}
+        <Card className="border-amber-200">
+          <CardHeader>
+            <CardTitle className="text-amber-800">Pontos de Prova</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="pontosProvaDefault"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Descreva os pontos de prova padrão para a disciplina..."
+                      rows={4}
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Bibliografia */}
+        <Card className="border-amber-200">
+          <CardHeader>
+            <CardTitle className="text-amber-800">Bibliografia</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="bibliografiaDefault"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Liste a bibliografia padrão da disciplina..."
+                      rows={4}
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 

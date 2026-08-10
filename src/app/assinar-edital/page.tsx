@@ -21,6 +21,26 @@ function SignEditalContent() {
   const [chefeNome, setChefeNome] = useState("")
   const [isSigning, setIsSigning] = useState(false)
   const [signatureComplete, setSignatureComplete] = useState(false)
+  const [signatureMode, setSignatureMode] = useState<"draw" | "upload">("draw")
+  const [uploadedSignatureUrl, setUploadedSignatureUrl] = useState<string | null>(null)
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Arquivo inválido",
+        description: "Selecione uma imagem (PNG, JPG ou SVG).",
+        variant: "destructive",
+      })
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setUploadedSignatureUrl(event.target?.result as string)
+    }
+    reader.readAsDataURL(file)
+  }
 
   // Fetch edital data using token
   const {
@@ -53,17 +73,36 @@ function SignEditalContent() {
   })
 
   const clearSignature = () => {
-    signatureRef.current?.clear()
+    if (signatureMode === "draw") {
+      signatureRef.current?.clear()
+    } else {
+      setUploadedSignatureUrl(null)
+    }
   }
 
   const handleSign = async () => {
-    if (!signatureRef.current || signatureRef.current.isEmpty()) {
-      toast({
-        title: "Assinatura necessária",
-        description: "Por favor, desenhe sua assinatura antes de continuar.",
-        variant: "destructive",
-      })
-      return
+    let signatureDataUrl = ""
+
+    if (signatureMode === "draw") {
+      if (!signatureRef.current || signatureRef.current.isEmpty()) {
+        toast({
+          title: "Assinatura necessária",
+          description: "Por favor, desenhe sua assinatura antes de continuar.",
+          variant: "destructive",
+        })
+        return
+      }
+      signatureDataUrl = signatureRef.current.toDataURL("image/png")
+    } else {
+      if (!uploadedSignatureUrl) {
+        toast({
+          title: "Arquivo necessário",
+          description: "Por favor, selecione uma imagem da sua assinatura.",
+          variant: "destructive",
+        })
+        return
+      }
+      signatureDataUrl = uploadedSignatureUrl
     }
 
     if (!chefeNome.trim()) {
@@ -86,7 +125,6 @@ function SignEditalContent() {
 
     setIsSigning(true)
     try {
-      const signatureDataUrl = signatureRef.current.toDataURL("image/png")
       await signMutation.mutateAsync({
         token,
         assinatura: signatureDataUrl,
@@ -280,23 +318,64 @@ function SignEditalContent() {
               />
             </div>
 
-            {/* Signature Canvas */}
+            {/* Signature Mode Selector */}
             <div className="space-y-2">
-              <Label>Assinatura</Label>
-              <div className="border-2 border-gray-300 rounded-lg bg-white">
-                <SignatureCanvas
-                  ref={signatureRef}
-                  canvasProps={{
-                    width: 700,
-                    height: 200,
-                    className: "signature-canvas w-full",
-                    style: { maxWidth: "100%", height: "auto" },
-                  }}
-                  backgroundColor="white"
-                />
+              <Label>Forma de Assinatura</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={signatureMode === "draw" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSignatureMode("draw")}
+                >
+                  Desenhar na Tela
+                </Button>
+                <Button
+                  type="button"
+                  variant={signatureMode === "upload" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSignatureMode("upload")}
+                >
+                  Fazer Upload de Imagem
+                </Button>
               </div>
-              <p className="text-xs text-muted-foreground">Desenhe sua assinatura no campo acima usando o mouse ou toque.</p>
             </div>
+
+            {/* Signature Canvas or File Upload */}
+            {signatureMode === "draw" ? (
+              <div className="space-y-2">
+                <Label>Assinatura Desenhada</Label>
+                <div className="border-2 border-gray-300 rounded-lg bg-white">
+                  <SignatureCanvas
+                    ref={signatureRef}
+                    canvasProps={{
+                      width: 700,
+                      height: 200,
+                      className: "signature-canvas w-full",
+                      style: { maxWidth: "100%", height: "auto" },
+                    }}
+                    backgroundColor="white"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">Desenhe sua assinatura no campo acima usando o mouse ou toque.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Upload da Imagem da Assinatura (PNG, JPG)</Label>
+                <Input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/svg+xml"
+                  onChange={handleFileUpload}
+                  disabled={isSigning}
+                />
+                {uploadedSignatureUrl && (
+                  <div className="mt-3 p-4 border rounded-lg bg-white flex flex-col items-center justify-center">
+                    <p className="text-xs text-muted-foreground mb-2">Pré-visualização da imagem:</p>
+                    <img src={uploadedSignatureUrl} alt="Assinatura" className="max-h-24 object-contain" />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row justify-between gap-4">

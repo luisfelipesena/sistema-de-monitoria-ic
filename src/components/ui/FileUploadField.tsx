@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/utils/api"
 import { cn } from "@/utils/cn"
-import { AlertCircle, CheckCircle, Eye, File, FileSpreadsheet, FileText, Image, Loader2, Upload, X } from "lucide-react"
+import { AlertCircle, CheckCircle, File, FileSpreadsheet, FileText, Image, Loader2, Upload, X } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 interface FileUploadFieldProps {
@@ -369,18 +369,6 @@ export function FileUploadField({
             </div>
 
             <div className="flex items-center gap-2 ml-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleViewFile}
-                disabled={getPresignedUrlMutation.isPending}
-                className="flex items-center gap-1.5"
-                title="Visualizar arquivo"
-              >
-                <Eye className="h-4 w-4" />
-                {uploadedFile.name.toLowerCase().endsWith(".pdf") ? "Visualizar PDF" : "Visualizar"}
-              </Button>
-
               <Button
                 variant="ghost"
                 size="sm"

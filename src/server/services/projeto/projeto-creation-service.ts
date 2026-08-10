@@ -108,6 +108,8 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
         numeroSemanas: input.numeroSemanas,
         publicoAlvo: input.publicoAlvo,
         estimativaPessoasBenificiadas: input.estimativaPessoasBenificiadas,
+        pontosProva: input.pontosProva || null,
+        bibliografia: input.bibliografia || null,
         status: input.status || PROJETO_STATUS_DRAFT,
       })
 
@@ -241,6 +243,8 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
       if (input.estimativaPessoasBenificiadas !== undefined)
         updateData.estimativaPessoasBenificiadas = input.estimativaPessoasBenificiadas
       if (input.status !== undefined) updateData.status = input.status
+      if (input.pontosProva !== undefined) updateData.pontosProva = input.pontosProva
+      if (input.bibliografia !== undefined) updateData.bibliografia = input.bibliografia
 
       await repo.update(input.id, updateData)
 

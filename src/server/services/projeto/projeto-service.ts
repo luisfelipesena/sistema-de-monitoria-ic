@@ -3,6 +3,7 @@ import { createProjetoApprovalService } from './projeto-approval-service'
 import { createProjetoCreationService } from './projeto-creation-service'
 import { createProjetoQueryService } from './projeto-query-service'
 import { createProjetoRepository } from './projeto-repository'
+import { createProjetoSelecaoDataService } from './projeto-selecao-data-service'
 import { createProjetoSelectionService } from './projeto-selection-service'
 
 type Database = typeof db
@@ -17,6 +18,7 @@ export function createProjetoService(db: Database) {
   const creationService = createProjetoCreationService(repo, db)
   const approvalService = createProjetoApprovalService(repo)
   const selectionService = createProjetoSelectionService(repo)
+  const selecaoDataService = createProjetoSelecaoDataService(repo)
 
   return {
     // Query operations
@@ -43,6 +45,12 @@ export function createProjetoService(db: Database) {
     generateSelectionMinutesData: selectionService.generateSelectionMinutesData,
     saveSelectionMinutes: selectionService.saveSelectionMinutes,
     notifySelectionResults: selectionService.notifySelectionResults,
+
+    // Selection date/data operations
+    chooseSlot: selecaoDataService.chooseSlot,
+    updateVoluntarios: selecaoDataService.updateVoluntarios,
+    updateSelecaoData: selecaoDataService.updateSelecaoData,
+    getSelecaoInfo: selecaoDataService.getSelecaoInfo,
   }
 }
 

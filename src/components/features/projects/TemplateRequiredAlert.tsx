@@ -54,6 +54,8 @@ export const TemplateRequiredAlert: React.FC<TemplateRequiredAlertProps> = ({ on
             <li>Carga horária padrão</li>
             <li>Público alvo padrão</li>
             <li>Atividades típicas da monitoria</li>
+            <li>Pontos de Prova</li>
+            <li>Bibliografia</li>
           </ul>
         </div>
         <Button onClick={onCreateTemplate} className="w-full bg-amber-600 hover:bg-amber-700">

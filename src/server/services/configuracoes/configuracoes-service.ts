@@ -8,6 +8,12 @@ export interface UpdateDepartamentoEmailInput {
   email?: string | null
 }
 
+export interface CreateDepartamentoInput {
+  nome: string
+  sigla?: string | null
+  email?: string | null
+}
+
 export const createConfiguracoesService = (database: typeof db) => {
   const repo = createConfiguracoesRepository(database)
 
@@ -18,6 +24,35 @@ export const createConfiguracoesService = (database: typeof db) => {
 
     async updateDepartamentoEmail(input: UpdateDepartamentoEmailInput) {
       await repo.updateDepartamentoEmail(input.departamentoId, input.email ?? null)
+      return { success: true }
+    },
+
+    async createDepartamento(input: CreateDepartamentoInput) {
+      const result = await repo.createDepartamento({
+        nome: input.nome,
+        sigla: input.sigla ?? null,
+        emailInstituto: input.email ?? null,
+        unidadeUniversitaria: 'Instituto de Computação',
+      })
+      return result
+    },
+
+    async updateDepartamento(input: {
+      departamentoId: number
+      nome?: string
+      sigla?: string | null
+      email?: string | null
+    }) {
+      const data: { nome?: string; sigla?: string | null; emailInstituto?: string | null } = {}
+      if (input.nome !== undefined) data.nome = input.nome
+      if (input.sigla !== undefined) data.sigla = input.sigla
+      if (input.email !== undefined) data.emailInstituto = input.email
+      await repo.updateDepartamento(input.departamentoId, data)
+      return { success: true }
+    },
+
+    async deleteDepartamento(departamentoId: number) {
+      await repo.deleteDepartamento(departamentoId)
       return { success: true }
     },
 
