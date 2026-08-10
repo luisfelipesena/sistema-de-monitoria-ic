@@ -94,11 +94,15 @@ export function createEditalPdfService(repo: EditalRepository) {
                 try {
                   const parsed = JSON.parse(raw)
                   if (Array.isArray(parsed) && parsed.length > 0) return parsed
-                } catch { /* fall through */ }
+                } catch {
+                  /* fall through */
+                }
               }
               // Fallback to legacy single slot
               if (projeto.dataSelecaoEscolhida && projeto.horarioSelecao) {
-                return [{ data: projeto.dataSelecaoEscolhida.toISOString().split('T')[0], horario: projeto.horarioSelecao }]
+                return [
+                  { data: projeto.dataSelecaoEscolhida.toISOString().split('T')[0], horario: projeto.horarioSelecao },
+                ]
               }
               return undefined
             })(),

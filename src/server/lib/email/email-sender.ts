@@ -16,7 +16,11 @@ function saveEmailToFile(to: string, subject: string, html: string) {
       mkdirSync(EMAILS_DIR, { recursive: true })
     }
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-    const safeSubject = subject.replace(/[^a-zA-Z0-9 ]/g, '').slice(0, 50).trim().replace(/\s+/g, '_')
+    const safeSubject = subject
+      .replace(/[^a-zA-Z0-9 ]/g, '')
+      .slice(0, 50)
+      .trim()
+      .replace(/\s+/g, '_')
     const fileName = `${timestamp}_${safeSubject}_${to.replace('@', '_at_')}.html`
     const filePath = join(EMAILS_DIR, fileName)
 

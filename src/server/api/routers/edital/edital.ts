@@ -540,12 +540,14 @@ export const editalRouter = createTRPCRouter({
       z.object({
         datasProvasDisponiveis: z.array(z.object({ data: z.string(), horario: z.string() })),
         dataDivulgacaoResultado: z.date().nullable(),
-        rangeSelecao: z.object({
-          dataInicio: z.string(),
-          dataFim: z.string(),
-          horarioInicio: z.string(),
-          horarioFim: z.string(),
-        }).nullable(),
+        rangeSelecao: z
+          .object({
+            dataInicio: z.string(),
+            dataFim: z.string(),
+            horarioInicio: z.string(),
+            horarioFim: z.string(),
+          })
+          .nullable(),
       })
     )
     .query(async ({ input, ctx }) => {

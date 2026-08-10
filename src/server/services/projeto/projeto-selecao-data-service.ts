@@ -267,18 +267,21 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       await verifyAuthorization(projeto, userId, userRole)
 
       const slotsDisponiveis = projeto.editalInterno ? parseSlots(projeto.editalInterno.datasProvasDisponiveis) : []
-      const datasEscolhidas = parseDatasEscolhidas((projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null)
+      const datasEscolhidas = parseDatasEscolhidas(
+        (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
+      )
 
       // Build range info from edital
       const editalI = projeto.editalInterno
-      const rangeSelecao = editalI?.dataInicioSelecao && editalI?.dataFimSelecao
-        ? {
-            dataInicio: editalI.dataInicioSelecao.toISOString().split('T')[0],
-            dataFim: editalI.dataFimSelecao.toISOString().split('T')[0],
-            horarioInicio: editalI.horarioInicioSelecao ?? null,
-            horarioFim: editalI.horarioFimSelecao ?? null,
-          }
-        : null
+      const rangeSelecao =
+        editalI?.dataInicioSelecao && editalI?.dataFimSelecao
+          ? {
+              dataInicio: editalI.dataInicioSelecao.toISOString().split('T')[0],
+              dataFim: editalI.dataFimSelecao.toISOString().split('T')[0],
+              horarioInicio: editalI.horarioInicioSelecao ?? null,
+              horarioFim: editalI.horarioFimSelecao ?? null,
+            }
+          : null
 
       return {
         projetoId: projeto.id,

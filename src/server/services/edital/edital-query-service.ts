@@ -1,10 +1,10 @@
 import { NotFoundError } from '@/server/lib/errors'
 import type { Semestre, TipoEdital } from '@/types'
 import {
-    PERIODO_INSCRICAO_STATUS_ATIVO,
-    PERIODO_INSCRICAO_STATUS_FINALIZADO,
-    PERIODO_INSCRICAO_STATUS_FUTURO,
-    type PeriodoInscricaoStatus,
+  PERIODO_INSCRICAO_STATUS_ATIVO,
+  PERIODO_INSCRICAO_STATUS_FINALIZADO,
+  PERIODO_INSCRICAO_STATUS_FUTURO,
+  type PeriodoInscricaoStatus,
 } from '@/types/schemas'
 import { logger } from '@/utils/logger'
 import type { EditalRepository } from './edital-repository'
@@ -170,15 +170,15 @@ export function createEditalQueryService(repo: EditalRepository) {
         throw new NotFoundError('Edital', id)
       }
 
-      const rangeSelecao = edital.dataInicioSelecao && edital.dataFimSelecao
-        && edital.horarioInicioSelecao && edital.horarioFimSelecao
-        ? {
-            dataInicio: edital.dataInicioSelecao.toISOString().split('T')[0],
-            dataFim: edital.dataFimSelecao.toISOString().split('T')[0],
-            horarioInicio: edital.horarioInicioSelecao,
-            horarioFim: edital.horarioFimSelecao,
-          }
-        : null
+      const rangeSelecao =
+        edital.dataInicioSelecao && edital.dataFimSelecao && edital.horarioInicioSelecao && edital.horarioFimSelecao
+          ? {
+              dataInicio: edital.dataInicioSelecao.toISOString().split('T')[0],
+              dataFim: edital.dataFimSelecao.toISOString().split('T')[0],
+              horarioInicio: edital.horarioInicioSelecao,
+              horarioFim: edital.horarioFimSelecao,
+            }
+          : null
 
       return {
         datasProvasDisponiveis: parseSlots(edital.datasProvasDisponiveis ?? null),
