@@ -1,7 +1,6 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025/Debian) (preloaded format=pdflatex 2026.6.12)  12 JUN 2026 19:41
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025/Debian) (preloaded format=pdflatex 2026.6.12)  7 AUG 2026 16:15
 entering extended mode
  restricted \write18 enabled.
- file:line:error style messages enabled.
  %&-line parsing enabled.
 **main.tex
 (./main.tex
@@ -1052,6 +1051,9 @@ Package: afterpage 2023/07/04 v1.08 After-Page Package (DPC)
 \AP@partial=\box101
 \AP@footins=\box102
 )
+(/usr/share/texlive/texmf-dist/tex/latex/xurl/xurl.sty
+Package: xurl 2022/01/09 v 0.10 modify URL breaks
+)
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/pifont.sty
 Package: pifont 2020/03/25 PSNFSS-v9.3 Pi font support (SPQR) 
 LaTeX Font Info:    Trying to load font information for U+pzd on input line 63.
@@ -1066,33 +1068,33 @@ LaTeX Font Info:    Trying to load font information for U+psy on input line 64.
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/upsy.fd
 File: upsy.fd 2001/06/04 font definitions for U/psy.
 ))
-Package hyperref Info: Option `colorlinks' set `true' on input line 31.
-Package hyperref Info: Option `breaklinks' set `true' on input line 31.
+Package hyperref Info: Option `colorlinks' set `true' on input line 32.
+Package hyperref Info: Option `breaklinks' set `true' on input line 32.
  (./main.aux
 Package babel Info: 'portuguese' activates 'portuges' shorthands.
-(babel)             Reported on input line 12.
+(babel)             Reported on input line 13.
 )
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 49.
-LaTeX Font Info:    ... okay on input line 49.
-Package hyperref Info: Link coloring ON on input line 49.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 55.
+LaTeX Font Info:    ... okay on input line 55.
+Package hyperref Info: Link coloring ON on input line 55.
 
 (./main.out) (./main.out)
 \@outlinefile=\write4
@@ -1124,13 +1126,13 @@ e
 Package microtype Info: Patching varwidth to enable character protrusion.
 \MT@vwid@leftmargin=\dimen379
 \MT@vwid@rightmargin=\dimen380
-LaTeX Info: Redefining \microtypecontext on input line 49.
-Package microtype Info: Applying patch `item' on input line 49.
-Package microtype Info: Applying patch `toc' on input line 49.
-Package microtype Info: Applying patch `eqnum' on input line 49.
-Package microtype Info: Applying patch `footnote' on input line 49.
-Package microtype Info: Applying patch `verbatim' on input line 49.
-LaTeX Info: Redefining \microtypesetup on input line 49.
+LaTeX Info: Redefining \microtypecontext on input line 55.
+Package microtype Info: Applying patch `item' on input line 55.
+Package microtype Info: Applying patch `toc' on input line 55.
+Package microtype Info: Applying patch `eqnum' on input line 55.
+Package microtype Info: Applying patch `footnote' on input line 55.
+Package microtype Info: Applying patch `verbatim' on input line 55.
+LaTeX Info: Redefining \microtypesetup on input line 55.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -1187,16 +1189,16 @@ Package caption Info: End \AtBeginDocument code.
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 LaTeX Font Info:    Trying to load font information for T1+FiraSans-OsF on inpu
-t line 79.
+t line 86.
 (/usr/share/texlive/texmf-dist/tex/latex/fira/T1FiraSans-OsF.fd
 File: T1FiraSans-OsF.fd 2019/10/10 (autoinst) Font definitions for T1/FiraSans-
 OsF.
 )
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <8> not available
 (Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input 
-line 79.
+line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 8.0pt on input line 79.
+(Font)              scaled to size 8.0pt on input line 86.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `FiraSans-OsF' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
@@ -1204,15 +1206,15 @@ Package microtype Info: Loading generic protrusion settings for font family
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/sc' in size <8> not available
 
 (Font)              Font shape `T1/FiraSans-OsF/bold/sc' tried instead on input
- line 79.
+ line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/sc' will be
-(Font)              scaled to size 8.0pt on input line 79.
+(Font)              scaled to size 8.0pt on input line 86.
 
 (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-cmr.cfg
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman 
 (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+msa on input line 79.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 86.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
@@ -1221,7 +1223,7 @@ File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 79.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 86.
 
 
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
@@ -1233,277 +1235,291 @@ File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <18> not available
 
 (Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input 
-line 79.
+line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 18.0pt on input line 79.
+(Font)              scaled to size 18.0pt on input line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <14> not available
 
 (Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input 
-line 79.
+line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 14.0pt on input line 79.
+(Font)              scaled to size 14.0pt on input line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/it' in size <14> not availabl
 e
 (Font)              Font shape `T1/FiraSans-OsF/bold/it' tried instead on input
- line 79.
+ line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/it' will be
-(Font)              scaled to size 14.0pt on input line 79.
+(Font)              scaled to size 14.0pt on input line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <10> not availabl
 e
 (Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input 
-line 79.
+line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 10.0pt on input line 79.
+(Font)              scaled to size 10.0pt on input line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <8> not available
 
 (Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input 
-line 79.
+line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 8.0pt on input line 79.
+(Font)              scaled to size 8.0pt on input line 86.
 LaTeX Font Info:    Trying to load font information for U+fontawesometwo on inp
-ut line 79.
+ut line 86.
 
 (/usr/share/texlive/texmf-dist/tex/latex/fontawesome/ufontawesometwo.fd
 File: ufontawesometwo.fd 2016/05/22 Font definitions for U/fontawesometwo.
 )
 
 LaTeX Font Warning: Font shape `U/fontawesometwo/sl/n' undefined
-(Font)              using `U/fontawesometwo/m/n' instead on input line 79.
+(Font)              using `U/fontawesometwo/m/n' instead on input line 86.
 
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/it' in size <8> not availabl
 e
 (Font)              Font shape `T1/FiraSans-OsF/book/it' tried instead on input
- line 79.
+ line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/it' will be
-(Font)              scaled to size 8.0pt on input line 79.
+(Font)              scaled to size 8.0pt on input line 86.
 
 LaTeX Font Warning: Font shape `U/fontawesometwo/m/it' undefined
-(Font)              using `U/fontawesometwo/m/n' instead on input line 79.
+(Font)              using `U/fontawesometwo/m/n' instead on input line 86.
 
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <9> not available
 
 (Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input 
-line 79.
+line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 9.0pt on input line 79.
+(Font)              scaled to size 9.0pt on input line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <9> not available
 (Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input 
-line 79.
+line 86.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 9.0pt on input line 79.
+(Font)              scaled to size 9.0pt on input line 86.
 
-Overfull \hbox (66.0pt too wide) in paragraph at lines 79--79
+Overfull \hbox (66.0pt too wide) in paragraph at lines 86--86
 [][]  
  []
 
 
-Overfull \hbox (66.0pt too wide) in paragraph at lines 79--79
+Overfull \hbox (66.0pt too wide) in paragraph at lines 86--86
 [][]  
  []
 
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <14> not availabl
 e
 (Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input 
-line 81.
+line 88.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 14.0pt on input line 81.
-LaTeX Font Info:    Trying to load font information for TS1+qtm on input line 8
-4.
+(Font)              scaled to size 14.0pt on input line 88.
+LaTeX Font Info:    Trying to load font information for TS1+qtm on input line 9
+1.
 (/usr/share/texmf/tex/latex/tex-gyre/ts1qtm.fd
 File: ts1qtm.fd 2009/09/25 v1.2 font definition file for TS1/qtm
-) [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texlive/texm
-f-dist/fonts/enc/dvips/fira/fir_2mfh3o.enc}{/usr/share/texlive/texmf-dist/fonts
-/enc/dvips/fira/fir_iln36p.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/f
-ontawesome/fontawesometwo.enc}{/usr/share/texmf/fonts/enc/dvips/tex-gyre/q-ec.e
-nc}
+)
+LaTeX Font Info:    Trying to load font information for U+fontawesomeone on inp
+ut line 98.
+
+(/usr/share/texlive/texmf-dist/tex/latex/fontawesome/ufontawesomeone.fd
+File: ufontawesomeone.fd 2016/05/22 Font definitions for U/fontawesomeone.
+)
+
+Package fancyhdr Warning: \headheight is too small (36.90002pt): 
+(fancyhdr)                Make it at least 49.40002pt, for example:
+(fancyhdr)                \setlength{\headheight}{49.40002pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-12.5pt}.
+
+[1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf/fonts/en
+c/dvips/tex-gyre/q-ec.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/fontaw
+esome/fontawesomeone.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/fira/fi
+r_2mfh3o.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/fira/fir_iln36p.enc
+}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/fontawesome/fontawesometwo.enc}
 
 
 {/usr/share/texmf/fonts/enc/dvips/tex-gyre/q-ts1.enc}]
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/sl/n' in size <12> not availabl
 e
 (Font)              Font shape `T1/FiraSans-OsF/book/n' tried instead on input 
-line 92.
+line 99.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/book/n' will be
-(Font)              scaled to size 12.0pt on input line 92.
+(Font)              scaled to size 12.0pt on input line 99.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <12> not available
 
 (Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input 
-line 92.
+line 99.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 12.0pt on input line 92.
+(Font)              scaled to size 12.0pt on input line 99.
  [2]
-Underfull \hbox (badness 10000) in paragraph at lines 171--171
+Underfull \hbox (badness 10000) in paragraph at lines 178--178
 []\T1/qtm/m/n/10 (+20) Júpiter + for-mu-lá-rios
  []
 
 [3]
-Underfull \hbox (badness 2452) in paragraph at lines 201--202
+Underfull \hbox (badness 2452) in paragraph at lines 208--209
 []\T1/qtm/m/n/10 (+20) À luz desse ce-ná-rio, o Sis-tema de Monitoria-IC
  []
 
 
-Underfull \hbox (badness 6348) in paragraph at lines 220--221
+Underfull \hbox (badness 6348) in paragraph at lines 227--228
 []\T1/qtm/b/n/10 (+20) Diferencial do Sis-tema de
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 222--222
+Underfull \hbox (badness 10000) in paragraph at lines 229--229
 []\T1/qtm/m/n/10 (+20) Gestão aca-dê-mica
  []
 
 
-Underfull \hbox (badness 3792) in paragraph at lines 222--222
+Underfull \hbox (badness 3792) in paragraph at lines 229--229
 []\T1/qtm/m/n/10 (+20) Mencionado em edi-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 222--223
+Underfull \hbox (badness 10000) in paragraph at lines 229--230
 []\T1/qtm/m/n/10 (+20) Módulo de-di-cado co-brindo
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 224--224
+Underfull \hbox (badness 10000) in paragraph at lines 231--231
 []\T1/qtm/m/n/10 (+20) Sistema in-te-grado
  []
 
 
-Underfull \hbox (badness 4595) in paragraph at lines 224--224
+Underfull \hbox (badness 4595) in paragraph at lines 231--231
 []\T1/qtm/m/n/10 (+20) Utilizado com do-cu-
  []
 
 
-Underfull \hbox (badness 2790) in paragraph at lines 224--224
+Underfull \hbox (badness 2790) in paragraph at lines 231--231
 \T1/qtm/m/n/10 (+20) e co-mis-sões de-par-ta-
  []
 
 
-Underfull \hbox (badness 5008) in paragraph at lines 224--224
+Underfull \hbox (badness 5008) in paragraph at lines 231--231
 []\T1/qtm/m/n/10 (+20) Não iden-ti-fi-cado mó-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 226--226
+Underfull \hbox (badness 10000) in paragraph at lines 233--233
 []\T1/qtm/m/n/10 (+20) Suporte ge-né-rico
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 226--226
+Underfull \hbox (badness 10000) in paragraph at lines 233--233
 \T1/qtm/m/n/10 (+20) a ati-vi-da-des aca-dê-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 226--226
+Underfull \hbox (badness 10000) in paragraph at lines 233--233
 \T1/qtm/m/n/10 (+20) mi-cas, com-bi-nado
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 226--226
+Underfull \hbox (badness 10000) in paragraph at lines 233--233
 \T1/qtm/m/n/10 (+20) com pro-ce-di-men-tos
  []
 
 
-Underfull \hbox (badness 1558) in paragraph at lines 226--226
+Underfull \hbox (badness 1558) in paragraph at lines 233--233
 []\T1/qtm/m/n/10 (+20) Não há des-cri-ção pú-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 228--228
+Underfull \hbox (badness 10000) in paragraph at lines 235--235
 []\T1/qtm/m/n/10 (+20) Funcionalidades de
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 228--228
+Underfull \hbox (badness 10000) in paragraph at lines 235--235
 \T1/qtm/m/n/10 (+20) apoio; mo-ni-to-ria
  []
 
 
-Underfull \hbox (badness 1275) in paragraph at lines 228--228
+Underfull \hbox (badness 1275) in paragraph at lines 235--235
 \T1/qtm/m/n/10 (+20) de-pende de edi-tais e
  []
 
 
-Underfull \hbox (badness 5008) in paragraph at lines 228--228
+Underfull \hbox (badness 5008) in paragraph at lines 235--235
 []\T1/qtm/m/n/10 (+20) Não iden-ti-fi-cado mó-
  []
 
 
-Underfull \hbox (badness 1603) in paragraph at lines 228--229
+Underfull \hbox (badness 1603) in paragraph at lines 235--236
 []\T1/qtm/m/n/10 (+20) Consolidação au-to-má-tica das
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 230--230
+Underfull \hbox (badness 10000) in paragraph at lines 237--237
 []\T1/qtm/m/n/10 (+20) Tramitação ele-trô-
  []
 
 
-Underfull \hbox (badness 3769) in paragraph at lines 230--230
+Underfull \hbox (badness 3769) in paragraph at lines 237--237
 \T1/qtm/m/n/10 (+20) nica de pro-ces-sos
  []
 
 
-Underfull \hbox (badness 2134) in paragraph at lines 230--230
+Underfull \hbox (badness 2134) in paragraph at lines 237--237
 []\T1/qtm/m/n/10 (+20) Focado em pro-ces-sos
  []
 
 
-Underfull \hbox (badness 1009) in paragraph at lines 230--230
+Underfull \hbox (badness 1009) in paragraph at lines 237--237
 \T1/qtm/m/n/10 (+20) de mo-ni-to-ria de-pende
  []
 
 
-Underfull \hbox (badness 4193) in paragraph at lines 230--231
+Underfull \hbox (badness 4193) in paragraph at lines 237--238
 []\T1/qtm/m/n/10 (+20) Catálogo de va-gas e por-tal
  []
 
 
-Underfull \hbox (badness 2529) in paragraph at lines 230--231
+Underfull \hbox (badness 2529) in paragraph at lines 237--238
 \T1/qtm/m/n/10 (+20) de ins-cri-ções do aluno in-te-
  []
 
 
-Underfull \hbox (badness 1418) in paragraph at lines 232--232
+Underfull \hbox (badness 1418) in paragraph at lines 239--239
 \T1/qtm/m/n/10 (+20) tos, bol-sas, ins-cri-
  []
 
 
-Underfull \hbox (badness 1953) in paragraph at lines 232--232
+Underfull \hbox (badness 1953) in paragraph at lines 239--239
 \T1/qtm/m/n/10 (+20) mo-ni-to-ria, con-ce-bido
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 232--232
+Underfull \hbox (badness 10000) in paragraph at lines 239--239
 \T1/qtm/m/n/10 (+20) para o con-texto da
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 232--232
+Underfull \hbox (badness 10000) in paragraph at lines 239--239
 []\T1/qtm/m/n/10 (+20) Cobre in-te-gral-mente
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 232--232
+Underfull \hbox (badness 10000) in paragraph at lines 239--239
 \T1/qtm/m/n/10 (+20) as fa-ses 1--5 (re-la-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 232--232
+Underfull \hbox (badness 10000) in paragraph at lines 239--239
 \T1/qtm/m/n/10 (+20) tó-rios/certificados
  []
 
 [4]
-Underfull \hbox (badness 10000) in paragraph at lines 264--264
+Underfull \hbox (badness 10000) in paragraph at lines 271--271
 []\T1/qtm/m/it/9 (+20) Workflow \T1/qtm/m/n/9 (+20) de apro-va-ção com es-ta-do
 s
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 273--273
+Underfull \hbox (badness 10000) in paragraph at lines 280--280
 []\T1/qtm/m/n/9 (+20) Geração de pla-ni-lha con-so-li-dada para Ins-ti-
  []
 
 
-Underfull \hbox (badness 1122) in paragraph at lines 295--295
+Underfull \hbox (badness 1122) in paragraph at lines 302--302
 []\T1/qtm/m/n/9 (+20) Integridade re-fe-ren-cial com res-tri-ções no Post-
  []
 
@@ -1512,19 +1528,19 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 
-Underfull \hbox (badness 4805) in paragraph at lines 319--320
+Underfull \hbox (badness 4805) in paragraph at lines 326--327
 []\T1/qtm/m/n/10 (+20) A \T1/qtm/b/n/10 (+20) ca-mada de ne-gó-cio \T1/qtm/m/n/
 10 (+20) con-cen-tra ser-vi-ços es-pe-
  []
 
 
-Underfull \hbox (badness 4739) in paragraph at lines 319--320
+Underfull \hbox (badness 4739) in paragraph at lines 326--327
 \T1/qtm/m/n/10 (+20) ci-a-li-za-dos: \T1/cmtt/m/n/10 ProjectService \T1/qtm/m/n
 /10 (+20) (ci-clo de vida de pro-
  []
 
 
-Underfull \hbox (badness 3657) in paragraph at lines 319--320
+Underfull \hbox (badness 3657) in paragraph at lines 326--327
 \T1/qtm/m/n/10 (+20) je-tos), \T1/cmtt/m/n/10 SelectionService \T1/qtm/m/n/10 (
 +20) (ins-cri-ções e se-le-ção com
  []
@@ -1532,162 +1548,165 @@ Underfull \hbox (badness 3657) in paragraph at lines 319--320
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/n' in size <10> not available
 
 (Font)              Font shape `T1/FiraSans-OsF/bold/n' tried instead on input 
-line 410.
+line 417.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/n' will be
-(Font)              scaled to size 10.0pt on input line 410.
+(Font)              scaled to size 10.0pt on input line 417.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/b/it' in size <10> not availabl
 e
 (Font)              Font shape `T1/FiraSans-OsF/bold/it' tried instead on input
- line 410.
+ line 417.
 LaTeX Font Info:    Font shape `T1/FiraSans-OsF/bold/it' will be
-(Font)              scaled to size 10.0pt on input line 410.
-[5]
-Underfull \hbox (badness 1609) in paragraph at lines 423--424
+(Font)              scaled to size 10.0pt on input line 417.
+
+Underfull \hbox (badness 1609) in paragraph at lines 430--431
 \T1/qtm/m/n/10 (+20) O mo-delo de da-dos se-gue prin-cí-pios de nor-ma-li-za-çã
 o
  []
 
 
-Underfull \hbox (badness 1490) in paragraph at lines 423--424
+Underfull \hbox (badness 1490) in paragraph at lines 430--431
 \T1/qtm/m/n/10 (+20) (3NF) e in-te-gri-dade re-fe-ren-cial. As prin-ci-pais en-
 ti-da-
  []
 
-<images/monitoria/data-model-erd.png, id=294, 2066.72125pt x 2237.35875pt>
+[5]
+<images/monitoria/data-model-erd.png, id=299, 2066.72125pt x 2237.35875pt>
 File: images/monitoria/data-model-erd.png Graphic file (type png)
 <use images/monitoria/data-model-erd.png>
 Package pdftex.def Info: images/monitoria/data-model-erd.png  used on input lin
-e 427.
+e 434.
 (pdftex.def)             Requested size: 240.0pt x 259.80008pt.
-[6 <./images/monitoria/data-model-erd.png>]
-Underfull \hbox (badness 3612) in paragraph at lines 470--471
+ [6 <./images/monitoria/data-model-erd.png>]
+Underfull \hbox (badness 3612) in paragraph at lines 477--478
 []\T1/qtm/m/n/10 (+20) A or-ga-ni-za-ção da ló-gica de ne-gó-cio se-gue uma
  []
 
 
-Underfull \hbox (badness 1292) in paragraph at lines 470--471
+Underfull \hbox (badness 1292) in paragraph at lines 477--478
 \T1/qtm/m/n/10 (+20) por do-mí-nio. O \T1/qtm/m/it/10 (+20) rou-ter \T1/qtm/m/n
 /10 (+20) prin-ci-pal (\T1/cmtt/m/n/10 appRouter\T1/qtm/m/n/10 (+20) ) agrega
  []
 
 
-Underfull \hbox (badness 2213) in paragraph at lines 470--471
+Underfull \hbox (badness 2213) in paragraph at lines 477--478
 \T1/cmtt/m/n/10 user\T1/qtm/m/n/10 (+20) , \T1/cmtt/m/n/10 apiKey\T1/qtm/m/n/10
  (+20) ), en-ti-da-des aca-dê-mi-cas (\T1/cmtt/m/n/10 departamento\T1/qtm/m/n/1
 0 (+20) ,
  []
 
 
-Underfull \hbox (badness 4072) in paragraph at lines 470--471
+Underfull \hbox (badness 4072) in paragraph at lines 477--478
 \T1/cmtt/m/n/10 curso\T1/qtm/m/n/10 (+20) , \T1/cmtt/m/n/10 discipline\T1/qtm/m
 /n/10 (+20) ), ges-tão de mo-ni-to-ria (\T1/cmtt/m/n/10 projeto\T1/qtm/m/n/10 (
 +20) ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 470--471
+Underfull \hbox (badness 10000) in paragraph at lines 477--478
 \T1/cmtt/m/n/10 projetoTemplates\T1/qtm/m/n/10 (+20) , \T1/cmtt/m/n/10 edital\T
 1/qtm/m/n/10 (+20) , \T1/cmtt/m/n/10 inscricao\T1/qtm/m/n/10 (+20) , \T1/cmtt/m
 /n/10 selecao\T1/qtm/m/n/10 (+20) ,
  []
 
 
-Underfull \hbox (badness 5832) in paragraph at lines 470--471
+Underfull \hbox (badness 5832) in paragraph at lines 477--478
 \T1/qtm/m/n/10 (+20) pa-ra-lelo por múl-ti-plos de-sen-vol-ve-do-res sem con-fl
 i-tos
  []
 
-<images/monitoria/landing.png, id=312, 3163.82pt x 3503.0875pt>
+<images/monitoria/landing.png, id=316, 3163.82pt x 3503.0875pt>
 File: images/monitoria/landing.png Graphic file (type png)
 <use images/monitoria/landing.png>
-Package pdftex.def Info: images/monitoria/landing.png  used on input line 478.
+Package pdftex.def Info: images/monitoria/landing.png  used on input line 485.
 (pdftex.def)             Requested size: 227.99927pt x 252.40385pt.
-<images/monitoria/admin-dashboard.png, id=313, 3513.125pt x 2091.815pt>
+<images/monitoria/admin-dashboard.png, id=317, 3513.125pt x 2091.815pt>
 File: images/monitoria/admin-dashboard.png Graphic file (type png)
 <use images/monitoria/admin-dashboard.png>
 Package pdftex.def Info: images/monitoria/admin-dashboard.png  used on input li
-ne 485.
+ne 492.
 (pdftex.def)             Requested size: 227.99927pt x 135.74931pt.
-<images/Assinatura de Projeto.png, id=314, 4111.36pt x 2230.3325pt>
+<images/Assinatura de Projeto.png, id=318, 4111.36pt x 2230.3325pt>
 File: images/Assinatura de Projeto.png Graphic file (type png)
 <use images/Assinatura de Projeto.png>
 Package pdftex.def Info: images/Assinatura de Projeto.png  used on input line 4
-92.
+99.
 (pdftex.def)             Requested size: 227.99927pt x 123.6726pt.
-<images/Planilha Prograd.png, id=315, 4111.36pt x 2230.3325pt>
+<images/Planilha Prograd.png, id=319, 4111.36pt x 2230.3325pt>
 File: images/Planilha Prograd.png Graphic file (type png)
 <use images/Planilha Prograd.png>
-Package pdftex.def Info: images/Planilha Prograd.png  used on input line 499.
+Package pdftex.def Info: images/Planilha Prograd.png  used on input line 506.
 (pdftex.def)             Requested size: 227.99927pt x 123.6726pt.
-<images/monitoria/student-resultados.png, id=316, 3513.125pt x 2091.815pt>
+<images/monitoria/student-resultados.png, id=320, 3513.125pt x 2091.815pt>
 File: images/monitoria/student-resultados.png Graphic file (type png)
 <use images/monitoria/student-resultados.png>
 Package pdftex.def Info: images/monitoria/student-resultados.png  used on input
- line 506.
+ line 513.
 (pdftex.def)             Requested size: 227.99927pt x 135.74931pt.
 [7 <./images/monitoria/landing.png (PNG copy)> <./images/monitoria/admin-dashbo
-ard.png (PNG copy)>]
-Underfull \hbox (badness 1616) in paragraph at lines 553--553
+ard.png (PNG copy)> <./images/Assinatura de Projeto.png>]
+Underfull \hbox (badness 1616) in paragraph at lines 560--560
 []\T1/qtm/m/n/9 (+20) Importar pla-ne-ja-mento, apro-var
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 556--556
+Underfull \hbox (badness 10000) in paragraph at lines 563--563
 []\T1/qtm/m/n/9 (+20) Inscrição com \T1/qtm/m/it/9 (+20) upload \T1/qtm/m/n/9 (
 +20) de
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 556--556
+Underfull \hbox (badness 10000) in paragraph at lines 563--563
 \T1/qtm/m/n/9 (+20) RG/CPF/histórico, equi-va-lên-
  []
 
-[8 <./images/Assinatura de Projeto.png> <./images/Planilha Prograd.png> <./imag
-es/monitoria/student-resultados.png (PNG copy)>] [9] [10] [11] [12{/usr/share/t
-exmf/fonts/enc/dvips/tex-gyre/q-ec-sc.enc}] (./main.bbl
-Underfull \hbox (badness 1642) in paragraph at lines 77--81
+[8 <./images/Planilha Prograd.png> <./images/monitoria/student-resultados.png (
+PNG copy)>] [9] [10] [11] [12{/usr/share/texmf/fonts/enc/dvips/tex-gyre/q-ec-sc
+.enc}] (./main.bbl
+Underfull \hbox (badness 1642) in paragraph at lines 103--107
 \T1/qtm/m/n/10 (+20) grama de mo-ni-to-res para o en-sino su-pe-rior.  \T1/qtm/
 m/it/10 (+20) Es-tu-
  []
 
-) [13
+[13
 
+
+]) [14
 
 ]
-Underfull \hbox (badness 10000) in paragraph at lines 638--638
+Underfull \hbox (badness 10000) in paragraph at lines 645--645
 []\T1/qtm/m/n/9 (+20) Projeto tran-sita em
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 638--638
+Underfull \hbox (badness 10000) in paragraph at lines 645--645
 \T1/qtm/m/sc/9/50ls (-12) Draft$\OMS/cmsy/m/n/9 !$\T1/qtm/m/sc/9/50ls (-12) Sub
 mitted$\OMS/cmsy/m/n/9 !$\T1/qtm/m/sc/9/50ls (-12) Approved/Rejected
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 677--677
+Underfull \hbox (badness 10000) in paragraph at lines 684--684
 []\T1/qtm/m/it/9 (+20) Logs \T1/qtm/m/n/9 (+20) es-tru-tu-ra-dos em JSON e mé-t
 ri-cas
  []
 
-[14
+[15
 
 ]
-Underfull \hbox (badness 1242) in paragraph at lines 698--698
+Underfull \hbox (badness 1242) in paragraph at lines 705--705
 []\T1/qtm/m/n/9 (+20) RBAC blo-queia rota ad-min para
  []
 
 
-Underfull \hbox (badness 1460) in paragraph at lines 706--706
+Underfull \hbox (badness 1460) in paragraph at lines 713--713
 []\T1/qtm/m/n/9 (+20) Lançamento de no-tas e ran-que-a-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 708--708
+Underfull \hbox (badness 10000) in paragraph at lines 715--715
 []\T1/qtm/m/n/9 (+20) Vaga mar-cada como
  []
 
-[15] [16] (./main.aux)
+[16] [17] (./main.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -1700,11 +1719,11 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 0259B6F118BC6F2095039791BFB4B672;6227.
  ) 
 Here is how much of TeX's memory you used:
- 35568 strings out of 469494
- 673591 string characters out of 5469291
- 1158239 words of memory out of 5000000
- 63105 multiletter control sequences out of 15000+600000
- 950004 words of font info for 334 fonts, out of 8000000 for 9000
+ 35618 strings out of 469494
+ 674761 string characters out of 5469291
+ 1156267 words of memory out of 5000000
+ 63137 multiletter control sequences out of 15000+600000
+ 950910 words of font info for 339 fonts, out of 8000000 for 9000
  16 hyphenation exceptions out of 8191
  132i,16n,135p,1707b,1267s stack positions out of 10000i,1000n,20000p,200000b,200000s
  </home/luis/.texlive2025/texmf-var/fonts/pk/ljfour/jknappen/ec/ectt0900.600p
@@ -1716,14 +1735,15 @@ e/texlive/texmf-dist/fonts/type1/public/fira/FiraSans-BookItalic.pfb></usr/shar
 e/texlive/texmf-dist/fonts/type1/public/fontawesome/FontAwesome.pfb></usr/share
 /texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/share/texlive/texmf-
-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texmf/fonts/type1/pub
-lic/tex-gyre/qtmb.pfb></usr/share/texmf/fonts/type1/public/tex-gyre/qtmbi.pfb><
-/usr/share/texmf/fonts/type1/public/tex-gyre/qtmr.pfb></usr/share/texmf/fonts/t
-ype1/public/tex-gyre/qtmri.pfb>
-Output written on main.pdf (16 pages, 2756860 bytes).
+dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fo
+nts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texmf/fonts/type1/public/tex
+-gyre/qtmb.pfb></usr/share/texmf/fonts/type1/public/tex-gyre/qtmbi.pfb></usr/sh
+are/texmf/fonts/type1/public/tex-gyre/qtmr.pfb></usr/share/texmf/fonts/type1/pu
+blic/tex-gyre/qtmri.pfb>
+Output written on main.pdf (17 pages, 2785096 bytes).
 PDF statistics:
- 561 PDF objects out of 1000 (max. 8388607)
- 438 compressed objects within 5 object streams
- 96 named destinations out of 1000 (max. 500000)
+ 630 PDF objects out of 1000 (max. 8388607)
+ 490 compressed objects within 5 object streams
+ 97 named destinations out of 1000 (max. 500000)
  96555 words of extra memory for PDF output out of 106986 (max. 10000000)
 

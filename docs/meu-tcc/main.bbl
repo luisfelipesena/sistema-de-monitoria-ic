@@ -4,11 +4,17 @@
 Brasil (1996).
 \newblock Lei nº 9.394, de 20 de dezembro de 1996. estabelece as diretrizes e
   bases da educação nacional.
+\newblock Disponível em:
+  \url{https://www.planalto.gov.br/ccivil_03/leis/l9394.htm}. Acesso em: 07
+  ago. 2026.
 
 \bibitem[Brasil, 2018]{LGPD2018}
 Brasil (2018).
 \newblock Lei nº 13.709, de 14 de agosto de 2018. lei geral de proteção de
   dados pessoais (lgpd).
+\newblock Disponível em:
+  \url{https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm}.
+  Acesso em: 07 ago. 2026.
 
 \bibitem[Braun and Clarke, 2006]{braun2006using}
 Braun, V. and Clarke, V. (2006).
@@ -27,15 +33,22 @@ Davenport, T.~H. (1993).
 \newblock {\em Process Innovation: Reengineering Work through Information
   Technology}.
 \newblock Harvard Business School Press.
+\newblock Disponível em:
+  \url{https://archive.org/details/processinnovatio0000dave}. Acesso em: 07
+  ago. 2026.
 
-\bibitem[de~S.Paulo, 2024]{folha2024ruf}
-de~S.Paulo, F. (2024).
+\bibitem[{Folha de S.Paulo}, 2024]{folha2024ruf}
+{Folha de S.Paulo} (2024).
 \newblock Ranking universitário folha (ruf) 2024.
+\newblock Disponível em: \url{https://ruf.folha.uol.com.br/2024/}. Acesso em:
+  07 ago. 2026.
 
 \bibitem[Fowler, 2002]{Fowler2002}
 Fowler, M. (2002).
 \newblock {\em Patterns of Enterprise Application Architecture}.
 \newblock Addison-Wesley, Boston, MA.
+\newblock Disponível em: \url{https://martinfowler.com/books/eaa.html}. Acesso
+  em: 07 ago. 2026.
 
 \bibitem[Frison, 2016]{Frison2016}
 Frison, L. M.~B. (2016).
@@ -49,16 +62,24 @@ Hammer, M. and Champy, J. (1993).
 \newblock {\em Reengineering the Corporation: A Manifesto for Business
   Revolution}.
 \newblock Harper Business.
+\newblock Disponível em:
+  \url{https://archive.org/details/reengineeringcor00hamm}. Acesso em: 07 ago.
+  2026.
 
 \bibitem[Laudon and Laudon, 2011]{Laudon_Laudon_2011}
 Laudon, K.~C. and Laudon, J.~P. (2011).
 \newblock {\em Management Information Systems: Managing the Digital Firm}.
 \newblock Pearson, 12th edition.
+\newblock Disponível em: \url{https://archive.org/details/isbn_9780132142878}.
+  Acesso em: 07 ago. 2026.
 
 \bibitem[Lazar {\em et~al}., 2017]{lazar2017research}
 Lazar, J., Feng, J.~H., and Hochheiser, H. (2017).
 \newblock {\em Research Methods in Human-Computer Interaction}.
 \newblock Morgan Kaufmann, Cambridge, MA, 2nd edition.
+\newblock Disponível em:
+  \url{https://shop.elsevier.com/books/research-methods-in-human-computer-interaction/lazar/978-0-12-805390-4}.
+  Acesso em: 07 ago. 2026.
 
 \bibitem[Machado, 2023]{machado2024icrequests}
 Machado, M.~B. (2023).
@@ -66,12 +87,17 @@ Machado, M.~B. (2023).
   solicitações acadêmicas.
 \newblock Trabalho de conclusão de curso (graduação em ciência da
   computação), Universidade Federal da Bahia, Salvador, BA.
+\newblock Disponível em: \url{https://repositorio.ufba.br/handle/ri/39401}.
+  Acesso em: 07 ago. 2026.
 
 \bibitem[Martin, 2017]{Martin2017}
 Martin, R.~C. (2017).
 \newblock {\em Clean Architecture: A Craftsman's Guide to Software Structure
   and Design}.
 \newblock Prentice Hall, Upper Saddle River, NJ.
+\newblock Disponível em:
+  \url{https://www.informit.com/store/clean-architecture-a-craftsmans-guide-to-software-structure-9780134494166}.
+  Acesso em: 07 ago. 2026.
 
 \bibitem[Natário and Santos, 2010]{Natario2010}
 Natário, E.~G. and Santos, A. A. A.~d. (2010).
@@ -83,11 +109,17 @@ Natário, E.~G. and Santos, A. A. A.~d. (2010).
 Newman, S. (2015).
 \newblock {\em Building Microservices: Designing Fine-Grained Systems}.
 \newblock O'Reilly Media, Sebastopol, CA.
+\newblock Disponível em:
+  \url{https://samnewman.io/books/building_microservices/}. Acesso em: 07 ago.
+  2026.
 
 \bibitem[Nielsen, 1994]{nielsen1994usability}
 Nielsen, J. (1994).
 \newblock {\em Usability Engineering}.
 \newblock Morgan Kaufmann, San Francisco, CA.
+\newblock Disponível em:
+  \url{https://www.nngroup.com/books/usability-engineering/}. Acesso em: 07
+  ago. 2026.
 
 \bibitem[Santos, 2023]{santos2023alertufba}
 Santos, A. I.~C. (2023).
@@ -95,6 +127,8 @@ Santos, A. I.~C. (2023).
   emergência no contexto universitário.
 \newblock Trabalho de conclusão de curso (graduação em sistemas de
   informação), Universidade Federal da Bahia, Salvador, BA.
+\newblock Disponível em: \url{https://repositorio.ufba.br/handle/ri/39305}.
+  Acesso em: 07 ago. 2026.
 
 \bibitem[{UNESCO}, 2023]{UNESCO2023}
 {UNESCO} (2023).
@@ -102,32 +136,46 @@ Santos, A. I.~C. (2023).
   A Tool on Whose Terms?}
 \newblock Technical report, UNESCO, Paris.
 \newblock Relatório global sobre tecnologia na educação e transformação
-  digital.
+  digital. Disponível em:
+  \url{https://unesdoc.unesco.org/ark:/48223/pf0000386165}. Acesso em: 07 ago.
+  2026.
 
 \bibitem[{Universidade de Bras\'ilia}, 2024]{UnB_SIGAA}
 {Universidade de Bras\'ilia} (2024).
 \newblock Sigaa -- sistema integrado de gest\~{a}o de atividades acad\^emicas.
+\newblock Disponível em: \url{https://sigaa.unb.br/sigaa/public/home.jsf}.
+  Acesso em: 07 ago. 2026.
 
 \bibitem[{Universidade de S\~{a}o Paulo}, 2024]{USPJupiter}
 {Universidade de S\~{a}o Paulo} (2024).
-\newblock J\'upiterweb -- sistema acad\'emico de gradua\c{c}\~{a}o.
+\newblock J\'upiterweb -- sistema acad\^emico de gradua\c{c}\~{a}o.
+\newblock Disponível em: \url{https://uspdigital.usp.br/jupiterweb/}. Acesso
+  em: 07 ago. 2026.
 
 \bibitem[{Universidade Federal de S\~{a}o Paulo}, 2024]{UNIFESP_SEI}
 {Universidade Federal de S\~{a}o Paulo} (2024).
 \newblock Sei -- sistema eletr\^onico de informa\c{c}\~{o}es (unifesp).
+\newblock Disponível em: \url{https://sei.unifesp.br/}. Acesso em: 07 ago.
+  2026.
 
 \bibitem[{Universidade Federal de Santa Catarina}, 2024]{UFSC_CAGR}
 {Universidade Federal de Santa Catarina} (2024).
 \newblock Cagr -- controle acad\^emico de gradua\c{c}\~{a}o.
+\newblock Disponível em: \url{https://cagr.sistemas.ufsc.br/}. Acesso em: 07
+  ago. 2026.
 
 \bibitem[{Universidade Federal do Rio de Janeiro}, 2024]{UFRJ_SIGA}
 {Universidade Federal do Rio de Janeiro} (2024).
-\newblock Siga -- sistema integrado de gest\~{a}o acad\'emica.
+\newblock Siga -- sistema integrado de gest\~{a}o acad\^emica.
+\newblock Disponível em: \url{https://intranet.ufrj.br/}. Acesso em: 07 ago.
+  2026.
 
 \bibitem[{World Bank}, 2022]{WorldBank2022}
 {World Bank} (2022).
 \newblock {GovTech Maturity Index, 2022 Update: Trends in Public Sector Digital
   Transformation}.
 \newblock Technical report, World Bank, Washington, DC.
+\newblock Disponível em: \url{https://doi.org/10.1596/38499}. Acesso em: 07
+  ago. 2026.
 
 \end{thebibliography}
