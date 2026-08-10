@@ -1,4 +1,3 @@
-import { useAuth } from '@/hooks/use-auth'
 import { useTRPCMutation } from '@/hooks/useTRPCMutation'
 import type { ProjectListItemData } from '@/types'
 import { ProfessorProjetoListItem, ProjetoStatus, Semestre } from '@/types'
@@ -6,7 +5,6 @@ import { api } from '@/utils/api'
 import { useState } from 'react'
 
 export function useProjectList() {
-  const { user } = useAuth()
   const [selectedProjeto, setSelectedProjeto] = useState<ProfessorProjetoListItem | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
