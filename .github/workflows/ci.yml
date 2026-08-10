@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop, 'feat/**']
+    branches: [main, develop]
   pull_request:
-    branches: [main, develop, 'feat/**']
+    branches: [main, develop]
 
 jobs:
   # Job 1: Lint, TypeCheck, Unit Tests, Build
