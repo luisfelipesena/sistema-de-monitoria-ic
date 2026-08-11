@@ -7,7 +7,7 @@ import type { UserRole } from './enums'
 
 export interface SlotDataHorario {
   data: string // formato ISO date: "2025-03-15"
-  horario: string // formato legível: "14:00-16:00"
+  horario: string // formato legível: "14:00" (hora de início)
 }
 
 export const slotDataHorarioSchema = z.object({
@@ -19,6 +19,30 @@ export const datasProvasDisponiveisSchema = z
   .array(slotDataHorarioSchema)
   .min(2, 'Mínimo 2 opções de data/horário')
   .max(3, 'Máximo 3 opções de data/horário')
+
+// ========================================
+// RANGE DE SELEÇÃO - Tipos para o ADM
+// ========================================
+
+export interface RangeSelecao {
+  dataInicio: string // ISO date: "2025-08-10"
+  dataFim: string // ISO date: "2025-08-15"
+  horarioInicio: string // "08:00"
+  horarioFim: string // "18:00"
+}
+
+export const rangeSelecaoSchema = z.object({
+  dataInicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data início inválida'),
+  dataFim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data fim inválida'),
+  horarioInicio: z.string().regex(/^\d{2}:\d{2}$/, 'Horário início inválido'),
+  horarioFim: z.string().regex(/^\d{2}:\d{2}$/, 'Horário fim inválido'),
+})
+
+// Schema para as escolhas do professor (até 3 datas+horários de início)
+export const datasSelecaoEscolhidasSchema = z
+  .array(slotDataHorarioSchema)
+  .min(1, 'Mínimo 1 data/horário de seleção')
+  .max(3, 'Máximo 3 datas/horários de seleção')
 
 // ========================================
 // SELEÇÃO - Tipos de Input

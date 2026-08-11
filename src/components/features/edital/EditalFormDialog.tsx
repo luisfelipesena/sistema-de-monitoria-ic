@@ -42,15 +42,18 @@ export interface EditalFormData {
   // Datas de INSCRIÇÃO
   dataInicioInscricao: Date;
   dataFimInscricao: Date;
-  // Datas de SELEÇÃO (prova)
+  // Datas de SELEÇÃO (range)
   dataInicioSelecao?: Date;
   dataFimSelecao?: Date;
+  // Range de horários para seleção
+  horarioInicioSelecao?: string;
+  horarioFimSelecao?: string;
   // Data de divulgação dos resultados
   dataDivulgacaoResultado?: Date;
   // Edital PROGRAD
   numeroEditalPrograd?: string;
-  // Datas disponíveis para provas (slots estruturados)
-  datasProvasDisponiveis: SlotDataHorario[];
+  // Datas disponíveis para provas (legacy, mantido para compatibilidade)
+  datasProvasDisponiveis?: SlotDataHorario[];
 }
 
 interface EditalFormDialogProps {
@@ -350,28 +353,55 @@ export function EditalFormDialog({
 
             <Separator />
 
-            {/* Datas disponíveis para provas */}
+            {/* Range de horários para seleção */}
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-muted-foreground">Datas Disponíveis para Provas</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">Horários Disponíveis para Seleção</h3>
               <p className="text-xs text-muted-foreground">
-                Defina entre 2 e 3 opções de data/horário para os professores escolherem a data da seleção
+                Defina o range de horários em que os professores poderão agendar suas provas de seleção
               </p>
-              <FormField
-                control={form.control}
-                name="datasProvasDisponiveis"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <SlotDateTimePicker
-                        value={field.value || []}
-                        onChange={field.onChange}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="horarioInicioSelecao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Horário Início</FormLabel>
+                      <FormControl>
+                        <input
+                          type="time"
+                          className="block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          disabled={isLoading}
+                          aria-label="Horário início da seleção"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="horarioFimSelecao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Horário Fim</FormLabel>
+                      <FormControl>
+                        <input
+                          type="time"
+                          className="block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          disabled={isLoading}
+                          aria-label="Horário fim da seleção"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             <Separator />

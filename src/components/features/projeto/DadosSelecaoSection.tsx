@@ -3,14 +3,16 @@
 import { SlotSelectionModal } from "@/components/features/projeto/SlotSelectionModal"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useToast } from "@/hooks/use-toast"
 import type { SlotDataHorario } from "@/types/selecao-inputs"
 import { api } from "@/utils/api"
-import { Calendar, Edit2, Loader2, Save } from "lucide-react"
+import { BookOpen, Calendar, ChevronDown, Clock, Edit2, Loader2, Save, Users } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
 interface DadosSelecaoSectionProps {
@@ -21,24 +23,20 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
   const { toast } = useToast()
   const apiUtils = api.useUtils()
 
-  // Query selection info for this project
   const { data: selecaoInfo, isLoading } = api.selecao.getProjetoSelecaoInfo.useQuery(
     { projetoId },
     { refetchOnWindowFocus: false }
   )
 
-  // Local state for editable fields
   const [voluntarios, setVoluntarios] = useState<number>(0)
   const [pontosProva, setPontosProva] = useState<string>("")
   const [bibliografia, setBibliografia] = useState<string>("")
   const [slotModalOpen, setSlotModalOpen] = useState(false)
 
-  // Track if fields have been modified locally
   const [voluntariosDirty, setVoluntariosDirty] = useState(false)
   const [pontosProvaDirty, setPontosProvaDirty] = useState(false)
   const [bibliografiaDirty, setBibliografiaDirty] = useState(false)
 
-  // Sync local state with server data
   useEffect(() => {
     if (selecaoInfo) {
       if (!voluntariosDirty) setVoluntarios(selecaoInfo.voluntariosSolicitados)
@@ -47,19 +45,14 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
     }
   }, [selecaoInfo, voluntariosDirty, pontosProvaDirty, bibliografiaDirty])
 
-  // Mutations
-  const chooseSlotMutation = api.selecao.chooseSelecaoSlot.useMutation({
+  const chooseSlotsMutation = api.selecao.chooseSelecaoSlots.useMutation({
     onSuccess: async () => {
-      toast({ title: "Data da seleção definida com sucesso" })
+      toast({ title: "Datas da seleção definidas com sucesso" })
       await apiUtils.selecao.getProjetoSelecaoInfo.invalidate({ projetoId })
       await apiUtils.projeto.getProjetos.invalidate()
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao definir data",
-        description: error.message,
-        variant: "destructive",
-      })
+      toast({ title: "Erro ao definir datas", description: error.message, variant: "destructive" })
     },
   })
 
@@ -71,11 +64,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
       await apiUtils.projeto.getProjetos.invalidate()
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao atualizar voluntários",
-        description: error.message,
-        variant: "destructive",
-      })
+      toast({ title: "Erro ao atualizar voluntários", description: error.message, variant: "destructive" })
     },
   })
 
@@ -87,33 +76,37 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
       await apiUtils.selecao.getProjetoSelecaoInfo.invalidate({ projetoId })
     },
     onError: (error) => {
-      toast({
-        title: "Erro ao salvar dados",
-        description: error.message,
-        variant: "destructive",
-      })
+      toast({ title: "Erro ao salvar dados", description: error.message, variant: "destructive" })
     },
   })
 
-  // Handlers
-  const handleSlotConfirm = useCallback(
-    (slot: SlotDataHorario) => {
-      chooseSlotMutation.mutate({
-        projetoId,
-        data: slot.data,
-        horario: slot.horario,
-      })
+  const confirmVoluntariosMutation = api.selecao.confirmVoluntarios.useMutation({
+    onSuccess: async () => {
+      toast({ title: "Voluntários confirmados com sucesso!" })
+      setVoluntariosDirty(false)
+      await apiUtils.selecao.getProjetoSelecaoInfo.invalidate({ projetoId })
+      await apiUtils.projeto.getProjetos.invalidate()
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao confirmar voluntários", description: error.message, variant: "destructive" })
+    },
+  })
+
+  const handleSlotsConfirm = useCallback(
+    (slots: SlotDataHorario[]) => {
+      chooseSlotsMutation.mutate({ projetoId, slots })
       setSlotModalOpen(false)
     },
-    [projetoId, chooseSlotMutation]
+    [projetoId, chooseSlotsMutation]
   )
 
   const handleSaveVoluntarios = useCallback(() => {
-    updateVoluntariosMutation.mutate({
-      projetoId,
-      voluntariosSolicitados: voluntarios,
-    })
+    updateVoluntariosMutation.mutate({ projetoId, voluntariosSolicitados: voluntarios })
   }, [projetoId, voluntarios, updateVoluntariosMutation])
+
+  const handleConfirmVoluntarios = useCallback(() => {
+    confirmVoluntariosMutation.mutate({ projetoId })
+  }, [projetoId, confirmVoluntariosMutation])
 
   const handleSaveSelecaoData = useCallback(() => {
     updateSelecaoDataMutation.mutate({
@@ -126,8 +119,8 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
   if (isLoading) {
     return (
       <Card className="mt-3">
-        <CardContent className="py-4">
-          <div className="flex items-center gap-2 text-muted-foreground">
+        <CardContent className="py-6">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="text-sm">Carregando dados da seleção...</span>
           </div>
@@ -140,70 +133,124 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
     return null
   }
 
+  const hasRange = !!selecaoInfo.rangeSelecao
   const hasSlots = selecaoInfo.slotsDisponiveis.length > 0
-  const currentSelection: SlotDataHorario | undefined =
-    selecaoInfo.dataSelecaoEscolhida && selecaoInfo.horarioSelecao
-      ? { data: selecaoInfo.dataSelecaoEscolhida, horario: selecaoInfo.horarioSelecao }
-      : undefined
+  const canChoose = hasRange || hasSlots
+  const currentSelections: SlotDataHorario[] = selecaoInfo.datasSelecaoEscolhidas ?? []
 
-  const formatDate = (isoDate: string) => {
+  const formatDateShort = (isoDate: string) => {
     const [year, month, day] = isoDate.split("-")
     const date = new Date(Number(year), Number(month) - 1, Number(day))
     return new Intl.DateTimeFormat("pt-BR", {
-      weekday: "long",
       day: "2-digit",
-      month: "long",
+      month: "2-digit",
       year: "numeric",
+    }).format(date)
+  }
+
+  const formatDateLong = (isoDate: string) => {
+    const [year, month, day] = isoDate.split("-")
+    const date = new Date(Number(year), Number(month) - 1, Number(day))
+    return new Intl.DateTimeFormat("pt-BR", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
     }).format(date)
   }
 
   return (
     <>
-      <Card className="mt-3">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Dados da Seleção
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Data/Horário Section */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-medium text-muted-foreground">Data e Horário da Seleção</Label>
-            {currentSelection ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm">
-                  {formatDate(currentSelection.data)} — {currentSelection.horario}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSlotModalOpen(true)}
-                  disabled={!hasSlots}
-                  className="h-7 px-2"
-                >
-                  <Edit2 className="h-3.5 w-3.5" />
-                  Alterar
+      <Collapsible defaultOpen className="mt-3">
+        <Card className="shadow-sm border-primary/20 bg-gradient-to-b from-primary/[0.03] to-transparent">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <div className="flex items-center justify-center h-6 w-6 rounded-md bg-primary/10">
+                  <Calendar className="h-3.5 w-3.5 text-primary" />
+                </div>
+                Dados da Seleção
+              </CardTitle>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <ChevronDown className="h-4 w-4 transition-transform duration-200 [[data-state=closed]_&]:rotate-[-90deg]" />
+                  <span className="sr-only">Minimizar</span>
                 </Button>
+              </CollapsibleTrigger>
+            </div>
+          </CardHeader>
+
+          <CollapsibleContent>
+            <CardContent className="space-y-5 pt-0">
+          {/* ── Bloco 1: Range do Admin + Datas escolhidas ── */}
+          <div className="space-y-3">
+            {selecaoInfo.rangeSelecao && (
+              <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50/50 p-3">
+                <Clock className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-blue-900">Período disponível para seleção</p>
+                  <p className="text-blue-700 mt-0.5">
+                    {formatDateShort(selecaoInfo.rangeSelecao.dataInicio)} a {formatDateShort(selecaoInfo.rangeSelecao.dataFim)}
+                    {selecaoInfo.rangeSelecao.horarioInicio && selecaoInfo.rangeSelecao.horarioFim && (
+                      <span> · {selecaoInfo.rangeSelecao.horarioInicio} às {selecaoInfo.rangeSelecao.horarioFim}</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Datas escolhidas pelo professor */}
+            {currentSelections.length > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Suas datas escolhidas
+                  </Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSlotModalOpen(true)}
+                    disabled={!canChoose}
+                    className="h-6 px-2 text-xs"
+                  >
+                    <Edit2 className="h-3 w-3 mr-1" />
+                    Alterar
+                  </Button>
+                </div>
+                <div className="grid gap-1.5">
+                  {currentSelections.map((slot, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 rounded-md bg-muted/60 px-3 py-2 text-sm"
+                    >
+                      <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
+                        {idx + 1}
+                      </span>
+                      <span className="font-medium">{formatDateLong(slot.data)}</span>
+                      <span className="text-muted-foreground">às</span>
+                      <span className="font-medium">{slot.horario}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
-              <div>
+              <div className="flex flex-col items-center gap-2 py-3">
+                <p className="text-sm text-muted-foreground">Nenhuma data de seleção definida ainda</p>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span>
                         <Button
-                          variant="outline"
+                          variant="default"
                           size="sm"
                           onClick={() => setSlotModalOpen(true)}
-                          disabled={!hasSlots}
+                          disabled={!canChoose}
                         >
                           <Calendar className="h-4 w-4 mr-1.5" />
-                          Definir Data da Seleção
+                          Escolher Datas
                         </Button>
                       </span>
                     </TooltipTrigger>
-                    {!hasSlots && (
+                    {!canChoose && (
                       <TooltipContent>
                         <p>As datas ainda não foram definidas pelo Admin</p>
                       </TooltipContent>
@@ -214,122 +261,170 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
             )}
           </div>
 
-          {/* Bolsistas + Voluntários */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor={`bolsistas-${projetoId}`} className="text-xs font-medium text-muted-foreground">
-                Bolsistas
+          <Separator />
+
+          {/* ── Bloco 2: Vagas ── */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Vagas
               </Label>
-              <Input
-                id={`bolsistas-${projetoId}`}
-                type="number"
-                value={selecaoInfo.bolsasDisponibilizadas}
-                readOnly
-                disabled
-                className="h-8 bg-muted"
-              />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor={`voluntarios-${projetoId}`} className="text-xs font-medium text-muted-foreground">
-                Voluntários
-              </Label>
-              <div className="flex gap-1.5">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label htmlFor={`bolsistas-${projetoId}`} className="text-xs text-muted-foreground">
+                  Bolsistas
+                </Label>
                 <Input
-                  id={`voluntarios-${projetoId}`}
+                  id={`bolsistas-${projetoId}`}
                   type="number"
-                  min={0}
-                  value={voluntarios}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value, 10)
-                    setVoluntarios(isNaN(val) ? 0 : val)
-                    setVoluntariosDirty(true)
-                  }}
-                  className="h-8"
+                  value={selecaoInfo.bolsasDisponibilizadas}
+                  readOnly
+                  disabled
+                  className="h-9 bg-muted text-center font-medium"
                 />
-                {voluntariosDirty && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSaveVoluntarios}
-                    disabled={updateVoluntariosMutation.isPending}
-                    className="h-8 px-2"
-                  >
-                    {updateVoluntariosMutation.isPending ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Save className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
-                )}
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`voluntarios-${projetoId}`} className="text-xs text-muted-foreground">
+                  Voluntários
+                </Label>
+                <div className="flex gap-1.5">
+                  <Input
+                    id={`voluntarios-${projetoId}`}
+                    type="number"
+                    min={0}
+                    value={voluntarios}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10)
+                      setVoluntarios(isNaN(val) ? 0 : val)
+                      setVoluntariosDirty(true)
+                    }}
+                    className="h-9 text-center font-medium"
+                  />
+                  {voluntariosDirty && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={handleSaveVoluntarios}
+                      disabled={updateVoluntariosMutation.isPending}
+                      className="h-9 w-9 shrink-0"
+                    >
+                      {updateVoluntariosMutation.isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Save className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
+
+            {/* Confirmation status + button */}
+            {selecaoInfo.voluntariosConfirmados ? (
+              <div className="flex items-center gap-2 rounded-md bg-green-50 border border-green-200 px-3 py-2">
+                <svg className="h-4 w-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm text-green-800 font-medium">Voluntários confirmados</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-3 rounded-md bg-amber-50 border border-amber-200 px-3 py-2">
+                <p className="text-xs text-amber-800">
+                  Confirme o número de voluntários para que apareça no edital.
+                </p>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={handleConfirmVoluntarios}
+                  disabled={confirmVoluntariosMutation.isPending || voluntariosDirty}
+                  className="shrink-0 bg-amber-600 hover:bg-amber-700"
+                >
+                  {confirmVoluntariosMutation.isPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                  ) : null}
+                  Confirmar
+                </Button>
+              </div>
+            )}
           </div>
 
-          {/* Pontos de Prova */}
-          <div className="space-y-1.5">
-            <Label htmlFor={`pontos-${projetoId}`} className="text-xs font-medium text-muted-foreground">
-              Pontos de Prova
-            </Label>
-            <Textarea
-              id={`pontos-${projetoId}`}
-              value={pontosProva}
-              onChange={(e) => {
-                setPontosProva(e.target.value)
-                setPontosProvaDirty(true)
-              }}
-              placeholder="Tópicos da prova de seleção..."
-              rows={3}
-              className="text-sm resize-none"
-            />
-          </div>
+          <Separator />
 
-          {/* Bibliografia */}
-          <div className="space-y-1.5">
-            <Label htmlFor={`bibliografia-${projetoId}`} className="text-xs font-medium text-muted-foreground">
-              Bibliografia
-            </Label>
-            <Textarea
-              id={`bibliografia-${projetoId}`}
-              value={bibliografia}
-              onChange={(e) => {
-                setBibliografia(e.target.value)
-                setBibliografiaDirty(true)
-              }}
-              placeholder="Bibliografia recomendada..."
-              rows={3}
-              className="text-sm resize-none"
-            />
-          </div>
-
-          {/* Save button for text fields */}
-          {(pontosProvaDirty || bibliografiaDirty) && (
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSaveSelecaoData}
-                disabled={updateSelecaoDataMutation.isPending}
-              >
-                {updateSelecaoDataMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 mr-1.5" />
-                )}
-                Salvar Dados
-              </Button>
+          {/* ── Bloco 3: Conteúdo da Prova ── */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Conteúdo da Prova
+              </Label>
             </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Slot Selection Modal */}
+            <div className="space-y-1.5">
+              <Label htmlFor={`pontos-${projetoId}`} className="text-xs text-muted-foreground">
+                Pontos de Prova
+              </Label>
+              <Textarea
+                id={`pontos-${projetoId}`}
+                value={pontosProva}
+                onChange={(e) => {
+                  setPontosProva(e.target.value)
+                  setPontosProvaDirty(true)
+                }}
+                placeholder="Insira cada tópico em uma linha separada..."
+                rows={3}
+                className="text-sm resize-none"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor={`bibliografia-${projetoId}`} className="text-xs text-muted-foreground">
+                Bibliografia
+              </Label>
+              <Textarea
+                id={`bibliografia-${projetoId}`}
+                value={bibliografia}
+                onChange={(e) => {
+                  setBibliografia(e.target.value)
+                  setBibliografiaDirty(true)
+                }}
+                placeholder="Insira cada referência em uma linha separada..."
+                rows={3}
+                className="text-sm resize-none"
+              />
+            </div>
+
+            {(pontosProvaDirty || bibliografiaDirty) && (
+              <div className="flex justify-end pt-1">
+                <Button
+                  size="sm"
+                  onClick={handleSaveSelecaoData}
+                  disabled={updateSelecaoDataMutation.isPending}
+                >
+                  {updateSelecaoDataMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-1.5" />
+                  )}
+                  Salvar
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
+      {/* Modal */}
       <SlotSelectionModal
         open={slotModalOpen}
         onOpenChange={setSlotModalOpen}
-        slots={selecaoInfo.slotsDisponiveis}
-        currentSelection={currentSelection}
-        onConfirm={handleSlotConfirm}
-        isLoading={chooseSlotMutation.isPending}
+        rangeSelecao={selecaoInfo.rangeSelecao}
+        currentSelections={currentSelections}
+        onConfirm={handleSlotsConfirm}
+        isLoading={chooseSlotsMutation.isPending}
       />
     </>
   )

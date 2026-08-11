@@ -2,7 +2,6 @@ import { adminProtectedProcedure, createTRPCRouter, protectedProcedure, publicPr
 import { createEditalService } from '@/server/services/edital/edital-service'
 import { periodoInscricaoStatusSchema, semestreSchema, tipoEditalSchema } from '@/types'
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/types/errors'
-import { datasProvasDisponiveisSchema } from '@/types/selecao-inputs'
 import { logger } from '@/utils/logger'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
@@ -21,9 +20,11 @@ export const editalSchema = z.object({
   dataPublicacao: z.date().nullable(),
   publicado: z.boolean(),
   valorBolsa: z.string().default('400.00'),
-  // Datas de seleção
+  // Datas de seleção (range)
   dataInicioSelecao: z.date().nullable(),
   dataFimSelecao: z.date().nullable(),
+  horarioInicioSelecao: z.string().nullable().optional(),
+  horarioFimSelecao: z.string().nullable().optional(),
   datasProvasDisponiveis: z.string().nullable(),
   dataDivulgacaoResultado: z.date().nullable(),
   // Link formulário
@@ -48,14 +49,17 @@ export const newEditalSchema = z
     // Datas de INSCRIÇÃO
     dataInicioInscricao: z.date(),
     dataFimInscricao: z.date(),
-    // Datas de SELEÇÃO (prova) - opcionais
+    // Datas de SELEÇÃO (range)
     dataInicioSelecao: z.date().optional(),
     dataFimSelecao: z.date().optional(),
+    // Range de horários
+    horarioInicioSelecao: z.string().optional(),
+    horarioFimSelecao: z.string().optional(),
     // Divulgação
     dataDivulgacaoResultado: z.date().optional(),
     // Legacy fields
     fileIdPdfExterno: z.string().optional(),
-    datasProvasDisponiveis: datasProvasDisponiveisSchema.optional(),
+    datasProvasDisponiveis: z.array(z.object({ data: z.string(), horario: z.string() })).optional(),
     // PROGRAD
     numeroEditalPrograd: z.string().optional(),
   })
@@ -88,13 +92,16 @@ export const updateEditalSchema = z
     // Datas de INSCRIÇÃO
     dataInicioInscricao: z.date().optional(),
     dataFimInscricao: z.date().optional(),
-    // Datas de SELEÇÃO (prova)
+    // Datas de SELEÇÃO (range)
     dataInicioSelecao: z.date().optional().nullable(),
     dataFimSelecao: z.date().optional().nullable(),
+    // Range de horários
+    horarioInicioSelecao: z.string().optional().nullable(),
+    horarioFimSelecao: z.string().optional().nullable(),
     // Divulgação
     dataDivulgacaoResultado: z.date().optional().nullable(),
-    // Slots de data/horário para provas (objetos estruturados)
-    datasProvasDisponiveis: datasProvasDisponiveisSchema.optional(),
+    // Legacy: Slots de data/horário para provas
+    datasProvasDisponiveis: z.array(z.object({ data: z.string(), horario: z.string() })).optional(),
     // PROGRAD
     numeroEditalPrograd: z.string().optional(),
   })
@@ -525,7 +532,7 @@ export const editalRouter = createTRPCRouter({
         path: '/editais/{id}/exam-dates',
         tags: ['editais'],
         summary: 'Get available exam dates',
-        description: 'Get available exam dates for internal DCC announcement',
+        description: 'Get available exam dates and selection range for internal DCC announcement',
       },
     })
     .input(z.object({ id: z.number() }))
@@ -533,6 +540,14 @@ export const editalRouter = createTRPCRouter({
       z.object({
         datasProvasDisponiveis: z.array(z.object({ data: z.string(), horario: z.string() })),
         dataDivulgacaoResultado: z.date().nullable(),
+        rangeSelecao: z
+          .object({
+            dataInicio: z.string(),
+            dataFim: z.string(),
+            horarioInicio: z.string(),
+            horarioFim: z.string(),
+          })
+          .nullable(),
       })
     )
     .query(async ({ input, ctx }) => {

@@ -1,0 +1,1 @@
+ALTER TABLE "projeto" ADD COLUMN "voluntarios_confirmados" boolean DEFAULT false NOT NULL;

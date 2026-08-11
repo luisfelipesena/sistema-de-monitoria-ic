@@ -196,6 +196,7 @@ export const projetoTable = pgTable('projeto', {
   tipoProposicao: tipoProposicaoEnum('tipo_proposicao').notNull(),
   bolsasSolicitadas: integer('bolsas_solicitadas').notNull().default(0), // Professor defines
   voluntariosSolicitados: integer('voluntarios_solicitados').notNull().default(0), // Professor defines
+  voluntariosConfirmados: boolean('voluntarios_confirmados').default(false).notNull(), // Professor confirmed volunteer count
   bolsasDisponibilizadas: integer('bolsas_disponibilizadas').default(0), // Admin defines after approval
   // voluntariosAtendidos: integer('voluntarios_atendidos'), // Calculated from accepted 'vaga'
   cargaHorariaSemana: integer('carga_horaria_semana').notNull(),
@@ -211,8 +212,9 @@ export const projetoTable = pgTable('projeto', {
   professoresParticipantes: text('professores_participantes'), // Names of participating professors for collective projects
   // Campos específicos para edital interno DCC
   editalInternoId: integer('edital_interno_id').references(() => editalTable.id), // Optional reference to internal DCC edital
-  dataSelecaoEscolhida: date('data_selecao_escolhida', { mode: 'date' }), // Data escolhida pelo professor dentre as disponíveis
-  horarioSelecao: varchar('horario_selecao', { length: 20 }), // Horário da seleção (ex: "14:00-16:00")
+  dataSelecaoEscolhida: date('data_selecao_escolhida', { mode: 'date' }), // Data escolhida pelo professor dentre as disponíveis (legacy, single)
+  horarioSelecao: varchar('horario_selecao', { length: 20 }), // Horário da seleção (ex: "14:00-16:00") (legacy, single)
+  datasSelecaoEscolhidas: text('datas_selecao_escolhidas'), // JSON: [{data: "2025-08-10", horario: "08:00"}, ...] até 3 slots
   localSelecao: varchar('local_selecao', { length: 255 }), // Local da seleção (ex: "Sala 101, PAF I")
   bibliografia: text('bibliografia'), // Bibliografia para seleção
   pontosProva: text('pontos_prova'), // Pontos/tópicos da prova de seleção
@@ -931,9 +933,11 @@ export const editalTable = pgTable('edital', {
   valorBolsa: numeric('valor_bolsa', { precision: 10, scale: 2 }).default('400.00').notNull(), // Valor da bolsa para este edital
   // Datas de inscrição (já existem no periodoInscricao, mas referenciadas aqui para clareza)
   // Datas de seleção (prova)
-  dataInicioSelecao: date('data_inicio_selecao', { mode: 'date' }), // Data início da seleção/prova
-  dataFimSelecao: date('data_fim_selecao', { mode: 'date' }), // Data fim da seleção/prova
-  datasProvasDisponiveis: text('datas_provas_disponiveis'), // JSON array de datas disponíveis para provas
+  dataInicioSelecao: date('data_inicio_selecao', { mode: 'date' }), // Data início do range de seleção
+  dataFimSelecao: date('data_fim_selecao', { mode: 'date' }), // Data fim do range de seleção
+  horarioInicioSelecao: varchar('horario_inicio_selecao', { length: 5 }), // Horário início do range (ex: "08:00")
+  horarioFimSelecao: varchar('horario_fim_selecao', { length: 5 }), // Horário fim do range (ex: "18:00")
+  datasProvasDisponiveis: text('datas_provas_disponiveis'), // JSON array de datas disponíveis para provas (legacy)
   dataDivulgacaoResultado: date('data_divulgacao_resultado', { mode: 'date' }), // Data limite para divulgação dos resultados
   // Link para formulário de inscrição
   linkFormularioInscricao: text('link_formulario_inscricao'), // URL do formulário de inscrição

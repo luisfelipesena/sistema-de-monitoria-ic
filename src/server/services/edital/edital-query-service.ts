@@ -170,9 +170,20 @@ export function createEditalQueryService(repo: EditalRepository) {
         throw new NotFoundError('Edital', id)
       }
 
+      const rangeSelecao =
+        edital.dataInicioSelecao && edital.dataFimSelecao && edital.horarioInicioSelecao && edital.horarioFimSelecao
+          ? {
+              dataInicio: edital.dataInicioSelecao.toISOString().split('T')[0],
+              dataFim: edital.dataFimSelecao.toISOString().split('T')[0],
+              horarioInicio: edital.horarioInicioSelecao,
+              horarioFim: edital.horarioFimSelecao,
+            }
+          : null
+
       return {
         datasProvasDisponiveis: parseSlots(edital.datasProvasDisponiveis ?? null),
         dataDivulgacaoResultado: edital.dataDivulgacaoResultado,
+        rangeSelecao,
       }
     },
   }

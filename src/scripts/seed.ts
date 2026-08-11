@@ -1,5 +1,3 @@
-import { hashSync } from 'bcryptjs'
-import { eq } from 'drizzle-orm'
 import { db } from '@/server/db'
 import {
   alunoTable,
@@ -31,6 +29,8 @@ import {
   vagaTable,
 } from '@/server/db/schema'
 import { logger } from '@/utils/logger'
+import { hashSync } from 'bcryptjs'
+import { eq } from 'drizzle-orm'
 
 const log = logger.child({ context: 'DatabaseSeed' })
 
@@ -584,6 +584,8 @@ async function seedDatabase() {
         ]),
         dataInicioSelecao: new Date('2026-09-01'),
         dataFimSelecao: new Date('2026-09-15'),
+        horarioInicioSelecao: '08:00',
+        horarioFimSelecao: '18:00',
         dataDivulgacaoResultado: new Date('2026-09-20'),
         criadoPorUserId: usuarios[0].id,
         publicado: false,

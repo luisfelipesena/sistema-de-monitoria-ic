@@ -31,12 +31,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
   institutionHeader: {
-    fontSize: 9,
+    fontSize: 11,
     marginBottom: 1,
     textAlign: "center",
   },
   institutionHeaderBold: {
-    fontSize: 9,
+    fontSize: 11,
     fontFamily: "Times-Bold",
     marginBottom: 1,
     textAlign: "center",
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     fontFamily: "Times-Bold",
   },
   list: {
-    marginLeft: 20,
+    marginLeft: 40,
     marginBottom: 5,
   },
   listItem: {
@@ -253,10 +253,12 @@ export interface EditalInternoData {
     numTurmas?: number
     numBolsistas: number
     numVoluntarios: number
+    voluntariosConfirmados?: boolean
     pontosSelecao?: string[]
     bibliografia?: string[]
     dataSelecao?: string
     horarioSelecao?: string
+    datasSelecao?: Array<{ data: string; horario: string }>
     localSelecao?: string
   }>
   observacoes?: string
@@ -306,7 +308,7 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
     (d) => (d.pontosSelecao && d.pontosSelecao.length > 0) || (d.bibliografia && d.bibliografia.length > 0)
   )
 
-  const hasExamSchedule = data.disciplinas.some((d) => d.dataSelecao)
+  const hasExamSchedule = data.disciplinas.some((d) => d.datasSelecao && d.datasSelecao.length > 0) || data.disciplinas.some((d) => d.dataSelecao)
 
   return (
     <Document>
@@ -376,8 +378,10 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
               </View>
             </View>
 
-            {data.disciplinas.map((disciplina, index) => {
-              const isLast = index === data.disciplinas.length - 1
+            {data.disciplinas
+              .filter((d) => d.numBolsistas > 0 || d.voluntariosConfirmados)
+              .map((disciplina, index, arr) => {
+              const isLast = index === arr.length - 1
               const rowStyle = isLast ? styles.tableRowLast : styles.tableRow
               return (
                 <View key={index} style={rowStyle} wrap={false}>
@@ -387,10 +391,10 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                     </Text>
                   </View>
                   <View style={[styles.colVagasBolsa, styles.tableColCenter]}>
-                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.numBolsistas || ""}</Text>
+                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.numBolsistas}</Text>
                   </View>
                   <View style={[styles.colVagasVol, styles.tableColCenter]}>
-                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.numVoluntarios || ""}</Text>
+                    <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.numVoluntarios}</Text>
                   </View>
                   <View style={[styles.colProfessor, styles.tableColLast]}>
                     <Text style={{ fontSize: 9, textAlign: "center" }}>{disciplina.professor.nome}</Text>
@@ -569,32 +573,56 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                 </View>
               </View>
 
-              {data.disciplinas
-                .filter((d) => d.dataSelecao)
-                .map((disciplina, index, arr) => {
-                  const isLast = index === arr.length - 1
+              {(() => {
+                // Build flat list of rows: one row per date per discipline
+                const rows: Array<{ codigo: string; nome: string; data: string; horario: string; professor: string }> = []
+                for (const disciplina of data.disciplinas) {
+                  if (disciplina.datasSelecao && disciplina.datasSelecao.length > 0) {
+                    for (const slot of disciplina.datasSelecao) {
+                      rows.push({
+                        codigo: disciplina.codigo,
+                        nome: disciplina.nome,
+                        data: slot.data,
+                        horario: slot.horario,
+                        professor: disciplina.professor.nome,
+                      })
+                    }
+                  } else if (disciplina.dataSelecao) {
+                    // Legacy fallback
+                    rows.push({
+                      codigo: disciplina.codigo,
+                      nome: disciplina.nome,
+                      data: disciplina.dataSelecao,
+                      horario: disciplina.horarioSelecao || "",
+                      professor: disciplina.professor.nome,
+                    })
+                  }
+                }
+                return rows.map((row, index) => {
+                  const isLast = index === rows.length - 1
                   const rowStyle = isLast ? styles.tableRowLast : styles.tableRow
                   return (
                     <View key={index} style={rowStyle}>
                       <View style={styles.colExamComponente}>
                         <Text style={styles.tableCol}>
-                          {disciplina.codigo} - {disciplina.nome}
+                          {row.codigo} - {row.nome}
                         </Text>
                       </View>
                       <View style={styles.colExamData}>
                         <Text style={styles.tableColCenter}>
-                          {disciplina.dataSelecao ? formatDateShort(disciplina.dataSelecao) : ""}
+                          {formatDateShort(row.data)}
                         </Text>
                       </View>
                       <View style={styles.colExamHora}>
-                        <Text style={styles.tableColCenter}>{disciplina.horarioSelecao || ""}</Text>
+                        <Text style={styles.tableColCenter}>{row.horario}</Text>
                       </View>
                       <View style={styles.colExamProfessor}>
-                        <Text style={styles.tableColLast}>{disciplina.professor.nome}</Text>
+                        <Text style={styles.tableColLast}>{row.professor}</Text>
                       </View>
                     </View>
                   )
-                })}
+                })
+              })()}
             </View>
           )}
 
@@ -623,21 +651,21 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                     return null
 
                   return (
-                    <View key={index} style={{ marginBottom: 10 }}>
+                    <View key={index} style={{ marginBottom: 10, marginLeft: 20 }}>
                       <Text style={[styles.listItem, { fontFamily: "Times-Bold" }]}>
                         ■ {disciplina.codigo} – {disciplina.nome}
                       </Text>
                       {disciplina.pontosSelecao && disciplina.pontosSelecao.length > 0 && (
-                        <View style={{ marginLeft: 15, marginTop: 2 }}>
+                        <View style={{ marginLeft: 20, marginTop: 2 }}>
                           <Text style={styles.pontosText}>
-                            Pontos: {disciplina.pontosSelecao.join("; ")}
+                            I - Pontos: {disciplina.pontosSelecao.join("; ")}
                             {disciplina.pontosSelecao[disciplina.pontosSelecao.length - 1]?.endsWith(".") ? "" : "."}
                           </Text>
                         </View>
                       )}
                       {disciplina.bibliografia && disciplina.bibliografia.length > 0 && (
-                        <View style={{ marginLeft: 15, marginTop: 2 }}>
-                          <Text style={styles.pontosText}>Bibliografia:</Text>
+                        <View style={{ marginLeft: 20, marginTop: 2 }}>
+                          <Text style={styles.pontosText}>II - Bibliografia:</Text>
                           {disciplina.bibliografia.map((bib, idx) => (
                             <Text key={idx} style={styles.bibliografiaItem}>
                               {bib}
@@ -656,12 +684,12 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
             6.4 Não será admitida a comunicação direta ou indireta entre os candidatos durante o processo seletivo;
           </Text>
           <Text style={styles.text}>6.5 Os critérios de desempate serão os seguintes, em ordem decrescente:</Text>
-          <View style={{ marginLeft: 20, marginTop: 3, marginBottom: 5 }}>
+          <View style={{ marginLeft: 40, marginTop: 3, marginBottom: 5 }}>
             <Text style={styles.listItem}>
-              6.5.1. Nota na disciplina associada ao projeto de monitoria, ou em disciplina equivalente;
+              I. Nota na disciplina associada ao projeto de monitoria, ou em disciplina equivalente;
             </Text>
-            <Text style={styles.listItem}>6.5.2. Coeficiente de rendimento;</Text>
-            <Text style={styles.listItem}>6.5.3. Avaliação de currículo;</Text>
+            <Text style={styles.listItem}>II. Coeficiente de rendimento;</Text>
+            <Text style={styles.listItem}>III. Avaliação de currículo;</Text>
           </View>
         </View>
 
