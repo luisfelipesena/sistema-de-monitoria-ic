@@ -251,12 +251,25 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       const updated = await repo.update(projetoId, updateData)
 
-      log.info({ projetoId, userId, fieldsUpdated: Object.keys(updateData) }, 'Dados de seleção atualizados')
+      // Also propagate the updated points of proof / bibliography to the discipline template
+      if (repo.findFirstDisciplinaForProjeto && repo.upsertProjetoTemplate) {
+        const disciplina = await repo.findFirstDisciplinaForProjeto(projetoId)
+        if (disciplina) {
+          await repo.upsertProjetoTemplate(disciplina.id, {
+            pontosProvaDefault: pontosProva,
+            bibliografiaDefault: bibliografia,
+            userId,
+          })
+        }
+      }
+
+      log.info({ projetoId, userId, fieldsUpdated: Object.keys(updateData) }, 'Dados de seleção atualizados e propagados para o template')
       return updated
     },
 
     /**
      * Get selection info for a project: current selection state + range/slots from its edital.
+     * Falls back to discipline template defaults for pontosProva & bibliografia if empty on project.
      */
     async getSelecaoInfo(projetoId: number, userId: number, userRole: UserRole) {
       const projeto = await repo.findByIdWithEdital(projetoId)
@@ -283,6 +296,21 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
             }
           : null
 
+      // Fetch discipline template default values if project values are missing
+      let templatePontos: string | null = null
+      let templateBibliografia: string | null = null
+
+      if (repo.findFirstDisciplinaForProjeto && repo.findProjetoTemplateByDisciplinaId) {
+        const disciplina = await repo.findFirstDisciplinaForProjeto(projetoId)
+        if (disciplina) {
+          const template = await repo.findProjetoTemplateByDisciplinaId(disciplina.id)
+          if (template) {
+            templatePontos = template.pontosProvaDefault ?? null
+            templateBibliografia = template.bibliografiaDefault ?? null
+          }
+        }
+      }
+
       return {
         projetoId: projeto.id,
         dataSelecaoEscolhida: projeto.dataSelecaoEscolhida?.toISOString().split('T')[0] ?? null,
@@ -291,8 +319,8 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         voluntariosSolicitados: projeto.voluntariosSolicitados ?? 0,
         voluntariosConfirmados: projeto.voluntariosConfirmados ?? false,
         bolsasDisponibilizadas: projeto.bolsasDisponibilizadas ?? 0,
-        pontosProva: projeto.pontosProva ?? null,
-        bibliografia: projeto.bibliografia ?? null,
+        pontosProva: projeto.pontosProva || templatePontos || null,
+        bibliografia: projeto.bibliografia || templateBibliografia || null,
         slotsDisponiveis,
         rangeSelecao,
         hasEditalInterno: !!projeto.editalInterno,
