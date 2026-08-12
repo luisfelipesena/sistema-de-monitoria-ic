@@ -1,16 +1,17 @@
 import { isAdmin, isProfessor } from '@/server/lib/auth-helpers'
+import { enforceEditWindow } from '@/server/lib/edital-window-guard'
 import { emailService } from '@/server/lib/email'
 import { BusinessError, ForbiddenError, NotFoundError } from '@/server/lib/errors'
 import { ensurePngDataUrl } from '@/server/lib/image-utils'
 import { PDFService } from '@/server/lib/pdf-service'
 import {
-  PROJETO_STATUS_APPROVED,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_PENDING_REVISION,
-  PROJETO_STATUS_PENDING_SIGNATURE,
-  PROJETO_STATUS_REJECTED,
-  PROJETO_STATUS_SUBMITTED,
-  type UserRole,
+    PROJETO_STATUS_APPROVED,
+    PROJETO_STATUS_DRAFT,
+    PROJETO_STATUS_PENDING_REVISION,
+    PROJETO_STATUS_PENDING_SIGNATURE,
+    PROJETO_STATUS_REJECTED,
+    PROJETO_STATUS_SUBMITTED,
+    type UserRole,
 } from '@/types'
 import { logger } from '@/utils/logger'
 import type { ProjetoRepository } from './projeto-repository'
@@ -24,6 +25,10 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
       if (!projeto) {
         throw new NotFoundError('Projeto', id)
       }
+
+      // Verificar janela de alteração do edital
+      const periodo = await repo.findPeriodoByProjetoSemestre(projeto.ano, projeto.semestre)
+      enforceEditWindow(periodo?.edital ?? null, userRole)
 
       if (isProfessor(userRole) && !isAdmin(userRole)) {
         const professor = await repo.findProfessorByUserId(userId)
@@ -137,6 +142,10 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
       if (!projeto) {
         throw new NotFoundError('Projeto', projetoId)
       }
+
+      // Verificar janela de alteração do edital
+      const periodoWindow = await repo.findPeriodoByProjetoSemestre(projeto.ano, projeto.semestre)
+      enforceEditWindow(periodoWindow?.edital ?? null, userRole)
 
       if (isProfessor(userRole) && !isAdmin(userRole)) {
         const professor = await repo.findProfessorByUserId(userId)

@@ -76,6 +76,9 @@ export interface EditalListItem {
   dataDivulgacaoResultado?: Date | null
   // Link formulário
   linkFormularioInscricao?: string | null
+  // Janela de alteração
+  dataInicioAlteracao?: Date | null
+  dataFimAlteracao?: Date | null
   // Assinatura
   chefeAssinouEm?: Date | null
   chefeAssinatura?: string | null
@@ -123,6 +126,9 @@ export interface EditalWithPeriodoStatus {
   dataDivulgacaoResultado: Date | null
   // Link formulário
   linkFormularioInscricao: string | null
+  // Janela de alteração
+  dataInicioAlteracao: Date | null
+  dataFimAlteracao: Date | null
   // Campos específicos
   pontosProva: string | null
   bibliografia: string | null

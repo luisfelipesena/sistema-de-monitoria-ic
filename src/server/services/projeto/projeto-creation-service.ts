@@ -1,21 +1,22 @@
 import type { db } from '@/server/db'
 import { isAdmin, isProfessor, requireAdminOrProfessor } from '@/server/lib/auth-helpers'
+import { enforceEditWindow } from '@/server/lib/edital-window-guard'
 import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import { createAuditService } from '@/server/services/audit/audit-service'
 import {
-  ACCEPTED_VOLUNTARIO,
-  AUDIT_ACTION_CREATE,
-  AUDIT_ACTION_DELETE,
-  AUDIT_ACTION_UPDATE,
-  AUDIT_ENTITY_PROJETO,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_PENDING_REVISION,
-  PROJETO_STATUS_PENDING_SIGNATURE,
-  VOLUNTARIO_STATUS_ATIVO,
-  VOLUNTARIO_STATUS_INATIVO,
-  type CreateProjetoInput,
-  type UpdateProjetoInput,
-  type UserRole,
+    ACCEPTED_VOLUNTARIO,
+    AUDIT_ACTION_CREATE,
+    AUDIT_ACTION_DELETE,
+    AUDIT_ACTION_UPDATE,
+    AUDIT_ENTITY_PROJETO,
+    PROJETO_STATUS_DRAFT,
+    PROJETO_STATUS_PENDING_REVISION,
+    PROJETO_STATUS_PENDING_SIGNATURE,
+    VOLUNTARIO_STATUS_ATIVO,
+    VOLUNTARIO_STATUS_INATIVO,
+    type CreateProjetoInput,
+    type UpdateProjetoInput,
+    type UserRole,
 } from '@/types'
 import { logger } from '@/utils/logger'
 import type { ProjetoRepository } from './projeto-repository'
@@ -28,6 +29,10 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
   return {
     async createProjeto(input: CreateProjetoInput) {
       requireAdminOrProfessor(input.userRole)
+
+      // Verificar janela de alteração do edital para o período
+      const periodo = await repo.findPeriodoByProjetoSemestre(input.ano, input.semestre)
+      enforceEditWindow(periodo?.edital ?? null, input.userRole)
 
       let professorResponsavelId: number
       let _professorDepartamentoId: number | null = null
@@ -194,6 +199,12 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
         throw new NotFoundError('Projeto', input.id)
       }
 
+      // Verificar janela de alteração do edital para o período do projeto
+      if (input.userRole && isProfessor(input.userRole) && !isAdmin(input.userRole)) {
+        const periodo = await repo.findPeriodoByProjetoSemestre(projeto.ano, projeto.semestre)
+        enforceEditWindow(periodo?.edital ?? null, input.userRole)
+      }
+
       if (input.userRole && isProfessor(input.userRole) && !isAdmin(input.userRole)) {
         const professor = input.userId ? await repo.findProfessorByUserId(input.userId) : null
         if (!professor || projeto.professorResponsavelId !== professor.id) {
@@ -292,6 +303,12 @@ export function createProjetoCreationService(repo: ProjetoRepository, db?: Datab
       const projeto = await repo.findById(id)
       if (!projeto) {
         throw new NotFoundError('Projeto', id)
+      }
+
+      // Verificar janela de alteração do edital para professor
+      if (isProfessor(userRole) && !isAdmin(userRole)) {
+        const periodo = await repo.findPeriodoByProjetoSemestre(projeto.ano, projeto.semestre)
+        enforceEditWindow(periodo?.edital ?? null, userRole)
       }
 
       if (isProfessor(userRole) && !isAdmin(userRole)) {
