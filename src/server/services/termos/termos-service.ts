@@ -5,12 +5,12 @@ import {
   ADMIN,
   PROFESSOR,
   STUDENT,
-  TIPO_ASSINATURA_ATA_SELECAO,
-  TIPO_ASSINATURA_PROJETO_PROFESSOR,
-  TIPO_ASSINATURA_TERMO_COMPROMISSO,
   TERMO_WORKFLOW_STATUS_ASSINADO_COMPLETO,
   TERMO_WORKFLOW_STATUS_PARCIALMENTE_ASSINADO,
   TERMO_WORKFLOW_STATUS_PENDENTE_ASSINATURA,
+  TIPO_ASSINATURA_ATA_SELECAO,
+  TIPO_ASSINATURA_PROJETO_PROFESSOR,
+  TIPO_ASSINATURA_TERMO_COMPROMISSO,
 } from '@/types'
 import { logger } from '@/utils/logger'
 import { createPdfGenerator } from './termos-pdf-generator'
@@ -209,7 +209,9 @@ export function createTermosService(db: Database) {
 
           const temAssinaturaAluno =
             assinaturas.some((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO) ||
+            // biome-ignore lint/suspicious/noExplicitAny: campo dinâmico de inscrição
             !!(vagaItem as any).inscricao?.assinaturaAlunoFileId ||
+            // biome-ignore lint/suspicious/noExplicitAny: campo dinâmico de inscrição
             !!(vagaItem as any).inscricao?.dataAssinaturaAluno
 
           const temAssinaturaProfessor =
@@ -233,6 +235,7 @@ export function createTermosService(db: Database) {
             statusTermo,
             assinaturaAluno: temAssinaturaAluno,
             assinaturaProfessor: temAssinaturaProfessor,
+            // biome-ignore lint/suspicious/noExplicitAny: campo dinâmico de inscrição
             dataAssinaturaAluno: (vagaItem as any).inscricao?.dataAssinaturaAluno || null,
             dataAssinaturaProfessor: null,
             termoNumero: pdfGen.generateTermoNumero(vagaItem.projeto.ano, vagaItem.projeto.semestre, vagaItem.id),

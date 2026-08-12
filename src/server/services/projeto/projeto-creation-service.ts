@@ -4,19 +4,19 @@ import { enforceEditWindow } from '@/server/lib/edital-window-guard'
 import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import { createAuditService } from '@/server/services/audit/audit-service'
 import {
-    ACCEPTED_VOLUNTARIO,
-    AUDIT_ACTION_CREATE,
-    AUDIT_ACTION_DELETE,
-    AUDIT_ACTION_UPDATE,
-    AUDIT_ENTITY_PROJETO,
-    PROJETO_STATUS_DRAFT,
-    PROJETO_STATUS_PENDING_REVISION,
-    PROJETO_STATUS_PENDING_SIGNATURE,
-    VOLUNTARIO_STATUS_ATIVO,
-    VOLUNTARIO_STATUS_INATIVO,
-    type CreateProjetoInput,
-    type UpdateProjetoInput,
-    type UserRole,
+  ACCEPTED_VOLUNTARIO,
+  AUDIT_ACTION_CREATE,
+  AUDIT_ACTION_DELETE,
+  AUDIT_ACTION_UPDATE,
+  AUDIT_ENTITY_PROJETO,
+  PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_PENDING_REVISION,
+  PROJETO_STATUS_PENDING_SIGNATURE,
+  VOLUNTARIO_STATUS_ATIVO,
+  VOLUNTARIO_STATUS_INATIVO,
+  type CreateProjetoInput,
+  type UpdateProjetoInput,
+  type UserRole,
 } from '@/types'
 import { logger } from '@/utils/logger'
 import type { ProjetoRepository } from './projeto-repository'

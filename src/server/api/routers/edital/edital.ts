@@ -56,8 +56,12 @@ export const newEditalSchema = z
     dataInicioSelecao: z.date({ required_error: 'Data de início da seleção é obrigatória' }),
     dataFimSelecao: z.date({ required_error: 'Data de fim da seleção é obrigatória' }),
     // Range de horários
-    horarioInicioSelecao: z.string({ required_error: 'Horário de início da seleção é obrigatório' }).min(1, 'Horário de início é obrigatório'),
-    horarioFimSelecao: z.string({ required_error: 'Horário de fim da seleção é obrigatório' }).min(1, 'Horário de fim é obrigatório'),
+    horarioInicioSelecao: z
+      .string({ required_error: 'Horário de início da seleção é obrigatório' })
+      .min(1, 'Horário de início é obrigatório'),
+    horarioFimSelecao: z
+      .string({ required_error: 'Horário de fim da seleção é obrigatório' })
+      .min(1, 'Horário de fim é obrigatório'),
     // Divulgação
     dataDivulgacaoResultado: z.date({ required_error: 'Data de divulgação dos resultados é obrigatória' }),
     // Janela de abertura e fechamento do edital (obrigatório na criação)
