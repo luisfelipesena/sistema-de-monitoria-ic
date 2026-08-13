@@ -110,7 +110,7 @@ describe('editalRouter', () => {
         horarioFimSelecao: '18:00',
         dataDivulgacaoResultado: new Date('2024-02-15'),
         dataInicioAlteracao: new Date('2023-12-01'),
-        dataFimAlteracao: new Date('2024-01-31'),
+        dataFimAlteracao: new Date('2023-12-31'),
       }
       await expect(caller.createEdital(input)).rejects.toThrowError('Este número de edital já está em uso.')
     })
@@ -134,11 +134,11 @@ describe('editalRouter', () => {
         horarioFimSelecao: '18:00',
         dataDivulgacaoResultado: new Date('2024-02-15'),
         dataInicioAlteracao: new Date('2023-12-01'),
-        dataFimAlteracao: new Date('2024-01-31'),
+        dataFimAlteracao: new Date('2023-12-31'),
       }
 
       await expect(caller.createEdital(input)).rejects.toThrowError(
-        'A data de início da seleção deve ser posterior ao fim da inscrição'
+        'Data de início da seleção deve ser posterior ao fim da inscrição'
       )
     })
   })
