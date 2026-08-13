@@ -79,6 +79,13 @@ describe('editalRouter', () => {
         semestre: 'SEMESTRE_1' as const,
         dataInicioInscricao: new Date('2024-01-01'),
         dataFimInscricao: new Date('2024-01-31'),
+        dataInicioSelecao: new Date('2024-02-05'),
+        dataFimSelecao: new Date('2024-02-10'),
+        horarioInicioSelecao: '08:00',
+        horarioFimSelecao: '18:00',
+        dataDivulgacaoResultado: new Date('2024-02-15'),
+        dataInicioAlteracao: new Date('2023-12-01'),
+        dataFimAlteracao: new Date('2024-01-31'),
       }
       await expect(caller.createEdital(input)).rejects.toThrowError('Acesso restrito a administradores')
     })
@@ -97,6 +104,13 @@ describe('editalRouter', () => {
         semestre: 'SEMESTRE_1' as const,
         dataInicioInscricao: new Date('2024-01-01'),
         dataFimInscricao: new Date('2024-01-31'),
+        dataInicioSelecao: new Date('2024-02-05'),
+        dataFimSelecao: new Date('2024-02-10'),
+        horarioInicioSelecao: '08:00',
+        horarioFimSelecao: '18:00',
+        dataDivulgacaoResultado: new Date('2024-02-15'),
+        dataInicioAlteracao: new Date('2023-12-01'),
+        dataFimAlteracao: new Date('2024-01-31'),
       }
       await expect(caller.createEdital(input)).rejects.toThrowError('Este número de edital já está em uso.')
     })
@@ -116,6 +130,11 @@ describe('editalRouter', () => {
         dataFimInscricao: new Date('2024-01-31'),
         dataInicioSelecao: new Date('2024-01-20'),
         dataFimSelecao: new Date('2024-01-25'),
+        horarioInicioSelecao: '08:00',
+        horarioFimSelecao: '18:00',
+        dataDivulgacaoResultado: new Date('2024-02-15'),
+        dataInicioAlteracao: new Date('2023-12-01'),
+        dataFimAlteracao: new Date('2024-01-31'),
       }
 
       await expect(caller.createEdital(input)).rejects.toThrowError(

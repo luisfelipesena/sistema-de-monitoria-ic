@@ -948,6 +948,9 @@ export const editalTable = pgTable('edital', {
   chefeAssinouEm: timestamp('chefe_assinou_em', { withTimezone: true, mode: 'date' }), // Data/hora da assinatura do chefe
   chefeAssinatura: text('chefe_assinatura'), // Assinatura digital do chefe (base64 ou URL)
   chefeDepartamentoId: integer('chefe_departamento_id').references(() => userTable.id), // ID do usuário que assinou como chefe
+  // Janela de alteração: período em que professores podem criar/editar/submeter projetos
+  dataInicioAlteracao: timestamp('data_inicio_alteracao', { withTimezone: true, mode: 'date' }), // Início da janela de alteração
+  dataFimAlteracao: timestamp('data_fim_alteracao', { withTimezone: true, mode: 'date' }), // Fim da janela de alteração
   criadoPorUserId: integer('criado_por_user_id')
     .references(() => userTable.id)
     .notNull(),

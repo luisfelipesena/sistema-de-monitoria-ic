@@ -29,7 +29,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { SEMESTRE_1, SEMESTRE_2, TIPO_EDITAL_DCC, TIPO_EDITAL_DCI, type Semestre, type TipoEdital } from "@/types";
 import type { SlotDataHorario } from "@/types/selecao-inputs";
 import { UseFormReturn } from "react-hook-form";
-import { SlotDateTimePicker } from "./SlotDateTimePicker";
 
 export interface EditalFormData {
   tipo: TipoEdital;
@@ -39,17 +38,20 @@ export interface EditalFormData {
   valorBolsa: string;
   ano: number;
   semestre: Semestre;
-  // Datas de INSCRIÇÃO
+  // Datas de INSCRIÇÃO (obrigatórias)
   dataInicioInscricao: Date;
   dataFimInscricao: Date;
-  // Datas de SELEÇÃO (range)
-  dataInicioSelecao?: Date;
-  dataFimSelecao?: Date;
-  // Range de horários para seleção
-  horarioInicioSelecao?: string;
-  horarioFimSelecao?: string;
-  // Data de divulgação dos resultados
-  dataDivulgacaoResultado?: Date;
+  // Datas de SELEÇÃO (obrigatórias)
+  dataInicioSelecao: Date;
+  dataFimSelecao: Date;
+  // Range de horários para seleção (obrigatórios)
+  horarioInicioSelecao: string;
+  horarioFimSelecao: string;
+  // Data de divulgação dos resultados (obrigatória)
+  dataDivulgacaoResultado: Date;
+  // Janela de abertura e fechamento do edital (obrigatório)
+  dataInicioAlteracao: Date;
+  dataFimAlteracao: Date;
   // Edital PROGRAD
   numeroEditalPrograd?: string;
   // Datas disponíveis para provas (legacy, mantido para compatibilidade)
@@ -245,6 +247,54 @@ export function EditalFormDialog({
                   </FormItem>
                 )}
               />
+            </div>
+
+            <Separator />
+
+            {/* Janela de Abertura e Fechamento do Edital */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-muted-foreground">Janela de Abertura e Fechamento do Edital</h3>
+              <p className="text-xs text-muted-foreground">
+                Defina o período em que os professores podem criar, editar e submeter projetos.
+                Fora deste período, apenas administradores poderão realizar alterações.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="dataInicioAlteracao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Início da Janela</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="datetime-local"
+                          value={field.value ? field.value.toISOString().slice(0, 16) : ""}
+                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="dataFimAlteracao"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Fim da Janela</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="datetime-local"
+                          value={field.value ? field.value.toISOString().slice(0, 16) : ""}
+                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             <Separator />
