@@ -263,7 +263,10 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         }
       }
 
-      log.info({ projetoId, userId, fieldsUpdated: Object.keys(updateData) }, 'Dados de seleção atualizados e propagados para o template')
+      log.info(
+        { projetoId, userId, fieldsUpdated: Object.keys(updateData) },
+        'Dados de seleção atualizados e propagados para o template'
+      )
       return updated
     },
 
