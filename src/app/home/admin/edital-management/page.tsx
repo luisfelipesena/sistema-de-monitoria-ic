@@ -1,8 +1,8 @@
 "use client";
 
 import {
-    EditalFormData,
-    EditalFormDialog,
+  EditalFormData,
+  EditalFormDialog,
 } from "@/components/features/edital/EditalFormDialog";
 import { EditalStatsCards } from "@/components/features/edital/EditalStatsCards";
 import { createEditalTableColumns } from "@/components/features/edital/EditalTableColumns";
@@ -11,24 +11,24 @@ import { PagesLayout } from "@/components/layout/PagesLayout";
 import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEditalPdf } from "@/hooks/use-files";
 import { useToast } from "@/hooks/use-toast";
 import {
-    EditalListItem,
-    PERIODO_INSCRICAO_STATUS_ATIVO,
-    SEMESTRE_1,
-    SEMESTRE_2,
-    TIPO_EDITAL_DCC,
-    TIPO_EDITAL_DCI,
+  EditalListItem,
+  PERIODO_INSCRICAO_STATUS_ATIVO,
+  SEMESTRE_1,
+  SEMESTRE_2,
+  TIPO_EDITAL_DCC,
+  TIPO_EDITAL_DCI,
 } from "@/types";
 import type { SlotDataHorario } from "@/types/selecao-inputs";
 import { api } from "@/utils/api";
@@ -79,16 +79,19 @@ const editalFormSchema = z
     ano: z.number().int().min(2000).max(2100),
     semestre: z.enum([SEMESTRE_1, SEMESTRE_2]),
     // Datas de INSCRIÇÃO
-    dataInicioInscricao: z.date(),
-    dataFimInscricao: z.date(),
+    dataInicioInscricao: z.date({ required_error: 'Data de início da inscrição é obrigatória' }),
+    dataFimInscricao: z.date({ required_error: 'Data de fim da inscrição é obrigatória' }),
     // Datas de SELEÇÃO (range)
-    dataInicioSelecao: z.date().optional(),
-    dataFimSelecao: z.date().optional(),
+    dataInicioSelecao: z.date({ required_error: 'Data de início da seleção é obrigatória' }),
+    dataFimSelecao: z.date({ required_error: 'Data de fim da seleção é obrigatória' }),
     // Range de horários para seleção
-    horarioInicioSelecao: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inválido').optional(),
-    horarioFimSelecao: z.string().regex(/^\d{2}:\d{2}$/, 'Horário inválido').optional(),
+    horarioInicioSelecao: z.string({ required_error: 'Horário de início é obrigatório' }).regex(/^\d{2}:\d{2}$/, 'Horário inválido'),
+    horarioFimSelecao: z.string({ required_error: 'Horário de fim é obrigatório' }).regex(/^\d{2}:\d{2}$/, 'Horário inválido'),
     // Data divulgação
-    dataDivulgacaoResultado: z.date().optional(),
+    dataDivulgacaoResultado: z.date({ required_error: 'Data de divulgação é obrigatória' }),
+    // Janela de abertura e fechamento do edital
+    dataInicioAlteracao: z.date({ required_error: 'Data de início da janela é obrigatória' }),
+    dataFimAlteracao: z.date({ required_error: 'Data de fim da janela é obrigatória' }),
     valorBolsa: z
       .string()
       .refine(
@@ -105,6 +108,14 @@ const editalFormSchema = z
     datasProvasDisponiveis: z.array(z.object({ data: z.string(), horario: z.string() })).default([]),
   })
   .superRefine((data, ctx) => {
+    if (data.dataFimAlteracao > data.dataInicioInscricao) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "O fim da janela de alteração deve ser anterior ou igual ao início das inscrições",
+        path: ["dataFimAlteracao"],
+      });
+    }
+
     if (data.dataFimInscricao <= data.dataInicioInscricao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -113,7 +124,7 @@ const editalFormSchema = z
       });
     }
 
-    if (data.dataInicioSelecao && data.dataInicioSelecao <= data.dataFimInscricao) {
+    if (data.dataInicioSelecao <= data.dataFimInscricao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Data de início da seleção deve ser posterior ao fim da inscrição",
@@ -121,23 +132,19 @@ const editalFormSchema = z
       });
     }
 
-    if (data.dataFimSelecao && data.dataFimSelecao <= data.dataFimInscricao) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Data de fim da seleção deve ser posterior ao fim da inscrição",
-        path: ["dataFimSelecao"],
-      });
-    }
-
-    if (
-      data.dataInicioSelecao &&
-      data.dataFimSelecao &&
-      data.dataFimSelecao < data.dataInicioSelecao
-    ) {
+    if (data.dataFimSelecao < data.dataInicioSelecao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Data fim de seleção deve ser posterior ou igual à data início",
         path: ["dataFimSelecao"],
+      });
+    }
+
+    if (data.dataDivulgacaoResultado < data.dataFimSelecao) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Data de divulgação deve ser posterior ou igual ao fim da seleção",
+        path: ["dataDivulgacaoResultado"],
       });
     }
   });
@@ -358,6 +365,8 @@ export default function EditalManagementPage() {
       horarioInicioSelecao: data.horarioInicioSelecao,
       horarioFimSelecao: data.horarioFimSelecao,
       dataDivulgacaoResultado: data.dataDivulgacaoResultado,
+      dataInicioAlteracao: data.dataInicioAlteracao,
+      dataFimAlteracao: data.dataFimAlteracao,
       numeroEditalPrograd: data.numeroEditalPrograd,
       datasProvasDisponiveis: data.datasProvasDisponiveis,
     });
@@ -380,6 +389,8 @@ export default function EditalManagementPage() {
       horarioInicioSelecao: data.horarioInicioSelecao,
       horarioFimSelecao: data.horarioFimSelecao,
       dataDivulgacaoResultado: data.dataDivulgacaoResultado,
+      dataInicioAlteracao: data.dataInicioAlteracao,
+      dataFimAlteracao: data.dataFimAlteracao,
       numeroEditalPrograd: data.numeroEditalPrograd,
       datasProvasDisponiveis: data.datasProvasDisponiveis,
     });
@@ -500,6 +511,8 @@ export default function EditalManagementPage() {
       dataDivulgacaoResultado: edital.dataDivulgacaoResultado
         ? new Date(edital.dataDivulgacaoResultado)
         : undefined,
+      dataInicioAlteracao: edital.dataInicioAlteracao ? new Date(edital.dataInicioAlteracao) : undefined,
+      dataFimAlteracao: edital.dataFimAlteracao ? new Date(edital.dataFimAlteracao) : undefined,
       numeroEditalPrograd: edital.periodoInscricao?.numeroEditalPrograd || "",
       datasProvasDisponiveis: parseSlotsFromString(edital.datasProvasDisponiveis),
     });

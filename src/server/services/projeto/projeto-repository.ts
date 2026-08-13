@@ -556,6 +556,8 @@ export function createProjetoRepository(db: Database) {
               id: true,
               numeroEdital: true,
               publicado: true,
+              dataInicioAlteracao: true,
+              dataFimAlteracao: true,
             },
           },
         },

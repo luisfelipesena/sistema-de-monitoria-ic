@@ -27,6 +27,9 @@ export const editalSchema = z.object({
   horarioFimSelecao: z.string().nullable().optional(),
   datasProvasDisponiveis: z.string().nullable(),
   dataDivulgacaoResultado: z.date().nullable(),
+  // Janela de alteração
+  dataInicioAlteracao: z.date().nullable().optional(),
+  dataFimAlteracao: z.date().nullable().optional(),
   // Link formulário
   linkFormularioInscricao: z.string().nullable(),
   chefeAssinouEm: z.date().nullable(),
@@ -47,38 +50,49 @@ export const newEditalSchema = z
     ano: z.number().min(2000).max(2050),
     semestre: semestreSchema,
     // Datas de INSCRIÇÃO
-    dataInicioInscricao: z.date(),
-    dataFimInscricao: z.date(),
+    dataInicioInscricao: z.date({ required_error: 'Data de início da inscrição é obrigatória' }),
+    dataFimInscricao: z.date({ required_error: 'Data de fim da inscrição é obrigatória' }),
     // Datas de SELEÇÃO (range)
-    dataInicioSelecao: z.date().optional(),
-    dataFimSelecao: z.date().optional(),
+    dataInicioSelecao: z.date({ required_error: 'Data de início da seleção é obrigatória' }),
+    dataFimSelecao: z.date({ required_error: 'Data de fim da seleção é obrigatória' }),
     // Range de horários
-    horarioInicioSelecao: z.string().optional(),
-    horarioFimSelecao: z.string().optional(),
+    horarioInicioSelecao: z
+      .string({ required_error: 'Horário de início da seleção é obrigatório' })
+      .min(1, 'Horário de início é obrigatório'),
+    horarioFimSelecao: z
+      .string({ required_error: 'Horário de fim da seleção é obrigatório' })
+      .min(1, 'Horário de fim é obrigatório'),
     // Divulgação
-    dataDivulgacaoResultado: z.date().optional(),
+    dataDivulgacaoResultado: z.date({ required_error: 'Data de divulgação dos resultados é obrigatória' }),
+    // Janela de abertura e fechamento do edital (obrigatório na criação)
+    dataInicioAlteracao: z.date({ required_error: 'Data de início da janela é obrigatória' }),
+    dataFimAlteracao: z.date({ required_error: 'Data de fim da janela é obrigatória' }),
     // Legacy fields
     fileIdPdfExterno: z.string().optional(),
     datasProvasDisponiveis: z.array(z.object({ data: z.string(), horario: z.string() })).optional(),
     // PROGRAD
     numeroEditalPrograd: z.string().optional(),
   })
+  .refine((data) => data.dataFimAlteracao <= data.dataInicioInscricao, {
+    message: 'O fim da janela de alteração deve ser anterior ou igual ao início das inscrições',
+    path: ['dataFimAlteracao'],
+  })
   .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
     message: 'Data de fim da inscrição deve ser posterior à data de início',
     path: ['dataFimInscricao'],
   })
-  .refine(
-    (data) => {
-      if (data.dataInicioSelecao && data.dataFimSelecao) {
-        return data.dataFimSelecao >= data.dataInicioSelecao
-      }
-      return true
-    },
-    {
-      message: 'Data de fim da seleção deve ser posterior ou igual à data de início',
-      path: ['dataFimSelecao'],
-    }
-  )
+  .refine((data) => data.dataInicioSelecao > data.dataFimInscricao, {
+    message: 'Data de início da seleção deve ser posterior ao fim da inscrição',
+    path: ['dataInicioSelecao'],
+  })
+  .refine((data) => data.dataFimSelecao >= data.dataInicioSelecao, {
+    message: 'Data de fim da seleção deve ser posterior ou igual à data de início',
+    path: ['dataFimSelecao'],
+  })
+  .refine((data) => data.dataDivulgacaoResultado >= data.dataFimSelecao, {
+    message: 'Data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção',
+    path: ['dataDivulgacaoResultado'],
+  })
 
 export const updateEditalSchema = z
   .object({
@@ -100,6 +114,9 @@ export const updateEditalSchema = z
     horarioFimSelecao: z.string().optional().nullable(),
     // Divulgação
     dataDivulgacaoResultado: z.date().optional().nullable(),
+    // Janela de alteração
+    dataInicioAlteracao: z.date().optional().nullable(),
+    dataFimAlteracao: z.date().optional().nullable(),
     // Legacy: Slots de data/horário para provas
     datasProvasDisponiveis: z.array(z.object({ data: z.string(), horario: z.string() })).optional(),
     // PROGRAD

@@ -20,6 +20,8 @@ const DATA_INICIO_SELECAO_INVALIDA_MESSAGE = 'A data de início da seleção dev
 const DATA_FIM_SELECAO_INVALIDA_MESSAGE = 'A data de fim da seleção deve ser posterior ao fim da inscrição'
 const DATA_DIVULGACAO_RESULTADO_INVALIDA_MESSAGE =
   'A data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção'
+const JANELA_ALTERACAO_INVALIDA_MESSAGE =
+  'O fim da janela de alteração deve ser anterior ou igual ao início das inscrições'
 
 function generateSecureToken(): string {
   return randomBytes(32).toString('hex')
@@ -70,6 +72,11 @@ export function createEditalCrudService(
         throw new ConflictError('Este número de edital já está em uso.')
       }
 
+      // Validar ordem cronológica: janela < inscrição < seleção < divulgação
+      if (input.dataFimAlteracao > input.dataInicioInscricao) {
+        throw new ValidationError(JANELA_ALTERACAO_INVALIDA_MESSAGE)
+      }
+
       validateDataSelecaoPosteriorInscricao(input.dataInicioSelecao, input.dataFimSelecao, input.dataFimInscricao)
 
       validateDataDivulgacaoResultado(input.dataDivulgacaoResultado, input.dataInicioSelecao, input.dataFimSelecao)
@@ -101,13 +108,15 @@ export function createEditalCrudService(
         descricaoHtml: input.descricaoHtml || null,
         valorBolsa: input.valorBolsa || '400.00',
         fileIdPdfExterno: input.fileIdPdfExterno || null,
-        dataInicioSelecao: input.dataInicioSelecao || null,
-        dataFimSelecao: input.dataFimSelecao || null,
-        horarioInicioSelecao: input.horarioInicioSelecao || null,
-        horarioFimSelecao: input.horarioFimSelecao || null,
+        dataInicioSelecao: input.dataInicioSelecao,
+        dataFimSelecao: input.dataFimSelecao,
+        horarioInicioSelecao: input.horarioInicioSelecao,
+        horarioFimSelecao: input.horarioFimSelecao,
         linkFormularioInscricao: generateInscricaoLink(),
         datasProvasDisponiveis: input.datasProvasDisponiveis ? JSON.stringify(input.datasProvasDisponiveis) : null,
-        dataDivulgacaoResultado: input.dataDivulgacaoResultado || null,
+        dataDivulgacaoResultado: input.dataDivulgacaoResultado,
+        dataInicioAlteracao: input.dataInicioAlteracao,
+        dataFimAlteracao: input.dataFimAlteracao,
         criadoPorUserId: input.criadoPorUserId,
         publicado: false,
       })
@@ -229,6 +238,8 @@ export function createEditalCrudService(
 
         updateData.dataDivulgacaoResultado = input.dataDivulgacaoResultado || null
       }
+      if (input.dataInicioAlteracao !== undefined) updateData.dataInicioAlteracao = input.dataInicioAlteracao
+      if (input.dataFimAlteracao !== undefined) updateData.dataFimAlteracao = input.dataFimAlteracao
 
       const updated = await repo.update(input.id, updateData)
       return updated
