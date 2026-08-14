@@ -68,4 +68,36 @@ export const configuracoesRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       return await configuracoesService.setEmailIC(input.email ?? null)
     }),
+
+  getEmailGeralProfessores: adminProtectedProcedure.query(async () => {
+    return await configuracoesService.getEmailGeralProfessores()
+  }),
+
+  setEmailGeralProfessores: adminProtectedProcedure
+    .input(
+      z.object({
+        email: z.string().email('Email inválido.').nullish(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await configuracoesService.setEmailGeralProfessores(input.email ?? null)
+    }),
+
+  getEmailGeralEstudantes: adminProtectedProcedure.query(async () => {
+    return await configuracoesService.getEmailGeralEstudantes()
+  }),
+
+  setEmailGeralEstudantes: adminProtectedProcedure
+    .input(
+      z.object({
+        email: z.string().email('Email inválido.').nullish(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return await configuracoesService.setEmailGeralEstudantes(input.email ?? null)
+    }),
+
+  getEmailsNotificacaoEdital: adminProtectedProcedure.query(async () => {
+    return await configuracoesService.getEmailsNotificacaoEdital()
+  }),
 })

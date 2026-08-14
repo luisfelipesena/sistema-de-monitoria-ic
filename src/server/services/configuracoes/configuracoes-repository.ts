@@ -63,5 +63,23 @@ export const createConfiguracoesRepository = (database: Database) => {
         .set({ valor, updatedAt: new Date() })
         .where(eq(configuracaoSistemaTable.chave, chave))
     },
+
+    async upsertConfiguracaoSistema(chave: string, valor: string | null, descricao?: string) {
+      const existing = await database.query.configuracaoSistemaTable.findFirst({
+        where: eq(configuracaoSistemaTable.chave, chave),
+      })
+      if (existing) {
+        await database
+          .update(configuracaoSistemaTable)
+          .set({ valor, updatedAt: new Date() })
+          .where(eq(configuracaoSistemaTable.chave, chave))
+      } else {
+        await database.insert(configuracaoSistemaTable).values({
+          chave,
+          valor,
+          descricao: descricao ?? null,
+        })
+      }
+    },
   }
 }

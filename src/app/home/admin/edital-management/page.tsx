@@ -251,11 +251,22 @@ export default function EditalManagementPage() {
     },
   });
 
-  const publishEditalMutation = api.edital.publishEdital.useMutation({
-    onSuccess: () => {
+  const publishEditalMutation = api.edital.publishAndNotify.useMutation({
+    onSuccess: (data) => {
       toast({
-        title: "Sucesso!",
-        description: "Edital publicado com sucesso!",
+        title: "✅ Edital publicado com sucesso!",
+        description: (
+          <div className="space-y-2">
+            <p>
+              Os emails para o <strong>email geral dos professores</strong> e{" "}
+              <strong>email geral dos alunos</strong> foram enviados com sucesso.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {data.emailsSent} notificação(ões) enviada(s) para:{" "}
+              {data.emailsUsados.join(", ")}
+            </p>
+          </div>
+        ),
       });
       refetch();
     },

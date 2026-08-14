@@ -1,4 +1,5 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc'
+import { configuracoesService } from '@/server/services/configuracoes/configuracoes-service'
 import { createEditalService } from '@/server/services/edital/edital-service'
 import { periodoInscricaoStatusSchema, semestreSchema, tipoEditalSchema } from '@/types'
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/types/errors'
@@ -410,19 +411,34 @@ export const editalRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.number(),
-        emailLists: z.array(z.string().email()).optional().default(['estudantes.ic@ufba.br', 'professores.ic@ufba.br']),
+        emailLists: z.array(z.string().email()).optional(),
       })
     )
     .output(
       z.object({
         edital: editalSchema,
         emailsSent: z.number(),
+        emailsUsados: z.array(z.string()),
       })
     )
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createEditalService(ctx.db)
-        return await service.publishAndNotify(input.id, ctx.user.id, input.emailLists)
+
+        // Se não passou emailLists, busca da configuração do sistema
+        let emailLists: string[] = input.emailLists ?? []
+        if (emailLists.length === 0) {
+          emailLists = await configuracoesService.getEmailsNotificacaoEdital()
+        }
+
+        if (emailLists.length === 0) {
+          throw new ValidationError(
+            'Nenhum email de notificação configurado. Configure os emails de professores e estudantes nas Configurações.'
+          )
+        }
+
+        const result = await service.publishAndNotify(input.id, ctx.user.id, emailLists)
+        return { ...result, emailsUsados: emailLists }
       } catch (error) {
         handleServiceError(error)
       }
