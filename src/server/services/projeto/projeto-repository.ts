@@ -12,6 +12,7 @@ import {
   projetoDisciplinaTable,
   projetoProfessorParticipanteTable,
   projetoTable,
+  projetoTemplateTable,
   userTable,
 } from '@/server/db/schema'
 import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
@@ -688,6 +689,59 @@ export function createProjetoRepository(db: Database) {
       }
 
       return coveredIds
+    },
+
+    async findFirstDisciplinaForProjeto(projetoId: number) {
+      const pd = await db.query.projetoDisciplinaTable.findFirst({
+        where: eq(projetoDisciplinaTable.projetoId, projetoId),
+      })
+      return pd ? { id: pd.disciplinaId } : null
+    },
+
+    async findProjetoTemplateByDisciplinaId(disciplinaId: number) {
+      return db.query.projetoTemplateTable.findFirst({
+        where: eq(projetoTemplateTable.disciplinaId, disciplinaId),
+      })
+    },
+
+    async upsertProjetoTemplate(
+      disciplinaId: number,
+      data: { pontosProvaDefault?: string; bibliografiaDefault?: string; userId: number }
+    ) {
+      const existing = await db.query.projetoTemplateTable.findFirst({
+        where: eq(projetoTemplateTable.disciplinaId, disciplinaId),
+      })
+
+      if (existing) {
+        const updateFields: Record<string, unknown> = {
+          ultimaAtualizacaoUserId: data.userId,
+        }
+        if (data.pontosProvaDefault !== undefined) {
+          updateFields.pontosProvaDefault = data.pontosProvaDefault
+        }
+        if (data.bibliografiaDefault !== undefined) {
+          updateFields.bibliografiaDefault = data.bibliografiaDefault
+        }
+
+        const [updated] = await db
+          .update(projetoTemplateTable)
+          .set(updateFields)
+          .where(eq(projetoTemplateTable.id, existing.id))
+          .returning()
+        return updated
+      }
+
+      const [created] = await db
+        .insert(projetoTemplateTable)
+        .values({
+          disciplinaId,
+          pontosProvaDefault: data.pontosProvaDefault ?? null,
+          bibliografiaDefault: data.bibliografiaDefault ?? null,
+          criadoPorUserId: data.userId,
+          ultimaAtualizacaoUserId: data.userId,
+        })
+        .returning()
+      return created
     },
   }
 }

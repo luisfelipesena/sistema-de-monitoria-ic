@@ -322,6 +322,21 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
+  // Professor - Editais
+  {
+    label: "Editais",
+    icon: FileText,
+    roles: ["professor"],
+    items: [
+      {
+        label: "Gerenciar Edital",
+        href: "/home/professor/edital-management",
+        icon: FileText,
+        roles: ["professor"],
+      },
+    ],
+  },
+
   // Professor - Processo Seletivo
   {
     label: "Processo Seletivo",

@@ -34,7 +34,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
 import { useMemo, useState } from "react"
 
-import { Download, Edit, Eye, FileSignature, List, Loader, Plus, Trash2, Users } from "lucide-react"
+import { Download, Edit, Eye, FileSignature, FileText, List, Loader, Plus, Trash2, Users } from "lucide-react"
 
 // Filter options for status
 const statusFilterOptions = [
@@ -368,22 +368,26 @@ export default function DashboardProfessor() {
             defaultSorting={[{ id: "ano", desc: true }, { id: "semestre", desc: true }, { id: "titulo", desc: false }]}
           />
 
-          {/* Seção "Dados da Seleção" para projetos aprovados vinculados a edital interno */}
+          {/* Seção "Preenchimento de Dados do Edital" */}
           {projetosComEdital.length > 0 && (
-            <div className="mt-8 space-y-4">
-              <h2 className="text-lg font-semibold">Dados da Seleção</h2>
-              <p className="text-sm text-muted-foreground">
-                Configure data/horário, voluntários, pontos de prova e bibliografia para seus projetos aprovados.
-              </p>
-              <div className="space-y-4">
-                {projetosComEdital.map((projeto) => (
-                  <div key={projeto.id}>
-                    <h3 className="text-sm font-medium text-gray-700">
-                      {projeto.disciplinas[0]?.codigo ?? "N/A"} — {projeto.disciplinas[0]?.nome ?? projeto.titulo}
+            <div className="mt-8">
+              <div className="rounded-lg border bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 p-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      Preenchimento de Dados para o Edital ({projetosComEdital.length} projeto(s) aprovado(s))
                     </h3>
-                    <DadosSelecaoSection projetoId={projeto.id} />
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                      Configure as vagas voluntárias, datas e horários da seleção, pontos de prova e bibliografia dos seus projetos na aba exclusiva do Edital.
+                    </p>
                   </div>
-                ))}
+                  <Link href="/home/professor/edital-management">
+                    <Button className="whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white">
+                      Gerenciar Dados do Edital
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           )}
