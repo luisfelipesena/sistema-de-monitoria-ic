@@ -80,7 +80,10 @@ export function createEditalPublicationService(
           pdfBuffer = Buffer.concat(chunks)
           log.info({ editalId: id, fileId: edital.fileIdAssinado }, 'PDF assinado carregado para anexo')
         } catch (pdfError) {
-          log.warn({ error: pdfError, editalId: id }, 'Não foi possível carregar o PDF para anexo, enviando apenas link')
+          log.warn(
+            { error: pdfError, editalId: id },
+            'Não foi possível carregar o PDF para anexo, enviando apenas link'
+          )
         }
       }
 
