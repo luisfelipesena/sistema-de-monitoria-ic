@@ -1,34 +1,177 @@
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { SEMESTRE_1, SEMESTRE_2, TIPO_EDITAL_DCC, TIPO_EDITAL_DCI, type Semestre, type TipoEdital } from "@/types";
 import type { SlotDataHorario } from "@/types/selecao-inputs";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
+import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
+
+/**
+ * DatePicker com calendário popup.
+ */
+function DatePickerField({ value, onChange }: {
+  value: Date | undefined;
+  onChange: (date: Date | undefined) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-left font-normal h-10",
+            !value && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {value ? format(value, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={value}
+          onSelect={(date) => {
+            onChange(date ?? undefined);
+            setOpen(false);
+          }}
+          locale={ptBR}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/**
+ * DateTimePicker: calendário popup + seletor de hora.
+ */
+function DateTimePickerField({ value, onChange }: {
+  value: Date | undefined;
+  onChange: (date: Date | undefined) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) {
+      onChange(undefined);
+      return;
+    }
+    // Preservar a hora existente se já havia valor
+    if (value) {
+      date.setHours(value.getHours(), value.getMinutes());
+    }
+    onChange(date);
+  };
+
+  const handleTimeChange = (time: string) => {
+    const [h, m] = time.split(":").map(Number);
+    const newDate = value ? new Date(value) : new Date();
+    newDate.setHours(h, m, 0, 0);
+    onChange(newDate);
+  };
+
+  const currentTime = value
+    ? `${String(value.getHours()).padStart(2, "0")}:${String(value.getMinutes()).padStart(2, "0")}`
+    : "";
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-left font-normal h-10",
+            !value && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {value ? format(value, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "Selecione data e hora"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={value}
+          onSelect={handleDateSelect}
+          locale={ptBR}
+        />
+        <div className="border-t px-3 py-2">
+          <label className="text-xs font-medium text-muted-foreground">Horário</label>
+          <Select value={currentTime} onValueChange={handleTimeChange}>
+            <SelectTrigger className="mt-1 h-9">
+              <SelectValue placeholder="Selecione o horário" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[200px]">
+              {Array.from({ length: 48 }, (_, i) => {
+                const h = String(Math.floor(i / 2)).padStart(2, "0");
+                const m = i % 2 === 0 ? "00" : "30";
+                const t = `${h}:${m}`;
+                return <SelectItem key={t} value={t}>{t}</SelectItem>;
+              })}
+            </SelectContent>
+          </Select>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/**
+ * TimePicker: dropdown de horários em intervalos de 30 min.
+ */
+function TimePickerField({ value, onChange }: {
+  value: string;
+  onChange: (time: string) => void;
+}) {
+  return (
+    <Select value={value || undefined} onValueChange={onChange}>
+      <SelectTrigger className="h-10">
+        <SelectValue placeholder="Selecione o horário" />
+      </SelectTrigger>
+      <SelectContent className="max-h-[200px]">
+        {Array.from({ length: 48 }, (_, i) => {
+          const h = String(Math.floor(i / 2)).padStart(2, "0");
+          const m = i % 2 === 0 ? "00" : "30";
+          const t = `${h}:${m}`;
+          return <SelectItem key={t} value={t}>{t}</SelectItem>;
+        })}
+      </SelectContent>
+    </Select>
+  );
+}
 
 export interface EditalFormData {
   tipo: TipoEdital;
@@ -266,10 +409,9 @@ export function EditalFormDialog({
                     <FormItem>
                       <FormLabel>Início da Janela</FormLabel>
                       <FormControl>
-                        <Input
-                          type="datetime-local"
-                          value={field.value ? field.value.toISOString().slice(0, 16) : ""}
-                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                        <DateTimePickerField
+                          value={field.value}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -284,10 +426,9 @@ export function EditalFormDialog({
                     <FormItem>
                       <FormLabel>Fim da Janela</FormLabel>
                       <FormControl>
-                        <Input
-                          type="datetime-local"
-                          value={field.value ? field.value.toISOString().slice(0, 16) : ""}
-                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                        <DateTimePickerField
+                          value={field.value}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -313,18 +454,14 @@ export function EditalFormDialog({
                     <FormItem>
                       <FormLabel>Data Início da Inscrição</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          value={field.value?.toISOString().split("T")[0] || ""}
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              const newStart = new Date(e.target.value)
-                              field.onChange(newStart)
-                              const newEnd = new Date(newStart)
+                        <DatePickerField
+                          value={field.value}
+                          onChange={(date) => {
+                            field.onChange(date)
+                            if (date) {
+                              const newEnd = new Date(date)
                               newEnd.setDate(newEnd.getDate() + 7)
                               form.setValue("dataFimInscricao", newEnd)
-                            } else {
-                              field.onChange(undefined)
                             }
                           }}
                         />
@@ -341,10 +478,9 @@ export function EditalFormDialog({
                     <FormItem>
                       <FormLabel>Data Fim da Inscrição</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          value={field.value?.toISOString().split("T")[0] || ""}
-                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                        <DatePickerField
+                          value={field.value}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -370,10 +506,9 @@ export function EditalFormDialog({
                     <FormItem>
                       <FormLabel>Data Início da Seleção</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          value={field.value?.toISOString().split("T")[0] || ""}
-                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                        <DatePickerField
+                          value={field.value}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -388,10 +523,9 @@ export function EditalFormDialog({
                     <FormItem>
                       <FormLabel>Data Fim da Seleção</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          value={field.value?.toISOString().split("T")[0] || ""}
-                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                        <DatePickerField
+                          value={field.value}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -417,13 +551,9 @@ export function EditalFormDialog({
                     <FormItem>
                       <FormLabel>Horário Início</FormLabel>
                       <FormControl>
-                        <input
-                          type="time"
-                          className="block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600"
+                        <TimePickerField
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          disabled={isLoading}
-                          aria-label="Horário início da seleção"
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -438,13 +568,9 @@ export function EditalFormDialog({
                     <FormItem>
                       <FormLabel>Horário Fim</FormLabel>
                       <FormControl>
-                        <input
-                          type="time"
-                          className="block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600"
+                        <TimePickerField
                           value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value)}
-                          disabled={isLoading}
-                          aria-label="Horário fim da seleção"
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -466,10 +592,9 @@ export function EditalFormDialog({
                   <FormItem>
                     <FormLabel>Data de Divulgação dos Resultados</FormLabel>
                     <FormControl>
-                      <Input
-                        type="date"
-                        value={field.value?.toISOString().split("T")[0] || ""}
-                        onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                      <DatePickerField
+                        value={field.value}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />
@@ -477,6 +602,20 @@ export function EditalFormDialog({
                 )}
               />
             </div>
+
+            {/* Resumo de erros gerais */}
+            {Object.keys(form.formState.errors).length > 0 && (
+              <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3">
+                <p className="text-sm font-medium text-red-800">
+                  Não foi possível salvar. Corrija os erros acima:
+                </p>
+                <ul className="mt-1.5 list-disc list-inside text-xs text-red-700 space-y-0.5">
+                  {Object.entries(form.formState.errors).map(([key, error]) => (
+                    <li key={key}>{(error as { message?: string })?.message || `Campo "${key}" inválido`}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

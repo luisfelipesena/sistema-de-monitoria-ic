@@ -1,12 +1,11 @@
 import { Text } from '@react-email/components'
-import { BaseLayout, Button, Heading, InfoBox, ProjectDetails, colors } from '../../components'
+import { BaseLayout, Heading, InfoBox, ProjectDetails, colors } from '../../components'
 
 interface EditalPublishedProps {
   editalNumero: string
   editalTitulo: string
   semestreFormatado: string
   ano: number
-  linkPDF: string
 }
 
 export function EditalPublished({
@@ -14,7 +13,6 @@ export function EditalPublished({
   editalTitulo,
   semestreFormatado,
   ano,
-  linkPDF,
 }: EditalPublishedProps) {
   return (
     <BaseLayout
@@ -43,11 +41,11 @@ export function EditalPublished({
         ]}
       />
 
-      <Text style={textStyle}>
-        Acesse o edital completo através do botão abaixo:
-      </Text>
-
-      <Button href={linkPDF}>📄 Visualizar Edital (PDF)</Button>
+      <InfoBox variant="info">
+        <Text style={infoTextStyle}>
+          <strong>📎 O PDF do edital assinado está em anexo neste email.</strong>
+        </Text>
+      </InfoBox>
 
       <InfoBox variant="info">
         <Text style={infoTextStyle}>

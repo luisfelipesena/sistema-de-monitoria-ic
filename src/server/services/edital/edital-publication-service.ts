@@ -1,7 +1,7 @@
 import { emailService } from '@/server/lib/email'
 import { NotFoundError, ValidationError } from '@/server/lib/errors'
+import minioClient, { bucketName } from '@/server/lib/minio'
 import { SEMESTRE_1 } from '@/types'
-import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import type { EditalRepository } from './edital-repository'
 
@@ -67,7 +67,25 @@ export function createEditalPublicationService(
       })
 
       const semestreFormatado = edital.periodoInscricao?.semestre === SEMESTRE_1 ? '1º Semestre' : '2º Semestre'
-      const linkPDF = `${env.CLIENT_URL}/api/editais/${id}/pdf`
+
+      // Buscar PDF assinado do MinIO para enviar como anexo
+      let pdfBuffer: Buffer | undefined
+      if (edital.fileIdAssinado) {
+        try {
+          const stream = await minioClient.getObject(bucketName, edital.fileIdAssinado)
+          const chunks: Buffer[] = []
+          for await (const chunk of stream) {
+            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+          }
+          pdfBuffer = Buffer.concat(chunks)
+          log.info({ editalId: id, fileId: edital.fileIdAssinado }, 'PDF assinado carregado para anexo')
+        } catch (pdfError) {
+          log.warn(
+            { error: pdfError, editalId: id },
+            'Não foi possível carregar o PDF para anexo, enviando apenas link'
+          )
+        }
+      }
 
       let emailsSent = 0
       try {
@@ -76,11 +94,11 @@ export function createEditalPublicationService(
           editalTitulo: edital.titulo,
           semestreFormatado,
           ano: edital.periodoInscricao?.ano || new Date().getFullYear(),
-          linkPDF,
+          pdfBuffer,
           to: emailLists,
         })
         emailsSent = emailLists.length
-        log.info({ editalId: id, adminUserId, emailsSent }, 'Edital publicado e emails enviados')
+        log.info({ editalId: id, adminUserId, emailsSent }, 'Edital publicado e emails enviados com PDF em anexo')
       } catch (emailError) {
         log.error({ error: emailError, editalId: id }, 'Erro ao enviar emails de notificação')
       }

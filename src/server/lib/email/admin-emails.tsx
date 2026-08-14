@@ -1,10 +1,10 @@
-import {
-  ChefeSignatureRequest,
-  DepartmentConsolidation,
-  EditalPublished,
-  PlanilhaPrograd,
-} from '@/server/emails/templates/admin'
 import { renderEmail } from '@/server/emails/render'
+import {
+    ChefeSignatureRequest,
+    DepartmentConsolidation,
+    EditalPublished,
+    PlanilhaPrograd,
+} from '@/server/emails/templates/admin'
 import { SEMESTRE_LABELS, type Semestre } from '@/types'
 import { env } from '@/utils/env'
 import { emailSender } from './email-sender'
@@ -105,7 +105,7 @@ export const adminEmailService = {
     editalTitulo: string
     semestreFormatado: string
     ano: number
-    linkPDF: string
+    pdfBuffer?: Buffer
     to: string[]
   }): Promise<void> {
     const html = await renderEmail(
@@ -114,9 +114,18 @@ export const adminEmailService = {
         editalTitulo={data.editalTitulo}
         semestreFormatado={data.semestreFormatado}
         ano={data.ano}
-        linkPDF={data.linkPDF}
       />
     )
+
+    const attachments = data.pdfBuffer
+      ? [
+          {
+            filename: `Edital_${data.editalNumero.replace(/\//g, '-')}_${data.semestreFormatado}_${data.ano}.pdf`,
+            content: data.pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ]
+      : undefined
 
     await emailSender.sendBatch(
       data.to.map((email) => ({
@@ -124,6 +133,7 @@ export const adminEmailService = {
         subject: `[Monitoria IC] ${data.editalTitulo} - ${data.semestreFormatado}/${data.ano}`,
         html,
         tipoNotificacao: 'EDITAL_PUBLISHED_NOTIFICATION',
+        attachments,
       }))
     )
   },

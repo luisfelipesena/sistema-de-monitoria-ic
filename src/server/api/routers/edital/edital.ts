@@ -1,4 +1,5 @@
 import { adminProtectedProcedure, createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc'
+import { configuracoesService } from '@/server/services/configuracoes/configuracoes-service'
 import { createEditalService } from '@/server/services/edital/edital-service'
 import { periodoInscricaoStatusSchema, semestreSchema, tipoEditalSchema } from '@/types'
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/types/errors'
@@ -73,26 +74,56 @@ export const newEditalSchema = z
     // PROGRAD
     numeroEditalPrograd: z.string().optional(),
   })
-  .refine((data) => data.dataFimAlteracao <= data.dataInicioInscricao, {
-    message: 'O fim da janela de alteração deve ser anterior ou igual ao início das inscrições',
-    path: ['dataFimAlteracao'],
-  })
-  .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
-    message: 'Data de fim da inscrição deve ser posterior à data de início',
-    path: ['dataFimInscricao'],
-  })
-  .refine((data) => data.dataInicioSelecao > data.dataFimInscricao, {
-    message: 'Data de início da seleção deve ser posterior ao fim da inscrição',
-    path: ['dataInicioSelecao'],
-  })
-  .refine((data) => data.dataFimSelecao >= data.dataInicioSelecao, {
-    message: 'Data de fim da seleção deve ser posterior ou igual à data de início',
-    path: ['dataFimSelecao'],
-  })
-  .refine((data) => data.dataDivulgacaoResultado >= data.dataFimSelecao, {
-    message: 'Data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção',
-    path: ['dataDivulgacaoResultado'],
-  })
+  .refine(
+    (data) => {
+      const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      return toDay(data.dataFimAlteracao) <= toDay(data.dataInicioInscricao)
+    },
+    {
+      message: 'O fim da janela de alteração deve ser anterior ou igual ao início das inscrições',
+      path: ['dataFimAlteracao'],
+    }
+  )
+  .refine(
+    (data) => {
+      const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      return toDay(data.dataFimInscricao) > toDay(data.dataInicioInscricao)
+    },
+    {
+      message: 'Data de fim da inscrição deve ser posterior à data de início',
+      path: ['dataFimInscricao'],
+    }
+  )
+  .refine(
+    (data) => {
+      const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      return toDay(data.dataInicioSelecao) > toDay(data.dataFimInscricao)
+    },
+    {
+      message: 'Data de início da seleção deve ser posterior ao fim da inscrição',
+      path: ['dataInicioSelecao'],
+    }
+  )
+  .refine(
+    (data) => {
+      const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      return toDay(data.dataFimSelecao) >= toDay(data.dataInicioSelecao)
+    },
+    {
+      message: 'Data de fim da seleção deve ser posterior ou igual à data de início',
+      path: ['dataFimSelecao'],
+    }
+  )
+  .refine(
+    (data) => {
+      const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      return toDay(data.dataDivulgacaoResultado) >= toDay(data.dataFimSelecao)
+    },
+    {
+      message: 'Data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção',
+      path: ['dataDivulgacaoResultado'],
+    }
+  )
 
 export const updateEditalSchema = z
   .object({
@@ -395,19 +426,34 @@ export const editalRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.number(),
-        emailLists: z.array(z.string().email()).optional().default(['estudantes.ic@ufba.br', 'professores.ic@ufba.br']),
+        emailLists: z.array(z.string().email()).optional(),
       })
     )
     .output(
       z.object({
         edital: editalSchema,
         emailsSent: z.number(),
+        emailsUsados: z.array(z.string()),
       })
     )
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createEditalService(ctx.db)
-        return await service.publishAndNotify(input.id, ctx.user.id, input.emailLists)
+
+        // Se não passou emailLists, busca da configuração do sistema
+        let emailLists: string[] = input.emailLists ?? []
+        if (emailLists.length === 0) {
+          emailLists = await configuracoesService.getEmailsNotificacaoEdital()
+        }
+
+        if (emailLists.length === 0) {
+          throw new ValidationError(
+            'Nenhum email de notificação configurado. Configure os emails de professores e estudantes nas Configurações.'
+          )
+        }
+
+        const result = await service.publishAndNotify(input.id, ctx.user.id, emailLists)
+        return { ...result, emailsUsados: emailLists }
       } catch (error) {
         handleServiceError(error)
       }

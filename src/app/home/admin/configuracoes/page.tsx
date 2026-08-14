@@ -5,12 +5,12 @@ import { TableComponent } from '@/components/layout/TableComponent'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -37,6 +37,8 @@ export default function ConfiguracoesEmailPage() {
   const [deptSigla, setDeptSigla] = useState('')
   const [editError, setEditError] = useState('')
   const [emailIC, setEmailIC] = useState('')
+  const [emailProfessores, setEmailProfessores] = useState('')
+  const [emailEstudantes, setEmailEstudantes] = useState('')
   const [newSetorNome, setNewSetorNome] = useState('')
   const [newSetorSigla, setNewSetorSigla] = useState('')
   const [newSetorEmail, setNewSetorEmail] = useState('')
@@ -44,6 +46,8 @@ export default function ConfiguracoesEmailPage() {
 
   const { data: departamentos, isLoading } = api.configuracoes.getDepartamentos.useQuery()
   const { data: emailICData, isLoading: isLoadingEmailIC } = api.configuracoes.getEmailIC.useQuery()
+  const { data: emailProfessoresData, isLoading: isLoadingEmailProf } = api.configuracoes.getEmailGeralProfessores.useQuery()
+  const { data: emailEstudantesData, isLoading: isLoadingEmailEst } = api.configuracoes.getEmailGeralEstudantes.useQuery()
   const apiUtils = api.useUtils()
 
   useEffect(() => {
@@ -51,6 +55,18 @@ export default function ConfiguracoesEmailPage() {
       setEmailIC(emailICData || '')
     }
   }, [emailICData])
+
+  useEffect(() => {
+    if (emailProfessoresData !== undefined) {
+      setEmailProfessores(emailProfessoresData || '')
+    }
+  }, [emailProfessoresData])
+
+  useEffect(() => {
+    if (emailEstudantesData !== undefined) {
+      setEmailEstudantes(emailEstudantesData || '')
+    }
+  }, [emailEstudantesData])
 
   const updateDeptEmailMutation = api.configuracoes.updateDepartamentoEmail.useMutation({
     onSuccess: () => {
@@ -61,6 +77,18 @@ export default function ConfiguracoesEmailPage() {
   const setEmailICMutation = api.configuracoes.setEmailIC.useMutation({
     onSuccess: () => {
       apiUtils.configuracoes.getEmailIC.invalidate()
+    },
+  })
+
+  const setEmailProfessoresMutation = api.configuracoes.setEmailGeralProfessores.useMutation({
+    onSuccess: () => {
+      apiUtils.configuracoes.getEmailGeralProfessores.invalidate()
+    },
+  })
+
+  const setEmailEstudantesMutation = api.configuracoes.setEmailGeralEstudantes.useMutation({
+    onSuccess: () => {
+      apiUtils.configuracoes.getEmailGeralEstudantes.invalidate()
     },
   })
 
@@ -167,6 +195,38 @@ export default function ConfiguracoesEmailPage() {
     }
   }
 
+  const handleSaveEmailProfessores = async () => {
+    try {
+      await setEmailProfessoresMutation.mutateAsync({ email: emailProfessores || null })
+      toast({
+        title: 'Sucesso!',
+        description: 'Email geral dos professores atualizado.',
+      })
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao salvar',
+        description: error.message || 'Não foi possível atualizar o email.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleSaveEmailEstudantes = async () => {
+    try {
+      await setEmailEstudantesMutation.mutateAsync({ email: emailEstudantes || null })
+      toast({
+        title: 'Sucesso!',
+        description: 'Email geral dos estudantes atualizado.',
+      })
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao salvar',
+        description: error.message || 'Não foi possível atualizar o email.',
+        variant: 'destructive',
+      })
+    }
+  }
+
   const handleCreateSetor = async () => {
     setCreateError('')
 
@@ -256,22 +316,66 @@ export default function ConfiguracoesEmailPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <Label htmlFor="email-ic">Email do IC</Label>
-                <Input
-                  id="email-ic"
-                  type="email"
-                  value={emailIC}
-                  onChange={(e) => setEmailIC(e.target.value)}
-                  placeholder="ic@ufba.br"
-                  disabled={isLoadingEmailIC}
-                />
+            <div className="space-y-4">
+              <div className="flex gap-4 items-end">
+                <div className="flex-1">
+                  <Label htmlFor="email-ic">Email do IC</Label>
+                  <Input
+                    id="email-ic"
+                    type="email"
+                    value={emailIC}
+                    onChange={(e) => setEmailIC(e.target.value)}
+                    placeholder="ic@ufba.br"
+                    disabled={isLoadingEmailIC}
+                  />
+                </div>
+                <Button onClick={handleSaveEmailIC} disabled={setEmailICMutation.isPending}>
+                  <Save className="h-4 w-4 mr-2" />
+                  {setEmailICMutation.isPending ? 'Salvando...' : 'Salvar'}
+                </Button>
               </div>
-              <Button onClick={handleSaveEmailIC} disabled={setEmailICMutation.isPending}>
-                <Save className="h-4 w-4 mr-2" />
-                {setEmailICMutation.isPending ? 'Salvando...' : 'Salvar'}
-              </Button>
+
+              <div className="flex gap-4 items-end">
+                <div className="flex-1">
+                  <Label htmlFor="email-professores">Email geral dos professores</Label>
+                  <Input
+                    id="email-professores"
+                    type="email"
+                    value={emailProfessores}
+                    onChange={(e) => setEmailProfessores(e.target.value)}
+                    placeholder="professores.ic@ufba.br"
+                    disabled={isLoadingEmailProf}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Usado para notificar professores quando um edital é publicado
+                  </p>
+                </div>
+                <Button onClick={handleSaveEmailProfessores} disabled={setEmailProfessoresMutation.isPending}>
+                  <Save className="h-4 w-4 mr-2" />
+                  {setEmailProfessoresMutation.isPending ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </div>
+
+              <div className="flex gap-4 items-end">
+                <div className="flex-1">
+                  <Label htmlFor="email-estudantes">Email geral dos estudantes</Label>
+                  <Input
+                    id="email-estudantes"
+                    type="email"
+                    value={emailEstudantes}
+                    onChange={(e) => setEmailEstudantes(e.target.value)}
+                    placeholder="estudantes.ic@ufba.br"
+                    disabled={isLoadingEmailEst}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Usado para notificar estudantes quando um edital é publicado
+                  </p>
+                </div>
+                <Button onClick={handleSaveEmailEstudantes} disabled={setEmailEstudantesMutation.isPending}>
+                  <Save className="h-4 w-4 mr-2" />
+                  {setEmailEstudantesMutation.isPending ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

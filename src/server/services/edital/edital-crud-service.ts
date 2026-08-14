@@ -73,7 +73,8 @@ export function createEditalCrudService(
       }
 
       // Validar ordem cronológica: janela < inscrição < seleção < divulgação
-      if (input.dataFimAlteracao > input.dataInicioInscricao) {
+      const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      if (toDay(input.dataFimAlteracao) > toDay(input.dataInicioInscricao)) {
         throw new ValidationError(JANELA_ALTERACAO_INVALIDA_MESSAGE)
       }
 
