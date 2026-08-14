@@ -10,6 +10,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/home/student/in-scricao-monitoria",
+        destination: "/home/student/inscricao-monitoria",
+        permanent: true,
+      },
+      {
+        source: "/home/student/inscricao",
+        destination: "/home/student/inscricao-monitoria",
+        permanent: true,
+      },
+    ]
+  },
 }
 
 export default nextConfig
