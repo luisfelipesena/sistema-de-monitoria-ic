@@ -1,11 +1,11 @@
 import { emailService } from '@/server/lib/email'
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import {
-  SEMESTRE_LABELS,
-  TIPO_EDITAL_DCC,
-  type CreateEditalInput,
-  type EditalWithPeriodoStatus,
-  type UpdateEditalInput,
+    SEMESTRE_LABELS,
+    TIPO_EDITAL_DCC,
+    type CreateEditalInput,
+    type EditalWithPeriodoStatus,
+    type UpdateEditalInput,
 } from '@/types'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
@@ -73,7 +73,8 @@ export function createEditalCrudService(
       }
 
       // Validar ordem cronológica: janela < inscrição < seleção < divulgação
-      if (input.dataFimAlteracao > input.dataInicioInscricao) {
+      const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+      if (toDay(input.dataFimAlteracao) > toDay(input.dataInicioInscricao)) {
         throw new ValidationError(JANELA_ALTERACAO_INVALIDA_MESSAGE)
       }
 

@@ -9,6 +9,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import type { SlotDataHorario } from "@/types/selecao-inputs"
 import { AlertCircle, Loader2, Plus, Trash2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
@@ -53,24 +60,50 @@ export function valueToSlot(value: string, slots: SlotDataHorario[]): SlotDataHo
   return slots.find((s) => slotToValue(s) === value)
 }
 
-function validateSlot(slot: SlotDataHorario, range: RangeSelecao | null | undefined): string | null {
-  if (!slot.data && !slot.horario) return null
-  if (!slot.data) return "Informe a data"
-  if (!slot.horario) return "Informe o horário"
+/**
+ * Gera todas as datas (dia a dia) entre dataInicio e dataFim (inclusive).
+ */
+function generateDateOptions(dataInicio: string, dataFim: string): { value: string; label: string }[] {
+  const options: { value: string; label: string }[] = []
+  const start = new Date(`${dataInicio}T00:00:00`)
+  const end = new Date(`${dataFim}T00:00:00`)
 
-  if (range) {
-    if (slot.data < range.dataInicio || slot.data > range.dataFim) {
-      return `Data fora do período permitido (${formatDateBR(range.dataInicio)} a ${formatDateBR(range.dataFim)})`
-    }
-    if (range.horarioInicio && slot.horario < range.horarioInicio) {
-      return `Horário anterior ao permitido (a partir das ${range.horarioInicio})`
-    }
-    if (range.horarioFim && slot.horario > range.horarioFim) {
-      return `Horário posterior ao permitido (até as ${range.horarioFim})`
-    }
+  const current = new Date(start)
+  while (current <= end) {
+    const isoDate = current.toISOString().split("T")[0]
+    const label = new Intl.DateTimeFormat("pt-BR", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(current)
+    options.push({ value: isoDate, label })
+    current.setDate(current.getDate() + 1)
   }
 
-  return null
+  return options
+}
+
+/**
+ * Gera os horários em intervalos de 30 minutos entre horarioInicio e horarioFim.
+ */
+function generateTimeOptions(horarioInicio: string, horarioFim: string): { value: string; label: string }[] {
+  const options: { value: string; label: string }[] = []
+
+  const [startH, startM] = horarioInicio.split(":").map(Number)
+  const [endH, endM] = horarioFim.split(":").map(Number)
+
+  const startMinutes = startH * 60 + startM
+  const endMinutes = endH * 60 + endM
+
+  for (let mins = startMinutes; mins <= endMinutes; mins += 30) {
+    const h = Math.floor(mins / 60).toString().padStart(2, "0")
+    const m = (mins % 60).toString().padStart(2, "0")
+    const time = `${h}:${m}`
+    options.push({ value: time, label: time })
+  }
+
+  return options
 }
 
 function formatDateBR(iso: string): string {
@@ -98,17 +131,23 @@ export function SlotSelectionModal({
     }
   }, [open, currentSelections])
 
+  // Gerar opções de data e horário baseadas no range do admin
+  const dateOptions = useMemo(() => {
+    if (!rangeSelecao) return []
+    return generateDateOptions(rangeSelecao.dataInicio, rangeSelecao.dataFim)
+  }, [rangeSelecao])
+
+  const timeOptions = useMemo(() => {
+    if (!rangeSelecao?.horarioInicio || !rangeSelecao?.horarioFim) return []
+    return generateTimeOptions(rangeSelecao.horarioInicio, rangeSelecao.horarioFim)
+  }, [rangeSelecao])
+
+  const hasRange = !!rangeSelecao && dateOptions.length > 0
   const canAdd = selections.length < 3
   const canRemove = selections.length > 1
 
-  // Validate all slots
-  const errors = useMemo(() => {
-    return selections.map((slot) => validateSlot(slot, rangeSelecao))
-  }, [selections, rangeSelecao])
-
-  const hasErrors = errors.some((e) => e !== null)
   const allFilled = selections.every((s) => s.data && s.horario)
-  const canSubmit = allFilled && !hasErrors && selections.length >= 1
+  const canSubmit = allFilled && selections.length >= 1
 
   function handleAddSlot() {
     if (!canAdd) return
@@ -129,7 +168,7 @@ export function SlotSelectionModal({
 
   const handleConfirm = () => {
     const validSlots = selections.filter((s) => s.data && s.horario)
-    if (validSlots.length > 0 && !hasErrors) {
+    if (validSlots.length > 0) {
       onConfirm(validSlots)
     }
   }
@@ -171,36 +210,66 @@ export function SlotSelectionModal({
                   <label className="block text-xs font-medium text-muted-foreground mb-1">
                     Data {index + 1}
                   </label>
-                  <input
-                    type="date"
-                    className={`block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] focus:ring-2 ${
-                      errors[index] && slot.data
-                        ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-600 focus:ring-blue-200"
-                    }`}
-                    value={slot.data}
-                    onChange={(e) => handleSlotChange(index, "data", e.target.value)}
-                    disabled={isLoading}
-                    aria-label={`Data do slot ${index + 1}`}
-                  />
+                  {hasRange ? (
+                    <Select
+                      value={slot.data}
+                      onValueChange={(val) => handleSlotChange(index, "data", val)}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger aria-label={`Data do slot ${index + 1}`}>
+                        <SelectValue placeholder="Selecione a data" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dateOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <input
+                      type="date"
+                      className="block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+                      value={slot.data}
+                      onChange={(e) => handleSlotChange(index, "data", e.target.value)}
+                      disabled={isLoading}
+                      aria-label={`Data do slot ${index + 1}`}
+                    />
+                  )}
                 </div>
 
                 <div className="flex-1">
                   <label className="block text-xs font-medium text-muted-foreground mb-1">
                     Horário {index + 1}
                   </label>
-                  <input
-                    type="time"
-                    className={`block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] focus:ring-2 ${
-                      errors[index] && slot.horario
-                        ? "border-red-400 focus:border-red-500 focus:ring-red-200"
-                        : "border-gray-300 focus:border-blue-600 focus:ring-blue-200"
-                    }`}
-                    value={slot.horario}
-                    onChange={(e) => handleSlotChange(index, "horario", e.target.value)}
-                    disabled={isLoading}
-                    aria-label={`Horário do slot ${index + 1}`}
-                  />
+                  {hasRange && timeOptions.length > 0 ? (
+                    <Select
+                      value={slot.horario}
+                      onValueChange={(val) => handleSlotChange(index, "horario", val)}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger aria-label={`Horário do slot ${index + 1}`}>
+                        <SelectValue placeholder="Selecione o horário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {timeOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <input
+                      type="time"
+                      className="block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+                      value={slot.horario}
+                      onChange={(e) => handleSlotChange(index, "horario", e.target.value)}
+                      disabled={isLoading}
+                      aria-label={`Horário do slot ${index + 1}`}
+                    />
+                  )}
                 </div>
 
                 <Button
@@ -215,14 +284,6 @@ export function SlotSelectionModal({
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
-
-              {/* Error message */}
-              {errors[index] && (
-                <p className="text-xs text-red-600 flex items-center gap-1 pl-1">
-                  <AlertCircle className="h-3 w-3 shrink-0" />
-                  {errors[index]}
-                </p>
-              )}
             </div>
           ))}
 

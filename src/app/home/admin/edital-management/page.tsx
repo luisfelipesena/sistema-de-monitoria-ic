@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  EditalFormData,
-  EditalFormDialog,
+    EditalFormData,
+    EditalFormDialog,
 } from "@/components/features/edital/EditalFormDialog";
 import { EditalStatsCards } from "@/components/features/edital/EditalStatsCards";
 import { createEditalTableColumns } from "@/components/features/edital/EditalTableColumns";
@@ -11,24 +11,24 @@ import { PagesLayout } from "@/components/layout/PagesLayout";
 import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEditalPdf } from "@/hooks/use-files";
 import { useToast } from "@/hooks/use-toast";
 import {
-  EditalListItem,
-  PERIODO_INSCRICAO_STATUS_ATIVO,
-  SEMESTRE_1,
-  SEMESTRE_2,
-  TIPO_EDITAL_DCC,
-  TIPO_EDITAL_DCI,
+    EditalListItem,
+    PERIODO_INSCRICAO_STATUS_ATIVO,
+    SEMESTRE_1,
+    SEMESTRE_2,
+    TIPO_EDITAL_DCC,
+    TIPO_EDITAL_DCI,
 } from "@/types";
 import type { SlotDataHorario } from "@/types/selecao-inputs";
 import { api } from "@/utils/api";
@@ -108,7 +108,20 @@ const editalFormSchema = z
     datasProvasDisponiveis: z.array(z.object({ data: z.string(), horario: z.string() })).default([]),
   })
   .superRefine((data, ctx) => {
-    if (data.dataFimAlteracao > data.dataInicioInscricao) {
+    // Helper: extrai só a parte da data (YYYY-MM-DD) para comparação sem hora
+    const toDateOnly = (d: Date) => {
+      if (!(d instanceof Date) || isNaN(d.getTime())) return 0
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+    }
+
+    const fimAlteracao = toDateOnly(data.dataFimAlteracao)
+    const inicioInscricao = toDateOnly(data.dataInicioInscricao)
+    const fimInscricao = toDateOnly(data.dataFimInscricao)
+    const inicioSelecao = toDateOnly(data.dataInicioSelecao)
+    const fimSelecao = toDateOnly(data.dataFimSelecao)
+    const divulgacao = toDateOnly(data.dataDivulgacaoResultado)
+
+    if (fimAlteracao && inicioInscricao && fimAlteracao > inicioInscricao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "O fim da janela de alteração deve ser anterior ou igual ao início das inscrições",
@@ -116,7 +129,7 @@ const editalFormSchema = z
       });
     }
 
-    if (data.dataFimInscricao <= data.dataInicioInscricao) {
+    if (fimInscricao && inicioInscricao && fimInscricao <= inicioInscricao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Data fim de inscrição deve ser posterior à data início",
@@ -124,7 +137,7 @@ const editalFormSchema = z
       });
     }
 
-    if (data.dataInicioSelecao <= data.dataFimInscricao) {
+    if (inicioSelecao && fimInscricao && inicioSelecao <= fimInscricao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Data de início da seleção deve ser posterior ao fim da inscrição",
@@ -132,7 +145,7 @@ const editalFormSchema = z
       });
     }
 
-    if (data.dataFimSelecao < data.dataInicioSelecao) {
+    if (fimSelecao && inicioSelecao && fimSelecao < inicioSelecao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Data fim de seleção deve ser posterior ou igual à data início",
@@ -140,7 +153,7 @@ const editalFormSchema = z
       });
     }
 
-    if (data.dataDivulgacaoResultado < data.dataFimSelecao) {
+    if (divulgacao && fimSelecao && divulgacao < fimSelecao) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Data de divulgação deve ser posterior ou igual ao fim da seleção",
@@ -309,6 +322,7 @@ export default function EditalManagementPage() {
 
   const createForm = useForm<EditalFormData>({
     resolver: zodResolver(editalFormSchema),
+    mode: "onSubmit",
     defaultValues: {
       tipo: TIPO_EDITAL_DCC,
       numeroEdital: "",
@@ -330,6 +344,7 @@ export default function EditalManagementPage() {
 
   const editForm = useForm<EditalFormData>({
     resolver: zodResolver(editalFormSchema),
+    mode: "onSubmit",
     defaultValues: {
       tipo: TIPO_EDITAL_DCC,
       numeroEdital: "",
@@ -490,6 +505,17 @@ export default function EditalManagementPage() {
 
   const openEditDialog = (edital: EditalListItem) => {
     setSelectedEdital(edital);
+
+    // Helper para converter datas vindas do servidor (que podem ser strings ISO UTC)
+    // para Date local sem problemas de fuso
+    const toLocalDate = (d: Date | string | null | undefined): Date | undefined => {
+      if (!d) return undefined
+      const date = d instanceof Date ? d : new Date(d)
+      // Se a hora for 0 (meia-noite UTC), provavelmente é uma date-only do banco
+      // Recriar como data local para evitar shift de dia
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0)
+    }
+
     editForm.reset({
       tipo: (edital.tipo as typeof TIPO_EDITAL_DCC | typeof TIPO_EDITAL_DCI) || TIPO_EDITAL_DCC,
       numeroEdital: edital.numeroEdital,
@@ -498,19 +524,13 @@ export default function EditalManagementPage() {
       valorBolsa: edital.valorBolsa || "400.00",
       ano: edital.periodoInscricao?.ano || currentYear,
       semestre: edital.periodoInscricao?.semestre || currentSemester,
-      dataInicioInscricao: edital.periodoInscricao?.dataInicio
-        ? new Date(edital.periodoInscricao.dataInicio)
-        : new Date(),
-      dataFimInscricao: edital.periodoInscricao?.dataFim
-        ? new Date(edital.periodoInscricao.dataFim)
-        : new Date(),
-      dataInicioSelecao: edital.dataInicioSelecao ? new Date(edital.dataInicioSelecao) : undefined,
-      dataFimSelecao: edital.dataFimSelecao ? new Date(edital.dataFimSelecao) : undefined,
+      dataInicioInscricao: toLocalDate(edital.periodoInscricao?.dataInicio) || new Date(),
+      dataFimInscricao: toLocalDate(edital.periodoInscricao?.dataFim) || new Date(),
+      dataInicioSelecao: toLocalDate(edital.dataInicioSelecao),
+      dataFimSelecao: toLocalDate(edital.dataFimSelecao),
       horarioInicioSelecao: edital.horarioInicioSelecao || "08:00",
       horarioFimSelecao: edital.horarioFimSelecao || "18:00",
-      dataDivulgacaoResultado: edital.dataDivulgacaoResultado
-        ? new Date(edital.dataDivulgacaoResultado)
-        : undefined,
+      dataDivulgacaoResultado: toLocalDate(edital.dataDivulgacaoResultado),
       dataInicioAlteracao: edital.dataInicioAlteracao ? new Date(edital.dataInicioAlteracao) : undefined,
       dataFimAlteracao: edital.dataFimAlteracao ? new Date(edital.dataFimAlteracao) : undefined,
       numeroEditalPrograd: edital.periodoInscricao?.numeroEditalPrograd || "",

@@ -73,23 +73,38 @@ export const newEditalSchema = z
     // PROGRAD
     numeroEditalPrograd: z.string().optional(),
   })
-  .refine((data) => data.dataFimAlteracao <= data.dataInicioInscricao, {
+  .refine((data) => {
+    const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+    return toDay(data.dataFimAlteracao) <= toDay(data.dataInicioInscricao)
+  }, {
     message: 'O fim da janela de alteração deve ser anterior ou igual ao início das inscrições',
     path: ['dataFimAlteracao'],
   })
-  .refine((data) => data.dataFimInscricao > data.dataInicioInscricao, {
+  .refine((data) => {
+    const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+    return toDay(data.dataFimInscricao) > toDay(data.dataInicioInscricao)
+  }, {
     message: 'Data de fim da inscrição deve ser posterior à data de início',
     path: ['dataFimInscricao'],
   })
-  .refine((data) => data.dataInicioSelecao > data.dataFimInscricao, {
+  .refine((data) => {
+    const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+    return toDay(data.dataInicioSelecao) > toDay(data.dataFimInscricao)
+  }, {
     message: 'Data de início da seleção deve ser posterior ao fim da inscrição',
     path: ['dataInicioSelecao'],
   })
-  .refine((data) => data.dataFimSelecao >= data.dataInicioSelecao, {
+  .refine((data) => {
+    const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+    return toDay(data.dataFimSelecao) >= toDay(data.dataInicioSelecao)
+  }, {
     message: 'Data de fim da seleção deve ser posterior ou igual à data de início',
     path: ['dataFimSelecao'],
   })
-  .refine((data) => data.dataDivulgacaoResultado >= data.dataFimSelecao, {
+  .refine((data) => {
+    const toDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+    return toDay(data.dataDivulgacaoResultado) >= toDay(data.dataFimSelecao)
+  }, {
     message: 'Data de divulgação dos resultados deve ser posterior ou igual ao fim da seleção',
     path: ['dataDivulgacaoResultado'],
   })
