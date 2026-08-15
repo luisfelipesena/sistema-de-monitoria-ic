@@ -1,9 +1,8 @@
 import { db } from '@/server/db'
+import { ConflictError } from '@/server/lib/errors'
 import { createConfiguracoesRepository } from './configuracoes-repository'
 
 export const EMAIL_IC_CHAVE = 'EMAIL_INSTITUTO_COMPUTACAO'
-export const EMAIL_GERAL_PROFESSORES_CHAVE = 'EMAIL_GERAL_PROFESSORES'
-export const EMAIL_GERAL_ESTUDANTES_CHAVE = 'EMAIL_GERAL_ESTUDANTES'
 
 export interface UpdateDepartamentoEmailInput {
   departamentoId: number
@@ -58,53 +57,72 @@ export const createConfiguracoesService = (database: typeof db) => {
       return { success: true }
     },
 
+    // --- Email Notificação ---
+
+    async getEmailsNotificacao() {
+      return await repo.getEmailsNotificacao()
+    },
+
+    async createEmailNotificacao(input: { nome: string; email: string; descricao?: string | null }) {
+      const existing = await repo.findEmailNotificacaoByEmail(input.email)
+      if (existing) {
+        throw new ConflictError('Este email já está cadastrado na lista de notificação.')
+      }
+      return await repo.createEmailNotificacao(input)
+    },
+
+    async updateEmailNotificacao(input: { id: number; nome?: string; email?: string; descricao?: string | null }) {
+      if (input.email) {
+        const existing = await repo.findEmailNotificacaoByEmail(input.email, input.id)
+        if (existing) {
+          throw new ConflictError('Este email já está cadastrado na lista de notificação.')
+        }
+      }
+      await repo.updateEmailNotificacao(input.id, {
+        nome: input.nome,
+        email: input.email,
+        descricao: input.descricao,
+      })
+      return { success: true }
+    },
+
+    async deleteEmailNotificacao(id: number) {
+      await repo.deleteEmailNotificacao(id)
+      return { success: true }
+    },
+
     async getEmailIC() {
       const config = await repo.getConfiguracaoSistema(EMAIL_IC_CHAVE)
       return config?.valor ?? null
     },
 
     async setEmailIC(email: string | null) {
-      await repo.setConfiguracaoSistema(EMAIL_IC_CHAVE, email)
-      return { success: true }
-    },
-
-    async getEmailGeralProfessores() {
-      const config = await repo.getConfiguracaoSistema(EMAIL_GERAL_PROFESSORES_CHAVE)
-      return config?.valor ?? null
-    },
-
-    async setEmailGeralProfessores(email: string | null) {
-      await repo.upsertConfiguracaoSistema(
-        EMAIL_GERAL_PROFESSORES_CHAVE,
-        email,
-        'Email geral dos professores para notificação de publicação de edital'
-      )
-      return { success: true }
-    },
-
-    async getEmailGeralEstudantes() {
-      const config = await repo.getConfiguracaoSistema(EMAIL_GERAL_ESTUDANTES_CHAVE)
-      return config?.valor ?? null
-    },
-
-    async setEmailGeralEstudantes(email: string | null) {
-      await repo.upsertConfiguracaoSistema(
-        EMAIL_GERAL_ESTUDANTES_CHAVE,
-        email,
-        'Email geral dos estudantes para notificação de publicação de edital'
-      )
+      await repo.upsertConfiguracaoSistema(EMAIL_IC_CHAVE, email, 'Email institucional do Instituto de Computação')
       return { success: true }
     },
 
     async getEmailsNotificacaoEdital() {
-      const [profConfig, estConfig] = await Promise.all([
-        repo.getConfiguracaoSistema(EMAIL_GERAL_PROFESSORES_CHAVE),
-        repo.getConfiguracaoSistema(EMAIL_GERAL_ESTUDANTES_CHAVE),
+      const [emailsNotificacao, emailICConfig] = await Promise.all([
+        repo.getEmailsNotificacao(),
+        repo.getConfiguracaoSistema(EMAIL_IC_CHAVE),
       ])
+
       const emails: string[] = []
-      if (profConfig?.valor) emails.push(profConfig.valor)
-      if (estConfig?.valor) emails.push(estConfig.valor)
-      return emails
+
+      // Adiciona emails da tabela de notificação
+      for (const item of emailsNotificacao) {
+        if (item.email) {
+          emails.push(item.email)
+        }
+      }
+
+      // Adiciona o email do IC
+      if (emailICConfig?.valor) {
+        emails.push(emailICConfig.valor)
+      }
+
+      // Remove duplicatas
+      return [...new Set(emails)]
     },
   }
 }
