@@ -3,8 +3,6 @@ import { ConflictError } from '@/server/lib/errors'
 import { createConfiguracoesRepository } from './configuracoes-repository'
 
 export const EMAIL_IC_CHAVE = 'EMAIL_INSTITUTO_COMPUTACAO'
-export const EMAIL_GERAL_PROFESSORES_CHAVE = 'EMAIL_GERAL_PROFESSORES'
-export const EMAIL_GERAL_ESTUDANTES_CHAVE = 'EMAIL_GERAL_ESTUDANTES'
 
 export interface UpdateDepartamentoEmailInput {
   departamentoId: number
