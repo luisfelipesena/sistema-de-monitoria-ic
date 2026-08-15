@@ -1,19 +1,19 @@
 import { relations } from 'drizzle-orm'
 import {
-    boolean,
-    date,
-    decimal,
-    index,
-    integer,
-    numeric,
-    pgEnum,
-    pgTable,
-    real,
-    serial,
-    text,
-    timestamp,
-    uniqueIndex,
-    varchar,
+  boolean,
+  date,
+  decimal,
+  index,
+  integer,
+  numeric,
+  pgEnum,
+  pgTable,
+  real,
+  serial,
+  text,
+  timestamp,
+  uniqueIndex,
+  varchar,
 } from 'drizzle-orm/pg-core'
 
 // --- Auth Schema ---

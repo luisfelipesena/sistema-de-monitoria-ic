@@ -111,10 +111,7 @@ export const createConfiguracoesRepository = (database: Database) => {
     },
 
     async updateEmailNotificacao(id: number, data: { nome?: string; email?: string; descricao?: string | null }) {
-      await database
-        .update(emailNotificacaoTable)
-        .set(data)
-        .where(eq(emailNotificacaoTable.id, id))
+      await database.update(emailNotificacaoTable).set(data).where(eq(emailNotificacaoTable.id, id))
     },
 
     async deleteEmailNotificacao(id: number) {
