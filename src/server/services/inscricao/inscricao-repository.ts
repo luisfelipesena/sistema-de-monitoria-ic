@@ -264,12 +264,18 @@ export class InscricaoRepository {
     })
   }
 
-  async findInscricaoByAlunoAndProjeto(alunoId: number, projetoId: number, periodoInscricaoId: number) {
+  async findInscricaoByAlunoAndProjeto(
+    alunoId: number,
+    projetoId: number,
+    periodoInscricaoId: number,
+    tipoVagaPretendida?: TipoInscricao
+  ) {
     return this.db.query.inscricaoTable.findFirst({
       where: and(
         eq(inscricaoTable.alunoId, alunoId),
         eq(inscricaoTable.projetoId, projetoId),
-        eq(inscricaoTable.periodoInscricaoId, periodoInscricaoId)
+        eq(inscricaoTable.periodoInscricaoId, periodoInscricaoId),
+        tipoVagaPretendida ? eq(inscricaoTable.tipoVagaPretendida, tipoVagaPretendida) : undefined
       ),
     })
   }

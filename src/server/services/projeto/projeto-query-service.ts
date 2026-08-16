@@ -132,12 +132,12 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
       const aluno = await repo.findAlunoByUserId(userId)
 
       const now = new Date()
-      const currentYear = now.getFullYear()
-      const currentSemester = now.getMonth() < 6 ? SEMESTRE_1 : SEMESTRE_2
+      const periodoAtivo = await repo.findActivePeriodo(undefined, undefined, now)
 
-      const periodoAtivo = await repo.findActivePeriodo(currentYear, currentSemester, now)
+      const targetYear = periodoAtivo ? periodoAtivo.ano : now.getFullYear()
+      const targetSemester = periodoAtivo ? periodoAtivo.semestre : now.getMonth() < 6 ? SEMESTRE_1 : SEMESTRE_2
 
-      const projetos = await repo.findApprovedByPeriod(currentYear, currentSemester, userDeptoId)
+      const projetos = await repo.findApprovedByPeriod(targetYear, targetSemester, userDeptoId)
 
       const inscricoes = aluno ? await repo.findInscricoesByAlunoId(aluno.id) : []
       const inscricoesMap = new Map(inscricoes.map((i) => [i.projetoId, i]))

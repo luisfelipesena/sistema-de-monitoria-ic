@@ -1,5 +1,6 @@
 import type { db } from '@/server/db'
 import {
+  assinaturaDocumentoTable,
   editalSignatureTokenTable,
   editalTable,
   periodoInscricaoTable,
@@ -147,6 +148,8 @@ export function createEditalRepository(db: Database) {
     },
 
     async delete(id: number) {
+      await db.update(projetoTable).set({ editalInternoId: null }).where(eq(projetoTable.editalInternoId, id))
+      await db.delete(assinaturaDocumentoTable).where(eq(assinaturaDocumentoTable.editalId, id))
       await db.delete(editalTable).where(eq(editalTable.id, id))
     },
 

@@ -537,11 +537,11 @@ export function createProjetoRepository(db: Database) {
     },
 
     // Período de Inscrição
-    async findActivePeriodo(ano: number, semestre: Semestre, now: Date) {
+    async findActivePeriodo(ano?: number, semestre?: Semestre, now: Date = new Date()) {
       return db.query.periodoInscricaoTable.findFirst({
         where: and(
-          eq(periodoInscricaoTable.ano, ano),
-          eq(periodoInscricaoTable.semestre, semestre),
+          ano !== undefined ? eq(periodoInscricaoTable.ano, ano) : undefined,
+          semestre !== undefined ? eq(periodoInscricaoTable.semestre, semestre) : undefined,
           lte(periodoInscricaoTable.dataInicio, now),
           gte(periodoInscricaoTable.dataFim, now)
         ),

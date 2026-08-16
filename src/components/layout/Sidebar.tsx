@@ -426,12 +426,6 @@ const menuConfig: MenuConfig[] = [
         roles: ["student"],
       },
       {
-        label: "Vagas Disponíveis",
-        href: "/home/student/vagas",
-        icon: Award,
-        roles: ["student"],
-      },
-      {
         label: "Resultados das Seleções",
         href: "/home/student/resultados",
         icon: FileCheck,
@@ -447,12 +441,6 @@ const menuConfig: MenuConfig[] = [
         label: "Meu Status",
         href: "/home/student/status",
         icon: FileCheck,
-        roles: ["student"],
-      },
-      {
-        label: "Certificados",
-        href: "/home/student/certificados",
-        icon: Award,
         roles: ["student"],
       },
     ],

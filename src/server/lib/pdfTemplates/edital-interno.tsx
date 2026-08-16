@@ -1,6 +1,11 @@
 import { type Semestre, type TipoMonitoria } from "@/types"
 import { IC_LOGO_BASE64, UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
-import { Document, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+
+// Disable automatic hyphenation in PDF rendering to prevent breaking URLs and words with extra hyphens
+if (typeof Font?.registerHyphenationCallback === "function") {
+  Font.registerHyphenationCallback((word) => [word])
+}
 
 const styles = StyleSheet.create({
   page: {

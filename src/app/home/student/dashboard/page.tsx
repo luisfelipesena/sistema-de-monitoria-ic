@@ -234,13 +234,6 @@ export default function StudentDashboard() {
                 </p>
                 <div className="flex gap-2 justify-center">
                   <Link
-                    href="/home/student/vagas"
-                    className="text-sm text-primary hover:underline flex items-center gap-1"
-                  >
-                    <Award className="h-3 w-3" />
-                    Ver vagas disponíveis
-                  </Link>
-                  <Link
                     href="/home/student/inscricao-monitoria"
                     className="text-sm text-primary hover:underline flex items-center gap-1"
                   >
@@ -331,15 +324,7 @@ export default function StudentDashboard() {
       )}
 
       {/* Actions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/home/student/vagas')}>
-          <CardContent className="p-6 text-center">
-            <Award className="h-8 w-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-semibold mb-1">Vagas Disponíveis</h3>
-            <p className="text-xs text-muted-foreground">Veja todas as vagas abertas</p>
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push('/home/student/inscricao-monitoria')}>
           <CardContent className="p-6 text-center">
             <FileText className="h-8 w-8 mx-auto mb-2 text-primary" />
