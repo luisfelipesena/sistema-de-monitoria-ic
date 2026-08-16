@@ -211,7 +211,7 @@ export const projetoTable = pgTable('projeto', {
   descricao: text('descricao').notNull(), // Objectives/Justification
   professoresParticipantes: text('professores_participantes'), // Names of participating professors for collective projects
   // Campos específicos para edital interno DCC
-  editalInternoId: integer('edital_interno_id').references(() => editalTable.id), // Optional reference to internal DCC edital
+  editalInternoId: integer('edital_interno_id').references(() => editalTable.id, { onDelete: 'set null' }), // Optional reference to internal DCC edital
   dataSelecaoEscolhida: date('data_selecao_escolhida', { mode: 'date' }), // Data escolhida pelo professor dentre as disponíveis (legacy, single)
   horarioSelecao: varchar('horario_selecao', { length: 20 }), // Horário da seleção (ex: "14:00-16:00") (legacy, single)
   datasSelecaoEscolhidas: text('datas_selecao_escolhidas'), // JSON: [{data: "2025-08-10", horario: "08:00"}, ...] até 3 slots
@@ -1036,7 +1036,7 @@ export const assinaturaDocumentoTable = pgTable('assinatura_documento', {
     .notNull(), // Quem assinou
   projetoId: integer('projeto_id').references(() => projetoTable.id), // Se assinatura de um projeto
   vagaId: integer('vaga_id').references(() => vagaTable.id), // Se assinatura de um termo (vinculado à vaga)
-  editalId: integer('edital_id').references(() => editalTable.id), // Se assinatura de um edital
+  editalId: integer('edital_id').references(() => editalTable.id, { onDelete: 'cascade' }), // Se assinatura de um edital
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
 })
 

@@ -153,16 +153,20 @@ export class StudentInscricaoService {
       throw new BusinessError('Período de inscrições não está ativo', 'BAD_REQUEST')
     }
 
+    const tipoVaga = input.tipoVagaPretendida as TipoInscricao
+
     const existingInscricao = await this.repository.findInscricaoByAlunoAndProjeto(
       aluno.id,
       input.projetoId,
-      periodoAtivo.id
+      periodoAtivo.id,
+      tipoVaga
     )
     if (existingInscricao) {
-      throw new BusinessError('Você já se inscreveu neste projeto', 'CONFLICT')
+      throw new BusinessError(
+        `Você já possui uma inscrição como ${tipoVaga === BOLSISTA ? 'Bolsista' : 'Voluntário'} neste projeto`,
+        'CONFLICT'
+      )
     }
-
-    const tipoVaga = input.tipoVagaPretendida as TipoInscricao
     if (tipoVaga === BOLSISTA && (!projeto.bolsasDisponibilizadas || projeto.bolsasDisponibilizadas <= 0)) {
       throw new BusinessError('Não há vagas de bolsista disponíveis para este projeto', 'BAD_REQUEST')
     }
