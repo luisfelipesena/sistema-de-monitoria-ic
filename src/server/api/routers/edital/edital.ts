@@ -448,7 +448,7 @@ export const editalRouter = createTRPCRouter({
 
         if (emailLists.length === 0) {
           throw new ValidationError(
-            'Nenhum email de notificação configurado. Configure os emails de professores e estudantes nas Configurações.'
+            'Nenhum email de notificação configurado. Configure os emails dos setores e do IC nas Configurações.'
           )
         }
 

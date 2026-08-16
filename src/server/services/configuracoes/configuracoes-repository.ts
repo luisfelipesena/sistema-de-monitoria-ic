@@ -1,5 +1,5 @@
 import type { db } from '@/server/db'
-import { configuracaoSistemaTable, departamentoTable } from '@/server/db/schema'
+import { configuracaoSistemaTable, departamentoTable, emailNotificacaoTable } from '@/server/db/schema'
 import { eq } from 'drizzle-orm'
 
 type Database = typeof db
@@ -80,6 +80,42 @@ export const createConfiguracoesRepository = (database: Database) => {
           descricao: descricao ?? null,
         })
       }
+    },
+
+    // --- Email Notificação ---
+
+    async getEmailsNotificacao() {
+      return database.query.emailNotificacaoTable.findMany({
+        orderBy: (email, { asc }) => [asc(email.nome)],
+      })
+    },
+
+    async findEmailNotificacaoByEmail(email: string, excludeId?: number) {
+      const result = await database.query.emailNotificacaoTable.findFirst({
+        where: eq(emailNotificacaoTable.email, email),
+      })
+      if (result && excludeId && result.id === excludeId) return null
+      return result
+    },
+
+    async createEmailNotificacao(data: { nome: string; email: string; descricao?: string | null }) {
+      const [created] = await database
+        .insert(emailNotificacaoTable)
+        .values({
+          nome: data.nome,
+          email: data.email,
+          descricao: data.descricao ?? null,
+        })
+        .returning()
+      return created
+    },
+
+    async updateEmailNotificacao(id: number, data: { nome?: string; email?: string; descricao?: string | null }) {
+      await database.update(emailNotificacaoTable).set(data).where(eq(emailNotificacaoTable.id, id))
+    },
+
+    async deleteEmailNotificacao(id: number) {
+      await database.delete(emailNotificacaoTable).where(eq(emailNotificacaoTable.id, id))
     },
   }
 }

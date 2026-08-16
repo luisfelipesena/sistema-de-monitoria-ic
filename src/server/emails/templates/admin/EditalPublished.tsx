@@ -43,7 +43,7 @@ export function EditalPublished({
 
       <InfoBox variant="info">
         <Text style={infoTextStyle}>
-          <strong>📎 O PDF do edital assinado está em anexo neste email.</strong>
+          <strong>📎 O PDF do edital está em anexo neste email.</strong>
         </Text>
       </InfoBox>
 

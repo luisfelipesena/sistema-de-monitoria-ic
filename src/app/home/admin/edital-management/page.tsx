@@ -1,8 +1,8 @@
 "use client";
 
 import {
-    EditalFormData,
-    EditalFormDialog,
+  EditalFormData,
+  EditalFormDialog,
 } from "@/components/features/edital/EditalFormDialog";
 import { EditalStatsCards } from "@/components/features/edital/EditalStatsCards";
 import { createEditalTableColumns } from "@/components/features/edital/EditalTableColumns";
@@ -11,24 +11,24 @@ import { PagesLayout } from "@/components/layout/PagesLayout";
 import { TableComponent } from "@/components/layout/TableComponent";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useEditalPdf } from "@/hooks/use-files";
 import { useToast } from "@/hooks/use-toast";
 import {
-    EditalListItem,
-    PERIODO_INSCRICAO_STATUS_ATIVO,
-    SEMESTRE_1,
-    SEMESTRE_2,
-    TIPO_EDITAL_DCC,
-    TIPO_EDITAL_DCI,
+  EditalListItem,
+  PERIODO_INSCRICAO_STATUS_ATIVO,
+  SEMESTRE_1,
+  SEMESTRE_2,
+  TIPO_EDITAL_DCC,
+  TIPO_EDITAL_DCI,
 } from "@/types";
 import type { SlotDataHorario } from "@/types/selecao-inputs";
 import { api } from "@/utils/api";
@@ -258,8 +258,7 @@ export default function EditalManagementPage() {
         description: (
           <div className="space-y-2">
             <p>
-              Os emails para o <strong>email geral dos professores</strong> e{" "}
-              <strong>email geral dos alunos</strong> foram enviados com sucesso.
+              Os emails de notificação foram enviados com sucesso.
             </p>
             <p className="text-sm text-muted-foreground">
               {data.emailsSent} notificação(ões) enviada(s) para:{" "}

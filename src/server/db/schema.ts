@@ -1383,6 +1383,17 @@ export const configuracaoSistemaTable = pgTable('configuracao_sistema', {
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
 })
 
+// --- Email Notification List ---
+
+export const emailNotificacaoTable = pgTable('email_notificacao', {
+  id: serial('id').primaryKey(),
+  nome: varchar('nome', { length: 255 }).notNull(),
+  email: text('email').notNull(),
+  descricao: text('descricao'),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
+})
+
 // Export all table and relation types for use across the app
 export type User = typeof userTable.$inferSelect
 export type NewUser = typeof userTable.$inferInsert
@@ -1422,3 +1433,5 @@ export type ReminderExecutionLog = typeof reminderExecutionLogTable.$inferSelect
 export type NewReminderExecutionLog = typeof reminderExecutionLogTable.$inferInsert
 export type ConfiguracaoSistema = typeof configuracaoSistemaTable.$inferSelect
 export type NewConfiguracaoSistema = typeof configuracaoSistemaTable.$inferInsert
+export type EmailNotificacao = typeof emailNotificacaoTable.$inferSelect
+export type NewEmailNotificacao = typeof emailNotificacaoTable.$inferInsert
