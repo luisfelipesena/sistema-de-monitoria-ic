@@ -1,11 +1,11 @@
 import { useToast } from '@/hooks/use-toast'
 import type { MonitoriaFormData } from '@/types'
 import {
-    formatErrorResponse,
-    projectFormSchema,
-    PROJETO_STATUS_DRAFT,
-    SEMESTRE_1,
-    TIPO_PROPOSICAO_INDIVIDUAL,
+  formatErrorResponse,
+  projectFormSchema,
+  PROJETO_STATUS_DRAFT,
+  SEMESTRE_1,
+  TIPO_PROPOSICAO_INDIVIDUAL,
 } from '@/types'
 import { api } from '@/utils/api'
 import { zodResolver } from '@hookform/resolvers/zod'

@@ -65,10 +65,10 @@ export function createEditalPdfService(repo: EditalRepository) {
           const hasConfirmedDates = !!(projeto as Record<string, unknown>).dadosEditalConfirmados
 
           // Pontos de prova e Bibliografia: só aparecem no edital quando o professor confirmar dados para o edital
-          const pontosRaw = hasConfirmedDates ? (projeto.pontosProva || template?.pontosProvaDefault) : undefined
+          const pontosRaw = hasConfirmedDates ? projeto.pontosProva || template?.pontosProvaDefault : undefined
           const pontosSelecao = pontosRaw ? pontosRaw.split('\n').filter((p) => p.trim()) : undefined
 
-          const bibRaw = hasConfirmedDates ? (projeto.bibliografia || template?.bibliografiaDefault) : undefined
+          const bibRaw = hasConfirmedDates ? projeto.bibliografia || template?.bibliografiaDefault : undefined
           const bibliografia = bibRaw ? bibRaw.split('\n').filter((b) => b.trim()) : undefined
 
           return {
@@ -88,27 +88,32 @@ export function createEditalPdfService(repo: EditalRepository) {
             bibliografia: bibliografia && bibliografia.length > 0 ? bibliografia : undefined,
             // Req 5.1, 5.3: dataSelecao only set when professor confirmed edital data (section 6.2.3)
             dataSelecao: hasConfirmedDates ? projeto.dataSelecaoEscolhida?.toISOString() : undefined,
-            horarioSelecao: hasConfirmedDates ? (projeto.horarioSelecao || undefined) : undefined,
-            datasSelecao: hasConfirmedDates ? (() => {
-              // Try new multi-slot field first
-              const raw = (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
-              if (raw) {
-                try {
-                  const parsed = JSON.parse(raw)
-                  if (Array.isArray(parsed) && parsed.length > 0) return parsed
-                } catch {
-                  /* fall through */
-                }
-              }
-              // Fallback to legacy single slot
-              if (projeto.dataSelecaoEscolhida && projeto.horarioSelecao) {
-                return [
-                  { data: projeto.dataSelecaoEscolhida.toISOString().split('T')[0], horario: projeto.horarioSelecao },
-                ]
-              }
-              return undefined
-            })() : undefined,
-            localSelecao: hasConfirmedDates ? (projeto.localSelecao || undefined) : undefined,
+            horarioSelecao: hasConfirmedDates ? projeto.horarioSelecao || undefined : undefined,
+            datasSelecao: hasConfirmedDates
+              ? (() => {
+                  // Try new multi-slot field first
+                  const raw = (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
+                  if (raw) {
+                    try {
+                      const parsed = JSON.parse(raw)
+                      if (Array.isArray(parsed) && parsed.length > 0) return parsed
+                    } catch {
+                      /* fall through */
+                    }
+                  }
+                  // Fallback to legacy single slot
+                  if (projeto.dataSelecaoEscolhida && projeto.horarioSelecao) {
+                    return [
+                      {
+                        data: projeto.dataSelecaoEscolhida.toISOString().split('T')[0],
+                        horario: projeto.horarioSelecao,
+                      },
+                    ]
+                  }
+                  return undefined
+                })()
+              : undefined,
+            localSelecao: hasConfirmedDates ? projeto.localSelecao || undefined : undefined,
           }
         }),
         equivalencias:

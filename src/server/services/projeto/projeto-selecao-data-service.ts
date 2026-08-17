@@ -260,17 +260,19 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       // Validate that voluntários are confirmed
       if (!projeto.voluntariosConfirmados) {
-        throw new ValidationError('É necessário confirmar o número de voluntários antes de confirmar os dados para o edital')
+        throw new ValidationError(
+          'É necessário confirmar o número de voluntários antes de confirmar os dados para o edital'
+        )
       }
 
       // Validate pontos de prova
       // Check project field, then template fallback
-      let hasPontos = !!(projeto.pontosProva && projeto.pontosProva.trim())
+      let hasPontos = !!projeto.pontosProva?.trim()
       if (!hasPontos && repo.findFirstDisciplinaForProjeto && repo.findProjetoTemplateByDisciplinaId) {
         const disciplina = await repo.findFirstDisciplinaForProjeto(projetoId)
         if (disciplina) {
           const template = await repo.findProjetoTemplateByDisciplinaId(disciplina.id)
-          hasPontos = !!(template?.pontosProvaDefault && template.pontosProvaDefault.trim())
+          hasPontos = !!template?.pontosProvaDefault?.trim()
         }
       }
 
@@ -279,12 +281,12 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       }
 
       // Validate bibliografia
-      let hasBibliografia = !!(projeto.bibliografia && projeto.bibliografia.trim())
+      let hasBibliografia = !!projeto.bibliografia?.trim()
       if (!hasBibliografia && repo.findFirstDisciplinaForProjeto && repo.findProjetoTemplateByDisciplinaId) {
         const disciplina = await repo.findFirstDisciplinaForProjeto(projetoId)
         if (disciplina) {
           const template = await repo.findProjetoTemplateByDisciplinaId(disciplina.id)
-          hasBibliografia = !!(template?.bibliografiaDefault && template.bibliografiaDefault.trim())
+          hasBibliografia = !!template?.bibliografiaDefault?.trim()
         }
       }
 
@@ -298,7 +300,10 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         voluntariosConfirmados: true,
       })
 
-      log.info({ projetoId, userId }, 'Dados do edital confirmados pelo professor (datas, pontos, bibliografia, voluntários)')
+      log.info(
+        { projetoId, userId },
+        'Dados do edital confirmados pelo professor (datas, pontos, bibliografia, voluntários)'
+      )
       return updated
     },
 
@@ -380,11 +385,12 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       )
 
       // Fallback: if new multi-slot field is empty but legacy fields exist, build from legacy
-      const datasEscolhidasFinal = datasEscolhidas.length > 0
-        ? datasEscolhidas
-        : (projeto.dataSelecaoEscolhida && projeto.horarioSelecao
-          ? [{ data: projeto.dataSelecaoEscolhida.toISOString().split('T')[0], horario: projeto.horarioSelecao }]
-          : [])
+      const datasEscolhidasFinal =
+        datasEscolhidas.length > 0
+          ? datasEscolhidas
+          : projeto.dataSelecaoEscolhida && projeto.horarioSelecao
+            ? [{ data: projeto.dataSelecaoEscolhida.toISOString().split('T')[0], horario: projeto.horarioSelecao }]
+            : []
 
       // Build range info from edital
       const editalI = projeto.editalInterno
