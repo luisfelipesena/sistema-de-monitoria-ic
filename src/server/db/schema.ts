@@ -197,6 +197,7 @@ export const projetoTable = pgTable('projeto', {
   bolsasSolicitadas: integer('bolsas_solicitadas').notNull().default(0), // Professor defines
   voluntariosSolicitados: integer('voluntarios_solicitados').notNull().default(0), // Professor defines
   voluntariosConfirmados: boolean('voluntarios_confirmados').default(false).notNull(), // Professor confirmed volunteer count
+  dadosEditalConfirmados: boolean('dados_edital_confirmados').default(false).notNull(), // Professor confirmed all data for edital (dates, pontos, bibliografia, voluntários)
   bolsasDisponibilizadas: integer('bolsas_disponibilizadas').default(0), // Admin defines after approval
   // voluntariosAtendidos: integer('voluntarios_atendidos'), // Calculated from accepted 'vaga'
   cargaHorariaSemana: integer('carga_horaria_semana').notNull(),

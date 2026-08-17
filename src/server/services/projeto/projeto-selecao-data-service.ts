@@ -93,7 +93,11 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
      */
     async chooseSlots(projetoId: number, slots: SlotDataHorario[], userId: number, userRole: UserRole) {
       if (slots.length === 0 || slots.length > 3) {
-        throw new ValidationError('Selecione entre 1 e 3 datas/horários')
+        throw new ValidationError('Selecione entre 2 e 3 datas/horários')
+      }
+
+      if (slots.length < 2) {
+        throw new ValidationError('É necessário selecionar no mínimo 2 datas/horários')
       }
 
       const projeto = await repo.findByIdWithEdital(projetoId)
@@ -139,6 +143,8 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         // Keep first slot in legacy fields for backward compatibility
         dataSelecaoEscolhida: new Date(slots[0].data),
         horarioSelecao: slots[0].horario,
+        // Reset edital confirmation when dates change
+        dadosEditalConfirmados: false,
       })
 
       log.info({ projetoId, slots, userId }, 'Slots de seleção escolhidos')
@@ -198,6 +204,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       const updated = await repo.update(projetoId, {
         voluntariosSolicitados: value,
         voluntariosConfirmados: false,
+        dadosEditalConfirmados: false,
       })
 
       log.info({ projetoId, value, userId }, 'Voluntários solicitados atualizado')
@@ -225,7 +232,84 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
     },
 
     /**
+     * Confirm all edital data for the projeto at once.
+     * Validates that dates, pontos de prova, and bibliografia are all filled.
+     * Sets dadosEditalConfirmados=true and voluntariosConfirmados=true.
+     */
+    async confirmDadosEdital(projetoId: number, userId: number, userRole: UserRole) {
+      const projeto = await repo.findByIdWithEdital(projetoId)
+      if (!projeto) {
+        throw new NotFoundError('Projeto', projetoId)
+      }
+
+      await verifyAuthorization(projeto, userId, userRole)
+
+      // Validate that selection dates are chosen (minimum 2)
+      const datasRaw = (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
+      const datasEscolhidas = parseDatasEscolhidas(datasRaw)
+      const hasLegacyDate = !!projeto.dataSelecaoEscolhida
+
+      if (datasEscolhidas.length < 2 && !hasLegacyDate) {
+        throw new ValidationError('É necessário escolher no mínimo 2 datas/horários de seleção antes de confirmar')
+      }
+
+      // Even with legacy date, enforce minimum 2 for new flow
+      if (datasEscolhidas.length < 2 && hasLegacyDate) {
+        throw new ValidationError('É necessário escolher no mínimo 2 datas/horários de seleção antes de confirmar')
+      }
+
+      // Validate that voluntários are confirmed
+      if (!projeto.voluntariosConfirmados) {
+        throw new ValidationError(
+          'É necessário confirmar o número de voluntários antes de confirmar os dados para o edital'
+        )
+      }
+
+      // Validate pontos de prova
+      // Check project field, then template fallback
+      let hasPontos = !!projeto.pontosProva?.trim()
+      if (!hasPontos && repo.findFirstDisciplinaForProjeto && repo.findProjetoTemplateByDisciplinaId) {
+        const disciplina = await repo.findFirstDisciplinaForProjeto(projetoId)
+        if (disciplina) {
+          const template = await repo.findProjetoTemplateByDisciplinaId(disciplina.id)
+          hasPontos = !!template?.pontosProvaDefault?.trim()
+        }
+      }
+
+      if (!hasPontos) {
+        throw new ValidationError('É necessário preencher os pontos de prova antes de confirmar')
+      }
+
+      // Validate bibliografia
+      let hasBibliografia = !!projeto.bibliografia?.trim()
+      if (!hasBibliografia && repo.findFirstDisciplinaForProjeto && repo.findProjetoTemplateByDisciplinaId) {
+        const disciplina = await repo.findFirstDisciplinaForProjeto(projetoId)
+        if (disciplina) {
+          const template = await repo.findProjetoTemplateByDisciplinaId(disciplina.id)
+          hasBibliografia = !!template?.bibliografiaDefault?.trim()
+        }
+      }
+
+      if (!hasBibliografia) {
+        throw new ValidationError('É necessário preencher a bibliografia antes de confirmar')
+      }
+
+      // All validations passed — confirm everything
+      const updated = await repo.update(projetoId, {
+        dadosEditalConfirmados: true,
+        voluntariosConfirmados: true,
+      })
+
+      log.info(
+        { projetoId, userId },
+        'Dados do edital confirmados pelo professor (datas, pontos, bibliografia, voluntários)'
+      )
+      return updated
+    },
+
+    /**
      * Update textual selection data fields (pontosProva, bibliografia).
+     * Validates that values are not empty when provided.
      */
     async updateSelecaoData(
       projetoId: number,
@@ -241,6 +325,16 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       await verifyAuthorization(projeto, userId, userRole)
 
+      // Validate: cannot save empty pontos de prova
+      if (pontosProva !== undefined && !pontosProva.trim()) {
+        throw new ValidationError('Os pontos de prova são obrigatórios e não podem ficar vazios')
+      }
+
+      // Validate: cannot save empty bibliografia
+      if (bibliografia !== undefined && !bibliografia.trim()) {
+        throw new ValidationError('A bibliografia é obrigatória e não pode ficar vazia')
+      }
+
       const updateData: Record<string, unknown> = {}
       if (pontosProva !== undefined) {
         updateData.pontosProva = pontosProva
@@ -248,6 +342,9 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       if (bibliografia !== undefined) {
         updateData.bibliografia = bibliografia
       }
+
+      // Reset edital confirmation when pontos/bibliografia change
+      updateData.dadosEditalConfirmados = false
 
       const updated = await repo.update(projetoId, updateData)
 
@@ -287,6 +384,14 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
       )
 
+      // Fallback: if new multi-slot field is empty but legacy fields exist, build from legacy
+      const datasEscolhidasFinal =
+        datasEscolhidas.length > 0
+          ? datasEscolhidas
+          : projeto.dataSelecaoEscolhida && projeto.horarioSelecao
+            ? [{ data: projeto.dataSelecaoEscolhida.toISOString().split('T')[0], horario: projeto.horarioSelecao }]
+            : []
+
       // Build range info from edital
       const editalI = projeto.editalInterno
       const rangeSelecao =
@@ -318,9 +423,10 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         projetoId: projeto.id,
         dataSelecaoEscolhida: projeto.dataSelecaoEscolhida?.toISOString().split('T')[0] ?? null,
         horarioSelecao: projeto.horarioSelecao ?? null,
-        datasSelecaoEscolhidas: datasEscolhidas,
+        datasSelecaoEscolhidas: datasEscolhidasFinal,
         voluntariosSolicitados: projeto.voluntariosSolicitados ?? 0,
         voluntariosConfirmados: projeto.voluntariosConfirmados ?? false,
+        dadosEditalConfirmados: projeto.dadosEditalConfirmados ?? false,
         bolsasDisponibilizadas: projeto.bolsasDisponibilizadas ?? 0,
         pontosProva: projeto.pontosProva || templatePontos || null,
         bibliografia: projeto.bibliografia || templateBibliografia || null,

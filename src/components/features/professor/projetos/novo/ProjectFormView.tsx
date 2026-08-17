@@ -4,9 +4,9 @@ import { TemplateForm } from "@/components/features/projects/TemplateForm"
 import { TemplateRequiredAlert } from "@/components/features/projects/TemplateRequiredAlert"
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Button } from "@/components/ui/button"
+import type { MonitoriaFormData } from "@/types"
 import { Edit3, RotateCcw } from "lucide-react"
 import type { UseFormReturn } from "react-hook-form"
-import type { MonitoriaFormData } from "@/types"
 
 interface ProjectFormViewProps {
   selectedDisciplina: {
@@ -107,19 +107,36 @@ export function ProjectFormView({
               setPublicoAlvoCustom={setPublicoAlvoCustom}
             />
           ) : (
-            <ProjectForm
-              form={projectForm}
-              onSubmit={onSubmitProject}
-              isSubmitting={isSubmittingProject}
-              atividades={atividades}
-              onAtividadeChange={onAtividadeChange}
-              onAddAtividade={onAddAtividade}
-              onRemoveAtividade={onRemoveAtividade}
-              publicoAlvoTipo={publicoAlvoTipo}
-              setPublicoAlvoTipo={setPublicoAlvoTipo}
-              publicoAlvoCustom={publicoAlvoCustom}
-              setPublicoAlvoCustom={setPublicoAlvoCustom}
-            />
+            <>
+              {/* Visual indicator that template is done and now on project form */}
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4 flex items-start gap-3">
+                <div className="flex items-center justify-center h-8 w-8 rounded-full bg-green-100 shrink-0 mt-0.5">
+                  <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold text-green-800">Template configurado com sucesso!</h4>
+                  <p className="text-xs text-green-700 mt-0.5">
+                    Agora preencha os dados específicos deste projeto de monitoria abaixo e submeta quando estiver pronto.
+                  </p>
+                </div>
+              </div>
+
+              <ProjectForm
+                form={projectForm}
+                onSubmit={onSubmitProject}
+                isSubmitting={isSubmittingProject}
+                atividades={atividades}
+                onAtividadeChange={onAtividadeChange}
+                onAddAtividade={onAddAtividade}
+                onRemoveAtividade={onRemoveAtividade}
+                publicoAlvoTipo={publicoAlvoTipo}
+                setPublicoAlvoTipo={setPublicoAlvoTipo}
+                publicoAlvoCustom={publicoAlvoCustom}
+                setPublicoAlvoCustom={setPublicoAlvoCustom}
+              />
+            </>
           )}
         </div>
 

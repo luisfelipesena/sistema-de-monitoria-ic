@@ -121,13 +121,14 @@ export function SlotSelectionModal({
 }: SlotSelectionModalProps) {
   const [selections, setSelections] = useState<SlotDataHorario[]>([
     { data: "", horario: "" },
+    { data: "", horario: "" },
   ])
 
   useEffect(() => {
     if (open && currentSelections && currentSelections.length > 0) {
       setSelections([...currentSelections])
     } else if (open) {
-      setSelections([{ data: "", horario: "" }])
+      setSelections([{ data: "", horario: "" }, { data: "", horario: "" }])
     }
   }, [open, currentSelections])
 
@@ -144,10 +145,10 @@ export function SlotSelectionModal({
 
   const hasRange = !!rangeSelecao && dateOptions.length > 0
   const canAdd = selections.length < 3
-  const canRemove = selections.length > 1
+  const canRemove = selections.length > 2
 
   const allFilled = selections.every((s) => s.data && s.horario)
-  const canSubmit = allFilled && selections.length >= 1
+  const canSubmit = allFilled && selections.length >= 2
 
   function handleAddSlot() {
     if (!canAdd) return
@@ -185,7 +186,7 @@ export function SlotSelectionModal({
         <DialogHeader>
           <DialogTitle>Escolher Datas da Seleção</DialogTitle>
           <DialogDescription>
-            Selecione até 3 datas e horários de início para a prova de seleção.
+            Selecione entre 2 e 3 datas e horários de início para a prova de seleção.
           </DialogDescription>
         </DialogHeader>
 

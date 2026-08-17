@@ -244,7 +244,7 @@ export const selecaoRouter = createTRPCRouter({
               horario: z.string(),
             })
           )
-          .min(1)
+          .min(2)
           .max(3),
       })
     )
@@ -288,6 +288,21 @@ export const selecaoRouter = createTRPCRouter({
       const service = createProjetoService(ctx.db)
       try {
         return await service.confirmVoluntarios(input.projetoId, ctx.user.id, ctx.user.role)
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
+  confirmDadosEdital: protectedProcedure
+    .input(
+      z.object({
+        projetoId: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const service = createProjetoService(ctx.db)
+      try {
+        return await service.confirmDadosEdital(input.projetoId, ctx.user.id, ctx.user.role)
       } catch (error) {
         handleServiceError(error)
       }

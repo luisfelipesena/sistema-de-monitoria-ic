@@ -131,19 +131,19 @@ const styles = StyleSheet.create({
     borderColor: "#000",
   },
   tableHeaderCell: {
-    padding: 4,
+    padding: 5,
     borderRightWidth: 1,
     borderColor: "#000",
     justifyContent: "center",
     alignItems: "center",
   },
   tableHeaderCellLast: {
-    padding: 4,
+    padding: 5,
     justifyContent: "center",
     alignItems: "center",
   },
   tableColHeaderText: {
-    fontSize: 9,
+    fontSize: 8,
     fontFamily: "Times-Bold",
     textAlign: "center",
   },
@@ -168,10 +168,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   // Column widths - main table
-  colComponente: { width: "40%" },
-  colVagasBolsa: { width: "12%" },
-  colVagasVol: { width: "12%" },
-  colProfessor: { width: "36%" },
+  colComponente: { width: "38%" },
+  colVagasBolsa: { width: "14%" },
+  colVagasVol: { width: "14%" },
+  colProfessor: { width: "34%" },
   // Column widths - exam schedule table
   colExamComponente: { width: "40%" },
   colExamData: { width: "12%" },
@@ -608,21 +608,21 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                   const rowStyle = isLast ? styles.tableRowLast : styles.tableRow
                   return (
                     <View key={index} style={rowStyle}>
-                      <View style={styles.colExamComponente}>
-                        <Text style={styles.tableCol}>
+                      <View style={[styles.colExamComponente, { borderRightWidth: 1, borderColor: "#000", padding: 4, justifyContent: "center", alignItems: "center" }]}>
+                        <Text style={{ fontSize: 9, textAlign: "center" }}>
                           {row.codigo} - {row.nome}
                         </Text>
                       </View>
-                      <View style={styles.colExamData}>
-                        <Text style={styles.tableColCenter}>
+                      <View style={[styles.colExamData, { borderRightWidth: 1, borderColor: "#000", padding: 4, justifyContent: "center", alignItems: "center" }]}>
+                        <Text style={{ fontSize: 9, textAlign: "center" }}>
                           {formatDateShort(row.data)}
                         </Text>
                       </View>
-                      <View style={styles.colExamHora}>
-                        <Text style={styles.tableColCenter}>{row.horario}</Text>
+                      <View style={[styles.colExamHora, { borderRightWidth: 1, borderColor: "#000", padding: 4, justifyContent: "center", alignItems: "center" }]}>
+                        <Text style={{ fontSize: 9, textAlign: "center" }}>{row.horario}</Text>
                       </View>
-                      <View style={styles.colExamProfessor}>
-                        <Text style={styles.tableColLast}>{row.professor}</Text>
+                      <View style={[styles.colExamProfessor, { padding: 4, justifyContent: "center", alignItems: "center" }]}>
+                        <Text style={{ fontSize: 9, textAlign: "center" }}>{row.professor}</Text>
                       </View>
                     </View>
                   )

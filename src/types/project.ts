@@ -94,6 +94,7 @@ export interface DashboardProjectItem {
   ano: number
   bolsasDisponibilizadas?: number | null | undefined
   voluntariosSolicitados?: number | null | undefined
+  dadosEditalConfirmados?: boolean
   totalInscritos: number
   disciplinas: Array<{ codigo: string; nome: string }>
   editalInternoId?: number | null
@@ -366,8 +367,8 @@ export const projectFormSchema = z.object({
   professoresParticipantes: z.string().optional(),
   atividades: z.array(z.string()).optional(),
   professorResponsavelId: z.number().int().positive().optional(),
-  pontosProva: z.string().optional(),
-  bibliografia: z.string().optional(),
+  pontosProva: z.string().min(1, 'Os pontos de prova são obrigatórios'),
+  bibliografia: z.string().min(1, 'A bibliografia é obrigatória'),
 })
 
 export const projectDetailSchema = z.object({
@@ -466,6 +467,7 @@ export const projectListItemSchema = z.object({
   mensagemRevisao: z.string().nullable().optional(),
   revisaoSolicitadaEm: z.date().nullable().optional(),
   editalInternoId: z.number().int().positive().nullable().optional(),
+  dadosEditalConfirmados: z.boolean().optional(),
   createdAt: z.date(),
   updatedAt: z.date().nullable().optional(),
   deletedAt: z.date().nullable().optional(),

@@ -61,12 +61,14 @@ export function createEditalPdfService(repo: EditalRepository) {
           const disciplinaId = projeto.disciplinas[0]?.disciplina.id
           const template = disciplinaId ? templateByDisciplinaId.get(disciplinaId) : undefined
 
-          // Pontos de prova: project value → template fallback → undefined
-          const pontosRaw = projeto.pontosProva || template?.pontosProvaDefault
+          // Check if professor has confirmed all edital data
+          const hasConfirmedDates = !!(projeto as Record<string, unknown>).dadosEditalConfirmados
+
+          // Pontos de prova e Bibliografia: só aparecem no edital quando o professor confirmar dados para o edital
+          const pontosRaw = hasConfirmedDates ? projeto.pontosProva || template?.pontosProvaDefault : undefined
           const pontosSelecao = pontosRaw ? pontosRaw.split('\n').filter((p) => p.trim()) : undefined
 
-          // Bibliografia: project value → template fallback → undefined
-          const bibRaw = projeto.bibliografia || template?.bibliografiaDefault
+          const bibRaw = hasConfirmedDates ? projeto.bibliografia || template?.bibliografiaDefault : undefined
           const bibliografia = bibRaw ? bibRaw.split('\n').filter((b) => b.trim()) : undefined
 
           return {
@@ -78,35 +80,40 @@ export function createEditalPdfService(repo: EditalRepository) {
             },
             tipoMonitoria: TIPO_PROPOSICAO_INDIVIDUAL,
             numBolsistas: projeto.bolsasDisponibilizadas ?? 0,
-            // Only show volunteers in PDF if professor confirmed them
-            numVoluntarios: projeto.voluntariosConfirmados ? (projeto.voluntariosSolicitados ?? 0) : 0,
-            voluntariosConfirmados: projeto.voluntariosConfirmados ?? false,
+            // Only show volunteers in PDF if professor confirmed edital data
+            numVoluntarios: hasConfirmedDates ? (projeto.voluntariosSolicitados ?? 0) : 0,
+            voluntariosConfirmados: hasConfirmedDates,
             // Req 5.2, 5.4: pontos/bibliografia with template fallback for section 6.3
             pontosSelecao: pontosSelecao && pontosSelecao.length > 0 ? pontosSelecao : undefined,
             bibliografia: bibliografia && bibliografia.length > 0 ? bibliografia : undefined,
-            // Req 5.1, 5.3: dataSelecao only set when dataSelecaoEscolhida is non-null (section 6.2.3)
-            dataSelecao: projeto.dataSelecaoEscolhida?.toISOString(),
-            horarioSelecao: projeto.horarioSelecao || undefined,
-            datasSelecao: (() => {
-              // Try new multi-slot field first
-              const raw = (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
-              if (raw) {
-                try {
-                  const parsed = JSON.parse(raw)
-                  if (Array.isArray(parsed) && parsed.length > 0) return parsed
-                } catch {
-                  /* fall through */
-                }
-              }
-              // Fallback to legacy single slot
-              if (projeto.dataSelecaoEscolhida && projeto.horarioSelecao) {
-                return [
-                  { data: projeto.dataSelecaoEscolhida.toISOString().split('T')[0], horario: projeto.horarioSelecao },
-                ]
-              }
-              return undefined
-            })(),
-            localSelecao: projeto.localSelecao || undefined,
+            // Req 5.1, 5.3: dataSelecao only set when professor confirmed edital data (section 6.2.3)
+            dataSelecao: hasConfirmedDates ? projeto.dataSelecaoEscolhida?.toISOString() : undefined,
+            horarioSelecao: hasConfirmedDates ? projeto.horarioSelecao || undefined : undefined,
+            datasSelecao: hasConfirmedDates
+              ? (() => {
+                  // Try new multi-slot field first
+                  const raw = (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
+                  if (raw) {
+                    try {
+                      const parsed = JSON.parse(raw)
+                      if (Array.isArray(parsed) && parsed.length > 0) return parsed
+                    } catch {
+                      /* fall through */
+                    }
+                  }
+                  // Fallback to legacy single slot
+                  if (projeto.dataSelecaoEscolhida && projeto.horarioSelecao) {
+                    return [
+                      {
+                        data: projeto.dataSelecaoEscolhida.toISOString().split('T')[0],
+                        horario: projeto.horarioSelecao,
+                      },
+                    ]
+                  }
+                  return undefined
+                })()
+              : undefined,
+            localSelecao: hasConfirmedDates ? projeto.localSelecao || undefined : undefined,
           }
         }),
         equivalencias:
