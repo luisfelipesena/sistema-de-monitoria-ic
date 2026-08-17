@@ -7,17 +7,17 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
-    PROJETO_STATUS_APPROVED,
-    type DashboardProjectItem,
+  PROJETO_STATUS_APPROVED,
+  type DashboardProjectItem,
 } from "@/types"
 import { api } from "@/utils/api"
 import {
-    ChevronDown,
-    Eye,
-    HelpCircle,
-    Info,
-    Loader2,
-    Sparkles
+  ChevronDown,
+  Eye,
+  HelpCircle,
+  Info,
+  Loader2,
+  Sparkles
 } from "lucide-react"
 import Link from "next/link"
 import { useMemo, useState } from "react"
@@ -88,7 +88,7 @@ export default function ProfessorEditalManagementPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
-            Meus Projetos no Edital ({projetosAprovados.length})
+            Meus projetos no EDITAL ({projetosAprovados.length})
           </h2>
         </div>
 

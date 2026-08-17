@@ -1,12 +1,12 @@
 import type { db } from '@/server/db'
 import {
-  assinaturaDocumentoTable,
-  editalSignatureTokenTable,
-  editalTable,
-  periodoInscricaoTable,
-  professorTable,
-  projetoTable,
-  projetoTemplateTable,
+    assinaturaDocumentoTable,
+    editalSignatureTokenTable,
+    editalTable,
+    periodoInscricaoTable,
+    professorTable,
+    projetoTable,
+    projetoTemplateTable,
 } from '@/server/db/schema'
 import type { Semestre, TipoEdital } from '@/types'
 import { APPROVED, TIPO_EDITAL_DCC } from '@/types'

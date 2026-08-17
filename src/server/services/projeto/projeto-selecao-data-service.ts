@@ -87,17 +87,13 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
   return {
     /**
-     * Choose date/time slots for the projeto's selection exam.
-     * Validates that each slot is within the edital's date/time range.
-     * Professor can choose up to 3 slots.
+     * Choose a single date/time slot for the projeto's selection exam.
+     * Validates that the slot is within the edital's date/time range.
+     * Professor must choose exactly 1 slot.
      */
     async chooseSlots(projetoId: number, slots: SlotDataHorario[], userId: number, userRole: UserRole) {
-      if (slots.length === 0 || slots.length > 3) {
-        throw new ValidationError('Selecione entre 2 e 3 datas/horários')
-      }
-
-      if (slots.length < 2) {
-        throw new ValidationError('É necessário selecionar no mínimo 2 datas/horários')
+      if (slots.length !== 1) {
+        throw new ValidationError('Selecione exatamente 1 data/horário')
       }
 
       const projeto = await repo.findByIdWithEdital(projetoId)
@@ -244,18 +240,13 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       await verifyAuthorization(projeto, userId, userRole)
 
-      // Validate that selection dates are chosen (minimum 2)
+      // Validate that selection dates are chosen (minimum 1)
       const datasRaw = (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
       const datasEscolhidas = parseDatasEscolhidas(datasRaw)
       const hasLegacyDate = !!projeto.dataSelecaoEscolhida
 
-      if (datasEscolhidas.length < 2 && !hasLegacyDate) {
-        throw new ValidationError('É necessário escolher no mínimo 2 datas/horários de seleção antes de confirmar')
-      }
-
-      // Even with legacy date, enforce minimum 2 for new flow
-      if (datasEscolhidas.length < 2 && hasLegacyDate) {
-        throw new ValidationError('É necessário escolher no mínimo 2 datas/horários de seleção antes de confirmar')
+      if (datasEscolhidas.length < 1 && !hasLegacyDate) {
+        throw new ValidationError('É necessário escolher 1 data/horário de seleção antes de confirmar')
       }
 
       // Validate that voluntários are confirmed

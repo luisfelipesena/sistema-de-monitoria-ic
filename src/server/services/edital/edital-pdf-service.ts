@@ -17,10 +17,15 @@ export function createEditalPdfService(repo: EditalRepository) {
         throw new NotFoundError('Edital ou período de inscrição', id)
       }
 
-      const [projetos, equivalencias] = await Promise.all([
+      const [allProjetos, equivalencias] = await Promise.all([
         repo.findApprovedProjectsByPeriod(edital.periodoInscricao.ano, edital.periodoInscricao.semestre),
         repo.findAllEquivalencias(),
       ])
+
+      // Filtrar apenas projetos cujo professor confirmou dados para o edital
+      const projetos = allProjetos.filter(
+        (projeto) => !!(projeto as Record<string, unknown>).dadosEditalConfirmados
+      )
 
       // Get discipline IDs from projects to filter relevant equivalencias and fetch templates
       const disciplinaIds = new Set<number>()

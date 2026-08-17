@@ -17,8 +17,7 @@ export const slotDataHorarioSchema = z.object({
 
 export const datasProvasDisponiveisSchema = z
   .array(slotDataHorarioSchema)
-  .min(2, 'Mínimo 2 opções de data/horário')
-  .max(3, 'Máximo 3 opções de data/horário')
+  .min(1, 'Mínimo 1 opção de data/horário')
 
 // ========================================
 // RANGE DE SELEÇÃO - Tipos para o ADM
@@ -38,11 +37,11 @@ export const rangeSelecaoSchema = z.object({
   horarioFim: z.string().regex(/^\d{2}:\d{2}$/, 'Horário fim inválido'),
 })
 
-// Schema para as escolhas do professor (até 3 datas+horários de início)
+// Schema para a escolha do professor (exatamente 1 data+horário de início)
 export const datasSelecaoEscolhidasSchema = z
   .array(slotDataHorarioSchema)
-  .min(1, 'Mínimo 1 data/horário de seleção')
-  .max(3, 'Máximo 3 datas/horários de seleção')
+  .min(1, 'Selecione 1 data/horário de seleção')
+  .max(1, 'Selecione apenas 1 data/horário de seleção')
 
 // ========================================
 // SELEÇÃO - Tipos de Input
