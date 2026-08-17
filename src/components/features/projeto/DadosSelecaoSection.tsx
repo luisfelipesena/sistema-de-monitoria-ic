@@ -2,8 +2,7 @@
 
 import { SlotSelectionModal } from "@/components/features/projeto/SlotSelectionModal"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
@@ -12,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from "@/hooks/use-toast"
 import type { SlotDataHorario } from "@/types/selecao-inputs"
 import { api } from "@/utils/api"
-import { BookOpen, Calendar, CheckCircle2, ChevronDown, Clock, Edit2, Loader2, Save, Users } from "lucide-react"
+import { BookOpen, Calendar, CheckCircle2, Clock, Edit2, Loader2, Save, Users } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
 interface DadosSelecaoSectionProps {
@@ -185,27 +184,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
 
   return (
     <>
-      <Collapsible defaultOpen className="mt-3">
-        <Card className="shadow-sm border-primary/20 bg-gradient-to-b from-primary/[0.03] to-transparent">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <div className="flex items-center justify-center h-6 w-6 rounded-md bg-primary/10">
-                  <Calendar className="h-3.5 w-3.5 text-primary" />
-                </div>
-                Dados da Seleção
-              </CardTitle>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <ChevronDown className="h-4 w-4 transition-transform duration-200 [[data-state=closed]_&]:rotate-[-90deg]" />
-                  <span className="sr-only">Minimizar</span>
-                </Button>
-              </CollapsibleTrigger>
-            </div>
-          </CardHeader>
-
-          <CollapsibleContent>
-            <CardContent className="space-y-5 pt-0">
+      <div className="space-y-5">
           {/* ── Bloco 1: Range do Admin + Datas escolhidas ── */}
           <div className="space-y-3">
             {selecaoInfo.rangeSelecao && (
@@ -527,10 +506,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
               </div>
             </div>
           )}
-        </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+        </div>
 
       {/* Modal */}
       <SlotSelectionModal

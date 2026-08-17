@@ -1,11 +1,11 @@
 import { useToast } from '@/hooks/use-toast'
 import type { MonitoriaFormData } from '@/types'
 import {
-  formatErrorResponse,
-  projectFormSchema,
-  PROJETO_STATUS_DRAFT,
-  SEMESTRE_1,
-  TIPO_PROPOSICAO_INDIVIDUAL,
+    formatErrorResponse,
+    projectFormSchema,
+    PROJETO_STATUS_DRAFT,
+    SEMESTRE_1,
+    TIPO_PROPOSICAO_INDIVIDUAL,
 } from '@/types'
 import { api } from '@/utils/api'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -22,8 +22,8 @@ const templateSchema = z.object({
   numeroSemanasDefault: z.number().int().positive().optional(),
   publicoAlvoDefault: z.string().optional(),
   atividadesDefault: z.array(z.string()).optional(),
-  pontosProvaDefault: z.string().optional(),
-  bibliografiaDefault: z.string().optional(),
+  pontosProvaDefault: z.string().min(1, 'Os pontos de prova são obrigatórios'),
+  bibliografiaDefault: z.string().min(1, 'A bibliografia é obrigatória'),
 })
 
 type TemplateFormData = z.infer<typeof templateSchema>
@@ -88,7 +88,7 @@ export function useProjectCreation() {
       toast({
         title: result.isNew ? 'Template criado' : 'Template atualizado',
         description: result.isNew
-          ? 'Template padrão criado com sucesso para esta disciplina.'
+          ? 'Template padrão criado com sucesso para esta disciplina. Agora preencha os dados do projeto.'
           : 'Template padrão atualizado com sucesso.',
       })
       if (selectedDisciplinaId) {
@@ -119,6 +119,8 @@ export function useProjectCreation() {
         }
       }
       setIsEditingTemplate(false)
+      // Scroll to top after switching to the project form
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     },
     onError: (error) => {
       const errorResponse = formatErrorResponse(error)
@@ -438,8 +440,8 @@ export function useProjectCreation() {
       disciplinaIds: data.disciplinas,
       atividades: atividadesFiltradas,
       status: PROJETO_STATUS_DRAFT,
-      pontosProva: data.pontosProva || undefined,
-      bibliografia: data.bibliografia || undefined,
+      pontosProva: data.pontosProva,
+      bibliografia: data.bibliografia,
     }
 
     await createProjeto.mutateAsync(projetoData)

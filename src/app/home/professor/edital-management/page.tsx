@@ -5,17 +5,19 @@ import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
     PROJETO_STATUS_APPROVED,
     type DashboardProjectItem,
 } from "@/types"
 import { api } from "@/utils/api"
 import {
+    ChevronDown,
     Eye,
     HelpCircle,
     Info,
     Loader2,
-    Sparkles,
+    Sparkles
 } from "lucide-react"
 import Link from "next/link"
 import { useMemo, useState } from "react"
@@ -104,53 +106,64 @@ export default function ProfessorEditalManagementPage() {
               const isPendente = !projeto.dadosEditalConfirmados
 
               return (
-                <Card key={projeto.id} className={`overflow-hidden shadow-sm ${isPendente ? "border-red-300 border-2" : "border-slate-200"}`}>
-                  <CardHeader className={`border-b pb-4 ${isPendente ? "bg-red-50/50 dark:bg-red-900/10" : "bg-slate-50 dark:bg-slate-900/50"}`}>
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="bg-white dark:bg-slate-800 font-mono font-bold text-slate-800 dark:text-slate-200">
-                            {disciplinaCodigo}
-                          </Badge>
-                          <Badge variant="default" className="bg-emerald-600 text-white">
-                            Aprovado
-                          </Badge>
-                          <Badge variant="secondary">
-                            {bolsasCount} vaga(s) com bolsa
-                          </Badge>
-                          {isPendente && (
-                            <Badge variant="destructive" className="text-xs">
-                              Pendente
-                            </Badge>
-                          )}
+                <Collapsible key={projeto.id} defaultOpen={false}>
+                  <Card className={`overflow-hidden shadow-sm ${isPendente ? "border-red-300 border-2" : "border-slate-200"}`}>
+                    <CollapsibleTrigger asChild>
+                      <CardHeader className={`cursor-pointer border-b pb-4 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/50 ${isPendente ? "bg-red-50/50 dark:bg-red-900/10" : "bg-slate-50 dark:bg-slate-900/50"}`}>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <Badge variant="outline" className="bg-white dark:bg-slate-800 font-mono font-bold text-slate-800 dark:text-slate-200">
+                                {disciplinaCodigo}
+                              </Badge>
+                              <Badge variant="default" className="bg-emerald-600 text-white text-xs">
+                                Aprovado pelo Admin
+                              </Badge>
+                              <Badge variant="secondary" className="text-xs">
+                                {bolsasCount} vaga(s) com bolsa
+                              </Badge>
+                              {isPendente ? (
+                                <Badge variant="destructive" className="text-xs">
+                                  Pendente confirmação para o edital
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-green-100 text-green-800 text-xs border-green-200">
+                                  Confirmado para o edital
+                                </Badge>
+                              )}
+                            </div>
+                            <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                              {disciplinaNome}
+                            </CardTitle>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => { e.stopPropagation(); handleOpenPdf(projeto.id) }}
+                              disabled={loadingPdfProjetoId === projeto.id}
+                            >
+                              {loadingPdfProjetoId === projeto.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                              ) : (
+                                <Eye className="h-4 w-4 mr-1" />
+                              )}
+                              Ver Proposta
+                            </Button>
+                            <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
+                          </div>
                         </div>
-                        <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                          {disciplinaNome}
-                        </CardTitle>
-                      </div>
+                      </CardHeader>
+                    </CollapsibleTrigger>
 
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenPdf(projeto.id)}
-                          disabled={loadingPdfProjetoId === projeto.id}
-                        >
-                          {loadingPdfProjetoId === projeto.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                          ) : (
-                            <Eye className="h-4 w-4 mr-1" />
-                          )}
-                          Ver Proposta
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="p-6">
-                    <DadosSelecaoSection projetoId={projeto.id} />
-                  </CardContent>
-                </Card>
+                    <CollapsibleContent>
+                      <CardContent className="p-6">
+                        <DadosSelecaoSection projetoId={projeto.id} />
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
               )
             })}
           </div>

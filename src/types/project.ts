@@ -367,8 +367,8 @@ export const projectFormSchema = z.object({
   professoresParticipantes: z.string().optional(),
   atividades: z.array(z.string()).optional(),
   professorResponsavelId: z.number().int().positive().optional(),
-  pontosProva: z.string().optional(),
-  bibliografia: z.string().optional(),
+  pontosProva: z.string().min(1, 'Os pontos de prova são obrigatórios'),
+  bibliografia: z.string().min(1, 'A bibliografia é obrigatória'),
 })
 
 export const projectDetailSchema = z.object({
