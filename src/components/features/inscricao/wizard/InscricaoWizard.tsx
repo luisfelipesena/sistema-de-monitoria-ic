@@ -51,11 +51,28 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
   const projetoQuery = api.projeto.getAvailableProjects.useQuery()
   const profileQuery = api.aluno.getFullProfile.useQuery()
   const disciplinasQuery = api.discipline.getDisciplines.useQuery()
+  const minhasInscricoesQuery = api.inscricao.getMinhasInscricoes.useQuery()
 
   const projeto = useMemo(
     () => projetoQuery.data?.find((p) => p.id === projetoId),
     [projetoQuery.data, projetoId]
   )
+
+  const jaInscritoBolsista = useMemo(() => {
+    return (
+      minhasInscricoesQuery.data?.some(
+        (i) => i.projetoId === projetoId && i.tipoVagaPretendida === TIPO_VAGA_BOLSISTA
+      ) ?? false
+    )
+  }, [minhasInscricoesQuery.data, projetoId])
+
+  const jaInscritoVoluntario = useMemo(() => {
+    return (
+      minhasInscricoesQuery.data?.some(
+        (i) => i.projetoId === projetoId && i.tipoVagaPretendida === TIPO_VAGA_VOLUNTARIO
+      ) ?? false
+    )
+  }, [minhasInscricoesQuery.data, projetoId])
 
   const criarMutation = api.inscricao.criarInscricao.useMutation()
 
@@ -607,13 +624,13 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
                   </SelectTrigger>
                   <SelectContent>
                     {hasBolsas && (
-                      <SelectItem value={TIPO_VAGA_BOLSISTA}>
-                        Bolsista ({projeto.bolsasDisponibilizadas} vaga(s))
+                      <SelectItem value={TIPO_VAGA_BOLSISTA} disabled={jaInscritoBolsista}>
+                        Bolsista ({projeto.bolsasDisponibilizadas} vaga(s)) {jaInscritoBolsista ? "(Já inscrito)" : ""}
                       </SelectItem>
                     )}
                     {hasVoluntarios && (
-                      <SelectItem value={TIPO_VAGA_VOLUNTARIO}>
-                        Voluntário ({projeto.voluntariosSolicitados} vaga(s))
+                      <SelectItem value={TIPO_VAGA_VOLUNTARIO} disabled={jaInscritoVoluntario}>
+                        Voluntário ({projeto.voluntariosSolicitados} vaga(s)) {jaInscritoVoluntario ? "(Já inscrito)" : ""}
                       </SelectItem>
                     )}
                   </SelectContent>
