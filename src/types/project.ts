@@ -1,17 +1,17 @@
 import { z } from 'zod'
 import {
-  Genero,
-  generoSchema,
-  PROJETO_STATUS_DRAFT,
-  ProjetoStatus,
-  projetoStatusSchema,
-  Regime,
-  regimeSchema,
-  Semestre,
-  semestreSchema,
-  SigningMode,
-  TipoProposicao,
-  tipoProposicaoSchema,
+    Genero,
+    generoSchema,
+    PROJETO_STATUS_DRAFT,
+    ProjetoStatus,
+    projetoStatusSchema,
+    Regime,
+    regimeSchema,
+    Semestre,
+    semestreSchema,
+    SigningMode,
+    TipoProposicao,
+    tipoProposicaoSchema,
 } from './enums'
 
 // ========================================
@@ -94,6 +94,7 @@ export interface DashboardProjectItem {
   ano: number
   bolsasDisponibilizadas?: number | null | undefined
   voluntariosSolicitados?: number | null | undefined
+  dadosEditalConfirmados?: boolean
   totalInscritos: number
   disciplinas: Array<{ codigo: string; nome: string }>
   editalInternoId?: number | null
@@ -466,6 +467,7 @@ export const projectListItemSchema = z.object({
   mensagemRevisao: z.string().nullable().optional(),
   revisaoSolicitadaEm: z.date().nullable().optional(),
   editalInternoId: z.number().int().positive().nullable().optional(),
+  dadosEditalConfirmados: z.boolean().optional(),
   createdAt: z.date(),
   updatedAt: z.date().nullable().optional(),
   deletedAt: z.date().nullable().optional(),

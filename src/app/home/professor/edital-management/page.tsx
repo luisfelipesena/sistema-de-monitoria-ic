@@ -4,18 +4,18 @@ import { DadosSelecaoSection } from "@/components/features/projeto/DadosSelecaoS
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  PROJETO_STATUS_APPROVED,
-  type DashboardProjectItem,
+    PROJETO_STATUS_APPROVED,
+    type DashboardProjectItem,
 } from "@/types"
 import { api } from "@/utils/api"
 import {
-  Eye,
-  HelpCircle,
-  Info,
-  Loader2,
-  Sparkles,
+    Eye,
+    HelpCircle,
+    Info,
+    Loader2,
+    Sparkles,
 } from "lucide-react"
 import Link from "next/link"
 import { useMemo, useState } from "react"
@@ -101,10 +101,11 @@ export default function ProfessorEditalManagementPage() {
               const disciplinaCodigo = projeto.disciplinas[0]?.codigo ?? "MON"
               const disciplinaNome = projeto.disciplinas[0]?.nome ?? projeto.titulo
               const bolsasCount = projeto.bolsasDisponibilizadas ?? 0
+              const isPendente = !projeto.dadosEditalConfirmados
 
               return (
-                <Card key={projeto.id} className="overflow-hidden border-slate-200 shadow-sm">
-                  <CardHeader className="bg-slate-50 dark:bg-slate-900/50 border-b pb-4">
+                <Card key={projeto.id} className={`overflow-hidden shadow-sm ${isPendente ? "border-red-300 border-2" : "border-slate-200"}`}>
+                  <CardHeader className={`border-b pb-4 ${isPendente ? "bg-red-50/50 dark:bg-red-900/10" : "bg-slate-50 dark:bg-slate-900/50"}`}>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -117,6 +118,11 @@ export default function ProfessorEditalManagementPage() {
                           <Badge variant="secondary">
                             {bolsasCount} vaga(s) com bolsa
                           </Badge>
+                          {isPendente && (
+                            <Badge variant="destructive" className="text-xs">
+                              Pendente
+                            </Badge>
+                          )}
                         </div>
                         <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                           {disciplinaNome}

@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from "@/hooks/use-toast"
 import type { SlotDataHorario } from "@/types/selecao-inputs"
 import { api } from "@/utils/api"
-import { BookOpen, Calendar, ChevronDown, Clock, Edit2, Loader2, Save, Users } from "lucide-react"
+import { BookOpen, Calendar, CheckCircle2, ChevronDown, Clock, Edit2, Loader2, Save, Users } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
 interface DadosSelecaoSectionProps {
@@ -92,6 +92,17 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
     },
   })
 
+  const confirmDadosEditalMutation = api.selecao.confirmDadosEdital.useMutation({
+    onSuccess: async () => {
+      toast({ title: "Dados confirmados para o edital!", description: "Datas, pontos de prova, bibliografia e voluntários foram confirmados." })
+      await apiUtils.selecao.getProjetoSelecaoInfo.invalidate({ projetoId })
+      await apiUtils.projeto.getProjetos.invalidate()
+    },
+    onError: (error) => {
+      toast({ title: "Erro ao confirmar dados para o edital", description: error.message, variant: "destructive" })
+    },
+  })
+
   const handleSlotsConfirm = useCallback(
     (slots: SlotDataHorario[]) => {
       chooseSlotsMutation.mutate({ projetoId, slots })
@@ -108,13 +119,27 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
     confirmVoluntariosMutation.mutate({ projetoId })
   }, [projetoId, confirmVoluntariosMutation])
 
+  const handleConfirmDadosEdital = useCallback(() => {
+    confirmDadosEditalMutation.mutate({ projetoId })
+  }, [projetoId, confirmDadosEditalMutation])
+
   const handleSaveSelecaoData = useCallback(() => {
+    // Validate locally: pontos de prova and bibliografia cannot be empty
+    if (pontosProvaDirty && !pontosProva.trim()) {
+      toast({ title: "Pontos de prova obrigatórios", description: "Os pontos de prova não podem ficar vazios.", variant: "destructive" })
+      return
+    }
+    if (bibliografiaDirty && !bibliografia.trim()) {
+      toast({ title: "Bibliografia obrigatória", description: "A bibliografia não pode ficar vazia.", variant: "destructive" })
+      return
+    }
+
     updateSelecaoDataMutation.mutate({
       projetoId,
-      pontosProva: pontosProva || undefined,
-      bibliografia: bibliografia || undefined,
+      pontosProva: pontosProvaDirty ? pontosProva : undefined,
+      bibliografia: bibliografiaDirty ? bibliografia : undefined,
     })
-  }, [projetoId, pontosProva, bibliografia, updateSelecaoDataMutation])
+  }, [projetoId, pontosProva, bibliografia, pontosProvaDirty, bibliografiaDirty, updateSelecaoDataMutation, toast])
 
   if (isLoading) {
     return (
@@ -412,6 +437,96 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
               </div>
             )}
           </div>
+
+          <Separator />
+
+          {/* ── Bloco 4: Confirmação para o Edital ── */}
+          {selecaoInfo.dadosEditalConfirmados ? (
+            <div className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-4 py-3">
+              <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+              <div>
+                <span className="text-sm text-green-800 font-semibold">Dados confirmados para o Edital</span>
+                <p className="text-xs text-green-700 mt-0.5">
+                  Datas, pontos de prova, bibliografia e voluntários estão confirmados e aparecerão no edital publicado.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-3">
+                  Ao confirmar, as datas/horários da seleção, pontos de prova, bibliografia e voluntários serão publicados no edital.
+                </p>
+
+                {/* Checklist de pendências */}
+                <ul className="space-y-1.5 mb-4">
+                  <li className={`flex items-center gap-2 text-xs ${currentSelections.length >= 2 ? "text-green-700" : "text-red-600"}`}>
+                    {currentSelections.length >= 2 ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                    ) : (
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <circle cx="12" cy="12" r="10" />
+                      </svg>
+                    )}
+                    Mínimo 2 datas/horários de seleção escolhidos
+                  </li>
+                  <li className={`flex items-center gap-2 text-xs ${pontosProva.trim() ? "text-green-700" : "text-red-600"}`}>
+                    {pontosProva.trim() ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                    ) : (
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <circle cx="12" cy="12" r="10" />
+                      </svg>
+                    )}
+                    Pontos de prova preenchidos
+                  </li>
+                  <li className={`flex items-center gap-2 text-xs ${bibliografia.trim() ? "text-green-700" : "text-red-600"}`}>
+                    {bibliografia.trim() ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                    ) : (
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <circle cx="12" cy="12" r="10" />
+                      </svg>
+                    )}
+                    Bibliografia preenchida
+                  </li>
+                  <li className={`flex items-center gap-2 text-xs ${selecaoInfo.voluntariosConfirmados ? "text-green-700" : "text-red-600"}`}>
+                    {selecaoInfo.voluntariosConfirmados ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                    ) : (
+                      <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <circle cx="12" cy="12" r="10" />
+                      </svg>
+                    )}
+                    Voluntários confirmados
+                  </li>
+                </ul>
+
+                <Button
+                  variant="default"
+                  onClick={handleConfirmDadosEdital}
+                  disabled={
+                    confirmDadosEditalMutation.isPending ||
+                    currentSelections.length < 2 ||
+                    !pontosProva.trim() ||
+                    !bibliografia.trim() ||
+                    !selecaoInfo.voluntariosConfirmados ||
+                    pontosProvaDirty ||
+                    bibliografiaDirty ||
+                    voluntariosDirty
+                  }
+                  className="w-full sm:w-auto"
+                >
+                  {confirmDadosEditalMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                  )}
+                  Confirmar para o Edital
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
           </CollapsibleContent>
         </Card>

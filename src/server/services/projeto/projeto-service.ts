@@ -51,6 +51,7 @@ export function createProjetoService(db: Database) {
     chooseSlots: selecaoDataService.chooseSlots,
     updateVoluntarios: selecaoDataService.updateVoluntarios,
     confirmVoluntarios: selecaoDataService.confirmVoluntarios,
+    confirmDadosEdital: selecaoDataService.confirmDadosEdital,
     updateSelecaoData: selecaoDataService.updateSelecaoData,
     getSelecaoInfo: selecaoDataService.getSelecaoInfo,
   }

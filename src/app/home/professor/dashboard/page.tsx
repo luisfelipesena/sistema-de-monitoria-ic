@@ -1,6 +1,5 @@
 "use client"
 
-import { DadosSelecaoSection } from "@/components/features/projeto/DadosSelecaoSection"
 import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
@@ -68,6 +67,10 @@ export default function DashboardProfessor() {
       (p) => p.status === PROJETO_STATUS_APPROVED
     ) as DashboardProjectItem[]
   }, [projetos])
+
+  const projetosPendentesEdital = useMemo(() => {
+    return projetosComEdital.filter((p) => !p.dadosEditalConfirmados)
+  }, [projetosComEdital])
 
   const handleDeleteProjeto = (projeto: DashboardProjectItem) => {
     setProjetoToDelete(projeto)
@@ -381,6 +384,11 @@ export default function DashboardProfessor() {
                     <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
                       Configure as vagas voluntárias, datas e horários da seleção, pontos de prova e bibliografia dos seus projetos na aba exclusiva do Edital.
                     </p>
+                    {projetosPendentesEdital.length > 0 && (
+                      <p className="text-sm font-semibold text-red-600 dark:text-red-400 mt-2">
+                        ⚠ {projetosPendentesEdital.length} projeto(s) ainda não confirmado(s) para o edital. Se não confirmar, os dados não aparecerão no edital publicado.
+                      </p>
+                    )}
                   </div>
                   <Link href="/home/professor/edital-management">
                     <Button className="whitespace-nowrap bg-blue-600 hover:bg-blue-700 text-white">
