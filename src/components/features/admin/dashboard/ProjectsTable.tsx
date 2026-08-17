@@ -2,25 +2,25 @@ import { StatusBadge } from "@/components/atoms/StatusBadge"
 import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
 import {
-  PROJETO_STATUS_APPROVED,
-  PROJETO_STATUS_DRAFT,
-  PROJETO_STATUS_LABELS,
-  PROJETO_STATUS_PENDING_REVISION,
-  PROJETO_STATUS_PENDING_SIGNATURE,
-  PROJETO_STATUS_REJECTED,
-  PROJETO_STATUS_SUBMITTED,
-  type DashboardProjectItem,
+    PROJETO_STATUS_APPROVED,
+    PROJETO_STATUS_DRAFT,
+    PROJETO_STATUS_LABELS,
+    PROJETO_STATUS_PENDING_REVISION,
+    PROJETO_STATUS_PENDING_SIGNATURE,
+    PROJETO_STATUS_REJECTED,
+    PROJETO_STATUS_SUBMITTED,
+    type DashboardProjectItem,
 } from "@/types"
 import { api } from "@/utils/api"
 import type { ColumnDef, ColumnFiltersState, FilterFn } from "@tanstack/react-table"
@@ -116,10 +116,13 @@ export function ProjectsTable({
         cell: ({ row }) => {
           const disciplinas = row.original.disciplinas
           const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
+          const nomeDisciplina = disciplinas.length > 0 ? disciplinas[0].nome : ""
           return (
             <div className="flex items-center gap-2">
               <List className="h-4 w-4 text-gray-400" />
-              <span className="font-semibold text-base text-gray-900">{codigoDisciplina}</span>
+              <span className="font-semibold text-base text-gray-900">
+                {codigoDisciplina}{nomeDisciplina ? ` - ${nomeDisciplina}` : ""}
+              </span>
             </div>
           )
         },

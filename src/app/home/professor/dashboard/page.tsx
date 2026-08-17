@@ -180,7 +180,12 @@ export default function DashboardProfessor() {
       cell: ({ row }) => {
         const disciplinas = row.original.disciplinas
         const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
-        return <span className="font-semibold text-base text-gray-900">{codigoDisciplina}</span>
+        const nomeDisciplina = disciplinas.length > 0 ? disciplinas[0].nome : ""
+        return (
+          <span className="font-semibold text-base text-gray-900">
+            {codigoDisciplina}{nomeDisciplina ? ` - ${nomeDisciplina}` : ""}
+          </span>
+        )
       },
     },
     {
