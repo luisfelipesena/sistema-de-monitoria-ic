@@ -23,9 +23,7 @@ export function createEditalPdfService(repo: EditalRepository) {
       ])
 
       // Filtrar apenas projetos cujo professor confirmou dados para o edital
-      const projetos = allProjetos.filter(
-        (projeto) => !!(projeto as Record<string, unknown>).dadosEditalConfirmados
-      )
+      const projetos = allProjetos.filter((projeto) => !!(projeto as Record<string, unknown>).dadosEditalConfirmados)
 
       // Get discipline IDs from projects to filter relevant equivalencias and fetch templates
       const disciplinaIds = new Set<number>()

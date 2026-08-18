@@ -15,9 +15,7 @@ export const slotDataHorarioSchema = z.object({
   horario: z.string().min(1, 'Horário é obrigatório'),
 })
 
-export const datasProvasDisponiveisSchema = z
-  .array(slotDataHorarioSchema)
-  .min(1, 'Mínimo 1 opção de data/horário')
+export const datasProvasDisponiveisSchema = z.array(slotDataHorarioSchema).min(1, 'Mínimo 1 opção de data/horário')
 
 // ========================================
 // RANGE DE SELEÇÃO - Tipos para o ADM

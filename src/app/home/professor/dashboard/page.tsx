@@ -95,10 +95,6 @@ export default function DashboardProfessor() {
     return ""
   }, [editalVigente])
 
-  const projetosPendentesEdital = useMemo(() => {
-    return projetosComEdital.filter((p) => !p.dadosEditalConfirmados)
-  }, [projetosComEdital])
-
   const handleDeleteProjeto = (projeto: DashboardProjectItem) => {
     setProjetoToDelete(projeto)
     setDeleteDialogOpen(true)
