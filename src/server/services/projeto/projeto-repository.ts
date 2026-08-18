@@ -6,6 +6,7 @@ import {
   departamentoTable,
   disciplinaProfessorResponsavelTable,
   disciplinaTable,
+  editalTable,
   inscricaoTable,
   periodoInscricaoTable,
   professorTable,
@@ -744,6 +745,20 @@ export function createProjetoRepository(db: Database) {
         })
         .returning()
       return created
+    },
+
+    /**
+     * Find an edital by ano/semestre (via periodoInscricao).
+     * Used as fallback when a project has no editalInternoId set.
+     */
+    async findEditalByAnoSemestre(ano: number, semestre: Semestre) {
+      const periodo = await db.query.periodoInscricaoTable.findFirst({
+        where: and(eq(periodoInscricaoTable.ano, ano), eq(periodoInscricaoTable.semestre, semestre)),
+      })
+      if (!periodo) return null
+      return db.query.editalTable.findFirst({
+        where: eq(editalTable.periodoInscricaoId, periodo.id),
+      })
     },
   }
 }

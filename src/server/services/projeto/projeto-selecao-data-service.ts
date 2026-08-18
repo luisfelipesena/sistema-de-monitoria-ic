@@ -103,11 +103,25 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       await verifyAuthorization(projeto, userId, userRole)
 
-      if (!projeto.editalInterno) {
+      // If project has no editalInterno linked, try to find one by ano/semestre and link it
+      let editalInterno = projeto.editalInterno
+      if (!editalInterno && repo.findEditalByAnoSemestre) {
+        const editalBySemestre = await repo.findEditalByAnoSemestre(projeto.ano, projeto.semestre)
+        if (editalBySemestre) {
+          await repo.update(projetoId, { editalInternoId: editalBySemestre.id })
+          editalInterno = editalBySemestre
+          log.info(
+            { projetoId, editalId: editalBySemestre.id },
+            'Projeto vinculado automaticamente ao edital por ano/semestre (chooseSlots)'
+          )
+        }
+      }
+
+      if (!editalInterno) {
         throw new ValidationError('Projeto não está vinculado a um edital interno')
       }
 
-      const edital = projeto.editalInterno
+      const edital = editalInterno
       const dataInicio = edital.dataInicioSelecao?.toISOString().split('T')[0]
       const dataFim = edital.dataFimSelecao?.toISOString().split('T')[0]
       const horarioInicio = edital.horarioInicioSelecao
@@ -159,11 +173,25 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       await verifyAuthorization(projeto, userId, userRole)
 
-      if (!projeto.editalInterno) {
+      // If project has no editalInterno linked, try to find one by ano/semestre and link it
+      let editalInterno = projeto.editalInterno
+      if (!editalInterno && repo.findEditalByAnoSemestre) {
+        const editalBySemestre = await repo.findEditalByAnoSemestre(projeto.ano, projeto.semestre)
+        if (editalBySemestre) {
+          await repo.update(projetoId, { editalInternoId: editalBySemestre.id })
+          editalInterno = editalBySemestre
+          log.info(
+            { projetoId, editalId: editalBySemestre.id },
+            'Projeto vinculado automaticamente ao edital por ano/semestre (chooseSlot)'
+          )
+        }
+      }
+
+      if (!editalInterno) {
         throw new ValidationError('Projeto não está vinculado a um edital interno')
       }
 
-      const availableSlots = parseSlots(projeto.editalInterno.datasProvasDisponiveis)
+      const availableSlots = parseSlots(editalInterno.datasProvasDisponiveis)
 
       const slotExists = availableSlots.some((slot) => slot.data === data && slot.horario === horario)
 
@@ -370,7 +398,22 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       await verifyAuthorization(projeto, userId, userRole)
 
-      const slotsDisponiveis = projeto.editalInterno ? parseSlots(projeto.editalInterno.datasProvasDisponiveis) : []
+      // If project has no editalInterno linked, try to find one by ano/semestre and link it
+      let editalInterno = projeto.editalInterno
+      if (!editalInterno && repo.findEditalByAnoSemestre) {
+        const editalBySemestre = await repo.findEditalByAnoSemestre(projeto.ano, projeto.semestre)
+        if (editalBySemestre) {
+          // Auto-link the project to the edital for future requests
+          await repo.update(projetoId, { editalInternoId: editalBySemestre.id })
+          editalInterno = editalBySemestre
+          log.info(
+            { projetoId, editalId: editalBySemestre.id },
+            'Projeto vinculado automaticamente ao edital por ano/semestre'
+          )
+        }
+      }
+
+      const slotsDisponiveis = editalInterno ? parseSlots(editalInterno.datasProvasDisponiveis) : []
       const datasEscolhidas = parseDatasEscolhidas(
         (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
       )
@@ -384,14 +427,13 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
             : []
 
       // Build range info from edital
-      const editalI = projeto.editalInterno
       const rangeSelecao =
-        editalI?.dataInicioSelecao && editalI?.dataFimSelecao
+        editalInterno?.dataInicioSelecao && editalInterno?.dataFimSelecao
           ? {
-              dataInicio: editalI.dataInicioSelecao.toISOString().split('T')[0],
-              dataFim: editalI.dataFimSelecao.toISOString().split('T')[0],
-              horarioInicio: editalI.horarioInicioSelecao ?? null,
-              horarioFim: editalI.horarioFimSelecao ?? null,
+              dataInicio: editalInterno.dataInicioSelecao.toISOString().split('T')[0],
+              dataFim: editalInterno.dataFimSelecao.toISOString().split('T')[0],
+              horarioInicio: editalInterno.horarioInicioSelecao ?? null,
+              horarioFim: editalInterno.horarioFimSelecao ?? null,
             }
           : null
 
@@ -423,7 +465,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         bibliografia: projeto.bibliografia || templateBibliografia || null,
         slotsDisponiveis,
         rangeSelecao,
-        hasEditalInterno: !!projeto.editalInterno,
+        hasEditalInterno: !!editalInterno,
       }
     },
 
