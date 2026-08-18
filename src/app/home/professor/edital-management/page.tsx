@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
-  PROJETO_STATUS_APPROVED,
-  type DashboardProjectItem,
+    PROJETO_STATUS_APPROVED,
+    type DashboardProjectItem,
 } from "@/types"
 import { api } from "@/utils/api"
 import {
