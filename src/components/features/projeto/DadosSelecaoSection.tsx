@@ -202,12 +202,12 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
               </div>
             )}
 
-            {/* Datas escolhidas pelo professor */}
+            {/* Data escolhida pelo professor */}
             {currentSelections.length > 0 ? (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Suas datas escolhidas
+                    Sua data escolhida
                   </Label>
                   <Button
                     variant="ghost"
@@ -226,9 +226,6 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                       key={idx}
                       className="flex items-center gap-2 rounded-md bg-muted/60 px-3 py-2 text-sm"
                     >
-                      <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                        {idx + 1}
-                      </span>
                       <span className="font-medium">{formatDateLong(slot.data)}</span>
                       <span className="text-muted-foreground">às</span>
                       <span className="font-medium">{slot.horario}</span>
@@ -439,15 +436,15 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
 
                 {/* Checklist de pendências */}
                 <ul className="space-y-1.5 mb-4">
-                  <li className={`flex items-center gap-2 text-xs ${currentSelections.length >= 2 ? "text-green-700" : "text-red-600"}`}>
-                    {currentSelections.length >= 2 ? (
+                  <li className={`flex items-center gap-2 text-xs ${currentSelections.length >= 1 ? "text-green-700" : "text-red-600"}`}>
+                    {currentSelections.length >= 1 ? (
                       <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                     ) : (
                       <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <circle cx="12" cy="12" r="10" />
                       </svg>
                     )}
-                    Mínimo 2 datas/horários de seleção escolhidos
+                    Data/horário de seleção escolhido
                   </li>
                   <li className={`flex items-center gap-2 text-xs ${pontosProva.trim() ? "text-green-700" : "text-red-600"}`}>
                     {pontosProva.trim() ? (
@@ -486,7 +483,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                   onClick={handleConfirmDadosEdital}
                   disabled={
                     confirmDadosEditalMutation.isPending ||
-                    currentSelections.length < 2 ||
+                    currentSelections.length < 1 ||
                     !pontosProva.trim() ||
                     !bibliografia.trim() ||
                     !selecaoInfo.voluntariosConfirmados ||

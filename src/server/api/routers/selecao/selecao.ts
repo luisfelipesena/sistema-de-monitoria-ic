@@ -244,8 +244,8 @@ export const selecaoRouter = createTRPCRouter({
               horario: z.string(),
             })
           )
-          .min(2)
-          .max(3),
+          .min(1)
+          .max(1),
       })
     )
     .mutation(async ({ input, ctx }) => {

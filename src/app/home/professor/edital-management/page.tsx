@@ -12,28 +12,42 @@ import {
 } from "@/types"
 import { api } from "@/utils/api"
 import {
-    ChevronDown,
-    Eye,
-    HelpCircle,
-    Info,
-    Loader2,
-    Sparkles
+  ChevronDown,
+  Eye,
+  HelpCircle,
+  Info,
+  Loader2,
+  Sparkles
 } from "lucide-react"
 import Link from "next/link"
 import { useMemo, useState } from "react"
 
 export default function ProfessorEditalManagementPage() {
   const { data: projetos, isLoading: loadingProjetos } = api.projeto.getProjetos.useQuery()
+  const { data: editais, isLoading: loadingEditais } = api.edital.getEditais.useQuery()
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
   const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
 
-  // Filter approved projects that need edital data
+  // Pega o edital mais recente (último criado) para determinar o semestre vigente
+  const editalVigente = useMemo(() => {
+    if (!editais || editais.length === 0) return null
+    // Ordena por createdAt descendente e pega o primeiro
+    const sorted = [...editais].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    return sorted[0]
+  }, [editais])
+
+  // Filter approved projects that match the edital vigente's ano/semestre
   const projetosAprovados = useMemo(() => {
     if (!projetos) return []
+    const periodo = editalVigente?.periodoInscricao
+    if (!periodo) return projetos.filter((p) => p.status === PROJETO_STATUS_APPROVED) as DashboardProjectItem[]
     return projetos.filter(
-      (p) => p.status === PROJETO_STATUS_APPROVED
+      (p) =>
+        p.status === PROJETO_STATUS_APPROVED &&
+        p.ano === periodo.ano &&
+        p.semestre === periodo.semestre
     ) as DashboardProjectItem[]
-  }, [projetos])
+  }, [projetos, editalVigente])
 
   const handleOpenPdf = async (projetoId: number) => {
     setLoadingPdfProjetoId(projetoId)
@@ -49,7 +63,7 @@ export default function ProfessorEditalManagementPage() {
     }
   }
 
-  const isLoading = loadingProjetos
+  const isLoading = loadingProjetos || loadingEditais
 
   return (
     <PagesLayout
@@ -88,7 +102,7 @@ export default function ProfessorEditalManagementPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
-            Meus Projetos no Edital ({projetosAprovados.length})
+            Meus projetos no EDITAL ({projetosAprovados.length})
           </h2>
         </div>
 

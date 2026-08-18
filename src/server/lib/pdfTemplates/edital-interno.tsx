@@ -122,6 +122,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderBottomWidth: 1,
     borderColor: "#000",
+    alignItems: "stretch",
   },
   tableRowLast: {
     flexDirection: "row",
@@ -129,6 +130,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderBottomWidth: 1,
     borderColor: "#000",
+    alignItems: "stretch",
   },
   tableHeaderCell: {
     padding: 5,
@@ -136,11 +138,13 @@ const styles = StyleSheet.create({
     borderColor: "#000",
     justifyContent: "center",
     alignItems: "center",
+    alignSelf: "stretch",
   },
   tableHeaderCellLast: {
     padding: 5,
     justifyContent: "center",
     alignItems: "center",
+    alignSelf: "stretch",
   },
   tableColHeaderText: {
     fontSize: 8,
@@ -153,11 +157,13 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderColor: "#000",
     justifyContent: "center",
+    alignSelf: "stretch",
   },
   tableColLast: {
     padding: 4,
     fontSize: 9,
     justifyContent: "center",
+    alignSelf: "stretch",
   },
   tableColCenter: {
     padding: 4,
@@ -166,6 +172,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderColor: "#000",
     justifyContent: "center",
+    alignSelf: "stretch",
   },
   // Column widths - main table
   colComponente: { width: "38%" },
@@ -608,20 +615,20 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
                   const rowStyle = isLast ? styles.tableRowLast : styles.tableRow
                   return (
                     <View key={index} style={rowStyle}>
-                      <View style={[styles.colExamComponente, { borderRightWidth: 1, borderColor: "#000", padding: 4, justifyContent: "center", alignItems: "center" }]}>
+                      <View style={[styles.colExamComponente, { borderRightWidth: 1, borderColor: "#000", padding: 4, justifyContent: "center", alignItems: "center", alignSelf: "stretch" }]}>
                         <Text style={{ fontSize: 9, textAlign: "center" }}>
                           {row.codigo} - {row.nome}
                         </Text>
                       </View>
-                      <View style={[styles.colExamData, { borderRightWidth: 1, borderColor: "#000", padding: 4, justifyContent: "center", alignItems: "center" }]}>
+                      <View style={[styles.colExamData, { borderRightWidth: 1, borderColor: "#000", padding: 4, justifyContent: "center", alignItems: "center", alignSelf: "stretch" }]}>
                         <Text style={{ fontSize: 9, textAlign: "center" }}>
                           {formatDateShort(row.data)}
                         </Text>
                       </View>
-                      <View style={[styles.colExamHora, { borderRightWidth: 1, borderColor: "#000", padding: 4, justifyContent: "center", alignItems: "center" }]}>
+                      <View style={[styles.colExamHora, { borderRightWidth: 1, borderColor: "#000", padding: 4, justifyContent: "center", alignItems: "center", alignSelf: "stretch" }]}>
                         <Text style={{ fontSize: 9, textAlign: "center" }}>{row.horario}</Text>
                       </View>
-                      <View style={[styles.colExamProfessor, { padding: 4, justifyContent: "center", alignItems: "center" }]}>
+                      <View style={[styles.colExamProfessor, { padding: 4, justifyContent: "center", alignItems: "center", alignSelf: "stretch" }]}>
                         <Text style={{ fontSize: 9, textAlign: "center" }}>{row.professor}</Text>
                       </View>
                     </View>

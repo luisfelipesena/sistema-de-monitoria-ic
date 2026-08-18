@@ -17,7 +17,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import type { SlotDataHorario } from "@/types/selecao-inputs"
-import { AlertCircle, Loader2, Plus, Trash2 } from "lucide-react"
+import { AlertCircle, Loader2 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 
 interface RangeSelecao {
@@ -30,12 +30,9 @@ interface RangeSelecao {
 interface SlotSelectionModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  slots?: SlotDataHorario[]
   rangeSelecao?: RangeSelecao | null
   currentSelections?: SlotDataHorario[]
-  currentSelection?: SlotDataHorario
   onConfirm: (slots: SlotDataHorario[]) => void
-  onConfirmSingle?: (slot: SlotDataHorario) => void
   isLoading?: boolean
 }
 
@@ -119,16 +116,13 @@ export function SlotSelectionModal({
   onConfirm,
   isLoading = false,
 }: SlotSelectionModalProps) {
-  const [selections, setSelections] = useState<SlotDataHorario[]>([
-    { data: "", horario: "" },
-    { data: "", horario: "" },
-  ])
+  const [selection, setSelection] = useState<SlotDataHorario>({ data: "", horario: "" })
 
   useEffect(() => {
     if (open && currentSelections && currentSelections.length > 0) {
-      setSelections([...currentSelections])
+      setSelection({ ...currentSelections[0] })
     } else if (open) {
-      setSelections([{ data: "", horario: "" }, { data: "", horario: "" }])
+      setSelection({ data: "", horario: "" })
     }
   }, [open, currentSelections])
 
@@ -144,33 +138,16 @@ export function SlotSelectionModal({
   }, [rangeSelecao])
 
   const hasRange = !!rangeSelecao && dateOptions.length > 0
-  const canAdd = selections.length < 3
-  const canRemove = selections.length > 2
 
-  const allFilled = selections.every((s) => s.data && s.horario)
-  const canSubmit = allFilled && selections.length >= 2
+  const canSubmit = !!selection.data && !!selection.horario
 
-  function handleAddSlot() {
-    if (!canAdd) return
-    setSelections([...selections, { data: "", horario: "" }])
-  }
-
-  function handleRemoveSlot(index: number) {
-    if (!canRemove) return
-    setSelections(selections.filter((_, i) => i !== index))
-  }
-
-  function handleSlotChange(index: number, field: keyof SlotDataHorario, value: string) {
-    const updated = selections.map((slot, i) =>
-      i === index ? { ...slot, [field]: value } : slot
-    )
-    setSelections(updated)
+  function handleFieldChange(field: keyof SlotDataHorario, value: string) {
+    setSelection((prev) => ({ ...prev, [field]: value }))
   }
 
   const handleConfirm = () => {
-    const validSlots = selections.filter((s) => s.data && s.horario)
-    if (validSlots.length > 0) {
-      onConfirm(validSlots)
+    if (selection.data && selection.horario) {
+      onConfirm([selection])
     }
   }
 
@@ -184,9 +161,9 @@ export function SlotSelectionModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>Escolher Datas da Seleção</DialogTitle>
+          <DialogTitle>Escolher Data da Seleção</DialogTitle>
           <DialogDescription>
-            Selecione entre 2 e 3 datas e horários de início para a prova de seleção.
+            Selecione a data e horário de início para a prova de seleção.
           </DialogDescription>
         </DialogHeader>
 
@@ -204,101 +181,73 @@ export function SlotSelectionModal({
         )}
 
         <div className="space-y-4 py-2">
-          {selections.map((slot, index) => (
-            <div key={index} className="space-y-1">
-              <div className="flex items-end gap-3">
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">
-                    Data {index + 1}
-                  </label>
-                  {hasRange ? (
-                    <Select
-                      value={slot.data}
-                      onValueChange={(val) => handleSlotChange(index, "data", val)}
-                      disabled={isLoading}
-                    >
-                      <SelectTrigger aria-label={`Data do slot ${index + 1}`}>
-                        <SelectValue placeholder="Selecione a data" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {dateOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <input
-                      type="date"
-                      className="block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-                      value={slot.data}
-                      onChange={(e) => handleSlotChange(index, "data", e.target.value)}
-                      disabled={isLoading}
-                      aria-label={`Data do slot ${index + 1}`}
-                    />
-                  )}
-                </div>
-
-                <div className="flex-1">
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">
-                    Horário {index + 1}
-                  </label>
-                  {hasRange && timeOptions.length > 0 ? (
-                    <Select
-                      value={slot.horario}
-                      onValueChange={(val) => handleSlotChange(index, "horario", val)}
-                      disabled={isLoading}
-                    >
-                      <SelectTrigger aria-label={`Horário do slot ${index + 1}`}>
-                        <SelectValue placeholder="Selecione o horário" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <input
-                      type="time"
-                      className="block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
-                      value={slot.horario}
-                      onChange={(e) => handleSlotChange(index, "horario", e.target.value)}
-                      disabled={isLoading}
-                      aria-label={`Horário do slot ${index + 1}`}
-                    />
-                  )}
-                </div>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleRemoveSlot(index)}
-                  disabled={isLoading || !canRemove}
-                  aria-label={`Remover slot ${index + 1}`}
-                  className="h-[40px] w-[40px] shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Data
+              </label>
+              {hasRange ? (
+                <Select
+                  value={selection.data}
+                  onValueChange={(val) => handleFieldChange("data", val)}
+                  disabled={isLoading}
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+                  <SelectTrigger aria-label="Data da seleção">
+                    <SelectValue placeholder="Selecione a data" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dateOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <input
+                  type="date"
+                  className="block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+                  value={selection.data}
+                  onChange={(e) => handleFieldChange("data", e.target.value)}
+                  disabled={isLoading}
+                  aria-label="Data da seleção"
+                />
+              )}
             </div>
-          ))}
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAddSlot}
-            disabled={isLoading || !canAdd}
-            className="w-full border-dashed"
-          >
-            <Plus className="h-4 w-4 mr-1.5" />
-            Adicionar mais uma data
-          </Button>
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                Horário
+              </label>
+              {hasRange && timeOptions.length > 0 ? (
+                <Select
+                  value={selection.horario}
+                  onValueChange={(val) => handleFieldChange("horario", val)}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger aria-label="Horário da seleção">
+                    <SelectValue placeholder="Selecione o horário" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeOptions.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <input
+                  type="time"
+                  className="block w-full rounded-md px-3 py-2.5 text-sm transition-colors outline-none border bg-white h-[40px] border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200"
+                  value={selection.horario}
+                  onChange={(e) => handleFieldChange("horario", e.target.value)}
+                  disabled={isLoading}
+                  aria-label="Horário da seleção"
+                />
+              )}
+            </div>
+          </div>
         </div>
 
         <DialogFooter>

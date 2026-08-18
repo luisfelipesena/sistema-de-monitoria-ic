@@ -215,7 +215,7 @@ export const projetoTable = pgTable('projeto', {
   editalInternoId: integer('edital_interno_id').references(() => editalTable.id, { onDelete: 'set null' }), // Optional reference to internal DCC edital
   dataSelecaoEscolhida: date('data_selecao_escolhida', { mode: 'date' }), // Data escolhida pelo professor dentre as disponíveis (legacy, single)
   horarioSelecao: varchar('horario_selecao', { length: 20 }), // Horário da seleção (ex: "14:00-16:00") (legacy, single)
-  datasSelecaoEscolhidas: text('datas_selecao_escolhidas'), // JSON: [{data: "2025-08-10", horario: "08:00"}, ...] até 3 slots
+  datasSelecaoEscolhidas: text('datas_selecao_escolhidas'), // JSON: [{data: "2025-08-10", horario: "08:00"}] - 1 slot escolhido pelo professor
   localSelecao: varchar('local_selecao', { length: 255 }), // Local da seleção (ex: "Sala 101, PAF I")
   bibliografia: text('bibliografia'), // Bibliografia para seleção
   pontosProva: text('pontos_prova'), // Pontos/tópicos da prova de seleção

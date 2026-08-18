@@ -4,14 +4,14 @@ import { createFilterableHeader } from "@/components/layout/DataTableFilterHeade
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -19,14 +19,14 @@ import { useToast } from "@/hooks/use-toast"
 import { createSemesterFilterOptions, createYearFilterOptions } from "@/hooks/useColumnFilters"
 import { useUrlColumnFilters } from "@/hooks/useUrlColumnFilters"
 import {
-    DashboardProjectItem,
-    PROJETO_STATUS_APPROVED,
-    PROJETO_STATUS_DRAFT,
-    PROJETO_STATUS_LABELS,
-    PROJETO_STATUS_PENDING_REVISION,
-    PROJETO_STATUS_PENDING_SIGNATURE,
-    PROJETO_STATUS_REJECTED,
-    PROJETO_STATUS_SUBMITTED,
+  DashboardProjectItem,
+  PROJETO_STATUS_APPROVED,
+  PROJETO_STATUS_DRAFT,
+  PROJETO_STATUS_LABELS,
+  PROJETO_STATUS_PENDING_REVISION,
+  PROJETO_STATUS_PENDING_SIGNATURE,
+  PROJETO_STATUS_REJECTED,
+  PROJETO_STATUS_SUBMITTED,
 } from "@/types"
 import { api } from "@/utils/api"
 import { ColumnDef } from "@tanstack/react-table"
@@ -48,6 +48,7 @@ const statusFilterOptions = [
 export default function DashboardProfessor() {
   const { toast } = useToast()
   const { data: projetos, isLoading: loadingProjetos } = api.projeto.getProjetos.useQuery()
+  const { data: editais } = api.edital.getEditais.useQuery()
   const deleteProjeto = api.projeto.deleteProjeto.useMutation()
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -60,13 +61,39 @@ export default function DashboardProfessor() {
     useCurrentSemester: false,
   })
 
-  // Filter approved projects to display the "Dados da Seleção" section
+  // Pega o edital mais recente (último criado) para determinar o semestre vigente
+  const editalVigente = useMemo(() => {
+    if (!editais || editais.length === 0) return null
+    const sorted = [...editais].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    return sorted[0]
+  }, [editais])
+
+  // Filter approved projects that match the edital vigente's ano/semestre
   const projetosComEdital = useMemo(() => {
     if (!projetos) return []
+    const periodo = editalVigente?.periodoInscricao
+    if (!periodo) return projetos.filter((p) => p.status === PROJETO_STATUS_APPROVED) as DashboardProjectItem[]
     return projetos.filter(
-      (p) => p.status === PROJETO_STATUS_APPROVED
+      (p) =>
+        p.status === PROJETO_STATUS_APPROVED &&
+        p.ano === periodo.ano &&
+        p.semestre === periodo.semestre
     ) as DashboardProjectItem[]
-  }, [projetos])
+  }, [projetos, editalVigente])
+
+  const projetosPendentesEdital = useMemo(() => {
+    return projetosComEdital.filter((p) => !p.dadosEditalConfirmados)
+  }, [projetosComEdital])
+
+  // Label do edital vigente para exibição (ex: "2026.2")
+  const editalVigenteLabel = useMemo(() => {
+    const periodo = editalVigente?.periodoInscricao
+    if (periodo) {
+      const sem = periodo.semestre === "SEMESTRE_1" ? "1" : "2"
+      return `${periodo.ano}.${sem}`
+    }
+    return ""
+  }, [editalVigente])
 
   const projetosPendentesEdital = useMemo(() => {
     return projetosComEdital.filter((p) => !p.dadosEditalConfirmados)
@@ -157,7 +184,12 @@ export default function DashboardProfessor() {
       cell: ({ row }) => {
         const disciplinas = row.original.disciplinas
         const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
-        return <span className="font-semibold text-base text-gray-900">{codigoDisciplina}</span>
+        const nomeDisciplina = disciplinas.length > 0 ? disciplinas[0].nome : ""
+        return (
+          <span className="font-semibold text-base text-gray-900">
+            {codigoDisciplina}{nomeDisciplina ? ` - ${nomeDisciplina}` : ""}
+          </span>
+        )
       },
     },
     {
@@ -379,14 +411,14 @@ export default function DashboardProfessor() {
                   <div>
                     <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                       <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      Preenchimento de Dados para o Edital ({projetosComEdital.length} projeto(s) aprovado(s))
+                      <strong> Preenchimento de Dados para o Edital </strong>
                     </h3>
                     <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
                       Configure as vagas voluntárias, datas e horários da seleção, pontos de prova e bibliografia dos seus projetos na aba exclusiva do Edital.
                     </p>
                     {projetosPendentesEdital.length > 0 && (
                       <p className="text-sm font-semibold text-red-600 dark:text-red-400 mt-2">
-                        ⚠ {projetosPendentesEdital.length} projeto(s) ainda não confirmado(s) para o edital. Se não confirmar, os dados não aparecerão no edital publicado.
+                        ⚠ {projetosPendentesEdital.length} projeto(s) ainda não confirmado(s) para o edital {editalVigenteLabel}. Se não confirmar, os dados não aparecerão no edital {editalVigenteLabel} publicado.
                       </p>
                     )}
                   </div>
