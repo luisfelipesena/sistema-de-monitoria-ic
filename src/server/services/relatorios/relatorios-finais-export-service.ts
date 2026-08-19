@@ -1,16 +1,16 @@
 import type { db } from '@/server/db'
 import {
-    alunoTable,
-    departamentoTable,
-    disciplinaTable,
-    inscricaoTable,
-    professorTable,
-    projetoDisciplinaTable,
-    projetoTable,
-    relatorioFinalDisciplinaTable,
-    relatorioFinalMonitorTable,
-    userTable,
-    vagaTable,
+  alunoTable,
+  departamentoTable,
+  disciplinaTable,
+  inscricaoTable,
+  professorTable,
+  projetoDisciplinaTable,
+  projetoTable,
+  relatorioFinalDisciplinaTable,
+  relatorioFinalMonitorTable,
+  userTable,
+  vagaTable,
 } from '@/server/db/schema'
 import { relatoriosEmailService } from '@/server/lib/email/relatorios-emails'
 import { APPROVED, SEMESTRE_1, SEMESTRE_LABELS, type Semestre, extractNotaFromRelatorioConteudo } from '@/types'
