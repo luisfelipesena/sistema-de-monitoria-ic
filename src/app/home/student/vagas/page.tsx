@@ -119,7 +119,7 @@ export default function VagasPage() {
               <div>
                 <p className="text-green-800 font-medium">Período de inscrições ativo</p>
                 <p className="text-green-700 text-sm">
-                  Inscrições abertas até {new Date(activePeriod.dataFim).toLocaleDateString("pt-BR")}
+                  Inscrições abertas até {new Date(activePeriod.dataFim).toLocaleDateString("pt-BR", { timeZone: "UTC" })}
                 </p>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import type { EditalRelatorio } from "@/types"
 import { getSemestreNumero } from "@/types"
+import { formatDateFullUTC } from "@/utils/date-utils"
 import { ColumnDef } from "@tanstack/react-table"
 import { CheckCircle, Clock } from "lucide-react"
 
@@ -29,8 +30,8 @@ export const editaisColumns: ColumnDef<EditalRelatorio>[] = [
             {edital.periodo.ano}/{getSemestreNumero(edital.periodo.semestre)}
           </div>
           <div className="text-sm text-muted-foreground">
-            {new Date(edital.periodo.dataInicio).toLocaleDateString("pt-BR")} -
-            {new Date(edital.periodo.dataFim).toLocaleDateString("pt-BR")}
+            {formatDateFullUTC(edital.periodo.dataInicio)} -
+            {formatDateFullUTC(edital.periodo.dataFim)}
           </div>
         </div>
       )

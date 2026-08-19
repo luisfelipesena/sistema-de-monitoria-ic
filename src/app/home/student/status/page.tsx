@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { TIPO_VAGA_BOLSISTA } from '@/types'
 import { api } from '@/utils/api'
-import { FileCheck, Clock, Award, Users, Calendar, CheckCircle } from 'lucide-react'
+import { Award, Calendar, CheckCircle, Clock, FileCheck, Users } from 'lucide-react'
 
 export default function StatusPage() {
   const { data: status, isLoading } = api.inscricao.getMyStatus.useQuery()
@@ -117,7 +117,7 @@ export default function StatusPage() {
               {status.monitoriaAtiva.dataInicio && status.monitoriaAtiva.dataFim && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Período: {new Date(status.monitoriaAtiva.dataInicio).toLocaleDateString('pt-BR')} - {new Date(status.monitoriaAtiva.dataFim).toLocaleDateString('pt-BR')}</span>
+                    <span>Período: {new Date(status.monitoriaAtiva.dataInicio).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} - {new Date(status.monitoriaAtiva.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</span>
                     <span>{calculateProgress(new Date(status.monitoriaAtiva.dataInicio), new Date(status.monitoriaAtiva.dataFim))}%</span>
                   </div>
                   <Progress value={calculateProgress(new Date(status.monitoriaAtiva.dataInicio), new Date(status.monitoriaAtiva.dataFim))} />

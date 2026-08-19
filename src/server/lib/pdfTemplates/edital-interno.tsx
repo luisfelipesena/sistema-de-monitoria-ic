@@ -283,17 +283,17 @@ export interface EditalInternoData {
 export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    const day = date.getDate().toString().padStart(2, "0")
-    const month = (date.getMonth() + 1).toString().padStart(2, "0")
-    const year = date.getFullYear()
+    const day = date.getUTCDate().toString().padStart(2, "0")
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, "0")
+    const year = date.getUTCFullYear()
     return `${day}/${month}/${year}`
   }
 
   const formatDateShort = (dateString: string) => {
     const date = new Date(dateString)
-    const day = date.getDate().toString().padStart(2, "0")
-    const month = (date.getMonth() + 1).toString().padStart(2, "0")
-    const year = date.getFullYear().toString().slice(-2)
+    const day = date.getUTCDate().toString().padStart(2, "0")
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, "0")
+    const year = date.getUTCFullYear().toString().slice(-2)
     return `${day}/${month}/${year}`
   }
 
@@ -313,7 +313,7 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
       "novembro",
       "dezembro",
     ]
-    return `${date.getDate()} de ${months[date.getMonth()]} de ${date.getFullYear()}`
+    return `${date.getUTCDate()} de ${months[date.getUTCMonth()]} de ${date.getUTCFullYear()}`
   }
 
   const hasPontosOuBibliografia = data.disciplinas.some(

@@ -1,6 +1,6 @@
-import { ProfessorReport, CertificatesDepartment } from '@/server/emails/templates/reports'
-import { ReportSignature } from '@/server/emails/templates/student'
 import { renderEmail } from '@/server/emails/render'
+import { CertificatesDepartment, ProfessorReport } from '@/server/emails/templates/reports'
+import { ReportSignature } from '@/server/emails/templates/student'
 import { SEMESTRE_LABELS, type Semestre } from '@/types'
 import { env } from '@/utils/env'
 import { emailSender } from './email-sender'
@@ -46,7 +46,7 @@ export const relatoriosEmailService = {
   ): Promise<void> {
     const semestreDisplay = SEMESTRE_LABELS[data.semestre]
     const prazoText = data.prazoFinal
-      ? `até ${data.prazoFinal.toLocaleDateString('pt-BR')}`
+      ? `até ${data.prazoFinal.toLocaleDateString('pt-BR', { timeZone: 'UTC' })}`
       : 'o mais breve possível'
     const linkRelatorios = `${clientUrl}/home/professor/relatorios-finais`
 

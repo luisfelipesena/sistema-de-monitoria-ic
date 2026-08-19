@@ -133,6 +133,7 @@ export function formatDateBR(date: Date | null | undefined): string {
     day: '2-digit',
     month: '2-digit',
     year: '2-digit',
+    timeZone: 'UTC',
   }).format(date)
 }
 
@@ -142,6 +143,7 @@ export function formatDateLongBR(date: Date | null | undefined): string {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
+    timeZone: 'UTC',
   }).format(date)
 }
 
@@ -151,5 +153,6 @@ export function formatDateFullBR(date: Date | null | undefined): string {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
+    timeZone: 'UTC',
   }).format(date)
 }
