@@ -1,17 +1,17 @@
 import { sendDepartamentoConsolidationEmail } from '@/server/lib/email'
 import { BusinessError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import {
-    ACCEPTED_BOLSISTA,
-    BOLSISTA,
-    SEMESTRE_1,
-    SEMESTRE_LABELS,
-    TERMO_STATUS_COMPLETO,
-    TERMO_STATUS_PENDENTE,
-    TIPO_ASSINATURA_ATA_SELECAO,
-    TIPO_ASSINATURA_TERMO_COMPROMISSO,
-    VAGA_STATUS_ATIVO,
-    VOLUNTARIO,
-    type Semestre,
+  ACCEPTED_BOLSISTA,
+  BOLSISTA,
+  SEMESTRE_1,
+  SEMESTRE_LABELS,
+  TERMO_STATUS_COMPLETO,
+  TERMO_STATUS_PENDENTE,
+  TIPO_ASSINATURA_ATA_SELECAO,
+  TIPO_ASSINATURA_TERMO_COMPROMISSO,
+  VAGA_STATUS_ATIVO,
+  VOLUNTARIO,
+  type Semestre,
 } from '@/types'
 import { formatDateFullUTC } from '@/utils/date-utils'
 import { logger } from '@/utils/logger'

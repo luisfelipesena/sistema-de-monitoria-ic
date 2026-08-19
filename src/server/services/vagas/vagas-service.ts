@@ -4,21 +4,21 @@ import { isProfessor, requireAdmin, requireAdminOrProfessor, requireStudent } fr
 import { emailService } from '@/server/lib/email'
 import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import {
-    ACCEPTED_BOLSISTA,
-    ACCEPTED_VOLUNTARIO,
-    BOLSISTA,
-    REJECTED_BY_STUDENT,
-    TIPO_ASSINATURA_ATA_SELECAO,
-    TIPO_ASSINATURA_TERMO_COMPROMISSO,
-    VAGA_STATUS_ATIVA,
-    VAGA_STATUS_ATIVO,
-    VAGA_STATUS_INCOMPLETO,
-    VAGA_STATUS_PENDENTE_ASSINATURA,
-    VOLUNTARIO,
-    type Semestre,
-    type TipoVaga,
-    type UserRole,
-    type VagaStatus,
+  ACCEPTED_BOLSISTA,
+  ACCEPTED_VOLUNTARIO,
+  BOLSISTA,
+  REJECTED_BY_STUDENT,
+  TIPO_ASSINATURA_ATA_SELECAO,
+  TIPO_ASSINATURA_TERMO_COMPROMISSO,
+  VAGA_STATUS_ATIVA,
+  VAGA_STATUS_ATIVO,
+  VAGA_STATUS_INCOMPLETO,
+  VAGA_STATUS_PENDENTE_ASSINATURA,
+  VOLUNTARIO,
+  type Semestre,
+  type TipoVaga,
+  type UserRole,
+  type VagaStatus,
 } from '@/types'
 import { logger } from '@/utils/logger'
 import { and, eq, sql } from 'drizzle-orm'
