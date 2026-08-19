@@ -203,7 +203,9 @@ export function createRelatoriosExportService(
             new Date(item.periodo.dataInicio).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
             new Date(item.periodo.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
             item.edital.publicado ? 'Sim' : 'Não',
-            item.edital.dataPublicacao ? new Date(item.edital.dataPublicacao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '',
+            item.edital.dataPublicacao
+              ? new Date(item.edital.dataPublicacao).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+              : '',
             item.criadoPor.username,
           ])
           if (rows.length === 0) throw new NotFoundError('Dados', 'não encontrados para exportar')

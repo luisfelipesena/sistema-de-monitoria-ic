@@ -13,7 +13,7 @@ import {
   projetoProfessorParticipanteTable,
   projetoTable,
   projetoTemplateTable,
-  userTable
+  userTable,
 } from '@/server/db/schema'
 import { pickPeriodoForSemestre, resolvePeriodoForSemestre } from '@/server/lib/periodo-resolver'
 import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
