@@ -6,7 +6,6 @@ import {
   departamentoTable,
   disciplinaProfessorResponsavelTable,
   disciplinaTable,
-  editalTable,
   inscricaoTable,
   periodoInscricaoTable,
   professorTable,
@@ -14,8 +13,9 @@ import {
   projetoProfessorParticipanteTable,
   projetoTable,
   projetoTemplateTable,
-  userTable,
+  userTable
 } from '@/server/db/schema'
+import { pickPeriodoForSemestre, resolvePeriodoForSemestre } from '@/server/lib/periodo-resolver'
 import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
 import { ADMIN, PROJETO_STATUS_APPROVED, TIPO_PROPOSICAO_COLETIVA } from '@/types'
 import type { InferInsertModel, SQL } from 'drizzle-orm'
@@ -552,12 +552,14 @@ export function createProjetoRepository(db: Database) {
     },
 
     async findPeriodoByProjetoSemestre(ano: number, semestre: Semestre) {
-      return db.query.periodoInscricaoTable.findFirst({
+      // Multiple periodos can share an ano/semestre; pick the one carrying the edital.
+      const periodos = await db.query.periodoInscricaoTable.findMany({
         where: and(eq(periodoInscricaoTable.ano, ano), eq(periodoInscricaoTable.semestre, semestre)),
         with: {
           edital: {
             columns: {
               id: true,
+              tipo: true,
               numeroEdital: true,
               publicado: true,
               dataInicioAlteracao: true,
@@ -566,6 +568,7 @@ export function createProjetoRepository(db: Database) {
           },
         },
       })
+      return resolvePeriodoForSemestre(periodos)
     },
 
     async findEditaisByPeriodos() {
@@ -752,13 +755,12 @@ export function createProjetoRepository(db: Database) {
      * Used as fallback when a project has no editalInternoId set.
      */
     async findEditalByAnoSemestre(ano: number, semestre: Semestre) {
-      const periodo = await db.query.periodoInscricaoTable.findFirst({
+      // Multiple periodos can share an ano/semestre; only one of them holds the edital.
+      const periodos = await db.query.periodoInscricaoTable.findMany({
         where: and(eq(periodoInscricaoTable.ano, ano), eq(periodoInscricaoTable.semestre, semestre)),
+        with: { edital: true },
       })
-      if (!periodo) return null
-      return db.query.editalTable.findFirst({
-        where: eq(editalTable.periodoInscricaoId, periodo.id),
-      })
+      return pickPeriodoForSemestre(periodos)?.edital ?? null
     },
   }
 }

@@ -1,4 +1,5 @@
 import type { db } from '@/server/db'
+import { resolvePeriodoForSemestre } from '@/server/lib/periodo-resolver'
 import {
   atividadeProjetoTable,
   disciplinaProfessorResponsavelTable,
@@ -333,9 +334,12 @@ export function createImportProjectsRepository(db: Database) {
     },
 
     async findPeriodoBySemestre(ano: number, semestre: Semestre) {
-      return db.query.periodoInscricaoTable.findFirst({
+      // Multiple periodos can share an ano/semestre; pick the one carrying the edital.
+      const periodos = await db.query.periodoInscricaoTable.findMany({
         where: and(eq(periodoInscricaoTable.ano, ano), eq(periodoInscricaoTable.semestre, semestre)),
+        with: { edital: { columns: { id: true, tipo: true } } },
       })
+      return resolvePeriodoForSemestre(periodos)
     },
 
     async updatePeriodoEditalPrograd(periodoId: number, numeroEditalPrograd: string) {
