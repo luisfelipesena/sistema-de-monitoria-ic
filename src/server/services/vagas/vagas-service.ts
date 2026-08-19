@@ -1,7 +1,8 @@
 import type { db } from '@/server/db'
-import { createVagasRepository } from './vagas-repository'
+import { inscricaoTable, professorTable, projetoTable, vagaTable } from '@/server/db/schema'
+import { isProfessor, requireAdmin, requireAdminOrProfessor, requireStudent } from '@/server/lib/auth-helpers'
 import { emailService } from '@/server/lib/email'
-import { logger } from '@/utils/logger'
+import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import {
   ACCEPTED_BOLSISTA,
   ACCEPTED_VOLUNTARIO,
@@ -9,20 +10,19 @@ import {
   REJECTED_BY_STUDENT,
   TIPO_ASSINATURA_ATA_SELECAO,
   TIPO_ASSINATURA_TERMO_COMPROMISSO,
-  VOLUNTARIO,
   VAGA_STATUS_ATIVA,
   VAGA_STATUS_ATIVO,
   VAGA_STATUS_INCOMPLETO,
   VAGA_STATUS_PENDENTE_ASSINATURA,
-  type UserRole,
+  VOLUNTARIO,
   type Semestre,
   type TipoVaga,
+  type UserRole,
   type VagaStatus,
 } from '@/types'
+import { logger } from '@/utils/logger'
 import { and, eq, sql } from 'drizzle-orm'
-import { inscricaoTable, professorTable, projetoTable, vagaTable } from '@/server/db/schema'
-import { NotFoundError, ForbiddenError, BusinessError, ValidationError } from '@/server/lib/errors'
-import { requireStudent, requireAdminOrProfessor, requireAdmin, isProfessor } from '@/server/lib/auth-helpers'
+import { createVagasRepository } from './vagas-repository'
 
 const log = logger.child({ context: 'VagasService' })
 
@@ -392,7 +392,7 @@ Sistema de Monitoria IC
           html: `
 Olá ${vagaData.aluno.user.username},<br><br>
 
-Sua monitoria no projeto ${vagaData.projeto.titulo} foi oficialmente finalizada em ${dataFimFinal.toLocaleDateString('pt-BR')}.<br><br>
+Sua monitoria no projeto ${vagaData.projeto.titulo} foi oficialmente finalizada em ${dataFimFinal.toLocaleDateString('pt-BR', { timeZone: 'UTC' })}.<br><br>
 
 Obrigado pela sua participação no programa de monitoria!<br><br>
 
@@ -411,7 +411,7 @@ Sistema de Monitoria IC
           html: `
 Olá ${vagaData.projeto.professorResponsavel.nomeCompleto},<br><br>
 
-A monitoria do aluno ${vagaData.aluno.user.username} no projeto ${vagaData.projeto.titulo} foi oficialmente finalizada em ${dataFimFinal.toLocaleDateString('pt-BR')}.<br><br>
+A monitoria do aluno ${vagaData.aluno.user.username} no projeto ${vagaData.projeto.titulo} foi oficialmente finalizada em ${dataFimFinal.toLocaleDateString('pt-BR', { timeZone: 'UTC' })}.<br><br>
 
 Atenciosamente,<br>
 Sistema de Monitoria IC

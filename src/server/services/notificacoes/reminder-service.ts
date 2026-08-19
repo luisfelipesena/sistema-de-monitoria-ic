@@ -149,7 +149,7 @@ Sistema de Monitoria IC
         // Get all students who haven't applied to any project in this period
         const alunosSemInscricao = await deadlineRepo.findStudentsWithoutInscription(periodo.id)
 
-        const dataFimFormatada = new Date(periodo.dataFim).toLocaleDateString('pt-BR')
+        const dataFimFormatada = new Date(periodo.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
         const semestreLabel = SEMESTRE_LABELS[periodo.semestre as keyof typeof SEMESTRE_LABELS]
 
         for (const aluno of alunosSemInscricao) {

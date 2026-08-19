@@ -4,12 +4,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
@@ -49,7 +49,7 @@ export default function CertificadosAlunoPage() {
 
   const formatDate = (date: Date | string | null) => {
     if (!date) return 'N/A'
-    return new Date(date).toLocaleDateString('pt-BR')
+    return new Date(date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
   }
 
   if (!alunoId) {

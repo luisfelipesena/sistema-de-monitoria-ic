@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, Font, Image } from '@react-pdf/renderer'
+import { Document, Font, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 
 // Registrar fontes (mesmo padrão dos outros templates)
 Font.register({
@@ -162,7 +162,8 @@ export function TermoCompromissoTemplate({
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit', 
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: 'UTC',
     }).format(date)
   }
 

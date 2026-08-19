@@ -20,9 +20,11 @@ export function createEditalQueryService(repo: EditalRepository) {
     let statusPeriodo: PeriodoInscricaoStatus = PERIODO_INSCRICAO_STATUS_FINALIZADO
     if (edital.periodoInscricao) {
       const inicio = new Date(edital.periodoInscricao.dataInicio)
-      const fim = new Date(edital.periodoInscricao.dataFim)
+      // dataFim is midnight UTC of that day; the period should include the entire day
+      const fimEndOfDay = new Date(edital.periodoInscricao.dataFim)
+      fimEndOfDay.setUTCHours(23, 59, 59, 999)
 
-      if (now >= inicio && now <= fim) {
+      if (now >= inicio && now <= fimEndOfDay) {
         statusPeriodo = PERIODO_INSCRICAO_STATUS_ATIVO
       } else if (now < inicio) {
         statusPeriodo = PERIODO_INSCRICAO_STATUS_FUTURO

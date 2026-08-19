@@ -451,6 +451,20 @@
       "breakpoints": true
     },
     {
+      "idx": 63,
+      "version": "7",
+      "when": 1786950000000,
+      "tag": "0063_add_email_professores_estudantes",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1787000000000,
+      "tag": "0064_create_email_notificacao",
+      "breakpoints": true
+    },
+    {
       "idx": 65,
       "version": "7",
       "when": 1787100000000,

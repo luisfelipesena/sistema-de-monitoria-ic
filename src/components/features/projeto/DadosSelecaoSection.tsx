@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from "@/hooks/use-toast"
 import type { SlotDataHorario } from "@/types/selecao-inputs"
 import { api } from "@/utils/api"
-import { BookOpen, Calendar, CheckCircle2, Clock, Edit2, Loader2, Save, Users } from "lucide-react"
+import { BookOpen, Calendar, CheckCircle2, Clock, Edit2, Info, Loader2, Save, Users } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
 interface DadosSelecaoSectionProps {
@@ -22,9 +22,9 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
   const { toast } = useToast()
   const apiUtils = api.useUtils()
 
-  const { data: selecaoInfo, isLoading } = api.selecao.getProjetoSelecaoInfo.useQuery(
+  const { data: selecaoInfo, isLoading, error } = api.selecao.getProjetoSelecaoInfo.useQuery(
     { projetoId },
-    { refetchOnWindowFocus: false }
+    { refetchOnWindowFocus: false, retry: false }
   )
 
   const [voluntarios, setVoluntarios] = useState<number>(0)
@@ -153,8 +153,26 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
     )
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50/60 px-4 py-3 mt-3">
+        <Info className="h-4 w-4 text-red-600 shrink-0" />
+        <p className="text-sm text-red-800">
+          Erro ao carregar dados da seleção: {error.message}
+        </p>
+      </div>
+    )
+  }
+
   if (!selecaoInfo || !selecaoInfo.hasEditalInterno) {
-    return null
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 mt-3">
+        <Info className="h-4 w-4 text-amber-600 shrink-0" />
+        <p className="text-sm text-amber-800">
+          Este projeto ainda não está vinculado a um edital interno. Entre em contato com a coordenação para verificar.
+        </p>
+      </div>
+    )
   }
 
   const hasRange = !!selecaoInfo.rangeSelecao

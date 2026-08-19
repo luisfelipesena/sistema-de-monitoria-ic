@@ -13,6 +13,7 @@ import {
   VOLUNTARIO,
   type Semestre,
 } from '@/types'
+import { formatDateFullUTC } from '@/utils/date-utils'
 import { logger } from '@/utils/logger'
 import ExcelJS from 'exceljs'
 import type { RelatoriosRepository } from './relatorios-repository'
@@ -199,10 +200,12 @@ export function createRelatoriosExportService(
             item.edital.titulo,
             item.periodo.ano,
             SEMESTRE_LABELS[item.periodo.semestre as keyof typeof SEMESTRE_LABELS],
-            new Date(item.periodo.dataInicio).toLocaleDateString('pt-BR'),
-            new Date(item.periodo.dataFim).toLocaleDateString('pt-BR'),
+            new Date(item.periodo.dataInicio).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
+            new Date(item.periodo.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' }),
             item.edital.publicado ? 'Sim' : 'Não',
-            item.edital.dataPublicacao ? new Date(item.edital.dataPublicacao).toLocaleDateString('pt-BR') : '',
+            item.edital.dataPublicacao
+              ? new Date(item.edital.dataPublicacao).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+              : '',
             item.criadoPor.username,
           ])
           if (rows.length === 0) throw new NotFoundError('Dados', 'não encontrados para exportar')
@@ -291,8 +294,8 @@ export function createRelatoriosExportService(
               Departamento: vaga.projeto.departamento?.nome || 'N/A',
               'Carga Horária Semanal': vaga.projeto.cargaHorariaSemana || 12,
               'Total Horas': (vaga.projeto.cargaHorariaSemana || 12) * (vaga.projeto.numeroSemanas || 17),
-              'Data Início': vaga.dataInicio?.toLocaleDateString('pt-BR') || 'N/A',
-              'Data Fim': vaga.dataFim?.toLocaleDateString('pt-BR') || 'N/A',
+              'Data Início': formatDateFullUTC(vaga.dataInicio) || 'N/A',
+              'Data Fim': formatDateFullUTC(vaga.dataFim) || 'N/A',
               Status: 'Ativo',
               Período: `${ano}.${semestre === SEMESTRE_1 ? '1' : '2'}`,
               Banco: vaga.aluno.banco || 'N/A',
@@ -521,8 +524,8 @@ export function createRelatoriosExportService(
             periodo: {
               ano,
               semestre,
-              dataInicio: dataInicio.toLocaleDateString('pt-BR'),
-              dataFim: dataFim.toLocaleDateString('pt-BR'),
+              dataInicio: formatDateFullUTC(dataInicio),
+              dataFim: formatDateFullUTC(dataFim),
             },
             termo: {
               status: statusTermo,

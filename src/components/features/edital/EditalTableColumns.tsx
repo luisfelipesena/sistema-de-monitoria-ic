@@ -26,7 +26,9 @@ export function createEditalTableColumns({
   onUploadSigned,
 }: EditalTableColumnsProps): ColumnDef<EditalListItem>[] {
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("pt-BR");
+    // Use UTC getters to avoid timezone shift for date-only columns (stored as midnight UTC)
+    const d = new Date(date)
+    return `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`
   };
 
   const getDurationDays = (start: Date, end: Date) => {

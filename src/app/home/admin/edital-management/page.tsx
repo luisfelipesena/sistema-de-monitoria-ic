@@ -516,14 +516,13 @@ export default function EditalManagementPage() {
   const openEditDialog = (edital: EditalListItem) => {
     setSelectedEdital(edital);
 
-    // Helper para converter datas vindas do servidor (que podem ser strings ISO UTC)
-    // para Date local sem problemas de fuso
+    // Helper para converter datas vindas do servidor (date-only columns stored as midnight UTC)
+    // para Date local sem shift de dia por timezone.
+    // Usa getters UTC para extrair ano/mês/dia corretos e reconstrói como data local ao meio-dia.
     const toLocalDate = (d: Date | string | null | undefined): Date | undefined => {
       if (!d) return undefined
       const date = d instanceof Date ? d : new Date(d)
-      // Se a hora for 0 (meia-noite UTC), provavelmente é uma date-only do banco
-      // Recriar como data local para evitar shift de dia
-      return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0)
+      return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 12, 0, 0)
     }
 
     editForm.reset({
@@ -541,8 +540,8 @@ export default function EditalManagementPage() {
       horarioInicioSelecao: edital.horarioInicioSelecao || "08:00",
       horarioFimSelecao: edital.horarioFimSelecao || "18:00",
       dataDivulgacaoResultado: toLocalDate(edital.dataDivulgacaoResultado),
-      dataInicioAlteracao: edital.dataInicioAlteracao ? new Date(edital.dataInicioAlteracao) : undefined,
-      dataFimAlteracao: edital.dataFimAlteracao ? new Date(edital.dataFimAlteracao) : undefined,
+      dataInicioAlteracao: toLocalDate(edital.dataInicioAlteracao),
+      dataFimAlteracao: toLocalDate(edital.dataFimAlteracao),
       numeroEditalPrograd: edital.periodoInscricao?.numeroEditalPrograd || "",
       datasProvasDisponiveis: parseSlotsFromString(edital.datasProvasDisponiveis),
     });

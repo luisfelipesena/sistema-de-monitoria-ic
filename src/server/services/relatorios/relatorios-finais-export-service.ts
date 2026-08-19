@@ -260,7 +260,7 @@ export function createRelatoriosFinaisExportService(database: Database) {
       // Helper to format date
       const formatDate = (d: Date | null) => {
         if (!d) return ''
-        return d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })
+        return d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit', timeZone: 'UTC' })
       }
 
       // Add monitor rows

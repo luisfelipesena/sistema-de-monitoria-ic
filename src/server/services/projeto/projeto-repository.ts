@@ -1,5 +1,4 @@
 import type { db } from '@/server/db'
-import { pickPeriodoForSemestre, resolvePeriodoForSemestre } from '@/server/lib/periodo-resolver'
 import {
   alunoTable,
   ataSelecaoTable,
@@ -16,6 +15,7 @@ import {
   projetoTemplateTable,
   userTable,
 } from '@/server/db/schema'
+import { pickPeriodoForSemestre, resolvePeriodoForSemestre } from '@/server/lib/periodo-resolver'
 import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
 import { ADMIN, PROJETO_STATUS_APPROVED, TIPO_PROPOSICAO_COLETIVA } from '@/types'
 import type { InferInsertModel, SQL } from 'drizzle-orm'
