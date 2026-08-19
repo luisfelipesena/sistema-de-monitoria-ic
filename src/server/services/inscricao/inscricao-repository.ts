@@ -1,6 +1,7 @@
 import { and, count, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import type * as schema from '@/server/db/schema'
+import { resolvePeriodoForSemestre } from '@/server/lib/periodo-resolver'
 import {
   alunoTable,
   departamentoTable,
@@ -254,14 +255,17 @@ export class InscricaoRepository {
 
   async findActivePeriodoInscricao(ano: number, semestre: Semestre) {
     const now = new Date()
-    return this.db.query.periodoInscricaoTable.findFirst({
+    // Multiple periodos can be open for the same ano/semestre; pick the one carrying the edital.
+    const periodos = await this.db.query.periodoInscricaoTable.findMany({
       where: and(
         eq(periodoInscricaoTable.ano, ano),
         eq(periodoInscricaoTable.semestre, semestre),
         lte(periodoInscricaoTable.dataInicio, now),
         gte(periodoInscricaoTable.dataFim, now)
       ),
+      with: { edital: { columns: { id: true, tipo: true } } },
     })
+    return resolvePeriodoForSemestre(periodos)
   }
 
   async findInscricaoByAlunoAndProjeto(

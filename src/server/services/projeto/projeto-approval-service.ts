@@ -70,6 +70,10 @@ export function createProjetoApprovalService(repo: ProjetoRepository) {
         ...(editalInternoId && { editalInternoId }),
       })
 
+      if (!editalInternoId) {
+        log.warn({ projetoId: id, ano: projeto.ano, semestre: projeto.semestre }, 'Projeto aprovado sem edital interno')
+      }
+
       log.info({ projetoId: id, editalInternoId }, 'Projeto aprovado pelo admin')
     },
 
