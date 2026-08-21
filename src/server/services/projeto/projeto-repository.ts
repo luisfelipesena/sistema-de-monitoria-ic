@@ -309,6 +309,7 @@ export function createProjetoRepository(db: Database) {
           eq(projetoTable.ano, ano),
           eq(projetoTable.semestre, semestre),
           isNull(projetoTable.deletedAt),
+          eq(projetoTable.dadosEditalConfirmados, true),
           departamentoId ? eq(projetoTable.departamentoId, departamentoId) : undefined
         ),
         with: {
