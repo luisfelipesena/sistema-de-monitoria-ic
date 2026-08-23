@@ -1,6 +1,12 @@
 import { eq, or } from 'drizzle-orm'
 import type { db } from '@/server/db'
-import { alunoTable, inscricaoDocumentoTable, professorTable, projetoDocumentoTable, projetoTable } from '@/server/db/schema'
+import {
+  alunoTable,
+  inscricaoDocumentoTable,
+  professorTable,
+  projetoDocumentoTable,
+  projetoTable,
+} from '@/server/db/schema'
 
 type Database = typeof db
 

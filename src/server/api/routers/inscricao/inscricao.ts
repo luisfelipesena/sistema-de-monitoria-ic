@@ -23,7 +23,7 @@ import {
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
 import { createInscricaoService } from '@/server/services/inscricao/inscricao-service'
-import { createInscricaoRepository } from '@/server/services/inscricao/inscricao-repository'
+import { createInscricaoRepository, type InscricaoAdminFilters } from '@/server/services/inscricao/inscricao-repository'
 import { BusinessError } from '@/types/errors'
 
 const transformError = (error: unknown): TRPCError => {
@@ -557,7 +557,7 @@ export const inscricaoRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const repo = createInscricaoRepository(ctx.db)
-      return await repo.findAllForAdmin(input as any)
+      return await repo.findAllForAdmin(input as InscricaoAdminFilters)
     }),
 
   // Security: Admin-only endpoint

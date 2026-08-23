@@ -1,16 +1,22 @@
-import { db } from "@/server/db"
-import { alunoTable, userTable } from "@/server/db/schema"
-import { eq } from "drizzle-orm"
+import { db } from '@/server/db'
+import { alunoTable, userTable } from '@/server/db/schema'
+import { eq } from 'drizzle-orm'
 
 async function main() {
-  console.log("🌱 Updating bank data for test students...")
+  console.log('🌱 Updating bank data for test students...')
 
   const alunosData = [
-    { email: "aluno1@ufba.br", banco: "077 - Banco Inter", agencia: "0001", conta: "16215539", digitoConta: "5" },
-    { email: "aluno2@ufba.br", banco: "001 - Banco do Brasil", agencia: "1234", conta: "987654", digitoConta: "3" },
-    { email: "aluno3@ufba.br", banco: "341 - Itaú Unibanco", agencia: "0456", conta: "12345", digitoConta: "8" },
-    { email: "aluno4@ufba.br", banco: "104 - Caixa Econômica", agencia: "0890", conta: "54321", digitoConta: "1" },
-    { email: "lucas.ferreira@ufba.br", banco: "077 - Banco Inter", agencia: "0001", conta: "88776655", digitoConta: "9" },
+    { email: 'aluno1@ufba.br', banco: '077 - Banco Inter', agencia: '0001', conta: '16215539', digitoConta: '5' },
+    { email: 'aluno2@ufba.br', banco: '001 - Banco do Brasil', agencia: '1234', conta: '987654', digitoConta: '3' },
+    { email: 'aluno3@ufba.br', banco: '341 - Itaú Unibanco', agencia: '0456', conta: '12345', digitoConta: '8' },
+    { email: 'aluno4@ufba.br', banco: '104 - Caixa Econômica', agencia: '0890', conta: '54321', digitoConta: '1' },
+    {
+      email: 'lucas.ferreira@ufba.br',
+      banco: '077 - Banco Inter',
+      agencia: '0001',
+      conta: '88776655',
+      digitoConta: '9',
+    },
   ]
 
   for (const item of alunosData) {
@@ -38,7 +44,7 @@ async function main() {
     }
   }
 
-  console.log("🎉 Student bank data seeding completed!")
+  console.log('🎉 Student bank data seeding completed!')
   process.exit(0)
 }
 

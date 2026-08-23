@@ -240,11 +240,7 @@ export class ProfessorInscricaoService {
     log.info({ inscricaoId, motivo }, `Vaga ${tipoVagaLabel} recusada`)
 
     // Promote next candidate from waitlist automatically
-    const promotedCandidate = await this.promoteNextCandidateFromWaitlist(
-      inscricao.projetoId,
-      tipoVaga,
-      userId
-    )
+    const promotedCandidate = await this.promoteNextCandidateFromWaitlist(inscricao.projetoId, tipoVaga, userId)
 
     const promotionMessage = promotedCandidate
       ? ` Próximo candidato da lista de espera (${promotedCandidate.aluno.nomeCompleto}) foi convocado automaticamente.`

@@ -224,7 +224,8 @@ export function useUrlFilters(options?: UseUrlFiltersOptions): UseUrlFiltersRetu
     if (urlState.departamentoId.length > 0) filters.push({ id: 'departamentoId', value: urlState.departamentoId })
     if (urlState.regime.length > 0) filters.push({ id: 'regime', value: urlState.regime })
     if (urlState.tipoProfessor.length > 0) filters.push({ id: 'tipoProfessor', value: urlState.tipoProfessor })
-    if (urlState.tipoVagaPretendida.length > 0) filters.push({ id: 'tipoVagaPretendida', value: urlState.tipoVagaPretendida })
+    if (urlState.tipoVagaPretendida.length > 0)
+      filters.push({ id: 'tipoVagaPretendida', value: urlState.tipoVagaPretendida })
     if (urlState.tipoProposicao.length > 0) filters.push({ id: 'tipoProposicao', value: urlState.tipoProposicao })
 
     // String filters
@@ -233,7 +234,8 @@ export function useUrlFilters(options?: UseUrlFiltersOptions): UseUrlFiltersRetu
     if (urlState.email) filters.push({ id: 'email', value: urlState.email })
     if (urlState.cursoNome) filters.push({ id: 'cursoNome', value: urlState.cursoNome })
     if (urlState.professorNome) filters.push({ id: 'professorNome', value: urlState.professorNome })
-    if (urlState.professorResponsavel) filters.push({ id: 'professorResponsavel', value: urlState.professorResponsavel })
+    if (urlState.professorResponsavel)
+      filters.push({ id: 'professorResponsavel', value: urlState.professorResponsavel })
     if (urlState.nomeCompleto) filters.push({ id: 'nomeCompleto', value: urlState.nomeCompleto })
     if (urlState.emailInstitucional) filters.push({ id: 'emailInstitucional', value: urlState.emailInstitucional })
     if (urlState.codigo) filters.push({ id: 'codigo', value: urlState.codigo })

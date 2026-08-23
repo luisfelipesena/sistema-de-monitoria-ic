@@ -1,22 +1,22 @@
-import { db } from "@/server/db"
-import { alunoTable, disciplinaTable, inscricaoTable, projetoTable, userTable } from "@/server/db/schema"
-import { eq } from "drizzle-orm"
+import { db } from '@/server/db'
+import { alunoTable, inscricaoTable, userTable } from '@/server/db/schema'
+import { eq } from 'drizzle-orm'
 
 async function main() {
-  console.log("🔍 Inspecting database for aluno1 and projects...")
+  console.log('🔍 Inspecting database for aluno1 and projects...')
 
   // 1. Inspect aluno1
   const user = await db.query.userTable.findFirst({
-    where: eq(userTable.email, "aluno1@ufba.br"),
+    where: eq(userTable.email, 'aluno1@ufba.br'),
   })
-  console.log("User aluno1:", user)
+  console.log('User aluno1:', user)
 
   if (user) {
     const aluno = await db.query.alunoTable.findFirst({
       where: eq(alunoTable.userId, user.id),
       with: { endereco: true },
     })
-    console.log("Aluno profile for aluno1:", aluno)
+    console.log('Aluno profile for aluno1:', aluno)
   }
 
   // 2. Inspect Inscriptions for aluno1
@@ -37,7 +37,7 @@ async function main() {
           },
         },
       })
-      console.log("Inscricoes of aluno1:", JSON.stringify(inscricoes, null, 2))
+      console.log('Inscricoes of aluno1:', JSON.stringify(inscricoes, null, 2))
     }
   }
 

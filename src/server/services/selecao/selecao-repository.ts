@@ -15,7 +15,7 @@ import {
   type Semestre,
 } from '@/types'
 import type { InferInsertModel, InferSelectModel, SQL } from 'drizzle-orm'
-import { and, count, desc, eq, ilike, inArray, isNotNull, isNull, or } from 'drizzle-orm'
+import { and, desc, eq, ilike, inArray, isNotNull, isNull, or } from 'drizzle-orm'
 
 // Types for pagination filters
 export interface SelecaoAdminFilters {
@@ -224,10 +224,7 @@ export function createSelecaoRepository(db: Database) {
     // ========================================
 
     async findAllProjectsWithSelectionStatus(filters: SelecaoAdminFilters) {
-      const conditions: SQL[] = [
-        eq(projetoTable.status, PROJETO_STATUS_APPROVED),
-        isNull(projetoTable.deletedAt),
-      ]
+      const conditions: SQL[] = [eq(projetoTable.status, PROJETO_STATUS_APPROVED), isNull(projetoTable.deletedAt)]
 
       if (filters.ano) {
         conditions.push(eq(projetoTable.ano, filters.ano))
@@ -433,10 +430,7 @@ export function createSelecaoRepository(db: Database) {
               .where(
                 and(
                   inArray(inscricaoTable.projetoId, projetoIds),
-                  or(
-                    ilike(inscricaoTable.status, 'SELECTED_%'),
-                    eq(inscricaoTable.status, 'REJECTED_BY_PROFESSOR')
-                  )
+                  or(ilike(inscricaoTable.status, 'SELECTED_%'), eq(inscricaoTable.status, 'REJECTED_BY_PROFESSOR'))
                 )
               )
           : [],

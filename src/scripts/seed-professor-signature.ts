@@ -1,7 +1,7 @@
-import { db } from "@/server/db"
-import { userTable } from "@/server/db/schema"
-import { eq } from "drizzle-orm"
-import sharp from "sharp"
+import { db } from '@/server/db'
+import { userTable } from '@/server/db/schema'
+import { eq } from 'drizzle-orm'
+import sharp from 'sharp'
 
 const SVG_SIGNATURE = `
 <svg xmlns="http://www.w3.org/2000/svg" width="300" height="100" viewBox="0 0 300 100">
@@ -12,17 +12,14 @@ const SVG_SIGNATURE = `
 `
 
 async function main() {
-  console.log("Generating PNG base64 signature with sharp...")
+  console.log('Generating PNG base64 signature with sharp...')
   const buffer = await sharp(Buffer.from(SVG_SIGNATURE)).png().toBuffer()
-  const pngBase64 = `data:image/png;base64,${buffer.toString("base64")}`
+  const pngBase64 = `data:image/png;base64,${buffer.toString('base64')}`
 
-  console.log("Updating Carlos Silva in userTable...")
-  await db
-    .update(userTable)
-    .set({ assinaturaDefault: pngBase64 })
-    .where(eq(userTable.email, "carlos.silva@ufba.br"))
+  console.log('Updating Carlos Silva in userTable...')
+  await db.update(userTable).set({ assinaturaDefault: pngBase64 }).where(eq(userTable.email, 'carlos.silva@ufba.br'))
 
-  console.log("Successfully set digital signature for carlos.silva@ufba.br!")
+  console.log('Successfully set digital signature for carlos.silva@ufba.br!')
   process.exit(0)
 }
 

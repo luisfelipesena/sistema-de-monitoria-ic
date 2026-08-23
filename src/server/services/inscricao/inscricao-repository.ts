@@ -555,9 +555,9 @@ export class InscricaoRepository {
     }
     if (filters.tipoVagaPretendida) {
       if (Array.isArray(filters.tipoVagaPretendida) && filters.tipoVagaPretendida.length > 0) {
-        conditions.push(inArray(inscricaoTable.tipoVagaPretendida, filters.tipoVagaPretendida as any))
+        conditions.push(inArray(inscricaoTable.tipoVagaPretendida, filters.tipoVagaPretendida))
       } else if (typeof filters.tipoVagaPretendida === 'string') {
-        conditions.push(eq(inscricaoTable.tipoVagaPretendida, filters.tipoVagaPretendida as any))
+        conditions.push(eq(inscricaoTable.tipoVagaPretendida, filters.tipoVagaPretendida))
       }
     }
     if (filters.alunoNome) {
@@ -661,7 +661,7 @@ export class InscricaoRepository {
   private async getInscricaoAdminStats(conditions: SQL[]): Promise<InscricaoAdminStats> {
     // Base conditions without status filter for accurate stats
     const baseConditions = conditions.filter(
-      (c) => !(c as any)?.left?.name?.includes('status')
+      (c) => !(c as unknown as { left?: { name?: string } })?.left?.name?.includes('status')
     )
     const whereClause = baseConditions.length > 0 ? and(...baseConditions) : undefined
 
@@ -725,8 +725,7 @@ export class InscricaoRepository {
     if (candidates.length === 0) return null
 
     const targetTipo = tipoVaga === 'BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
-    const preferredCandidate =
-      candidates.find((c) => c.tipoVagaPretendida === targetTipo) || candidates[0]
+    const preferredCandidate = candidates.find((c) => c.tipoVagaPretendida === targetTipo) || candidates[0]
 
     return preferredCandidate
   }

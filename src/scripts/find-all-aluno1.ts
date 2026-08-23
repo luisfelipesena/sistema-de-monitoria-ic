@@ -1,12 +1,12 @@
-import { db } from "@/server/db"
-import { alunoTable, inscricaoTable, userTable } from "@/server/db/schema"
-import { eq, like } from "drizzle-orm"
+import { db } from '@/server/db'
+import { userTable } from '@/server/db/schema'
+import { like } from 'drizzle-orm'
 
 async function main() {
   console.log("🔍 Searching database for ALL users/alunos matching 'aluno1'...")
 
   const users = await db.query.userTable.findMany({
-    where: like(userTable.username, "%aluno1%"),
+    where: like(userTable.username, '%aluno1%'),
   })
   console.log("Users matching 'aluno1':", users)
 
@@ -14,7 +14,7 @@ async function main() {
     with: { user: true, endereco: true },
   })
 
-  console.log("\n--- ALL ALUNOS IN DB ---")
+  console.log('\n--- ALL ALUNOS IN DB ---')
   for (const a of alunos) {
     console.log({
       id: a.id,
@@ -34,7 +34,7 @@ async function main() {
     })
   }
 
-  console.log("\n--- ALL INSCRICOES IN DB ---")
+  console.log('\n--- ALL INSCRICOES IN DB ---')
   const inscricoes = await db.query.inscricaoTable.findMany({
     with: {
       aluno: true,
