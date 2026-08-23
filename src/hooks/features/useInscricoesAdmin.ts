@@ -3,7 +3,7 @@ import { useServerPagination } from '@/hooks/useServerPagination'
 import { api } from '@/utils/api'
 import { useQueryClient } from '@tanstack/react-query'
 
-import type { StatusInscricao, TipoInscricao } from '@/types'
+import type { StatusInscricao } from '@/types'
 
 export function useInscricoesAdmin() {
   const { toast } = useToast()
@@ -20,7 +20,10 @@ export function useInscricoesAdmin() {
     semestre: apiFilters.semestre?.[0] as 'SEMESTRE_1' | 'SEMESTRE_2' | undefined,
     departamentoId: apiFilters.departamentoId?.[0],
     status: apiFilters.status as StatusInscricao[] | StatusInscricao | undefined,
-    tipoVagaPretendida: apiFilters.tipoVagaPretendida as ('BOLSISTA' | 'VOLUNTARIO')[] | ('BOLSISTA' | 'VOLUNTARIO') | undefined,
+    tipoVagaPretendida: apiFilters.tipoVagaPretendida as
+      | ('BOLSISTA' | 'VOLUNTARIO')[]
+      | ('BOLSISTA' | 'VOLUNTARIO')
+      | undefined,
     alunoNome: apiFilters.alunoNome,
     projetoTitulo: apiFilters.projetoTitulo,
     professorNome: apiFilters.professorNome || apiFilters.professorResponsavel,
