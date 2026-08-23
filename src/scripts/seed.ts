@@ -358,6 +358,10 @@ async function seedDatabase() {
           telefone: '(71) 99999-2001',
           cursoNome: 'Ciência da Computação',
           enderecoId: enderecos[0].id,
+          banco: '077 - Banco Inter',
+          agencia: '0001',
+          conta: '16215539',
+          digitoConta: '5',
         },
         {
           userId: usuarios[6].id,
@@ -370,6 +374,10 @@ async function seedDatabase() {
           telefone: '(71) 99999-2002',
           cursoNome: 'Ciência da Computação',
           enderecoId: enderecos[1].id,
+          banco: '001 - Banco do Brasil',
+          agencia: '1234',
+          conta: '987654',
+          digitoConta: '3',
         },
         {
           userId: usuarios[7].id,
@@ -382,6 +390,10 @@ async function seedDatabase() {
           telefone: '(71) 99999-2003',
           cursoNome: 'Sistemas de Informação',
           enderecoId: enderecos[2].id,
+          banco: '341 - Itaú Unibanco',
+          agencia: '0456',
+          conta: '12345',
+          digitoConta: '8',
         },
         {
           userId: usuarios[8].id,
@@ -394,6 +406,10 @@ async function seedDatabase() {
           telefone: '(71) 99999-2004',
           cursoNome: 'Matemática',
           enderecoId: enderecos[0].id,
+          banco: '104 - Caixa Econômica',
+          agencia: '0890',
+          conta: '54321',
+          digitoConta: '1',
         },
       ])
       .returning()

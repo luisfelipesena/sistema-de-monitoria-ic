@@ -127,32 +127,59 @@ export const anexoStyles = StyleSheet.create({
   },
 })
 
-export function formatDateBR(date: Date | null | undefined): string {
-  if (!date) return ''
+function parseSafeDate(date: Date | string | number | null | undefined): Date | null {
+  if (!date) return null
+  let d: Date
+  if (typeof date === 'string') {
+    if (date.includes('/')) {
+      const parts = date.split('/')
+      if (parts.length === 3) {
+        const [day, month, year] = parts
+        const fullYear = year.length === 2 ? `20${year}` : year
+        d = new Date(Date.UTC(parseInt(fullYear), parseInt(month) - 1, parseInt(day)))
+      } else {
+        d = new Date(date)
+      }
+    } else {
+      d = new Date(date)
+    }
+  } else if (typeof date === 'number') {
+    d = new Date(date)
+  } else {
+    d = date
+  }
+  return isNaN(d.getTime()) ? null : d
+}
+
+export function formatDateBR(date: Date | string | number | null | undefined): string {
+  const d = parseSafeDate(date)
+  if (!d) return ''
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',
     year: '2-digit',
     timeZone: 'UTC',
-  }).format(date)
+  }).format(d)
 }
 
-export function formatDateLongBR(date: Date | null | undefined): string {
-  if (!date) return ''
+export function formatDateLongBR(date: Date | string | number | null | undefined): string {
+  const d = parseSafeDate(date)
+  if (!d) return ''
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
     timeZone: 'UTC',
-  }).format(date)
+  }).format(d)
 }
 
-export function formatDateFullBR(date: Date | null | undefined): string {
-  if (!date) return ''
+export function formatDateFullBR(date: Date | string | number | null | undefined): string {
+  const d = parseSafeDate(date)
+  if (!d) return ''
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
     timeZone: 'UTC',
-  }).format(date)
+  }).format(d)
 }

@@ -12,10 +12,12 @@ import type {
   UserRole,
 } from '@/types'
 import {
+  PROFESSOR,
   STATUS_INSCRICAO_REJECTED_BY_PROFESSOR,
   STATUS_INSCRICAO_SELECTED_BOLSISTA,
   STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
   STATUS_INSCRICAO_SUBMITTED,
+  STUDENT,
   TIPO_ASSINATURA_ATA_SELECAO,
   TIPO_INSCRICAO_BOLSISTA,
   TIPO_INSCRICAO_VOLUNTARIO,
@@ -34,28 +36,45 @@ export function createSelecaoService(db: Database) {
     async generateAtaData(input: GenerateAtaDataInput) {
       const { projetoId, userId, userRole } = input
 
-      requireAdminOrProfessor(userRole)
-
       const projetoData = await repo.findProjetoWithRelations(parseInt(projetoId))
 
       if (!projetoData) {
         throw new NotFoundError('Projeto', 'não encontrado')
       }
 
-      if (!isAdmin(userRole) && projetoData.professorResponsavel?.userId !== userId) {
+      if (userRole === PROFESSOR && projetoData.professorResponsavel?.userId !== userId) {
         throw new ForbiddenError('Você só pode gerar atas para seus próprios projetos')
       }
 
-      const inscricoes = await repo.findInscricoesWithNotaFinal(parseInt(projetoId))
+      const allInscricoes = await repo.findInscricoesByProjetoId(parseInt(projetoId))
+
+      if (userRole === STUDENT) {
+        const studentInscricao = allInscricoes.find((i) => i.aluno?.userId === userId)
+        if (!studentInscricao) {
+          throw new ForbiddenError('Você não possui inscrição neste projeto')
+        }
+        if (studentInscricao.status === STATUS_INSCRICAO_SUBMITTED && !studentInscricao.notaFinal) {
+          throw new ForbiddenError('Os resultados deste projeto ainda não foram publicados pelo professor')
+        }
+      }
+      const inscricoesWithNota = await repo.findInscricoesWithNotaFinal(parseInt(projetoId))
+      const inscricoes = inscricoesWithNota.length > 0 ? inscricoesWithNota : allInscricoes
 
       const inscricoesBolsista = inscricoes.filter(
-        (i) => i.tipoVagaPretendida === TIPO_INSCRICAO_BOLSISTA && Number(i.notaFinal) >= 7.0
+        (i) =>
+          i.tipoVagaPretendida === TIPO_INSCRICAO_BOLSISTA ||
+          i.tipoVagaPretendida === 'ANY' ||
+          i.status === 'SELECTED_BOLSISTA' ||
+          i.status === 'ACCEPTED_BOLSISTA' ||
+          !i.tipoVagaPretendida
       )
       const inscricoesVoluntario = inscricoes.filter(
-        (i) => i.tipoVagaPretendida === TIPO_INSCRICAO_VOLUNTARIO && Number(i.notaFinal) >= 7.0
+        (i) =>
+          i.tipoVagaPretendida === TIPO_INSCRICAO_VOLUNTARIO ||
+          i.status === 'SELECTED_VOLUNTARIO' ||
+          i.status === 'ACCEPTED_VOLUNTARIO'
       )
 
-      const totalInscritos = await repo.findInscricoesByProjetoId(parseInt(projetoId))
       const disciplinas = await repo.findDisciplinasByProjetoId(parseInt(projetoId))
 
       log.info({ projetoId }, 'Ata data generated successfully')
@@ -65,7 +84,7 @@ export function createSelecaoService(db: Database) {
           ...projetoData,
           disciplinas: disciplinas.map((d) => d.disciplina),
         },
-        totalInscritos: totalInscritos.length,
+        totalInscritos: allInscricoes.length,
         totalCompareceram: inscricoes.length,
         inscricoesBolsista,
         inscricoesVoluntario,
@@ -276,6 +295,21 @@ export function createSelecaoService(db: Database) {
         throw new ValidationError(`Número de voluntários excede o limite disponível (${maxVoluntarios})`)
       }
 
+      // Verify that all selected candidates have notaFinal >= 7.0
+      const allInscricoes = await repo.findInscricoesByProjetoId(projetoId)
+      const selectedIds = [...bolsistas, ...voluntarios]
+      for (const selectedId of selectedIds) {
+        const candidate = allInscricoes.find((i) => i.id === selectedId)
+        const candidateNota = candidate?.notaFinal ? Number(candidate.notaFinal) : null
+        if (!candidate || candidateNota === null || candidateNota < 7.0) {
+          const nomeStr = candidate?.aluno?.nomeCompleto || candidate?.aluno?.user?.username || `ID ${selectedId}`
+          const notaStr = candidateNota !== null ? candidateNota.toFixed(1) : 'não lançada'
+          throw new ValidationError(
+            `O candidato ${nomeStr} possui nota final ${notaStr}. Para ser selecionado como monitor, a nota final deve ser no mínimo 7,0.`
+          )
+        }
+      }
+
       await db.transaction(async (tx) => {
         const txRepo = createSelecaoRepository(tx as unknown as Database)
 
@@ -343,6 +377,9 @@ export function createSelecaoService(db: Database) {
       ano?: number
       semestre?: Semestre
       departamentoId?: number
+      projetoTitulo?: string
+      professorResponsavel?: string
+      status?: string | string[]
       limit?: number
       offset?: number
     }) {
@@ -354,6 +391,8 @@ export function createSelecaoService(db: Database) {
       semestre?: Semestre
       departamentoId?: number
       status?: 'DRAFT' | 'SIGNED'
+      projetoTitulo?: string
+      professorResponsavel?: string
       limit?: number
       offset?: number
     }) {

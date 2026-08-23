@@ -13,6 +13,8 @@ export function useAtasAdmin() {
     semestre: apiFilters.semestre?.[0] as 'SEMESTRE_1' | 'SEMESTRE_2' | undefined,
     departamentoId: apiFilters.departamentoId?.[0],
     status: apiFilters.status?.[0] as 'DRAFT' | 'SIGNED' | undefined,
+    projetoTitulo: apiFilters.projetoTitulo,
+    professorResponsavel: apiFilters.professorResponsavel || apiFilters.professorNome,
     limit: apiFilters.limit,
     offset: apiFilters.offset,
   }

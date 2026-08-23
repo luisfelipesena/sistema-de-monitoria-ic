@@ -156,6 +156,9 @@ export const selecaoRouter = createTRPCRouter({
         ano: anoSchema.optional(),
         semestre: semestreSchema.optional(),
         departamentoId: z.number().int().positive().optional(),
+        projetoTitulo: z.string().optional(),
+        professorResponsavel: z.string().optional(),
+        status: z.array(z.string()).or(z.string()).optional(),
         limit: z.number().min(1).max(100).default(20),
         offset: z.number().min(0).default(0),
       })
@@ -180,6 +183,8 @@ export const selecaoRouter = createTRPCRouter({
         semestre: semestreSchema.optional(),
         departamentoId: z.number().int().positive().optional(),
         status: z.enum(['DRAFT', 'SIGNED']).optional(),
+        projetoTitulo: z.string().optional(),
+        professorResponsavel: z.string().optional(),
         limit: z.number().min(1).max(100).default(20),
         offset: z.number().min(0).default(0),
       })

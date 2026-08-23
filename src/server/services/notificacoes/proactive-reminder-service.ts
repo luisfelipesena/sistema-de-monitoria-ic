@@ -55,6 +55,12 @@ const REMINDER_CONFIG: Record<
     description: 'Relatórios de monitores pendentes',
     sendMethod: 'sendMonitorReportReminders',
   },
+  projeto_sem_aceite: {
+    minHoursBetweenExecutions: 12,
+    defaultDays: 0,
+    description: 'Projetos sem aceite de monitor após o prazo',
+    sendMethod: 'sendUnacceptedProjectsReminders',
+  },
 }
 
 export type ProactiveReminderResult = {

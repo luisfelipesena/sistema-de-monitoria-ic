@@ -434,6 +434,14 @@ export const inscricaoRouter = createTRPCRouter({
           email: z.string(),
           telefone: z.string().optional(),
           cr: z.number().nullable(),
+          rg: z.string().nullable().optional(),
+          cpf: z.string().nullable().optional(),
+          cursoNome: z.string().nullable().optional(),
+          banco: z.string().nullable().optional(),
+          agencia: z.string().nullable().optional(),
+          conta: z.string().nullable().optional(),
+          digitoConta: z.string().nullable().optional(),
+          enderecoCompleto: z.string().nullable().optional(),
           assinaturaBase64: z.string().nullable().optional(),
         }),
         professor: z.object({
@@ -479,6 +487,14 @@ export const inscricaoRouter = createTRPCRouter({
           email: string
           telefone?: string
           cr: number | null
+          rg?: string | null
+          cpf?: string | null
+          cursoNome?: string | null
+          banco?: string | null
+          agencia?: string | null
+          conta?: string | null
+          digitoConta?: string | null
+          enderecoCompleto?: string | null
           assinaturaBase64?: string | null
         }
         professor: {
@@ -529,7 +545,11 @@ export const inscricaoRouter = createTRPCRouter({
       z.object({
         ano: anoSchema.optional(),
         semestre: semestreSchema.optional(),
-        status: statusInscricaoSchema.optional(),
+        status: z.array(statusInscricaoSchema).or(statusInscricaoSchema).optional(),
+        tipoVagaPretendida: z.array(tipoVagaSchema).or(tipoVagaSchema).optional(),
+        alunoNome: z.string().optional(),
+        projetoTitulo: z.string().optional(),
+        professorNome: z.string().optional(),
         departamentoId: z.number().int().positive().optional(),
         limit: z.number().min(1).max(100).default(20),
         offset: z.number().min(0).default(0),
@@ -537,6 +557,24 @@ export const inscricaoRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const repo = createInscricaoRepository(ctx.db)
-      return await repo.findAllForAdmin(input)
+      return await repo.findAllForAdmin(input as any)
+    }),
+
+  // Security: Admin-only endpoint
+  deleteInscricao: adminProtectedProcedure
+    .input(z.object({ id: idSchema }))
+    .output(z.object({ success: z.boolean(), message: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const repo = createInscricaoRepository(ctx.db)
+        const inscricao = await repo.findInscricaoById(input.id)
+        if (!inscricao) {
+          throw new Error('Inscrição não encontrada')
+        }
+        await repo.deleteInscricao(input.id)
+        return { success: true, message: 'Inscrição removida com sucesso' }
+      } catch (error) {
+        throw transformError(error)
+      }
     }),
 })

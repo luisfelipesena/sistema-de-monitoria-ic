@@ -1,6 +1,10 @@
+import { createFilterableHeader } from '@/components/layout/DataTableFilterHeader'
+import { multiselectFilterFn } from '@/components/layout/TableComponent'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import type { ColumnDef } from '@tanstack/react-table'
 import { getStatusInscricaoLabel, type StatusInscricao } from '@/types'
+import { Trash2 } from 'lucide-react'
 
 type InscricaoAdminItem = {
   id: number
@@ -75,11 +79,36 @@ function getTipoBadge(tipo: string | null) {
   return <Badge variant="secondary">Qualquer</Badge>
 }
 
-export function createInscricoesColumns(): ColumnDef<InscricaoAdminItem>[] {
+const inscricaoTipoFilterOptions = [
+  { value: 'BOLSISTA', label: 'Bolsista' },
+  { value: 'VOLUNTARIO', label: 'Voluntário' },
+  { value: 'ANY', label: 'Qualquer' },
+]
+
+const inscricaoStatusFilterOptions = [
+  { value: 'SUBMITTED', label: 'Aguardando' },
+  { value: 'SELECTED_BOLSISTA', label: 'Selecionado Bolsista' },
+  { value: 'SELECTED_VOLUNTARIO', label: 'Selecionado Voluntário' },
+  { value: 'ACCEPTED_BOLSISTA', label: 'Aceito Bolsista' },
+  { value: 'ACCEPTED_VOLUNTARIO', label: 'Aceito Voluntário' },
+  { value: 'REJECTED_BY_PROFESSOR', label: 'Não Selecionado' },
+  { value: 'REJECTED_BY_STUDENT', label: 'Recusado pelo Aluno' },
+]
+
+export interface ColumnActions {
+  onDelete?: (inscricao: InscricaoAdminItem) => void
+}
+
+export function createInscricoesColumns(actions?: ColumnActions): ColumnDef<InscricaoAdminItem>[] {
   return [
     {
-      header: 'Aluno',
-      accessorKey: 'aluno.nomeCompleto',
+      header: createFilterableHeader<InscricaoAdminItem>({
+        title: 'Aluno',
+        filterType: 'text',
+        filterPlaceholder: 'Buscar aluno...',
+      }),
+      id: 'alunoNome',
+      accessorFn: (row) => row.aluno.nomeCompleto,
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.aluno.nomeCompleto}</div>
@@ -88,8 +117,13 @@ export function createInscricoesColumns(): ColumnDef<InscricaoAdminItem>[] {
       ),
     },
     {
-      header: 'Projeto',
-      accessorKey: 'projeto.titulo',
+      header: createFilterableHeader<InscricaoAdminItem>({
+        title: 'Projeto',
+        filterType: 'text',
+        filterPlaceholder: 'Buscar projeto...',
+      }),
+      id: 'projetoTitulo',
+      accessorFn: (row) => row.projeto.titulo,
       cell: ({ row }) => (
         <div className="max-w-[250px]">
           <div className="font-medium truncate">{row.original.projeto.titulo}</div>
@@ -100,8 +134,13 @@ export function createInscricoesColumns(): ColumnDef<InscricaoAdminItem>[] {
       ),
     },
     {
-      header: 'Professor',
-      accessorKey: 'professorResponsavel.nomeCompleto',
+      header: createFilterableHeader<InscricaoAdminItem>({
+        title: 'Professor',
+        filterType: 'text',
+        filterPlaceholder: 'Buscar professor...',
+      }),
+      id: 'professorNome',
+      accessorFn: (row) => row.professorResponsavel.nomeCompleto,
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.professorResponsavel.nomeCompleto}</div>
@@ -110,13 +149,23 @@ export function createInscricoesColumns(): ColumnDef<InscricaoAdminItem>[] {
       ),
     },
     {
-      header: 'Tipo',
+      header: createFilterableHeader<InscricaoAdminItem>({
+        title: 'Tipo',
+        filterType: 'multiselect',
+        filterOptions: inscricaoTipoFilterOptions,
+      }),
       accessorKey: 'tipoVagaPretendida',
+      filterFn: multiselectFilterFn,
       cell: ({ row }) => getTipoBadge(row.original.tipoVagaPretendida),
     },
     {
-      header: 'Status',
+      header: createFilterableHeader<InscricaoAdminItem>({
+        title: 'Status',
+        filterType: 'multiselect',
+        filterOptions: inscricaoStatusFilterOptions,
+      }),
       accessorKey: 'status',
+      filterFn: multiselectFilterFn,
       cell: ({ row }) => getStatusBadge(row.original.status),
     },
     {
@@ -143,6 +192,24 @@ export function createInscricoesColumns(): ColumnDef<InscricaoAdminItem>[] {
       accessorKey: 'createdAt',
       cell: ({ row }) =>
         row.original.createdAt ? new Date(row.original.createdAt).toLocaleDateString('pt-BR') : '-',
+    },
+    {
+      id: 'acoes',
+      header: 'Ações',
+      cell: ({ row }) =>
+        actions?.onDelete ? (
+          <div className="text-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => actions.onDelete!(row.original)}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8"
+              title="Remover inscrição"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : null,
     },
   ]
 }

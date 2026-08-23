@@ -22,7 +22,7 @@ export function createTermosRepository(db: Database | Transaction) {
         where: eq(vagaTable.id, vagaId),
         with: {
           aluno: {
-            with: { user: true },
+            with: { user: true, endereco: true },
           },
           inscricao: true,
           projeto: {

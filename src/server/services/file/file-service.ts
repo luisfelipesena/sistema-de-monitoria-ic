@@ -137,10 +137,11 @@ export function createFileService(db: Database) {
     },
 
     async getPresignedUrl(fileId: string, action: FileAction, userId: number, userRole: UserRole) {
-      const [aluno, professor, projetoDocumento] = await Promise.all([
+      const [aluno, professor, projetoDocumento, inscricaoDocumento] = await Promise.all([
         repo.findAlunoByFileId(fileId),
         repo.findProfessorByFileId(fileId),
         repo.findProjetoDocumentoByFileId(fileId),
+        repo.findInscricaoDocumentoByFileId(fileId),
       ])
 
       let isAuthorized = false
@@ -154,6 +155,17 @@ export function createFileService(db: Database) {
           projetoDocumento.projeto?.professoresParticipantes.some((p) => p.professorId === userId))
       ) {
         isAuthorized = true
+      } else if (inscricaoDocumento) {
+        const inscricao = inscricaoDocumento.inscricao
+        const currentProf = await repo.findProfessorByUserId(userId)
+        const isProfOwner =
+          currentProf &&
+          (inscricao?.projeto?.professorResponsavelId === currentProf.id ||
+            inscricao?.projeto?.professoresParticipantes.some((p) => p.professorId === currentProf.id))
+        const isStudentOwner = inscricao?.aluno?.userId === userId
+        if (isProfOwner || isStudentOwner) {
+          isAuthorized = true
+        }
       }
 
       if (userRole === ADMIN) {

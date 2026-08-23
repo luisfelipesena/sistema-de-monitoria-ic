@@ -117,22 +117,7 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
-  // 3. Editais
-  {
-    label: "Editais",
-    icon: FileText,
-    roles: ["admin"],
-    items: [
-      {
-        label: "Gerenciar Editais",
-        href: "/home/admin/edital-management",
-        icon: FileText,
-        roles: ["admin"],
-      },
-    ],
-  },
-
-  // 4. Inscrições
+  // 3. Inscrições
   {
     label: "Inscrições",
     icon: FilePlus,
@@ -153,6 +138,21 @@ const menuConfig: MenuConfig[] = [
     ],
   },
 
+  // 4. Editais
+  {
+    label: "Editais",
+    icon: FileText,
+    roles: ["admin"],
+    items: [
+      {
+        label: "Gerenciar Editais",
+        href: "/home/admin/edital-management",
+        icon: FileText,
+        roles: ["admin"],
+      },
+    ],
+  },
+
   // 5. Seleção
   {
     label: "Seleção",
@@ -166,7 +166,7 @@ const menuConfig: MenuConfig[] = [
         roles: ["admin"],
       },
       {
-        label: "Atas de Seleção",
+        label: "Atas e Resultados",
         href: "/home/admin/atas-selecao",
         icon: FileText,
         roles: ["admin"],
@@ -344,7 +344,7 @@ const menuConfig: MenuConfig[] = [
     roles: ["professor"],
     items: [
       {
-        label: "Gerenciar Candidatos",
+        label: "Visualizar Candidatos",
         href: "/home/professor/candidatos",
         icon: Users,
         roles: ["professor"],
@@ -362,6 +362,12 @@ const menuConfig: MenuConfig[] = [
         roles: ["professor"],
       },
       {
+        label: "Atas e Resultados",
+        href: "/home/professor/atas-selecao",
+        icon: FileText,
+        roles: ["professor"],
+      },
+      {
         label: "Publicar Resultados",
         href: "/home/professor/publicar-resultados",
         icon: FileCheck,
@@ -376,12 +382,6 @@ const menuConfig: MenuConfig[] = [
     icon: FileSignature,
     roles: ["professor"],
     items: [
-      {
-        label: "Atas de Seleção",
-        href: "/home/professor/atas-selecao",
-        icon: FileText,
-        roles: ["professor"],
-      },
       {
         label: "Termos de Compromisso",
         href: "/home/professor/termos-compromisso",

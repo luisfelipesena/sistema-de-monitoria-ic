@@ -16,6 +16,8 @@ export const ARRAY_FILTER_KEYS = [
   'departamentoId',
   'regime',
   'tipoProfessor',
+  'tipoVagaPretendida',
+  'tipoProposicao',
 ] as const
 
 /** String filters (text/autocomplete) */
@@ -25,11 +27,14 @@ export const STRING_FILTER_KEYS = [
   'email',
   'cursoNome',
   'professorNome',
+  'professorResponsavel',
   'nomeCompleto',
   'emailInstitucional',
   'codigo',
   'nome',
   'titulo',
+  'projetoTitulo',
+  'alunoNome',
 ] as const
 
 /** All supported filter keys */
@@ -84,17 +89,22 @@ interface UrlFilterState {
   departamentoId: string[]
   regime: string[]
   tipoProfessor: string[]
+  tipoVagaPretendida: string[]
+  tipoProposicao: string[]
   // String filters
   disciplina: string
   username: string
   email: string
   cursoNome: string
   professorNome: string
+  professorResponsavel: string
   nomeCompleto: string
   emailInstitucional: string
   codigo: string
   nome: string
   titulo: string
+  projetoTitulo: string
+  alunoNome: string
   // Internal marker
   cleared: string
 }
@@ -123,17 +133,22 @@ export function useUrlFilters(options?: UseUrlFiltersOptions): UseUrlFiltersRetu
     departamentoId: parseAsArrayOf(parseAsString).withDefault([]),
     regime: parseAsArrayOf(parseAsString).withDefault([]),
     tipoProfessor: parseAsArrayOf(parseAsString).withDefault([]),
+    tipoVagaPretendida: parseAsArrayOf(parseAsString).withDefault([]),
+    tipoProposicao: parseAsArrayOf(parseAsString).withDefault([]),
     // String filters
     disciplina: parseAsString.withDefault(''),
     username: parseAsString.withDefault(''),
     email: parseAsString.withDefault(''),
     cursoNome: parseAsString.withDefault(''),
     professorNome: parseAsString.withDefault(''),
+    professorResponsavel: parseAsString.withDefault(''),
     nomeCompleto: parseAsString.withDefault(''),
     emailInstitucional: parseAsString.withDefault(''),
     codigo: parseAsString.withDefault(''),
     nome: parseAsString.withDefault(''),
     titulo: parseAsString.withDefault(''),
+    projetoTitulo: parseAsString.withDefault(''),
+    alunoNome: parseAsString.withDefault(''),
     // Internal marker
     cleared: parseAsString.withDefault(''),
   })
@@ -156,16 +171,21 @@ export function useUrlFilters(options?: UseUrlFiltersOptions): UseUrlFiltersRetu
       urlState.departamentoId.length > 0 ||
       urlState.regime.length > 0 ||
       urlState.tipoProfessor.length > 0 ||
+      urlState.tipoVagaPretendida.length > 0 ||
+      urlState.tipoProposicao.length > 0 ||
       urlState.disciplina !== '' ||
       urlState.username !== '' ||
       urlState.email !== '' ||
       urlState.cursoNome !== '' ||
       urlState.professorNome !== '' ||
+      urlState.professorResponsavel !== '' ||
       urlState.nomeCompleto !== '' ||
       urlState.emailInstitucional !== '' ||
       urlState.codigo !== '' ||
       urlState.nome !== '' ||
-      urlState.titulo !== ''
+      urlState.titulo !== '' ||
+      urlState.projetoTitulo !== '' ||
+      urlState.alunoNome !== ''
     )
   }, [urlState])
 
@@ -204,6 +224,8 @@ export function useUrlFilters(options?: UseUrlFiltersOptions): UseUrlFiltersRetu
     if (urlState.departamentoId.length > 0) filters.push({ id: 'departamentoId', value: urlState.departamentoId })
     if (urlState.regime.length > 0) filters.push({ id: 'regime', value: urlState.regime })
     if (urlState.tipoProfessor.length > 0) filters.push({ id: 'tipoProfessor', value: urlState.tipoProfessor })
+    if (urlState.tipoVagaPretendida.length > 0) filters.push({ id: 'tipoVagaPretendida', value: urlState.tipoVagaPretendida })
+    if (urlState.tipoProposicao.length > 0) filters.push({ id: 'tipoProposicao', value: urlState.tipoProposicao })
 
     // String filters
     if (urlState.disciplina) filters.push({ id: 'disciplina', value: urlState.disciplina })
@@ -211,11 +233,14 @@ export function useUrlFilters(options?: UseUrlFiltersOptions): UseUrlFiltersRetu
     if (urlState.email) filters.push({ id: 'email', value: urlState.email })
     if (urlState.cursoNome) filters.push({ id: 'cursoNome', value: urlState.cursoNome })
     if (urlState.professorNome) filters.push({ id: 'professorNome', value: urlState.professorNome })
+    if (urlState.professorResponsavel) filters.push({ id: 'professorResponsavel', value: urlState.professorResponsavel })
     if (urlState.nomeCompleto) filters.push({ id: 'nomeCompleto', value: urlState.nomeCompleto })
     if (urlState.emailInstitucional) filters.push({ id: 'emailInstitucional', value: urlState.emailInstitucional })
     if (urlState.codigo) filters.push({ id: 'codigo', value: urlState.codigo })
     if (urlState.nome) filters.push({ id: 'nome', value: urlState.nome })
     if (urlState.titulo) filters.push({ id: 'titulo', value: urlState.titulo })
+    if (urlState.projetoTitulo) filters.push({ id: 'projetoTitulo', value: urlState.projetoTitulo })
+    if (urlState.alunoNome) filters.push({ id: 'alunoNome', value: urlState.alunoNome })
 
     return filters
   }, [urlState, shouldShowDefaults, currentYear, currentSemester])

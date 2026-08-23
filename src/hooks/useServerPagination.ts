@@ -24,10 +24,15 @@ export interface ApiFilters {
   departamentoId?: number[]
   cursoNome?: string
   professorNome?: string
+  professorResponsavel?: string
   nomeCompleto?: string
   emailInstitucional?: string
   regime?: string[]
   tipoProfessor?: string[]
+  tipoVagaPretendida?: string[]
+  tipoProposicao?: string[]
+  projetoTitulo?: string
+  alunoNome?: string
   limit: number
   offset: number
 }
@@ -127,6 +132,11 @@ export function useServerPagination(options?: UseServerPaginationOptions): UseSe
       emailInstitucional: urlState.emailInstitucional || undefined,
       regime: urlState.regime.length > 0 ? urlState.regime : undefined,
       tipoProfessor: urlState.tipoProfessor.length > 0 ? urlState.tipoProfessor : undefined,
+      tipoVagaPretendida: urlState.tipoVagaPretendida.length > 0 ? urlState.tipoVagaPretendida : undefined,
+      tipoProposicao: urlState.tipoProposicao.length > 0 ? urlState.tipoProposicao : undefined,
+      projetoTitulo: urlState.projetoTitulo || undefined,
+      alunoNome: urlState.alunoNome || undefined,
+      professorResponsavel: urlState.professorResponsavel || undefined,
       limit: paginationState.pageSize,
       offset: paginationState.page * paginationState.pageSize,
     }
