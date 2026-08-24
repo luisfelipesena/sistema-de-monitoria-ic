@@ -1,6 +1,12 @@
 import { eq, or } from 'drizzle-orm'
 import type { db } from '@/server/db'
-import { alunoTable, professorTable, projetoDocumentoTable, projetoTable } from '@/server/db/schema'
+import {
+  alunoTable,
+  inscricaoDocumentoTable,
+  professorTable,
+  projetoDocumentoTable,
+  projetoTable,
+} from '@/server/db/schema'
 
 type Database = typeof db
 
@@ -28,6 +34,26 @@ export function createFileRepository(db: Database) {
           projeto: {
             with: {
               professoresParticipantes: true,
+            },
+          },
+        },
+      })
+    },
+
+    async findInscricaoDocumentoByFileId(fileId: string) {
+      if (!db.query.inscricaoDocumentoTable) return null
+      return db.query.inscricaoDocumentoTable.findFirst({
+        where: eq(inscricaoDocumentoTable.fileId, fileId),
+        with: {
+          inscricao: {
+            with: {
+              aluno: true,
+              projeto: {
+                with: {
+                  professorResponsavel: true,
+                  professoresParticipantes: true,
+                },
+              },
             },
           },
         },

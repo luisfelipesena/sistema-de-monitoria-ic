@@ -9,7 +9,7 @@ import {
   vagaTable,
 } from '@/server/db/schema'
 import { PROJETO_STATUS_APPROVED, RELATORIO_STATUS_SUBMITTED } from '@/types'
-import { and, eq, gte, inArray, lte, not } from 'drizzle-orm'
+import { and, eq, gte, inArray, isNull, lte, not, or } from 'drizzle-orm'
 
 type Database = typeof db
 
@@ -168,6 +168,64 @@ export function createDeadlineReminderRepository(db: Database) {
           },
           projeto: true,
         },
+      })
+    },
+
+    /**
+     * Find approved projects whose selection/acceptance period has ended,
+     * but no student accepted a monitoria position.
+     */
+    async findProjectsWithoutAcceptedMonitorsAfterDeadline() {
+      const agora = new Date()
+
+      // Find inscription periods that have ended
+      const endedPeriodos = await db.query.periodoInscricaoTable.findMany({
+        where: lte(periodoInscricaoTable.dataFim, agora),
+        columns: { ano: true, semestre: true },
+      })
+
+      if (endedPeriodos.length === 0) return []
+
+      const periodConditions = endedPeriodos.map((p) =>
+        and(eq(projetoTable.ano, p.ano), eq(projetoTable.semestre, p.semestre))
+      )
+
+      // Find approved projects in these ended periods
+      const approvedProjects = await db.query.projetoTable.findMany({
+        where: and(
+          eq(projetoTable.status, PROJETO_STATUS_APPROVED),
+          isNull(projetoTable.deletedAt),
+          or(...periodConditions)
+        ),
+        with: {
+          departamento: true,
+          professorResponsavel: {
+            with: {
+              user: true,
+            },
+          },
+          inscricoes: {
+            columns: {
+              id: true,
+              status: true,
+            },
+          },
+        },
+      })
+
+      // Filter projects where results were published / candidates evaluated, BUT no student accepted
+      return approvedProjects.filter((p) => {
+        const hasAccepted = p.inscricoes.some(
+          (i) => i.status === 'ACCEPTED_BOLSISTA' || i.status === 'ACCEPTED_VOLUNTARIO'
+        )
+        const hasEvaluatedOrSelected = p.inscricoes.some(
+          (i) =>
+            i.status?.startsWith('SELECTED_') ||
+            i.status === 'REJECTED_BY_PROFESSOR' ||
+            i.status === 'REJECTED_BY_STUDENT' ||
+            i.status?.startsWith('ACCEPTED_')
+        )
+        return hasEvaluatedOrSelected && !hasAccepted
       })
     },
   }

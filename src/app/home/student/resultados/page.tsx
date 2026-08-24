@@ -31,9 +31,93 @@ import {
   type StatusInscricao,
   type TipoVaga,
 } from "@/types"
+import { ResultadoSelecaoTemplate } from "@/server/lib/pdfTemplates/resultado-selecao"
 import { api } from "@/utils/api"
-import { AlertCircle, Award, CheckCircle, Clock, FileText, MessageSquare, Users, XCircle } from "lucide-react"
+import { AlertCircle, Award, CheckCircle, Clock, FileText, Loader2, MessageSquare, Users, XCircle } from "lucide-react"
+import dynamic from "next/dynamic"
 import { useState } from "react"
+
+const ClientOnlyPDFViewer = dynamic(
+  () => import("@/components/features/projects/PDFViewerWrapper").then((mod) => mod.PDFViewerWrapper),
+  { ssr: false, loading: () => <div className="flex justify-center items-center h-[500px]"><Loader2 className="h-8 w-8 animate-spin" /></div> }
+)
+
+function ResultadoSelecaoPDFButton({
+  projetoId,
+  tipoVaga,
+}: {
+  projetoId: number
+  tipoVaga: TipoVaga | null | undefined
+}) {
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedType, setSelectedType] = useState<"BOLSISTA" | "VOLUNTARIO">(
+    tipoVaga === TIPO_VAGA_VOLUNTARIO ? "VOLUNTARIO" : "BOLSISTA"
+  )
+
+  const { data: ataData, isLoading } = api.selecao.generateAtaData.useQuery(
+    { projetoId: projetoId.toString() },
+    { enabled: modalOpen }
+  )
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setModalOpen(true)}
+        className="flex items-center gap-1.5 text-blue-700 border-blue-200 hover:bg-blue-50"
+      >
+        <FileText className="h-4 w-4 text-blue-600" />
+        Resultado da Seleção (PDF)
+      </Button>
+
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
+          <DialogHeader className="pb-2 border-b">
+            <div className="flex items-center justify-between pr-8">
+              <DialogTitle className="text-xl flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                Tabela de Resultado da Seleção
+              </DialogTitle>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant={selectedType === "BOLSISTA" ? "default" : "outline"}
+                  onClick={() => setSelectedType("BOLSISTA")}
+                >
+                  Bolsistas
+                </Button>
+                <Button
+                  size="sm"
+                  variant={selectedType === "VOLUNTARIO" ? "default" : "outline"}
+                  onClick={() => setSelectedType("VOLUNTARIO")}
+                >
+                  Voluntários
+                </Button>
+              </div>
+            </div>
+            <DialogDescription>
+              Documento com a classificação oficial dos candidatos aprovados com nota igual ou superior a 7,0.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 w-full h-full min-h-[500px] mt-2 border rounded-md overflow-hidden bg-slate-100">
+            {isLoading || !ataData ? (
+              <div className="flex items-center justify-center h-full gap-2 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+                <span>Carregando documento em PDF...</span>
+              </div>
+            ) : (
+              <ClientOnlyPDFViewer width="100%" height="100%">
+                <ResultadoSelecaoTemplate data={ataData as any} tipo={selectedType} />
+              </ClientOnlyPDFViewer>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
 
 const SELECTED_STATUSES = new Set<StatusInscricao>([
   STATUS_INSCRICAO_SELECTED_BOLSISTA,
@@ -340,39 +424,41 @@ export default function ResultadosPage() {
                             )}
                           </div>
 
-                          {/* Botões de Ação */}
-                          {canAcceptOrReject(status) && (
-                            <div className="flex gap-2 ml-4">
-                              <Button
-                                onClick={() => handleAccept(inscricao.id, tipoVaga ?? TIPO_VAGA_BOLSISTA)}
-                                disabled={aceitarVagaMutation.isPending}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Aceitar
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                onClick={() => handleRejectClick(inscricao.id)}
-                                disabled={recusarVagaMutation.isPending}
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Recusar
-                              </Button>
-                            </div>
-                          )}
+                          {/* Botões de Ação alinhados à direita */}
+                          <div className="flex flex-col items-end gap-2.5 ml-4">
+                            {canAcceptOrReject(status) && (
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => handleAccept(inscricao.id, tipoVaga ?? TIPO_VAGA_BOLSISTA)}
+                                  disabled={aceitarVagaMutation.isPending}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Aceitar
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => handleRejectClick(inscricao.id)}
+                                  disabled={recusarVagaMutation.isPending}
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Recusar
+                                </Button>
+                              </div>
+                            )}
 
-                          {ACCEPTED_STATUSES.has(status) && (
-                            <div className="ml-4 space-y-2">
-                              <Badge className="bg-green-600">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Vaga Aceita
-                              </Badge>
-                              <div>
+                            {ACCEPTED_STATUSES.has(status) && (
+                              <div className="flex flex-col items-end gap-1.5">
+                                <Badge className="bg-green-600">
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Vaga Aceita
+                                </Badge>
                                 <TermoCompromissoDownload inscricaoId={inscricao.id} />
                               </div>
-                            </div>
-                          )}
+                            )}
+
+                            <ResultadoSelecaoPDFButton projetoId={inscricao.projeto.id} tipoVaga={tipoVaga} />
+                          </div>
                         </div>
                       )
                     })()}
@@ -424,6 +510,10 @@ export default function ResultadosPage() {
                                 <p className="text-sm text-gray-600">{inscricao.feedbackProfessor}</p>
                               </div>
                             )}
+                          </div>
+
+                          <div className="flex flex-col items-end justify-center ml-4">
+                            <ResultadoSelecaoPDFButton projetoId={inscricao.projeto.id} tipoVaga={tipoVaga} />
                           </div>
                         </div>
                       )

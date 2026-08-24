@@ -660,6 +660,8 @@ export const NOTIFICATION_TYPE = [
   'relatorio_final_pendente', // Final report pending for professor
   'relatorio_monitor_pendente', // Monitor report pending for student
   'certificado_disponivel', // Certificate available for generation
+  'projeto_sem_aceite', // Admin alert: no student accepted the project after deadline
+  'CONVOCACAO_LISTA_ESPERA', // Waitlist promotion notification for student
 ] as const
 export type NotificationType = (typeof NOTIFICATION_TYPE)[number]
 export const notificationTypeSchema = z.enum(NOTIFICATION_TYPE)

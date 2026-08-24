@@ -114,6 +114,7 @@ export interface ManageProjectItem {
   totalInscritos: number
   disciplinas: Array<{ codigo: string; nome: string }>
   professorResponsavelNome: string
+  tipoProposicao?: string | null
 }
 
 export interface DisciplineAssociation {

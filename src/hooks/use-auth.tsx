@@ -165,7 +165,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInLocal = useCallback(
     async (input: LoginUserInput) => {
       setErrors(null)
-      await localLoginMutation.mutateAsync(input)
+      try {
+        await localLoginMutation.mutateAsync(input)
+      } catch {
+        // Handled by localLoginMutation onError
+      }
     },
     [localLoginMutation]
   )

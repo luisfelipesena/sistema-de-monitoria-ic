@@ -1,3 +1,5 @@
+import { createFilterableHeader } from '@/components/layout/DataTableFilterHeader'
+import { multiselectFilterFn } from '@/components/layout/TableComponent'
 import { Badge } from '@/components/ui/badge'
 import type { ColumnDef } from '@tanstack/react-table'
 
@@ -16,6 +18,13 @@ type SelecaoAdminItem = {
   ataAssinada: boolean
   selecaoStatus: string
 }
+
+const selecaoStatusFilterOptions = [
+  { value: 'PENDENTE', label: 'Pendente' },
+  { value: 'EM_SELECAO', label: 'Em Seleção' },
+  { value: 'RASCUNHO', label: 'Ata em Rascunho' },
+  { value: 'ASSINADO', label: 'Concluído' },
+]
 
 function getStatusBadge(status: string) {
   switch (status) {
@@ -47,8 +56,13 @@ function getStatusBadge(status: string) {
 export function createSelecaoColumns(): ColumnDef<SelecaoAdminItem>[] {
   return [
     {
-      header: 'Projeto',
-      accessorKey: 'titulo',
+      header: createFilterableHeader<SelecaoAdminItem>({
+        title: 'Projeto',
+        filterType: 'text',
+        filterPlaceholder: 'Buscar por projeto...',
+      }),
+      id: 'projetoTitulo',
+      accessorFn: (row) => row.titulo,
       cell: ({ row }) => (
         <div className="max-w-[300px]">
           <div className="font-medium truncate">{row.original.titulo}</div>
@@ -59,8 +73,13 @@ export function createSelecaoColumns(): ColumnDef<SelecaoAdminItem>[] {
       ),
     },
     {
-      header: 'Professor',
-      accessorKey: 'professorResponsavel',
+      header: createFilterableHeader<SelecaoAdminItem>({
+        title: 'Professor',
+        filterType: 'text',
+        filterPlaceholder: 'Buscar por professor...',
+      }),
+      id: 'professorResponsavel',
+      accessorFn: (row) => row.professorResponsavel,
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.professorResponsavel}</div>
@@ -119,8 +138,14 @@ export function createSelecaoColumns(): ColumnDef<SelecaoAdminItem>[] {
       ),
     },
     {
-      header: 'Status',
-      accessorKey: 'selecaoStatus',
+      header: createFilterableHeader<SelecaoAdminItem>({
+        title: 'Status',
+        filterType: 'multiselect',
+        filterOptions: selecaoStatusFilterOptions,
+      }),
+      id: 'status',
+      accessorFn: (row) => row.selecaoStatus,
+      filterFn: multiselectFilterFn,
       cell: ({ row }) => getStatusBadge(row.original.selecaoStatus),
     },
   ]

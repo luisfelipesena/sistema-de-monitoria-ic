@@ -14,14 +14,17 @@ import {
   TIPO_ASSINATURA_ATA_SELECAO,
   type Semestre,
 } from '@/types'
-import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
-import { and, count, desc, eq, inArray, isNotNull } from 'drizzle-orm'
+import type { InferInsertModel, InferSelectModel, SQL } from 'drizzle-orm'
+import { and, desc, eq, ilike, inArray, isNotNull, isNull, or } from 'drizzle-orm'
 
 // Types for pagination filters
 export interface SelecaoAdminFilters {
   ano?: number
   semestre?: Semestre
   departamentoId?: number
+  projetoTitulo?: string
+  professorResponsavel?: string
+  status?: string | string[]
   limit?: number
   offset?: number
 }
@@ -221,7 +224,7 @@ export function createSelecaoRepository(db: Database) {
     // ========================================
 
     async findAllProjectsWithSelectionStatus(filters: SelecaoAdminFilters) {
-      const conditions = [eq(projetoTable.status, PROJETO_STATUS_APPROVED)]
+      const conditions: SQL[] = [eq(projetoTable.status, PROJETO_STATUS_APPROVED), isNull(projetoTable.deletedAt)]
 
       if (filters.ano) {
         conditions.push(eq(projetoTable.ano, filters.ano))
@@ -232,9 +235,25 @@ export function createSelecaoRepository(db: Database) {
       if (filters.departamentoId) {
         conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
       }
+      if (filters.projetoTitulo) {
+        conditions.push(ilike(projetoTable.titulo, `%${filters.projetoTitulo}%`))
+      }
 
-      // Parallel queries: items + total count + stats
-      const [projetos, totalResult, statsResult] = await Promise.all([
+      if (filters.professorResponsavel) {
+        const profProjetos = await db
+          .select({ id: projetoTable.id })
+          .from(projetoTable)
+          .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+          .where(ilike(professorTable.nomeCompleto, `%${filters.professorResponsavel}%`))
+        const profProjetoIds = profProjetos.map((p) => p.id)
+        if (profProjetoIds.length === 0) {
+          return { items: [], total: 0, stats: { total: 0, pendente: 0, emSelecao: 0, assinado: 0 } }
+        }
+        conditions.push(inArray(projetoTable.id, profProjetoIds))
+      }
+
+      // Query projects matching SQL filters
+      const [projetos, statsResult] = await Promise.all([
         db.query.projetoTable.findMany({
           where: and(...conditions),
           with: {
@@ -249,13 +268,7 @@ export function createSelecaoRepository(db: Database) {
             },
           },
           orderBy: [desc(projetoTable.createdAt)],
-          limit: filters.limit,
-          offset: filters.offset,
         }),
-        db
-          .select({ count: count() })
-          .from(projetoTable)
-          .where(and(...conditions)),
         this.getSelecaoStats(conditions),
       ])
 
@@ -268,11 +281,18 @@ export function createSelecaoRepository(db: Database) {
             })
           : []
 
-      // Create a map for quick lookup
       const atasByProjetoId = new Map(atas.map((a) => [a.projetoId, a]))
 
-      const items = projetos.map((projeto) => {
+      let items = projetos.map((projeto) => {
         const ata = atasByProjetoId.get(projeto.id)
+        const selecaoStatus = ata?.assinado
+          ? 'ASSINADO'
+          : ata
+            ? 'RASCUNHO'
+            : projeto.inscricoes.some((i) => i.status?.startsWith('SELECTED_'))
+              ? 'EM_SELECAO'
+              : 'PENDENTE'
+
         return {
           id: projeto.id,
           titulo: projeto.titulo,
@@ -286,19 +306,25 @@ export function createSelecaoRepository(db: Database) {
           voluntariosSelecionados: projeto.inscricoes.filter((i) => i.status?.startsWith('SELECTED_VOLUNTARIO')).length,
           hasAta: !!ata,
           ataAssinada: ata?.assinado ?? false,
-          selecaoStatus: ata?.assinado
-            ? 'ASSINADO'
-            : ata
-              ? 'RASCUNHO'
-              : projeto.inscricoes.some((i) => i.status?.startsWith('SELECTED_'))
-                ? 'EM_SELECAO'
-                : 'PENDENTE',
+          selecaoStatus,
         }
       })
 
+      if (filters.status) {
+        const statusList = Array.isArray(filters.status) ? filters.status : [filters.status]
+        if (statusList.length > 0) {
+          items = items.filter((item) => statusList.includes(item.selecaoStatus))
+        }
+      }
+
+      const total = items.length
+      const offset = filters.offset ?? 0
+      const limit = filters.limit ?? 20
+      const paginatedItems = items.slice(offset, offset + limit)
+
       return {
-        items,
-        total: totalResult[0]?.count ?? 0,
+        items: paginatedItems,
+        total,
         stats: statsResult,
       }
     },
@@ -353,15 +379,10 @@ export function createSelecaoRepository(db: Database) {
     },
 
     async findAllAtasForAdmin(filters: AtasAdminFilters) {
-      // Build conditions for SQL filtering (more efficient than JS filtering)
-      const ataConditions: ReturnType<typeof eq>[] = []
-      const projetoConditions: ReturnType<typeof eq>[] = []
-
-      if (filters.status === 'SIGNED') {
-        ataConditions.push(eq(ataSelecaoTable.assinado, true))
-      } else if (filters.status === 'DRAFT') {
-        ataConditions.push(eq(ataSelecaoTable.assinado, false))
-      }
+      const projetoConditions: SQL[] = [
+        eq(projetoTable.status, PROJETO_STATUS_APPROVED),
+        isNull(projetoTable.deletedAt),
+      ]
 
       if (filters.ano) {
         projetoConditions.push(eq(projetoTable.ano, filters.ano))
@@ -372,91 +393,102 @@ export function createSelecaoRepository(db: Database) {
       if (filters.departamentoId) {
         projetoConditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
       }
-
-      // Get projeto IDs that match filters
-      let projetoIds: number[] | undefined
-      if (projetoConditions.length > 0) {
-        const projetos = await db
-          .select({ id: projetoTable.id })
-          .from(projetoTable)
-          .where(and(...projetoConditions))
-        projetoIds = projetos.map((p) => p.id)
-        if (projetoIds.length === 0) {
-          return { items: [], total: 0, stats: { total: 0, rascunho: 0, assinado: 0 } }
-        }
-        ataConditions.push(inArray(ataSelecaoTable.projetoId, projetoIds))
+      if (filters.projetoTitulo) {
+        projetoConditions.push(ilike(projetoTable.titulo, `%${filters.projetoTitulo}%`))
+      }
+      if (filters.professorResponsavel) {
+        projetoConditions.push(ilike(professorTable.nomeCompleto, `%${filters.professorResponsavel}%`))
       }
 
-      const whereClause = ataConditions.length > 0 ? and(...ataConditions) : undefined
+      const whereClause = and(...projetoConditions)
 
-      // Parallel queries: items + total + stats
-      const [atas, totalResult, statsResult] = await Promise.all([
-        db.query.ataSelecaoTable.findMany({
-          where: whereClause,
-          with: {
-            projeto: {
+      // Query projects with professor and department
+      const projetos = await db.query.projetoTable.findMany({
+        where: whereClause,
+        with: {
+          professorResponsavel: true,
+          departamento: true,
+        },
+        orderBy: [desc(projetoTable.ano), desc(projetoTable.createdAt)],
+      })
+
+      const projetoIds = projetos.map((p) => p.id)
+
+      const [atas, inscricoesComResultado] = await Promise.all([
+        projetoIds.length > 0
+          ? db.query.ataSelecaoTable.findMany({
+              where: inArray(ataSelecaoTable.projetoId, projetoIds),
               with: {
-                professorResponsavel: true,
-                departamento: true,
+                geradoPor: true,
               },
-            },
-            geradoPor: true,
-          },
-          orderBy: [desc(ataSelecaoTable.dataGeracao)],
-          limit: filters.limit,
-          offset: filters.offset,
-        }),
-        db.select({ count: count() }).from(ataSelecaoTable).where(whereClause),
-        this.getAtasStats(whereClause, projetoIds),
+            })
+          : [],
+        projetoIds.length > 0
+          ? db
+              .select({ projetoId: inscricaoTable.projetoId })
+              .from(inscricaoTable)
+              .where(
+                and(
+                  inArray(inscricaoTable.projetoId, projetoIds),
+                  or(ilike(inscricaoTable.status, 'SELECTED_%'), eq(inscricaoTable.status, 'REJECTED_BY_PROFESSOR'))
+                )
+              )
+          : [],
       ])
 
-      const items = atas.map((ata) => ({
-        id: ata.id,
-        projetoId: ata.projetoId,
-        projetoTitulo: ata.projeto.titulo,
-        professorResponsavel: ata.projeto.professorResponsavel.nomeCompleto,
-        departamento: ata.projeto.departamento?.sigla || ata.projeto.departamento?.nome,
-        ano: ata.projeto.ano,
-        semestre: ata.projeto.semestre,
-        geradoPor: ata.geradoPor?.username,
-        dataGeracao: ata.dataGeracao,
-        assinado: ata.assinado,
-        dataAssinatura: ata.dataAssinatura,
-        status: ata.assinado ? 'ASSINADO' : 'RASCUNHO',
-      }))
+      const atasMap = new Map(atas.map((a) => [a.projetoId, a]))
+      const publishedProjetoIds = new Set([
+        ...atas.map((a) => a.projetoId),
+        ...inscricoesComResultado.map((i) => i.projetoId),
+      ])
 
-      return {
-        items,
-        total: totalResult[0]?.count ?? 0,
-        stats: statsResult,
+      // Only display projects where the professor published results or generated an ata
+      const publishedProjetos = projetos.filter((p) => publishedProjetoIds.has(p.id))
+
+      let items = publishedProjetos.map((projeto) => {
+        const ata = atasMap.get(projeto.id)
+        const status = ata?.assinado ? 'ASSINADO' : 'RASCUNHO'
+
+        return {
+          id: ata?.id ?? projeto.id,
+          projetoId: projeto.id,
+          projetoTitulo: projeto.titulo,
+          professorResponsavel: projeto.professorResponsavel.nomeCompleto,
+          departamento: projeto.departamento?.sigla || projeto.departamento?.nome,
+          ano: projeto.ano,
+          semestre: projeto.semestre,
+          geradoPor: ata?.geradoPor?.username,
+          dataGeracao: ata?.dataGeracao ?? null,
+          assinado: ata?.assinado ?? false,
+          dataAssinatura: ata?.dataAssinatura ?? null,
+          status,
+        }
+      })
+
+      if (filters.status) {
+        items = items.filter((item) => item.status === filters.status)
       }
-    },
 
-    // Calculate stats for atas (ignoring status filter for accurate stats)
-    async getAtasStats(
-      _whereClause: ReturnType<typeof and> | undefined,
-      projetoIds: number[] | undefined
-    ): Promise<AtasStats> {
-      // Get all atas matching projeto filters (ignoring status filter for stats)
-      const baseCondition = projetoIds ? inArray(ataSelecaoTable.projetoId, projetoIds) : undefined
+      const total = items.length
 
-      const [totalResult, assinadoResult] = await Promise.all([
-        db.select({ count: count() }).from(ataSelecaoTable).where(baseCondition),
-        db
-          .select({ count: count() })
-          .from(ataSelecaoTable)
-          .where(
-            baseCondition ? and(baseCondition, eq(ataSelecaoTable.assinado, true)) : eq(ataSelecaoTable.assinado, true)
-          ),
-      ])
+      // Paginate
+      const offset = filters.offset ?? 0
+      const limit = filters.limit ?? 20
+      const paginatedItems = items.slice(offset, offset + limit)
 
-      const total = totalResult[0]?.count ?? 0
-      const assinado = assinadoResult[0]?.count ?? 0
+      // Stats across all published projects
+      const totalPublished = publishedProjetos.length
+      const assinadoCount = publishedProjetos.filter((p) => atasMap.get(p.id)?.assinado).length
+      const rascunhoCount = totalPublished - assinadoCount
 
       return {
+        items: paginatedItems,
         total,
-        rascunho: total - assinado,
-        assinado,
+        stats: {
+          total: totalPublished,
+          rascunho: rascunhoCount,
+          assinado: assinadoCount,
+        },
       }
     },
   }

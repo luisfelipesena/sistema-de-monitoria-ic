@@ -33,9 +33,6 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginUserInput) => {
     await signInLocal(data)
-    toast.success("Login realizado", {
-      description: "Bem-vindo ao Sistema de Monitoria IC",
-    })
   }
 
   return (

@@ -124,6 +124,11 @@ export const notificacoesRouter = createTRPCRouter({
         descricao: 'Relatórios individuais de monitores pendentes',
         diasDefault: 14,
       },
+      {
+        tipo: 'projeto_sem_aceite',
+        descricao: 'Projetos sem aceite de monitores após encerramento do prazo',
+        diasDefault: 0,
+      },
     ]
   }),
 

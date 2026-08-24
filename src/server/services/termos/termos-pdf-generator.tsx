@@ -24,6 +24,7 @@ export type VagaData = {
   alunoAssinaturaBase64?: string | null
   professorAssinaturaBase64?: string | null
   aluno: {
+    nomeCompleto?: string | null
     user: {
       username: string
       email: string
@@ -31,6 +32,20 @@ export type VagaData = {
     matricula: string | null
     rg: string | null
     cpf: string | null
+    cursoNome?: string | null
+    banco?: string | null
+    agencia?: string | null
+    conta?: string | null
+    digitoConta?: string | null
+    telefone?: string | null
+    endereco?: {
+      rua?: string | null
+      numero?: number | null
+      bairro?: string | null
+      cidade?: string | null
+      estado?: string | null
+      cep?: string | null
+    } | null
   }
   projeto: {
     ano: number
@@ -72,12 +87,28 @@ export function createPdfGenerator() {
           dataInicio: vagaData.dataInicio || new Date(),
           aluno: {
             user: {
-              name: vagaData.aluno.user.username,
+              name: vagaData.aluno.nomeCompleto || vagaData.aluno.user.username,
               email: vagaData.aluno.user.email,
             },
             matricula: vagaData.aluno.matricula ?? undefined,
             rg: vagaData.aluno.rg ?? undefined,
             cpf: vagaData.aluno.cpf ?? undefined,
+            cursoNome: vagaData.aluno.cursoNome ?? undefined,
+            banco: vagaData.aluno.banco ?? undefined,
+            agencia: vagaData.aluno.agencia ?? undefined,
+            conta: vagaData.aluno.conta ?? undefined,
+            digitoConta: vagaData.aluno.digitoConta ?? undefined,
+            telefone: vagaData.aluno.telefone ?? undefined,
+            endereco: vagaData.aluno.endereco
+              ? {
+                  rua: vagaData.aluno.endereco.rua ?? undefined,
+                  numero: vagaData.aluno.endereco.numero ?? undefined,
+                  bairro: vagaData.aluno.endereco.bairro ?? undefined,
+                  cidade: vagaData.aluno.endereco.cidade ?? undefined,
+                  estado: vagaData.aluno.endereco.estado ?? undefined,
+                  cep: vagaData.aluno.endereco.cep ?? undefined,
+                }
+              : undefined,
           },
           projeto: {
             disciplina: {

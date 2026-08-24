@@ -1,11 +1,21 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { PagesLayout } from '@/components/layout/PagesLayout'
 import { TableComponent } from '@/components/layout/TableComponent'
 import { InscricoesStatsCards, createInscricoesColumns } from '@/components/features/admin/inscricoes'
 import { useInscricoesAdmin } from '@/hooks/features/useInscricoesAdmin'
 import { Loader } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 export default function InscricoesAdminPage() {
   const {
@@ -15,13 +25,32 @@ export default function InscricoesAdminPage() {
     total,
     columnFilters,
     setColumnFilters,
+    deleteInscricao,
+    isDeleting,
     page,
     pageSize,
     setPage,
     setPageSize,
   } = useInscricoesAdmin()
 
-  const columns = useMemo(() => createInscricoesColumns(), [])
+  const [selectedToDelete, setSelectedToDelete] = useState<any | null>(null)
+
+  const columns = useMemo(
+    () =>
+      createInscricoesColumns({
+        onDelete: (inscricao) => setSelectedToDelete(inscricao),
+      }),
+    []
+  )
+
+  const handleConfirmDelete = async () => {
+    if (!selectedToDelete) return
+    try {
+      await deleteInscricao(selectedToDelete.id)
+    } finally {
+      setSelectedToDelete(null)
+    }
+  }
 
   return (
     <PagesLayout title="Visualizar Inscrições">
@@ -47,6 +76,29 @@ export default function InscricoesAdminPage() {
               onPageSizeChange: setPageSize,
             }}
           />
+
+          <AlertDialog open={!!selectedToDelete} onOpenChange={(open) => !open && setSelectedToDelete(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remover Inscrição</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja remover a inscrição do aluno{' '}
+                  <strong className="text-gray-900">{selectedToDelete?.aluno.nomeCompleto}</strong> no projeto{' '}
+                  <strong className="text-gray-900">{selectedToDelete?.projeto.titulo}</strong>? Esta ação não poderá ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleConfirmDelete}
+                  disabled={isDeleting}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {isDeleting ? 'Removendo...' : 'Remover Inscrição'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
     </PagesLayout>
