@@ -34,7 +34,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import Link from "next/link"
 import { useMemo, useState } from "react"
 
-import { Download, Edit, Eye, FileSignature, FileText, List, Loader, Plus, Trash2, Users } from "lucide-react"
+import { Edit, Eye, FileSignature, FileText, List, Loader, Plus, Trash2, Users } from "lucide-react"
 
 // Filter options for status
 const statusFilterOptions = [
@@ -174,7 +174,13 @@ export default function DashboardProfessor() {
           Componente curricular
         </div>
       ),
-      accessorKey: "titulo",
+      accessorKey: "disciplinaNome",
+      accessorFn: (row) => {
+        const disciplinas = row.disciplinas || []
+        const codigo = disciplinas.length > 0 ? disciplinas[0].codigo : ""
+        const nome = disciplinas.length > 0 ? disciplinas[0].nome : ""
+        return `${codigo} ${nome}`
+      },
       sortingFn: (rowA, rowB) => {
         const codeA = rowA.original.disciplinas?.[0]?.codigo ?? ""
         const codeB = rowB.original.disciplinas?.[0]?.codigo ?? ""
@@ -190,6 +196,18 @@ export default function DashboardProfessor() {
           </span>
         )
       },
+    },
+    {
+      header: () => (
+        <div className="flex items-center gap-2">
+          <FileText className="h-5 w-5 text-gray-400" />
+          Projeto
+        </div>
+      ),
+      accessorKey: "titulo",
+      cell: ({ row }) => (
+        <span className="text-sm text-gray-700">{row.original.titulo}</span>
+      ),
     },
     {
       header: createFilterableHeader<DashboardProjectItem>({
@@ -351,7 +369,7 @@ export default function DashboardProfessor() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-full flex items-center gap-1"
+                className="rounded-full flex items-center gap-1 text-xs"
                 onClick={() => {
                   setSelectedProjetoModal(projeto)
                   setDetailDialogOpen(true)
@@ -364,8 +382,8 @@ export default function DashboardProfessor() {
             )}
 
             {projeto.status === PROJETO_STATUS_APPROVED && (
-              <Link href={`/home/professor/candidatos?projetoId=${projeto.id}`}>
-                <Button variant="primary" size="sm" className="rounded-full flex items-center gap-1">
+              <Link href={`/home/professor/grade-applications?projetoId=${projeto.id}`}>
+                <Button variant="primary" size="sm" className="rounded-full flex items-center gap-1 text-xs">
                   <Users className="h-4 w-4" />
                   Ver Candidatos
                 </Button>

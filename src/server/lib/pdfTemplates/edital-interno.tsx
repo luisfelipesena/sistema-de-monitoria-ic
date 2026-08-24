@@ -713,7 +713,7 @@ export function EditalInternoTemplate({ data }: { data: EditalInternoData }) {
             <Text style={styles.textBold}>
               {data.dataDivulgacao ? formatDate(data.dataDivulgacao) : "a definir"}
             </Text>
-            , no site do Instituto de Computação.
+            , no site do Instituto de Computação ou por E-mail.
           </Text>
         </View>
 
