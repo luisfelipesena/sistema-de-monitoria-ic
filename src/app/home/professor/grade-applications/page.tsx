@@ -4,16 +4,23 @@ import { PagesLayout } from "@/components/layout/PagesLayout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { inscriptionDetailSchema, PROJETO_STATUS_APPROVED, TIPO_VAGA_BOLSISTA } from "@/types"
+import { getSemestreNumero, inscriptionDetailSchema, PROJETO_STATUS_APPROVED, Semestre, TIPO_VAGA_BOLSISTA } from "@/types"
 import { api } from "@/utils/api"
-import { Calculator, ClipboardCheck, Save, Users } from "lucide-react"
-import { useState } from "react"
+import { Calculator, Check, ClipboardCheck, Copy, FileText, Loader2, Mail, Save, Users } from "lucide-react"
+import { useMemo, useState } from "react"
 import { z } from "zod"
 
 type InscricaoComDetalhes = z.infer<typeof inscriptionDetailSchema>
@@ -23,12 +30,36 @@ export default function GradeApplicationsPage() {
 
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [selectedInscricao, setSelectedInscricao] = useState<number | null>(null)
+  const [loadingFileId, setLoadingFileId] = useState<string | null>(null)
+  const [emailsModalOpen, setEmailsModalOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+
   const [notas, setNotas] = useState({
     notaDisciplina: "",
     notaSelecao: "",
     coeficienteRendimento: "",
     feedbackProfessor: "",
   })
+
+  const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation()
+
+  const handleViewHistorico = async (fileId: string) => {
+    setLoadingFileId(fileId)
+    try {
+      const url = await getPresignedUrlMutation.mutateAsync({ fileId, action: "view" })
+      if (url) {
+        window.open(url, "_blank")
+      }
+    } catch {
+      toast({
+        title: "Erro ao abrir histórico",
+        description: "Não foi possível carregar o arquivo do Histórico Escolar.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingFileId(null)
+    }
+  }
 
   // Buscar projetos do professor
   const { data: projetos, isLoading: loadingProjetos } = api.projeto.getProjetos.useQuery()
@@ -38,6 +69,15 @@ export default function GradeApplicationsPage() {
     { projetoId: selectedProjectId! },
     { enabled: !!selectedProjectId }
   )
+
+  // String formatada com os e-mails dos candidatos
+  const emailsText = useMemo(() => {
+    if (!inscricoes) return ""
+    return inscricoes
+      .map((i: any) => i.aluno?.user?.email)
+      .filter((email: string | undefined): email is string => Boolean(email))
+      .join(", ")
+  }, [inscricoes])
 
   // Mutation para avaliar candidato
   const evaluateApplicationMutation = api.inscricao.evaluateApplications.useMutation({
@@ -117,17 +157,23 @@ export default function GradeApplicationsPage() {
           <CardContent>
             <Select
               value={selectedProjectId?.toString() || ""}
-              onValueChange={(value) => setSelectedProjectId(parseInt(value))}
+              onValueChange={(value) => {
+                setSelectedProjectId(parseInt(value))
+                setSelectedInscricao(null)
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um projeto para avaliar candidatos" />
               </SelectTrigger>
               <SelectContent>
-                {projetosAprovados.map((projeto) => (
-                  <SelectItem key={projeto.id} value={projeto.id.toString()}>
-                    {projeto.titulo}
-                  </SelectItem>
-                ))}
+                {projetosAprovados.map((projeto) => {
+                  const semestreNum = getSemestreNumero(projeto.semestre as Semestre)
+                  return (
+                    <SelectItem key={projeto.id} value={projeto.id.toString()}>
+                      {projeto.titulo} ({projeto.ano}.{semestreNum})
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </CardContent>
@@ -136,9 +182,25 @@ export default function GradeApplicationsPage() {
         {/* Lista de Candidatos */}
         {selectedProjectId && (
           <Card>
-            <CardHeader>
-              <CardTitle>Candidatos Inscritos</CardTitle>
-              <p className="text-sm text-gray-600">Clique em um candidato para inserir suas notas</p>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+              <div>
+                <CardTitle>Candidatos Inscritos</CardTitle>
+                <p className="text-sm text-gray-600">Clique em um candidato para inserir suas notas</p>
+              </div>
+              {inscricoes && inscricoes.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setEmailsModalOpen(true)
+                    setCopied(false)
+                  }}
+                  className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                >
+                  <Mail className="h-4 w-4" />
+                  Copiar E-mails
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {loadingInscricoes ? (
@@ -151,6 +213,7 @@ export default function GradeApplicationsPage() {
                       <TableHead>Matrícula</TableHead>
                       <TableHead>Tipo de Vaga</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Histórico Escolar</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -166,6 +229,26 @@ export default function GradeApplicationsPage() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">{inscricao.notaFinal ? "Avaliado" : "Pendente"}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {inscricao.historicoEscolarFileId ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-800 border-blue-200"
+                              disabled={loadingFileId === inscricao.historicoEscolarFileId}
+                              onClick={() => handleViewHistorico(inscricao.historicoEscolarFileId!)}
+                            >
+                              {loadingFileId === inscricao.historicoEscolarFileId ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <FileText className="h-3.5 w-3.5 text-blue-600" />
+                              )}
+                              Ver Histórico
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">Não disponível</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Button
@@ -255,7 +338,7 @@ export default function GradeApplicationsPage() {
               {notas.notaDisciplina && notas.notaSelecao && notas.coeficienteRendimento && (
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <p className="text-sm text-blue-800 font-medium">
-                    Nota Final Calculada: {calcularNotaFinal().toFixed(2)}
+                    Nota Final Calculada: {calcularNotaFinal().toFixed(1)}
                   </p>
                 </div>
               )}
@@ -305,6 +388,48 @@ export default function GradeApplicationsPage() {
           </Card>
         )}
       </div>
+
+      {/* Modal de Cópia de E-mails */}
+      <Dialog open={emailsModalOpen} onOpenChange={setEmailsModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Mail className="h-5 w-5 text-blue-600" />
+              E-mails dos Candidatos
+            </DialogTitle>
+            <DialogDescription>
+              Copie os e-mails dos inscritos para colar no seu cliente de e-mail (Outlook, Gmail, etc):
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <Textarea
+              readOnly
+              value={emailsText}
+              rows={5}
+              className="text-sm font-mono bg-slate-50 border-slate-300 focus-visible:ring-1"
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEmailsModalOpen(false)}>
+                Fechar
+              </Button>
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(emailsText)
+                  setCopied(true)
+                  toast({
+                    title: "E-mails copiados!",
+                    description: "Lista de e-mails copiada para a área de transferência.",
+                  })
+                }}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                {copied ? <Check className="h-4 w-4 text-green-300" /> : <Copy className="h-4 w-4" />}
+                {copied ? "Copiado!" : "Copiar para Área de Transferência"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </PagesLayout>
   )
 }

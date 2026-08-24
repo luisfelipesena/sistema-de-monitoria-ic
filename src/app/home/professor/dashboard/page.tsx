@@ -1,5 +1,6 @@
 "use client"
 
+import { ProjectDetailDialog } from "@/components/features/professor/projetos/ProjectDetailDialog"
 import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { PagesLayout } from "@/components/layout/PagesLayout"
 import { multiselectFilterFn, TableComponent } from "@/components/layout/TableComponent"
@@ -53,6 +54,8 @@ export default function DashboardProfessor() {
   const getProjetoPdfMutation = api.file.getProjetoPdfUrl.useMutation()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [projetoToDelete, setProjetoToDelete] = useState<DashboardProjectItem | null>(null)
+  const [selectedProjetoModal, setSelectedProjetoModal] = useState<DashboardProjectItem | null>(null)
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [loadingPdfProjetoId, setLoadingPdfProjetoId] = useState<number | null>(null)
   const apiUtils = api.useUtils()
 
@@ -173,12 +176,12 @@ export default function DashboardProfessor() {
       ),
       accessorKey: "titulo",
       sortingFn: (rowA, rowB) => {
-        const codeA = rowA.original.disciplinas[0]?.codigo ?? ""
-        const codeB = rowB.original.disciplinas[0]?.codigo ?? ""
+        const codeA = rowA.original.disciplinas?.[0]?.codigo ?? ""
+        const codeB = rowB.original.disciplinas?.[0]?.codigo ?? ""
         return codeA.localeCompare(codeB)
       },
       cell: ({ row }) => {
-        const disciplinas = row.original.disciplinas
+        const disciplinas = row.original.disciplinas || []
         const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
         const nomeDisciplina = disciplinas.length > 0 ? disciplinas[0].nome : ""
         return (
@@ -349,12 +352,14 @@ export default function DashboardProfessor() {
                 variant="outline"
                 size="sm"
                 className="rounded-full flex items-center gap-1"
-                onClick={() => handleViewPdf(projeto.id)}
-                disabled={loadingPdfProjetoId === projeto.id}
-                title="Visualizar PDF do projeto assinado"
+                onClick={() => {
+                  setSelectedProjetoModal(projeto)
+                  setDetailDialogOpen(true)
+                }}
+                title="Visualizar detalhes do projeto"
               >
-                <Download className="h-4 w-4" />
-                {loadingPdfProjetoId === projeto.id ? "Carregando..." : "Visualizar PDF"}
+                <Eye className="h-4 w-4" />
+                Visualizar Projeto
               </Button>
             )}
 
@@ -473,6 +478,16 @@ export default function DashboardProfessor() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de Detalhes do Projeto */}
+      <ProjectDetailDialog
+        projeto={selectedProjetoModal as any}
+        isOpen={detailDialogOpen}
+        onClose={() => {
+          setDetailDialogOpen(false)
+          setSelectedProjetoModal(null)
+        }}
+      />
     </PagesLayout>
   )
 }

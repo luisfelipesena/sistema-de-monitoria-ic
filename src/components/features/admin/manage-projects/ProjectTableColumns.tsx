@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge"
 import { StatusBadge } from "@/components/atoms/StatusBadge"
 import { createFilterableHeader } from "@/components/layout/DataTableFilterHeader"
 import { multiselectFilterFn } from "@/components/layout/TableComponent"
@@ -34,6 +35,11 @@ const statusFilterOptions = [
   { value: PROJETO_STATUS_SUBMITTED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_SUBMITTED] },
   { value: PROJETO_STATUS_APPROVED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_APPROVED] },
   { value: PROJETO_STATUS_REJECTED, label: PROJETO_STATUS_LABELS[PROJETO_STATUS_REJECTED] },
+]
+
+const tipoFilterOptions = [
+  { value: "NOVO", label: "Novo" },
+  { value: "CONTINUACAO", label: "Continuação" },
 ]
 
 export function createProjectColumns(actions: ColumnActions, groupedView: boolean): ColumnDef<ManageProjectItem>[] {
@@ -83,6 +89,25 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
       cell: ({ row }) => (
         <span className="font-medium text-gray-600">{row.original.professorResponsavelNome || "—"}</span>
       ),
+    },
+    {
+      header: createFilterableHeader<ManageProjectItem>({
+        title: "Tipo",
+        filterType: "multiselect",
+        filterOptions: tipoFilterOptions,
+      }),
+      accessorKey: "tipoProposicao",
+      filterFn: multiselectFilterFn,
+      cell: ({ row }) => {
+        const tipo = row.original.tipoProposicao
+        if (tipo === "NOVO") {
+          return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200">Novo</Badge>
+        }
+        if (tipo === "CONTINUACAO") {
+          return <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-200 border-purple-200">Continuação</Badge>
+        }
+        return <Badge variant="outline">{tipo || "—"}</Badge>
+      },
     },
     {
       header: createFilterableHeader<ManageProjectItem>({

@@ -110,6 +110,7 @@ export interface SelecaoCandidato {
 }
 
 export interface AtaSelecaoData {
+  tipoAta?: 'BOLSISTA' | 'VOLUNTARIO'
   projeto: {
     id: number
     titulo: string
@@ -236,6 +237,15 @@ export const inscriptionDetailSchema = z.object({
   coeficienteRendimento: z.number().min(0).max(10).nullable().optional(),
   notaFinal: z.number().min(0).max(10).nullable().optional(),
   feedbackProfessor: z.string().nullable().optional(),
+  historicoEscolarFileId: z.string().nullable().optional(),
+  documentos: z
+    .array(
+      z.object({
+        fileId: z.string(),
+        tipoDocumento: z.string(),
+      })
+    )
+    .optional(),
   createdAt: z.date(),
   updatedAt: z.date().nullable().optional(),
   projeto: z.object({

@@ -287,6 +287,45 @@ Sistema de Monitoria IC
 
       return count
     },
+
+    /**
+     * Send alerts to admins about projects that had no student acceptances after deadline expired.
+     */
+    async sendUnacceptedProjectsReminders(_dias: number, userId: number) {
+      const projetosSemAceite = await deadlineRepo.findProjectsWithoutAcceptedMonitorsAfterDeadline()
+      let count = 0
+
+      for (const proj of projetosSemAceite) {
+        const admins = await repo.findAllAdmins()
+
+        for (const admin of admins) {
+          await emailService.sendGenericEmail({
+            to: admin.email,
+            subject: `⚠️ Alerta: Nenhum aluno aceitou a vaga de monitoria - ${proj.titulo}`,
+            html: `
+Olá ${admin.username},<br><br>
+
+O prazo de seleção e confirmação de monitores para o projeto "<strong>${proj.titulo}</strong>" encerrou-se e <strong>nenhum aluno aceito/selecionado confirmou interesse</strong> na vaga.<br><br>
+
+<strong>Professor Responsável:</strong> ${proj.professorResponsavel.nomeCompleto}<br>
+<strong>Departamento:</strong> ${proj.departamento?.nome || 'N/A'}<br>
+<strong>Ano/Semestre:</strong> ${proj.ano}.${proj.semestre === 'SEMESTRE_1' ? '1' : '2'}<br><br>
+
+Por favor, acesse o sistema para verificar o projeto e tomar as providências necessárias.<br><br>
+
+Atenciosamente,<br>
+Sistema de Monitoria IC
+            `,
+            tipoNotificacao: 'PROJETO_SEM_ACEITE',
+            remetenteUserId: userId,
+            projetoId: proj.id,
+          })
+          count++
+        }
+      }
+
+      return count
+    },
   }
 }
 

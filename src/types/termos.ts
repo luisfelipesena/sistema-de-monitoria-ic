@@ -13,6 +13,14 @@ export interface TermoCompromissoData {
     email: string
     telefone?: string
     cr: number
+    rg?: string | null
+    cpf?: string | null
+    cursoNome?: string | null
+    banco?: string | null
+    agencia?: string | null
+    conta?: string | null
+    digitoConta?: string | null
+    enderecoCompleto?: string | null
     assinaturaBase64?: string | null
   }
   professor: {

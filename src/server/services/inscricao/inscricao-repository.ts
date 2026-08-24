@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
+import { and, count, desc, eq, gte, ilike, inArray, isNull, lte, or, type SQL } from 'drizzle-orm'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import type * as schema from '@/server/db/schema'
 import { resolvePeriodoForSemestre } from '@/server/lib/periodo-resolver'
@@ -16,6 +16,7 @@ import {
   projetoDisciplinaTable,
   projetoTable,
   userTable,
+  vagaTable,
 } from '@/server/db/schema'
 import type { ACCEPTED_BOLSISTA, Semestre, StatusInscricao, TipoDocumentoInscricao, TipoInscricao } from '@/types'
 import { logger } from '@/utils/logger'
@@ -26,7 +27,11 @@ const log = logger.child({ context: 'InscricaoRepository' })
 export interface InscricaoAdminFilters {
   ano?: number
   semestre?: Semestre
-  status?: StatusInscricao
+  status?: StatusInscricao[] | StatusInscricao
+  tipoVagaPretendida?: TipoInscricao[] | TipoInscricao
+  alunoNome?: string
+  projetoTitulo?: string
+  professorNome?: string
   departamentoId?: number
   limit?: number
   offset?: number
@@ -247,6 +252,12 @@ export class InscricaoRepository {
     })
   }
 
+  async deleteInscricao(inscricaoId: number) {
+    await this.db.delete(vagaTable).where(eq(vagaTable.inscricaoId, inscricaoId))
+    await this.db.delete(inscricaoDocumentoTable).where(eq(inscricaoDocumentoTable.inscricaoId, inscricaoId))
+    await this.db.delete(inscricaoTable).where(eq(inscricaoTable.id, inscricaoId))
+  }
+
   async findProjetoById(projetoId: number) {
     return this.db.query.projetoTable.findFirst({
       where: and(eq(projetoTable.id, projetoId), isNull(projetoTable.deletedAt)),
@@ -336,6 +347,7 @@ export class InscricaoRepository {
         aluno: {
           with: {
             user: true,
+            endereco: true,
           },
         },
         projeto: {
@@ -392,6 +404,7 @@ export class InscricaoRepository {
           nomeCompleto: alunoTable.nomeCompleto,
           matricula: alunoTable.matricula,
           cr: alunoTable.cr,
+          historicoEscolarFileId: alunoTable.historicoEscolarFileId,
         },
         alunoUser: {
           id: userTable.id,
@@ -406,6 +419,13 @@ export class InscricaoRepository {
       .innerJoin(userTable, eq(alunoTable.userId, userTable.id))
       .where(eq(inscricaoTable.projetoId, projetoId))
       .orderBy(inscricaoTable.notaFinal, inscricaoTable.createdAt)
+  }
+
+  async findDocumentosByInscricaoId(inscricaoId: number) {
+    if (!this.db.query.inscricaoDocumentoTable) return []
+    return this.db.query.inscricaoDocumentoTable.findMany({
+      where: eq(inscricaoDocumentoTable.inscricaoId, inscricaoId),
+    })
   }
 
   async findInscricoesWithDetails(alunoId: number) {
@@ -518,7 +538,7 @@ export class InscricaoRepository {
   }
 
   async findAllForAdmin(filters: InscricaoAdminFilters) {
-    const conditions: ReturnType<typeof eq>[] = []
+    const conditions: SQL[] = []
 
     if (filters.ano) {
       conditions.push(eq(projetoTable.ano, filters.ano))
@@ -527,7 +547,27 @@ export class InscricaoRepository {
       conditions.push(eq(projetoTable.semestre, filters.semestre))
     }
     if (filters.status) {
-      conditions.push(eq(inscricaoTable.status, filters.status))
+      if (Array.isArray(filters.status) && filters.status.length > 0) {
+        conditions.push(inArray(inscricaoTable.status, filters.status))
+      } else if (typeof filters.status === 'string') {
+        conditions.push(eq(inscricaoTable.status, filters.status))
+      }
+    }
+    if (filters.tipoVagaPretendida) {
+      if (Array.isArray(filters.tipoVagaPretendida) && filters.tipoVagaPretendida.length > 0) {
+        conditions.push(inArray(inscricaoTable.tipoVagaPretendida, filters.tipoVagaPretendida))
+      } else if (typeof filters.tipoVagaPretendida === 'string') {
+        conditions.push(eq(inscricaoTable.tipoVagaPretendida, filters.tipoVagaPretendida))
+      }
+    }
+    if (filters.alunoNome) {
+      conditions.push(ilike(alunoTable.nomeCompleto, `%${filters.alunoNome}%`))
+    }
+    if (filters.projetoTitulo) {
+      conditions.push(ilike(projetoTable.titulo, `%${filters.projetoTitulo}%`))
+    }
+    if (filters.professorNome) {
+      conditions.push(ilike(professorTable.nomeCompleto, `%${filters.professorNome}%`))
     }
     if (filters.departamentoId) {
       conditions.push(eq(projetoTable.departamentoId, filters.departamentoId))
@@ -604,22 +644,24 @@ export class InscricaoRepository {
     }
   }
 
-  private async countForAdmin(conditions: ReturnType<typeof eq>[]): Promise<number> {
+  private async countForAdmin(conditions: SQL[]): Promise<number> {
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
     const result = await this.db
       .select({ count: count() })
       .from(inscricaoTable)
       .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
+      .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+      .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
       .where(whereClause)
 
     return result[0]?.count ?? 0
   }
 
-  private async getInscricaoAdminStats(conditions: ReturnType<typeof eq>[]): Promise<InscricaoAdminStats> {
+  private async getInscricaoAdminStats(conditions: SQL[]): Promise<InscricaoAdminStats> {
     // Base conditions without status filter for accurate stats
     const baseConditions = conditions.filter(
-      (c) => !(c as { left?: { name?: string } })?.left?.name?.includes('status')
+      (c) => !(c as unknown as { left?: { name?: string } })?.left?.name?.includes('status')
     )
     const whereClause = baseConditions.length > 0 ? and(...baseConditions) : undefined
 
@@ -630,6 +672,8 @@ export class InscricaoRepository {
       })
       .from(inscricaoTable)
       .innerJoin(projetoTable, eq(inscricaoTable.projetoId, projetoTable.id))
+      .innerJoin(professorTable, eq(projetoTable.professorResponsavelId, professorTable.id))
+      .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
       .where(whereClause)
       .groupBy(inscricaoTable.status)
 
@@ -652,6 +696,38 @@ export class InscricaoRepository {
     }
 
     return { total, submitted, selected, rejected }
+  }
+
+  async findNextWaitlistCandidate(projetoId: number, tipoVaga: 'BOLSISTA' | 'VOLUNTARIO') {
+    const candidates = await this.db.query.inscricaoTable.findMany({
+      where: and(
+        eq(inscricaoTable.projetoId, projetoId),
+        inArray(inscricaoTable.status, ['WAITING_LIST', 'SUBMITTED']),
+        gte(inscricaoTable.notaFinal, '7.0')
+      ),
+      with: {
+        aluno: {
+          with: {
+            user: {
+              columns: { id: true, email: true, username: true },
+            },
+          },
+        },
+        projeto: {
+          with: {
+            professorResponsavel: true,
+          },
+        },
+      },
+      orderBy: [desc(inscricaoTable.notaFinal), desc(inscricaoTable.coeficienteRendimento)],
+    })
+
+    if (candidates.length === 0) return null
+
+    const targetTipo = tipoVaga === 'BOLSISTA' ? 'BOLSISTA' : 'VOLUNTARIO'
+    const preferredCandidate = candidates.find((c) => c.tipoVagaPretendida === targetTipo) || candidates[0]
+
+    return preferredCandidate
   }
 }
 

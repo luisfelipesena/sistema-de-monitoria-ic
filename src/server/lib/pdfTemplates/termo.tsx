@@ -1,120 +1,190 @@
-import { Document, Font, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
+import React from "react"
+import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+import { PROGRAD_LOGO_BASE64, UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
+import { formatDateFullBR } from "./anexo-shared-styles"
 
-// Registrar fontes (mesmo padrão dos outros templates)
-Font.register({
-  family: 'Roboto',
-  fonts: [
-    {
-      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.1/fonts/Roboto/roboto-regular-webfont.ttf',
-      fontWeight: 'normal',
-    },
-    {
-      src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.1/fonts/Roboto/roboto-bold-webfont.ttf',
-      fontWeight: 'bold',
-    },
-  ],
-})
+if (typeof Font?.registerHyphenationCallback === "function") {
+  Font.registerHyphenationCallback((word) => [word])
+}
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Roboto',
-    fontSize: 11,
-    padding: 40,
+    paddingTop: 30,
+    paddingBottom: 35,
+    paddingHorizontal: 40,
+    fontSize: 9.5,
+    fontFamily: "Helvetica",
+    backgroundColor: "#FFFFFF",
+    lineHeight: 1.3,
+    color: "#000000",
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+    width: "100%",
+  },
+  ufbaLogoContainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  progradLogoContainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+  },
+  ufbaLogo: {
+    width: 75,
+    height: 50,
+    objectFit: "contain",
+  },
+  divider: {
+    borderRightWidth: 1,
+    borderRightColor: "#888888",
+    height: 40,
+    marginHorizontal: 15,
+  },
+  progradLogo: {
+    width: 140,
+    height: 45,
+    objectFit: "contain",
+  },
+  anexoSmall: {
+    fontSize: 10.5,
+    fontFamily: "Helvetica-Bold",
+    textAlign: "center",
+    marginBottom: 2,
+  },
+  titleBig: {
+    fontSize: 12.5,
+    fontFamily: "Helvetica-Bold",
+    textAlign: "center",
+    marginBottom: 14,
+    textTransform: "uppercase",
+  },
+  bodyParagraph: {
+    marginTop: 8,
+    fontSize: 9.5,
+    textAlign: "justify",
+    lineHeight: 1.45,
+  },
+  listItem: {
+    marginTop: 6,
+    fontSize: 9.5,
+    textAlign: "justify",
     lineHeight: 1.4,
   },
-  header: {
-    textAlign: 'center',
-    marginBottom: 30,
+  declaracao: {
+    marginTop: 10,
+    fontSize: 9.5,
+    textAlign: "justify",
+    lineHeight: 1.4,
   },
-  logo: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
+  tableContainer: {
+    marginTop: 14,
+    width: "100%",
   },
-  instituicao: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 3,
-  },
-  departamento: {
-    fontSize: 12,
-    marginBottom: 10,
-  },
-  titulo: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-    textTransform: 'uppercase',
-  },
-  paragrafo: {
-    marginBottom: 12,
-    textAlign: 'justify',
-  },
-  clausulaHeader: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginTop: 15,
-    marginBottom: 8,
-  },
-  clausulaContent: {
-    marginBottom: 10,
-    textAlign: 'justify',
-    paddingLeft: 10,
-  },
-  dadosSecao: {
-    marginTop: 20,
-    marginBottom: 15,
-  },
-  dadosHeader: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  dadosItem: {
-    flexDirection: 'row',
-    marginBottom: 4,
-  },
-  dadosLabel: {
-    width: 140,
-    fontWeight: 'bold',
-  },
-  dadosValue: {
-    flex: 1,
-  },
-  assinaturaSecao: {
-    marginTop: 40,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  assinaturaBox: {
-    width: '100%',
-    textAlign: 'center',
-    borderTop: '1 solid #000',
-    paddingTop: 5,
-  },
-  assinaturaTexto: {
-    fontSize: 10,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    textAlign: 'center',
+  tableHeader: {
+    backgroundColor: "#D1D5DB",
+    borderStyle: "solid",
+    borderColor: "#000000",
+    borderWidth: 1,
+    paddingVertical: 3,
+    paddingHorizontal: 5,
+    textAlign: "center",
     fontSize: 9,
-    color: '#666',
+    fontFamily: "Helvetica-Bold",
   },
-  destaque: {
-    fontWeight: 'bold',
+  bankTable: {
+    borderStyle: "solid",
+    borderColor: "#000000",
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 0,
+  },
+  bankRow: {
+    flexDirection: "row",
+    borderStyle: "solid",
+    borderColor: "#000000",
+    borderBottomWidth: 1,
+  },
+  bankLabel: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 8.5,
+    paddingVertical: 3,
+    paddingHorizontal: 4,
+    borderStyle: "solid",
+    borderColor: "#000000",
+    borderRightWidth: 1,
+  },
+  bankValue: {
+    fontSize: 8.5,
+    paddingVertical: 3,
+    paddingHorizontal: 4,
+    borderStyle: "solid",
+    borderColor: "#000000",
+    borderRightWidth: 1,
+  },
+  bankValueLast: {
+    fontSize: 8.5,
+    paddingVertical: 3,
+    paddingHorizontal: 4,
+  },
+  smallNote: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    marginTop: 3,
+  },
+  footerSignatures: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginTop: 35,
+    width: "100%",
+  },
+  footerCellLocal: {
+    width: "28%",
+    textAlign: "center",
+  },
+  footerCellData: {
+    width: "28%",
+    textAlign: "center",
+  },
+  footerCellSignature: {
+    width: "38%",
+    textAlign: "center",
+    position: "relative",
+  },
+  lineText: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#000000",
+    paddingBottom: 2,
+    fontSize: 9,
+    textAlign: "center",
+  },
+  captionText: {
+    fontSize: 8.5,
+    marginTop: 3,
+    textAlign: "center",
+  },
+  signatureImg: {
+    position: "absolute",
+    top: -22,
+    left: 10,
+    width: 140,
+    height: 35,
+    objectFit: "contain",
   },
 })
 
 export interface TermoCompromissoProps {
   vaga: {
     id: string
-    tipoBolsa: 'bolsista' | 'voluntario'
+    tipoBolsa: "bolsista" | "voluntario"
     dataInicio: Date
     aluno: {
       user: {
@@ -124,6 +194,20 @@ export interface TermoCompromissoProps {
       matricula?: string
       rg?: string
       cpf?: string
+      cursoNome?: string
+      banco?: string
+      agencia?: string
+      conta?: string
+      digitoConta?: string
+      telefone?: string
+      endereco?: {
+        rua?: string
+        numero?: number
+        bairro?: string
+        cidade?: string
+        estado?: string
+        cep?: string
+      }
     }
     projeto: {
       disciplina: {
@@ -156,215 +240,164 @@ export function TermoCompromissoTemplate({
   vaga,
   dataGeracao,
   alunoAssinaturaBase64,
-  professorAssinaturaBase64,
 }: TermoCompromissoProps) {
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit', 
-      year: 'numeric',
-      timeZone: 'UTC',
-    }).format(date)
-  }
-
-  const tipoMonitoria = vaga.tipoBolsa === 'bolsista' ? 'COM BOLSA' : 'VOLUNTÁRIA'
+  const isBolsista = vaga.tipoBolsa === "bolsista"
+  const tipoText = isBolsista ? "bolsista" : "voluntário"
   const semestreTexto = `${vaga.semestre.ano}.${vaga.semestre.numero}`
+
+  const enderecoCompleto = vaga.aluno.endereco
+    ? [
+        vaga.aluno.endereco.rua,
+        vaga.aluno.endereco.numero ? String(vaga.aluno.endereco.numero) : "",
+        vaga.aluno.endereco.bairro,
+        vaga.aluno.endereco.cidade,
+        vaga.aluno.endereco.estado,
+        vaga.aluno.endereco.cep ? `CEP: ${vaga.aluno.endereco.cep}` : "",
+      ]
+        .filter(Boolean)
+        .join(", ")
+    : ""
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.logo}>UFBA</Text>
-          <Text style={styles.instituicao}>
-            UNIVERSIDADE FEDERAL DA BAHIA
+        {/* Header com Logos Perfeitamente Centralizados */}
+        <View style={styles.headerRow}>
+          <View style={styles.ufbaLogoContainer}>
+            <Image src={UFBA_LOGO__FORM_BASE64} style={styles.ufbaLogo} cache={false} />
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.progradLogoContainer}>
+            <Image src={PROGRAD_LOGO_BASE64} style={styles.progradLogo} cache={false} />
+          </View>
+        </View>
+
+        {/* Títulos */}
+        <Text style={styles.anexoSmall}>Anexo I</Text>
+        <Text style={styles.titleBig}>TERMO DE COMPROMISSO DO MONITOR</Text>
+
+        {/* Parágrafo do Termo de Compromisso */}
+        <Text style={styles.bodyParagraph}>
+          Eu, {vaga.aluno.user.name}............................................................., portador(a) do RG nº{" "}
+          {vaga.aluno.rg || "—"}......................... e do CPF nº {vaga.aluno.cpf || "—"}..........................., regularmente matriculado(a) na UFBA no curso de graduação em{" "}
+          {vaga.aluno.cursoNome || "Ciência da Computação"}..........................................., sob o nº de matrícula{" "}
+          {vaga.aluno.matricula || "—"}......................., devidamente selecionado(a) para atuar como monitor(a){" "}
+          <Text style={{ fontStyle: "italic" }}>(bolsista ou voluntário)</Text> {tipoText}.................... no projeto vinculado ao componente curricular{" "}
+          <Text style={{ fontStyle: "italic" }}>(código e nome)</Text> {vaga.projeto.disciplina.codigo} - {vaga.projeto.disciplina.nome}.........................................................., a ser desenvolvido durante o semestre{" "}
+          <Text style={{ fontFamily: "Helvetica-Bold" }}>{semestreTexto}</Text>, sob a responsabilidade do(a) professor(a){" "}
+          {vaga.projeto.professor.user.name}..................................................., comprometo-me a:
+        </Text>
+
+        {/* Itens de Compromisso */}
+        <Text style={styles.listItem}>
+          1. Conhecer e respeitar as normas relativas às atividades de monitoria (Resolução CAE nº 05/2021 e edital correspondente), disponíveis na página do programa no <Text style={{ fontStyle: "italic" }}>sítio eletrônico</Text> da PROGRAD.
+        </Text>
+        <Text style={styles.listItem}>
+          2. Cumprir as atividades propostas no projeto de monitoria indicado neste termo, assim como a carga horária de <Text style={{ fontFamily: "Helvetica-Bold" }}>12 horas semanais</Text>.
+        </Text>
+        <Text style={styles.listItem}>
+          3. Interagir com professores e estudantes, visando apoiar os discentes matriculados no componente curricular de modo a potencializar o processo de ensino-aprendizagem.
+        </Text>
+        <Text style={styles.listItem}>
+          4. Apresentar ao professor orientador o relatório final das atividades.
+        </Text>
+
+        {/* Declarações */}
+        <Text style={styles.declaracao}>
+          Declaro <Text style={{ fontFamily: "Helvetica-Bold" }}>ter cursado, com aprovação</Text>, ou <Text style={{ fontFamily: "Helvetica-Bold" }}>ter obtido dispensa</Text> do componente curricular ou equivalente ao qual se vincula o projeto.
+        </Text>
+
+        <Text style={styles.declaracao}>
+          Declaro <Text style={{ fontFamily: "Helvetica-Bold" }}>não possuir nenhum tipo de bolsa na presente data</Text>, estando ciente da vedação quanto à acumulação de bolsa de monitoria com outras modalidades de bolsas oferecidas pela UFBA ou por órgãos externos, exceto quando se tratar de bolsa auxílio de permanência.
+        </Text>
+
+        <Text style={styles.declaracao}>
+          Estou ciente que a inobservância dos termos acima implicará o desligamento do programa, o indeferimento da certificação e a devolução de valores recebidos indevidamente, se for o caso.
+        </Text>
+
+        {/* Tabela de Informações adicionais */}
+        <View style={styles.tableContainer}>
+          <Text style={styles.tableHeader}>
+            Informações adicionais para recebimento da bolsa (apenas bolsistas)
           </Text>
-          <Text style={styles.departamento}>
-            {vaga.projeto.disciplina.departamento.nome} - {vaga.projeto.disciplina.departamento.sigla}
-          </Text>
+          <View style={styles.bankTable}>
+            {/* Linha 1 */}
+            <View style={styles.bankRow}>
+              <View style={[styles.bankLabel, { width: "15%" }]}>
+                <Text>Banco*</Text>
+              </View>
+              <View style={[styles.bankValue, { width: "23%" }]}>
+                <Text>{isBolsista ? (vaga.aluno.banco ?? "") : ""}</Text>
+              </View>
+              <View style={[styles.bankLabel, { width: "20%" }]}>
+                <Text>Agência e dígito</Text>
+              </View>
+              <View style={[styles.bankValue, { width: "15%" }]}>
+                <Text>{isBolsista ? (vaga.aluno.agencia ?? "") : ""}</Text>
+              </View>
+              <View style={[styles.bankLabel, { width: "17%" }]}>
+                <Text>Conta e dígito**</Text>
+              </View>
+              <View style={[styles.bankValueLast, { width: "10%" }]}>
+                <Text>
+                  {isBolsista
+                    ? `${vaga.aluno.conta ?? ""}${vaga.aluno.digitoConta ? `-${vaga.aluno.digitoConta}` : ""}`
+                    : ""}
+                </Text>
+              </View>
+            </View>
+
+            {/* Linha 2 */}
+            <View style={styles.bankRow}>
+              <View style={[styles.bankLabel, { width: "15%" }]}>
+                <Text>Endereço e CEP</Text>
+              </View>
+              <View style={[styles.bankValueLast, { width: "85%" }]}>
+                <Text>{isBolsista ? enderecoCompleto : ""}</Text>
+              </View>
+            </View>
+
+            {/* Linha 3 */}
+            <View style={styles.bankRow}>
+              <View style={[styles.bankLabel, { width: "15%" }]}>
+                <Text>Celular com DDD</Text>
+              </View>
+              <View style={[styles.bankValue, { width: "35%" }]}>
+                <Text>{isBolsista ? (vaga.aluno.telefone ?? "") : ""}</Text>
+              </View>
+              <View style={[styles.bankLabel, { width: "12%" }]}>
+                <Text>E-mail</Text>
+              </View>
+              <View style={[styles.bankValueLast, { width: "38%" }]}>
+                <Text style={{ color: isBolsista ? "#0000EE" : "#000000" }}>
+                  {isBolsista ? vaga.aluno.user.email : ""}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <Text style={styles.smallNote}>* exceto Mercado Pago</Text>
+          <Text style={styles.smallNote}>** não pode ser conta poupança</Text>
         </View>
 
-        {/* Título */}
-        <Text style={styles.titulo}>
-          TERMO DE COMPROMISSO - MONITORIA {tipoMonitoria}
-        </Text>
-
-        {/* Dados do Monitor */}
-        <View style={styles.dadosSecao}>
-          <Text style={styles.dadosHeader}>Dados do Monitor</Text>
-          <View style={styles.dadosItem}>
-            <Text style={styles.dadosLabel}>Nome:</Text>
-            <Text style={styles.dadosValue}>{vaga.aluno.user.name}</Text>
+        {/* Rodapé com Local, Data e Assinatura */}
+        <View style={styles.footerSignatures}>
+          <View style={styles.footerCellLocal}>
+            <Text style={styles.lineText}>Salvador</Text>
+            <Text style={styles.captionText}>Local</Text>
           </View>
-          <View style={styles.dadosItem}>
-            <Text style={styles.dadosLabel}>Email:</Text>
-            <Text style={styles.dadosValue}>{vaga.aluno.user.email}</Text>
+          <View style={styles.footerCellData}>
+            <Text style={styles.lineText}>{formatDateFullBR(dataGeracao)}</Text>
+            <Text style={styles.captionText}>Data</Text>
           </View>
-          {vaga.aluno.matricula && (
-            <View style={styles.dadosItem}>
-              <Text style={styles.dadosLabel}>Matrícula:</Text>
-              <Text style={styles.dadosValue}>{vaga.aluno.matricula}</Text>
-            </View>
-          )}
-          {vaga.aluno.rg && (
-            <View style={styles.dadosItem}>
-              <Text style={styles.dadosLabel}>RG:</Text>
-              <Text style={styles.dadosValue}>{vaga.aluno.rg}</Text>
-            </View>
-          )}
-          {vaga.aluno.cpf && (
-            <View style={styles.dadosItem}>
-              <Text style={styles.dadosLabel}>CPF:</Text>
-              <Text style={styles.dadosValue}>{vaga.aluno.cpf}</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Dados da Monitoria */}
-        <View style={styles.dadosSecao}>
-          <Text style={styles.dadosHeader}>Dados da Monitoria</Text>
-          <View style={styles.dadosItem}>
-            <Text style={styles.dadosLabel}>Disciplina:</Text>
-            <Text style={styles.dadosValue}>
-              {vaga.projeto.disciplina.nome}
-              {vaga.projeto.disciplina.codigo && ` (${vaga.projeto.disciplina.codigo})`}
-            </Text>
-          </View>
-          <View style={styles.dadosItem}>
-            <Text style={styles.dadosLabel}>Professor Orientador:</Text>
-            <Text style={styles.dadosValue}>{vaga.projeto.professor.user.name}</Text>
-          </View>
-          {vaga.projeto.professor.siape && (
-            <View style={styles.dadosItem}>
-              <Text style={styles.dadosLabel}>SIAPE:</Text>
-              <Text style={styles.dadosValue}>{vaga.projeto.professor.siape}</Text>
-            </View>
-          )}
-          <View style={styles.dadosItem}>
-            <Text style={styles.dadosLabel}>Tipo de Monitoria:</Text>
-            <Text style={styles.dadosValue}>{tipoMonitoria}</Text>
-          </View>
-          <View style={styles.dadosItem}>
-            <Text style={styles.dadosLabel}>Semestre:</Text>
-            <Text style={styles.dadosValue}>{semestreTexto}</Text>
-          </View>
-          <View style={styles.dadosItem}>
-            <Text style={styles.dadosLabel}>Data de Início:</Text>
-            <Text style={styles.dadosValue}>{formatDate(vaga.dataInicio)}</Text>
+          <View style={styles.footerCellSignature}>
+            {alunoAssinaturaBase64 ? (
+              <Image src={alunoAssinaturaBase64} style={styles.signatureImg} cache={false} />
+            ) : null}
+            <Text style={styles.lineText}> </Text>
+            <Text style={styles.captionText}>Assinatura do(a) monitor(a)</Text>
           </View>
         </View>
-
-        {/* Termo */}
-        <Text style={styles.paragrafo}>
-          Pelo presente termo, o(a) estudante acima identificado(a) se compromete a exercer as atividades 
-          de monitoria na disciplina especificada, sob a orientação do professor responsável, durante o 
-          período letivo {semestreTexto}.
-        </Text>
-
-        {/* Cláusulas */}
-        <Text style={styles.clausulaHeader}>CLÁUSULA 1ª - DAS RESPONSABILIDADES DO MONITOR</Text>
-        <Text style={styles.clausulaContent}>
-          O monitor se compromete a:
-        </Text>
-        <Text style={styles.clausulaContent}>
-          a) Auxiliar o professor nas atividades didáticas e de pesquisa relacionadas à disciplina;
-        </Text>
-        <Text style={styles.clausulaContent}>
-          b) Atender aos estudantes regularmente matriculados na disciplina, esclarecendo dúvidas e 
-          orientando estudos;
-        </Text>
-        <Text style={styles.clausulaContent}>
-          c) Participar das reuniões e atividades de capacitação promovidas pelo programa;
-        </Text>
-        <Text style={styles.clausulaContent}>
-          d) Manter sigilo sobre as informações acadêmicas dos estudantes;
-        </Text>
-        <Text style={styles.clausulaContent}>
-          e) Cumprir a carga horária estabelecida pelo programa de monitoria.
-        </Text>
-
-        <Text style={styles.clausulaHeader}>CLÁUSULA 2ª - DAS RESPONSABILIDADES DO PROFESSOR ORIENTADOR</Text>
-        <Text style={styles.clausulaContent}>
-          O professor orientador se compromete a:
-        </Text>
-        <Text style={styles.clausulaContent}>
-          a) Planejar e acompanhar as atividades de monitoria;
-        </Text>
-        <Text style={styles.clausulaContent}>
-          b) Orientar o monitor no desenvolvimento de suas atividades;
-        </Text>
-        <Text style={styles.clausulaContent}>
-          c) Avaliar o desempenho do monitor periodicamente;
-        </Text>
-        <Text style={styles.clausulaContent}>
-          d) Fornecer os recursos necessários para o desenvolvimento das atividades.
-        </Text>
-
-        <Text style={styles.clausulaHeader}>CLÁUSULA 3ª - DA VIGÊNCIA</Text>
-        <Text style={styles.clausulaContent}>
-          Este termo tem vigência durante todo o período letivo {semestreTexto}, podendo ser rescindido 
-          a qualquer tempo por descumprimento das obrigações estabelecidas ou por solicitação das partes.
-        </Text>
-
-        {vaga.tipoBolsa === 'bolsista' && (
-          <>
-            <Text style={styles.clausulaHeader}>CLÁUSULA 4ª - DA BOLSA</Text>
-            <Text style={styles.clausulaContent}>
-              O monitor fará jus ao recebimento de bolsa conforme valor estabelecido pela PROGRAD, 
-              condicionado ao cumprimento integral de suas obrigações.
-            </Text>
-          </>
-        )}
-
-        <Text style={styles.paragrafo}>
-          As partes declaram estar cientes e de acordo com os termos estabelecidos, firmando o presente 
-          compromisso em duas vias de igual teor.
-        </Text>
-
-        {/* Data e Local */}
-        <Text style={styles.paragrafo}>
-          Salvador, {formatDate(dataGeracao)}.
-        </Text>
-
-        {/* Assinaturas */}
-        <View style={styles.assinaturaSecao}>
-          <View style={{ width: '45%' }}>
-            <View style={{ height: 40, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 2 }}>
-              {alunoAssinaturaBase64 ? (
-                <Image src={alunoAssinaturaBase64} style={{ height: 38, width: 130 }} />
-              ) : null}
-            </View>
-            <View style={styles.assinaturaBox}>
-              <Text style={styles.assinaturaTexto}>
-                {vaga.aluno.user.name}
-              </Text>
-              <Text style={styles.assinaturaTexto}>
-                Monitor(a)
-              </Text>
-            </View>
-          </View>
-
-          <View style={{ width: '45%' }}>
-            <View style={{ height: 40, justifyContent: 'flex-end', alignItems: 'center', marginBottom: 2 }}>
-              {professorAssinaturaBase64 ? (
-                <Image src={professorAssinaturaBase64} style={{ height: 38, width: 130 }} />
-              ) : null}
-            </View>
-            <View style={styles.assinaturaBox}>
-              <Text style={styles.assinaturaTexto}>
-                {vaga.projeto.professor.user.name}
-              </Text>
-              <Text style={styles.assinaturaTexto}>
-                Professor(a) Orientador(a)
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Footer */}
-        <Text style={styles.footer}>
-          Documento gerado pelo Sistema de Monitoria IC - UFBA em {formatDate(dataGeracao)}
-        </Text>
       </Page>
     </Document>
   )

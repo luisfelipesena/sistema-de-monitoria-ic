@@ -1,4 +1,5 @@
 import { isProfessor, requireAdminOrProfessor, requireProfessor, requireStudent } from '@/server/lib/auth-helpers'
+import { emailSender } from '@/server/lib/email/email-sender'
 import { BusinessError } from '@/server/lib/errors'
 import type { StatusInscricao, UserRole } from '@/types'
 import {
@@ -59,7 +60,7 @@ export class ProfessorInscricaoService {
     await this.repository.updateInscricao(input.inscricaoId, {
       notaDisciplina: input.notaDisciplina.toString(),
       notaSelecao: input.notaSelecao.toString(),
-      notaFinal: (Math.round(notaFinal * 100) / 100).toString(),
+      notaFinal: (Math.round(notaFinal * 10) / 10).toFixed(1),
       updatedAt: new Date(),
     })
 
@@ -67,7 +68,7 @@ export class ProfessorInscricaoService {
 
     return {
       success: true,
-      notaFinal: Math.round(notaFinal * 100) / 100,
+      notaFinal: Math.round(notaFinal * 10) / 10,
     }
   }
 
@@ -90,7 +91,13 @@ export class ProfessorInscricaoService {
 
     const inscricoesComDisciplinas = await Promise.all(
       inscricoes.map(async (inscricao) => {
-        const disciplinas = await this.repository.findDisciplinasByProjetoId(inscricao.projetoId)
+        const [disciplinas, documentos] = await Promise.all([
+          this.repository.findDisciplinasByProjetoId(inscricao.projetoId),
+          this.repository.findDocumentosByInscricaoId(inscricao.id),
+        ])
+
+        const historicoDoc = documentos.find((d) => d.tipoDocumento === 'HISTORICO_ESCOLAR')
+        const historicoEscolarFileId = historicoDoc?.fileId ?? inscricao.aluno.historicoEscolarFileId ?? null
 
         return {
           ...inscricao,
@@ -98,6 +105,8 @@ export class ProfessorInscricaoService {
           notaSelecao: inscricao.notaSelecao ? Number(inscricao.notaSelecao) : null,
           coeficienteRendimento: inscricao.coeficienteRendimento ? Number(inscricao.coeficienteRendimento) : null,
           notaFinal: inscricao.notaFinal ? Number(inscricao.notaFinal) : null,
+          documentos,
+          historicoEscolarFileId,
           projeto: {
             ...inscricao.projeto,
             professorResponsavel: inscricao.professorResponsavel,
@@ -129,7 +138,8 @@ export class ProfessorInscricaoService {
   ) {
     requireProfessor(userRole)
 
-    const notaFinal = (input.notaDisciplina * 5 + input.notaSelecao * 3 + input.coeficienteRendimento * 2) / 10
+    const notaFinalRaw = (input.notaDisciplina * 5 + input.notaSelecao * 3 + input.coeficienteRendimento * 2) / 10
+    const notaFinal = (Math.round(notaFinalRaw * 10) / 10).toFixed(1)
 
     const inscricao = await this.repository.findInscricaoWithProjetoProfessor(input.inscricaoId)
     if (!inscricao) {
@@ -144,7 +154,7 @@ export class ProfessorInscricaoService {
       notaDisciplina: input.notaDisciplina.toString(),
       notaSelecao: input.notaSelecao.toString(),
       coeficienteRendimento: input.coeficienteRendimento.toString(),
-      notaFinal: notaFinal.toString(),
+      notaFinal,
       feedbackProfessor: input.feedbackProfessor,
       updatedAt: new Date(),
     })
@@ -217,19 +227,82 @@ export class ProfessorInscricaoService {
       throw new BusinessError('Não é possível recusar uma vaga não oferecida', 'BAD_REQUEST')
     }
 
+    const isBolsista = inscricao.status === SELECTED_BOLSISTA
+    const tipoVaga: 'BOLSISTA' | 'VOLUNTARIO' = isBolsista ? 'BOLSISTA' : 'VOLUNTARIO'
+
     await this.repository.updateInscricao(inscricaoId, {
       status: REJECTED_BY_STUDENT,
       feedbackProfessor: motivo || 'Vaga recusada pelo estudante',
       updatedAt: new Date(),
     })
 
-    const tipoVaga = inscricao.status === SELECTED_BOLSISTA ? 'bolsista' : 'voluntária'
-    log.info({ inscricaoId, motivo }, `Vaga ${tipoVaga} recusada`)
+    const tipoVagaLabel = isBolsista ? 'bolsista' : 'voluntária'
+    log.info({ inscricaoId, motivo }, `Vaga ${tipoVagaLabel} recusada`)
+
+    // Promote next candidate from waitlist automatically
+    const promotedCandidate = await this.promoteNextCandidateFromWaitlist(inscricao.projetoId, tipoVaga, userId)
+
+    const promotionMessage = promotedCandidate
+      ? ` Próximo candidato da lista de espera (${promotedCandidate.aluno.nomeCompleto}) foi convocado automaticamente.`
+      : ''
 
     return {
       success: true,
-      message: `Vaga ${tipoVaga} recusada com sucesso.`,
+      message: `Vaga ${tipoVagaLabel} recusada com sucesso.${promotionMessage}`,
     }
+  }
+
+  async promoteNextCandidateFromWaitlist(
+    projetoId: number,
+    tipoVaga: 'BOLSISTA' | 'VOLUNTARIO',
+    remetenteUserId?: number
+  ) {
+    const candidate = await this.repository.findNextWaitlistCandidate(projetoId, tipoVaga)
+    if (!candidate) {
+      log.info({ projetoId, tipoVaga }, 'Nenhum candidato elegível na lista de espera para convocação automática')
+      return null
+    }
+
+    const newStatus: StatusInscricao = tipoVaga === 'BOLSISTA' ? SELECTED_BOLSISTA : SELECTED_VOLUNTARIO
+
+    await this.repository.updateInscricao(candidate.id, {
+      status: newStatus,
+      updatedAt: new Date(),
+    })
+
+    log.info(
+      { candidateId: candidate.id, alunoId: candidate.alunoId, newStatus },
+      'Candidato promovido da lista de espera com sucesso'
+    )
+
+    try {
+      const tipoVagaLabel = tipoVaga === 'BOLSISTA' ? 'Bolsista' : 'Voluntário(a)'
+      await emailSender.send({
+        to: candidate.aluno.user.email,
+        subject: `🎓 Convocação da Lista de Espera - Monitoria ${candidate.projeto.titulo}`,
+        html: `
+Olá ${candidate.aluno.nomeCompleto},<br><br>
+
+Você foi <strong>convocado(a) da lista de espera</strong> para a vaga de monitoria <strong>${tipoVagaLabel}</strong> no projeto "<strong>${candidate.projeto.titulo}</strong>"!<br><br>
+
+<strong>Nota Final:</strong> ${candidate.notaFinal}<br>
+<strong>Professor Responsável:</strong> ${candidate.projeto.professorResponsavel.nomeCompleto}<br><br>
+
+Por favor, acesse o portal do Sistema de Monitoria IC para <strong>Aceitar</strong> ou <strong>Recusar</strong> sua vaga.<br><br>
+
+Atenciosamente,<br>
+Sistema de Monitoria IC
+        `,
+        tipoNotificacao: 'CONVOCACAO_LISTA_ESPERA',
+        remetenteUserId,
+        projetoId,
+        alunoId: candidate.alunoId,
+      })
+    } catch (emailErr) {
+      log.error({ emailErr, candidateId: candidate.id }, 'Erro ao enviar e-mail de convocação da lista de espera')
+    }
+
+    return candidate
   }
 
   async generateCommitmentTermData(userId: number, userRole: UserRole, inscricaoId: number) {
@@ -285,11 +358,33 @@ export class ProfessorInscricaoService {
       log.error({ err }, 'Erro ao buscar assinatura do professor')
     }
 
+    const endereco = inscricao.aluno.endereco
+    const enderecoCompleto = endereco
+      ? [
+          endereco.rua,
+          endereco.numero ? String(endereco.numero) : '',
+          endereco.bairro,
+          endereco.cidade,
+          endereco.estado,
+          endereco.cep ? `CEP: ${endereco.cep}` : '',
+        ]
+          .filter(Boolean)
+          .join(', ')
+      : ''
+
     return {
       monitor: {
         nome: inscricao.aluno.nomeCompleto,
         matricula: inscricao.aluno.matricula,
         email: inscricao.aluno.user.email,
+        rg: inscricao.aluno.rg,
+        cpf: inscricao.aluno.cpf,
+        cursoNome: inscricao.aluno.cursoNome,
+        banco: inscricao.aluno.banco,
+        agencia: inscricao.aluno.agencia,
+        conta: inscricao.aluno.conta,
+        digitoConta: inscricao.aluno.digitoConta,
+        enderecoCompleto,
         ...(inscricao.aluno.telefone && { telefone: inscricao.aluno.telefone }),
         cr: inscricao.aluno.cr,
         assinaturaBase64: monitorAssinatura,

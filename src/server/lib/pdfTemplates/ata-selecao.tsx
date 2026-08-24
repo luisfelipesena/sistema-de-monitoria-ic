@@ -1,258 +1,206 @@
-import { PDF_PAGE_SIZE_A4 } from "@/constants/pdf"
-import {
-  AtaSelecaoData,
-  SEMESTRE_LABELS,
-  STATUS_INSCRICAO_REJECTED_BY_PROFESSOR,
-  STATUS_INSCRICAO_SELECTED_BOLSISTA,
-  STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
-  STATUS_INSCRICAO_WAITING_LIST,
-  TIPO_VAGA_BOLSISTA,
-  TIPO_VAGA_VOLUNTARIO,
-  type Semestre,
-  type StatusInscricao,
-  type TipoVaga,
-} from "@/types"
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+import { AtaSelecaoData, getSemestreNumero, Semestre } from "@/types"
+import { IC_LOGO_BASE64, UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
+import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
+import { formatNotaExtenso, formatDateExtenso } from "./AtaSelecaoTemplate"
 
-// Styles for the PDF
+if (typeof Font?.registerHyphenationCallback === "function") {
+  Font.registerHyphenationCallback((word) => [word])
+}
+
 const styles = StyleSheet.create({
   page: {
-    fontFamily: "Helvetica",
+    fontFamily: "Times-Roman",
     fontSize: 11,
-    paddingTop: 30,
+    paddingTop: 40,
     paddingLeft: 60,
     paddingRight: 60,
-    paddingBottom: 65,
+    paddingBottom: 50,
     lineHeight: 1.5,
+    color: "#000000",
   },
-  header: {
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 40,
+    width: "100%",
+  },
+  logoUfba: {
+    width: 65,
+    height: 75,
+    objectFit: "contain",
+  },
+  logoIc: {
+    width: 70,
+    height: 75,
+    objectFit: "contain",
+  },
+  headerTextContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 10,
+  },
+  institutionHeaderBold: {
+    fontSize: 11,
+    fontFamily: "Times-Bold",
+    marginBottom: 3,
     textAlign: "center",
-    marginBottom: 30,
+  },
+  titleContainer: {
+    alignItems: "center",
+    marginTop: 20,
+    marginBottom: 35,
   },
   title: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  section: {
-    marginBottom: 15,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#1976d2",
-  },
-  text: {
     fontSize: 11,
-    marginBottom: 5,
+    fontFamily: "Times-Bold",
+    textAlign: "center",
+    textTransform: "uppercase",
+  },
+  paragraph: {
+    fontSize: 11,
+    lineHeight: 1.65,
     textAlign: "justify",
+    marginBottom: 40,
+    textIndent: 30,
   },
-  table: {
-    marginBottom: 20,
+  dateContainer: {
+    alignItems: "flex-end",
+    marginBottom: 40,
   },
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#f5f5f5",
-    padding: 8,
-    fontWeight: "bold",
-    fontSize: 10,
+  dateText: {
+    fontSize: 11,
   },
-  tableRow: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-    padding: 6,
-    fontSize: 10,
+  signatureContainer: {
+    alignItems: "center",
+    marginTop: 20,
   },
-  tableCell: {
-    flex: 1,
-    textAlign: "left",
-  },
-  tableCellCenter: {
-    flex: 1,
-    textAlign: "center",
-  },
-  tableCellNarrow: {
-    width: 60,
-    textAlign: "center",
-  },
-  signature: {
-    marginTop: 40,
-    textAlign: "center",
+  signatureImage: {
+    height: 45,
+    width: 140,
+    marginBottom: -8,
+    objectFit: "contain",
   },
   signatureLine: {
     borderBottomWidth: 1,
-    borderBottomColor: "#000",
-    marginBottom: 5,
-    paddingBottom: 30,
-    marginHorizontal: 50,
+    borderBottomColor: "#000000",
+    width: 260,
+    marginBottom: 8,
   },
-  footer: {
-    position: "absolute",
-    bottom: 30,
-    left: 60,
-    right: 60,
+  signatureName: {
+    fontSize: 11,
+    fontFamily: "Times-Bold",
     textAlign: "center",
-    fontSize: 9,
-    color: "#666",
   },
 })
 
 export function AtaSelecaoTemplate({ data }: { data: AtaSelecaoData }) {
-  const formatSemestre = (semestre: Semestre) => {
-    return SEMESTRE_LABELS[semestre]
+  const semestreNum = getSemestreNumero(data.projeto.semestre as Semestre)
+  const ano = data.projeto.ano
+  const departamentoNome = data.projeto.departamento?.nome || "CIÊNCIA DA COMPUTAÇÃO"
+  const professorNome = data.projeto.professorResponsavel?.nomeCompleto || "Docente Responsável"
+  const professorAssinatura = (data.projeto.professorResponsavel as any)?.user?.assinaturaDefault
+
+  const disciplina = data.projeto.disciplinas?.[0]
+  const disciplinaStr = disciplina ? `${disciplina.codigo} – ${disciplina.nome}` : data.projeto.titulo
+
+  const isVoluntarioAta = data.tipoAta === "VOLUNTARIO"
+  const tipoVagaStr = isVoluntarioAta ? "VOLUNTÁRIA" : "COM BOLSA"
+  const monitoriaTexto = isVoluntarioAta ? "monitoria voluntária" : "monitoria com bolsa"
+
+  const editalNum = "02/2025"
+
+  // Obter candidatos filtrados de acordo com o tipo da Ata
+  const rawList = isVoluntarioAta
+    ? (data.inscricoesVoluntario && data.inscricoesVoluntario.length > 0
+        ? data.inscricoesVoluntario
+        : (data.candidatos || []).filter((c) => c.tipoVagaPretendida === "VOLUNTARIO" || c.status?.includes("VOLUNTARIO")))
+    : (data.inscricoesBolsista && data.inscricoesBolsista.length > 0
+        ? data.inscricoesBolsista
+        : (data.candidatos || []).filter((c) => c.tipoVagaPretendida !== "VOLUNTARIO"))
+
+  const todosCandidatos = rawList.map((c: any) => ({
+    id: c.id,
+    aluno: c.aluno,
+    tipoVagaPretendida: c.tipoVagaPretendida,
+    notaFinal: c.notaFinal ? Number(c.notaFinal) : null,
+    status: c.status,
+  }))
+
+  const candidatosClassificados = [...todosCandidatos]
+    .sort((a, b) => (b.notaFinal || 0) - (a.notaFinal || 0))
+
+  const countClassificados = candidatosClassificados.length
+  const totalInscritosPad = (countClassificados || data.totalInscritos).toString().padStart(2, "0")
+  const totalCompareceramPad = (countClassificados || data.totalCompareceram || data.totalInscritos).toString().padStart(2, "0")
+
+  const inscritosTexto = (countClassificados === 1)
+    ? `Inscreveram-se ${totalInscritosPad} candidatos e compareceram à seleção ${totalCompareceramPad} candidato inscrito`
+    : `Inscreveram-se ${totalInscritosPad} candidatos e compareceram à seleção ${totalCompareceramPad} candidatos inscritos`
+
+  let conclusaoTexto = ""
+  if (countClassificados === 1) {
+    const c = candidatosClassificados[0]
+    conclusaoTexto = `conclui que foi classificado o candidato ${c.aluno.nomeCompleto} com média ${formatNotaExtenso(c.notaFinal)}`
+  } else if (countClassificados > 1) {
+    const classificadosStr = candidatosClassificados
+      .map((c) => `${c.aluno.nomeCompleto} com média ${formatNotaExtenso(c.notaFinal)}`)
+      .reduce((acc, current, idx, arr) => {
+        if (idx === 0) return current
+        if (idx === arr.length - 1) return `${acc}, e último ${current}`
+        return `${acc}, ${current}`
+      }, "")
+    conclusaoTexto = `conclui que foram classificado(s) o(s) candidato(s) ${classificadosStr}`
+  } else {
+    conclusaoTexto = "conclui que não houveram candidatos classificados"
   }
 
-  const formatTipoVaga = (tipo: TipoVaga | string | null | undefined) => {
-    if (tipo === TIPO_VAGA_BOLSISTA) return "B"
-    if (tipo === TIPO_VAGA_VOLUNTARIO) return "V"
-    return "-"
-  }
-
-  const formatStatus = (status: StatusInscricao | string) => {
-    switch (status) {
-      case STATUS_INSCRICAO_SELECTED_BOLSISTA:
-        return "Selecionado (Bolsista)"
-      case STATUS_INSCRICAO_SELECTED_VOLUNTARIO:
-        return "Selecionado (Voluntário)"
-      case STATUS_INSCRICAO_REJECTED_BY_PROFESSOR:
-        return "Não Selecionado"
-      case STATUS_INSCRICAO_WAITING_LIST:
-        return "Lista de Espera"
-      default:
-        return status
-    }
-  }
-
-  const candidatosOrdenados = [...data.candidatos].sort((a, b) => {
-    const notaA = a.notaFinal || 0
-    const notaB = b.notaFinal || 0
-    return notaB - notaA // Ordem decrescente
-  })
-
-  const aprovados = candidatosOrdenados.filter(
-    (c) => c.status === STATUS_INSCRICAO_SELECTED_BOLSISTA || c.status === STATUS_INSCRICAO_SELECTED_VOLUNTARIO
-  )
+  const dataAtaStr = data.ataInfo?.dataSelecao || new Date().toLocaleDateString("pt-BR")
 
   return (
     <Document>
-      <Page size={PDF_PAGE_SIZE_A4} style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>UNIVERSIDADE FEDERAL DA BAHIA</Text>
-          <Text style={styles.subtitle}>INSTITUTO DE COMPUTAÇÃO</Text>
-          <Text style={styles.subtitle}>ATA DE SELEÇÃO DE MONITORES</Text>
-        </View>
-
-        {/* Informações do Projeto */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>INFORMAÇÕES DO PROJETO</Text>
-          <Text style={styles.text}>
-            <Text style={{ fontWeight: "bold" }}>Projeto:</Text> {data.projeto.titulo}
-          </Text>
-          <Text style={styles.text}>
-            <Text style={{ fontWeight: "bold" }}>Período:</Text> {data.projeto.ano}.
-            {formatSemestre(data.projeto.semestre as Semestre)}
-          </Text>
-          <Text style={styles.text}>
-            <Text style={{ fontWeight: "bold" }}>Departamento:</Text> {data.projeto.departamento.nome}
-            {data.projeto.departamento.sigla && ` (${data.projeto.departamento.sigla})`}
-          </Text>
-          <Text style={styles.text}>
-            <Text style={{ fontWeight: "bold" }}>Professor Responsável:</Text>{" "}
-            {data.projeto.professorResponsavel.nomeCompleto}
-            {data.projeto.professorResponsavel.matriculaSiape &&
-              ` - SIAPE: ${data.projeto.professorResponsavel.matriculaSiape}`}
-          </Text>
-          <Text style={styles.text}>
-            <Text style={{ fontWeight: "bold" }}>Disciplinas:</Text>{" "}
-            {data.projeto.disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join("; ")}
-          </Text>
-          <Text style={styles.text}>
-            <Text style={{ fontWeight: "bold" }}>Data da Seleção:</Text> {data.ataInfo.dataSelecao}
-          </Text>
-          {data.ataInfo.localSelecao && (
-            <Text style={styles.text}>
-              <Text style={{ fontWeight: "bold" }}>Local:</Text> {data.ataInfo.localSelecao}
+      <Page size="A4" style={styles.page}>
+        {/* Cabecalho com Logos */}
+        <View style={styles.headerContainer}>
+          <Image src={UFBA_LOGO__FORM_BASE64} style={styles.logoUfba} />
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.institutionHeaderBold}>UNIVERSIDADE FEDERAL DA BAHIA</Text>
+            <Text style={styles.institutionHeaderBold}>INSTITUTO DE COMPUTAÇÃO</Text>
+            <Text style={styles.institutionHeaderBold}>
+              DEPARTAMENTO DE {departamentoNome.toUpperCase()}
             </Text>
-          )}
+          </View>
+          <Image src={IC_LOGO_BASE64} style={styles.logoIc} />
         </View>
 
-        {/* Candidatos Inscritos */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>CANDIDATOS INSCRITOS</Text>
-
-          <View style={styles.table}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableCell, { flex: 2 }]}>Nome</Text>
-              <Text style={styles.tableCellNarrow}>Matrícula</Text>
-              <Text style={styles.tableCellNarrow}>CR</Text>
-              <Text style={styles.tableCellNarrow}>Tipo</Text>
-              <Text style={styles.tableCellNarrow}>N. Disc.</Text>
-              <Text style={styles.tableCellNarrow}>N. Prova</Text>
-              <Text style={styles.tableCellNarrow}>N. Final</Text>
-              <Text style={[styles.tableCell, { flex: 1.5 }]}>Situação</Text>
-            </View>
-
-            {candidatosOrdenados.map((candidato, index) => (
-              <View key={candidato.id} style={styles.tableRow}>
-                <Text style={[styles.tableCell, { flex: 2 }]}>{candidato.aluno.nomeCompleto}</Text>
-                <Text style={styles.tableCellNarrow}>{candidato.aluno.matricula}</Text>
-                <Text style={styles.tableCellNarrow}>{candidato.aluno.cr?.toFixed(2) || "-"}</Text>
-                <Text style={styles.tableCellNarrow}>{formatTipoVaga(candidato.tipoVagaPretendida)}</Text>
-                <Text style={styles.tableCellNarrow}>{candidato.notaDisciplina?.toFixed(1) || "-"}</Text>
-                <Text style={styles.tableCellNarrow}>{candidato.notaSelecao?.toFixed(1) || "-"}</Text>
-                <Text style={styles.tableCellNarrow}>{candidato.notaFinal?.toFixed(1) || "-"}</Text>
-                <Text style={[styles.tableCell, { flex: 1.5 }]}>{formatStatus(candidato.status)}</Text>
-              </View>
-            ))}
-          </View>
+        {/* Titulo */}
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>
+            ATA DE SELEÇÃO DE MONITORIA {tipoVagaStr} SEMESTRE {ano}.{semestreNum}
+          </Text>
         </View>
 
-        {/* Resultado da Seleção */}
-        {aprovados.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>RESULTADO DA SELEÇÃO</Text>
-            <Text style={styles.text}>
-              <Text style={{ fontWeight: "bold" }}>Candidatos Selecionados:</Text>
-            </Text>
-
-            {aprovados.map((candidato, index) => (
-              <Text key={candidato.id} style={styles.text}>
-                {index + 1}. {candidato.aluno.nomeCompleto} - {candidato.aluno.matricula} -{" "}
-                {formatStatus(candidato.status)}
-                {candidato.notaFinal && ` (Nota: ${candidato.notaFinal.toFixed(1)})`}
-              </Text>
-            ))}
-          </View>
-        )}
-
-        {/* Observações */}
-        {data.ataInfo.observacoes && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>OBSERVAÇÕES</Text>
-            <Text style={styles.text}>{data.ataInfo.observacoes}</Text>
-          </View>
-        )}
-
-        {/* Assinatura */}
-        <View style={styles.signature}>
-          <Text style={styles.text}>Salvador, {new Date().toLocaleDateString("pt-BR")}</Text>
-          <View style={styles.signatureLine} />
-          <Text style={styles.text}>{data.projeto.professorResponsavel.nomeCompleto}</Text>
-          <Text style={styles.text}>Professor Responsável</Text>
-        </View>
-
-        {/* Footer */}
-        <Text style={styles.footer}>
-          Instituto de Computação - UFBA | Av. Adhemar de Barros, s/n - Ondina, Salvador - BA
+        {/* Parágrafo Narrativo Oficial */}
+        <Text style={styles.paragraph}>
+          Em {dataAtaStr} às 10:00 horas deram início as Provas relativas à seleção de {monitoriaTexto} em projetos acadêmicos para a Disciplina {disciplinaStr}, conforme Edital Interno nº {editalNum}. {inscritosTexto}. Eu, {professorNome}, docente responsável pelo projeto, após análise, conforme os critérios estabelecidos, {conclusaoTexto}.
         </Text>
+
+        {/* Data por Extenso */}
+        <View style={styles.dateContainer}>
+          <Text style={styles.dateText}>{formatDateExtenso()}</Text>
+        </View>
+
+        {/* Assinatura do Professor */}
+        <View style={styles.signatureContainer}>
+          {professorAssinatura ? (
+            <Image src={professorAssinatura} style={styles.signatureImage} />
+          ) : (
+            <View style={{ height: 35 }} />
+          )}
+          <View style={styles.signatureLine} />
+          <Text style={styles.signatureName}>Prof. {professorNome}</Text>
+        </View>
       </Page>
     </Document>
   )

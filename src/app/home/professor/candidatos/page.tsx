@@ -24,7 +24,7 @@ import {
   STATUS_INSCRICAO_REJECTED_BY_STUDENT,
 } from "@/types"
 import { api } from "@/utils/api"
-import { CheckCircle, Clock, GraduationCap, Star, Users } from "lucide-react"
+import { CheckCircle, Clock, FileText, GraduationCap, Loader2, Star, Users } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useMemo, useState } from "react"
 
@@ -39,8 +39,28 @@ function ProjectApplicationsContent() {
     { enabled: !!projectId }
   )
   const avaliarCandidato = api.inscricao.avaliarCandidato.useMutation()
+  const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation()
 
   const [quickEvaluations, setQuickEvaluations] = useState<Record<number, QuickEvaluation>>({})
+  const [loadingFileId, setLoadingFileId] = useState<string | null>(null)
+
+  const handleViewHistorico = async (fileId: string) => {
+    setLoadingFileId(fileId)
+    try {
+      const url = await getPresignedUrlMutation.mutateAsync({ fileId, action: "view" })
+      if (url) {
+        window.open(url, "_blank")
+      }
+    } catch {
+      toast({
+        title: "Erro ao abrir histórico",
+        description: "Não foi possível carregar o arquivo do Histórico Escolar.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingFileId(null)
+    }
+  }
 
   // Filter projects that are approved and belong to the current professor
   const myApprovedProjects = useMemo(() => {
@@ -161,7 +181,25 @@ function ProjectApplicationsContent() {
               <p className="text-sm text-gray-600">
                 Matrícula: {candidate.aluno.matricula} • CR: {candidate.aluno.cr}
               </p>
-              <p className="text-sm text-gray-500">Email: {candidate.aluno.user.email}</p>
+              <p className="text-sm text-gray-500 mb-2">Email: {candidate.aluno.user.email}</p>
+              {candidate.historicoEscolarFileId ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-7 px-2.5 flex items-center gap-1.5 text-blue-600 hover:text-blue-800 border-blue-200"
+                  disabled={loadingFileId === candidate.historicoEscolarFileId}
+                  onClick={() => handleViewHistorico(candidate.historicoEscolarFileId!)}
+                >
+                  {loadingFileId === candidate.historicoEscolarFileId ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <FileText className="h-3.5 w-3.5 text-blue-600" />
+                  )}
+                  Ver Histórico Escolar
+                </Button>
+              ) : (
+                <span className="text-xs text-muted-foreground italic">Histórico não disponível</span>
+              )}
             </div>
             <div className="text-right">
               {getStatusBadge(candidate.status)}
@@ -237,7 +275,7 @@ function ProjectApplicationsContent() {
 
   if (!projectId) {
     return (
-      <PagesLayout title="Gerenciar Candidaturas">
+      <PagesLayout title="Visualizar Candidatos">
         <div className="text-center py-8">
           <p className="text-muted-foreground">Nenhum projeto selecionado. Acesse esta página através do dashboard.</p>
         </div>
@@ -247,7 +285,7 @@ function ProjectApplicationsContent() {
 
   return (
     <PagesLayout
-      title="Gerenciar Candidaturas"
+      title="Visualizar Candidatos"
       subtitle="Avalie e selecione candidatos para seus projetos de monitoria"
     >
       <div className="space-y-6">
