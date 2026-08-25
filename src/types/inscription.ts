@@ -193,7 +193,7 @@ export const inscriptionFormSchema = z
           tipoDocumento: tipoDocumentoInscricaoSchema,
         })
       )
-      .min(3, 'Envie pelo menos RG, CPF e Histórico Escolar'),
+      .default([]),
     // Se o perfil do aluno estiver incompleto, permite completar aqui
     profilePatch: alunoProfilePatchSchema.optional(),
   })

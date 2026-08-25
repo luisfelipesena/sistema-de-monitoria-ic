@@ -1,8 +1,9 @@
-import { relations } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm'
 import {
   boolean,
   date,
   decimal,
+  foreignKey,
   index,
   integer,
   numeric,
@@ -187,68 +188,76 @@ export const departamentoTable = pgTable('departamento', {
   }).$onUpdate(() => new Date()),
 })
 
-export const projetoTable = pgTable('projeto', {
-  id: serial('id').primaryKey(),
-  // dataAprovacao: date('data_aprovacao', { mode: 'date' }), // Approval date might be inferred from status change
-  departamentoId: integer('departamento_id').references(() => departamentoTable.id),
-  ano: integer('ano').notNull(),
-  semestre: semestreEnum('semestre').notNull(),
-  tipoProposicao: tipoProposicaoEnum('tipo_proposicao').notNull(),
-  bolsasSolicitadas: integer('bolsas_solicitadas').notNull().default(0), // Professor defines
-  voluntariosSolicitados: integer('voluntarios_solicitados').notNull().default(0), // Professor defines
-  voluntariosConfirmados: boolean('voluntarios_confirmados').default(false).notNull(), // Professor confirmed volunteer count
-  dadosEditalConfirmados: boolean('dados_edital_confirmados').default(false).notNull(), // Professor confirmed all data for edital (dates, pontos, bibliografia, voluntários)
-  bolsasDisponibilizadas: integer('bolsas_disponibilizadas').default(0), // Admin defines after approval
-  // voluntariosAtendidos: integer('voluntarios_atendidos'), // Calculated from accepted 'vaga'
-  cargaHorariaSemana: integer('carga_horaria_semana').notNull(),
-  numeroSemanas: integer('numero_semanas').notNull(),
-  publicoAlvo: text('publico_alvo').notNull(),
-  estimativaPessoasBenificiadas: integer('estimativa_pessoas_benificiadas'),
-  professorResponsavelId: integer('professor_responsavel_id')
-    .references(() => professorTable.id)
-    .notNull(),
-  titulo: varchar('titulo').notNull(), // Added title
-  disciplinaNome: varchar('disciplina_nome'), // Main disciplina name for PROGRAD spreadsheet
-  descricao: text('descricao').notNull(), // Objectives/Justification
-  professoresParticipantes: text('professores_participantes'), // Names of participating professors for collective projects
-  // Campos específicos para edital interno DCC
-  editalInternoId: integer('edital_interno_id').references(() => editalTable.id, { onDelete: 'set null' }), // Optional reference to internal DCC edital
-  dataSelecaoEscolhida: date('data_selecao_escolhida', { mode: 'date' }), // Data escolhida pelo professor dentre as disponíveis (legacy, single)
-  horarioSelecao: varchar('horario_selecao', { length: 20 }), // Horário da seleção (ex: "14:00-16:00") (legacy, single)
-  datasSelecaoEscolhidas: text('datas_selecao_escolhidas'), // JSON: [{data: "2025-08-10", horario: "08:00"}] - 1 slot escolhido pelo professor
-  localSelecao: varchar('local_selecao', { length: 255 }), // Local da seleção (ex: "Sala 101, PAF I")
-  bibliografia: text('bibliografia'), // Bibliografia para seleção
-  pontosProva: text('pontos_prova'), // Pontos/tópicos da prova de seleção
-  importacaoPlanejamentoId: integer('importacao_planejamento_id').references(() => importacaoPlanejamentoTable.id, {
-    onDelete: 'set null',
-  }),
-  status: projetoStatusEnum('status').notNull().default('DRAFT'),
-  assinaturaProfessor: text('assinatura_professor'), // base64 data URL
-  // analiseSubmissao: text('analise_submissao'), // Renamed/Repurposed
-  feedbackAdmin: text('feedback_admin'), // Admin feedback on approval/rejection
-  mensagemRevisao: text('mensagem_revisao'), // Admin's revision request message
-  revisaoSolicitadaEm: timestamp('revisao_solicitada_em', {
-    withTimezone: true,
-    mode: 'date',
-  }), // When revision was requested
-  // documentoUniqueId: text('documento_unique_id'), // Link to separate document table
-  // assinaturaUniqueId: text('assinatura_unique_id'), // Link to separate signature process/table
-  // validado: boolean('validado').notNull().default(false), // Status handles validation
-  createdAt: timestamp('created_at', {
-    withTimezone: true,
-    mode: 'date',
-  })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', {
-    withTimezone: true,
-    mode: 'date',
-  }).$onUpdate(() => new Date()),
-  deletedAt: timestamp('deleted_at', {
-    withTimezone: true,
-    mode: 'date',
-  }),
-})
+export const projetoTable = pgTable(
+  'projeto',
+  {
+    id: serial('id').primaryKey(),
+    // dataAprovacao: date('data_aprovacao', { mode: 'date' }), // Approval date might be inferred from status change
+    departamentoId: integer('departamento_id').references(() => departamentoTable.id),
+    ano: integer('ano').notNull(),
+    semestre: semestreEnum('semestre').notNull(),
+    tipoProposicao: tipoProposicaoEnum('tipo_proposicao').notNull(),
+    bolsasSolicitadas: integer('bolsas_solicitadas').notNull().default(0), // Professor defines
+    voluntariosSolicitados: integer('voluntarios_solicitados').notNull().default(0), // Professor defines
+    voluntariosConfirmados: boolean('voluntarios_confirmados').default(false).notNull(), // Professor confirmed volunteer count
+    dadosEditalConfirmados: boolean('dados_edital_confirmados').default(false).notNull(), // Professor confirmed all data for edital (dates, pontos, bibliografia, voluntários)
+    bolsasDisponibilizadas: integer('bolsas_disponibilizadas').default(0), // Admin defines after approval
+    // voluntariosAtendidos: integer('voluntarios_atendidos'), // Calculated from accepted 'vaga'
+    cargaHorariaSemana: integer('carga_horaria_semana').notNull(),
+    numeroSemanas: integer('numero_semanas').notNull(),
+    publicoAlvo: text('publico_alvo').notNull(),
+    estimativaPessoasBenificiadas: integer('estimativa_pessoas_benificiadas'),
+    professorResponsavelId: integer('professor_responsavel_id')
+      .references(() => professorTable.id)
+      .notNull(),
+    titulo: varchar('titulo').notNull(), // Added title
+    disciplinaNome: varchar('disciplina_nome'), // Main disciplina name for PROGRAD spreadsheet
+    descricao: text('descricao').notNull(), // Objectives/Justification
+    professoresParticipantes: text('professores_participantes'), // Names of participating professors for collective projects
+    // Campos específicos para edital interno DCC
+    editalInternoId: integer('edital_interno_id').references(() => editalTable.id, { onDelete: 'set null' }), // Optional reference to internal DCC edital
+    dataSelecaoEscolhida: date('data_selecao_escolhida', { mode: 'date' }), // Data escolhida pelo professor dentre as disponíveis (legacy, single)
+    horarioSelecao: varchar('horario_selecao', { length: 20 }), // Horário da seleção (ex: "14:00-16:00") (legacy, single)
+    datasSelecaoEscolhidas: text('datas_selecao_escolhidas'), // JSON: [{data: "2025-08-10", horario: "08:00"}] - 1 slot escolhido pelo professor
+    localSelecao: varchar('local_selecao', { length: 255 }), // Local da seleção (ex: "Sala 101, PAF I")
+    bibliografia: text('bibliografia'), // Bibliografia para seleção
+    pontosProva: text('pontos_prova'), // Pontos/tópicos da prova de seleção
+    importacaoPlanejamentoId: integer('importacao_planejamento_id'),
+    status: projetoStatusEnum('status').notNull().default('DRAFT'),
+    assinaturaProfessor: text('assinatura_professor'), // base64 data URL
+    // analiseSubmissao: text('analise_submissao'), // Renamed/Repurposed
+    feedbackAdmin: text('feedback_admin'), // Admin feedback on approval/rejection
+    mensagemRevisao: text('mensagem_revisao'), // Admin's revision request message
+    revisaoSolicitadaEm: timestamp('revisao_solicitada_em', {
+      withTimezone: true,
+      mode: 'date',
+    }), // When revision was requested
+    // documentoUniqueId: text('documento_unique_id'), // Link to separate document table
+    // assinaturaUniqueId: text('assinatura_unique_id'), // Link to separate signature process/table
+    // validado: boolean('validado').notNull().default(false), // Status handles validation
+    createdAt: timestamp('created_at', {
+      withTimezone: true,
+      mode: 'date',
+    })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', {
+      withTimezone: true,
+      mode: 'date',
+    }).$onUpdate(() => new Date()),
+    deletedAt: timestamp('deleted_at', {
+      withTimezone: true,
+      mode: 'date',
+    }),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.importacaoPlanejamentoId],
+      foreignColumns: [importacaoPlanejamentoTable.id],
+      name: 'projeto_importacao_planejamento_id_importacao_planejamento_id_f',
+    }).onDelete('set null'),
+  ]
+)
 
 export const projetoDisciplinaTable = pgTable('projeto_disciplina', {
   id: serial('id').primaryKey(),
@@ -399,46 +408,54 @@ export const disciplinaTable = pgTable(
   }
 )
 
-export const alunoTable = pgTable('aluno', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id')
-    .references(() => userTable.id, { onDelete: 'cascade' })
-    .notNull()
-    .unique(), // Link to auth user
-  nomeCompleto: varchar('nome_completo').notNull(),
-  nomeSocial: varchar('nome_social'),
-  genero: generoEnum('genero'),
-  especificacaoGenero: varchar('especificacao_genero'),
-  emailInstitucional: varchar('email_institucional'),
-  matricula: varchar('matricula').unique(), // Make unique
-  rg: varchar('rg'), // Nullable?
-  cpf: varchar('cpf').unique(), // Make unique
-  cr: real('CR'),
-  telefone: varchar('telefone'),
-  telefoneFixo: varchar('telefone_fixo'),
-  dataNascimento: date('data_nascimento', { mode: 'date' }),
-  // Dados Bancários para Bolsistas
-  banco: varchar('banco', { length: 100 }),
-  agencia: varchar('agencia', { length: 20 }),
-  conta: varchar('conta', { length: 30 }),
-  digitoConta: varchar('digito_conta', { length: 2 }),
-  enderecoId: integer('endereco_id').references(() => enderecoTable.id), // Nullable
-  cursoNome: varchar('curso_nome', { length: 255 }), // Nome do curso por extenso
-  // Document file IDs for student documents
-  historicoEscolarFileId: text('historico_escolar_file_id'),
-  comprovanteMatriculaFileId: text('comprovante_matricula_file_id'),
-  createdAt: timestamp('created_at', {
-    withTimezone: true,
-    mode: 'date',
+export const alunoTable = pgTable(
+  'aluno',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .references(() => userTable.id, { onDelete: 'cascade' })
+      .notNull()
+      .unique(), // Link to auth user
+    nomeCompleto: varchar('nome_completo').notNull(),
+    nomeSocial: varchar('nome_social'),
+    genero: generoEnum('genero'),
+    especificacaoGenero: varchar('especificacao_genero'),
+    emailInstitucional: varchar('email_institucional'),
+    matricula: varchar('matricula').unique(), // Make unique
+    rg: varchar('rg'), // Nullable?
+    cpf: varchar('cpf').unique(), // Make unique
+    cr: real('CR'),
+    telefone: varchar('telefone'),
+    telefoneFixo: varchar('telefone_fixo'),
+    dataNascimento: date('data_nascimento', { mode: 'date' }),
+    // Dados Bancários para Bolsistas
+    banco: varchar('banco', { length: 100 }),
+    agencia: varchar('agencia', { length: 20 }),
+    conta: varchar('conta', { length: 30 }),
+    digitoConta: varchar('digito_conta', { length: 2 }),
+    enderecoId: integer('endereco_id').references(() => enderecoTable.id), // Nullable
+    cursoNome: varchar('curso_nome', { length: 255 }), // Nome do curso por extenso
+    // Document file IDs for student documents
+    historicoEscolarFileId: text('historico_escolar_file_id'),
+    comprovanteMatriculaFileId: text('comprovante_matricula_file_id'),
+    createdAt: timestamp('created_at', {
+      withTimezone: true,
+      mode: 'date',
+    })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', {
+      withTimezone: true,
+      mode: 'date',
+    }).$onUpdate(() => new Date()),
+    // deletedAt handled by user deletion cascade?
+  },
+  (table) => ({
+    cpfNormalizadoUnico: uniqueIndex('aluno_cpf_normalized_unique')
+      .on(sql`regexp_replace(${table.cpf}, '\\D', '', 'g')`)
+      .where(sql`${table.cpf} IS NOT NULL AND length(regexp_replace(${table.cpf}, '\\D', '', 'g')) = 11`),
   })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', {
-    withTimezone: true,
-    mode: 'date',
-  }).$onUpdate(() => new Date()),
-  // deletedAt handled by user deletion cascade?
-})
+)
 
 export const enderecoTable = pgTable('endereco', {
   id: serial('id').primaryKey(),
@@ -1159,9 +1176,7 @@ export const relatorioFinalMonitorTable = pgTable(
       .references(() => inscricaoTable.id, { onDelete: 'cascade' })
       .notNull()
       .unique(),
-    relatorioDisciplinaId: integer('relatorio_disciplina_id')
-      .references(() => relatorioFinalDisciplinaTable.id, { onDelete: 'cascade' })
-      .notNull(),
+    relatorioDisciplinaId: integer('relatorio_disciplina_id').notNull(),
     conteudo: text('conteudo').notNull(), // JSON stringified
     status: relatorioStatusEnum('status').notNull().default('DRAFT'),
     alunoAssinouEm: timestamp('aluno_assinou_em', { withTimezone: true, mode: 'date' }),
@@ -1170,8 +1185,12 @@ export const relatorioFinalMonitorTable = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
   },
   (table) => [
-    // Composite index for pending student signatures query
     index('relatorio_monitor_pending_signature_idx').on(table.status, table.alunoAssinouEm, table.inscricaoId),
+    foreignKey({
+      columns: [table.relatorioDisciplinaId],
+      foreignColumns: [relatorioFinalDisciplinaTable.id],
+      name: 'relatorio_final_monitor_relatorio_disciplina_id_relatorio_final',
+    }).onDelete('cascade'),
   ]
 )
 

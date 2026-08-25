@@ -16,7 +16,6 @@ import {
   GENERO_FEMININO,
   GENERO_MASCULINO,
   GENERO_OUTRO,
-  TIPO_DOCUMENTO_INSCRICAO_COMPROVANTE_MATRICULA,
   TIPO_DOCUMENTO_INSCRICAO_CPF,
   TIPO_DOCUMENTO_INSCRICAO_HISTORICO_ESCOLAR,
   TIPO_DOCUMENTO_INSCRICAO_RG,
@@ -50,6 +49,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
   // Data
   const projetoQuery = api.projeto.getAvailableProjects.useQuery()
   const profileQuery = api.aluno.getFullProfile.useQuery()
+  const defaultSignatureQuery = api.signature.getDefaultSignature.useQuery()
   const disciplinasQuery = api.discipline.getDisciplines.useQuery()
   const minhasInscricoesQuery = api.inscricao.getMinhasInscricoes.useQuery()
 
@@ -83,6 +83,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
   const [disciplinaEquivalenteQuery, setDisciplinaEquivalenteQuery] = useState("")
   const [localAssinatura, setLocalAssinatura] = useState("Salvador")
   const [signatureDataUrl, setSignatureDataUrl] = useState<string | null>(null)
+  const [signatureMode, setSignatureMode] = useState<"default" | "draw">("default")
   const [isCepLookupLoading, setIsCepLookupLoading] = useState(false)
   const [cpfError, setCpfError] = useState<string | null>(null)
   const signatureRef = useRef<SignatureCanvas>(null)
@@ -92,6 +93,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
   const [patch, setPatch] = useState<{
     nomeCompleto?: string
     nomeSocial?: string
+    matricula?: string
     cpf?: string
     rg?: string
     dataNascimento?: string
@@ -120,6 +122,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
     setPatch({
       nomeCompleto: p.nomeCompleto ?? "",
       nomeSocial: p.nomeSocial ?? "",
+      matricula: p.matricula ?? "",
       cpf: p.cpf ?? "",
       rg: p.rg ?? "",
       dataNascimento: p.dataNascimento ? new Date(p.dataNascimento).toISOString().slice(0, 10) : "",
@@ -161,6 +164,10 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
     setSignatureDataUrl(null)
   }
 
+  const defaultSignatureDataUrl = defaultSignatureQuery.data?.signatureData ?? null
+  const usesDefaultSignature = signatureMode === "default" && !!defaultSignatureDataUrl
+  const effectiveSignatureDataUrl = usesDefaultSignature ? defaultSignatureDataUrl : signatureDataUrl
+
   const captureSignature = () => {
     if (!signatureRef.current || signatureRef.current.isEmpty()) {
       toast({ title: "Assinatura vazia", description: "Desenhe sua assinatura antes de continuar", variant: "destructive" })
@@ -182,6 +189,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
 
   const validateDadosStep = (): string | null => {
     if (!patch.nomeCompleto) return "Nome completo é obrigatório"
+    if (!patch.matricula || patch.matricula.trim().length < 8) return "Matrícula deve ter pelo menos 8 caracteres"
     if (!patch.cpf) return "CPF é obrigatório"
     const cpfMessage = getCPFValidationMessage(patch.cpf)
     if (cpfMessage) return cpfMessage
@@ -208,12 +216,17 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
     const tipos = documentos.map((d) => d.tipoDocumento)
     if (!tipos.includes(TIPO_DOCUMENTO_INSCRICAO_RG)) return "Upload do RG é obrigatório"
     if (!tipos.includes(TIPO_DOCUMENTO_INSCRICAO_CPF)) return "Upload do CPF é obrigatório"
-    if (!tipos.includes(TIPO_DOCUMENTO_INSCRICAO_HISTORICO_ESCOLAR)) return "Upload do Histórico Escolar é obrigatório"
+    if (
+      !tipos.includes(TIPO_DOCUMENTO_INSCRICAO_HISTORICO_ESCOLAR) &&
+      !profileQuery.data?.historicoEscolarFileId
+    ) {
+      return "Upload do Histórico Escolar é obrigatório"
+    }
     return null
   }
 
   const validateAssinaturaStep = (): string | null => {
-    if (!signatureDataUrl) return "Assine antes de continuar"
+    if (!effectiveSignatureDataUrl) return "Assine antes de continuar"
     if (!localAssinatura) return "Informe o local"
     return null
   }
@@ -278,7 +291,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
     else if (currentStep === "declaracao") error = validateDeclaracaoStep()
     else if (currentStep === "documentos") error = validateDocumentosStep()
     else if (currentStep === "assinatura") {
-      if (!signatureDataUrl) {
+      if (!effectiveSignatureDataUrl) {
         if (!captureSignature()) return
       }
       error = validateAssinaturaStep()
@@ -298,19 +311,6 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
       return
     }
 
-    // Reuse comprovante_matricula from profile if not explicitly uploaded
-    const existingComprovante = profileQuery.data?.comprovanteMatriculaFileId
-    const docsToSend = [...documentos]
-    const alreadyHasComprovante = docsToSend.some(
-      (d) => d.tipoDocumento === TIPO_DOCUMENTO_INSCRICAO_COMPROVANTE_MATRICULA
-    )
-    if (existingComprovante && !alreadyHasComprovante) {
-      docsToSend.push({
-        fileId: existingComprovante,
-        tipoDocumento: TIPO_DOCUMENTO_INSCRICAO_COMPROVANTE_MATRICULA,
-      })
-    }
-
     try {
       const result = await criarMutation.mutateAsync({
         projetoId,
@@ -318,11 +318,12 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
         cursouComponente: cursouComponente === "sim",
         disciplinaEquivalenteId: disciplinaEquivalenteId ?? undefined,
         localAssinatura,
-        signatureDataUrl: signatureDataUrl!,
-        uploadedDocuments: docsToSend,
+        signatureDataUrl: effectiveSignatureDataUrl!,
+        uploadedDocuments: documentos,
         profilePatch: {
           nomeCompleto: patch.nomeCompleto,
           nomeSocial: patch.nomeSocial || null,
+          matricula: patch.matricula,
           cpf: formatCPF(patch.cpf ?? ""),
           rg: patch.rg,
           dataNascimento: patch.dataNascimento ? new Date(patch.dataNascimento) : undefined,
@@ -406,20 +407,20 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
 
       <Tabs value={currentStep} onValueChange={(v) => setCurrentStep(v as WizardStep)}>
         <TabsList className="grid grid-cols-5 w-full">
-          <TabsTrigger value="dados">
-            <UserCog className="h-4 w-4 mr-1" /> Dados
+          <TabsTrigger value="dados" className="px-1 text-[10px] sm:px-3 sm:text-sm">
+            <UserCog className="mr-1 hidden h-4 w-4 sm:block" /> Dados
           </TabsTrigger>
-          <TabsTrigger value="declaracao">
-            <FileSignature className="h-4 w-4 mr-1" /> Declaração
+          <TabsTrigger value="declaracao" className="px-1 text-[10px] sm:px-3 sm:text-sm">
+            <FileSignature className="mr-1 hidden h-4 w-4 sm:block" /> Declaração
           </TabsTrigger>
-          <TabsTrigger value="documentos">
-            <Upload className="h-4 w-4 mr-1" /> Documentos
+          <TabsTrigger value="documentos" className="px-1 text-[10px] sm:px-3 sm:text-sm">
+            <Upload className="mr-1 hidden h-4 w-4 sm:block" /> Documentos
           </TabsTrigger>
-          <TabsTrigger value="assinatura">
-            <PenTool className="h-4 w-4 mr-1" /> Assinatura
+          <TabsTrigger value="assinatura" className="px-1 text-[10px] sm:px-3 sm:text-sm">
+            <PenTool className="mr-1 hidden h-4 w-4 sm:block" /> Assinatura
           </TabsTrigger>
-          <TabsTrigger value="revisar">
-            <CheckCircle2 className="h-4 w-4 mr-1" /> Revisar
+          <TabsTrigger value="revisar" className="px-1 text-[10px] sm:px-3 sm:text-sm">
+            <CheckCircle2 className="mr-1 hidden h-4 w-4 sm:block" /> Revisar
           </TabsTrigger>
         </TabsList>
 
@@ -443,6 +444,14 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
                 <Input
                   value={patch.nomeSocial ?? ""}
                   onChange={(e) => setPatch((p) => ({ ...p, nomeSocial: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Matrícula *</Label>
+                <Input
+                  value={patch.matricula ?? ""}
+                  onChange={(e) => setPatch((p) => ({ ...p, matricula: e.target.value }))}
+                  inputMode="numeric"
                 />
               </div>
               <div>
@@ -771,22 +780,48 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
                 <Input value={localAssinatura} onChange={(e) => setLocalAssinatura(e.target.value)} />
               </div>
               <div>
-                <Label>Assine abaixo *</Label>
-                <div className="border-2 border-dashed rounded-lg bg-white mt-1">
-                  <SignatureCanvas
-                    ref={signatureRef}
-                    canvasProps={{ width: 560, height: 180, className: "signature-canvas w-full" }}
-                    backgroundColor="white"
-                    onEnd={captureSignature}
-                  />
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <Button type="button" variant="outline" size="sm" onClick={clearSignature}>
-                    Limpar
-                  </Button>
-                </div>
-                {signatureDataUrl && (
-                  <p className="text-xs text-green-700 mt-2">Assinatura capturada ✓</p>
+                {usesDefaultSignature ? (
+                  <div className="space-y-3">
+                    <Label>Assinatura do perfil</Label>
+                    <div className="flex h-40 items-center justify-center rounded-lg border bg-white p-4">
+                      <img src={defaultSignatureDataUrl} alt="Assinatura do perfil" className="max-h-full max-w-full" />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSignatureDataUrl(null)
+                        setSignatureMode("draw")
+                      }}
+                    >
+                      Desenhar outra
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>Assine abaixo *</Label>
+                    <div className="rounded-lg border-2 border-dashed bg-white">
+                      <SignatureCanvas
+                        ref={signatureRef}
+                        clearOnResize={false}
+                        canvasProps={{ className: "signature-canvas h-40 w-full rounded-lg bg-white" }}
+                        backgroundColor="white"
+                        onEnd={captureSignature}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="button" variant="outline" size="sm" onClick={clearSignature}>
+                        Limpar
+                      </Button>
+                      {defaultSignatureDataUrl && (
+                        <Button type="button" variant="outline" size="sm" onClick={() => setSignatureMode("default")}>
+                          Usar assinatura do perfil
+                        </Button>
+                      )}
+                    </div>
+                    {signatureDataUrl && <p className="text-xs text-green-700">Assinatura capturada ✓</p>}
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -811,16 +846,21 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
                 <span className="text-muted-foreground">Nome:</span> {patch.nomeCompleto}
               </div>
               <div>
-                <span className="text-muted-foreground">Matrícula:</span> {profileQuery.data?.matricula}
+                <span className="text-muted-foreground">Matrícula:</span> {patch.matricula}
               </div>
               <div>
-                <span className="text-muted-foreground">Documentos enviados:</span> {documentos.length}
+                <span className="text-muted-foreground">Documentos:</span> {documentos.length} novos
+                {profileQuery.data?.historicoEscolarFileId &&
+                !documentos.some((document) => document.tipoDocumento === TIPO_DOCUMENTO_INSCRICAO_HISTORICO_ESCOLAR)
+                  ? " + histórico do perfil"
+                  : ""}
               </div>
               <div>
                 <span className="text-muted-foreground">Cursou componente:</span> {cursouComponente === "sim" ? "Sim" : "Não (com equivalente)"}
               </div>
               <div>
-                <span className="text-muted-foreground">Assinatura:</span> {signatureDataUrl ? "capturada ✓" : "pendente"}
+                <span className="text-muted-foreground">Assinatura:</span>{" "}
+                {usesDefaultSignature ? "perfil ✓" : signatureDataUrl ? "capturada ✓" : "pendente"}
               </div>
             </CardContent>
           </Card>

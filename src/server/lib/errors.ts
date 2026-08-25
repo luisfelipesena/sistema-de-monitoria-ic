@@ -47,3 +47,20 @@ export class ForbiddenError extends BusinessError {
     this.name = 'ForbiddenError'
   }
 }
+
+export function studentIdentityConflict(error: unknown): ConflictError | null {
+  if (!error || typeof error !== 'object' || !('code' in error) || error.code !== '23505') return null
+
+  const constraint = 'constraint_name' in error ? error.constraint_name : null
+  if (constraint === 'aluno_matricula_unique') {
+    return new ConflictError(
+      'Esta matrícula já está vinculada a outra conta. Entre com a conta anterior ou procure a coordenação.'
+    )
+  }
+  if (constraint === 'aluno_cpf_unique' || constraint === 'aluno_cpf_normalized_unique') {
+    return new ConflictError(
+      'Este CPF já está vinculado a outra conta. Entre com a conta anterior ou procure a coordenação.'
+    )
+  }
+  return null
+}

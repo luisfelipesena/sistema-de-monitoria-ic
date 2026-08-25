@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast"
 import { api } from "@/utils/api"
 import { cn } from "@/utils/cn"
 import { AlertCircle, CheckCircle, File, FileSpreadsheet, FileText, Image, Loader2, Upload, X } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useRef, useState } from "react"
 
 interface FileUploadFieldProps {
   label: string
@@ -41,6 +41,9 @@ export function FileUploadField({
   maxSizeInMB = 10,
 }: FileUploadFieldProps) {
   const { toast } = useToast()
+  const generatedId = useId().replace(/:/g, "")
+  const inputId = `file-upload-${entityType}-${generatedId}`
+  const descriptionId = `${inputId}-description`
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadFileMutation = api.file.uploadFile.useMutation()
   const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation()
@@ -336,22 +339,26 @@ export function FileUploadField({
 
   return (
     <div className="space-y-3">
-      <Label htmlFor={`file-upload-${entityType}`} className="text-sm font-medium">
+      <Label htmlFor={inputId} className="text-sm font-medium">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </Label>
 
-      {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      {description && (
+        <p id={descriptionId} className="text-sm text-muted-foreground">
+          {description}
+        </p>
+      )}
 
       <Input
         ref={fileInputRef}
-        id={`file-upload-${entityType}`}
+        id={inputId}
         type="file"
         accept={accept}
         onChange={handleFileUpload}
         disabled={disabled || uploadState === "uploading"}
         className="hidden"
-        aria-describedby={description ? `${entityType}-description` : undefined}
+        aria-describedby={description ? descriptionId : undefined}
       />
 
       {uploadedFile && uploadState === "success" ? (
