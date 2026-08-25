@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { SelectionScheduleCard } from "@/components/features/student/SelectionScheduleCard"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -226,6 +227,8 @@ export default function InscricaoMonitoria() {
                     <span>{projeto.voluntariosSolicitados || 0} voluntários</span>
                   </div>
                 </div>
+
+                <SelectionScheduleCard schedule={projeto.selecao} />
 
                 <div className="flex gap-2 pt-2">
                   <Button

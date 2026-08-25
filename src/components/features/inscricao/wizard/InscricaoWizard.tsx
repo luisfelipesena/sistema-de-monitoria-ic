@@ -1,6 +1,7 @@
 "use client"
 
 import { FileUploadField } from "@/components/ui/FileUploadField"
+import { SelectionScheduleCard } from "@/components/features/student/SelectionScheduleCard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -43,6 +44,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
+  const apiUtils = api.useUtils()
 
   const [currentStep, setCurrentStep] = useState<WizardStep>("dados")
 
@@ -352,6 +354,11 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
         title: "Inscrição enviada!",
         description: "Seus documentos oficiais foram gerados com sucesso.",
       })
+      await Promise.all([
+        apiUtils.inscricao.getMinhasInscricoes.invalidate(),
+        apiUtils.inscricao.getMyStatus.invalidate(),
+        apiUtils.projeto.getAvailableProjects.invalidate(),
+      ])
       router.push(`/home/student/dashboard?success=${result.id}`)
     } catch (error) {
       toast({
@@ -398,10 +405,13 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
             {disciplinaPrincipal ? ` • ${disciplinaPrincipal.codigo} - ${disciplinaPrincipal.nome}` : ""}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex gap-4 text-sm text-muted-foreground">
-          <span>{projeto.bolsasDisponibilizadas ?? 0} bolsas</span>
-          <span>{projeto.voluntariosSolicitados ?? 0} voluntários</span>
-          <span>{projeto.cargaHorariaSemana}h/semana</span>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <span>{projeto.bolsasDisponibilizadas ?? 0} bolsas</span>
+            <span>{projeto.voluntariosSolicitados ?? 0} voluntários</span>
+            <span>{projeto.cargaHorariaSemana}h/semana</span>
+          </div>
+          <SelectionScheduleCard schedule={projeto.selecao} />
         </CardContent>
       </Card>
 

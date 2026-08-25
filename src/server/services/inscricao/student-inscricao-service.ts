@@ -1,4 +1,5 @@
 import { BusinessError, studentIdentityConflict } from '@/server/lib/errors'
+import { getSelecaoSchedule } from '@/server/lib/selecao-schedule'
 import type {
   AlunoProfilePatch,
   InscriptionFormData,
@@ -428,6 +429,7 @@ export class StudentInscricaoService {
             professorResponsavel: inscricao.professorResponsavel,
             departamento: inscricao.departamento,
             disciplinas,
+            selecao: getSelecaoSchedule(inscricao.projeto),
           },
           aluno: {
             ...inscricao.aluno,

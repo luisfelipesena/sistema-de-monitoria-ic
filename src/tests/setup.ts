@@ -210,6 +210,9 @@ vi.mock('@/server/lib/email', () => ({
   emailService: {
     sendGenericEmail: vi.fn().mockResolvedValue({ success: true }),
   },
+  studentEmailService: {
+    sendSelectionScheduleUpdated: vi.fn().mockResolvedValue({ sent: 0, failed: [] }),
+  },
 }))
 
 export function createMockContext(user: User | null = null): TRPCContext {

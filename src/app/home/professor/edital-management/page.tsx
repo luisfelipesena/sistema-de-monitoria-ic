@@ -87,7 +87,7 @@ export default function ProfessorEditalManagementPage() {
                 <strong>Vagas Voluntárias:</strong> Indique o número de voluntários que deseja acolher no projeto.
               </li>
               <li>
-                <strong>Datas, Horários e Local da Seleção:</strong> Selecione até 3 opções de datas para realização da seleção (Item 6.2.3 do Edital).
+                <strong>Data, Horário e Local da Seleção:</strong> Informe quando e onde será realizada a seleção (Item 6.2.3 do Edital).
               </li>
               <li>
                 <strong>Pontos de Prova e Bibliografia:</strong> Personalize os conteúdos que serão cobrados dos alunos na prova de seleção (Item 6.3 do Edital).

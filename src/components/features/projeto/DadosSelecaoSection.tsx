@@ -11,7 +11,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from "@/hooks/use-toast"
 import type { SlotDataHorario } from "@/types/selecao-inputs"
 import { api } from "@/utils/api"
-import { BookOpen, Calendar, CheckCircle2, Clock, Edit2, Info, Loader2, Save, Users } from "lucide-react"
+import { formatDateFullUTC, formatDateLongUTC } from "@/utils/date-utils"
+import { BookOpen, Calendar, CheckCircle2, Clock, Edit2, Info, Loader2, MapPin, Save, Users } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
 interface DadosSelecaoSectionProps {
@@ -30,23 +31,29 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
   const [voluntarios, setVoluntarios] = useState<number>(0)
   const [pontosProva, setPontosProva] = useState<string>("")
   const [bibliografia, setBibliografia] = useState<string>("")
+  const [localSelecao, setLocalSelecao] = useState<string>("")
   const [slotModalOpen, setSlotModalOpen] = useState(false)
 
   const [voluntariosDirty, setVoluntariosDirty] = useState(false)
   const [pontosProvaDirty, setPontosProvaDirty] = useState(false)
   const [bibliografiaDirty, setBibliografiaDirty] = useState(false)
+  const [localSelecaoDirty, setLocalSelecaoDirty] = useState(false)
 
   useEffect(() => {
     if (selecaoInfo) {
       if (!voluntariosDirty) setVoluntarios(selecaoInfo.voluntariosSolicitados)
       if (!pontosProvaDirty) setPontosProva(selecaoInfo.pontosProva ?? "")
       if (!bibliografiaDirty) setBibliografia(selecaoInfo.bibliografia ?? "")
+      if (!localSelecaoDirty) setLocalSelecao(selecaoInfo.localSelecao ?? "")
     }
-  }, [selecaoInfo, voluntariosDirty, pontosProvaDirty, bibliografiaDirty])
+  }, [selecaoInfo, voluntariosDirty, pontosProvaDirty, bibliografiaDirty, localSelecaoDirty])
 
   const chooseSlotsMutation = api.selecao.chooseSelecaoSlots.useMutation({
-    onSuccess: async () => {
-      toast({ title: "Datas da seleção definidas com sucesso" })
+    onSuccess: async (result) => {
+      toast({
+        title: "Data da seleção definida com sucesso",
+        description: result.notificationsSent > 0 ? `${result.notificationsSent} candidato(s) notificado(s) por e-mail.` : undefined,
+      })
       await apiUtils.selecao.getProjetoSelecaoInfo.invalidate({ projetoId })
       await apiUtils.projeto.getProjetos.invalidate()
     },
@@ -68,11 +75,23 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
   })
 
   const updateSelecaoDataMutation = api.selecao.updateSelecaoData.useMutation({
-    onSuccess: async () => {
-      toast({ title: "Dados da seleção salvos com sucesso" })
-      setPontosProvaDirty(false)
-      setBibliografiaDirty(false)
+    onSuccess: async (result, variables) => {
+      const isLocalUpdate = variables.localSelecao !== undefined
+      toast({
+        title: isLocalUpdate ? "Local da prova salvo" : "Dados da seleção salvos com sucesso",
+        description:
+          isLocalUpdate && result.notificationsSent > 0
+            ? `${result.notificationsSent} candidato(s) notificado(s) por e-mail.`
+            : undefined,
+      })
+      if (isLocalUpdate) {
+        setLocalSelecaoDirty(false)
+      } else {
+        setPontosProvaDirty(false)
+        setBibliografiaDirty(false)
+      }
       await apiUtils.selecao.getProjetoSelecaoInfo.invalidate({ projetoId })
+      await apiUtils.projeto.getProjetos.invalidate()
     },
     onError: (error) => {
       toast({ title: "Erro ao salvar dados", description: error.message, variant: "destructive" })
@@ -140,6 +159,13 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
     })
   }, [projetoId, pontosProva, bibliografia, pontosProvaDirty, bibliografiaDirty, updateSelecaoDataMutation, toast])
 
+  const handleSaveLocalSelecao = useCallback(() => {
+    updateSelecaoDataMutation.mutate({
+      projetoId,
+      localSelecao: localSelecao.trim() || null,
+    })
+  }, [projetoId, localSelecao, updateSelecaoDataMutation])
+
   if (isLoading) {
     return (
       <Card className="mt-3">
@@ -180,26 +206,6 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
   const canChoose = hasRange || hasSlots
   const currentSelections: SlotDataHorario[] = selecaoInfo.datasSelecaoEscolhidas ?? []
 
-  const formatDateShort = (isoDate: string) => {
-    const [year, month, day] = isoDate.split("-")
-    const date = new Date(Number(year), Number(month) - 1, Number(day))
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    }).format(date)
-  }
-
-  const formatDateLong = (isoDate: string) => {
-    const [year, month, day] = isoDate.split("-")
-    const date = new Date(Number(year), Number(month) - 1, Number(day))
-    return new Intl.DateTimeFormat("pt-BR", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-    }).format(date)
-  }
-
   return (
     <>
       <div className="space-y-5">
@@ -211,7 +217,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                 <div className="text-sm">
                   <p className="font-medium text-blue-900">Período disponível para seleção</p>
                   <p className="text-blue-700 mt-0.5">
-                    {formatDateShort(selecaoInfo.rangeSelecao.dataInicio)} a {formatDateShort(selecaoInfo.rangeSelecao.dataFim)}
+                    {formatDateFullUTC(selecaoInfo.rangeSelecao.dataInicio)} a {formatDateFullUTC(selecaoInfo.rangeSelecao.dataFim)}
                     {selecaoInfo.rangeSelecao.horarioInicio && selecaoInfo.rangeSelecao.horarioFim && (
                       <span> · {selecaoInfo.rangeSelecao.horarioInicio} às {selecaoInfo.rangeSelecao.horarioFim}</span>
                     )}
@@ -239,12 +245,12 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                   </Button>
                 </div>
                 <div className="grid gap-1.5">
-                  {currentSelections.map((slot, idx) => (
+                  {currentSelections.map((slot) => (
                     <div
-                      key={idx}
+                      key={`${slot.data}-${slot.horario}`}
                       className="flex items-center gap-2 rounded-md bg-muted/60 px-3 py-2 text-sm"
                     >
-                      <span className="font-medium">{formatDateLong(slot.data)}</span>
+                      <span className="font-medium">{formatDateLongUTC(slot.data)}</span>
                       <span className="text-muted-foreground">às</span>
                       <span className="font-medium">{slot.horario}</span>
                     </div>
@@ -278,6 +284,48 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                 </TooltipProvider>
               </div>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <Label htmlFor={`local-selecao-${projetoId}`} className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Local da prova
+              </Label>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                id={`local-selecao-${projetoId}`}
+                value={localSelecao}
+                onChange={(event) => {
+                  setLocalSelecao(event.target.value)
+                  setLocalSelecaoDirty(true)
+                }}
+                placeholder="Ex.: Sala 123, PAF I ou sala online"
+                maxLength={255}
+                className="h-11"
+              />
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                className="h-11 w-11 shrink-0"
+                onClick={handleSaveLocalSelecao}
+                disabled={!localSelecaoDirty || updateSelecaoDataMutation.isPending}
+                aria-label="Salvar local da prova"
+              >
+                {updateSelecaoDataMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {selecaoInfo.totalInscritos > 0
+                ? "Ao alterar o local, os candidatos inscritos recebem um e-mail automaticamente."
+                : "O local será exibido aos alunos na lista de projetos, na inscrição e no dashboard."}
+            </p>
           </div>
 
           <Separator />
@@ -327,7 +375,8 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                       size="icon"
                       onClick={handleSaveVoluntarios}
                       disabled={updateVoluntariosMutation.isPending}
-                      className="h-9 w-9 shrink-0"
+                      className="h-11 w-11 shrink-0"
+                      aria-label="Salvar quantidade de voluntários"
                     >
                       {updateVoluntariosMutation.isPending ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -441,7 +490,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
               <div>
                 <span className="text-sm text-green-800 font-semibold">Dados confirmados para o Edital</span>
                 <p className="text-xs text-green-700 mt-0.5">
-                  Datas, pontos de prova, bibliografia e voluntários estão confirmados e aparecerão no edital publicado.
+                  Data, pontos de prova, bibliografia e voluntários estão confirmados. O local pode ser atualizado sem reabrir esta confirmação.
                 </p>
               </div>
             </div>
@@ -449,7 +498,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
             <div className="space-y-3">
               <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
                 <p className="text-xs text-muted-foreground mb-3">
-                  Ao confirmar, as datas/horários da seleção, pontos de prova, bibliografia e voluntários serão publicados no edital.
+                  Ao confirmar, a data, os pontos de prova, a bibliografia e os voluntários serão publicados no edital. O local pode ser informado agora ou depois.
                 </p>
 
                 {/* Checklist de pendências */}

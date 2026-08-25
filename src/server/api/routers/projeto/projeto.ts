@@ -8,6 +8,7 @@ import {
   projectFormSchema,
   projectListItemSchema,
   projetoStatusSchema,
+  selecaoScheduleSchema,
   semestreSchema,
   voluntarioStatusSchema,
 } from '@/types'
@@ -392,6 +393,7 @@ export const projetoRouter = createTRPCRouter({
           totalInscritos: z.number(),
           inscricaoAberta: z.boolean(),
           jaInscrito: z.boolean(),
+          selecao: selecaoScheduleSchema,
         })
       )
     )

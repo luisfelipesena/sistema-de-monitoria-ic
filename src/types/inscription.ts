@@ -18,6 +18,7 @@ import {
 } from './enums'
 import { tipoDocumentoInscricaoSchema } from './inscricao-document'
 import { idSchema } from './schemas'
+import { selecaoScheduleSchema } from './selecao-inputs'
 import { alunoProfilePatchSchema } from './student'
 
 // ========================================
@@ -273,6 +274,7 @@ export const inscriptionDetailSchema = z.object({
         codigo: z.string(),
       })
     ),
+    selecao: selecaoScheduleSchema,
   }),
   aluno: z.object({
     id: idSchema,

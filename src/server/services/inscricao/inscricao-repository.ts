@@ -389,6 +389,10 @@ export class InscricaoRepository {
           status: projetoTable.status,
           bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
           voluntariosSolicitados: projetoTable.voluntariosSolicitados,
+          dataSelecaoEscolhida: projetoTable.dataSelecaoEscolhida,
+          horarioSelecao: projetoTable.horarioSelecao,
+          datasSelecaoEscolhidas: projetoTable.datasSelecaoEscolhidas,
+          localSelecao: projetoTable.localSelecao,
         },
         professorResponsavel: {
           id: professorTable.id,
@@ -452,6 +456,10 @@ export class InscricaoRepository {
           status: projetoTable.status,
           bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
           voluntariosSolicitados: projetoTable.voluntariosSolicitados,
+          dataSelecaoEscolhida: projetoTable.dataSelecaoEscolhida,
+          horarioSelecao: projetoTable.horarioSelecao,
+          datasSelecaoEscolhidas: projetoTable.datasSelecaoEscolhidas,
+          localSelecao: projetoTable.localSelecao,
         },
         professorResponsavel: {
           id: professorTable.id,
