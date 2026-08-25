@@ -1,5 +1,5 @@
 import { logger } from '@/utils/logger'
-import * as XLSX from 'xlsx'
+import { XLSX } from './sheetjs'
 
 const log = logger.child({ context: 'SpreadsheetParser' })
 
@@ -27,8 +27,7 @@ export async function parsePlanejamentoSpreadsheet(fileBuffer: Buffer): Promise<
   const rows: PlanejamentoRow[] = []
 
   try {
-    // Ler workbook com codepage UTF-8 para preservar caracteres acentuados
-    const workbook = XLSX.read(fileBuffer, { type: 'buffer', codepage: 65001 })
+    const workbook = XLSX.read(fileBuffer, { type: 'buffer' })
 
     // Pegar primeira sheet
     const sheetName = workbook.SheetNames[0]
@@ -196,7 +195,7 @@ function normalizeKey(value: string): string {
  */
 export function validateSpreadsheetStructure(fileBuffer: Buffer): { valid: boolean; message: string } {
   try {
-    const workbook = XLSX.read(fileBuffer, { type: 'buffer', codepage: 65001 })
+    const workbook = XLSX.read(fileBuffer, { type: 'buffer' })
 
     if (workbook.SheetNames.length === 0) {
       return { valid: false, message: 'Planilha sem abas' }
