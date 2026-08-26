@@ -14,6 +14,8 @@ interface SelectionActionsPanelProps {
   onSelectCandidate: (inscricaoId: number, tipo: "bolsista" | "voluntario") => void
 }
 
+import { compareCandidates } from "@/utils/candidate-sorting"
+
 export function SelectionActionsPanel({
   project,
   selectedCandidates,
@@ -23,11 +25,11 @@ export function SelectionActionsPanel({
 }: SelectionActionsPanelProps) {
   const bolsistaCandidates = project.inscricoes
     .filter((c) => (c.tipoVagaPretendida || "") === TIPO_VAGA_BOLSISTA)
-    .sort((a, b) => (Number(b.notaFinal) || 0) - (Number(a.notaFinal) || 0))
+    .sort(compareCandidates)
 
   const voluntarioCandidates = project.inscricoes
     .filter((c) => (c.tipoVagaPretendida || "") === TIPO_VAGA_VOLUNTARIO)
-    .sort((a, b) => (Number(b.notaFinal) || 0) - (Number(a.notaFinal) || 0))
+    .sort(compareCandidates)
 
   return (
     <div className="space-y-6">

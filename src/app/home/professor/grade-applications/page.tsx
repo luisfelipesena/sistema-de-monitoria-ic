@@ -133,7 +133,7 @@ function GradeApplicationsContent() {
     const selecao = parseFloat(notas.notaSelecao) || 0
     const cr = parseFloat(notas.coeficienteRendimento) || 0
 
-    return (disciplina * 5 + selecao * 3 + cr * 2) / 10
+    return (selecao * 5 + disciplina * 3 + cr * 2) / 10
   }
 
   const projetosAprovados = useMemo(() => {
@@ -316,7 +316,7 @@ function GradeApplicationsContent() {
               Avaliar Candidato: {evaluatingInscricaoObj?.aluno?.nomeCompleto}
             </DialogTitle>
             <DialogDescription>
-              Fórmula de cálculo: (Nota Disciplina × 5 + Nota Seleção × 3 + CR × 2) ÷ 10
+              Fórmula de cálculo: (Nota Seleção × 5 + Nota Disciplina × 3 + CR × 2) ÷ 10
             </DialogDescription>
           </DialogHeader>
 

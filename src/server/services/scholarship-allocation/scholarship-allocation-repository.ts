@@ -214,7 +214,12 @@ export function createScholarshipAllocationRepository(db: Database) {
         .from(inscricaoTable)
         .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
         .where(and(eq(inscricaoTable.projetoId, projetoId), eq(inscricaoTable.status, STATUS_INSCRICAO_SUBMITTED)))
-        .orderBy(desc(inscricaoTable.notaFinal))
+        .orderBy(
+          desc(inscricaoTable.notaFinal),
+          desc(inscricaoTable.notaDisciplina),
+          desc(inscricaoTable.coeficienteRendimento),
+          desc(alunoTable.cr)
+        )
     },
 
     async updateInscricaoStatus(inscricaoId: number, status: StatusInscricao) {

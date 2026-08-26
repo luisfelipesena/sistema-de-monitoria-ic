@@ -8,6 +8,7 @@ import type { MonitorProject } from "@/types/monitor-selection"
 import { Award, ChevronDown, ChevronUp, User, Users } from "lucide-react"
 import { useState } from "react"
 import { CandidateRow } from "./CandidateColumns"
+import { compareCandidates } from "@/utils/candidate-sorting"
 
 interface ProjectCardProps {
   project: MonitorProject
@@ -94,7 +95,7 @@ export function ProjectCard({ project, onOpenSelection, isPublishing }: ProjectC
                   </TableHeader>
                   <TableBody>
                     {project.inscricoes
-                      .sort((a, b) => (Number(b.notaFinal) || 0) - (Number(a.notaFinal) || 0))
+                      .sort(compareCandidates)
                       .map((inscricao) => (
                         <CandidateRow key={inscricao.id} candidate={inscricao} />
                       ))}
