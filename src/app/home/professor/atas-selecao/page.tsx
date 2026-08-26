@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -24,7 +25,7 @@ import {
   getSemestreNumero,
 } from "@/types"
 import { api } from "@/utils/api"
-import { Eye, FileText, Filter, Loader2, Save, Send, Users } from "lucide-react"
+import { Award, Eye, FileText, Filter, Loader2, Save, Send, Users } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useMemo, useState } from "react"
 
@@ -43,6 +44,7 @@ export default function AtasSelecaoPage() {
   const [ataData, setAtaData] = useState<AtaSelecaoData | null>(null)
   const [selectedAno, setSelectedAno] = useState<string>("TODOS")
   const [selectedSemestre, setSelectedSemestre] = useState<string>("TODOS")
+  const [notifyStudents, setNotifyStudents] = useState(true)
 
   const [ataInfo, setAtaInfo] = useState({
     dataSelecao: new Date().toLocaleDateString("pt-BR"),
@@ -63,12 +65,20 @@ export default function AtasSelecaoPage() {
   // Filtragem dos projetos elegíveis por Ano e Semestre
   const projetosElegiveis = useMemo(() => {
     if (!projetos) return []
-    return projetos.filter((p) => {
-      const isApproved = p.status === PROJETO_STATUS_APPROVED
-      const matchAno = selectedAno === "TODOS" || p.ano === parseInt(selectedAno)
-      const matchSemestre = selectedSemestre === "TODOS" || p.semestre === selectedSemestre
-      return isApproved && matchAno && matchSemestre
-    })
+    return projetos
+      .filter((p) => {
+        const isApproved = p.status === PROJETO_STATUS_APPROVED
+        const matchAno = selectedAno === "TODOS" || p.ano === parseInt(selectedAno)
+        const matchSemestre = selectedSemestre === "TODOS" || p.semestre === selectedSemestre
+        return isApproved && matchAno && matchSemestre
+      })
+      .sort((a, b) => {
+        if (b.ano !== a.ano) return b.ano - a.ano
+        const semA = Number(getSemestreNumero(a.semestre as Semestre) ?? 0)
+        const semB = Number(getSemestreNumero(b.semestre as Semestre) ?? 0)
+        if (semB !== semA) return semB - semA
+        return b.id - a.id
+      })
   }, [projetos, selectedAno, selectedSemestre])
 
   // Buscar dados da ata quando projeto for selecionado
@@ -189,8 +199,8 @@ export default function AtasSelecaoPage() {
 
     publishResultsMutation.mutate({
       projetoId: selectedProjectId.toString(),
-      notifyStudents: true,
-      mensagemPersonalizada: ataInfo.observacoes,
+      notifyStudents,
+      mensagemPersonalizada: ataInfo.observacoes || undefined,
     })
   }
 
@@ -434,49 +444,70 @@ export default function AtasSelecaoPage() {
                   Publicar Resultados da Seleção
                 </CardTitle>
                 <CardDescription>
-                  Oficialize a seleção do projeto e envie as notificações por e-mail para os alunos selecionados
+                  Oficialize a seleção do projeto e envie as notificações por e-mail para os candidatos
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="bg-muted/40 p-4 rounded-lg border space-y-2">
-                  <div className="font-semibold text-base">{dadosAta.projeto.titulo}</div>
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                    <span><strong>Total de Inscritos:</strong> {dadosAta.totalInscritos}</span>
-                    <span><strong>Bolsistas Aprovados:</strong> {dadosAta.inscricoesBolsista.length}</span>
-                    <span><strong>Voluntários Aprovados:</strong> {dadosAta.inscricoesVoluntario.length}</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="dataSelecao">Data da Seleção</Label>
-                    <Input
-                      id="dataSelecao"
-                      value={ataInfo.dataSelecao}
-                      onChange={(e) => setAtaInfo((prev) => ({ ...prev, dataSelecao: e.target.value }))}
-                      placeholder="dd/mm/aaaa"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="localSelecao">Local da Seleção (opcional)</Label>
-                    <Input
-                      id="localSelecao"
-                      value={ataInfo.localSelecao}
-                      onChange={(e) => setAtaInfo((prev) => ({ ...prev, localSelecao: e.target.value }))}
-                      placeholder="Ex: Sala 123, Instituto de Computação"
-                    />
-                  </div>
+                <div className="flex items-center space-x-2 bg-slate-50 p-3 rounded-lg border">
+                  <Checkbox
+                    id="notifyStudents"
+                    checked={notifyStudents}
+                    onCheckedChange={(checked) => setNotifyStudents(checked as boolean)}
+                  />
+                  <Label htmlFor="notifyStudents" className="text-sm font-medium cursor-pointer">
+                    Enviar notificações por e-mail aos candidatos
+                  </Label>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="observacoes">Observações ou Mensagem aos Candidatos (opcional)</Label>
+                  <Label htmlFor="observacoes">Mensagem Personalizada aos Candidatos (opcional)</Label>
                   <Textarea
                     id="observacoes"
                     value={ataInfo.observacoes}
                     onChange={(e) => setAtaInfo((prev) => ({ ...prev, observacoes: e.target.value }))}
-                    placeholder="Observações sobre o processo seletivo ou mensagem enviada aos alunos..."
+                    placeholder="Adicione uma mensagem personalizada que será enviada no e-mail das notificações aos alunos..."
                     rows={3}
                   />
+                </div>
+
+                {/* Resumo dos Selecionados */}
+                <div className="space-y-3 pt-2">
+                  <h4 className="font-semibold text-sm flex items-center gap-2 text-slate-800">
+                    <Award className="h-4 w-4 text-green-600" />
+                    Candidatos Aprovados para Notificação (
+                    {dadosAta.inscricoesBolsista.length + dadosAta.inscricoesVoluntario.length})
+                  </h4>
+
+                  {dadosAta.inscricoesBolsista.length + dadosAta.inscricoesVoluntario.length > 0 ? (
+                    <div className="space-y-2 max-h-56 overflow-y-auto">
+                      {dadosAta.inscricoesBolsista.map((c: SelecaoCandidato) => (
+                        <div key={c.id} className="flex items-center justify-between p-3 border rounded-lg bg-green-50/60">
+                          <div>
+                            <div className="font-medium text-sm">{c.aluno.nomeCompleto || c.aluno.user.username}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Matrícula: {c.aluno.matricula}
+                              {c.notaFinal && ` | Nota Final: ${Number(c.notaFinal).toFixed(1)}`}
+                            </div>
+                          </div>
+                          <Badge variant="default" className="bg-green-700">Bolsista</Badge>
+                        </div>
+                      ))}
+                      {dadosAta.inscricoesVoluntario.map((c: SelecaoCandidato) => (
+                        <div key={c.id} className="flex items-center justify-between p-3 border rounded-lg bg-purple-50/60">
+                          <div>
+                            <div className="font-medium text-sm">{c.aluno.nomeCompleto || c.aluno.user.username}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Matrícula: {c.aluno.matricula}
+                              {c.notaFinal && ` | Nota Final: ${Number(c.notaFinal).toFixed(1)}`}
+                            </div>
+                          </div>
+                          <Badge variant="secondary" className="bg-purple-600 text-white">Voluntário</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">Nenhum candidato aprovado até o momento.</p>
+                  )}
                 </div>
 
                 <div className="pt-2 flex justify-end">
@@ -491,7 +522,7 @@ export default function AtasSelecaoPage() {
                     ) : (
                       <Send className="w-5 h-5 mr-2" />
                     )}
-                    Publicar Resultados e Notificar Alunos
+                    {notifyStudents ? "Publicar Resultados e Notificar Alunos" : "Publicar Resultados"}
                   </Button>
                 </div>
               </CardContent>

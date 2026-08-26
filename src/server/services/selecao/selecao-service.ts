@@ -3,6 +3,7 @@ import { isAdmin, requireAdminOrProfessor, requireProfessor } from '@/server/lib
 import { studentEmailService } from '@/server/lib/email'
 import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import type {
+  AtaSelecaoData,
   CreateAtaInput,
   GenerateAtaDataInput,
   PublishResultsInput,
@@ -22,7 +23,11 @@ import {
   TIPO_INSCRICAO_BOLSISTA,
   TIPO_INSCRICAO_VOLUNTARIO,
 } from '@/types'
+import { ResultadoSelecaoTemplate } from '@/server/lib/pdfTemplates/resultado-selecao'
 import { logger } from '@/utils/logger'
+import { sanitizeForFilename } from '@/utils/string-normalization'
+import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
+import React from 'react'
 import { createSelecaoRepository } from './selecao-repository'
 
 const log = logger.child({ context: 'SelecaoService' })
@@ -202,6 +207,62 @@ export function createSelecaoService(db: Database) {
       }
 
       if (notifyStudents && inscricoes.length > 0) {
+        let attachments: Array<{ filename: string; content: Buffer; contentType: string }> = []
+        try {
+          const rawAtaData = await this.generateAtaData({ projetoId, userId, userRole })
+          const ataData: AtaSelecaoData = {
+            ...rawAtaData,
+            projeto: {
+              ...rawAtaData.projeto,
+              departamento: rawAtaData.projeto.departamento || { nome: 'N/A', sigla: null },
+            },
+            candidatos: [...rawAtaData.inscricoesBolsista, ...rawAtaData.inscricoesVoluntario].map((c) => ({
+              id: c.id,
+              aluno: c.aluno,
+              tipoVagaPretendida: c.tipoVagaPretendida,
+              notaDisciplina: c.notaDisciplina ? Number(c.notaDisciplina) : null,
+              notaSelecao: c.notaSelecao ? Number(c.notaSelecao) : null,
+              coeficienteRendimento: c.coeficienteRendimento ? Number(c.coeficienteRendimento) : null,
+              notaFinal: c.notaFinal ? Number(c.notaFinal) : null,
+              status: c.status,
+              observacoes: c.feedbackProfessor,
+            })),
+            ataInfo: {
+              dataSelecao: new Date().toLocaleDateString('pt-BR'),
+              localSelecao: 'Online via Sistema de Monitoria',
+              observacoes: mensagemPersonalizada || 'Processo seletivo concluído.',
+            },
+          }
+
+          const pdfElementBolsista = React.createElement(ResultadoSelecaoTemplate, {
+            data: ataData,
+            tipo: 'BOLSISTA',
+          }) as React.ReactElement<DocumentProps>
+          const pdfBufferBolsista = await renderToBuffer(pdfElementBolsista)
+
+          const pdfElementVoluntario = React.createElement(ResultadoSelecaoTemplate, {
+            data: ataData,
+            tipo: 'VOLUNTARIO',
+          }) as React.ReactElement<DocumentProps>
+          const pdfBufferVoluntario = await renderToBuffer(pdfElementVoluntario)
+
+          const sanitizedTitle = sanitizeForFilename(projetoData.titulo)
+          attachments = [
+            {
+              filename: `Resultado_Bolsista_${sanitizedTitle}.pdf`,
+              content: Buffer.from(pdfBufferBolsista),
+              contentType: 'application/pdf',
+            },
+            {
+              filename: `Resultado_Voluntario_${sanitizedTitle}.pdf`,
+              content: Buffer.from(pdfBufferVoluntario),
+              contentType: 'application/pdf',
+            },
+          ]
+        } catch (pdfErr) {
+          log.warn({ pdfErr, projetoId }, 'Falha ao gerar anexo PDF do resultado da seleção')
+        }
+
         const emailPromises = inscricoes.map(async (inscricaoItem) => {
           const aprovado = inscricaoItem.notaFinal && Number(inscricaoItem.notaFinal) >= 7.0
           const status = aprovado
@@ -220,6 +281,7 @@ export function createSelecaoService(db: Database) {
               feedbackProfessor: mensagemPersonalizada,
               projetoId: parseInt(projetoId),
               alunoId: inscricaoItem.alunoId,
+              attachments,
             },
             userId
           )
