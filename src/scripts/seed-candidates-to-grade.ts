@@ -86,6 +86,7 @@ async function run() {
         cargaHorariaSemana: 12,
         numeroSemanas: 18,
         status: 'APPROVED' as const,
+        dadosEditalConfirmados: true,
         tipoProposicao: 'INDIVIDUAL' as const,
         publicoAlvo: 'Alunos de graduação do IME',
         descricao: 'Projeto de ensino e monitoria em Estruturas de Dados e Algoritmos.',
@@ -103,6 +104,7 @@ async function run() {
         cargaHorariaSemana: 12,
         numeroSemanas: 18,
         status: 'APPROVED' as const,
+        dadosEditalConfirmados: true,
         tipoProposicao: 'INDIVIDUAL' as const,
         publicoAlvo: 'Alunos de graduação em Ciência da Computação',
         descricao: 'Projeto de ensino e monitoria em Inteligência Artificial.',
@@ -115,11 +117,7 @@ async function run() {
 
     const projetosCriados = []
     for (const pData of projetosData) {
-      let [p] = await db
-        .select()
-        .from(projetoTable)
-        .where(eq(projetoTable.titulo, pData.titulo))
-        .limit(1)
+      let [p] = await db.select().from(projetoTable).where(eq(projetoTable.titulo, pData.titulo)).limit(1)
       if (!p) {
         ;[p] = await db.insert(projetoTable).values(pData).returning()
       }

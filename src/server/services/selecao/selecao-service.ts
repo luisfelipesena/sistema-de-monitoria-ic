@@ -320,6 +320,7 @@ export function createSelecaoService(db: Database) {
         ...projeto,
         inscricoes: projeto.inscricoes.filter(
           (inscricao) =>
+            inscricao.status === STATUS_INSCRICAO_SUBMITTED ||
             inscricao.status === STATUS_INSCRICAO_CONFIRMED_INTEREST ||
             inscricao.status === 'WAITING_LIST' ||
             inscricao.status?.startsWith('SELECTED_') ||

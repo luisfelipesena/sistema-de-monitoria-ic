@@ -77,8 +77,7 @@ export function createSelecaoRepository(db: Database) {
       return db.query.projetoTable.findMany({
         where: and(
           eq(projetoTable.professorResponsavelId, professorId),
-          eq(projetoTable.status, PROJETO_STATUS_APPROVED),
-          eq(projetoTable.dadosEditalConfirmados, true)
+          eq(projetoTable.status, PROJETO_STATUS_APPROVED)
         ),
         with: {
           departamento: true,
