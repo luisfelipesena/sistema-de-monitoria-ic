@@ -33,7 +33,7 @@ const REMINDER_CONFIG: Record<
   },
   aceite_vaga_pendente: {
     minHoursBetweenExecutions: 12, // Twice per day (more urgent)
-    defaultDays: 3,
+    defaultDays: 1,
     description: 'Alunos com aceite pendente',
     sendMethod: 'sendAcceptanceReminders',
   },

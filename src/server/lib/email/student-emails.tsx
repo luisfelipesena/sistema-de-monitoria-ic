@@ -18,6 +18,11 @@ export interface StudentSelectionData {
   projetoId?: number
   alunoId?: number
   remetenteUserId?: number
+  attachments?: Array<{
+    filename: string
+    content: Buffer
+    contentType: string
+  }>
 }
 
 export interface ScholarshipSelectedData {
@@ -71,6 +76,7 @@ export const studentEmailService = {
       to: data.studentEmail,
       subject: `[Monitoria IC] Resultado da Seleção: ${data.projectTitle}`,
       html,
+      attachments: data.attachments,
       tipoNotificacao: 'RESULTADO_SELECAO_ALUNO',
       projetoId: data.projetoId,
       alunoId: data.alunoId,

@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,7 +33,7 @@ function GradeApplicationsContent() {
   const projetoIdFromUrl = searchParams.get("projetoId")
 
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
-  const [selectedInscricao, setSelectedInscricao] = useState<number | null>(null)
+  const [evaluatingInscricaoObj, setEvaluatingInscricaoObj] = useState<InscricaoComDetalhes | null>(null)
   const [loadingFileId, setLoadingFileId] = useState<string | null>(null)
   const [emailsModalOpen, setEmailsModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -89,14 +90,19 @@ function GradeApplicationsContent() {
       .join(", ")
   }, [inscricoes])
 
+  const utils = api.useUtils()
+
   // Mutation para avaliar candidato
   const evaluateApplicationMutation = api.inscricao.evaluateApplications.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Sucesso!",
         description: "Notas salvas com sucesso!",
       })
-      setSelectedInscricao(null)
+      if (selectedProjectId) {
+        await utils.inscricao.getInscricoesProjeto.invalidate({ projetoId: selectedProjectId })
+      }
+      setEvaluatingInscricaoObj(null)
       setNotas({
         notaDisciplina: "",
         notaSelecao: "",
@@ -114,7 +120,7 @@ function GradeApplicationsContent() {
   })
 
   const handleSaveGrades = () => {
-    if (!selectedInscricao) return
+    if (!evaluatingInscricaoObj) return
 
     const notaDisciplina = parseFloat(notas.notaDisciplina)
     const notaSelecao = parseFloat(notas.notaSelecao)
@@ -130,7 +136,7 @@ function GradeApplicationsContent() {
     }
 
     evaluateApplicationMutation.mutate({
-      inscricaoId: selectedInscricao,
+      inscricaoId: evaluatingInscricaoObj.id,
       notaDisciplina,
       notaSelecao,
       coeficienteRendimento,
@@ -146,7 +152,18 @@ function GradeApplicationsContent() {
     return (disciplina * 5 + selecao * 3 + cr * 2) / 10
   }
 
-  const projetosAprovados = projetos?.filter((p) => p.status === PROJETO_STATUS_APPROVED) || []
+  const projetosAprovados = useMemo(() => {
+    if (!projetos) return []
+    return projetos
+      .filter((p) => p.status === PROJETO_STATUS_APPROVED)
+      .sort((a, b) => {
+        if (b.ano !== a.ano) return b.ano - a.ano
+        const semA = Number(getSemestreNumero(a.semestre as Semestre) ?? 0)
+        const semB = Number(getSemestreNumero(b.semestre as Semestre) ?? 0)
+        if (semB !== semA) return semB - semA
+        return b.id - a.id
+      })
+  }, [projetos])
 
   return (
     <PagesLayout title="Avaliar Candidatos">
@@ -169,7 +186,7 @@ function GradeApplicationsContent() {
               value={selectedProjectId?.toString() || ""}
               onValueChange={(value) => {
                 setSelectedProjectId(parseInt(value))
-                setSelectedInscricao(null)
+                setEvaluatingInscricaoObj(null)
               }}
             >
               <SelectTrigger>
@@ -229,7 +246,7 @@ function GradeApplicationsContent() {
                   </TableHeader>
                   <TableBody>
                     {inscricoes.map((inscricao: InscricaoComDetalhes) => (
-                      <TableRow key={inscricao.id} className={selectedInscricao === inscricao.id ? "bg-blue-50" : ""}>
+                      <TableRow key={inscricao.id} className={evaluatingInscricaoObj?.id === inscricao.id ? "bg-blue-50" : ""}>
                         <TableCell>{inscricao.aluno.nomeCompleto}</TableCell>
                         <TableCell>{inscricao.aluno.matricula}</TableCell>
                         <TableCell>
@@ -262,18 +279,20 @@ function GradeApplicationsContent() {
                         </TableCell>
                         <TableCell>
                           <Button
-                            variant={selectedInscricao === inscricao.id ? "default" : "outline"}
+                            variant={evaluatingInscricaoObj?.id === inscricao.id ? "default" : "outline"}
                             size="sm"
                             onClick={() => {
-                              setSelectedInscricao(inscricao.id)
-                              if (inscricao.notaDisciplina) {
-                                setNotas({
-                                  notaDisciplina: inscricao.notaDisciplina.toString(),
-                                  notaSelecao: inscricao.notaSelecao?.toString() || "",
-                                  coeficienteRendimento: inscricao.coeficienteRendimento?.toString() || "",
-                                  feedbackProfessor: inscricao.feedbackProfessor || "",
-                                })
-                              }
+                              setEvaluatingInscricaoObj(inscricao)
+                              const hasGrades = inscricao.notaDisciplina !== null && inscricao.notaDisciplina !== undefined
+                              setNotas({
+                                notaDisciplina: hasGrades ? inscricao.notaDisciplina!.toString() : "",
+                                notaSelecao: inscricao.notaSelecao !== null && inscricao.notaSelecao !== undefined ? inscricao.notaSelecao.toString() : "",
+                                coeficienteRendimento:
+                                  inscricao.coeficienteRendimento !== null && inscricao.coeficienteRendimento !== undefined
+                                    ? inscricao.coeficienteRendimento.toString()
+                                    : (inscricao.aluno?.cr?.toString() || ""),
+                                feedbackProfessor: inscricao.feedbackProfessor || "",
+                              })
                             }}
                           >
                             {inscricao.notaFinal ? "Editar" : "Avaliar"}
@@ -289,115 +308,148 @@ function GradeApplicationsContent() {
             </CardContent>
           </Card>
         )}
+      </div>
 
-        {/* Formulário de Avaliação */}
-        {selectedInscricao && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="h-5 w-5" />
-                Avaliação do Candidato
-              </CardTitle>
-              <p className="text-sm text-gray-600">Fórmula: (Nota Disciplina × 5 + Nota Seleção × 3 + CR × 2) ÷ 10</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="notaDisciplina">Nota na Disciplina (0-10)</Label>
-                  <Input
-                    id="notaDisciplina"
-                    type="number"
-                    min="0"
-                    max="10"
-                    step="0.1"
-                    value={notas.notaDisciplina}
-                    onChange={(e) => setNotas({ ...notas, notaDisciplina: e.target.value })}
-                    placeholder="Ex: 8.5"
-                  />
-                </div>
+      {/* Modal de Avaliação do Candidato */}
+      <Dialog
+        open={!!evaluatingInscricaoObj}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEvaluatingInscricaoObj(null)
+            setNotas({
+              notaDisciplina: "",
+              notaSelecao: "",
+              coeficienteRendimento: "",
+              feedbackProfessor: "",
+            })
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Calculator className="h-5 w-5 text-blue-600" />
+              Avaliar Candidato: {evaluatingInscricaoObj?.aluno?.nomeCompleto}
+            </DialogTitle>
+            <DialogDescription>
+              Fórmula de cálculo: (Nota Disciplina × 5 + Nota Seleção × 3 + CR × 2) ÷ 10
+            </DialogDescription>
+          </DialogHeader>
 
-                <div>
-                  <Label htmlFor="notaSelecao">Nota da Prova de Seleção (0-10)</Label>
-                  <Input
-                    id="notaSelecao"
-                    type="number"
-                    min="0"
-                    max="10"
-                    step="0.1"
-                    value={notas.notaSelecao}
-                    onChange={(e) => setNotas({ ...notas, notaSelecao: e.target.value })}
-                    placeholder="Ex: 7.2"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="coeficienteRendimento">Coeficiente de Rendimento (0-10)</Label>
-                  <Input
-                    id="coeficienteRendimento"
-                    type="number"
-                    min="0"
-                    max="10"
-                    step="0.01"
-                    value={notas.coeficienteRendimento}
-                    onChange={(e) => setNotas({ ...notas, coeficienteRendimento: e.target.value })}
-                    placeholder="Ex: 8.75"
-                  />
-                </div>
-              </div>
-
-              {notas.notaDisciplina && notas.notaSelecao && notas.coeficienteRendimento && (
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p className="text-sm text-blue-800 font-medium">
-                    Nota Final Calculada: {calcularNotaFinal().toFixed(1)}
-                  </p>
-                </div>
-              )}
-
+          <div className="space-y-4 py-2">
+            <div className="bg-muted/40 p-3 rounded-lg border text-sm flex justify-between items-center">
               <div>
-                <Label htmlFor="feedback">Observações (opcional)</Label>
-                <Textarea
-                  id="feedback"
-                  value={notas.feedbackProfessor}
-                  onChange={(e) => setNotas({ ...notas, feedbackProfessor: e.target.value })}
-                  placeholder="Comentários sobre o desempenho do candidato..."
-                  rows={3}
+                <strong>Matrícula:</strong> {evaluatingInscricaoObj?.aluno?.matricula}
+              </div>
+              <Badge variant={evaluatingInscricaoObj?.tipoVagaPretendida === TIPO_VAGA_BOLSISTA ? "default" : "secondary"}>
+                {evaluatingInscricaoObj?.tipoVagaPretendida}
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="notaDisciplina">Nota Disciplina (0-10)</Label>
+                <Input
+                  id="notaDisciplina"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value={notas.notaDisciplina}
+                  onChange={(e) => setNotas({ ...notas, notaDisciplina: e.target.value })}
+                  placeholder="Ex: 8.5"
                 />
               </div>
 
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleSaveGrades}
-                  disabled={
-                    !notas.notaDisciplina ||
-                    !notas.notaSelecao ||
-                    !notas.coeficienteRendimento ||
-                    evaluateApplicationMutation.isPending
-                  }
-                  className="flex items-center gap-2"
-                >
-                  <Save className="h-4 w-4" />
-                  {evaluateApplicationMutation.isPending ? "Salvando..." : "Salvar Notas"}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedInscricao(null)
-                    setNotas({
-                      notaDisciplina: "",
-                      notaSelecao: "",
-                      coeficienteRendimento: "",
-                      feedbackProfessor: "",
-                    })
-                  }}
-                >
-                  Cancelar
-                </Button>
+              <div>
+                <Label htmlFor="notaSelecao">Nota Seleção (0-10)</Label>
+                <Input
+                  id="notaSelecao"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value={notas.notaSelecao}
+                  onChange={(e) => setNotas({ ...notas, notaSelecao: e.target.value })}
+                  placeholder="Ex: 7.2"
+                />
               </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+              <div>
+                <Label htmlFor="coeficienteRendimento">CR (0-10)</Label>
+                <Input
+                  id="coeficienteRendimento"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.01"
+                  value={notas.coeficienteRendimento}
+                  onChange={(e) => setNotas({ ...notas, coeficienteRendimento: e.target.value })}
+                  placeholder="Ex: 8.75"
+                />
+              </div>
+            </div>
+
+            {notas.notaDisciplina && notas.notaSelecao && notas.coeficienteRendimento && (
+              <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg flex items-center justify-between">
+                <span className="text-sm font-medium text-blue-900">Nota Final Calculada:</span>
+                <Badge variant="default" className="text-base px-3 py-1 bg-blue-700">
+                  {calcularNotaFinal().toFixed(1)}
+                </Badge>
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="feedback">Observações / Feedback (opcional)</Label>
+              <Textarea
+                id="feedback"
+                value={notas.feedbackProfessor}
+                onChange={(e) => setNotas({ ...notas, feedbackProfessor: e.target.value })}
+                placeholder="Comentários sobre o desempenho do candidato..."
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setEvaluatingInscricaoObj(null)
+                setNotas({
+                  notaDisciplina: "",
+                  notaSelecao: "",
+                  coeficienteRendimento: "",
+                  feedbackProfessor: "",
+                })
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSaveGrades}
+              disabled={
+                !notas.notaDisciplina ||
+                !notas.notaSelecao ||
+                !notas.coeficienteRendimento ||
+                evaluateApplicationMutation.isPending
+              }
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {evaluateApplicationMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Salvar Notas
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de Cópia de E-mails */}
       <Dialog open={emailsModalOpen} onOpenChange={setEmailsModalOpen}>

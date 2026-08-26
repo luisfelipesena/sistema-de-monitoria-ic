@@ -155,8 +155,8 @@ function CandidateSelectionCard({ candidate, index, isSelected, onClick, type }:
         <div>
           <div className="font-medium">{candidate.aluno.nomeCompleto}</div>
           <div className="text-sm text-muted-foreground">
-            {candidate.aluno.matricula} • CR: {candidate.aluno.cr?.toFixed(2)} • Final:{" "}
-            {Number(candidate.notaFinal)?.toFixed(1)}
+            {candidate.aluno.matricula} • CR: {candidate.aluno.cr !== null && candidate.aluno.cr !== undefined ? Number(candidate.aluno.cr).toFixed(2) : "N/A"} • Final:{" "}
+            {candidate.notaFinal !== null && candidate.notaFinal !== undefined ? Number(candidate.notaFinal).toFixed(1) : "Pendente"}
           </div>
           {isCurrentlySelected && (
             <div className="text-xs text-green-700 font-medium mt-1">

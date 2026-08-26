@@ -207,6 +207,7 @@ export const AtaSelecaoTemplate = ({ data }: { data: AtaSelecaoData }) => {
   }))
 
   const candidatosClassificados = [...todosCandidatos]
+    .filter((c) => c.notaFinal !== null && c.notaFinal >= 7.0)
     .sort((a, b) => (b.notaFinal || 0) - (a.notaFinal || 0))
 
   const countClassificados = candidatosClassificados.length

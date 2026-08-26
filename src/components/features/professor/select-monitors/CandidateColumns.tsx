@@ -39,12 +39,14 @@ export function CandidateRow({ candidate }: CandidateRowProps) {
       <TableCell>
         <div className="flex items-center gap-1">
           <Star className="h-3 w-3 text-yellow-500" />
-          {candidate.aluno.cr?.toFixed(2) || "N/A"}
+          {candidate.aluno.cr !== null && candidate.aluno.cr !== undefined ? Number(candidate.aluno.cr).toFixed(2) : "N/A"}
         </div>
       </TableCell>
-      <TableCell>{Number(candidate.notaDisciplina)?.toFixed(1) || "N/A"}</TableCell>
-      <TableCell>{Number(candidate.notaSelecao)?.toFixed(1) || "N/A"}</TableCell>
-      <TableCell className="font-medium">{Number(candidate.notaFinal)?.toFixed(1) || "N/A"}</TableCell>
+      <TableCell>{candidate.notaDisciplina !== null && candidate.notaDisciplina !== undefined ? Number(candidate.notaDisciplina).toFixed(1) : "N/A"}</TableCell>
+      <TableCell>{candidate.notaSelecao !== null && candidate.notaSelecao !== undefined ? Number(candidate.notaSelecao).toFixed(1) : "N/A"}</TableCell>
+      <TableCell className="font-medium">
+        {candidate.notaFinal !== null && candidate.notaFinal !== undefined ? Number(candidate.notaFinal).toFixed(1) : "Pendente"}
+      </TableCell>
       <TableCell>
         <Badge variant="outline">
           {(candidate.tipoVagaPretendida || "") === TIPO_VAGA_BOLSISTA ? "Bolsista" : "Voluntário"}
