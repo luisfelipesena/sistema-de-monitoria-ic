@@ -7,6 +7,7 @@ import {
   emailSchema,
   idSchema,
   nameSchema,
+  matriculaSchema,
   phoneSchema,
   professorStatusSchema,
   regimeSchema,
@@ -122,7 +123,7 @@ export const userRouter = createTRPCRouter({
         studentData: z
           .object({
             nomeCompleto: nameSchema,
-            matricula: z.string().min(1),
+            matricula: matriculaSchema,
             cpf: cpfSchema,
             cr: crSchema,
             cursoNome: z.string().optional(),
@@ -146,6 +147,9 @@ export const userRouter = createTRPCRouter({
         log.info({ userId: ctx.user.id }, 'User profile updated successfully')
         return { success: true }
       } catch (error) {
+        if (error instanceof ConflictError) {
+          throw new TRPCError({ code: 'CONFLICT', message: error.message })
+        }
         if (error instanceof ValidationError) {
           throw new TRPCError({
             code: 'BAD_REQUEST',

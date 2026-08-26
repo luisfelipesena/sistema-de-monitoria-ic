@@ -1,5 +1,11 @@
 import { db } from '@/server/db'
-import { BusinessError, ConflictError, NotFoundError, ValidationError } from '@/server/lib/errors'
+import {
+  BusinessError,
+  ConflictError,
+  NotFoundError,
+  studentIdentityConflict,
+  ValidationError,
+} from '@/server/lib/errors'
 import { createAuditService } from '@/server/services/audit/audit-service'
 import { createAuthRepository } from '@/server/services/auth/auth-repository'
 import type { AdminType, Regime, TipoProfessor, UserRole } from '@/types'
@@ -164,7 +170,11 @@ export const createUserService = (database: typeof db) => {
         }
       }
 
-      await userRepository.updateProfile(userId, data)
+      try {
+        await userRepository.updateProfile(userId, data)
+      } catch (error) {
+        throw studentIdentityConflict(error) ?? error
+      }
     },
 
     async getUserById(userId: number) {

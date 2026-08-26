@@ -459,8 +459,38 @@ export default function AtasSelecaoPage() {
                   </Label>
                 </div>
 
+                <div className="bg-muted/40 p-4 rounded-lg border space-y-2">
+                  <div className="font-semibold text-base">{dadosAta.projeto.titulo}</div>
+                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                    <span><strong>Total de Inscritos:</strong> {dadosAta.totalInscritos}</span>
+                    <span><strong>Bolsistas Aprovados:</strong> {dadosAta.inscricoesBolsista.length}</span>
+                    <span><strong>Voluntários Aprovados:</strong> {dadosAta.inscricoesVoluntario.length}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dataSelecao">Data da Seleção</Label>
+                    <Input
+                      id="dataSelecao"
+                      value={ataInfo.dataSelecao}
+                      onChange={(e) => setAtaInfo((prev) => ({ ...prev, dataSelecao: e.target.value }))}
+                      placeholder="dd/mm/aaaa"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="localSelecao">Local da Seleção (opcional)</Label>
+                    <Input
+                      id="localSelecao"
+                      value={ataInfo.localSelecao}
+                      onChange={(e) => setAtaInfo((prev) => ({ ...prev, localSelecao: e.target.value }))}
+                      placeholder="Ex: Sala 123, Instituto de Computação"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="observacoes">Mensagem Personalizada aos Candidatos (opcional)</Label>
+                  <Label htmlFor="observacoes">Observações ou Mensagem aos Candidatos (opcional)</Label>
                   <Textarea
                     id="observacoes"
                     value={ataInfo.observacoes}

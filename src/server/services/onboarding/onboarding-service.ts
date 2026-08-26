@@ -1,5 +1,5 @@
 import type { db } from '@/server/db'
-import { ConflictError, ForbiddenError, NotFoundError } from '@/server/lib/errors'
+import { ConflictError, ForbiddenError, NotFoundError, studentIdentityConflict } from '@/server/lib/errors'
 import type { DocumentType, Genero, Regime, TipoProfessor, UserRole } from '@/types'
 import { ADMIN, PROFESSOR, STUDENT, TIPO_PROFESSOR_EFETIVO } from '@/types'
 import { logger } from '@/utils/logger'
@@ -193,20 +193,25 @@ export function createOnboardingService(db: Database) {
         throw new ConflictError('Student profile already exists')
       }
 
-      const newProfile = await repo.createStudentProfile({
-        userId,
-        nomeCompleto: input.nomeCompleto,
-        matricula: input.matricula,
-        cpf: input.cpf,
-        cr: input.cr,
-        cursoNome: input.cursoNome,
-        telefone: input.telefone,
-        genero: input.genero,
-        especificacaoGenero: input.especificacaoGenero,
-        nomeSocial: input.nomeSocial,
-        rg: input.rg,
-        emailInstitucional: userEmail,
-      })
+      let newProfile: Awaited<ReturnType<typeof repo.createStudentProfile>>
+      try {
+        newProfile = await repo.createStudentProfile({
+          userId,
+          nomeCompleto: input.nomeCompleto,
+          matricula: input.matricula,
+          cpf: input.cpf,
+          cr: input.cr,
+          cursoNome: input.cursoNome,
+          telefone: input.telefone,
+          genero: input.genero,
+          especificacaoGenero: input.especificacaoGenero,
+          nomeSocial: input.nomeSocial,
+          rg: input.rg,
+          emailInstitucional: userEmail,
+        })
+      } catch (error) {
+        throw studentIdentityConflict(error) ?? error
+      }
 
       log.info({ userId, profileId: newProfile.id }, 'Student profile created successfully')
       return { success: true, profileId: newProfile.id }

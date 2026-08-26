@@ -1,4 +1,5 @@
 import type { db } from '@/server/db'
+import { activeEnrollmentPeriodCondition } from '@/server/lib/enrollment-period'
 import { resolvePeriodoForSemestre } from '@/server/lib/periodo-resolver'
 import {
   assinaturaDocumentoTable,
@@ -154,10 +155,9 @@ export function createEditalRepository(db: Database) {
       await db.delete(editalTable).where(eq(editalTable.id, id))
     },
 
-    async findActivePeriodo() {
-      const now = new Date()
+    async findActivePeriodo(now: Date = new Date()) {
       return db.query.periodoInscricaoTable.findFirst({
-        where: and(lte(periodoInscricaoTable.dataInicio, now), gte(periodoInscricaoTable.dataFim, now)),
+        where: activeEnrollmentPeriodCondition(now),
       })
     },
 

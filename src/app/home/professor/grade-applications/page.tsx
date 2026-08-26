@@ -364,7 +364,6 @@ export default function GradeApplicationsPage() {
                   placeholder="Ex: 7.2"
                 />
               </div>
-
               <div>
                 <Label htmlFor="coeficienteRendimento">CR (0-10)</Label>
                 <Input

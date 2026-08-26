@@ -245,6 +245,7 @@ export function UserSignatureManager() {
                     <div className="border rounded-md bg-gray-50 p-2">
                       <SignatureCanvas
                         ref={sigPadRef}
+                        clearOnResize={false}
                         penColor="black"
                         canvasProps={{
                           className: "w-full h-40 rounded-md bg-white",

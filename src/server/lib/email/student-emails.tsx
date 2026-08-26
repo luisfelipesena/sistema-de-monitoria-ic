@@ -1,9 +1,14 @@
-import { SelectionResult } from '@/server/emails/templates/student'
+import { SelectionResult, SelectionScheduleUpdated } from '@/server/emails/templates/student'
 import { SelectionReminder } from '@/server/emails/templates/professor'
 import { renderEmail } from '@/server/emails/render'
 import { env } from '@/utils/env'
 import { emailSender } from './email-sender'
-import { REJECTED_BY_PROFESSOR, SELECTED_BOLSISTA, SELECTED_VOLUNTARIO } from '@/types'
+import {
+  REJECTED_BY_PROFESSOR,
+  SELECTED_BOLSISTA,
+  SELECTED_VOLUNTARIO,
+  type SelecaoSchedule,
+} from '@/types'
 
 const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
 
@@ -34,6 +39,16 @@ export interface LembreteSelecaoData {
   projetoId?: number
   alunoId?: number
   remetenteUserId?: number
+}
+
+export interface StudentSelectionScheduleData {
+  studentName: string
+  studentEmail: string
+  projectTitle: string
+  schedule: SelecaoSchedule
+  projetoId: number
+  alunoId: number
+  remetenteUserId: number
 }
 
 export const studentEmailService = {
@@ -83,5 +98,28 @@ export const studentEmailService = {
       projetoId: data.projetoId,
       remetenteUserId: data.remetenteUserId,
     })
+  },
+
+  async sendSelectionScheduleUpdated(data: StudentSelectionScheduleData[]) {
+    const emails = await Promise.all(
+      data.map(async (item) => ({
+        to: item.studentEmail,
+        subject: `[Monitoria IC] Dados da prova: ${item.projectTitle}`,
+        html: await renderEmail(
+          <SelectionScheduleUpdated
+            studentName={item.studentName}
+            projectTitle={item.projectTitle}
+            schedule={item.schedule}
+            dashboardUrl={`${clientUrl}/home/student/dashboard`}
+          />
+        ),
+        tipoNotificacao: 'DADOS_PROVA_ATUALIZADOS',
+        projetoId: item.projetoId,
+        alunoId: item.alunoId,
+        remetenteUserId: item.remetenteUserId,
+      }))
+    )
+
+    return emailSender.sendBatch(emails)
   },
 }
