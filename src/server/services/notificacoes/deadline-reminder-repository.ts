@@ -172,6 +172,32 @@ export function createDeadlineReminderRepository(db: Database) {
     },
 
     /**
+     * Find bolsista-selected inscriptions that haven't been accepted/rejected
+     * after 24 hours since selection (updatedAt).
+     * These are candidates whose professor selected them but they didn't respond.
+     */
+    async findBolsistasWithoutResponseAfter24h() {
+      const vinte4hAtras = new Date()
+      vinte4hAtras.setHours(vinte4hAtras.getHours() - 24)
+
+      return db.query.inscricaoTable.findMany({
+        where: and(eq(inscricaoTable.status, 'SELECTED_BOLSISTA'), lte(inscricaoTable.updatedAt, vinte4hAtras)),
+        with: {
+          aluno: {
+            with: { user: true },
+          },
+          projeto: {
+            with: {
+              professorResponsavel: {
+                with: { user: true },
+              },
+            },
+          },
+        },
+      })
+    },
+
+    /**
      * Find approved projects whose selection/acceptance period has ended,
      * but no student accepted a monitoria position.
      */

@@ -4,21 +4,21 @@ import { isProfessor, requireAdmin, requireAdminOrProfessor, requireStudent } fr
 import { emailService } from '@/server/lib/email'
 import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import {
-  ACCEPTED_BOLSISTA,
-  ACCEPTED_VOLUNTARIO,
-  BOLSISTA,
-  REJECTED_BY_STUDENT,
-  TIPO_ASSINATURA_ATA_SELECAO,
-  TIPO_ASSINATURA_TERMO_COMPROMISSO,
-  VAGA_STATUS_ATIVA,
-  VAGA_STATUS_ATIVO,
-  VAGA_STATUS_INCOMPLETO,
-  VAGA_STATUS_PENDENTE_ASSINATURA,
-  VOLUNTARIO,
-  type Semestre,
-  type TipoVaga,
-  type UserRole,
-  type VagaStatus,
+    ACCEPTED_BOLSISTA,
+    ACCEPTED_VOLUNTARIO,
+    BOLSISTA,
+    REJECTED_BY_STUDENT,
+    TIPO_ASSINATURA_ATA_SELECAO,
+    TIPO_ASSINATURA_TERMO_COMPROMISSO,
+    VAGA_STATUS_ATIVA,
+    VAGA_STATUS_ATIVO,
+    VAGA_STATUS_INCOMPLETO,
+    VAGA_STATUS_PENDENTE_ASSINATURA,
+    VOLUNTARIO,
+    type Semestre,
+    type TipoVaga,
+    type UserRole,
+    type VagaStatus,
 } from '@/types'
 import { logger } from '@/utils/logger'
 import { and, eq, sql } from 'drizzle-orm'
@@ -176,25 +176,21 @@ Sistema de Monitoria IC
       await repo.updateInscricaoStatus(parseInt(inscricaoId), REJECTED_BY_STUDENT, motivo || 'Vaga recusada pelo aluno')
 
       try {
-        await emailService.sendGenericEmail({
-          to: inscricaoData.projeto.professorResponsavel.user.email,
-          subject: `Vaga recusada - ${inscricaoData.aluno.user.username}`,
-          html: `
-Olá ${inscricaoData.projeto.professorResponsavel.nomeCompleto},<br><br>
+        const studentName = inscricaoData.aluno.user.username || inscricaoData.aluno.nomeCompleto
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
 
-O aluno ${inscricaoData.aluno.user.username} recusou a vaga oferecida para o projeto ${inscricaoData.projeto.titulo}.<br><br>
-
-${motivo ? `Motivo informado: ${motivo}<br><br>` : ''}
-
-Você pode oferecer a vaga para outro candidato da lista de espera.<br><br>
-
-Atenciosamente,<br>
-Sistema de Monitoria IC
-          `,
-          tipoNotificacao: 'VAGA_RECUSADA',
-          remetenteUserId: userId,
+        const { professorEmailService } = await import('@/server/lib/email')
+        await professorEmailService.sendScholarshipRejectedNotification({
+          professorEmail: inscricaoData.projeto.professorResponsavel.user.email,
+          professorName: inscricaoData.projeto.professorResponsavel.nomeCompleto,
+          studentName,
+          studentMatricula: inscricaoData.aluno.matricula || 'N/A',
+          projectTitle: inscricaoData.projeto.titulo,
+          motivo,
+          linkSelecao: `${clientUrl}/home/professor/select-monitors`,
           projetoId: inscricaoData.projetoId,
           alunoId: inscricaoData.alunoId,
+          remetenteUserId: userId,
         })
       } catch (error) {
         log.error({ error }, 'Erro ao enviar notificação')

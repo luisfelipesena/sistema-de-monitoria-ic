@@ -1,10 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
-import { Award, Check, Users } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
 import { TIPO_VAGA_BOLSISTA, TIPO_VAGA_VOLUNTARIO } from "@/types"
 import type { MonitorCandidate, MonitorProject, SelectionState } from "@/types/monitor-selection"
+import { Award, Check, Users } from "lucide-react"
 
 interface SelectionActionsPanelProps {
   project: MonitorProject
@@ -135,12 +135,17 @@ interface CandidateSelectionCardProps {
 
 function CandidateSelectionCard({ candidate, index, isSelected, onClick, type }: CandidateSelectionCardProps) {
   const bgColor = type === "bolsista" ? "bg-yellow-100 text-yellow-700" : "bg-blue-100 text-blue-700"
+  const wasRejectedByStudent = candidate.status === "REJECTED_BY_STUDENT"
+  const wasRemovedByProfessor = candidate.status === "WAITING_LIST"
+  const isCurrentlySelectedForBolsa = candidate.status === "SELECTED_BOLSISTA"
+  const isCurrentlySelectedForVoluntario = candidate.status === "SELECTED_VOLUNTARIO"
+  const isCurrentlySelected = isCurrentlySelectedForBolsa || isCurrentlySelectedForVoluntario
 
   return (
     <div
       className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted/50 ${
         isSelected ? "border-primary bg-primary/5" : ""
-      }`}
+      } ${wasRejectedByStudent ? "border-red-300 bg-red-50" : ""} ${wasRemovedByProfessor ? "border-orange-200 bg-orange-50/50" : ""} ${isCurrentlySelected && !isSelected ? "border-green-300 bg-green-50" : ""}`}
       onClick={onClick}
     >
       <div className="flex items-center gap-3">
@@ -153,6 +158,21 @@ function CandidateSelectionCard({ candidate, index, isSelected, onClick, type }:
             {candidate.aluno.matricula} • CR: {candidate.aluno.cr?.toFixed(2)} • Final:{" "}
             {Number(candidate.notaFinal)?.toFixed(1)}
           </div>
+          {isCurrentlySelected && (
+            <div className="text-xs text-green-700 font-medium mt-1">
+              ✅ Atualmente selecionado para {isCurrentlySelectedForBolsa ? "bolsa" : "voluntário"}
+            </div>
+          )}
+          {wasRejectedByStudent && (
+            <div className="text-xs text-red-700 font-semibold mt-1">
+              ❌ Recusou bolsa anteriormente
+            </div>
+          )}
+          {wasRemovedByProfessor && (
+            <div className="text-xs text-orange-600 font-medium mt-1">
+              ⚠️ Selecionado para bolsa anteriormente pelo professor
+            </div>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2">

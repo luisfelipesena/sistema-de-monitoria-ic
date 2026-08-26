@@ -13,6 +13,7 @@ import type {
 } from '@/types'
 import {
   PROFESSOR,
+  STATUS_INSCRICAO_CONFIRMED_INTEREST,
   STATUS_INSCRICAO_REJECTED_BY_PROFESSOR,
   STATUS_INSCRICAO_SELECTED_BOLSISTA,
   STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
@@ -22,10 +23,12 @@ import {
   TIPO_INSCRICAO_BOLSISTA,
   TIPO_INSCRICAO_VOLUNTARIO,
 } from '@/types'
+import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
 import { createSelecaoRepository } from './selecao-repository'
 
 const log = logger.child({ context: 'SelecaoService' })
+const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
 
 type Database = typeof db
 
@@ -187,11 +190,9 @@ export function createSelecaoService(db: Database) {
           await Promise.all(
             inscricoes.map((inscricao) => {
               const aprovado = inscricao.notaFinal && Number(inscricao.notaFinal) >= 7.0
-              const status = aprovado
-                ? inscricao.tipoVagaPretendida === TIPO_INSCRICAO_BOLSISTA
-                  ? STATUS_INSCRICAO_SELECTED_BOLSISTA
-                  : STATUS_INSCRICAO_SELECTED_VOLUNTARIO
-                : STATUS_INSCRICAO_REJECTED_BY_PROFESSOR
+              // Approved students go to WAITING_LIST (waiting for them to confirm interest)
+              // Rejected students go to REJECTED_BY_PROFESSOR
+              const status = aprovado ? 'WAITING_LIST' : STATUS_INSCRICAO_REJECTED_BY_PROFESSOR
               return txRepo.updateInscricaoStatus(inscricao.id, status)
             })
           )
@@ -204,6 +205,7 @@ export function createSelecaoService(db: Database) {
       if (notifyStudents && inscricoes.length > 0) {
         const emailPromises = inscricoes.map(async (inscricaoItem) => {
           const aprovado = inscricaoItem.notaFinal && Number(inscricaoItem.notaFinal) >= 7.0
+          // For the email, we still show what type they applied for (informational)
           const status = aprovado
             ? inscricaoItem.tipoVagaPretendida === TIPO_INSCRICAO_BOLSISTA
               ? STATUS_INSCRICAO_SELECTED_BOLSISTA
@@ -217,6 +219,7 @@ export function createSelecaoService(db: Database) {
               projectTitle: projetoData.titulo,
               professorName: projetoData.professorResponsavel.nomeCompleto,
               status,
+              linkConfirmacao: aprovado ? `${clientUrl}/home/student/resultados` : undefined,
               feedbackProfessor: mensagemPersonalizada,
               projetoId: parseInt(projetoId),
               alunoId: inscricaoItem.alunoId,
@@ -255,15 +258,17 @@ export function createSelecaoService(db: Database) {
         ...projeto,
         inscricoes: projeto.inscricoes.filter(
           (inscricao) =>
-            inscricao.status === STATUS_INSCRICAO_SUBMITTED ||
+            inscricao.status === STATUS_INSCRICAO_CONFIRMED_INTEREST ||
+            inscricao.status === 'WAITING_LIST' ||
             inscricao.status?.startsWith('SELECTED_') ||
-            inscricao.status?.startsWith('REJECTED_')
+            inscricao.status?.startsWith('ACCEPTED_') ||
+            inscricao.status === 'REJECTED_BY_STUDENT'
         ),
       }))
     },
 
     async selectMonitors(input: SelectMonitorsInput) {
-      const { projetoId, bolsistas, voluntarios, userId, userRole } = input
+      const { projetoId, bolsistas, voluntarios, motivoTroca, userId, userRole } = input
 
       requireProfessor(userRole)
 
@@ -308,13 +313,52 @@ export function createSelecaoService(db: Database) {
             `O candidato ${nomeStr} possui nota final ${notaStr}. Para ser selecionado como monitor, a nota final deve ser no mínimo 7,0.`
           )
         }
+        // Verify candidate has confirmed interest
+        if (candidate.status !== STATUS_INSCRICAO_CONFIRMED_INTEREST) {
+          const nomeStr = candidate?.aluno?.nomeCompleto || candidate?.aluno?.user?.username || `ID ${selectedId}`
+          throw new ValidationError(
+            `O candidato ${nomeStr} ainda não confirmou interesse em participar. Apenas candidatos que confirmaram interesse podem ser selecionados como monitores.`
+          )
+        }
+      }
+
+      // Check if professor is replacing a previously selected candidate - require motivo
+      const currentInscricoes = await repo.findInscricoesByProjetoId(projetoId)
+      const currentlySelected = currentInscricoes.filter(
+        (i) => i.status === 'SELECTED_BOLSISTA' || i.status === 'SELECTED_VOLUNTARIO'
+      )
+      const isReplacingCandidate = currentlySelected.some((i) => !bolsistas.includes(i.id) && !voluntarios.includes(i.id))
+
+      if (isReplacingCandidate && !motivoTroca) {
+        throw new ValidationError(
+          'É obrigatório informar o motivo da troca de candidato ao redesignar a bolsa.'
+        )
       }
 
       await db.transaction(async (tx) => {
         const txRepo = createSelecaoRepository(tx as unknown as Database)
 
-        // Reset all inscricoes
+        // Get current inscricoes to preserve statuses
+        const allInscricoesCurrent = await repo.findInscricoesByProjetoId(projetoId)
+        const rejectedByStudentIds = allInscricoesCurrent
+          .filter((i) => i.status === 'REJECTED_BY_STUDENT')
+          .map((i) => i.id)
+        // Track who was previously selected for bolsa (to mark as WAITING_LIST = "professor changed")
+        const previouslySelectedIds = allInscricoesCurrent
+          .filter((i) => i.status === 'SELECTED_BOLSISTA' || i.status === 'SELECTED_VOLUNTARIO' || i.status === 'WAITING_LIST')
+          .map((i) => i.id)
+
+        // Reset all inscricoes to SUBMITTED
         await txRepo.resetInscricoes(projetoId)
+
+        // Restore REJECTED_BY_STUDENT status (preserve rejection history)
+        if (rejectedByStudentIds.length > 0) {
+          await Promise.all(
+            rejectedByStudentIds.map((inscricaoId) =>
+              txRepo.updateInscricaoStatus(inscricaoId, 'REJECTED_BY_STUDENT')
+            )
+          )
+        }
 
         // Set selected bolsistas
         if (bolsistas.length > 0) {
@@ -330,20 +374,23 @@ export function createSelecaoService(db: Database) {
           )
         }
 
-        // Set rejected for unselected
+        // For unselected candidates:
+        // - Previously selected by professor → WAITING_LIST (professor changed their mind) + save motivo
+        // - Never selected → CONFIRMED_INTEREST
         const allSelected = [...bolsistas, ...voluntarios]
-        if (allSelected.length > 0) {
-          const allInscricoes = await txRepo.getAllInscricaoIdsByProjetoId(projetoId)
+        const allInscricaoIds = await txRepo.getAllInscricaoIdsByProjetoId(projetoId)
+        const unselected = allInscricaoIds
+          .filter((i) => !allSelected.includes(i.id) && !rejectedByStudentIds.includes(i.id))
 
-          const unselected = allInscricoes
-            .filter((inscricao) => !allSelected.includes(inscricao.id))
-            .map((inscricao) => inscricao.id)
-
-          if (unselected.length > 0) {
-            await Promise.all(
-              unselected.map((inscricaoId) => txRepo.updateInscricaoStatus(inscricaoId, 'REJECTED_BY_PROFESSOR'))
-            )
-          }
+        if (unselected.length > 0) {
+          await Promise.all(
+            unselected.map((inscricao) => {
+              const wasPreviouslySelected = previouslySelectedIds.includes(inscricao.id)
+              const newStatus = wasPreviouslySelected ? 'WAITING_LIST' : STATUS_INSCRICAO_CONFIRMED_INTEREST
+              const feedback = wasPreviouslySelected && motivoTroca ? motivoTroca : undefined
+              return txRepo.updateInscricaoStatus(inscricao.id, newStatus, feedback)
+            })
+          )
         }
       })
 
@@ -352,11 +399,163 @@ export function createSelecaoService(db: Database) {
         'Monitors selected successfully'
       )
 
+      // Send scholarship notification email to selected bolsistas
+      if (bolsistas.length > 0) {
+        const projetoData = await repo.findProjetoWithRelations(projetoId)
+        const allInscricoesData = await repo.findInscricoesByProjetoId(projetoId)
+
+        const bolsistaInscricoes = allInscricoesData.filter((i) => bolsistas.includes(i.id))
+
+        for (const inscricao of bolsistaInscricoes) {
+          try {
+            await studentEmailService.sendScholarshipSelectedNotification({
+              studentName: inscricao.aluno.user.username || inscricao.aluno.nomeCompleto,
+              studentEmail: inscricao.aluno.user.email,
+              projectTitle: projetoData?.titulo || '',
+              professorName: projetoData?.professorResponsavel?.nomeCompleto || '',
+              projetoId,
+              alunoId: inscricao.alunoId,
+              remetenteUserId: userId,
+            })
+          } catch (error) {
+            log.error({ error, inscricaoId: inscricao.id }, 'Error sending scholarship selected notification')
+          }
+        }
+
+        log.info({ projetoId, count: bolsistaInscricoes.length }, 'Scholarship selection emails sent')
+      }
+
       return {
         success: true,
         message: 'Monitores selecionados com sucesso',
         bolsistasSelecionados: bolsistas.length,
         voluntariosSelecionados: voluntarios.length,
+      }
+    },
+
+    /**
+     * Student confirms interest in participating after results are published.
+     * Only applicable for students with status SELECTED_BOLSISTA or SELECTED_VOLUNTARIO.
+     */
+    async confirmInterest(inscricaoId: number, userId: number, userRole: UserRole) {
+      if (userRole !== STUDENT) {
+        throw new ForbiddenError('Apenas alunos podem confirmar interesse')
+      }
+
+      const inscricao = await repo.findInscricaoById(inscricaoId)
+
+      if (!inscricao) {
+        throw new NotFoundError('Inscrição', 'não encontrada')
+      }
+
+      // Verify the inscription belongs to this student
+      if (inscricao.aluno?.userId !== userId) {
+        throw new ForbiddenError('Você só pode confirmar interesse em suas próprias inscrições')
+      }
+
+      // Only allow confirming interest if status is WAITING_LIST (approved, awaiting interest confirmation)
+      if (inscricao.status !== 'WAITING_LIST') {
+        throw new BusinessError(
+          'Você só pode confirmar interesse quando tiver sido aprovado(a) na seleção.',
+          'INVALID_STATUS'
+        )
+      }
+
+      await repo.updateInscricaoStatus(inscricaoId, STATUS_INSCRICAO_CONFIRMED_INTEREST)
+
+      // Notify professor that student confirmed interest
+      try {
+        const profEmail =
+          inscricao.projeto?.professorResponsavel?.user?.email ||
+          inscricao.projeto?.professorResponsavel?.emailInstitucional
+
+        if (profEmail) {
+          const studentName = inscricao.aluno?.user?.username || inscricao.aluno?.nomeCompleto || 'Aluno'
+
+          const { professorEmailService } = await import('@/server/lib/email')
+          await professorEmailService.sendStudentConfirmedInterestNotification({
+            professorEmail: profEmail,
+            professorName: inscricao.projeto.professorResponsavel.nomeCompleto,
+            studentName,
+            studentMatricula: inscricao.aluno?.matricula || 'N/A',
+            projectTitle: inscricao.projeto.titulo,
+            notaFinal: inscricao.notaFinal ? Number(inscricao.notaFinal).toFixed(1) : 'N/A',
+            linkSelecao: `${clientUrl}/home/professor/select-monitors`,
+            projetoId: inscricao.projetoId,
+            alunoId: inscricao.alunoId,
+            remetenteUserId: userId,
+          })
+        }
+      } catch (error) {
+        log.error({ error, inscricaoId }, 'Error sending interest confirmation notification to professor')
+      }
+
+      log.info({ inscricaoId, userId }, 'Student confirmed interest')
+
+      return {
+        success: true,
+        message: 'Interesse confirmado com sucesso! O professor será notificado.',
+      }
+    },
+
+    /**
+     * Student rejects participation in the selection process after results are published.
+     * Sends email notification to the professor.
+     */
+    async rejectInterest(inscricaoId: number, userId: number, userRole: UserRole) {
+      if (userRole !== STUDENT) {
+        throw new ForbiddenError('Apenas alunos podem rejeitar participação')
+      }
+
+      const inscricao = await repo.findInscricaoById(inscricaoId)
+
+      if (!inscricao) {
+        throw new NotFoundError('Inscrição', 'não encontrada')
+      }
+
+      if (inscricao.aluno?.userId !== userId) {
+        throw new ForbiddenError('Você só pode rejeitar participação em suas próprias inscrições')
+      }
+
+      if (inscricao.status !== 'WAITING_LIST') {
+        throw new BusinessError(
+          'Você só pode rejeitar participação quando tiver sido aprovado(a) na seleção.',
+          'INVALID_STATUS'
+        )
+      }
+
+      await repo.updateInscricaoStatus(inscricaoId, 'REJECTED_BY_STUDENT')
+
+      // Notify professor that student rejected participation
+      try {
+        const profEmail =
+          inscricao.projeto?.professorResponsavel?.user?.email ||
+          inscricao.projeto?.professorResponsavel?.emailInstitucional
+
+        if (profEmail) {
+          const studentName = inscricao.aluno?.user?.username || inscricao.aluno?.nomeCompleto || 'Aluno'
+
+          const { professorEmailService } = await import('@/server/lib/email')
+          await professorEmailService.sendStudentRejectedInterestNotification({
+            professorEmail: profEmail,
+            professorName: inscricao.projeto.professorResponsavel.nomeCompleto,
+            studentName,
+            studentMatricula: inscricao.aluno?.matricula || 'N/A',
+            projectTitle: inscricao.projeto.titulo,
+            projetoId: inscricao.projetoId,
+            alunoId: inscricao.alunoId,
+            remetenteUserId: userId,
+          })
+        }
+      } catch (error) {
+        log.error({ error, inscricaoId }, 'Error sending rejection notification to professor')
+      }
+
+      log.info({ inscricaoId, userId }, 'Student rejected interest in selection process')
+
+      return {
+        success: true,
+        message: 'Participação no processo seletivo rejeitada.',
       }
     },
 

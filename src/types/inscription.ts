@@ -1,20 +1,21 @@
 import { z } from 'zod'
 import {
-  ACCEPTED_BOLSISTA,
-  ACCEPTED_VOLUNTARIO,
-  decisionSchema,
-  Genero,
-  REJECTED_BY_PROFESSOR,
-  REJECTED_BY_STUDENT,
-  SELECTED_BOLSISTA,
-  SELECTED_VOLUNTARIO,
-  StatusInscricao,
-  statusInscricaoSchema,
-  SUBMITTED,
-  TipoInscricao,
-  tipoInscricaoSchema,
-  UserRole,
-  WAITING_LIST,
+    ACCEPTED_BOLSISTA,
+    ACCEPTED_VOLUNTARIO,
+    CONFIRMED_INTEREST,
+    decisionSchema,
+    Genero,
+    REJECTED_BY_PROFESSOR,
+    REJECTED_BY_STUDENT,
+    SELECTED_BOLSISTA,
+    SELECTED_VOLUNTARIO,
+    StatusInscricao,
+    statusInscricaoSchema,
+    SUBMITTED,
+    TipoInscricao,
+    tipoInscricaoSchema,
+    UserRole,
+    WAITING_LIST,
 } from './enums'
 import { tipoDocumentoInscricaoSchema } from './inscricao-document'
 import { idSchema } from './schemas'
@@ -63,6 +64,7 @@ export interface SelecaoCandidato {
     | typeof SUBMITTED
     | typeof SELECTED_BOLSISTA
     | typeof SELECTED_VOLUNTARIO
+    | typeof CONFIRMED_INTEREST
     | typeof ACCEPTED_BOLSISTA
     | typeof ACCEPTED_VOLUNTARIO
     | typeof REJECTED_BY_PROFESSOR
@@ -284,6 +286,7 @@ export const inscriptionDetailSchema = z.object({
       email: z.string().email(),
     }),
   }),
+  bolsasPreenchidas: z.boolean().optional(),
 })
 
 export type CreateInscriptionData = z.infer<typeof createInscriptionSchema>
