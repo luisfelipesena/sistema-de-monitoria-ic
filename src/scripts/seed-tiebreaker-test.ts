@@ -33,8 +33,8 @@ async function seedTiebreakerTest() {
   const brunoAluno = brunoAlunos[0]
 
   // Set CR to 8.00 for both
-  await db.update(alunoTable).set({ cr: 8.00 }).where(eq(alunoTable.id, anaAluno.id))
-  await db.update(alunoTable).set({ cr: 8.00 }).where(eq(alunoTable.id, brunoAluno.id))
+  await db.update(alunoTable).set({ cr: 8.0 }).where(eq(alunoTable.id, anaAluno.id))
+  await db.update(alunoTable).set({ cr: 8.0 }).where(eq(alunoTable.id, brunoAluno.id))
 
   // Find candidate registrations
   const anaInscricoes = await db.select().from(inscricaoTable).where(eq(inscricaoTable.alunoId, anaAluno.id))
