@@ -46,7 +46,10 @@ const createMockContext = (user: User | null): TRPCContext => ({
         findFirst: vi.fn(),
       },
       projetoDocumentoTable: {
-        findFirst: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      inscricaoDocumentoTable: {
+        findMany: vi.fn().mockResolvedValue([]),
       },
     },
     // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
@@ -94,7 +97,7 @@ describe('fileRouter', () => {
       // Mock DB calls to return no association
       vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue(undefined)
       vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue(undefined)
-      vi.spyOn(mockContext.db.query.projetoDocumentoTable, 'findFirst').mockResolvedValue(undefined)
+      vi.spyOn(mockContext.db.query.projetoDocumentoTable, 'findMany').mockResolvedValue([])
 
       await expect(caller.getPresignedUrlMutation({ fileId: 'some-file', action: 'view' })).rejects.toThrow()
     })

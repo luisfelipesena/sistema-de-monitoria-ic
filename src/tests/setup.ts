@@ -8,59 +8,59 @@ vi.mock('@/server/db', () => ({
     query: {
       vagaTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       assinaturaDocumentoTable: {
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
         findFirst: vi.fn(),
       },
       alunoTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       professorTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       projetoTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       projetoDocumentoTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       periodoInscricaoTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       inscricaoTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       userTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       departamentoTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       disciplinaTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       cursoTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       editalTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
       apiKeyTable: {
         findFirst: vi.fn(),
-        findMany: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
       },
     },
     select: vi.fn().mockReturnThis(),
@@ -88,7 +88,7 @@ vi.mock('@/server/db', () => ({
           returning: vi.fn().mockResolvedValue([]),
           query: {
             assinaturaDocumentoTable: {
-              findMany: vi.fn(),
+              findMany: vi.fn().mockResolvedValue([]),
               findFirst: vi.fn(),
             },
           },
@@ -222,75 +222,75 @@ export function createMockContext(user: User | null = null): TRPCContext {
       query: {
         userTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         apiKeyTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         cursoTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         departamentoTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         disciplinaTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         projetoTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         projetoDocumentoTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         professorTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         alunoTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         inscricaoTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         vagaTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         editalTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         periodoInscricaoTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         importacaoPlanejamentoTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         notificacaoTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         selecaoTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         termosTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
         fileTable: {
           findFirst: vi.fn(),
-          findMany: vi.fn(),
+          findMany: vi.fn().mockResolvedValue([]),
         },
       },
       insert: vi.fn().mockReturnValue({

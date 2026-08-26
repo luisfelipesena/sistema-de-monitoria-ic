@@ -27,8 +27,8 @@ export function createFileRepository(db: Database) {
       })
     },
 
-    async findProjetoDocumentoByFileId(fileId: string) {
-      return db.query.projetoDocumentoTable.findFirst({
+    async findProjetoDocumentosByFileId(fileId: string) {
+      return db.query.projetoDocumentoTable.findMany({
         where: eq(projetoDocumentoTable.fileId, fileId),
         with: {
           projeto: {
@@ -40,9 +40,10 @@ export function createFileRepository(db: Database) {
       })
     },
 
-    async findInscricaoDocumentoByFileId(fileId: string) {
-      if (!db.query.inscricaoDocumentoTable) return null
-      return db.query.inscricaoDocumentoTable.findFirst({
+    // O mesmo file_id e reutilizado em varias inscricoes do aluno, entao todas precisam ser avaliadas
+    async findInscricaoDocumentosByFileId(fileId: string) {
+      if (!db.query.inscricaoDocumentoTable) return []
+      return db.query.inscricaoDocumentoTable.findMany({
         where: eq(inscricaoDocumentoTable.fileId, fileId),
         with: {
           inscricao: {

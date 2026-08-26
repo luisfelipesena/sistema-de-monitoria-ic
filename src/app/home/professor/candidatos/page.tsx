@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+import { useViewFile } from "@/hooks/use-files"
 import { useToast } from "@/hooks/use-toast"
 import {
   InscriptionDetailData,
@@ -39,28 +40,11 @@ function ProjectApplicationsContent() {
     { enabled: !!projectId }
   )
   const avaliarCandidato = api.inscricao.avaliarCandidato.useMutation()
-  const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation()
+  const { viewFile, loadingFileId } = useViewFile()
 
   const [quickEvaluations, setQuickEvaluations] = useState<Record<number, QuickEvaluation>>({})
-  const [loadingFileId, setLoadingFileId] = useState<string | null>(null)
 
-  const handleViewHistorico = async (fileId: string) => {
-    setLoadingFileId(fileId)
-    try {
-      const url = await getPresignedUrlMutation.mutateAsync({ fileId, action: "view" })
-      if (url) {
-        window.open(url, "_blank")
-      }
-    } catch {
-      toast({
-        title: "Erro ao abrir histórico",
-        description: "Não foi possível carregar o arquivo do Histórico Escolar.",
-        variant: "destructive",
-      })
-    } finally {
-      setLoadingFileId(null)
-    }
-  }
+  const handleViewHistorico = (fileId: string) => viewFile(fileId, "histórico escolar")
 
   // Filter projects that are approved and belong to the current professor
   const myApprovedProjects = useMemo(() => {

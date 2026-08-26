@@ -34,7 +34,7 @@ export const fileRouter = createTRPCRouter({
   getAdminFileList: adminProtectedProcedure.query(async ({ ctx }) => {
     try {
       const service = createFileService(ctx.db)
-      return service.listAdminFiles()
+      return await service.listAdminFiles()
     } catch (_error) {
       throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Erro ao listar arquivos' })
     }
@@ -45,7 +45,7 @@ export const fileRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createFileService(ctx.db)
-        return service.deleteAdminFile(input.objectName)
+        return await service.deleteAdminFile(input.objectName)
       } catch (error) {
         if (error instanceof Error) {
           const code = getMinioErrorCode(error)
@@ -62,7 +62,7 @@ export const fileRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createFileService(ctx.db)
-        return service.getAdminPresignedUrl(input.objectName)
+        return await service.getAdminPresignedUrl(input.objectName)
       } catch (error) {
         if (error instanceof Error) {
           const code = getMinioErrorCode(error)
@@ -104,7 +104,7 @@ export const fileRouter = createTRPCRouter({
         }
 
         const service = createFileService(ctx.db)
-        return service.uploadFile(
+        return await service.uploadFile(
           input.fileName,
           input.fileData,
           input.mimeType,
@@ -138,7 +138,7 @@ export const fileRouter = createTRPCRouter({
         }
 
         const service = createFileService(ctx.db)
-        return service.uploadFile(
+        return await service.uploadFile(
           input.fileName,
           input.fileData,
           input.mimeType,
@@ -167,7 +167,7 @@ export const fileRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createFileService(ctx.db)
-        return service.getPresignedUrl(input.fileId, input.action, ctx.user.id, ctx.user.role)
+        return await service.getPresignedUrl(input.fileId, input.action, ctx.user.id, ctx.user.role)
       } catch (error) {
         if (error instanceof BusinessError) {
           throw new TRPCError({ code: error.code as 'NOT_FOUND' | 'FORBIDDEN' | 'BAD_REQUEST', message: error.message })
@@ -203,7 +203,7 @@ export const fileRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createFileService(ctx.db)
-        return service.deleteFile(input.fileId)
+        return await service.deleteFile(input.fileId)
       } catch (error) {
         if (error instanceof Response) {
           throw error
@@ -233,7 +233,7 @@ export const fileRouter = createTRPCRouter({
     .output(fileListItemSchema)
     .query(async ({ input, ctx }) => {
       const service = createFileService(ctx.db)
-      return service.getFileMetadata(input.fileId)
+      return await service.getFileMetadata(input.fileId)
     }),
 
   getFileMetadataForUser: protectedProcedure
@@ -251,7 +251,7 @@ export const fileRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       try {
         const service = createFileService(ctx.db)
-        return service.getFileMetadataForUser(input.fileId, ctx.user.id, ctx.user.role)
+        return await service.getFileMetadataForUser(input.fileId, ctx.user.id, ctx.user.role)
       } catch (error) {
         if (error instanceof BusinessError) {
           throw new TRPCError({ code: error.code as 'NOT_FOUND' | 'FORBIDDEN' | 'BAD_REQUEST', message: error.message })
@@ -275,7 +275,7 @@ export const fileRouter = createTRPCRouter({
     .query(async ({ input, ctx }) => {
       try {
         const service = createFileService(ctx.db)
-        return service.getProjetoFiles(input.projetoId, ctx.user.id, ctx.user.role)
+        return await service.getProjetoFiles(input.projetoId, ctx.user.id, ctx.user.role)
       } catch (error) {
         if (error instanceof BusinessError) {
           throw new TRPCError({ code: error.code as 'NOT_FOUND' | 'FORBIDDEN' | 'BAD_REQUEST', message: error.message })
@@ -299,7 +299,7 @@ export const fileRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       try {
         const service = createFileService(ctx.db)
-        return service.getProjetoPdfUrl(input.projetoId, ctx.user.id, ctx.user.role)
+        return await service.getProjetoPdfUrl(input.projetoId, ctx.user.id, ctx.user.role)
       } catch (error) {
         if (error instanceof BusinessError) {
           throw new TRPCError({ code: error.code as 'NOT_FOUND' | 'FORBIDDEN' | 'BAD_REQUEST', message: error.message })

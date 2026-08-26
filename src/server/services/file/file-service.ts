@@ -136,43 +136,38 @@ export function createFileService(db: Database) {
       }
     },
 
-    async getPresignedUrl(fileId: string, action: FileAction, userId: number, userRole: UserRole) {
-      const [aluno, professor, projetoDocumento, inscricaoDocumento] = await Promise.all([
+    async canAccessFile(fileId: string, userId: number, userRole: UserRole) {
+      if (userRole === ADMIN) return true
+
+      const [aluno, professor, projetoDocumentos, inscricaoDocumentos] = await Promise.all([
         repo.findAlunoByFileId(fileId),
         repo.findProfessorByFileId(fileId),
-        repo.findProjetoDocumentoByFileId(fileId),
-        repo.findInscricaoDocumentoByFileId(fileId),
+        repo.findProjetoDocumentosByFileId(fileId),
+        repo.findInscricaoDocumentosByFileId(fileId),
       ])
 
-      let isAuthorized = false
-      if (aluno && aluno.userId === userId) {
-        isAuthorized = true
-      } else if (professor && professor.userId === userId) {
-        isAuthorized = true
-      } else if (
-        projetoDocumento &&
-        (projetoDocumento.projeto?.professorResponsavelId === userId ||
-          projetoDocumento.projeto?.professoresParticipantes.some((p) => p.professorId === userId))
-      ) {
-        isAuthorized = true
-      } else if (inscricaoDocumento) {
-        const inscricao = inscricaoDocumento.inscricao
-        const currentProf = await repo.findProfessorByUserId(userId)
-        const isProfOwner =
-          currentProf &&
-          (inscricao?.projeto?.professorResponsavelId === currentProf.id ||
-            inscricao?.projeto?.professoresParticipantes.some((p) => p.professorId === currentProf.id))
-        const isStudentOwner = inscricao?.aluno?.userId === userId
-        if (isProfOwner || isStudentOwner) {
-          isAuthorized = true
-        }
-      }
+      if (aluno?.userId === userId) return true
+      if (professor?.userId === userId) return true
+      if (inscricaoDocumentos.some((doc) => doc.inscricao?.aluno?.userId === userId)) return true
 
-      if (userRole === ADMIN) {
-        isAuthorized = true
-      }
+      const projetos = [
+        ...projetoDocumentos.map((doc) => doc.projeto),
+        ...inscricaoDocumentos.map((doc) => doc.inscricao?.projeto),
+      ]
+      if (projetos.length === 0) return false
 
-      if (!isAuthorized) {
+      const currentProf = await repo.findProfessorByUserId(userId)
+      if (!currentProf) return false
+
+      return projetos.some(
+        (projeto) =>
+          projeto?.professorResponsavelId === currentProf.id ||
+          projeto?.professoresParticipantes?.some((p) => p.professorId === currentProf.id)
+      )
+    },
+
+    async getPresignedUrl(fileId: string, action: FileAction, userId: number, userRole: UserRole) {
+      if (!(await this.canAccessFile(fileId, userId, userRole))) {
         log.warn(`Unauthorized access attempt for fileId: ${fileId} by userId: ${userId}`)
         throw new ForbiddenError('Acesso não autorizado')
       }
@@ -213,31 +208,7 @@ export function createFileService(db: Database) {
     },
 
     async getFileMetadataForUser(fileId: string, userId: number, userRole: UserRole) {
-      // Verificar autorização usando a mesma lógica do getPresignedUrl
-      const [aluno, professor, projetoDocumento] = await Promise.all([
-        repo.findAlunoByFileId(fileId),
-        repo.findProfessorByFileId(fileId),
-        repo.findProjetoDocumentoByFileId(fileId),
-      ])
-
-      let isAuthorized = false
-      if (aluno && aluno.userId === userId) {
-        isAuthorized = true
-      } else if (professor && professor.userId === userId) {
-        isAuthorized = true
-      } else if (
-        projetoDocumento &&
-        (projetoDocumento.projeto?.professorResponsavelId === userId ||
-          projetoDocumento.projeto?.professoresParticipantes.some((p) => p.professorId === userId))
-      ) {
-        isAuthorized = true
-      }
-
-      if (userRole === ADMIN) {
-        isAuthorized = true
-      }
-
-      if (!isAuthorized) {
+      if (!(await this.canAccessFile(fileId, userId, userRole))) {
         log.warn(`Unauthorized metadata access attempt for fileId: ${fileId} by userId: ${userId}`)
         throw new ForbiddenError('Acesso não autorizado')
       }

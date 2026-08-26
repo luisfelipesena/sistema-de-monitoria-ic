@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { useViewFile } from "@/hooks/use-files"
 import { useToast } from "@/hooks/use-toast"
 import { getSemestreNumero, inscriptionDetailSchema, PROJETO_STATUS_APPROVED, Semestre, TIPO_VAGA_BOLSISTA } from "@/types"
 import { api } from "@/utils/api"
@@ -34,7 +35,6 @@ function GradeApplicationsContent() {
 
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [evaluatingInscricaoObj, setEvaluatingInscricaoObj] = useState<InscricaoComDetalhes | null>(null)
-  const [loadingFileId, setLoadingFileId] = useState<string | null>(null)
   const [emailsModalOpen, setEmailsModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -52,25 +52,9 @@ function GradeApplicationsContent() {
     }
   }, [projetoIdFromUrl])
 
-  const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation()
+  const { viewFile, loadingFileId } = useViewFile()
 
-  const handleViewHistorico = async (fileId: string) => {
-    setLoadingFileId(fileId)
-    try {
-      const url = await getPresignedUrlMutation.mutateAsync({ fileId, action: "view" })
-      if (url) {
-        window.open(url, "_blank")
-      }
-    } catch {
-      toast({
-        title: "Erro ao abrir histórico",
-        description: "Não foi possível carregar o arquivo do Histórico Escolar.",
-        variant: "destructive",
-      })
-    } finally {
-      setLoadingFileId(null)
-    }
-  }
+  const handleViewHistorico = (fileId: string) => viewFile(fileId, "histórico escolar")
 
   // Buscar projetos do professor
   const { data: projetos, isLoading: loadingProjetos } = api.projeto.getProjetos.useQuery()
