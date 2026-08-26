@@ -90,13 +90,18 @@ function GradeApplicationsContent() {
       .join(", ")
   }, [inscricoes])
 
+  const utils = api.useUtils()
+
   // Mutation para avaliar candidato
   const evaluateApplicationMutation = api.inscricao.evaluateApplications.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Sucesso!",
         description: "Notas salvas com sucesso!",
       })
+      if (selectedProjectId) {
+        await utils.inscricao.getInscricoesProjeto.invalidate({ projetoId: selectedProjectId })
+      }
       setEvaluatingInscricaoObj(null)
       setNotas({
         notaDisciplina: "",
@@ -278,21 +283,16 @@ function GradeApplicationsContent() {
                             size="sm"
                             onClick={() => {
                               setEvaluatingInscricaoObj(inscricao)
-                              if (inscricao.notaDisciplina) {
-                                setNotas({
-                                  notaDisciplina: inscricao.notaDisciplina.toString(),
-                                  notaSelecao: inscricao.notaSelecao?.toString() || "",
-                                  coeficienteRendimento: inscricao.coeficienteRendimento?.toString() || "",
-                                  feedbackProfessor: inscricao.feedbackProfessor || "",
-                                })
-                              } else {
-                                setNotas({
-                                  notaDisciplina: "",
-                                  notaSelecao: "",
-                                  coeficienteRendimento: "",
-                                  feedbackProfessor: "",
-                                })
-                              }
+                              const hasGrades = inscricao.notaDisciplina !== null && inscricao.notaDisciplina !== undefined
+                              setNotas({
+                                notaDisciplina: hasGrades ? inscricao.notaDisciplina!.toString() : "",
+                                notaSelecao: inscricao.notaSelecao !== null && inscricao.notaSelecao !== undefined ? inscricao.notaSelecao.toString() : "",
+                                coeficienteRendimento:
+                                  inscricao.coeficienteRendimento !== null && inscricao.coeficienteRendimento !== undefined
+                                    ? inscricao.coeficienteRendimento.toString()
+                                    : (inscricao.aluno?.cr?.toString() || ""),
+                                feedbackProfessor: inscricao.feedbackProfessor || "",
+                              })
                             }}
                           >
                             {inscricao.notaFinal ? "Editar" : "Avaliar"}
