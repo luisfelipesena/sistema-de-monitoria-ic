@@ -2,14 +2,14 @@ import type { db } from '@/server/db'
 import {
   alunoTable,
   inscricaoTable,
-  periodoInscricaoTable,
   projetoTable,
   relatorioFinalDisciplinaTable,
   relatorioFinalMonitorTable,
   vagaTable,
 } from '@/server/db/schema'
+import { endedEnrollmentPeriodCondition, enrollmentPeriodsEndingSoonCondition } from '@/server/lib/enrollment-period'
 import { PROJETO_STATUS_APPROVED, RELATORIO_STATUS_SUBMITTED } from '@/types'
-import { and, eq, gte, inArray, isNull, lte, not, or } from 'drizzle-orm'
+import { and, eq, inArray, isNull, lte, not, or } from 'drizzle-orm'
 
 type Database = typeof db
 
@@ -18,13 +18,9 @@ export function createDeadlineReminderRepository(db: Database) {
     /**
      * Find inscription periods ending within X days.
      */
-    async findPeriodosEndingSoon(diasAntes: number) {
-      const hoje = new Date()
-      const dataLimite = new Date()
-      dataLimite.setDate(hoje.getDate() + diasAntes)
-
+    async findPeriodosEndingSoon(diasAntes: number, now: Date = new Date()) {
       return db.query.periodoInscricaoTable.findMany({
-        where: and(gte(periodoInscricaoTable.dataFim, hoje), lte(periodoInscricaoTable.dataFim, dataLimite)),
+        where: enrollmentPeriodsEndingSoonCondition(diasAntes, now),
       })
     },
 
@@ -175,12 +171,10 @@ export function createDeadlineReminderRepository(db: Database) {
      * Find approved projects whose selection/acceptance period has ended,
      * but no student accepted a monitoria position.
      */
-    async findProjectsWithoutAcceptedMonitorsAfterDeadline() {
-      const agora = new Date()
-
+    async findProjectsWithoutAcceptedMonitorsAfterDeadline(now: Date = new Date()) {
       // Find inscription periods that have ended
       const endedPeriodos = await db.query.periodoInscricaoTable.findMany({
-        where: lte(periodoInscricaoTable.dataFim, agora),
+        where: endedEnrollmentPeriodCondition(now),
         columns: { ano: true, semestre: true },
       })
 

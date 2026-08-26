@@ -90,7 +90,7 @@ export default function InscricaoMonitoria() {
                 <h3 className="font-medium text-green-800">Período de Inscrições Ativo</h3>
                 <p className="text-sm text-green-700 mt-1">
                   {activePeriod.ano}.{getSemestreNumero(activePeriod.semestre)} • Até{" "}
-                  {activePeriod.dataFim.toLocaleDateString("pt-BR", { timeZone: "UTC" })} • {activePeriod.totalProjetos} projetos disponíveis
+                  {activePeriod.dataFim.toLocaleDateString("pt-BR", { timeZone: "UTC" })} às 23:59 (horário de Salvador) • {activePeriod.totalProjetos} projetos disponíveis
                 </p>
               </div>
             </div>

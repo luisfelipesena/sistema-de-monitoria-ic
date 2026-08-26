@@ -1,11 +1,7 @@
 import { NotFoundError } from '@/server/lib/errors'
+import { getEnrollmentPeriodStatus } from '@/server/lib/enrollment-period'
 import type { Semestre, TipoEdital } from '@/types'
-import {
-  PERIODO_INSCRICAO_STATUS_ATIVO,
-  PERIODO_INSCRICAO_STATUS_FINALIZADO,
-  PERIODO_INSCRICAO_STATUS_FUTURO,
-  type PeriodoInscricaoStatus,
-} from '@/types/schemas'
+import { PERIODO_INSCRICAO_STATUS_ATIVO, PERIODO_INSCRICAO_STATUS_FINALIZADO } from '@/types/schemas'
 import { logger } from '@/utils/logger'
 import type { EditalRepository } from './edital-repository'
 import { parseSlots } from './parse-slots'
@@ -13,25 +9,8 @@ import { parseSlots } from './parse-slots'
 const _log = logger.child({ context: 'EditalQueryService' })
 
 export function createEditalQueryService(repo: EditalRepository) {
-  const calculatePeriodStatus = (edital: {
-    periodoInscricao?: { dataInicio: Date; dataFim: Date } | null
-  }): PeriodoInscricaoStatus => {
-    const now = new Date()
-    let statusPeriodo: PeriodoInscricaoStatus = PERIODO_INSCRICAO_STATUS_FINALIZADO
-    if (edital.periodoInscricao) {
-      const inicio = new Date(edital.periodoInscricao.dataInicio)
-      // dataFim is midnight UTC of that day; the period should include the entire day
-      const fimEndOfDay = new Date(edital.periodoInscricao.dataFim)
-      fimEndOfDay.setUTCHours(23, 59, 59, 999)
-
-      if (now >= inicio && now <= fimEndOfDay) {
-        statusPeriodo = PERIODO_INSCRICAO_STATUS_ATIVO
-      } else if (now < inicio) {
-        statusPeriodo = PERIODO_INSCRICAO_STATUS_FUTURO
-      }
-    }
-    return statusPeriodo
-  }
+  const getPeriodStatus = (period?: { dataInicio: Date; dataFim: Date } | null) =>
+    period ? getEnrollmentPeriodStatus(period) : PERIODO_INSCRICAO_STATUS_FINALIZADO
 
   return {
     async getActivePeriod() {
@@ -60,7 +39,7 @@ export function createEditalQueryService(repo: EditalRepository) {
       const editais = await repo.findAll()
 
       return editais.map((edital) => {
-        const statusPeriodo = calculatePeriodStatus(edital)
+        const statusPeriodo = getPeriodStatus(edital.periodoInscricao)
 
         return {
           ...edital,
@@ -82,7 +61,7 @@ export function createEditalQueryService(repo: EditalRepository) {
         throw new NotFoundError('Edital', id)
       }
 
-      const statusPeriodo = calculatePeriodStatus(edital)
+      const statusPeriodo = getPeriodStatus(edital.periodoInscricao)
 
       return {
         ...edital,
@@ -101,7 +80,7 @@ export function createEditalQueryService(repo: EditalRepository) {
       const editais = await repo.findPublished()
 
       return editais.map((edital) => {
-        const statusPeriodo = calculatePeriodStatus(edital)
+        const statusPeriodo = getPeriodStatus(edital.periodoInscricao)
 
         return {
           ...edital,
@@ -125,7 +104,7 @@ export function createEditalQueryService(repo: EditalRepository) {
         periodoInscricao: edital.periodoInscricao
           ? {
               ...edital.periodoInscricao,
-              status: PERIODO_INSCRICAO_STATUS_ATIVO,
+              status: getPeriodStatus(edital.periodoInscricao),
               totalProjetos: 0,
               totalInscricoes: 0,
             }
@@ -145,7 +124,7 @@ export function createEditalQueryService(repo: EditalRepository) {
       const editais = await repo.findPendingSignature()
 
       return editais.map((edital) => {
-        const statusPeriodo = calculatePeriodStatus(edital)
+        const statusPeriodo = getPeriodStatus(edital.periodoInscricao)
 
         return {
           ...edital,
