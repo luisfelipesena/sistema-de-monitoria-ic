@@ -15,6 +15,7 @@ import {
   periodoInscricaoTable,
   professorTable,
   projetoDisciplinaTable,
+  projetoProfessorParticipanteTable,
   projetoTable,
   userTable,
   vagaTable,
@@ -245,6 +246,20 @@ export class InscricaoRepository {
         disciplinaEquivalenteId: patch.disciplinaEquivalenteId,
       })
       .where(eq(inscricaoTable.id, inscricaoId))
+  }
+
+  async isProfessorParticipante(projetoId: number, professorId: number) {
+    const [participante] = await this.db
+      .select({ projetoId: projetoProfessorParticipanteTable.projetoId })
+      .from(projetoProfessorParticipanteTable)
+      .where(
+        and(
+          eq(projetoProfessorParticipanteTable.projetoId, projetoId),
+          eq(projetoProfessorParticipanteTable.professorId, professorId)
+        )
+      )
+      .limit(1)
+    return Boolean(participante)
   }
 
   async findProfessorByUserId(userId: number) {

@@ -82,10 +82,7 @@ export class ProfessorInscricaoService {
     requireAdminOrProfessor(userRole)
 
     if (isProfessor(userRole)) {
-      const professor = await this.repository.findProfessorByUserId(userId)
-      if (!professor || projeto.professorResponsavelId !== professor.id) {
-        throw new BusinessError('Acesso negado a este projeto', 'FORBIDDEN')
-      }
+      await this.requireProjetoProfessor(projeto, userId)
     }
 
     const inscricoes = await this.repository.findInscricoesByProjetoId(projetoId)
@@ -307,6 +304,23 @@ Sistema de Monitoria IC
     return candidate
   }
 
+  // Leitura do projeto vale para o responsável e para os participantes; escrita continua só do responsável
+  private async requireProjetoProfessor(
+    projeto: { id: number; professorResponsavelId: number },
+    userId: number,
+    message = 'Acesso negado a este projeto'
+  ) {
+    const professor = await this.repository.findProfessorByUserId(userId)
+    if (!professor) {
+      throw new BusinessError('Perfil de professor não encontrado', 'NOT_FOUND')
+    }
+    if (professor.id === projeto.professorResponsavelId) return
+
+    if (!(await this.repository.isProfessorParticipante(projeto.id, professor.id))) {
+      throw new BusinessError(message, 'FORBIDDEN')
+    }
+  }
+
   async generateCommitmentTermData(userId: number, userRole: UserRole, inscricaoId: number) {
     const inscricao = await this.repository.findInscricaoWithFullDetails(inscricaoId)
     if (!inscricao) {
@@ -315,10 +329,7 @@ Sistema de Monitoria IC
 
     // Allow student, professor, or admin to generate term data
     if (isProfessor(userRole)) {
-      const professor = await this.repository.findProfessorByUserId(userId)
-      if (!professor || inscricao.projeto.professorResponsavelId !== professor.id) {
-        throw new BusinessError('Acesso negado a esta inscrição', 'FORBIDDEN')
-      }
+      await this.requireProjetoProfessor(inscricao.projeto, userId, 'Acesso negado a esta inscrição')
     } else {
       // For students (and implicitly admins who can access anything)
       const aluno = await this.repository.findAlunoByUserId(userId)
