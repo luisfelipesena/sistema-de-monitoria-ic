@@ -8,7 +8,7 @@ export default function LandingPageComponent() {
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <header className="sticky top-0 z-10 p-4 border-b bg-white/80 backdrop-blur-sm">
         <div className="container flex flex-col sm:flex-row items-center justify-between mx-auto gap-4 sm:gap-0">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <img src="/images/ic-logo-clean.png" alt="Monitoria IC" className="h-12 w-12" />
             <span className="text-xl font-bold text-[hsl(195,71%,40%)]">Sistema de Monitoria IC</span>
           </div>

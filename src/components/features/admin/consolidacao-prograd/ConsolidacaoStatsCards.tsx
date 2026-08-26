@@ -13,7 +13,7 @@ export function ConsolidacaoStatsCards({ data }: ConsolidacaoStatsCardsProps) {
   const totalBolsas = monitoresBolsistas.reduce((sum, item) => sum + (item.monitoria.valorBolsa || 0), 0)
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <DataCard icon={Users} label="Total de Monitores" value={safeData.length} variant="primary" />
       <DataCard icon={Award} label="Bolsistas" value={monitoresBolsistas.length} variant="warning" />
       <DataCard icon={Users} label="Voluntários" value={monitoresVoluntarios.length} variant="success" />

@@ -338,7 +338,7 @@ export default function ProfessoresPage() {
           const accountStatus = professor.professorProfile?.accountStatus
           const isAtivo = accountStatus === "ACTIVE" || accountStatus === null || accountStatus === undefined
           return (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -383,7 +383,7 @@ export default function ProfessoresPage() {
     <PagesLayout title="Gerenciamento de Professores" subtitle="Gerencie professores e envie convites">
       <div className="space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-start">
@@ -454,7 +454,7 @@ export default function ProfessoresPage() {
               </DialogHeader>
 
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="email">Email Institucional *</Label>
                     <Input
@@ -482,7 +482,7 @@ export default function ProfessoresPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="departamento">Departamento *</Label>
                     <Select
@@ -599,7 +599,7 @@ export default function ProfessoresPage() {
 
             {selectedProfessor && selectedProfessor.professorProfile && (
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Nome Completo</Label>
                     <p className="text-sm">{selectedProfessor.professorProfile.nomeCompleto}</p>
@@ -611,7 +611,7 @@ export default function ProfessoresPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Matrícula SIAPE</Label>
                     <p className="text-sm">{selectedProfessor.professorProfile.matriculaSiape || "-"}</p>
@@ -623,7 +623,7 @@ export default function ProfessoresPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Departamento</Label>
                     <p className="text-sm">
@@ -638,7 +638,7 @@ export default function ProfessoresPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Tipo de Professor</Label>
                     <p className="text-sm">
@@ -662,7 +662,7 @@ export default function ProfessoresPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Projetos Ativos</Label>
                     <p className="text-sm">{selectedProfessor.professorProfile.projetos || 0}</p>

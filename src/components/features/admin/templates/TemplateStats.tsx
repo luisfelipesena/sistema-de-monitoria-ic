@@ -15,10 +15,10 @@ interface TemplateStatsProps {
 
 export const TemplateStats: React.FC<TemplateStatsProps> = ({ stats }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-start gap-2">
+          <div className="flex flex-wrap items-start gap-2">
             <FileText className="h-5 w-5 text-blue-600" />
             <div>
               <p className="text-sm text-muted-foreground">Total de Templates</p>
@@ -29,7 +29,7 @@ export const TemplateStats: React.FC<TemplateStatsProps> = ({ stats }) => {
       </Card>
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-start gap-2">
+          <div className="flex flex-wrap items-start gap-2">
             <BookOpen className="h-5 w-5 text-green-600" />
             <div>
               <p className="text-sm text-muted-foreground">{stats.totalProfessores !== undefined ? 'Professores' : 'Disciplinas'}</p>
@@ -40,7 +40,7 @@ export const TemplateStats: React.FC<TemplateStatsProps> = ({ stats }) => {
       </Card>
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-start gap-2">
+          <div className="flex flex-wrap items-start gap-2">
             <Target className="h-5 w-5 text-purple-600" />
             <div>
               <p className="text-sm text-muted-foreground">Cobertura</p>
@@ -51,7 +51,7 @@ export const TemplateStats: React.FC<TemplateStatsProps> = ({ stats }) => {
       </Card>
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-start gap-2">
+          <div className="flex flex-wrap items-start gap-2">
             <Clock className="h-5 w-5 text-orange-600" />
             <div>
               <p className="text-sm text-muted-foreground">Sem Template</p>

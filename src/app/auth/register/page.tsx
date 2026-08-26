@@ -140,7 +140,7 @@ export default function RegisterPage() {
                         <RadioGroup
                           onValueChange={field.onChange}
                           value={field.value}
-                          className="grid grid-cols-2 gap-3"
+                          className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                         >
                           <label className="flex items-center space-x-3 rounded-lg border-2 border-slate-200 p-4 hover:border-blue-500 hover:bg-blue-50 cursor-pointer transition-all">
                             <RadioGroupItem value="student" id="role-student" />

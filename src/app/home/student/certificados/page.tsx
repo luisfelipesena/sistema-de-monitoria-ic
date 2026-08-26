@@ -78,7 +78,7 @@ export default function CertificadosAlunoPage() {
 
       {/* Info Card */}
       <Card className="border-blue-200 bg-blue-50">
-        <CardContent className="py-4 flex items-start gap-3">
+        <CardContent className="py-4 flex flex-wrap items-start gap-3">
           <Award className="h-5 w-5 text-blue-600 mt-0.5" />
           <div className="text-sm text-blue-800">
             <p className="font-medium">Sobre os Certificados</p>
@@ -92,7 +92,7 @@ export default function CertificadosAlunoPage() {
 
       {/* Certificados Disponíveis */}
       <div>
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold mb-4 flex flex-wrap items-center gap-2">
           <FileText className="h-5 w-5" />
           Certificados Disponíveis
         </h2>
@@ -141,7 +141,7 @@ export default function CertificadosAlunoPage() {
                         Período: {formatDate(cert.dataInicio)} - {formatDate(cert.dataFim)}
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -192,7 +192,7 @@ export default function CertificadosAlunoPage() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">Dados do Monitor</CardTitle>
                   </CardHeader>
-                  <CardContent className="grid grid-cols-2 gap-4 text-sm">
+                  <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-muted-foreground">Nome:</span>
                       <p className="font-medium">{preview.monitor.nome}</p>
@@ -236,7 +236,7 @@ export default function CertificadosAlunoPage() {
                         <p className="font-medium">{TIPO_VAGA_LABELS[preview.tipo as TipoVaga]}</p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <span className="text-muted-foreground">Professor:</span>
                         <p className="font-medium">{preview.professor}</p>
@@ -246,7 +246,7 @@ export default function CertificadosAlunoPage() {
                         <p className="font-medium">{preview.departamento}</p>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <span className="text-muted-foreground">Início:</span>
                         <p className="font-medium">{formatDate(preview.periodo.inicio)}</p>
@@ -260,7 +260,7 @@ export default function CertificadosAlunoPage() {
                 </Card>
 
                 {/* Elegibilidade */}
-                <div className="flex items-center gap-2 text-green-600">
+                <div className="flex flex-wrap items-center gap-2 text-green-600">
                   <CheckCircle className="h-5 w-5" />
                   <span className="text-sm font-medium">Certificado disponível para download</span>
                 </div>

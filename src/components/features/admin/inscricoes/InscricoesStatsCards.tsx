@@ -12,7 +12,7 @@ interface InscricoesStatsCardsProps {
 
 export function InscricoesStatsCards({ stats }: InscricoesStatsCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <DataCard label="Total de Inscrições" value={stats.total} icon={FileText} />
       <DataCard label="Aguardando Seleção" value={stats.submitted} icon={Clock} variant="warning" />
       <DataCard label="Selecionados" value={stats.selected} icon={CheckCircle} variant="success" />

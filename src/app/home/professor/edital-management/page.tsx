@@ -73,7 +73,7 @@ export default function ProfessorEditalManagementPage() {
 
       {/* Orientação ao Professor */}
       <div className="mb-6 rounded-lg border bg-card p-4 text-card-foreground shadow-sm">
-        <div className="flex items-start gap-3">
+        <div className="flex flex-wrap items-start gap-3">
           <Info className="h-5 w-5 text-primary mt-0.5 shrink-0" />
           <div className="text-sm space-y-1">
             <h4 className="font-semibold text-slate-900 dark:text-slate-100">
@@ -100,7 +100,7 @@ export default function ProfessorEditalManagementPage() {
       {/* Meus Projetos Aprovados */}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex flex-wrap items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />
             Meus projetos no EDITAL ({projetosAprovados.length})
           </h2>
@@ -151,7 +151,7 @@ export default function ProfessorEditalManagementPage() {
                             </CardTitle>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <Button
                               variant="outline"
                               size="sm"
@@ -190,7 +190,7 @@ export default function ProfessorEditalManagementPage() {
             <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
               Você ainda não possui projetos aprovados no período vigente. Submeta novas propostas ou acompanhe o status de aprovação.
             </p>
-            <div className="flex justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-3">
               <Link href="/home/professor/projetos/novo">
                 <Button>Criar Novo Projeto</Button>
               </Link>

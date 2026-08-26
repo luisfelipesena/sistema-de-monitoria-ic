@@ -26,7 +26,7 @@ function NotFoundContent() {
           <h2 className="text-xl font-semibold text-gray-700">Página não encontrada</h2>
           <p className="text-gray-500">A página que você está procurando não existe ou foi movida.</p>
         </div>
-        <div className="flex justify-center gap-4">
+        <div className="flex flex-wrap justify-center gap-4">
           <Button onClick={handleGoBack} variant="outline">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
@@ -57,7 +57,7 @@ export default function NotFound() {
         <SidebarLayout pathname={pathname} />
         <SidebarInset>
           <Header />
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="flex-1 min-w-0 p-6 overflow-auto">
             <NotFoundContent />
           </main>
         </SidebarInset>

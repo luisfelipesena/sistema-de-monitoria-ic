@@ -78,7 +78,7 @@ export function ProjectFormView({
       title={isEditingTemplate ? "Editar Template Padrão" : "Criar Projeto de Monitoria"}
       subtitle={`Disciplina: ${selectedDisciplina?.codigo} - ${selectedDisciplina?.nome}`}
       actions={
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={onBackToSelect}>
             <RotateCcw className="h-4 w-4 mr-2" />
             Escolher Outra Disciplina
@@ -109,7 +109,7 @@ export function ProjectFormView({
           ) : (
             <>
               {/* Visual indicator that template is done and now on project form */}
-              <div className="rounded-lg border border-green-200 bg-green-50 p-4 flex items-start gap-3">
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4 flex flex-wrap items-start gap-3">
                 <div className="flex items-center justify-center h-8 w-8 rounded-full bg-green-100 shrink-0 mt-0.5">
                   <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -150,7 +150,7 @@ export function ProjectFormView({
                 <h3 className="text-lg font-semibold">
                   {isEditingTemplate ? "Preview do Template" : "Preview do Documento"}
                 </h3>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {!isEditingTemplate && hasTemplate && (
                     <Button
                       variant="outline"

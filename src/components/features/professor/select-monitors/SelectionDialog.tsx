@@ -152,7 +152,7 @@ export function SelectionDialog({
         {/* Motivo de remoção inline */}
         {pendingDeselection && (
           <div className="border-2 border-red-300 bg-red-50 rounded-lg p-4 space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-red-600" />
               <p className="text-sm font-semibold text-red-800">
                 Motivo para remover <strong>{pendingCandidateName}</strong> da bolsa:
@@ -165,7 +165,7 @@ export function SelectionDialog({
               className="border-red-200"
               autoFocus
             />
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 size="sm"
                 variant="destructive"

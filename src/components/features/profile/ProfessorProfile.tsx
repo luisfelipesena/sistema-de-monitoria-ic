@@ -142,7 +142,7 @@ export function ProfessorProfile() {
           {!isEditing ? (
             <Button onClick={() => setIsEditing(true)}>Editar</Button>
           ) : (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={handleCancel}>
                 Cancelar
               </Button>

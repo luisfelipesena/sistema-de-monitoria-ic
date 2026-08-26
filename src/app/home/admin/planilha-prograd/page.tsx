@@ -278,7 +278,7 @@ export default function PlanilhaPROGRADPage() {
         {/* Configuração */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <FileSpreadsheet className="h-5 w-5" />
               Configuração da Planilha
             </CardTitle>
@@ -314,7 +314,7 @@ export default function PlanilhaPROGRADPage() {
               </div>
             </div>
 
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-wrap gap-2 mt-4">
               <Button onClick={handleLoadData} disabled={isLoading} variant="outline">
                 <FileSpreadsheet className="h-4 w-4 mr-2" />
                 {isLoading ? "Carregando..." : "Carregar Dados"}
@@ -347,7 +347,7 @@ export default function PlanilhaPROGRADPage() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button onClick={handleDownloadXLSX} variant="outline">
                       <Download className="h-4 w-4 mr-2" />
                       Baixar Excel
@@ -433,7 +433,7 @@ export default function PlanilhaPROGRADPage() {
                 <p className="text-sm font-medium text-blue-900">Destinatários:</p>
                 <ul className="text-sm text-blue-800 space-y-1">
                   {emailDestinatarios?.icEmail && (
-                    <li className="flex items-center gap-2">
+                    <li className="flex flex-wrap items-center gap-2">
                       <Mail className="h-4 w-4" />
                       <span>
                         Instituto de Computação: <strong>{emailDestinatarios.icEmail}</strong>
@@ -441,7 +441,7 @@ export default function PlanilhaPROGRADPage() {
                     </li>
                   )}
                   {emailDestinatarios?.departamentoEmail && (
-                    <li className="flex items-center gap-2">
+                    <li className="flex flex-wrap items-center gap-2">
                       <Mail className="h-4 w-4" />
                       <span>
                         {emailDestinatarios.departamentoNome || "Departamento"}:{" "}
@@ -471,7 +471,7 @@ export default function PlanilhaPROGRADPage() {
                 </p>
               </div>
 
-              <div className="flex gap-2 justify-end">
+              <div className="flex flex-wrap gap-2 justify-end">
                 <Button variant="outline" onClick={() => setShowEmailModal(false)}>
                   Cancelar
                 </Button>

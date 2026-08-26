@@ -321,7 +321,7 @@ function NumberFilterWithSuggestions({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="h-8 flex-1"
+          className="h-8 flex-1 min-w-0"
         />
         <Button
           type="button"

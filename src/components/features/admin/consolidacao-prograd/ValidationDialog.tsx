@@ -27,7 +27,7 @@ export function ValidationDialog({ validationData, showValidation }: ValidationD
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex flex-wrap items-center gap-2">
           {validationData.valido ? (
             <CheckCircle className="h-5 w-5 text-green-600" />
           ) : (

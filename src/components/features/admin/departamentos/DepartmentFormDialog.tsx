@@ -53,7 +53,7 @@ export function DepartmentFormDialog({
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="nome">Nome do Departamento *</Label>
               <Input
@@ -106,7 +106,7 @@ export function DepartmentFormDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="email">Email</Label>
               <Input

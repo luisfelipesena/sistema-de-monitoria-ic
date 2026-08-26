@@ -84,7 +84,7 @@ export default function InscricaoMonitoria() {
         <p className="text-muted-foreground">Encontre e inscreva-se em projetos de monitoria disponíveis.</p>
         {activePeriod ? (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-start gap-3">
+            <div className="flex flex-wrap items-start gap-3">
               <Calendar className="h-5 w-5 text-green-600 mt-0.5" />
               <div>
                 <h3 className="font-medium text-green-800">Período de Inscrições Ativo</h3>
@@ -97,7 +97,7 @@ export default function InscricaoMonitoria() {
           </div>
         ) : (
           <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-start gap-3">
+            <div className="flex flex-wrap items-start gap-3">
               <Clock className="h-5 w-5 text-yellow-600 mt-0.5" />
               <div>
                 <h3 className="font-medium text-yellow-800">Período de Inscrições Fechado</h3>
@@ -189,7 +189,7 @@ export default function InscricaoMonitoria() {
                   <div className="space-y-1">
                     <CardTitle className="text-xl">{projeto.titulo}</CardTitle>
                     <CardDescription>
-                      <span className="flex items-center gap-4 text-sm">
+                      <span className="flex flex-wrap items-center gap-4 text-sm">
                         <span className="flex items-center gap-1">
                           <User className="h-4 w-4" />
                           {projeto.professorResponsavelNome}
@@ -207,22 +207,22 @@ export default function InscricaoMonitoria() {
 
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground line-clamp-3">{projeto.descricao}</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
                       {projeto.ano}.{getSemestreNumero(projeto.semestre)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     <span>{projeto.cargaHorariaSemana}h/semana</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Award className="h-4 w-4 text-blue-600" />
                     <span>{projeto.bolsasDisponibilizadas || 0} bolsas</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Users className="h-4 w-4 text-green-600" />
                     <span>{projeto.voluntariosSolicitados || 0} voluntários</span>
                   </div>
@@ -230,13 +230,13 @@ export default function InscricaoMonitoria() {
 
                 <SelectionScheduleCard schedule={projeto.selecao} />
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex flex-wrap gap-2 pt-2">
                   <Button
                     onClick={() => openWizard(projeto.id)}
                     disabled={
                       (projeto.bolsasDisponibilizadas ?? 0) === 0 && (projeto.voluntariosSolicitados ?? 0) === 0
                     }
-                    className="flex-1"
+                    className="flex-1 min-w-0"
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     Inscrever-se

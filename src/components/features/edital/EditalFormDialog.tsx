@@ -235,7 +235,7 @@ export function EditalFormDialog({
             {/* Informações Básicas */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-muted-foreground">Informações Básicas</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="tipo"
@@ -325,7 +325,7 @@ export function EditalFormDialog({
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="ano"
@@ -401,7 +401,7 @@ export function EditalFormDialog({
                 Defina o período em que os professores podem criar, editar e submeter projetos.
                 Fora deste período, apenas administradores poderão realizar alterações.
               </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="dataInicioAlteracao"
@@ -446,7 +446,7 @@ export function EditalFormDialog({
               <p className="text-xs text-muted-foreground">
                 Defina as datas de início e fim para os alunos realizarem suas inscrições
               </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="dataInicioInscricao"
@@ -498,7 +498,7 @@ export function EditalFormDialog({
               <p className="text-xs text-muted-foreground">
                 Defina as datas de início e fim do período de seleção/provas (opcional)
               </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="dataInicioSelecao"
@@ -543,7 +543,7 @@ export function EditalFormDialog({
               <p className="text-xs text-muted-foreground">
                 Defina o range de horários em que os professores poderão agendar suas provas de seleção
               </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="horarioInicioSelecao"

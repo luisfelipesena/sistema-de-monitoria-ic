@@ -194,7 +194,7 @@ export default function RelatoriosFinaisPage() {
         <CardHeader>
           <CardTitle className="text-lg">Filtros</CardTitle>
         </CardHeader>
-        <CardContent className="flex gap-4">
+        <CardContent className="flex flex-wrap gap-4">
           <div className="w-40">
             <Label>Ano</Label>
             <Select

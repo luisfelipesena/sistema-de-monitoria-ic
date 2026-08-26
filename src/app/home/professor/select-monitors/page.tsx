@@ -93,7 +93,7 @@ export default function SelectMonitorsPage() {
         {pendingProjects.length > 0 && (
           <Card className="border-amber-400 bg-amber-50">
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base text-amber-800">
+              <CardTitle className="flex flex-wrap items-center gap-2 text-base text-amber-800">
                 <AlertTriangle className="h-5 w-5 text-amber-600" />
                 Pendências de Seleção ({pendingProjects.length})
               </CardTitle>

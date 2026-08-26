@@ -32,11 +32,11 @@ export function SelectionActionsPanel({
   return (
     <div className="space-y-6">
       {/* Selection Summary */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Award className="h-5 w-5 text-yellow-500" />
                 <span className="font-medium">Bolsistas</span>
               </div>
@@ -49,7 +49,7 @@ export function SelectionActionsPanel({
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Users className="h-5 w-5 text-blue-500" />
                 <span className="font-medium">Voluntários</span>
               </div>
@@ -66,7 +66,7 @@ export function SelectionActionsPanel({
         {/* Bolsistas Section */}
         {(project.bolsasDisponibilizadas || 0) > 0 && (
           <div>
-            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+            <h4 className="text-sm font-medium mb-3 flex flex-wrap items-center gap-2">
               <Award className="h-4 w-4 text-yellow-500" />
               Candidatos a Bolsista
             </h4>
@@ -90,7 +90,7 @@ export function SelectionActionsPanel({
         {/* Voluntários Section */}
         {(project.voluntariosSolicitados || 0) > 0 && (
           <div>
-            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+            <h4 className="text-sm font-medium mb-3 flex flex-wrap items-center gap-2">
               <Users className="h-4 w-4 text-blue-500" />
               Candidatos a Voluntário
             </h4>
@@ -148,7 +148,7 @@ function CandidateSelectionCard({ candidate, index, isSelected, onClick, type }:
       } ${wasRejectedByStudent ? "border-red-300 bg-red-50" : ""} ${wasRemovedByProfessor ? "border-orange-200 bg-orange-50/50" : ""} ${isCurrentlySelected && !isSelected ? "border-green-300 bg-green-50" : ""}`}
       onClick={onClick}
     >
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className={`flex items-center justify-center w-8 h-8 rounded-full ${bgColor} text-sm font-medium`}>
           {index + 1}
         </div>
@@ -175,7 +175,7 @@ function CandidateSelectionCard({ candidate, index, isSelected, onClick, type }:
           )}
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {isSelected ? (
           <Check className="h-5 w-5 text-primary" />
         ) : (

@@ -152,7 +152,7 @@ function GradeApplicationsContent() {
   return (
     <PagesLayout title="Avaliar Candidatos">
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <ClipboardCheck className="h-8 w-8 text-blue-600" />
           <p className="text-gray-600">Insira as notas dos candidatos que participaram do processo seletivo</p>
         </div>
@@ -160,7 +160,7 @@ function GradeApplicationsContent() {
         {/* Seleção de Projeto */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <Users className="h-5 w-5" />
               Selecionar Projeto
             </CardTitle>
@@ -206,7 +206,7 @@ function GradeApplicationsContent() {
                     setEmailsModalOpen(true)
                     setCopied(false)
                   }}
-                  className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                  className="flex flex-wrap items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50"
                 >
                   <Mail className="h-4 w-4" />
                   Copiar E-mails
@@ -311,7 +311,7 @@ function GradeApplicationsContent() {
       >
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
+            <DialogTitle className="flex flex-wrap items-center gap-2 text-xl">
               <Calculator className="h-5 w-5 text-blue-600" />
               Avaliar Candidato: {evaluatingInscricaoObj?.aluno?.nomeCompleto}
             </DialogTitle>
@@ -330,7 +330,7 @@ function GradeApplicationsContent() {
               </Badge>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="notaDisciplina">Nota Disciplina (0-10)</Label>
                 <Input
@@ -439,7 +439,7 @@ function GradeApplicationsContent() {
       <Dialog open={emailsModalOpen} onOpenChange={setEmailsModalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
+            <DialogTitle className="flex flex-wrap items-center gap-2 text-xl">
               <Mail className="h-5 w-5 text-blue-600" />
               E-mails dos Candidatos
             </DialogTitle>
@@ -454,7 +454,7 @@ function GradeApplicationsContent() {
               rows={5}
               className="text-sm font-mono bg-slate-50 border-slate-300 focus-visible:ring-1"
             />
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               <Button variant="outline" onClick={() => setEmailsModalOpen(false)}>
                 Fechar
               </Button>
@@ -467,7 +467,7 @@ function GradeApplicationsContent() {
                     description: "Lista de e-mails copiada para a área de transferência.",
                   })
                 }}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                className="flex flex-wrap items-center gap-2 bg-blue-600 hover:bg-blue-700"
               >
                 {copied ? <Check className="h-4 w-4 text-green-300" /> : <Copy className="h-4 w-4" />}
                 {copied ? "Copiado!" : "Copiar para Área de Transferência"}

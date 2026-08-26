@@ -219,7 +219,7 @@ export default function DisciplinasPage() {
         header: "Ações",
         id: "actions",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -305,7 +305,7 @@ export default function DisciplinasPage() {
     <PagesLayout title="Disciplinas" subtitle="Gerencie as disciplinas do sistema" actions={actions}>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <BookOpen className="h-5 w-5" />
             Lista de Disciplinas
           </CardTitle>

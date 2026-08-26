@@ -60,13 +60,13 @@ export default function StatusPage() {
         {/* Status Geral */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <FileCheck className="h-5 w-5" />
               Status Geral
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">{status.totalInscricoes}</div>
                 <div className="text-sm text-muted-foreground">Inscrições Realizadas</div>
@@ -87,7 +87,7 @@ export default function StatusPage() {
         {status.monitoriaAtiva && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <Award className="h-5 w-5" />
                 Monitoria Atual
               </CardTitle>
@@ -103,7 +103,7 @@ export default function StatusPage() {
                 <StatusBadge status={status.monitoriaAtiva.status} />
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {status.monitoriaAtiva.tipo === TIPO_VAGA_BOLSISTA ? (
                   <Award className="h-4 w-4 text-yellow-600" />
                 ) : (
@@ -141,7 +141,7 @@ export default function StatusPage() {
         {status.historicoAtividades && status.historicoAtividades.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <Clock className="h-5 w-5" />
                 Histórico de Atividades
               </CardTitle>
@@ -149,7 +149,7 @@ export default function StatusPage() {
             <CardContent>
               <div className="space-y-4">
                 {status.historicoAtividades.map((atividade: any, index: number) => (
-                  <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
+                  <div key={index} className="flex flex-wrap items-start gap-3 p-3 border rounded-lg">
                     <div className="flex-shrink-0 mt-1">
                       {atividade.tipo === 'APROVACAO' ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
@@ -159,7 +159,7 @@ export default function StatusPage() {
                         <Calendar className="h-4 w-4 text-gray-600" />
                       )}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="font-medium">{atividade.descricao}</div>
                       <div className="text-sm text-muted-foreground">
                         {new Date(atividade.data).toLocaleDateString('pt-BR')}
@@ -176,7 +176,7 @@ export default function StatusPage() {
         {status.proximasAcoes && status.proximasAcoes.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <Calendar className="h-5 w-5" />
                 Próximas Ações
               </CardTitle>
@@ -184,7 +184,7 @@ export default function StatusPage() {
             <CardContent>
               <div className="space-y-3">
                 {status.proximasAcoes.map((acao: any, index: number) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div key={index} className="flex flex-wrap items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                     <Calendar className="h-4 w-4 text-blue-600" />
                     <div>
                       <div className="font-medium">{acao.titulo}</div>

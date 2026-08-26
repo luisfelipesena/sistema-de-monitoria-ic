@@ -125,7 +125,7 @@ export default function TermosCompromissoPage() {
     }
 
     return (
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={handleGenerateTermo} disabled={generateTermoMutation.isPending}>
           <FileText className="h-4 w-4 mr-1" />
           {generateTermoMutation.isPending ? "Gerando..." : "Gerar Termo"}
@@ -150,7 +150,7 @@ export default function TermosCompromissoPage() {
       {/* Seleção de Projeto */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <FileText className="h-5 w-5" />
             Selecionar Projeto
           </CardTitle>
@@ -206,8 +206,8 @@ export default function TermosCompromissoPage() {
                   return (
                     <div key={vaga.id} className="border rounded-lg p-4 bg-blue-50 border-blue-200">
                       <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
                             {getTipoIcon(vaga.tipoBolsa)}
                             <h3 className="font-semibold text-lg">{vaga.aluno.nomeCompleto}</h3>
                           </div>
@@ -220,7 +220,7 @@ export default function TermosCompromissoPage() {
                               {vaga.dataInicio ? new Date(vaga.dataInicio).toLocaleDateString("pt-BR") : "N/A"}
                             </p>
                           </div>
-                          <div className="flex items-center gap-2 mb-3">
+                          <div className="flex flex-wrap items-center gap-2 mb-3">
                             {getStatusBadge(vaga.tipoBolsa)}
                             {statusTermo && getTermoStatusBadge(statusTermo.statusTermo)}
                           </div>

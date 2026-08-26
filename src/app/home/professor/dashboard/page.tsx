@@ -169,7 +169,7 @@ export default function DashboardProfessor() {
   const colunasProjetos: ColumnDef<DashboardProjectItem>[] = [
     {
       header: () => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <List className="h-5 w-5 text-gray-400" />
           Componente curricular
         </div>
@@ -199,7 +199,7 @@ export default function DashboardProfessor() {
     },
     {
       header: () => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <FileText className="h-5 w-5 text-gray-400" />
           Projeto
         </div>
@@ -301,7 +301,7 @@ export default function DashboardProfessor() {
     },
     {
       header: () => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Eye className="h-5 w-5 text-gray-400" />
           Ações
         </div>
@@ -311,7 +311,7 @@ export default function DashboardProfessor() {
         const projeto = row.original
 
         return (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {projeto.status === PROJETO_STATUS_DRAFT && (
               <>
                 <Link href={`/home/professor/projetos/${projeto.id}/edit`}>
@@ -428,7 +428,7 @@ export default function DashboardProfessor() {
               <div className="rounded-lg border bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800 p-6 shadow-sm">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
-                    <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100 flex flex-wrap items-center gap-2">
                       <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                       <strong> Preenchimento de Dados para o Edital </strong>
                     </h3>

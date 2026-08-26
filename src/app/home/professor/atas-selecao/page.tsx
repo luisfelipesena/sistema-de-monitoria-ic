@@ -214,7 +214,7 @@ export default function AtasSelecaoPage() {
       {/* Seleção de Projeto com Filtros de Ano e Semestre */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <FileText className="h-5 w-5" />
             Selecionar Projeto
           </CardTitle>
@@ -294,15 +294,15 @@ export default function AtasSelecaoPage() {
       {selectedProjectId && dadosAta && (
         <Tabs defaultValue="documentos" className="w-full space-y-4">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="documentos" className="flex items-center gap-2">
+            <TabsTrigger value="documentos" className="flex flex-wrap items-center gap-2">
               <FileText className="w-4 h-4" />
               Gerar Documentos
             </TabsTrigger>
-            <TabsTrigger value="candidatos" className="flex items-center gap-2">
+            <TabsTrigger value="candidatos" className="flex flex-wrap items-center gap-2">
               <Users className="w-4 h-4" />
               Candidatos ({dadosAta.totalInscritos})
             </TabsTrigger>
-            <TabsTrigger value="publicar" className="flex items-center gap-2">
+            <TabsTrigger value="publicar" className="flex flex-wrap items-center gap-2">
               <Send className="w-4 h-4" />
               Publicar Resultados
             </TabsTrigger>
@@ -312,7 +312,7 @@ export default function AtasSelecaoPage() {
           <TabsContent value="documentos" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex flex-wrap items-center gap-2">
                   <FileText className="h-5 w-5" />
                   Gerar Documentos de Seleção
                 </CardTitle>
@@ -374,7 +374,7 @@ export default function AtasSelecaoPage() {
           <TabsContent value="candidatos" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex flex-wrap items-center gap-2">
                   <Users className="h-5 w-5" />
                   Candidatos e Classificação
                 </CardTitle>
@@ -382,7 +382,7 @@ export default function AtasSelecaoPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div className="p-3 bg-muted rounded-lg">
                       <div className="text-2xl font-bold">{dadosAta.totalInscritos}</div>
                       <div className="text-sm text-muted-foreground">Total Inscritos</div>
@@ -439,7 +439,7 @@ export default function AtasSelecaoPage() {
           <TabsContent value="publicar" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex flex-wrap items-center gap-2">
                   <Send className="h-5 w-5 text-green-600" />
                   Publicar Resultados da Seleção
                 </CardTitle>
@@ -502,7 +502,7 @@ export default function AtasSelecaoPage() {
 
                 {/* Resumo dos Selecionados */}
                 <div className="space-y-3 pt-2">
-                  <h4 className="font-semibold text-sm flex items-center gap-2 text-slate-800">
+                  <h4 className="font-semibold text-sm flex flex-wrap items-center gap-2 text-slate-800">
                     <Award className="h-4 w-4 text-green-600" />
                     Candidatos Aprovados para Notificação (
                     {dadosAta.inscricoesBolsista.length + dadosAta.inscricoesVoluntario.length})

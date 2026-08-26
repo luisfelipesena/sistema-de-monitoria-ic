@@ -121,7 +121,7 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
     <div className="border rounded-lg bg-white shadow-sm">
       <div className="bg-blue-50 border-b px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {hasRequiredFields ? (
               <CheckCircle className="h-4 w-4 text-green-600" />
             ) : (
@@ -136,7 +136,7 @@ export const ProjectPDFPreview = function ProjectPDFPreviewComponent({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {showPreview && (
               <Button variant="outline" size="sm" onClick={handleHidePreview} className="text-gray-600 border-gray-300">
                 <EyeOff className="h-3 w-3 mr-1" />

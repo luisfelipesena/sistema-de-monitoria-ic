@@ -29,8 +29,8 @@ export function ProgradManagementCard({
         <CardTitle>Gestão de Bolsas PROGRAD</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-muted-foreground mb-1">Total PROGRAD</p>
               <p className="text-3xl font-bold text-blue-600">{totalPrograd}</p>

@@ -17,7 +17,7 @@ export function RelatorioDepartamentos({ data, isLoading, onExport, isExporting 
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Building className="h-5 w-5" />
             Relatório por Departamentos
           </div>

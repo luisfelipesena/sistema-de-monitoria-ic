@@ -170,7 +170,7 @@ export function BankDataModal({ open, onClose, onSuccess, currentData }: BankDat
             {errors.banco && <p className="text-xs text-red-500">{errors.banco}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="agencia">Agência *</Label>
               <Input

@@ -14,7 +14,7 @@ export const TemplateRequiredAlert: React.FC<TemplateRequiredAlertProps> = ({ on
     return (
       <Card className="border-amber-300 bg-amber-50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-amber-800">
+          <CardTitle className="flex flex-wrap items-center gap-2 text-amber-800">
             <AlertCircle className="h-5 w-5" />
             Template Padrão Necessário
           </CardTitle>
@@ -35,7 +35,7 @@ export const TemplateRequiredAlert: React.FC<TemplateRequiredAlertProps> = ({ on
   return (
     <Card className="border-amber-300 bg-amber-50">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-amber-800">
+        <CardTitle className="flex flex-wrap items-center gap-2 text-amber-800">
           <AlertCircle className="h-5 w-5" />
           Criar Template Padrão Primeiro
         </CardTitle>

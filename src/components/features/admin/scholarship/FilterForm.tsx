@@ -20,7 +20,7 @@ export function FilterForm({ form, onSubmit }: FilterFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex gap-4 items-end">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-wrap gap-4 items-end">
             <FormField
               control={form.control}
               name="ano"

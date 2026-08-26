@@ -29,7 +29,7 @@ function LoadingSkeleton() {
             <div className="space-y-3">
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-4">
                 <Skeleton className="h-8 w-24" />
                 <Skeleton className="h-8 w-24" />
               </div>
@@ -102,7 +102,7 @@ export default function VagasPage() {
         {/* Period Status */}
         {!hasActivePeriod && (
           <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Calendar className="h-5 w-5 text-orange-600" />
               <div>
                 <p className="text-orange-800 font-medium">Período de inscrições encerrado</p>
@@ -114,7 +114,7 @@ export default function VagasPage() {
 
         {hasActivePeriod && activePeriod && (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Calendar className="h-5 w-5 text-green-600" />
               <div>
                 <p className="text-green-800 font-medium">Período de inscrições ativo</p>
@@ -183,7 +183,7 @@ export default function VagasPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardContent className="p-4">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Award className="h-6 w-6 text-yellow-500 flex-shrink-0" />
                   <div>
                     <div className="text-xl font-bold">
@@ -197,7 +197,7 @@ export default function VagasPage() {
 
             <Card>
               <CardContent className="p-4">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Users className="h-6 w-6 text-blue-500 flex-shrink-0" />
                   <div>
                     <div className="text-xl font-bold">
@@ -211,7 +211,7 @@ export default function VagasPage() {
 
             <Card>
               <CardContent className="p-4">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <BookOpen className="h-6 w-6 text-green-500 flex-shrink-0" />
                   <div>
                     <div className="text-xl font-bold">{filteredProjetos.length}</div>
@@ -251,7 +251,7 @@ export default function VagasPage() {
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-xl">{projeto.titulo}</CardTitle>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <User className="h-4 w-4" />
                         {projeto.professorResponsavelNome}
@@ -270,22 +270,22 @@ export default function VagasPage() {
                 <p className="text-sm text-muted-foreground line-clamp-3">{projeto.descricao}</p>
 
                 {/* Período e Carga Horária */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span>
                       {projeto.ano}.{getSemestreNumero(projeto.semestre as Semestre)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
                     <span>{projeto.cargaHorariaSemana}h/semana</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Award className="h-4 w-4 text-yellow-600" />
                     <span>{projeto.bolsasDisponibilizadas || 0} bolsas</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Users className="h-4 w-4 text-blue-600" />
                     <span>{projeto.voluntariosSolicitados || 0} voluntários</span>
                   </div>
@@ -293,7 +293,7 @@ export default function VagasPage() {
 
                 {/* Público Alvo */}
                 {projeto.publicoAlvo && (
-                  <div className="flex items-start gap-2 text-sm">
+                  <div className="flex flex-wrap items-start gap-2 text-sm">
                     <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <span>Público-alvo: {projeto.publicoAlvo}</span>
                   </div>

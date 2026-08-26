@@ -45,8 +45,8 @@ export function SlotDateTimePicker({
   return (
     <div className="space-y-3">
       {value.map((slot, index) => (
-        <div key={index} className="flex items-end gap-3">
-          <div className="flex-1">
+        <div key={index} className="flex flex-wrap items-end gap-3">
+          <div className="flex-1 min-w-0">
             <label className="block text-sm font-medium text-gray-500 mb-1">
               Data
             </label>
@@ -60,7 +60,7 @@ export function SlotDateTimePicker({
             />
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <Input
               label="Horário"
               placeholder="Ex: 14:00-16:00"

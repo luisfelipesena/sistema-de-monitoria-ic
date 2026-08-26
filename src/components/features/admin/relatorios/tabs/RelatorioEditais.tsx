@@ -17,7 +17,7 @@ export function RelatorioEditais({ data, isLoading, onExport, isExporting }: Rel
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
             Relatório de Editais
           </div>

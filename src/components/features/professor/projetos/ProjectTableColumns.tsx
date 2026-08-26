@@ -248,7 +248,7 @@ export const createProjectColumns = (options: ProjectColumnsOptions): ColumnDef<
       header: "Ações",
       cell: ({ row }) => {
         const projeto = row.original
-        return <div className="flex items-center gap-2">{getActionButtons(projeto, handlers)}</div>
+        return <div className="flex flex-wrap items-center gap-2">{getActionButtons(projeto, handlers)}</div>
       },
     },
   ]

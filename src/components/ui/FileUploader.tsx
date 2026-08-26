@@ -135,7 +135,7 @@ export const FileUploader = forwardRef<HTMLInputElement, FileUploaderProps>(
             </div>
           ) : (
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
                 <Upload className="h-6 w-6 flex-shrink-0 text-blue-500" />
                 <span className="truncate text-sm">{currentFile.name}</span>
               </div>

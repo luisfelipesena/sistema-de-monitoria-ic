@@ -24,10 +24,10 @@ export function SummaryCards({ data }: SummaryCardsProps) {
   if (!data) return null
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <FileText className="h-5 w-5 text-blue-600" />
             <div>
               <p className="text-sm text-muted-foreground">Projetos</p>
@@ -40,7 +40,7 @@ export function SummaryCards({ data }: SummaryCardsProps) {
       </Card>
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Award className="h-5 w-5 text-green-600" />
             <div>
               <p className="text-sm text-muted-foreground">Bolsas</p>
@@ -53,7 +53,7 @@ export function SummaryCards({ data }: SummaryCardsProps) {
       </Card>
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Users className="h-5 w-5 text-purple-600" />
             <div>
               <p className="text-sm text-muted-foreground">Inscrições</p>
@@ -64,7 +64,7 @@ export function SummaryCards({ data }: SummaryCardsProps) {
       </Card>
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <TrendingUp className="h-5 w-5 text-orange-600" />
             <div>
               <p className="text-sm text-muted-foreground">Vagas Preenchidas</p>

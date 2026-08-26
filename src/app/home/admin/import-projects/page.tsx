@@ -75,7 +75,7 @@ export default function ImportProjectsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <Upload className="h-5 w-5" />
               Nova Importação
             </CardTitle>
@@ -87,7 +87,7 @@ export default function ImportProjectsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <FileSpreadsheet className="h-5 w-5" />
               Histórico de Importações
             </CardTitle>

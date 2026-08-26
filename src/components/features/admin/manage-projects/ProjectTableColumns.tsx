@@ -55,7 +55,7 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
       }),
       accessorKey: "titulo",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <List className="h-4 w-4 text-gray-400 flex-shrink-0" />
           <div>
             <span className="font-semibold text-base text-gray-900">{row.original.titulo}</span>
@@ -178,7 +178,7 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
     },
     {
       header: () => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Eye className="h-5 w-5 text-gray-400" />
           Ações
         </div>
@@ -189,7 +189,7 @@ export function createProjectColumns(actions: ColumnActions, groupedView: boolea
         const isLoadingPdf = actions.loadingPdfProjetoId === projeto.id
 
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {projeto.status === PROJETO_STATUS_SUBMITTED && (
               <Button
                 variant="primary"

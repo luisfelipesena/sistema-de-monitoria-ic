@@ -12,7 +12,7 @@ interface RelatorioDisciplinaStatsCardsProps {
 
 export function RelatorioDisciplinaStatsCards({ stats }: RelatorioDisciplinaStatsCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <DataCard label="Total de Disciplinas" value={stats.total} icon={FileText} />
       <DataCard label="Sem Relatório" value={stats.notCreated} icon={Clock} variant="warning" />
       <DataCard label="Em Rascunho" value={stats.draft} icon={FilePlus} />

@@ -17,7 +17,7 @@ export function RelatorioAlunos({ data, isLoading, onExport, isExporting }: Rela
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Users className="h-5 w-5" />
             Relatório de Alunos
           </div>

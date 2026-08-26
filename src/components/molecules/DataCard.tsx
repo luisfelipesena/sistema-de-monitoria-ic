@@ -22,11 +22,11 @@ const VARIANT_STYLES = {
 export function DataCard({ icon: Icon, label, value, description, variant = 'default', className }: DataCardProps) {
   return (
     <Card className={cn('hover:shadow-md transition-shadow', className)}>
-      <CardContent className="pt-6">
-        <div className="flex items-start gap-3">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-wrap items-start gap-3">
           <Icon className={cn('h-5 w-5 mt-0.5', VARIANT_STYLES[variant])} aria-hidden="true" />
-          <div className="flex-1 space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <div className="flex-1 min-w-0 space-y-1">
+            <p className="text-sm font-medium text-muted-foreground break-words">{label}</p>
             <div className="text-2xl font-bold" aria-label={`${label}: ${value}`}>
               {value}
             </div>

@@ -166,7 +166,7 @@ export default function PublicarResultadosPage() {
       {/* Seleção de Projeto */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <FileText className="h-5 w-5" />
             Selecionar Projeto
           </CardTitle>
@@ -240,7 +240,7 @@ export default function PublicarResultadosPage() {
       {dadosResultados && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <Users className="h-5 w-5" />
               Resumo dos Resultados
             </CardTitle>
@@ -248,7 +248,7 @@ export default function PublicarResultadosPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div className="p-3 bg-muted rounded-lg">
                   <div className="text-2xl font-bold">{dadosResultados.totalInscritos}</div>
                   <div className="text-sm text-muted-foreground">Total de Candidatos</div>
@@ -275,7 +275,7 @@ export default function PublicarResultadosPage() {
                 {/* Selecionados */}
                 {dadosResultados.totalCompareceram > 0 && (
                   <div className="space-y-2">
-                    <h4 className="font-medium flex items-center gap-2">
+                    <h4 className="font-medium flex flex-wrap items-center gap-2">
                       <Award className="h-4 w-4 text-green-600" />
                       Candidatos Selecionados (
                       {dadosResultados.inscricoesBolsista.length + dadosResultados.inscricoesVoluntario.length})
@@ -342,11 +342,11 @@ export default function PublicarResultadosPage() {
             <CardDescription>Publique os resultados ou visualize uma prévia</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Button
                 onClick={handlePublishResults}
                 disabled={publishResultsMutation.isPending || loadingResultados}
-                className="flex items-center gap-2"
+                className="flex flex-wrap items-center gap-2"
               >
                 <Send className="w-4 h-4" />
                 {publishResultsMutation.isPending ? "Publicando..." : "Publicar Resultados"}

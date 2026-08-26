@@ -130,7 +130,7 @@ export default function AtasSelecaoAdminPage() {
           <Dialog open={!!selectedAta} onOpenChange={(open) => !open && setSelectedAta(null)}>
             <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+                <DialogTitle className="flex flex-wrap items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
                   Documentos de Seleção - {selectedAta?.projetoTitulo}
                 </DialogTitle>

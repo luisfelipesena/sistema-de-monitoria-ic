@@ -48,7 +48,7 @@ export const TemplateTable: React.FC<TemplateTableProps> = ({
       id: "detalhes",
       header: "Detalhes",
       cell: ({ row }) => (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {row.original.cargaHorariaSemanaDefault && (
             <Badge variant="outline">
               {row.original.cargaHorariaSemanaDefault}h/sem
@@ -72,7 +72,7 @@ export const TemplateTable: React.FC<TemplateTableProps> = ({
       id: "actions",
       header: "Ações",
       cell: ({ row }) => (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             size="sm"

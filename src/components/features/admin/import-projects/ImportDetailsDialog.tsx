@@ -64,7 +64,7 @@ export function ImportDetailsDialog({ details, open, onOpenChange, onNotified }:
           <DialogTitle>Detalhes da Importação</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium">Arquivo</p>
               <p className="text-sm text-muted-foreground">{details.nomeArquivo}</p>
@@ -85,7 +85,7 @@ export function ImportDetailsDialog({ details, open, onOpenChange, onNotified }:
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-green-600">Projetos Criados</p>
               <p className="text-lg font-semibold text-green-600">{details.projetosCriados}</p>
@@ -99,7 +99,7 @@ export function ImportDetailsDialog({ details, open, onOpenChange, onNotified }:
           {importConcluida && temProjetosCriados && (
             <div className="border rounded-lg p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <p className="text-sm font-medium">Notificação aos Professores</p>
                 </div>

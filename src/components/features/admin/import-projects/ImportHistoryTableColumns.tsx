@@ -99,7 +99,7 @@ export function createImportHistoryColumns({
       header: "Ações",
       id: "actions",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => onViewDetails(row.original.id)} aria-label="Ver detalhes">
             <Eye className="h-4 w-4" />
           </Button>

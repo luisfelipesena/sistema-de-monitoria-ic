@@ -261,7 +261,7 @@ export default function AuditLogsPage() {
       subtitle="Visualize e analise todas as ações realizadas no sistema"
       actions={
         <>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted/50">
+          <div className="flex flex-wrap items-center gap-2 px-3 py-1.5 rounded-md bg-muted/50">
             <Clock className="h-4 w-4 text-muted-foreground" />
             <Label htmlFor="auto-refresh" className="text-sm cursor-pointer">
               Auto-refresh
@@ -284,7 +284,7 @@ export default function AuditLogsPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           <Card className="hover:shadow-md transition-shadow">
             <CardContent className="pt-4 sm:pt-6">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="p-2 rounded-full bg-cyan-100 dark:bg-cyan-900/30">
                   <Activity className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                 </div>
@@ -299,7 +299,7 @@ export default function AuditLogsPage() {
           </Card>
           <Card className="hover:shadow-md transition-shadow">
             <CardContent className="pt-4 sm:pt-6">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="p-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30">
                   <Bell className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 </div>
@@ -314,7 +314,7 @@ export default function AuditLogsPage() {
           </Card>
           <Card className="hover:shadow-md transition-shadow">
             <CardContent className="pt-4 sm:pt-6">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="p-2 rounded-full bg-emerald-100 dark:bg-emerald-900/30">
                   <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
@@ -329,7 +329,7 @@ export default function AuditLogsPage() {
           </Card>
           <Card className="hover:shadow-md transition-shadow">
             <CardContent className="pt-4 sm:pt-6">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="p-2 rounded-full bg-rose-100 dark:bg-rose-900/30">
                   <XCircle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                 </div>
@@ -344,7 +344,7 @@ export default function AuditLogsPage() {
           </Card>
           <Card className="hover:shadow-md transition-shadow col-span-2 sm:col-span-1">
             <CardContent className="pt-4 sm:pt-6">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="p-2 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
                   <Send className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                 </div>
@@ -363,7 +363,7 @@ export default function AuditLogsPage() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Filter className="h-5 w-5 text-muted-foreground" />
                 <CardTitle className="text-lg">Filtros</CardTitle>
                 {hasActiveFilters && (
@@ -372,7 +372,7 @@ export default function AuditLogsPage() {
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {hasActiveFilters && (
                   <Button variant="ghost" size="sm" onClick={handleClearFilters} className="text-muted-foreground">
                     <X className="h-4 w-4 mr-1" />
@@ -429,7 +429,7 @@ export default function AuditLogsPage() {
                     <SelectItem value="all">Todas as ações</SelectItem>
                     {AUDIT_ACTION_ENUM.map((action) => (
                       <SelectItem key={action} value={action}>
-                        <span className="flex items-center gap-2">{ACTION_LABELS[action]}</span>
+                        <span className="flex flex-wrap items-center gap-2">{ACTION_LABELS[action]}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -519,7 +519,7 @@ export default function AuditLogsPage() {
           <CardHeader className="pb-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <CardTitle className="text-lg flex items-center gap-2">
+                <CardTitle className="text-lg flex flex-wrap items-center gap-2">
                   Registros
                   {isFetching && <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />}
                 </CardTitle>
@@ -539,9 +539,9 @@ export default function AuditLogsPage() {
             {isLoading ? (
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-4">
+                  <div key={i} className="flex flex-wrap items-center gap-4">
                     <Skeleton className="h-10 w-24" />
-                    <Skeleton className="h-10 flex-1" />
+                    <Skeleton className="h-10 flex-1 min-w-0" />
                     <Skeleton className="h-10 w-20" />
                     <Skeleton className="h-10 w-20" />
                     <Skeleton className="h-10 w-10" />
@@ -576,8 +576,8 @@ export default function AuditLogsPage() {
                         onClick={() => handleViewDetails(log as LogEntry)}
                       >
                         <CardContent className="p-4">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Badge className={`${ACTION_COLORS[log.action as AuditAction]} flex items-center gap-1`}>
                                 <ActionIcon className="h-3 w-3" />
                                 {ACTION_LABELS[log.action as AuditAction]}
@@ -683,7 +683,7 @@ export default function AuditLogsPage() {
                       </strong>{" "}
                       de <strong>{pagination.total.toLocaleString()}</strong> registros
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button
                         variant="outline"
                         size="sm"
@@ -714,7 +714,7 @@ export default function AuditLogsPage() {
         <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex flex-wrap items-center gap-2">
                 <FileText className="h-5 w-5" />
                 Detalhes do Registro #{selectedLog?.id}
               </DialogTitle>
@@ -750,7 +750,7 @@ export default function AuditLogsPage() {
                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         Usuário
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                           <span className="text-sm font-medium text-primary">
                             {selectedLog.user.username.charAt(0).toUpperCase()}

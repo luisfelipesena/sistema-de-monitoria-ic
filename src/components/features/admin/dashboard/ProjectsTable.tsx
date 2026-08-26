@@ -118,7 +118,7 @@ export function ProjectsTable({
           const codigoDisciplina = disciplinas.length > 0 ? disciplinas[0].codigo : "N/A"
           const nomeDisciplina = disciplinas.length > 0 ? disciplinas[0].nome : ""
           return (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <List className="h-4 w-4 text-gray-400" />
               <span className="font-semibold text-base text-gray-900">
                 {codigoDisciplina}{nomeDisciplina ? ` - ${nomeDisciplina}` : ""}
@@ -171,7 +171,7 @@ export function ProjectsTable({
       },
       {
         header: () => (
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <Hand className="h-5 w-5 text-gray-400" />
             Voluntários
           </div>
@@ -181,7 +181,7 @@ export function ProjectsTable({
       },
       {
         header: () => (
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <Users className="h-5 w-5 text-gray-400" />
             Inscritos
           </div>

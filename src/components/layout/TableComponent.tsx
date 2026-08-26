@@ -172,7 +172,7 @@ export function TableComponent<TData, TValue>({
     <div className="w-full space-y-4">
       {searchableColumn && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 py-2 sm:py-4">
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 min-w-0 max-w-sm">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder={searchPlaceholder}
@@ -245,7 +245,7 @@ export function TableComponent<TData, TValue>({
                               isSticky ? "sticky right-0 z-10 bg-card shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.1)]" : ""
                             }`}
                           >
-                            <div className="max-w-[150px] truncate sm:max-w-none sm:overflow-visible sm:whitespace-normal sm:text-ellipsis">
+                            <div className="min-w-0 max-w-[240px] break-words sm:max-w-none">
                               {flexRender(cell.column.columnDef.cell, cell.getContext())}
                             </div>
                           </TableCell>
@@ -270,12 +270,12 @@ export function TableComponent<TData, TValue>({
 
       {showPagination && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2 sm:py-4">
-          <div className="flex items-center gap-4 order-2 sm:order-1">
+          <div className="flex flex-wrap items-center gap-4 order-2 sm:order-1">
             <div className="text-sm text-muted-foreground">
               {totalItems} {totalItems === 1 ? "item" : "itens"}
             </div>
             {serverPagination?.onPageSizeChange && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-muted-foreground">Mostrar</span>
                 <Select
                   value={String(serverPagination.pageSize)}

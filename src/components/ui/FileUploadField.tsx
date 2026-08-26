@@ -364,7 +364,7 @@ export function FileUploadField({
       {uploadedFile && uploadState === "success" ? (
         <div className="bg-white border border-green-200 rounded-lg p-4 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-3 min-w-0 flex-1">
               {getFileIcon(uploadedFile.name, uploadedFile.type)}
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-sm text-gray-900 truncate">{uploadedFile.name}</p>
@@ -375,7 +375,7 @@ export function FileUploadField({
               </Badge>
             </div>
 
-            <div className="flex items-center gap-2 ml-3">
+            <div className="flex flex-wrap items-center gap-2 ml-3">
               <Button
                 variant="ghost"
                 size="sm"

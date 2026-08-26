@@ -41,8 +41,8 @@ export function ProjectCard({ project, onOpenSelection, isPublishing }: ProjectC
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-start justify-between">
-          <div className="space-y-1 flex-1">
-            <div className="flex items-center gap-2">
+          <div className="space-y-1 flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
               <CardTitle className="text-xl">{project.titulo}</CardTitle>
               {pending && (
                 <Badge variant="warning" className="text-xs">
@@ -50,7 +50,7 @@ export function ProjectCard({ project, onOpenSelection, isPublishing }: ProjectC
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Award className="h-4 w-4 text-yellow-600" />
                 {project.bolsasDisponibilizadas || 0} bolsas
@@ -110,7 +110,7 @@ export function ProjectCard({ project, onOpenSelection, isPublishing }: ProjectC
                 if (allBolsasFilled) {
                   return (
                     <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <Award className="h-5 w-5 text-green-600" />
                         <span className="font-semibold text-green-800">
                           Todas as vagas de bolsa foram preenchidas ({bolsistasAceitos.length}/{bolsasDisponibilizadas})
@@ -128,8 +128,8 @@ export function ProjectCard({ project, onOpenSelection, isPublishing }: ProjectC
                 }
 
                 return (
-                  <div className="flex gap-2 pt-2">
-                    <Button onClick={() => onOpenSelection(project)} disabled={isPublishing} className="flex-1">
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <Button onClick={() => onOpenSelection(project)} disabled={isPublishing} className="flex-1 min-w-0">
                       <Users className="h-4 w-4 mr-2" />
                       Selecionar Monitores
                     </Button>

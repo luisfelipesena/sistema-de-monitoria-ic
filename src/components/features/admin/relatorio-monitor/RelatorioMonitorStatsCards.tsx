@@ -12,7 +12,7 @@ interface RelatorioMonitorStatsCardsProps {
 
 export function RelatorioMonitorStatsCards({ stats }: RelatorioMonitorStatsCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <DataCard label="Total de Monitores" value={stats.total} icon={Users} />
       <DataCard label="Em Rascunho" value={stats.draft} icon={FilePlus} />
       <DataCard label="Aguardando Aluno" value={stats.pendingStudent} icon={Clock} variant="warning" />

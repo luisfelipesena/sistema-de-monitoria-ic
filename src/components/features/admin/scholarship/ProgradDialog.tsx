@@ -71,7 +71,7 @@ export function ProgradDialog({ isOpen, onClose, filters, onSave, isSaving }: Pr
             </p>
           </div>
         </div>
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           <Button variant="outline" onClick={handleClose}>
             Cancelar
           </Button>

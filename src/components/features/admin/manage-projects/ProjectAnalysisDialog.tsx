@@ -169,7 +169,7 @@ export function ProjectAnalysisDialog({
           {/* Revision Request Form */}
           {showRevisionForm && (
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
-              <h4 className="font-semibold text-amber-800 flex items-center gap-2">
+              <h4 className="font-semibold text-amber-800 flex flex-wrap items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
                 Solicitar Revisão ao Professor
               </h4>
@@ -184,7 +184,7 @@ export function ProjectAnalysisDialog({
                 rows={4}
                 className="bg-white"
               />
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-wrap justify-end gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -228,7 +228,7 @@ export function ProjectAnalysisDialog({
           )}
         </div>
 
-        <DialogFooter className="flex justify-end gap-2">
+        <DialogFooter className="flex flex-wrap justify-end gap-2">
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>

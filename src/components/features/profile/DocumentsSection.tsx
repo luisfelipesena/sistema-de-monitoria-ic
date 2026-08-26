@@ -132,12 +132,12 @@ export function DocumentsSection() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <FileText className="h-5 w-5" />
             Documentos
           </div>
           {documents.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <span>
                 {documents.filter((doc) => getCurrentFileId(doc.id)).length} de {documents.length} enviados
               </span>
@@ -158,7 +158,7 @@ export function DocumentsSection() {
 
               return (
                 <div key={doc.id} className="border rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
                     <h4 className="font-medium">{doc.name}</h4>
                     {doc.required && (
                       <Badge variant="outline" className="border-red-500 text-red-700">
@@ -174,7 +174,7 @@ export function DocumentsSection() {
 
                   {currentFileId && (
                     <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center gap-2 text-green-800">
+                      <div className="flex flex-wrap items-center gap-2 text-green-800">
                         <Upload className="h-4 w-4" />
                         <span className="text-sm font-medium">Arquivo atual enviado</span>
                       </div>
@@ -211,7 +211,7 @@ export function DocumentsSection() {
           )}
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
+            <div className="flex flex-wrap items-start gap-3">
               <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
                 <h4 className="font-medium text-blue-900">Informações sobre documentos</h4>

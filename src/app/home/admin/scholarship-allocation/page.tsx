@@ -107,7 +107,7 @@ export default function ScholarshipAllocationPage() {
         {/* Excedeu limite alert */}
         {excedeuLimite && (
           <Alert variant="destructive" className="bg-red-50 border-red-300 text-red-800">
-            <AlertDescription className="text-sm font-semibold flex items-center gap-2">
+            <AlertDescription className="text-sm font-semibold flex flex-wrap items-center gap-2">
               <span>⚠️ <strong>Limite Excedido:</strong> O total de bolsas alocadas ({totalAlocadas}) excede o limite definido pela PROGRAD ({totalPrograd}). Reduza as bolsas dos projetos para salvar alterações.</span>
             </AlertDescription>
           </Alert>

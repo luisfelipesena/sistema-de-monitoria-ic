@@ -51,7 +51,7 @@ export function ProjectFilesDialog({
             <div className="space-y-2">
               {files.map((file) => (
                 <div key={file.objectName} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="font-medium">{file.originalFilename}</div>
                     <div className="text-sm text-muted-foreground">
                       {(file.size / 1024).toFixed(1)} KB • {file.lastModified.toLocaleDateString("pt-BR")}
@@ -61,7 +61,7 @@ export function ProjectFilesDialog({
                     variant="outline"
                     size="sm"
                     onClick={() => onDownload(file.objectName)}
-                    className="flex items-center gap-2"
+                    className="flex flex-wrap items-center gap-2"
                   >
                     <Download className="h-4 w-4" />
                     Baixar

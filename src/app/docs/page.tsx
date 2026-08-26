@@ -109,7 +109,7 @@ export default function ApiDocsPage() {
               <h1 className="text-3xl font-bold text-gray-900">API Documentation</h1>
               <p className="mt-2 text-lg text-gray-600">Interactive documentation for the Sistema de Monitoria API</p>
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <a
                 href="/api/openapi-spec"
                 target="_blank"

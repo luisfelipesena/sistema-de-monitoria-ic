@@ -532,7 +532,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
 
               <div className="md:col-span-2 border-t pt-4">
                 <h4 className="font-medium mb-2">Endereço residencial *</h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <Label>CEP</Label>
                     <Input
@@ -662,7 +662,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
                   <p className="text-xs text-muted-foreground mb-3">
                     Conta corrente de titularidade do monitor, não poupança, não conjunta.
                   </p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="col-span-2">
                       <Label>Banco</Label>
                       <Input
@@ -698,11 +698,11 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
               <div>
                 <Label>Declara ter cursado com aprovação o componente? *</Label>
                 <RadioGroup value={cursouComponente} onValueChange={(v) => setCursouComponente(v as typeof cursouComponente)}>
-                  <div className="flex gap-4 mt-2">
-                    <label className="flex items-center gap-2">
+                  <div className="flex flex-wrap gap-4 mt-2">
+                    <label className="flex flex-wrap items-center gap-2">
                       <RadioGroupItem value="sim" /> Sim
                     </label>
-                    <label className="flex items-center gap-2">
+                    <label className="flex flex-wrap items-center gap-2">
                       <RadioGroupItem value="nao" /> Não
                     </label>
                   </div>
@@ -820,7 +820,7 @@ export function InscricaoWizard({ projetoId }: InscricaoWizardProps) {
                         onEnd={captureSignature}
                       />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <Button type="button" variant="outline" size="sm" onClick={clearSignature}>
                         Limpar
                       </Button>

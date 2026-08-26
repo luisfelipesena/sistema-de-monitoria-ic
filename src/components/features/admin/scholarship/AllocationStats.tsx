@@ -26,7 +26,7 @@ export function AllocationStats({ summary }: AllocationStatsProps) {
     : 0
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <DataCard icon={Users} label="Projetos" value={summary.summary.totalProjetos} variant="primary" />
       <DataCard icon={Award} label="Bolsas Solicitadas" value={totalBolsasSolicitadas} variant="success" />
       <DataCard

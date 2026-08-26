@@ -63,7 +63,7 @@ export default function MinhasDisciplinasPage() {
     <PagesLayout title="Minhas Disciplinas" subtitle="Disciplinas sob sua responsabilidade">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <BookOpen className="h-5 w-5" />
             Disciplinas
             {disciplinas && (

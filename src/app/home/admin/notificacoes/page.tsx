@@ -127,13 +127,13 @@ export default function NotificacoesAdminPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold flex flex-wrap items-center gap-2">
             <Bell className="h-7 w-7 text-primary" />
             Central de Notificações
           </h1>
           <p className="text-muted-foreground">Gerencie lembretes automáticos e notificações do sistema</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => refetchStatus()}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Atualizar
@@ -149,7 +149,7 @@ export default function NotificacoesAdminPage() {
       {lastResult && lastResult.totalSent > 0 && (
         <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
           <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+            <div className="flex flex-wrap items-center gap-2 text-green-700 dark:text-green-400">
               <CheckCircle className="h-5 w-5" />
               <span className="font-medium">{lastResult.totalSent} notificações enviadas com sucesso!</span>
             </div>
@@ -168,7 +168,7 @@ export default function NotificacoesAdminPage() {
       {unhealthyEmail && (
         <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
           <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+            <div className="flex flex-wrap items-center gap-2 text-red-700 dark:text-red-400">
               <AlertTriangle className="h-5 w-5" />
               <span className="font-medium">
                 Envio de e-mail com falhas: {unhealthyEmail.failuresLast24h} falhas nas últimas 24h
@@ -235,7 +235,7 @@ export default function NotificacoesAdminPage() {
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <MailWarning className="h-5 w-5 text-red-500" />
                 <CardTitle>Saúde do Envio de E-mails</CardTitle>
               </div>
@@ -243,7 +243,7 @@ export default function NotificacoesAdminPage() {
                 Estado da conexão SMTP e últimas falhas registradas pelo sistema
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {emailHealth &&
                 (emailHealth.transport.healthy ? (
                   <Badge
@@ -325,7 +325,7 @@ export default function NotificacoesAdminPage() {
       {/* Proactive Reminders Status */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Zap className="h-5 w-5 text-yellow-500" />
             <CardTitle>Lembretes Proativos</CardTitle>
           </div>
@@ -338,9 +338,9 @@ export default function NotificacoesAdminPage() {
           {isLoadingStatus ? (
             <div className="space-y-3">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
+                <div key={i} className="flex flex-wrap items-center gap-4">
                   <Skeleton className="h-10 w-10 rounded-full" />
-                  <Skeleton className="h-10 flex-1" />
+                  <Skeleton className="h-10 flex-1 min-w-0" />
                   <Skeleton className="h-8 w-24" />
                 </div>
               ))}
@@ -352,7 +352,7 @@ export default function NotificacoesAdminPage() {
                   key={reminder.type}
                   className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <div
                       className={`p-2 rounded-full ${
                         reminder.shouldExecute
@@ -369,7 +369,7 @@ export default function NotificacoesAdminPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <div className="text-right">
                       {reminder.shouldExecute ? (
                         <Badge
@@ -404,7 +404,7 @@ export default function NotificacoesAdminPage() {
       {/* Execution History */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <History className="h-5 w-5 text-blue-500" />
             <CardTitle>Histórico de Execuções</CardTitle>
           </div>
@@ -435,7 +435,7 @@ export default function NotificacoesAdminPage() {
                       {format(new Date(execution.executedAt), "dd/MM/yy HH:mm", { locale: ptBR })}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         {REMINDER_TYPE_ICONS[execution.reminderType] || <Bell className="h-4 w-4" />}
                         <span className="text-sm">{execution.reminderType.replace(/_/g, " ")}</span>
                       </div>
@@ -476,7 +476,7 @@ export default function NotificacoesAdminPage() {
       {/* Info Card */}
       <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
         <CardContent className="pt-6">
-          <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2 flex items-center gap-2">
+          <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2 flex flex-wrap items-center gap-2">
             <Zap className="h-5 w-5" />
             Como funciona o sistema proativo?
           </h3>

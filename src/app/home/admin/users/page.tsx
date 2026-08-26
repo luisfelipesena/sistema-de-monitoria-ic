@@ -190,7 +190,7 @@ export default function UsersPage() {
             formatUsernameToProperName(user.username)
 
           return (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
               <div>
                 <span className="font-semibold text-base text-gray-900">{displayName}</span>
@@ -298,7 +298,7 @@ export default function UsersPage() {
           const isAdmin = user.role === ADMIN
 
           return (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => handleEditUser(user.id)}>
                 <Pencil className="h-4 w-4 mr-1" />
                 Editar

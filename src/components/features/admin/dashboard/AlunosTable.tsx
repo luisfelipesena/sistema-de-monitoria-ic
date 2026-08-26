@@ -12,7 +12,7 @@ export function AlunosTable({ alunos, onEditarUsuario }: AlunosTableProps) {
   const columns: ColumnDef<UserListItem>[] = [
     {
       header: () => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <User className="h-5 w-5 text-gray-400" />
           Nome do Aluno
         </div>
@@ -21,7 +21,7 @@ export function AlunosTable({ alunos, onEditarUsuario }: AlunosTableProps) {
     },
     {
       header: () => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Mail className="h-5 w-5 text-gray-400" />
           Email
         </div>

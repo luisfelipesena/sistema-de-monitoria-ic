@@ -15,7 +15,7 @@ export function EditalStatsCards({
   editaisAssinados,
 }: EditalStatsCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">

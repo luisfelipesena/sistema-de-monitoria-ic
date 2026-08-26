@@ -123,7 +123,7 @@ export const TemplateDialog: React.FC<TemplateDialogProps> = ({
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="cargaHorariaSemanaDefault"
@@ -223,9 +223,9 @@ export const TemplateDialog: React.FC<TemplateDialogProps> = ({
             <div className="space-y-4">
               <FormLabel>Responsabilidades</FormLabel>
               {atividades.map((atividade, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={index} className="flex flex-wrap items-center gap-2">
                   <Input
-                    className="flex-1"
+                    className="flex-1 min-w-0"
                     placeholder="Ex: Elaborar material de apoio"
                     value={atividade}
                     onChange={(e) => {

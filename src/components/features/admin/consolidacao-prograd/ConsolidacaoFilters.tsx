@@ -41,7 +41,7 @@ export function ConsolidacaoFilters({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex flex-wrap items-center gap-2">
           <Filter className="h-5 w-5" />
           Filtros de Período
         </CardTitle>
@@ -80,7 +80,7 @@ export function ConsolidacaoFilters({
           </div>
           <div className="space-y-2">
             <Label>Incluir na Exportação</Label>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="bolsistas"
@@ -100,7 +100,7 @@ export function ConsolidacaoFilters({
             </div>
           </div>
         </div>
-        <div className="flex gap-2 mt-4">
+        <div className="flex flex-wrap gap-2 mt-4">
           <Button onClick={onRefetch} disabled={isLoading} variant="outline">
             <Calendar className="h-4 w-4 mr-2" />
             Atualizar Dados

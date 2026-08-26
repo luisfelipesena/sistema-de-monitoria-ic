@@ -42,8 +42,8 @@ export function ConsolidacaoTable({ data, selectedYear, selectedSemester, isLoad
             {data.map((item) => (
               <div key={item.id} className="border rounded-lg p-4">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       {getTipoIcon(item.monitoria.tipo as TipoVaga)}
                       <h3 className="font-semibold text-lg">{item.monitor.nome}</h3>
                     </div>
@@ -57,7 +57,7 @@ export function ConsolidacaoTable({ data, selectedYear, selectedSemester, isLoad
                       <p>Carga Horária: {item.projeto.cargaHorariaSemana}h/semana</p>
                       {item.monitoria.valorBolsa && <p>Valor Bolsa: R$ {item.monitoria.valorBolsa.toFixed(2)}</p>}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Badge className={item.monitoria.tipo === TIPO_VAGA_BOLSISTA ? "bg-yellow-500" : "bg-blue-500"}>
                         {getTipoVagaLabel(item.monitoria.tipo as TipoVaga)}
                       </Badge>

@@ -79,7 +79,7 @@ export function ReportNotificationsSection({
       {/* Status Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <FileText className="h-5 w-5" />
             Status dos Relatórios - {semestreDisplay}/{selectedYear}
           </CardTitle>
@@ -93,7 +93,7 @@ export function ReportNotificationsSection({
             </div>
           ) : validationStatus ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Projetos Progress */}
                 <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
@@ -154,7 +154,7 @@ export function ReportNotificationsSection({
       {/* Notifications Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <Bell className="h-5 w-5" />
             Notificações de Relatórios
           </CardTitle>
@@ -163,15 +163,15 @@ export function ReportNotificationsSection({
         <CardContent className="space-y-6">
           {/* Notify Professors */}
           <div className="p-4 border rounded-lg space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Users className="h-5 w-5 text-blue-600" />
               <h4 className="font-medium">Notificar Professores</h4>
             </div>
             <p className="text-sm text-muted-foreground">
               Envia email para todos os professores com projetos aprovados que ainda não criaram relatórios finais.
             </p>
-            <div className="flex items-end gap-3">
-              <div className="flex-1">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="flex-1 min-w-0">
                 <Label htmlFor="prazoFinal" className="text-xs">
                   Prazo Final (opcional)
                 </Label>
@@ -201,7 +201,7 @@ export function ReportNotificationsSection({
 
           {/* Notify Students */}
           <div className="p-4 border rounded-lg space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Users className="h-5 w-5 text-green-600" />
               <h4 className="font-medium">Notificar Alunos</h4>
             </div>
@@ -228,7 +228,7 @@ export function ReportNotificationsSection({
       {/* Certificates Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <FileText className="h-5 w-5" />
             Certificados para NUMOP
           </CardTitle>
@@ -241,8 +241,8 @@ export function ReportNotificationsSection({
             Envia três planilhas Excel: Bolsistas, Voluntários e Relatórios por Disciplina, com links para os PDFs dos
             relatórios.
           </p>
-          <div className="flex items-end gap-3">
-            <div className="flex-1">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 min-w-0">
               <Label htmlFor="emailNUMOP" className="text-xs">
                 Email NUMOP/PROGRAD
               </Label>

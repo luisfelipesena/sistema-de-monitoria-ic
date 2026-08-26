@@ -39,7 +39,7 @@ export default function AnalyticsPage() {
     return (
       <PagesLayout title="Analytics" subtitle="Painel de métricas e indicadores">
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <Card key={i}>
                 <CardContent className="pt-6">
@@ -82,7 +82,7 @@ export default function AnalyticsPage() {
         {/* Métricas Gerais */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Visão Geral do Sistema</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center">
@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
         {/* Métricas de Usuários */}
         <div>
           <h2 className="text-xl font-semibold mb-4">Usuários do Sistema</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start">
@@ -191,7 +191,7 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <Award className="h-5 w-5" />
                 Estatísticas de Vagas
               </CardTitle>
@@ -224,7 +224,7 @@ export default function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <ClipboardList className="h-5 w-5" />
                 Status dos Projetos
               </CardTitle>
@@ -254,7 +254,7 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <BarChart3 className="h-5 w-5" />
                 Projetos por Departamento
               </CardTitle>
@@ -263,13 +263,13 @@ export default function AnalyticsPage() {
               <div className="space-y-3">
                 {metrics.projetosPorDepartamento.slice(0, 8).map((dept, index) => (
                   <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-medium">{dept.departamento}</span>
                       <Badge variant="outline" className="text-xs">
                         {dept.sigla}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm text-muted-foreground">
                         {dept.aprovados}/{dept.total}
                       </span>
@@ -283,7 +283,7 @@ export default function AnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <PieChart className="h-5 w-5" />
                 Inscrições por Período
               </CardTitle>
@@ -292,12 +292,12 @@ export default function AnalyticsPage() {
               <div className="space-y-3">
                 {metrics.inscricoesPorPeriodo.map((periodo, index) => (
                   <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-medium">
                         {periodo.ano}.{periodo.semestre}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm text-muted-foreground">{periodo.projetos} projetos</span>
                       <Badge variant="default">{periodo.inscricoes} inscrições</Badge>
                     </div>
@@ -312,7 +312,7 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <Users className="h-5 w-5" />
                 Professores por Departamento
               </CardTitle>
@@ -322,7 +322,7 @@ export default function AnalyticsPage() {
                 {metrics.professoresPorDepartamento.map((dept, index) => (
                   <div key={index} className="flex items-center justify-between">
                     <span className="text-sm font-medium">{dept.departamento}</span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm text-muted-foreground">{dept.projetosAtivos} projetos ativos</span>
                       <Badge variant="default">{dept.professores} professores</Badge>
                     </div>

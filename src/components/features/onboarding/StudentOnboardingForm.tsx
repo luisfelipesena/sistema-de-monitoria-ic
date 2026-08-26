@@ -340,7 +340,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                     data-status={status}
                     data-uploaded={isUploaded}
                   >
-                    <div className="flex items-center gap-3 mb-4">
+                    <div className="flex flex-wrap items-center gap-3 mb-4">
                       <h4 className="font-medium text-base">{doc.name}</h4>
                       {isUploaded && (
                         <Badge variant="default" className="bg-green-500">
@@ -389,7 +389,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
         {requiredDocsCompleted && !isOnboardingComplete && (
           <Card className="shadow-lg border-blue-200 bg-blue-50">
             <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-blue-800">
+              <CardTitle className="flex flex-wrap items-center justify-center gap-2 text-blue-800">
                 <CheckCircle className="h-5 w-5" />
                 Documentos Obrigatórios Enviados!
               </CardTitle>
@@ -426,7 +426,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
         {isOnboardingComplete && (
           <Card className="shadow-lg border-green-200 bg-green-50">
             <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-green-800">
+              <CardTitle className="flex flex-wrap items-center justify-center gap-2 text-green-800">
                 <CheckCircle className="h-5 w-5" />
                 Onboarding Concluído!
               </CardTitle>

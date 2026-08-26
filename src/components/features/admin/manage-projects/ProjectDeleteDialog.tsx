@@ -35,7 +35,7 @@ export function ProjectDeleteDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex flex-wrap items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
             <AlertTriangle className="h-6 w-6 text-red-600 flex-shrink-0" />
             <div>
               <h4 className="font-medium text-red-900">Atenção! Esta ação é irreversível</h4>

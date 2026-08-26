@@ -50,7 +50,7 @@ export default function StudentDashboard() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 sm:p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight">Dashboard do Estudante</h1>
           <p className="text-muted-foreground">
@@ -64,7 +64,7 @@ export default function StudentDashboard() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 sm:p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold tracking-tight">Dashboard do Estudante</h1>
         </div>
@@ -91,7 +91,7 @@ export default function StudentDashboard() {
   const inscricoesPendentes = inscricoes?.filter((inscricao) => inscricao.status === STATUS_INSCRICAO_SUBMITTED) ?? []
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 space-y-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard do Estudante</h1>
@@ -156,7 +156,7 @@ export default function StudentDashboard() {
       {inscricoesPendentes.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <Calendar className="h-5 w-5" />
               Seleções das suas inscrições
             </CardTitle>
@@ -177,7 +177,7 @@ export default function StudentDashboard() {
         {/* Monitoria Ativa */}
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <Award className="h-5 w-5" />
               Monitoria Ativa
             </CardTitle>
@@ -185,7 +185,7 @@ export default function StudentDashboard() {
           <CardContent>
             {status?.monitoriaAtiva ? (
               <div className="space-y-4">
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h3 className="font-semibold">{status.monitoriaAtiva.projeto.titulo}</h3>
                     <p className="text-sm text-muted-foreground">
@@ -235,7 +235,7 @@ export default function StudentDashboard() {
                 )}
 
                 <Separator />
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Link
                     href="/home/common/status"
                     className="text-sm text-primary hover:underline flex items-center gap-1"
@@ -252,7 +252,7 @@ export default function StudentDashboard() {
                 <p className="text-sm text-muted-foreground mb-4">
                   Você não possui monitoria ativa no momento. Que tal se inscrever em um projeto?
                 </p>
-                <div className="flex gap-2 justify-center">
+                <div className="flex flex-wrap gap-2 justify-center">
                   <Link
                     href="/home/student/inscricao-monitoria"
                     className="text-sm text-primary hover:underline flex items-center gap-1"
@@ -269,7 +269,7 @@ export default function StudentDashboard() {
         {/* Próximas Ações */}
         <Card className={`col-span-3 ${status?.proximasAcoes && status.proximasAcoes.length > 0 ? 'border-red-300 bg-red-50' : ''}`}>
           <CardHeader>
-            <CardTitle className={`flex items-center gap-2 ${status?.proximasAcoes && status.proximasAcoes.length > 0 ? 'text-red-700' : ''}`}>
+            <CardTitle className={`flex flex-wrap items-center gap-2 ${status?.proximasAcoes && status.proximasAcoes.length > 0 ? 'text-red-700' : ''}`}>
               <Clock className={`h-5 w-5 ${status?.proximasAcoes && status.proximasAcoes.length > 0 ? 'text-red-600' : ''}`} />
               Próximas Ações
               {status?.proximasAcoes && status.proximasAcoes.length > 0 && (
@@ -286,12 +286,12 @@ export default function StudentDashboard() {
                   <Link
                     key={index}
                     href="/home/student/resultados"
-                    className="flex items-start gap-3 p-3 bg-white border border-red-200 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors cursor-pointer"
+                    className="flex flex-wrap items-start gap-3 p-3 bg-white border border-red-200 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors cursor-pointer"
                   >
                     <div className="mt-0.5">
                       <AlertTriangle className="h-5 w-5 text-red-500" />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm text-red-800">{acao.titulo}</p>
                       <p className="text-sm text-red-600">{acao.descricao}</p>
                       {acao.prazo && (
@@ -320,7 +320,7 @@ export default function StudentDashboard() {
       {status?.historicoAtividades && status.historicoAtividades.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <Activity className="h-5 w-5" />
               Histórico de Atividades
             </CardTitle>
@@ -328,8 +328,8 @@ export default function StudentDashboard() {
           <CardContent>
             <div className="space-y-3">
               {status.historicoAtividades.slice(0, 5).map((atividade, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div key={index} className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-3">
                     <Badge variant="outline" className="text-xs">
                       {atividade.tipo}
                     </Badge>

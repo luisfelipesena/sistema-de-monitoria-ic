@@ -118,7 +118,7 @@ export function UserSignatureManager() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <PenTool className="h-5 w-5" />
             Assinatura Digital
           </CardTitle>
@@ -137,7 +137,7 @@ export function UserSignatureManager() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex flex-wrap items-center gap-2">
           <PenTool className="h-5 w-5" />
           Assinatura Digital
         </CardTitle>
@@ -154,7 +154,7 @@ export function UserSignatureManager() {
         {hasSignature ? (
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-green-600" />
                 <div>
                   <p className="font-medium text-green-900">Assinatura configurada</p>
@@ -166,7 +166,7 @@ export function UserSignatureManager() {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" onClick={handlePreviewSignature}>
                   <Eye className="h-4 w-4 mr-2" />
                   Visualizar
@@ -209,14 +209,14 @@ export function UserSignatureManager() {
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex flex-wrap items-center gap-2">
                   <PenTool className="h-5 w-5" />
                   {hasSignature ? "Alterar Assinatura" : "Configure sua Assinatura"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Mode Toggle */}
-                <div className="flex gap-2 border-b pb-2">
+                <div className="flex flex-wrap gap-2 border-b pb-2">
                   <Button
                     variant={signatureMode === "draw" ? "default" : "outline"}
                     size="sm"
@@ -255,7 +255,7 @@ export function UserSignatureManager() {
                       />
                     </div>
 
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
                       <Button variant="outline" onClick={handleClearSignature}>
                         Limpar
                       </Button>
@@ -304,7 +304,7 @@ export function UserSignatureManager() {
                       </Label>
                     </div>
 
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
                       <Button
                         variant="outline"
                         onClick={() => {

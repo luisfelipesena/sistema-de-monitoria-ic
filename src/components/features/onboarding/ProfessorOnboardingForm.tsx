@@ -229,7 +229,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
         {needsProfileForm && (
           <Card className="shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-xl">
+              <CardTitle className="flex flex-wrap items-center justify-center gap-2 text-xl">
                 <UserCheck className="h-5 w-5" />
                 {isReactivation ? "Reativar Conta" : hasProfile && !hasRequiredFields ? "Complete seu Perfil" : "Informações do Perfil"}
               </CardTitle>
@@ -409,7 +409,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                 {/* Seção de Assinatura */}
                 <div className="border-t pt-6 mt-6">
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <h3 className="text-lg font-semibold flex flex-wrap items-center gap-2">
                       <FileSignature className="h-5 w-5" />
                       Assinatura Digital *
                     </h3>
@@ -421,7 +421,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                   {signatureDataURL ? (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                       <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2 text-green-800">
+                        <div className="flex flex-wrap items-center gap-2 text-green-800">
                           <CheckCircle className="h-5 w-5" />
                           <div>
                             <p className="font-medium">Assinatura configurada</p>
@@ -438,9 +438,9 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                     </div>
                   ) : (
                     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                      <div className="flex items-start gap-3">
+                      <div className="flex flex-wrap items-start gap-3">
                         <Info className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <p className="font-medium text-amber-800 mb-2">Assinatura obrigatória</p>
                           <p className="text-sm text-amber-700 mb-3">
                             A assinatura digital garante a autenticidade e validade legal dos documentos gerados pelo
@@ -485,7 +485,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
         {needsSignatureOnly && (
           <Card className="shadow-lg">
             <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-xl">
+              <CardTitle className="flex flex-wrap items-center justify-center gap-2 text-xl">
                 <FileSignature className="h-5 w-5" />
                 Configure sua Assinatura Digital
               </CardTitle>
@@ -498,7 +498,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                 {signatureDataURL ? (
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2 text-green-800">
+                      <div className="flex flex-wrap items-center gap-2 text-green-800">
                         <CheckCircle className="h-5 w-5" />
                         <div>
                           <p className="font-medium">Assinatura configurada</p>
@@ -515,9 +515,9 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                   </div>
                 ) : (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
+                    <div className="flex flex-wrap items-start gap-3">
                       <Info className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <p className="font-medium text-amber-800 mb-2">Assinatura obrigatória</p>
                         <p className="text-sm text-amber-700 mb-3">
                           A assinatura digital garante a autenticidade e validade legal dos documentos gerados pelo sistema.
@@ -578,7 +578,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
         {isOnboardingComplete && (
           <Card className="shadow-lg border-green-200 bg-green-50">
             <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-green-800">
+              <CardTitle className="flex flex-wrap items-center justify-center gap-2 text-green-800">
                 <CheckCircle className="h-5 w-5" />
                 Onboarding Concluído!
               </CardTitle>
@@ -602,7 +602,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
             <DialogTitle>Configure sua Assinatura Digital</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="flex gap-2 border-b pb-2">
+            <div className="flex flex-wrap gap-2 border-b pb-2">
               <Button
                 variant={signatureMode === "draw" ? "default" : "outline"}
                 size="sm"
@@ -634,7 +634,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                   />
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start gap-2">
+                  <div className="flex flex-wrap items-start gap-2">
                     <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="text-xs text-blue-800">
                       <p className="font-medium mb-1">Dica:</p>
@@ -667,7 +667,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
                   </Label>
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start gap-2">
+                  <div className="flex flex-wrap items-start gap-2">
                     <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                     <div className="text-xs text-blue-800">
                       <p className="font-medium mb-1">Dica:</p>
@@ -686,7 +686,7 @@ export function ProfessorOnboardingForm({ onboardingStatus }: ProfessorOnboardin
             ) : (
               <div />
             )}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 onClick={() => {

@@ -73,7 +73,7 @@ export function RequestChefeSignatureDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex flex-wrap items-center gap-2">
             <Send className="h-5 w-5" />
             Solicitar Assinatura do Chefe
           </DialogTitle>

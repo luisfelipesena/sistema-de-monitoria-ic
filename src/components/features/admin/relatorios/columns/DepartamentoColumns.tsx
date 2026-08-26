@@ -23,7 +23,7 @@ export const departamentosColumns: ColumnDef<DepartamentoRelatorio>[] = [
     cell: ({ row }) => {
       const departamento = row.original
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <FileText className="h-4 w-4 text-blue-600" />
           <span className="font-medium">{departamento.projetos}</span>
           <span className="text-sm text-muted-foreground">({departamento.projetosAprovados} aprovados)</span>

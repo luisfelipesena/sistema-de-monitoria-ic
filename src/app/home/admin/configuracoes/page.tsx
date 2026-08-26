@@ -230,7 +230,7 @@ export default function ConfiguracoesEmailPage() {
         {/* Email IC (global) */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <Building2 className="h-5 w-5" />
               Instituto de Computação
             </CardTitle>
@@ -240,8 +240,8 @@ export default function ConfiguracoesEmailPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex gap-4 items-end">
-                <div className="flex-1">
+              <div className="flex flex-wrap gap-4 items-end">
+                <div className="flex-1 min-w-0">
                   <Label htmlFor="email-ic">Email do IC</Label>
                   <Input
                     id="email-ic"
@@ -268,7 +268,7 @@ export default function ConfiguracoesEmailPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <Mail className="h-5 w-5" />
                 Emails de notificação
               </CardTitle>
@@ -336,7 +336,7 @@ export default function ConfiguracoesEmailPage() {
               <Trash2 className="h-4 w-4 mr-2" />
               {deleteEmailMutation.isPending ? 'Removendo...' : 'Remover'}
             </Button>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 Cancelar
               </Button>

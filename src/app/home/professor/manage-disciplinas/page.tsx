@@ -164,8 +164,8 @@ export default function ManageDisciplinasPage() {
             Voltar ao Dashboard
           </Button>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
               Período: {currentYear}.{getSemestreNumero(currentSemester)}
             </div>
@@ -176,7 +176,7 @@ export default function ManageDisciplinasPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <BookOpen className="h-5 w-5" />
                 Minhas Disciplinas Atuais
                 {professorDisciplinas && (
@@ -203,7 +203,7 @@ export default function ManageDisciplinasPage() {
                       <div>
                         <div className="font-medium">{disciplina.codigo}</div>
                         <div className="text-sm text-muted-foreground">{disciplina.nome}</div>
-                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-4 mt-2 text-xs text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <FileText className="h-3 w-3" />
                             {disciplina.projetosAtivos} projeto(s)
@@ -231,7 +231,7 @@ export default function ManageDisciplinasPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex flex-wrap items-center gap-2">
                 <Plus className="h-5 w-5" />
                 Criar Nova Disciplina
               </CardTitle>
@@ -269,21 +269,21 @@ export default function ManageDisciplinasPage() {
                     />
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       onClick={() => {
                         setShowCreateForm(false)
                         setNewDisciplina({ nome: "", codigo: "", cargaHoraria: 60, periodo: 1 })
                       }}
-                      className="flex-1"
+                      className="flex-1 min-w-0"
                     >
                       Cancelar
                     </Button>
                     <Button
                       onClick={handleCreateDisciplina}
                       disabled={createDisciplinaMutation.isPending}
-                      className="flex-1"
+                      className="flex-1 min-w-0"
                     >
                       {createDisciplinaMutation.isPending ? "Criando..." : "Criar"}
                     </Button>
@@ -296,7 +296,7 @@ export default function ManageDisciplinasPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               <BookOpen className="h-5 w-5" />
               Disciplinas do Departamento
               {departmentDisciplinas && (
@@ -324,12 +324,12 @@ export default function ManageDisciplinasPage() {
                         : "bg-gray-50 border-gray-200 hover:bg-gray-100"
                     }`}
                   >
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="font-medium">{disciplina.codigo}</div>
                       <div className="text-sm text-muted-foreground">{disciplina.nome}</div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {disciplina.isAssociated ? (
                         <Badge variant="default" className="bg-green-600">
                           <Check className="h-3 w-3 mr-1" />
@@ -357,7 +357,7 @@ export default function ManageDisciplinasPage() {
 
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
+            <div className="flex flex-wrap items-start gap-3">
               <BookOpen className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
                 <h4 className="font-medium text-blue-900 mb-2">Como funciona o gerenciamento de disciplinas</h4>

@@ -83,10 +83,10 @@ function VerifyEmailContent() {
             <p className="text-sm text-slate-600">
               Não recebeu o e-mail? Informe seu endereço para reenviarmos a confirmação.
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <input
                 type="email"
-                className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className="flex-1 min-w-0 rounded-md border border-slate-300 px-3 py-2 text-sm"
                 placeholder="nome@ufba.br"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}

@@ -13,7 +13,7 @@ export function ProjectStatsCards({ projetos }: ProjectStatsCardsProps) {
   const totalVoluntarios = projetos.reduce((sum, p) => sum + p.voluntariosSolicitados, 0)
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <DataCard icon={BookOpen} label="Total de Projetos" value={totalProjetos} variant="default" />
 
       <DataCard icon={CheckCircle} label="Aprovados" value={projetosAprovados} variant="success" />

@@ -249,7 +249,7 @@ function SignEditalContent() {
         {/* Edital Info Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg flex flex-wrap items-center gap-2">
               <FileSignature className="h-5 w-5" />
               Detalhes do Edital
             </CardTitle>
@@ -321,7 +321,7 @@ function SignEditalContent() {
             {/* Signature Mode Selector */}
             <div className="space-y-2">
               <Label>Forma de Assinatura</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
                   variant={signatureMode === "draw" ? "default" : "outline"}
@@ -404,7 +404,7 @@ function SignEditalContent() {
         {/* Info Card */}
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="py-4">
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-1">Informações Importantes</p>

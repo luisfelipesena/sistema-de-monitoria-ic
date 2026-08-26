@@ -116,7 +116,7 @@ export default function EditUserPage() {
 
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex flex-wrap items-center gap-2">
             <User className="h-5 w-5" />
             Dados do Usuário
           </CardTitle>
@@ -161,12 +161,12 @@ export default function EditUserPage() {
               </Select>
             </div>
 
-            <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={updateUserMutation.isPending} className="flex-1">
+            <div className="flex flex-wrap gap-2 pt-4">
+              <Button type="submit" disabled={updateUserMutation.isPending} className="flex-1 min-w-0">
                 <Save className="h-4 w-4 mr-2" />
                 {updateUserMutation.isPending ? "Salvando..." : "Salvar Alterações"}
               </Button>
-              <Button type="button" variant="outline" onClick={handleBack} className="flex-1">
+              <Button type="button" variant="outline" onClick={handleBack} className="flex-1 min-w-0">
                 Cancelar
               </Button>
             </div>

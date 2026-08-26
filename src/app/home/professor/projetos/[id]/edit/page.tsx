@@ -661,7 +661,7 @@ export default function EditProjetoPage() {
                   <h3 className="text-lg font-semibold">
                     {isEditingTemplate ? "Preview do Template" : "Preview do Documento"}
                   </h3>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {!isEditingTemplate && hasTemplate && (
                       <Button
                         variant="outline"

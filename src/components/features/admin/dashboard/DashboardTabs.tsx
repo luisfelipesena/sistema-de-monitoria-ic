@@ -11,7 +11,7 @@ const TABS = [
 
 export function DashboardTabs({ activeTab, onTabChange }: DashboardTabsProps) {
   return (
-    <div className="mb-4 sm:mb-6 flex gap-3 sm:gap-6 border-b border-gray-200 overflow-x-auto">
+    <div className="mb-4 sm:mb-6 flex flex-wrap gap-3 sm:gap-6 border-b border-gray-200 overflow-x-auto">
       {TABS.map((tab) => (
         <button
           key={tab.id}

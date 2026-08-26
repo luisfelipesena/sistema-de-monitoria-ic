@@ -73,7 +73,7 @@ export default function RelatoriosAlunoPage() {
 
       {/* Info Card */}
       <Card className="border-blue-200 bg-blue-50">
-        <CardContent className="py-4 flex items-start gap-3">
+        <CardContent className="py-4 flex flex-wrap items-start gap-3">
           <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
           <div className="text-sm text-blue-800">
             <p className="font-medium">Sobre os Relatórios Finais</p>
@@ -87,7 +87,7 @@ export default function RelatoriosAlunoPage() {
 
       {/* Relatórios Pendentes */}
       <div>
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-semibold mb-4 flex flex-wrap items-center gap-2">
           <Clock className="h-5 w-5" />
           Pendentes de Assinatura
         </h2>
@@ -168,7 +168,7 @@ export default function RelatoriosAlunoPage() {
 
               <div className="space-y-6">
                 {/* Status */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-medium">Status:</span>
                   {getStatusBadge(relatorioDetails.status as RelatorioStatus)}
                   {relatorioDetails.professorAssinouEm && (
@@ -181,7 +181,7 @@ export default function RelatoriosAlunoPage() {
                 {/* Conteúdo do Relatório */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base flex items-center gap-2">
+                    <CardTitle className="text-base flex flex-wrap items-center gap-2">
                       <FileText className="h-4 w-4" />
                       Avaliação do Professor
                     </CardTitle>
@@ -195,7 +195,7 @@ export default function RelatoriosAlunoPage() {
                       <Label className="text-xs text-muted-foreground">Atividades Realizadas</Label>
                       <p className="text-sm mt-1">{relatorioDetails.conteudo.atividadesRealizadas}</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label className="text-xs text-muted-foreground">Frequência</Label>
                         <p className="text-sm mt-1">{relatorioDetails.conteudo.frequencia}</p>
@@ -230,7 +230,7 @@ export default function RelatoriosAlunoPage() {
                 {/* Aviso */}
                 {!relatorioDetails.alunoAssinouEm && relatorioDetails.professorAssinouEm && (
                   <Card className="border-amber-200 bg-amber-50">
-                    <CardContent className="py-4 flex items-start gap-3">
+                    <CardContent className="py-4 flex flex-wrap items-start gap-3">
                       <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
                       <div className="text-sm text-amber-800">
                         <p className="font-medium">Atenção</p>

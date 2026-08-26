@@ -42,7 +42,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card className="border-amber-200">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-amber-800">
+            <CardTitle className="flex flex-wrap items-center gap-2 text-amber-800">
               <Settings className="h-5 w-5" />
               Configurações do Template Padrão
             </CardTitle>
@@ -201,12 +201,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({
           </CardHeader>
           <CardContent className="space-y-4">
             {atividades.map((atividade, index) => (
-              <div key={index} className="flex items-center gap-2">
+              <div key={index} className="flex flex-wrap items-center gap-2">
                 <Input
                   placeholder={`Atividade padrão ${index + 1}`}
                   value={atividade}
                   onChange={(e) => onAtividadeChange(index, e.target.value)}
-                  className="flex-1"
+                  className="flex-1 min-w-0"
                 />
                 <Button
                   type="button"

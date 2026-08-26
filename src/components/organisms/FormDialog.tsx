@@ -56,7 +56,7 @@ export function FormDialog<T extends Record<string, any>>({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {children}
 
-            <div className="flex justify-end gap-2 pt-4 border-t">
+            <div className="flex flex-wrap justify-end gap-2 pt-4 border-t">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                 {cancelLabel}
               </Button>

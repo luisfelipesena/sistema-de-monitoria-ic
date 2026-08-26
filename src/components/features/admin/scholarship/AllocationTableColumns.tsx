@@ -86,7 +86,7 @@ export function createAllocationTableColumns(
 
         if (isEditing) {
           return (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Input
                 type="number"
                 min="0"
@@ -107,7 +107,7 @@ export function createAllocationTableColumns(
         }
 
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{currentValue}</span>
             <Button variant="outline" size="sm" onClick={() => props.onEditAllocation(projectId, currentValue)}>
               <Edit className="h-4 w-4" />

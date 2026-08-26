@@ -234,7 +234,7 @@ export default function ApiKeysPage() {
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex flex-wrap items-center gap-2">
                     <Key className="h-5 w-5" />
                     {apiKey.name}
                     <Badge variant={apiKey.isActive ? "default" : "secondary"}>
@@ -248,7 +248,7 @@ export default function ApiKeysPage() {
                   )}
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -269,7 +269,7 @@ export default function ApiKeysPage() {
             </CardHeader>
             
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                   <p className="text-gray-500">Usuário</p>
                   <p className="font-medium">{apiKey.user.username}</p>

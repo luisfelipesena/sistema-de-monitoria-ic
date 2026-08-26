@@ -261,7 +261,7 @@ export default function AlunosPage() {
         cell: ({ row }) => {
           const aluno = row.original
           return (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -304,7 +304,7 @@ export default function AlunosPage() {
     <PagesLayout title="Gerenciamento de Alunos" subtitle="Visualize e gerencie informações dos estudantes">
       <div className="space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-start">
@@ -392,7 +392,7 @@ export default function AlunosPage() {
                 {/* Personal Information */}
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Informações Pessoais</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">Nome Completo</Label>
                       <p className="text-sm">{selectedAluno.nomeCompleto}</p>
@@ -428,7 +428,7 @@ export default function AlunosPage() {
                 {/* Academic Information */}
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Informações Acadêmicas</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">Curso</Label>
                       <p className="text-sm">{selectedAluno.cursoNome || "N/A"}</p>
@@ -449,7 +449,7 @@ export default function AlunosPage() {
                 {/* Monitoring Activities */}
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Atividades de Monitoria</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">Total de Inscrições</Label>
                       <p className="text-sm">{selectedAluno.inscricoes}</p>

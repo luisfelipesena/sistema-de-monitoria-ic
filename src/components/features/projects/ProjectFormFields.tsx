@@ -482,12 +482,12 @@ export function ProjectFormFields({
         </CardHeader>
         <CardContent className="space-y-4">
           {atividades.map((atividade, index) => (
-            <div key={index} className="flex items-center gap-2">
+            <div key={index} className="flex flex-wrap items-center gap-2">
               <Input
                 placeholder={`Atividade ${index + 1}`}
                 value={atividade}
                 onChange={(e) => onAtividadeChange(index, e.target.value)}
-                className="flex-1"
+                className="flex-1 min-w-0"
               />
               <Button
                 type="button"

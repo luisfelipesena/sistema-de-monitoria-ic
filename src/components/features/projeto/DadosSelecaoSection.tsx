@@ -170,7 +170,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
     return (
       <Card className="mt-3">
         <CardContent className="py-6">
-          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="text-sm">Carregando dados da seleção...</span>
           </div>
@@ -181,7 +181,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
 
   if (error) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50/60 px-4 py-3 mt-3">
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-red-200 bg-red-50/60 px-4 py-3 mt-3">
         <Info className="h-4 w-4 text-red-600 shrink-0" />
         <p className="text-sm text-red-800">
           Erro ao carregar dados da seleção: {error.message}
@@ -192,7 +192,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
 
   if (!selecaoInfo || !selecaoInfo.hasEditalInterno) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 mt-3">
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-3 mt-3">
         <Info className="h-4 w-4 text-amber-600 shrink-0" />
         <p className="text-sm text-amber-800">
           Este projeto ainda não está vinculado a um edital interno. Entre em contato com a coordenação para verificar.
@@ -212,7 +212,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
           {/* ── Bloco 1: Range do Admin + Datas escolhidas ── */}
           <div className="space-y-3">
             {selecaoInfo.rangeSelecao && (
-              <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50/50 p-3">
+              <div className="flex flex-wrap items-start gap-3 rounded-lg border border-blue-200 bg-blue-50/50 p-3">
                 <Clock className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
                 <div className="text-sm">
                   <p className="font-medium text-blue-900">Período disponível para seleção</p>
@@ -248,7 +248,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                   {currentSelections.map((slot) => (
                     <div
                       key={`${slot.data}-${slot.horario}`}
-                      className="flex items-center gap-2 rounded-md bg-muted/60 px-3 py-2 text-sm"
+                      className="flex flex-wrap items-center gap-2 rounded-md bg-muted/60 px-3 py-2 text-sm"
                     >
                       <span className="font-medium">{formatDateLongUTC(slot.data)}</span>
                       <span className="text-muted-foreground">às</span>
@@ -287,13 +287,13 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <Label htmlFor={`local-selecao-${projetoId}`} className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Local da prova
               </Label>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Input
                 id={`local-selecao-${projetoId}`}
                 value={localSelecao}
@@ -332,13 +332,13 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
 
           {/* ── Bloco 2: Vagas ── */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Vagas
               </Label>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label htmlFor={`bolsistas-${projetoId}`} className="text-xs text-muted-foreground">
                   Bolsistas
@@ -391,14 +391,14 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
 
             {/* Confirmation status + button */}
             {selecaoInfo.voluntariosConfirmados ? (
-              <div className="flex items-center gap-2 rounded-md bg-green-50 border border-green-200 px-3 py-2">
+              <div className="flex flex-wrap items-center gap-2 rounded-md bg-green-50 border border-green-200 px-3 py-2">
                 <svg className="h-4 w-4 text-green-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
                 <span className="text-sm text-green-800 font-medium">Voluntários confirmados</span>
               </div>
             ) : (
-              <div className="flex items-center justify-between gap-3 rounded-md bg-amber-50 border border-amber-200 px-3 py-2">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-amber-50 border border-amber-200 px-3 py-2">
                 <p className="text-xs text-amber-800">
                   Confirme o número de voluntários para que apareça no edital.
                 </p>
@@ -422,7 +422,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
 
           {/* ── Bloco 3: Conteúdo da Prova ── */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <BookOpen className="h-4 w-4 text-muted-foreground" />
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Conteúdo da Prova
@@ -485,7 +485,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
 
           {/* ── Bloco 4: Confirmação para o Edital ── */}
           {selecaoInfo.dadosEditalConfirmados ? (
-            <div className="flex items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg bg-green-50 border border-green-200 px-4 py-3">
               <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
               <div>
                 <span className="text-sm text-green-800 font-semibold">Dados confirmados para o Edital</span>
@@ -503,7 +503,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
 
                 {/* Checklist de pendências */}
                 <ul className="space-y-1.5 mb-4">
-                  <li className={`flex items-center gap-2 text-xs ${currentSelections.length >= 1 ? "text-green-700" : "text-red-600"}`}>
+                  <li className={`flex flex-wrap items-center gap-2 text-xs ${currentSelections.length >= 1 ? "text-green-700" : "text-red-600"}`}>
                     {currentSelections.length >= 1 ? (
                       <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                     ) : (
@@ -513,7 +513,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                     )}
                     Data/horário de seleção escolhido
                   </li>
-                  <li className={`flex items-center gap-2 text-xs ${pontosProva.trim() ? "text-green-700" : "text-red-600"}`}>
+                  <li className={`flex flex-wrap items-center gap-2 text-xs ${pontosProva.trim() ? "text-green-700" : "text-red-600"}`}>
                     {pontosProva.trim() ? (
                       <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                     ) : (
@@ -523,7 +523,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                     )}
                     Pontos de prova preenchidos
                   </li>
-                  <li className={`flex items-center gap-2 text-xs ${bibliografia.trim() ? "text-green-700" : "text-red-600"}`}>
+                  <li className={`flex flex-wrap items-center gap-2 text-xs ${bibliografia.trim() ? "text-green-700" : "text-red-600"}`}>
                     {bibliografia.trim() ? (
                       <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                     ) : (
@@ -533,7 +533,7 @@ export function DadosSelecaoSection({ projetoId }: DadosSelecaoSectionProps) {
                     )}
                     Bibliografia preenchida
                   </li>
-                  <li className={`flex items-center gap-2 text-xs ${selecaoInfo.voluntariosConfirmados ? "text-green-700" : "text-red-600"}`}>
+                  <li className={`flex flex-wrap items-center gap-2 text-xs ${selecaoInfo.voluntariosConfirmados ? "text-green-700" : "text-red-600"}`}>
                     {selecaoInfo.voluntariosConfirmados ? (
                       <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                     ) : (

@@ -47,7 +47,7 @@ export function ProjetoCard({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
             <span>{totalMonitores} monitores</span>

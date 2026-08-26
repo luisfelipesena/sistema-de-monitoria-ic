@@ -76,11 +76,11 @@ function ResultadoSelecaoPDFButton({
         <DialogContent className="max-w-4xl h-[85vh] flex flex-col">
           <DialogHeader className="pb-2 border-b">
             <div className="flex items-center justify-between pr-8">
-              <DialogTitle className="text-xl flex items-center gap-2">
+              <DialogTitle className="text-xl flex flex-wrap items-center gap-2">
                 <FileText className="h-5 w-5 text-blue-600" />
                 Tabela de Resultado da Seleção
               </DialogTitle>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant={selectedType === "BOLSISTA" ? "default" : "outline"}
@@ -102,9 +102,9 @@ function ResultadoSelecaoPDFButton({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 w-full h-full min-h-[500px] mt-2 border rounded-md overflow-hidden bg-slate-100">
+          <div className="flex-1 min-w-0 w-full h-full min-h-[500px] mt-2 border rounded-md overflow-hidden bg-slate-100">
             {isLoading || !ataData ? (
-              <div className="flex items-center justify-center h-full gap-2 text-muted-foreground">
+              <div className="flex flex-wrap items-center justify-center h-full gap-2 text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
                 <span>Carregando documento em PDF...</span>
               </div>
@@ -389,7 +389,7 @@ export default function ResultadosPage() {
     >
       <div className="space-y-6">
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="flex items-center p-6">
               <div className="flex items-center space-x-2">
@@ -448,7 +448,7 @@ export default function ResultadosPage() {
           return (
           <Card>
             <CardHeader>
-              <CardTitle className={`flex items-center gap-2 ${hasScholarshipSelected ? 'text-green-700' : 'text-blue-700'}`}>
+              <CardTitle className={`flex flex-wrap items-center gap-2 ${hasScholarshipSelected ? 'text-green-700' : 'text-blue-700'}`}>
                 <CheckCircle className="h-5 w-5" />
                 {hasScholarshipSelected
                   ? "Parabéns! Você foi selecionado(a) para a Bolsa"
@@ -466,12 +466,12 @@ export default function ResultadosPage() {
                     {(() => {
                       const tipoVaga = inscricao.tipoVagaPretendida as TipoVaga | null
                       return (
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              {getStatusIcon(status)}
-                              <h3 className="font-semibold text-lg">{inscricao.projeto.titulo}</h3>
-                              {getTipoVagaIcon(tipoVaga)}
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-start gap-2 mb-2">
+                              <span className="mt-1 shrink-0">{getStatusIcon(status)}</span>
+                              <h3 className="min-w-0 flex-1 font-semibold text-lg break-words">{inscricao.projeto.titulo}</h3>
+                              <span className="mt-1 shrink-0">{getTipoVagaIcon(tipoVaga)}</span>
                             </div>
                             <p className="text-sm text-muted-foreground mb-2">
                               Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
@@ -480,7 +480,7 @@ export default function ResultadosPage() {
                               Disciplinas:{" "}
                               {inscricao.projeto.disciplinas.map((d) => d.codigo).join(", ")}
                             </p>
-                            <div className="flex items-center gap-2 mb-3">
+                            <div className="flex flex-wrap items-center gap-2 mb-3">
                               <StatusBadge status={status} />
                               {inscricao.notaFinal && (
                                 <span className="text-sm text-green-700 font-medium">
@@ -497,9 +497,9 @@ export default function ResultadosPage() {
                           </div>
 
                           {/* Botões de Ação alinhados à direita */}
-                          <div className="flex flex-col items-end gap-2.5 ml-4">
+                          <div className="flex w-full flex-col gap-2.5 sm:ml-4 sm:w-auto sm:items-end">
                             {canConfirmInterest(status, inscricao) && (
-                              <div className="flex gap-2">
+                              <div className="flex flex-wrap gap-2">
                                 <Button
                                   onClick={() => handleConfirmInterest(inscricao.id)}
                                   disabled={confirmarInteresseMutation.isPending || rejectInterestMutation.isPending}
@@ -539,7 +539,7 @@ export default function ResultadosPage() {
                             )}
 
                             {canAcceptOrReject(status) && (
-                              <div className="flex gap-2">
+                              <div className="flex flex-wrap gap-2">
                                 <Button
                                   onClick={() => handleAccept(inscricao.id, tipoVaga ?? TIPO_VAGA_BOLSISTA)}
                                   disabled={aceitarVagaMutation.isPending}
@@ -587,7 +587,7 @@ export default function ResultadosPage() {
         {inscricoesRejeitadas.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-gray-700">
+              <CardTitle className="flex flex-wrap items-center gap-2 text-gray-700">
                 <MessageSquare className="h-5 w-5" />
                 Outras Inscrições
               </CardTitle>
@@ -600,9 +600,9 @@ export default function ResultadosPage() {
                       const status = inscricao.status as StatusInscricao
                       const tipoVaga = inscricao.tipoVagaPretendida as TipoVaga | null
                       return (
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
                               {getStatusIcon(status)}
                               <h3 className="font-semibold">{inscricao.projeto.titulo}</h3>
                               {getTipoVagaIcon(tipoVaga)}
@@ -610,7 +610,7 @@ export default function ResultadosPage() {
                             <p className="text-sm text-muted-foreground mb-2">
                               Professor: {inscricao.projeto.professorResponsavel.nomeCompleto}
                             </p>
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
                               <StatusBadge status={status} />
                               {inscricao.notaFinal && (
                                 <span className="text-sm text-muted-foreground">
@@ -626,7 +626,7 @@ export default function ResultadosPage() {
                             )}
                           </div>
 
-                          <div className="flex flex-col items-end justify-center ml-4">
+                          <div className="flex w-full flex-col justify-center sm:ml-4 sm:w-auto sm:items-end">
                             {(inscricao as any)?.bolsasPreenchidas && (
                               <span className="text-sm font-bold text-red-600 mb-2">
                                 Bolsas preenchidas

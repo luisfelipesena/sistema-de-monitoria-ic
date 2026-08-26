@@ -168,7 +168,7 @@ function DocumentSigningContent() {
   const colunasProjetos: ColumnDef<DashboardProjectItem>[] = [
     {
       header: () => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <List className="h-5 w-5 text-gray-400" />
           Componente Curricular
         </div>
@@ -230,7 +230,7 @@ function DocumentSigningContent() {
     },
     {
       header: () => (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Users className="h-5 w-5 text-gray-400" />
           Voluntários
         </div>
@@ -320,26 +320,26 @@ function DocumentSigningContent() {
       {/* Instructions Card */}
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-blue-900 mb-4">Como Funciona o Processo</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="flex items-start gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex flex-wrap items-start gap-3">
             <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
               1
             </span>
             <p className="text-sm text-blue-800">Clique em "Assinar Projeto" para visualizar o PDF</p>
           </div>
-          <div className="flex items-start gap-3">
+          <div className="flex flex-wrap items-start gap-3">
             <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
               2
             </span>
             <p className="text-sm text-blue-800">Clique em "Assinar como Professor" para abrir o modal</p>
           </div>
-          <div className="flex items-start gap-3">
+          <div className="flex flex-wrap items-start gap-3">
             <span className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
               3
             </span>
             <p className="text-sm text-blue-800">Desenhe sua assinatura e clique em "Salvar"</p>
           </div>
-          <div className="flex items-start gap-3">
+          <div className="flex flex-wrap items-start gap-3">
             <span className="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
               4
             </span>

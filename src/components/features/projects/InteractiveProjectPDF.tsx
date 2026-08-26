@@ -268,12 +268,12 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
+            <span className="flex flex-wrap items-center gap-2">
               <FileSignature className="h-5 w-5" />
               Documento do Projeto - {currentFormData.titulo}
             </span>
             {!hasSignature && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {hasDefaultSignature ? (
                   <>
                     <Button onClick={handleOpenSignature} disabled={isSubmitting}>
@@ -306,7 +306,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
               </div>
             )}
             {hasSignature && (
-              <div className="flex items-center gap-2 text-green-600">
+              <div className="flex flex-wrap items-center gap-2 text-green-600">
                 <CheckCircle className="h-5 w-5" />
                 <span className="font-medium">Assinado por {roleLabel}</span>
               </div>
@@ -362,7 +362,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
                     className="max-w-full max-h-24 object-contain"
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     size="sm"
                     onClick={() => {
@@ -409,7 +409,7 @@ export function InteractiveProjectPDF({ formData, userRole, onSignatureComplete 
               <Button variant="outline" onClick={handleClearSignature}>
                 Limpar
               </Button>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   onClick={() => {

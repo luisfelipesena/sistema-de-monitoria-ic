@@ -138,7 +138,7 @@ export function PdfSignatureModal({
               Limpar
             </Button>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSigning}>
                 Cancelar
               </Button>

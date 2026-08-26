@@ -14,7 +14,7 @@ export function ProjectSummary({ projects }: ProjectSummaryProps) {
     <div className="grid gap-4 md:grid-cols-3">
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <GraduationCap className="h-8 w-8 text-blue-500" />
             <div>
               <div className="text-2xl font-bold">{projects.length}</div>
@@ -25,7 +25,7 @@ export function ProjectSummary({ projects }: ProjectSummaryProps) {
       </Card>
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Award className="h-8 w-8 text-yellow-500" />
             <div>
               <div className="text-2xl font-bold">{totalBolsas}</div>
@@ -36,7 +36,7 @@ export function ProjectSummary({ projects }: ProjectSummaryProps) {
       </Card>
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Users className="h-8 w-8 text-green-500" />
             <div>
               <div className="text-2xl font-bold">{totalCandidatos}</div>

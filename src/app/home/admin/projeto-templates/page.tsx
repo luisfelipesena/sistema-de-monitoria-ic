@@ -246,7 +246,7 @@ export default function ProjetoTemplatesPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <FileText className="h-5 w-5" />
                 Templates de Projeto
                 {templates && (

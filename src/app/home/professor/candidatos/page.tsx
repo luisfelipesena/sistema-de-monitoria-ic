@@ -201,7 +201,7 @@ function ProjectApplicationsContent() {
 
         {!hasExistingEvaluation && candidate.status === STATUS_INSCRICAO_SUBMITTED && (
           <CardContent className="pt-0">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div>
                 <Label className="text-sm font-medium">Avaliação Rápida (1-5 estrelas)</Label>
                 <div className="flex gap-1 mt-1">
@@ -275,10 +275,10 @@ function ProjectApplicationsContent() {
       <div className="space-y-6">
         {/* Project Overview */}
         {selectedProject && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Users className="h-5 w-5 text-blue-500" />
                   <div>
                     <p className="text-sm font-medium">Total de Candidatos</p>
@@ -290,7 +290,7 @@ function ProjectApplicationsContent() {
 
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <GraduationCap className="h-5 w-5 text-green-500" />
                   <div>
                     <p className="text-sm font-medium">Bolsas Disponíveis</p>
@@ -302,7 +302,7 @@ function ProjectApplicationsContent() {
 
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Users className="h-5 w-5 text-purple-500" />
                   <div>
                     <p className="text-sm font-medium">Vagas Voluntárias</p>
@@ -314,7 +314,7 @@ function ProjectApplicationsContent() {
 
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-orange-500" />
                   <div>
                     <p className="text-sm font-medium">Avaliados</p>

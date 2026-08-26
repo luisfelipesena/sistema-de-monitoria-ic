@@ -37,7 +37,7 @@ export function ProjectDetailDialog({ projeto, isOpen, onClose }: ProjectDetailD
 
         <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto">
           <ProjectDetailSection title="Informações Básicas">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Título" value={projeto.titulo} />
               <Field label="Departamento" value={projeto.departamento.nome} />
               <Field
@@ -55,7 +55,7 @@ export function ProjectDetailDialog({ projeto, isOpen, onClose }: ProjectDetailD
           <Separator />
 
           <ProjectDetailSection title="Vagas e Inscrições">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Bolsas Solicitadas" value={projeto.bolsasSolicitadas} />
               <Field label="Voluntários Solicitados" value={projeto.voluntariosSolicitados} />
               <Field label="Total de Inscrições" value={projeto.inscricoes} />
@@ -66,7 +66,7 @@ export function ProjectDetailDialog({ projeto, isOpen, onClose }: ProjectDetailD
           <Separator />
 
           <ProjectDetailSection title="Detalhes do Projeto">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Carga Horária Semanal" value={`${projeto.cargaHorariaSemana} horas`} />
               <Field label="Número de Semanas" value={`${projeto.numeroSemanas} semanas`} />
               <Field label="Público Alvo" value={projeto.publicoAlvo} />
@@ -89,7 +89,7 @@ export function ProjectDetailDialog({ projeto, isOpen, onClose }: ProjectDetailD
           <Separator />
 
           <ProjectDetailSection title="Assinaturas">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field
                 label="Assinatura do Professor"
                 value={
@@ -112,7 +112,7 @@ export function ProjectDetailDialog({ projeto, isOpen, onClose }: ProjectDetailD
           <Separator />
 
           <ProjectDetailSection title="Histórico">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Criado em" value={format(new Date(projeto.criadoEm), "dd/MM/yyyy 'às' HH:mm")} />
               <Field
                 label="Última atualização"

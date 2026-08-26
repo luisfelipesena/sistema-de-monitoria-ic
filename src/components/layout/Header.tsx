@@ -20,16 +20,16 @@ export function Header() {
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center border-b border-border bg-background px-4 shadow-sm">
       <div className="flex w-full items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <SidebarTrigger />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="transparent"
-                className="flex items-center gap-2 px-2 py-1"
+                className="flex flex-wrap items-center gap-2 px-2 py-1"
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   {userInitials}

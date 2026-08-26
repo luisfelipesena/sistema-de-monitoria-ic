@@ -50,7 +50,7 @@ export function ExportSection({
               O sistema gera duas planilhas (bolsistas e voluntários) e encaminha automaticamente para os emails do
               departamento configurados
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <EmailDialog
                 isOpen={showEmailDialog}
                 onOpenChange={setShowEmailDialog}

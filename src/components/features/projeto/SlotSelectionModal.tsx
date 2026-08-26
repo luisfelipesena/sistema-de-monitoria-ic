@@ -168,7 +168,7 @@ export function SlotSelectionModal({
         </DialogHeader>
 
         {rangeSelecao && (
-          <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50/60 px-3 py-2.5">
+          <div className="flex flex-wrap items-start gap-2 rounded-lg border border-blue-200 bg-blue-50/60 px-3 py-2.5">
             <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
             <p className="text-xs text-blue-800">
               <span className="font-medium">Período permitido:</span>{" "}
@@ -181,8 +181,8 @@ export function SlotSelectionModal({
         )}
 
         <div className="space-y-4 py-2">
-          <div className="flex items-end gap-3">
-            <div className="flex-1">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex-1 min-w-0">
               <label className="block text-xs font-medium text-muted-foreground mb-1">
                 Data
               </label>
@@ -215,7 +215,7 @@ export function SlotSelectionModal({
               )}
             </div>
 
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <label className="block text-xs font-medium text-muted-foreground mb-1">
                 Horário
               </label>

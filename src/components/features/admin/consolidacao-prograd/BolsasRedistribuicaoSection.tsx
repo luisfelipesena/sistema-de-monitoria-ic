@@ -63,7 +63,7 @@ export function BolsasRedistribuicaoSection({
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
         ) : surplus.length === 0 && demanda.length === 0 ? (
-          <div className="rounded-lg border bg-muted/40 p-4 flex items-start gap-2">
+          <div className="rounded-lg border bg-muted/40 p-4 flex flex-wrap items-start gap-2">
             <Info className="h-4 w-4 mt-0.5 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
               Nenhum desbalanceamento detectado. Todos os projetos aprovados deste período têm o mesmo número de
