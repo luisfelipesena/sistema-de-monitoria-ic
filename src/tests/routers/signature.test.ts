@@ -145,9 +145,7 @@ describe('signatureRouter', () => {
       const mockContext = createMockContext(null)
       const caller = signatureRouter.createCaller(mockContext)
 
-      await expect(
-        caller.saveDefaultSignature({ signatureData: 'some-data' })
-      ).rejects.toThrow()
+      await expect(caller.saveDefaultSignature({ signatureData: 'some-data' })).rejects.toThrow()
     })
 
     it('should allow any authenticated role to save signature', async () => {

@@ -130,7 +130,9 @@ describe('relatoriosFinaisRouter', () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = relatoriosFinaisRouter.createCaller(mockContext)
 
-      await expect(caller.listRelatoriosDisciplina({})).rejects.toThrow('Apenas professores podem acessar esta funcionalidade')
+      await expect(caller.listRelatoriosDisciplina({})).rejects.toThrow(
+        'Apenas professores podem acessar esta funcionalidade'
+      )
     })
 
     it('should allow admin to list relatorios', async () => {
@@ -221,7 +223,9 @@ describe('relatoriosFinaisRouter', () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = relatoriosFinaisRouter.createCaller(mockContext)
 
-      await expect(caller.signRelatorioDisciplina({ relatorioId: 1 })).rejects.toThrow('Apenas professores podem assinar relatórios')
+      await expect(caller.signRelatorioDisciplina({ relatorioId: 1 })).rejects.toThrow(
+        'Apenas professores podem assinar relatórios'
+      )
     })
   })
 
@@ -256,7 +260,9 @@ describe('relatoriosFinaisRouter', () => {
       const mockContext = createMockContext(mockProfessorUser)
       const caller = relatoriosFinaisRouter.createCaller(mockContext)
 
-      await expect(caller.listRelatoriosPendentesAluno()).rejects.toThrow('Apenas alunos podem acessar esta funcionalidade')
+      await expect(caller.listRelatoriosPendentesAluno()).rejects.toThrow(
+        'Apenas alunos podem acessar esta funcionalidade'
+      )
     })
   })
 
@@ -280,7 +286,9 @@ describe('relatoriosFinaisRouter', () => {
       const mockContext = createMockContext(mockProfessorUser)
       const caller = relatoriosFinaisRouter.createCaller(mockContext)
 
-      await expect(caller.signRelatorioMonitorAsAluno({ relatorioId: 1 })).rejects.toThrow('Apenas alunos podem assinar relatórios')
+      await expect(caller.signRelatorioMonitorAsAluno({ relatorioId: 1 })).rejects.toThrow(
+        'Apenas alunos podem assinar relatórios'
+      )
     })
   })
 

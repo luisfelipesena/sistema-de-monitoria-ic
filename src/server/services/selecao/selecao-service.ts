@@ -327,12 +327,12 @@ export function createSelecaoService(db: Database) {
       const currentlySelected = currentInscricoes.filter(
         (i) => i.status === 'SELECTED_BOLSISTA' || i.status === 'SELECTED_VOLUNTARIO'
       )
-      const isReplacingCandidate = currentlySelected.some((i) => !bolsistas.includes(i.id) && !voluntarios.includes(i.id))
+      const isReplacingCandidate = currentlySelected.some(
+        (i) => !bolsistas.includes(i.id) && !voluntarios.includes(i.id)
+      )
 
       if (isReplacingCandidate && !motivoTroca) {
-        throw new ValidationError(
-          'É obrigatório informar o motivo da troca de candidato ao redesignar a bolsa.'
-        )
+        throw new ValidationError('É obrigatório informar o motivo da troca de candidato ao redesignar a bolsa.')
       }
 
       await db.transaction(async (tx) => {
@@ -345,7 +345,9 @@ export function createSelecaoService(db: Database) {
           .map((i) => i.id)
         // Track who was previously selected for bolsa (to mark as WAITING_LIST = "professor changed")
         const previouslySelectedIds = allInscricoesCurrent
-          .filter((i) => i.status === 'SELECTED_BOLSISTA' || i.status === 'SELECTED_VOLUNTARIO' || i.status === 'WAITING_LIST')
+          .filter(
+            (i) => i.status === 'SELECTED_BOLSISTA' || i.status === 'SELECTED_VOLUNTARIO' || i.status === 'WAITING_LIST'
+          )
           .map((i) => i.id)
 
         // Reset all inscricoes to SUBMITTED
@@ -354,9 +356,7 @@ export function createSelecaoService(db: Database) {
         // Restore REJECTED_BY_STUDENT status (preserve rejection history)
         if (rejectedByStudentIds.length > 0) {
           await Promise.all(
-            rejectedByStudentIds.map((inscricaoId) =>
-              txRepo.updateInscricaoStatus(inscricaoId, 'REJECTED_BY_STUDENT')
-            )
+            rejectedByStudentIds.map((inscricaoId) => txRepo.updateInscricaoStatus(inscricaoId, 'REJECTED_BY_STUDENT'))
           )
         }
 
@@ -379,8 +379,9 @@ export function createSelecaoService(db: Database) {
         // - Never selected → CONFIRMED_INTEREST
         const allSelected = [...bolsistas, ...voluntarios]
         const allInscricaoIds = await txRepo.getAllInscricaoIdsByProjetoId(projetoId)
-        const unselected = allInscricaoIds
-          .filter((i) => !allSelected.includes(i.id) && !rejectedByStudentIds.includes(i.id))
+        const unselected = allInscricaoIds.filter(
+          (i) => !allSelected.includes(i.id) && !rejectedByStudentIds.includes(i.id)
+        )
 
         if (unselected.length > 0) {
           await Promise.all(

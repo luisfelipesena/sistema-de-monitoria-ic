@@ -1,18 +1,18 @@
 import type { db } from '@/server/db'
 import {
-    assinaturaDocumentoTable,
-    ataSelecaoTable,
-    disciplinaTable,
-    inscricaoTable,
-    professorTable,
-    projetoDisciplinaTable,
-    projetoTable,
+  assinaturaDocumentoTable,
+  ataSelecaoTable,
+  disciplinaTable,
+  inscricaoTable,
+  professorTable,
+  projetoDisciplinaTable,
+  projetoTable,
 } from '@/server/db/schema'
 import {
-    PROJETO_STATUS_APPROVED,
-    STATUS_INSCRICAO_SUBMITTED,
-    TIPO_ASSINATURA_ATA_SELECAO,
-    type Semestre,
+  PROJETO_STATUS_APPROVED,
+  STATUS_INSCRICAO_SUBMITTED,
+  TIPO_ASSINATURA_ATA_SELECAO,
+  type Semestre,
 } from '@/types'
 import type { InferInsertModel, InferSelectModel, SQL } from 'drizzle-orm'
 import { and, desc, eq, ilike, inArray, isNotNull, isNull, or } from 'drizzle-orm'

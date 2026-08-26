@@ -23,7 +23,9 @@ vi.mock('@/server/db', () => ({
     },
     insert: vi.fn().mockReturnValue({
       values: vi.fn().mockReturnValue({
-        returning: vi.fn().mockResolvedValue([{ id: 1, email: 'prof@ufba.br', token: 'token-123', expiresAt: new Date() }]),
+        returning: vi
+          .fn()
+          .mockResolvedValue([{ id: 1, email: 'prof@ufba.br', token: 'token-123', expiresAt: new Date() }]),
       }),
     }),
     update: vi.fn().mockReturnValue({
@@ -112,14 +114,18 @@ const createMockContext = (user: User | null): TRPCContext => {
           findFirst: vi.fn(),
         },
         departamentoTable: {
-          findMany: vi.fn().mockResolvedValue([
-            { id: 1, nome: 'Ciência da Computação', sigla: 'DCC', unidadeUniversitaria: 'IM' },
-          ]),
+          findMany: vi
+            .fn()
+            .mockResolvedValue([{ id: 1, nome: 'Ciência da Computação', sigla: 'DCC', unidadeUniversitaria: 'IM' }]),
         },
       },
       insert: vi.fn().mockReturnValue({
         values: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([{ id: 1, userId: 10, email: 'newprof@ufba.br', token: 'token-abc', expiresAt: new Date() }]),
+          returning: vi
+            .fn()
+            .mockResolvedValue([
+              { id: 1, userId: 10, email: 'newprof@ufba.br', token: 'token-abc', expiresAt: new Date() },
+            ]),
         }),
       }),
       update: vi.fn().mockReturnValue({
@@ -211,18 +217,14 @@ describe('inviteProfessorRouter', () => {
       const mockContext = createMockContext(null)
       const caller = inviteProfessorRouter.createCaller(mockContext)
 
-      await expect(
-        caller.resendInvitation({ invitationId: 1, expiresInDays: 7 })
-      ).rejects.toThrow()
+      await expect(caller.resendInvitation({ invitationId: 1, expiresInDays: 7 })).rejects.toThrow()
     })
 
     it('should reject non-admin user', async () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = inviteProfessorRouter.createCaller(mockContext)
 
-      await expect(
-        caller.resendInvitation({ invitationId: 1, expiresInDays: 7 })
-      ).rejects.toThrow()
+      await expect(caller.resendInvitation({ invitationId: 1, expiresInDays: 7 })).rejects.toThrow()
     })
   })
 
@@ -231,18 +233,14 @@ describe('inviteProfessorRouter', () => {
       const mockContext = createMockContext(null)
       const caller = inviteProfessorRouter.createCaller(mockContext)
 
-      await expect(
-        caller.cancelInvitation({ invitationId: 1 })
-      ).rejects.toThrow()
+      await expect(caller.cancelInvitation({ invitationId: 1 })).rejects.toThrow()
     })
 
     it('should reject non-admin user', async () => {
       const mockContext = createMockContext(mockProfessorUser)
       const caller = inviteProfessorRouter.createCaller(mockContext)
 
-      await expect(
-        caller.cancelInvitation({ invitationId: 1 })
-      ).rejects.toThrow()
+      await expect(caller.cancelInvitation({ invitationId: 1 })).rejects.toThrow()
     })
   })
 
@@ -251,18 +249,14 @@ describe('inviteProfessorRouter', () => {
       const mockContext = createMockContext(null)
       const caller = inviteProfessorRouter.createCaller(mockContext)
 
-      await expect(
-        caller.deleteInvitation({ invitationId: 1 })
-      ).rejects.toThrow()
+      await expect(caller.deleteInvitation({ invitationId: 1 })).rejects.toThrow()
     })
 
     it('should reject non-admin user', async () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = inviteProfessorRouter.createCaller(mockContext)
 
-      await expect(
-        caller.deleteInvitation({ invitationId: 1 })
-      ).rejects.toThrow()
+      await expect(caller.deleteInvitation({ invitationId: 1 })).rejects.toThrow()
     })
   })
 

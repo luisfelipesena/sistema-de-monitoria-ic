@@ -158,9 +158,7 @@ export class StudentInscricaoService {
     }
 
     // Check if student has inscriptions waiting for interest confirmation
-    const inscricoesAguardandoConfirmacao = inscricoes.filter(
-      (inscricao) => inscricao.status === WAITING_LIST
-    )
+    const inscricoesAguardandoConfirmacao = inscricoes.filter((inscricao) => inscricao.status === WAITING_LIST)
     if (inscricoesAguardandoConfirmacao.length > 0) {
       for (const inscricao of inscricoesAguardandoConfirmacao) {
         // Only show action if bolsas are not yet filled for this project
@@ -180,9 +178,7 @@ export class StudentInscricaoService {
     }
 
     // Check if student has been selected for a scholarship and needs to accept/reject
-    const inscricoesAguardandoAceite = inscricoes.filter(
-      (inscricao) => inscricao.status === SELECTED_BOLSISTA
-    )
+    const inscricoesAguardandoAceite = inscricoes.filter((inscricao) => inscricao.status === SELECTED_BOLSISTA)
     if (inscricoesAguardandoAceite.length > 0) {
       for (const inscricao of inscricoesAguardandoAceite) {
         proximasAcoes.push({

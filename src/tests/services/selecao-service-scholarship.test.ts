@@ -1,6 +1,4 @@
-import {
-    STATUS_INSCRICAO_CONFIRMED_INTEREST
-} from '@/types'
+import { STATUS_INSCRICAO_CONFIRMED_INTEREST } from '@/types'
 import { describe, expect, it } from 'vitest'
 
 /**
@@ -60,15 +58,14 @@ describe('Scholarship Selection Flow - Business Logic', () => {
         { id: 3, status: 'CONFIRMED_INTEREST' },
       ]
 
-      const rejectedByStudentIds = allInscricoes
-        .filter((i) => i.status === 'REJECTED_BY_STUDENT')
-        .map((i) => i.id)
+      const rejectedByStudentIds = allInscricoes.filter((i) => i.status === 'REJECTED_BY_STUDENT').map((i) => i.id)
 
       const bolsistas = [2] // Selecting candidate 2
       const allSelected = [...bolsistas]
 
-      const unselected = allInscricoes
-        .filter((i) => !allSelected.includes(i.id) && !rejectedByStudentIds.includes(i.id))
+      const unselected = allInscricoes.filter(
+        (i) => !allSelected.includes(i.id) && !rejectedByStudentIds.includes(i.id)
+      )
 
       // Candidate 1 should not be in unselected (preserved as REJECTED_BY_STUDENT)
       expect(unselected.find((i) => i.id === 1)).toBeUndefined()
@@ -91,8 +88,9 @@ describe('Scholarship Selection Flow - Business Logic', () => {
 
       const rejectedByStudentIds = [1]
 
-      const unselected = allInscricoes
-        .filter((i) => !allSelected.includes(i.id) && !rejectedByStudentIds.includes(i.id))
+      const unselected = allInscricoes.filter(
+        (i) => !allSelected.includes(i.id) && !rejectedByStudentIds.includes(i.id)
+      )
 
       const results = unselected.map((inscricao) => {
         const wasPreviouslySelected = previouslySelectedIds.includes(inscricao.id)
@@ -107,14 +105,10 @@ describe('Scholarship Selection Flow - Business Logic', () => {
     })
 
     it('should require motivoTroca when replacing a currently selected candidate', () => {
-      const currentlySelected = [
-        { id: 2, status: 'SELECTED_BOLSISTA' },
-      ]
+      const currentlySelected = [{ id: 2, status: 'SELECTED_BOLSISTA' }]
       const newBolsistas = [3] // Different from currently selected
 
-      const isReplacingCandidate = currentlySelected.some(
-        (i) => !newBolsistas.includes(i.id)
-      )
+      const isReplacingCandidate = currentlySelected.some((i) => !newBolsistas.includes(i.id))
 
       expect(isReplacingCandidate).toBe(true)
 
@@ -133,9 +127,7 @@ describe('Scholarship Selection Flow - Business Logic', () => {
       const currentlySelected: { id: number; status: string }[] = [] // No one currently selected
       const newBolsistas = [1]
 
-      const isReplacingCandidate = currentlySelected.some(
-        (i) => !newBolsistas.includes(i.id)
-      )
+      const isReplacingCandidate = currentlySelected.some((i) => !newBolsistas.includes(i.id))
 
       expect(isReplacingCandidate).toBe(false)
 
@@ -161,10 +153,7 @@ describe('Scholarship Selection Flow - Business Logic', () => {
     })
 
     it('should return false when no bolsas accepted yet', () => {
-      const inscricoes = [
-        { status: 'SELECTED_BOLSISTA' },
-        { status: 'CONFIRMED_INTEREST' },
-      ]
+      const inscricoes = [{ status: 'SELECTED_BOLSISTA' }, { status: 'CONFIRMED_INTEREST' }]
       const bolsasDisponibilizadas = 1
 
       const bolsasAceitas = inscricoes.filter((i) => i.status === 'ACCEPTED_BOLSISTA').length
@@ -174,9 +163,7 @@ describe('Scholarship Selection Flow - Business Logic', () => {
     })
 
     it('should return false when bolsasDisponibilizadas is 0', () => {
-      const inscricoes = [
-        { status: 'ACCEPTED_BOLSISTA' },
-      ]
+      const inscricoes = [{ status: 'ACCEPTED_BOLSISTA' }]
       const bolsasDisponibilizadas = 0
 
       const bolsasAceitas = inscricoes.filter((i) => i.status === 'ACCEPTED_BOLSISTA').length

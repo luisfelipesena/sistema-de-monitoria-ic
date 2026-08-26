@@ -161,18 +161,14 @@ describe('scholarshipAllocationRouter', () => {
       const mockContext = createMockContext(null)
       const caller = scholarshipAllocationRouter.createCaller(mockContext)
 
-      await expect(
-        caller.updateScholarshipAllocation({ projetoId: 1, bolsasDisponibilizadas: 3 })
-      ).rejects.toThrow()
+      await expect(caller.updateScholarshipAllocation({ projetoId: 1, bolsasDisponibilizadas: 3 })).rejects.toThrow()
     })
 
     it('should reject non-admin user', async () => {
       const mockContext = createMockContext(mockProfessorUser)
       const caller = scholarshipAllocationRouter.createCaller(mockContext)
 
-      await expect(
-        caller.updateScholarshipAllocation({ projetoId: 1, bolsasDisponibilizadas: 3 })
-      ).rejects.toThrow()
+      await expect(caller.updateScholarshipAllocation({ projetoId: 1, bolsasDisponibilizadas: 3 })).rejects.toThrow()
     })
   })
 
@@ -269,7 +265,11 @@ describe('scholarshipAllocationRouter', () => {
       expect(result).toBeDefined()
       expect(result.success).toBe(true)
       expect((result as any).totalBolsas).toBe(50)
-      expect(mockScholarshipAllocationServiceMethods.setTotalScholarshipsFromPrograd).toHaveBeenCalledWith(2024, 'SEMESTRE_1', 50)
+      expect(mockScholarshipAllocationServiceMethods.setTotalScholarshipsFromPrograd).toHaveBeenCalledWith(
+        2024,
+        'SEMESTRE_1',
+        50
+      )
     })
 
     it('should reject unauthenticated user', async () => {
@@ -305,25 +305,24 @@ describe('scholarshipAllocationRouter', () => {
 
       expect(result).toBeDefined()
       expect(result.success).toBe(true)
-      expect(mockScholarshipAllocationNotifierMethods.notifyProfessorsAfterAllocation).toHaveBeenCalledWith(2024, 'SEMESTRE_1')
+      expect(mockScholarshipAllocationNotifierMethods.notifyProfessorsAfterAllocation).toHaveBeenCalledWith(
+        2024,
+        'SEMESTRE_1'
+      )
     })
 
     it('should reject unauthenticated user', async () => {
       const mockContext = createMockContext(null)
       const caller = scholarshipAllocationRouter.createCaller(mockContext)
 
-      await expect(
-        caller.notifyProfessorsAfterAllocation({ ano: 2024, semestre: 'SEMESTRE_1' })
-      ).rejects.toThrow()
+      await expect(caller.notifyProfessorsAfterAllocation({ ano: 2024, semestre: 'SEMESTRE_1' })).rejects.toThrow()
     })
 
     it('should reject non-admin user', async () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = scholarshipAllocationRouter.createCaller(mockContext)
 
-      await expect(
-        caller.notifyProfessorsAfterAllocation({ ano: 2024, semestre: 'SEMESTRE_1' })
-      ).rejects.toThrow()
+      await expect(caller.notifyProfessorsAfterAllocation({ ano: 2024, semestre: 'SEMESTRE_1' })).rejects.toThrow()
     })
   })
 })
