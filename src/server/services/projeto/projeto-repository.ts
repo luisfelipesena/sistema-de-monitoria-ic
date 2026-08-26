@@ -481,7 +481,12 @@ export function createProjetoRepository(db: Database) {
         .from(inscricaoTable)
         .innerJoin(alunoTable, eq(inscricaoTable.alunoId, alunoTable.id))
         .where(eq(inscricaoTable.projetoId, projetoId))
-        .orderBy(desc(inscricaoTable.notaFinal))
+        .orderBy(
+          desc(inscricaoTable.notaFinal),
+          desc(inscricaoTable.notaDisciplina),
+          desc(inscricaoTable.coeficienteRendimento),
+          desc(alunoTable.cr)
+        )
     },
 
     async findInscricoesWithUserByProjetoId(projetoId: number) {

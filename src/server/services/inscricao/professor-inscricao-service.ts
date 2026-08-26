@@ -56,7 +56,7 @@ export class ProfessorInscricaoService {
     }
 
     const coeficiente = Number(inscricao.coeficienteRendimento) || 0
-    const notaFinal = (input.notaDisciplina * 5 + input.notaSelecao * 3 + coeficiente * 2) / 10
+    const notaFinal = (input.notaSelecao * 5 + input.notaDisciplina * 3 + coeficiente * 2) / 10
 
     await this.repository.updateInscricao(input.inscricaoId, {
       notaDisciplina: input.notaDisciplina.toString(),
@@ -137,7 +137,7 @@ export class ProfessorInscricaoService {
   ) {
     requireProfessor(userRole)
 
-    const notaFinalRaw = (input.notaDisciplina * 5 + input.notaSelecao * 3 + input.coeficienteRendimento * 2) / 10
+    const notaFinalRaw = (input.notaSelecao * 5 + input.notaDisciplina * 3 + input.coeficienteRendimento * 2) / 10
     const notaFinal = (Math.round(notaFinalRaw * 10) / 10).toFixed(1)
 
     const inscricao = await this.repository.findInscricaoWithProjetoProfessor(input.inscricaoId)

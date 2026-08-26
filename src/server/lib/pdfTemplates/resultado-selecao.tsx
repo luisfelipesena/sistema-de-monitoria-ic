@@ -1,4 +1,5 @@
 import React from "react"
+import { compareCandidates } from "@/utils/candidate-sorting"
 import { AtaSelecaoData, getSemestreNumero, Semestre } from "@/types"
 import { IC_LOGO_BASE64, UFBA_LOGO__FORM_BASE64 } from "@/utils/images"
 import { Document, Font, Image, Page, StyleSheet, Text, View } from "@react-pdf/renderer"
@@ -233,10 +234,13 @@ export function ResultadoSelecaoTemplate({ data, tipo }: ResultadoSelecaoProps) 
     .map((c: any) => ({
       id: c.id,
       alunoNome: c.aluno?.nomeCompleto || c.aluno?.user?.username || "Candidato",
+      notaDisciplina: c.notaDisciplina ? Number(c.notaDisciplina) : null,
+      coeficienteRendimento: c.coeficienteRendimento ? Number(c.coeficienteRendimento) : null,
+      aluno: c.aluno,
       notaFinal: c.notaFinal !== null && c.notaFinal !== undefined ? Math.round(Number(c.notaFinal) * 10) / 10 : null,
     }))
     .filter((c) => c.notaFinal !== null && c.notaFinal >= 7.0)
-    .sort((a, b) => (b.notaFinal || 0) - (a.notaFinal || 0))
+    .sort(compareCandidates)
 
   const dataAtaStr = data.ataInfo?.dataSelecao || new Date()
 
