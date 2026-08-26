@@ -3,6 +3,7 @@ import type { db } from '@/server/db'
 import {
   alunoTable,
   inscricaoDocumentoTable,
+  inscricaoTable,
   professorTable,
   projetoDocumentoTable,
   projetoTable,
@@ -59,6 +60,20 @@ export function createFileRepository(db: Database) {
           },
         },
       })
+    },
+
+    async findProjetosByAlunoId(alunoId: number) {
+      const inscricoes = await db.query.inscricaoTable.findMany({
+        where: eq(inscricaoTable.alunoId, alunoId),
+        with: {
+          projeto: {
+            with: {
+              professoresParticipantes: true,
+            },
+          },
+        },
+      })
+      return inscricoes.map((inscricao) => inscricao.projeto)
     },
 
     async findProjetoById(projetoId: number) {

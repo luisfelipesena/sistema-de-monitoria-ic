@@ -153,6 +153,8 @@ export function createFileService(db: Database) {
       const projetos = [
         ...projetoDocumentos.map((doc) => doc.projeto),
         ...inscricaoDocumentos.map((doc) => doc.inscricao?.projeto),
+        // A lista de candidatos cai no documento do perfil do aluno quando a inscrição não anexou o seu
+        ...(aluno ? await repo.findProjetosByAlunoId(aluno.id) : []),
       ]
       if (projetos.length === 0) return false
 

@@ -8,6 +8,7 @@ const repo = {
   findProfessorByFileId: vi.fn(),
   findProjetoDocumentosByFileId: vi.fn(),
   findInscricaoDocumentosByFileId: vi.fn(),
+  findProjetosByAlunoId: vi.fn(),
   findProfessorByUserId: vi.fn(),
 }
 
@@ -40,6 +41,7 @@ describe('fileService.canAccessFile', () => {
     repo.findProfessorByFileId.mockResolvedValue(null)
     repo.findProjetoDocumentosByFileId.mockResolvedValue([])
     repo.findInscricaoDocumentosByFileId.mockResolvedValue(inscricaoDocumentos)
+    repo.findProjetosByAlunoId.mockResolvedValue([])
   })
 
   it('authorizes every professor whose projeto received the shared file', async () => {
@@ -65,5 +67,31 @@ describe('fileService.canAccessFile', () => {
     const service = createFileService(db)
 
     await expect(service.canAccessFile(HISTORICO, 193, STUDENT)).resolves.toBe(true)
+  })
+})
+
+describe('fileService.canAccessFile - documento do perfil do aluno', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    repo.findAlunoByFileId.mockResolvedValue({ id: 108, userId: 193 })
+    repo.findProfessorByFileId.mockResolvedValue(null)
+    repo.findProjetoDocumentosByFileId.mockResolvedValue([])
+    // O arquivo vive no perfil do aluno e nenhuma inscrição o anexou
+    repo.findInscricaoDocumentosByFileId.mockResolvedValue([])
+    repo.findProjetosByAlunoId.mockResolvedValue([{ professorResponsavelId: 29, professoresParticipantes: [] }])
+  })
+
+  it('authorizes the professor whose projeto the aluno applied to', async () => {
+    repo.findProfessorByUserId.mockResolvedValue({ id: 29, userId: 65 })
+    const service = createFileService(db)
+
+    await expect(service.canAccessFile(HISTORICO, 65, PROFESSOR)).resolves.toBe(true)
+  })
+
+  it('denies a professor the aluno never applied to', async () => {
+    repo.findProfessorByUserId.mockResolvedValue({ id: 7, userId: 99 })
+    const service = createFileService(db)
+
+    await expect(service.canAccessFile(HISTORICO, 99, PROFESSOR)).resolves.toBe(false)
   })
 })
