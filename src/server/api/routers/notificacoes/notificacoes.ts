@@ -20,6 +20,16 @@ export const notificacoesRouter = createTRPCRouter({
   // ============================================
 
   /**
+   * Check and send scholarship-related reminders (bolsistas without response after 24h).
+   * Called automatically on any page load via useScholarshipReminders hook.
+   * Uses the proactive reminder system with throttling to avoid duplicate sends.
+   */
+  checkScholarshipReminders: protectedProcedure.mutation(async ({ ctx }) => {
+    const service = createProactiveReminderService(ctx.db)
+    return service.executeReminderIfNeeded('bolsa_sem_resposta_24h', ctx.user.id)
+  }),
+
+  /**
    * Check and execute all pending proactive reminders.
    * Called automatically when admin accesses dashboard or notifications page.
    */

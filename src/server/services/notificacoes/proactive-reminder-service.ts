@@ -61,6 +61,12 @@ const REMINDER_CONFIG: Record<
     description: 'Projetos sem aceite de monitor após o prazo',
     sendMethod: 'sendUnacceptedProjectsReminders',
   },
+  bolsa_sem_resposta_24h: {
+    minHoursBetweenExecutions: 12,
+    defaultDays: 1,
+    description: 'Bolsistas selecionados que não responderam em 24h',
+    sendMethod: 'sendScholarshipNoResponseReminders',
+  },
 }
 
 export type ProactiveReminderResult = {

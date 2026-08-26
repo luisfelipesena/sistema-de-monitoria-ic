@@ -1,14 +1,9 @@
-import { SelectionResult, SelectionScheduleUpdated } from '@/server/emails/templates/student'
-import { SelectionReminder } from '@/server/emails/templates/professor'
 import { renderEmail } from '@/server/emails/render'
+import { SelectionReminder } from '@/server/emails/templates/professor'
+import { ScholarshipSelected, SelectionResult, SelectionScheduleUpdated } from '@/server/emails/templates/student'
+import { REJECTED_BY_PROFESSOR, SELECTED_BOLSISTA, SELECTED_VOLUNTARIO, type SelecaoSchedule } from '@/types'
 import { env } from '@/utils/env'
 import { emailSender } from './email-sender'
-import {
-  REJECTED_BY_PROFESSOR,
-  SELECTED_BOLSISTA,
-  SELECTED_VOLUNTARIO,
-  type SelecaoSchedule,
-} from '@/types'
 
 const clientUrl = env.CLIENT_URL || 'http://localhost:3000'
 
@@ -30,12 +25,11 @@ export interface StudentSelectionData {
   }>
 }
 
-export interface LembreteSelecaoData {
-  professorEmail: string
-  professorNome: string
-  projetoTitulo: string
-  customMessage?: string
-  linkPlataforma: string
+export interface ScholarshipSelectedData {
+  studentName: string
+  studentEmail: string
+  projectTitle: string
+  professorName: string
   projetoId?: number
   alunoId?: number
   remetenteUserId?: number
@@ -48,7 +42,18 @@ export interface StudentSelectionScheduleData {
   schedule: SelecaoSchedule
   projetoId: number
   alunoId: number
-  remetenteUserId: number
+  remetenteUserId?: number
+}
+
+export interface LembreteSelecaoData {
+  professorEmail: string
+  professorNome: string
+  projetoTitulo: string
+  customMessage?: string
+  linkPlataforma: string
+  projetoId?: number
+  alunoId?: number
+  remetenteUserId?: number
 }
 
 export const studentEmailService = {
@@ -96,6 +101,29 @@ export const studentEmailService = {
       html,
       tipoNotificacao: 'LEMBRETE_SELECAO_MONITORES',
       projetoId: data.projetoId,
+      remetenteUserId: data.remetenteUserId,
+    })
+  },
+
+  async sendScholarshipSelectedNotification(data: ScholarshipSelectedData): Promise<void> {
+    const linkAceite = `${clientUrl}/home/student/resultados`
+
+    const html = await renderEmail(
+      <ScholarshipSelected
+        studentName={data.studentName}
+        projectTitle={data.projectTitle}
+        professorName={data.professorName}
+        linkAceite={linkAceite}
+      />
+    )
+
+    await emailSender.send({
+      to: data.studentEmail,
+      subject: `[Monitoria IC] Bolsa de Monitoria - Aceite ou Rejeite: ${data.projectTitle}`,
+      html,
+      tipoNotificacao: 'BOLSA_SELECIONADO_ACEITE_PENDENTE',
+      projetoId: data.projetoId,
+      alunoId: data.alunoId,
       remetenteUserId: data.remetenteUserId,
     })
   },

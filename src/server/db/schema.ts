@@ -155,6 +155,7 @@ export const statusInscricaoEnum = pgEnum('status_inscricao_enum', [
   'SUBMITTED', // Aluno aplicou
   'SELECTED_BOLSISTA', // Professor selecionou (bolsista)
   'SELECTED_VOLUNTARIO', // Professor selecionou (voluntário)
+  'CONFIRMED_INTEREST', // Aluno confirmou interesse após publicação do resultado
   'ACCEPTED_BOLSISTA', // Aluno aceitou (bolsista)
   'ACCEPTED_VOLUNTARIO', // Aluno aceitou (voluntário)
   'REJECTED_BY_PROFESSOR', // Professor rejeitou

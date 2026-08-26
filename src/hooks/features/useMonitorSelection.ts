@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import type { MonitorProject, SelectionState } from '@/types/monitor-selection'
 import { api } from '@/utils/api'
-import type { SelectionState, MonitorProject } from '@/types/monitor-selection'
+import { useCallback, useState } from 'react'
 
 export function useMonitorSelection() {
   const { toast } = useToast()
@@ -90,11 +90,12 @@ export function useMonitorSelection() {
   )
 
   const handleSubmitSelection = useCallback(
-    (projetoId: number) => {
+    (projetoId: number, motivoTroca?: string) => {
       selectMonitorsMutation.mutate({
         projetoId,
         bolsistas: selectedCandidates.bolsistas,
         voluntarios: selectedCandidates.voluntarios,
+        motivoTroca,
       })
     },
     [selectedCandidates, selectMonitorsMutation]

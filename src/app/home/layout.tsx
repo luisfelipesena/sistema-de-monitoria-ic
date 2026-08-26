@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header"
 import { SidebarLayout } from "@/components/layout/Sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Spinner } from "@/components/ui/spinner"
+import { useScholarshipReminders } from "@/hooks/features/useScholarshipReminders"
 import { useAuth } from "@/hooks/use-auth"
 import { useOnboardingStatus } from "@/hooks/use-onboarding"
 import { ADMIN, PROFESSOR, STUDENT, type UserRole } from "@/types"
@@ -36,6 +37,9 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
 
   const isOnboardingPage = pathname === "/home/common/onboarding"
   const routeRole = useMemo(() => getRouteRole(pathname), [pathname])
+
+  // Check for pending scholarship reminders on every page access
+  useScholarshipReminders()
 
   useEffect(() => {
     if (!user && !isLoading) {

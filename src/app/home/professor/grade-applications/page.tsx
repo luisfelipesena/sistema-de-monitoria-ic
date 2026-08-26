@@ -21,13 +21,16 @@ import { useToast } from "@/hooks/use-toast"
 import { getSemestreNumero, inscriptionDetailSchema, PROJETO_STATUS_APPROVED, Semestre, TIPO_VAGA_BOLSISTA } from "@/types"
 import { api } from "@/utils/api"
 import { Calculator, Check, ClipboardCheck, Copy, FileText, Loader2, Mail, Save, Users } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useSearchParams } from "next/navigation"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import { z } from "zod"
 
 type InscricaoComDetalhes = z.infer<typeof inscriptionDetailSchema>
 
-export default function GradeApplicationsPage() {
+function GradeApplicationsContent() {
   const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const projetoIdFromUrl = searchParams.get("projetoId")
 
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
   const [evaluatingInscricaoObj, setEvaluatingInscricaoObj] = useState<InscricaoComDetalhes | null>(null)
@@ -41,6 +44,13 @@ export default function GradeApplicationsPage() {
     coeficienteRendimento: "",
     feedbackProfessor: "",
   })
+
+  // Pre-select project from URL query param
+  useEffect(() => {
+    if (projetoIdFromUrl) {
+      setSelectedProjectId(parseInt(projetoIdFromUrl))
+    }
+  }, [projetoIdFromUrl])
 
   const getPresignedUrlMutation = api.file.getPresignedUrlMutation.useMutation()
 
@@ -483,5 +493,13 @@ export default function GradeApplicationsPage() {
         </DialogContent>
       </Dialog>
     </PagesLayout>
+  )
+}
+
+export default function GradeApplicationsPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <GradeApplicationsContent />
+    </Suspense>
   )
 }

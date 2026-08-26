@@ -1,26 +1,23 @@
 'use client'
 
+import { SelectionScheduleCard } from '@/components/features/student/SelectionScheduleCard'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
-import { SelectionScheduleCard } from '@/components/features/student/SelectionScheduleCard'
 import { STATUS_INSCRICAO_SUBMITTED } from '@/types'
 import { api } from '@/utils/api'
 import {
-  Activity,
-  AlertTriangle,
-  Award,
-  BookOpen,
-  Calendar,
-  CheckCircle2,
-  Clock,
-  Eye,
-  FileText,
-  Trophy,
-  User,
-  UserPlus,
+    Activity,
+    AlertTriangle,
+    Award,
+    BookOpen,
+    Calendar,
+    CheckCircle2,
+    Clock,
+    FileText,
+    Trophy,
+    User
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -270,31 +267,43 @@ export default function StudentDashboard() {
         </Card>
 
         {/* Próximas Ações */}
-        <Card className="col-span-3">
+        <Card className={`col-span-3 ${status?.proximasAcoes && status.proximasAcoes.length > 0 ? 'border-red-300 bg-red-50' : ''}`}>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
+            <CardTitle className={`flex items-center gap-2 ${status?.proximasAcoes && status.proximasAcoes.length > 0 ? 'text-red-700' : ''}`}>
+              <Clock className={`h-5 w-5 ${status?.proximasAcoes && status.proximasAcoes.length > 0 ? 'text-red-600' : ''}`} />
               Próximas Ações
+              {status?.proximasAcoes && status.proximasAcoes.length > 0 && (
+                <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-red-600 text-white text-xs font-bold">
+                  {status.proximasAcoes.length}
+                </span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {status?.proximasAcoes && status.proximasAcoes.length > 0 ? (
               <div className="space-y-3">
                 {status.proximasAcoes.map((acao, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className="mt-1">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Link
+                    key={index}
+                    href="/home/student/resultados"
+                    className="flex items-start gap-3 p-3 bg-white border border-red-200 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors cursor-pointer"
+                  >
+                    <div className="mt-0.5">
+                      <AlertTriangle className="h-5 w-5 text-red-500" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-sm">{acao.titulo}</p>
-                      <p className="text-xs text-muted-foreground">{acao.descricao}</p>
+                      <p className="font-semibold text-sm text-red-800">{acao.titulo}</p>
+                      <p className="text-sm text-red-600">{acao.descricao}</p>
                       {acao.prazo && (
-                        <p className="text-xs text-orange-600 mt-1">
+                        <p className="text-xs text-red-500 font-medium mt-1">
                           Prazo: {acao.prazo.toLocaleDateString('pt-BR')}
                         </p>
                       )}
                     </div>
-                  </div>
+                    <div className="mt-0.5">
+                      <span className="text-red-400 text-lg">→</span>
+                    </div>
+                  </Link>
                 ))}
               </div>
             ) : (
