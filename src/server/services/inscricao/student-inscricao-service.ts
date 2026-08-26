@@ -20,6 +20,7 @@ import {
   PROJETO_STATUS_APPROVED,
   REJECTED_BY_PROFESSOR,
   REJECTED_BY_STUDENT,
+  REQUIRED_UPLOAD_DOCS,
   SELECTED_BOLSISTA,
   SELECTED_VOLUNTARIO,
   SEMESTRE_1,
@@ -28,16 +29,16 @@ import {
   SUBMITTED,
   TIPO_DOCUMENTO_INSCRICAO_COMPROVANTE_MATRICULA,
   TIPO_DOCUMENTO_INSCRICAO_HISTORICO_ESCOLAR,
+  TIPO_DOCUMENTO_INSCRICAO_LABELS,
   TIPO_INSCRICAO_BOLSISTA,
   TIPO_INSCRICAO_VOLUNTARIO,
-  REQUIRED_UPLOAD_DOCS,
-  TIPO_DOCUMENTO_INSCRICAO_LABELS,
   VAGA_STATUS_ATIVO,
   VOLUNTARIO,
+  WAITING_LIST,
 } from '@/types'
 import { logger } from '@/utils/logger'
-import { createInscricaoPdfService } from './pdf/inscricao-pdf-service'
 import type { Database, DocumentoData, InscricaoRepository } from './inscricao-repository'
+import { createInscricaoPdfService } from './pdf/inscricao-pdf-service'
 
 const log = logger.child({ context: 'StudentInscricaoService' })
 
@@ -154,6 +155,38 @@ export class StudentInscricaoService {
         descricao: 'Entregue o relatório final da monitoria',
         prazo: prazoRelatorio,
       })
+    }
+
+    // Check if student has inscriptions waiting for interest confirmation
+    const inscricoesAguardandoConfirmacao = inscricoes.filter((inscricao) => inscricao.status === WAITING_LIST)
+    if (inscricoesAguardandoConfirmacao.length > 0) {
+      for (const inscricao of inscricoesAguardandoConfirmacao) {
+        // Only show action if bolsas are not yet filled for this project
+        const todasInscricoesProjeto = await this.repository.findInscricoesByProjetoId(inscricao.projetoId)
+        const bolsasAceitas = todasInscricoesProjeto.filter((i) => i.status === ACCEPTED_BOLSISTA).length
+        const bolsasDisponibilizadas = inscricao.projeto.bolsasDisponibilizadas || 0
+        const bolsasPreenchidas = bolsasAceitas >= bolsasDisponibilizadas && bolsasDisponibilizadas > 0
+
+        if (!bolsasPreenchidas) {
+          proximasAcoes.push({
+            titulo: 'Confirmar Interesse',
+            descricao: `Confirme seu interesse em participar da monitoria do projeto "${inscricao.projeto.titulo}"`,
+            prazo: undefined,
+          })
+        }
+      }
+    }
+
+    // Check if student has been selected for a scholarship and needs to accept/reject
+    const inscricoesAguardandoAceite = inscricoes.filter((inscricao) => inscricao.status === SELECTED_BOLSISTA)
+    if (inscricoesAguardandoAceite.length > 0) {
+      for (const inscricao of inscricoesAguardandoAceite) {
+        proximasAcoes.push({
+          titulo: 'Aceitar ou Rejeitar Bolsa',
+          descricao: `O professor selecionou você para bolsa no projeto "${inscricao.projeto.titulo}". Aceite ou rejeite.`,
+          prazo: undefined,
+        })
+      }
     }
 
     return {
@@ -418,12 +451,19 @@ export class StudentInscricaoService {
       inscricoes.map(async (inscricao) => {
         const disciplinas = await this.repository.findDisciplinasByProjetoId(inscricao.projetoId)
 
+        // Check if all bolsas for this project have been accepted
+        const todasInscricoesProjeto = await this.repository.findInscricoesByProjetoId(inscricao.projetoId)
+        const bolsasAceitas = todasInscricoesProjeto.filter((i) => i.status === ACCEPTED_BOLSISTA).length
+        const bolsasDisponibilizadas = inscricao.projeto.bolsasDisponibilizadas || 0
+        const bolsasPreenchidas = bolsasAceitas >= bolsasDisponibilizadas && bolsasDisponibilizadas > 0
+
         return {
           ...inscricao,
           notaDisciplina: inscricao.notaDisciplina ? Number(inscricao.notaDisciplina) : null,
           notaSelecao: inscricao.notaSelecao ? Number(inscricao.notaSelecao) : null,
           coeficienteRendimento: inscricao.coeficienteRendimento ? Number(inscricao.coeficienteRendimento) : null,
           notaFinal: inscricao.notaFinal ? Number(inscricao.notaFinal) : null,
+          bolsasPreenchidas,
           projeto: {
             ...inscricao.projeto,
             professorResponsavel: inscricao.professorResponsavel,

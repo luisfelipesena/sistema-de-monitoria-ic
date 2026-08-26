@@ -114,12 +114,43 @@ export const selecaoRouter = createTRPCRouter({
     }
   }),
 
+  confirmInterest: protectedProcedure
+    .input(
+      z.object({
+        inscricaoId: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const service = createSelecaoService(ctx.db)
+      try {
+        return await service.confirmInterest(input.inscricaoId, ctx.user.id, ctx.user.role)
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
+  rejectInterest: protectedProcedure
+    .input(
+      z.object({
+        inscricaoId: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const service = createSelecaoService(ctx.db)
+      try {
+        return await service.rejectInterest(input.inscricaoId, ctx.user.id, ctx.user.role)
+      } catch (error) {
+        handleServiceError(error)
+      }
+    }),
+
   selectMonitors: protectedProcedure
     .input(
       z.object({
         projetoId: z.number(),
         bolsistas: z.array(z.number()),
         voluntarios: z.array(z.number()),
+        motivoTroca: z.string().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -129,6 +160,7 @@ export const selecaoRouter = createTRPCRouter({
           projetoId: input.projetoId,
           bolsistas: input.bolsistas,
           voluntarios: input.voluntarios,
+          motivoTroca: input.motivoTroca,
           userId: ctx.user.id,
           userRole: ctx.user.role,
         })

@@ -1,16 +1,16 @@
 import { Badge } from "@/components/ui/badge"
-import type {
-  AllocationStatus,
-  DepartmentStatus,
-  ProfessorInvitationStatus,
-  ProjetoStatus,
-  ProjetoTipo,
-  StatusInscricao,
-  TermoWorkflowStatus,
-  TipoVaga,
-} from "@/types"
 import { cn } from "@/lib/utils"
-import { CheckCircle2, XCircle, Clock, FileText, AlertCircle } from "lucide-react"
+import type {
+    AllocationStatus,
+    DepartmentStatus,
+    ProfessorInvitationStatus,
+    ProjetoStatus,
+    ProjetoTipo,
+    StatusInscricao,
+    TermoWorkflowStatus,
+    TipoVaga,
+} from "@/types"
+import { AlertCircle, CheckCircle2, Clock, FileText, XCircle } from "lucide-react"
 
 type StatusType =
   | ProjetoStatus
@@ -112,17 +112,24 @@ const STATUS_CONFIG_MAP: Record<string, StatusConfig> = {
   },
   REJECTED_BY_STUDENT: {
     variant: "outline",
-    label: "Rejeitado pelo Estudante",
+    label: "Bolsa recusada pelo aluno",
     ariaLabel: "Status: Estudante recusou a vaga",
     icon: XCircle,
-    className: "bg-gray-50 text-gray-700 border-gray-300",
+    className: "bg-red-50 text-red-700 border-red-300",
   },
   WAITING_LIST: {
     variant: "outline",
-    label: "Lista de Espera",
-    ariaLabel: "Status: Na lista de espera",
+    label: "Bolsa removida pelo professor",
+    ariaLabel: "Status: Professor removeu a seleção de bolsa",
     icon: Clock,
-    className: "bg-amber-50 text-amber-800 border-amber-300",
+    className: "bg-orange-50 text-orange-700 border-orange-300",
+  },
+  CONFIRMED_INTEREST: {
+    variant: "outline",
+    label: "Interesse Confirmado",
+    ariaLabel: "Status: Aluno confirmou interesse em participar",
+    icon: CheckCircle2,
+    className: "bg-blue-50 text-blue-800 border-blue-300",
   },
 
   // Course/Department statuses

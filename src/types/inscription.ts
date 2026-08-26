@@ -2,6 +2,7 @@ import { z } from 'zod'
 import {
   ACCEPTED_BOLSISTA,
   ACCEPTED_VOLUNTARIO,
+  CONFIRMED_INTEREST,
   decisionSchema,
   Genero,
   REJECTED_BY_PROFESSOR,
@@ -64,6 +65,7 @@ export interface SelecaoCandidato {
     | typeof SUBMITTED
     | typeof SELECTED_BOLSISTA
     | typeof SELECTED_VOLUNTARIO
+    | typeof CONFIRMED_INTEREST
     | typeof ACCEPTED_BOLSISTA
     | typeof ACCEPTED_VOLUNTARIO
     | typeof REJECTED_BY_PROFESSOR
@@ -286,6 +288,7 @@ export const inscriptionDetailSchema = z.object({
       email: z.string().email(),
     }),
   }),
+  bolsasPreenchidas: z.boolean().optional(),
 })
 
 export type CreateInscriptionData = z.infer<typeof createInscriptionSchema>

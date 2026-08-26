@@ -89,6 +89,7 @@ export type SelectMonitorsInput = {
   projetoId: number
   bolsistas: number[]
   voluntarios: number[]
+  motivoTroca?: string
   userId: number
   userRole: UserRole
 }

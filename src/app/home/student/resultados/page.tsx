@@ -18,9 +18,11 @@ import { Label } from "@/components/ui/label"
 import { PDFDownloadWrapper } from "@/components/ui/pdf-download-wrapper"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import { ResultadoSelecaoTemplate } from "@/server/lib/pdfTemplates/resultado-selecao"
 import {
   STATUS_INSCRICAO_ACCEPTED_BOLSISTA,
   STATUS_INSCRICAO_ACCEPTED_VOLUNTARIO,
+  STATUS_INSCRICAO_CONFIRMED_INTEREST,
   STATUS_INSCRICAO_REJECTED_BY_PROFESSOR,
   STATUS_INSCRICAO_REJECTED_BY_STUDENT,
   STATUS_INSCRICAO_SELECTED_BOLSISTA,
@@ -29,9 +31,8 @@ import {
   TIPO_VAGA_BOLSISTA,
   TIPO_VAGA_VOLUNTARIO,
   type StatusInscricao,
-  type TipoVaga,
+  type TipoVaga
 } from "@/types"
-import { ResultadoSelecaoTemplate } from "@/server/lib/pdfTemplates/resultado-selecao"
 import { api } from "@/utils/api"
 import { AlertCircle, Award, CheckCircle, Clock, FileText, Loader2, MessageSquare, Users, XCircle } from "lucide-react"
 import dynamic from "next/dynamic"
@@ -123,6 +124,9 @@ const SELECTED_STATUSES = new Set<StatusInscricao>([
   STATUS_INSCRICAO_SELECTED_BOLSISTA,
   STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
 ])
+const CONFIRMED_INTEREST_STATUSES = new Set<StatusInscricao>([
+  STATUS_INSCRICAO_CONFIRMED_INTEREST,
+])
 const ACCEPTED_STATUSES = new Set<StatusInscricao>([
   STATUS_INSCRICAO_ACCEPTED_BOLSISTA,
   STATUS_INSCRICAO_ACCEPTED_VOLUNTARIO,
@@ -200,6 +204,50 @@ export default function ResultadosPage() {
     },
   })
 
+  // Mutation para confirmar interesse
+  const confirmarInteresseMutation = api.selecao.confirmInterest.useMutation({
+    onSuccess: (data) => {
+      toast({
+        title: "Interesse confirmado!",
+        description: data.message,
+      })
+      refetch()
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      })
+    },
+  })
+
+  // Mutation para rejeitar participação no processo seletivo
+  const rejectInterestMutation = api.selecao.rejectInterest.useMutation({
+    onSuccess: (data) => {
+      toast({
+        title: "Participação rejeitada",
+        description: data.message,
+      })
+      refetch()
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      })
+    },
+  })
+
+  const handleConfirmInterest = (inscricaoId: number) => {
+    confirmarInteresseMutation.mutate({ inscricaoId })
+  }
+
+  const handleRejectInterest = (inscricaoId: number) => {
+    rejectInterestMutation.mutate({ inscricaoId })
+  }
+
   const handleAccept = (inscricaoId: number, tipoVagaPretendida: TipoVaga) => {
     // Se for bolsista e não tiver dados bancários, abrir modal
     if (tipoVagaPretendida === TIPO_VAGA_BOLSISTA && !hasBankData()) {
@@ -253,6 +301,8 @@ export default function ResultadosPage() {
   const getStatusIcon = (status: StatusInscricao) => {
     if (SELECTED_STATUSES.has(status)) {
       return <CheckCircle className="h-5 w-5 text-green-500" />
+    } else if (CONFIRMED_INTEREST_STATUSES.has(status)) {
+      return <CheckCircle className="h-5 w-5 text-blue-500" />
     } else if (ACCEPTED_STATUSES.has(status)) {
       return <CheckCircle className="h-5 w-5 text-green-600" />
     } else if (REJECTED_STATUSES.has(status)) {
@@ -262,12 +312,25 @@ export default function ResultadosPage() {
     }
   }
 
+  // Can confirm interest: approved but hasn't confirmed yet (status is WAITING_LIST)
+  // Hide if bolsas are already filled
+  const canConfirmInterest = (status: StatusInscricao, inscricao?: any) => {
+    if (status !== ('WAITING_LIST' as StatusInscricao)) return false
+    if (inscricao?.bolsasPreenchidas) return false
+    return true
+  }
+
+  // Can accept/reject bolsa: after professor selects them from confirmed interest list
   const canAcceptOrReject = (status: StatusInscricao) => {
     return SELECTED_STATUSES.has(status)
   }
 
   const isAccepted = (status: StatusInscricao) => {
     return ACCEPTED_STATUSES.has(status)
+  }
+
+  const hasConfirmedInterest = (status: StatusInscricao) => {
+    return CONFIRMED_INTEREST_STATUSES.has(status)
   }
 
   // Component para download do termo de compromisso
@@ -314,7 +377,7 @@ export default function ResultadosPage() {
 
   const inscricoesSelecionadas = inscricoesComResultado.filter((i) => {
     const status = i.status as StatusInscricao
-    return SELECTED_STATUSES.has(status) || ACCEPTED_STATUSES.has(status)
+    return SELECTED_STATUSES.has(status) || ACCEPTED_STATUSES.has(status) || CONFIRMED_INTEREST_STATUSES.has(status) || status === ('WAITING_LIST' as StatusInscricao)
   })
 
   const inscricoesRejeitadas = inscricoesComResultado.filter((i) => REJECTED_STATUSES.has(i.status as StatusInscricao))
@@ -378,20 +441,29 @@ export default function ResultadosPage() {
         </div>
 
         {/* Resultados Positivos */}
-        {inscricoesSelecionadas.length > 0 && (
+        {inscricoesSelecionadas.length > 0 && (() => {
+          const hasScholarshipSelected = inscricoesSelecionadas.some(
+            (i) => canAcceptOrReject(i.status as StatusInscricao) || ACCEPTED_STATUSES.has(i.status as StatusInscricao)
+          )
+          return (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-700">
+              <CardTitle className={`flex items-center gap-2 ${hasScholarshipSelected ? 'text-green-700' : 'text-blue-700'}`}>
                 <CheckCircle className="h-5 w-5" />
-                Parabéns! Você foi selecionado(a)
+                {hasScholarshipSelected
+                  ? "Parabéns! Você foi selecionado(a) para a Bolsa"
+                  : "Resultado da Seleção"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {inscricoesSelecionadas.map((inscricao) => (
-                  <div key={inscricao.id} className="border rounded-lg p-4 bg-green-50 border-green-200">
+                {inscricoesSelecionadas.map((inscricao) => {
+                  const status = inscricao.status as StatusInscricao
+                  const isScholarship = canAcceptOrReject(status) || ACCEPTED_STATUSES.has(status)
+                  const cardColor = isScholarship ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"
+                  return (
+                  <div key={inscricao.id} className={`border rounded-lg p-4 ${cardColor}`}>
                     {(() => {
-                      const status = inscricao.status as StatusInscricao
                       const tipoVaga = inscricao.tipoVagaPretendida as TipoVaga | null
                       return (
                         <div className="flex items-start justify-between">
@@ -426,6 +498,46 @@ export default function ResultadosPage() {
 
                           {/* Botões de Ação alinhados à direita */}
                           <div className="flex flex-col items-end gap-2.5 ml-4">
+                            {canConfirmInterest(status, inscricao) && (
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => handleConfirmInterest(inscricao.id)}
+                                  disabled={confirmarInteresseMutation.isPending || rejectInterestMutation.isPending}
+                                  className="bg-blue-600 hover:bg-blue-700"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  {confirmarInteresseMutation.isPending ? "Confirmando..." : "Confirmar interesse para o processo seletivo"}
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => handleRejectInterest(inscricao.id)}
+                                  disabled={confirmarInteresseMutation.isPending || rejectInterestMutation.isPending}
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  {rejectInterestMutation.isPending ? "Rejeitando..." : "Rejeitar participação"}
+                                </Button>
+                              </div>
+                            )}
+
+                            {status === ('WAITING_LIST' as StatusInscricao) && (inscricao as any)?.bolsasPreenchidas && (
+                              <Badge variant="destructive" className="font-bold">
+                                Bolsas preenchidas
+                              </Badge>
+                            )}
+
+                            {hasConfirmedInterest(status) && (inscricao as any)?.bolsasPreenchidas && (
+                              <Badge variant="destructive" className="font-bold">
+                                Bolsas preenchidas
+                              </Badge>
+                            )}
+
+                            {hasConfirmedInterest(status) && !(inscricao as any)?.bolsasPreenchidas && (
+                              <Badge className="bg-blue-600">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Processo seletivo em andamento
+                              </Badge>
+                            )}
+
                             {canAcceptOrReject(status) && (
                               <div className="flex gap-2">
                                 <Button
@@ -434,7 +546,7 @@ export default function ResultadosPage() {
                                   className="bg-green-600 hover:bg-green-700"
                                 >
                                   <CheckCircle className="h-4 w-4 mr-1" />
-                                  Aceitar
+                                  Aceitar Bolsa
                                 </Button>
                                 <Button
                                   variant="destructive"
@@ -442,7 +554,7 @@ export default function ResultadosPage() {
                                   disabled={recusarVagaMutation.isPending}
                                 >
                                   <XCircle className="h-4 w-4 mr-1" />
-                                  Recusar
+                                  Recusar Bolsa
                                 </Button>
                               </div>
                             )}
@@ -463,11 +575,13 @@ export default function ResultadosPage() {
                       )
                     })()}
                   </div>
-                ))}
+                  )
+                })}
               </div>
             </CardContent>
           </Card>
-        )}
+          )
+        })()}
 
         {/* Resultados Negativos */}
         {inscricoesRejeitadas.length > 0 && (
@@ -513,6 +627,11 @@ export default function ResultadosPage() {
                           </div>
 
                           <div className="flex flex-col items-end justify-center ml-4">
+                            {(inscricao as any)?.bolsasPreenchidas && (
+                              <span className="text-sm font-bold text-red-600 mb-2">
+                                Bolsas preenchidas
+                              </span>
+                            )}
                             <ResultadoSelecaoPDFButton projetoId={inscricao.projeto.id} tipoVaga={tipoVaga} />
                           </div>
                         </div>

@@ -77,7 +77,8 @@ export function createSelecaoRepository(db: Database) {
       return db.query.projetoTable.findMany({
         where: and(
           eq(projetoTable.professorResponsavelId, professorId),
-          eq(projetoTable.status, PROJETO_STATUS_APPROVED)
+          eq(projetoTable.status, PROJETO_STATUS_APPROVED),
+          eq(projetoTable.dadosEditalConfirmados, true)
         ),
         with: {
           departamento: true,
@@ -106,6 +107,24 @@ export function createSelecaoRepository(db: Database) {
     },
 
     // Inscricao queries
+    async findInscricaoById(inscricaoId: number) {
+      return db.query.inscricaoTable.findFirst({
+        where: eq(inscricaoTable.id, inscricaoId),
+        with: {
+          aluno: {
+            with: { user: true },
+          },
+          projeto: {
+            with: {
+              professorResponsavel: {
+                with: { user: true },
+              },
+            },
+          },
+        },
+      })
+    },
+
     async findInscricoesByProjetoId(projetoId: number) {
       return db.query.inscricaoTable.findMany({
         where: eq(inscricaoTable.projetoId, projetoId),
@@ -204,8 +223,12 @@ export function createSelecaoRepository(db: Database) {
         .where(eq(ataSelecaoTable.id, ataId))
     },
 
-    async updateInscricaoStatus(inscricaoId: number, status: InscricaoSelect['status']) {
-      await db.update(inscricaoTable).set({ status }).where(eq(inscricaoTable.id, inscricaoId))
+    async updateInscricaoStatus(inscricaoId: number, status: InscricaoSelect['status'], feedbackProfessor?: string) {
+      const updateData: Record<string, unknown> = { status }
+      if (feedbackProfessor !== undefined) {
+        updateData.feedbackProfessor = feedbackProfessor
+      }
+      await db.update(inscricaoTable).set(updateData).where(eq(inscricaoTable.id, inscricaoId))
     },
 
     async resetInscricoes(projetoId: number) {

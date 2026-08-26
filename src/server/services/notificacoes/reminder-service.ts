@@ -289,6 +289,44 @@ Sistema de Monitoria IC
     },
 
     /**
+     * Send reminders to professors when selected bolsista students
+     * haven't responded (accepted/rejected) within 24 hours.
+     */
+    async sendScholarshipNoResponseReminders(_dias: number, userId: number) {
+      const inscricoesSemResposta = await deadlineRepo.findBolsistasWithoutResponseAfter24h()
+      let count = 0
+
+      for (const inscr of inscricoesSemResposta) {
+        const profEmail = inscr.projeto.professorResponsavel.user.email
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+
+        await emailService.sendGenericEmail({
+          to: profEmail,
+          subject: `Lembrete: ${inscr.aluno.user.username} ainda não respondeu sobre a bolsa - ${inscr.projeto.titulo}`,
+          html: `
+Olá ${inscr.projeto.professorResponsavel.nomeCompleto},<br><br>
+
+O aluno <strong>${inscr.aluno.user.username}</strong> foi selecionado como bolsista para o projeto "<strong>${inscr.projeto.titulo}</strong>" há mais de 24 horas, mas <strong>ainda não aceitou nem rejeitou</strong> a bolsa.<br><br>
+
+Caso deseje, você pode acessar o sistema para designar a bolsa para outro candidato.<br><br>
+
+<a href="${clientUrl}/home/professor/select-monitors">Acessar Seleção de Monitores</a><br><br>
+
+Atenciosamente,<br>
+Sistema de Monitoria IC
+          `,
+          tipoNotificacao: 'BOLSA_SEM_RESPOSTA_PROFESSOR',
+          remetenteUserId: userId,
+          projetoId: inscr.projetoId,
+          alunoId: inscr.alunoId,
+        })
+        count++
+      }
+
+      return count
+    },
+
+    /**
      * Send alerts to admins about projects that had no student acceptances after deadline expired.
      */
     async sendUnacceptedProjectsReminders(_dias: number, userId: number) {

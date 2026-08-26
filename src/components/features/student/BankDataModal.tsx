@@ -2,17 +2,19 @@
 
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/utils/api"
+import { BANCOS_BRASIL, validarAgencia, validarConta } from "@/utils/bancos-brasil"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -51,6 +53,7 @@ export function BankDataModal({ open, onClose, onSuccess, currentData }: BankDat
     conta: "",
     digitoConta: "",
   })
+  const [errors, setErrors] = useState<Partial<Record<keyof BankFormData, string>>>({})
 
   const utils = api.useUtils()
   const updateProfileMutation = api.user.updateProfile.useMutation({
@@ -82,15 +85,31 @@ export function BankDataModal({ open, onClose, onSuccess, currentData }: BankDat
     }
   }, [currentData])
 
-  const handleSave = () => {
-    if (!formData.banco || !formData.agencia || !formData.conta) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Preencha banco, agência e conta.",
-        variant: "destructive",
-      })
-      return
+  const validate = (): boolean => {
+    const newErrors: Partial<Record<keyof BankFormData, string>> = {}
+
+    if (!formData.banco) {
+      newErrors.banco = "Selecione um banco"
     }
+
+    if (!formData.agencia) {
+      newErrors.agencia = "Agência é obrigatória"
+    } else if (!validarAgencia(formData.agencia)) {
+      newErrors.agencia = "Agência inválida (3-6 dígitos)"
+    }
+
+    if (!formData.conta) {
+      newErrors.conta = "Conta é obrigatória"
+    } else if (!validarConta(formData.conta)) {
+      newErrors.conta = "Conta inválida (4-13 dígitos)"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSave = () => {
+    if (!validate()) return
 
     if (!currentData) {
       toast({
@@ -101,7 +120,6 @@ export function BankDataModal({ open, onClose, onSuccess, currentData }: BankDat
       return
     }
 
-    // Passa todos os campos obrigatórios + dados bancários atualizados
     updateProfileMutation.mutate({
       studentData: {
         nomeCompleto: currentData.nomeCompleto,
@@ -131,12 +149,25 @@ export function BankDataModal({ open, onClose, onSuccess, currentData }: BankDat
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="banco">Banco *</Label>
-            <Input
-              id="banco"
+            <Select
               value={formData.banco}
-              onChange={(e) => setFormData({ ...formData, banco: e.target.value })}
-              placeholder="Ex: Banco do Brasil, Caixa, Itaú..."
-            />
+              onValueChange={(value) => {
+                setFormData({ ...formData, banco: value })
+                setErrors({ ...errors, banco: undefined })
+              }}
+            >
+              <SelectTrigger className={errors.banco ? "border-red-500" : ""}>
+                <SelectValue placeholder="Selecione o banco..." />
+              </SelectTrigger>
+              <SelectContent className="max-h-60">
+                {BANCOS_BRASIL.map((banco) => (
+                  <SelectItem key={banco.codigo} value={`${banco.codigo} - ${banco.nome}`}>
+                    {banco.codigo} - {banco.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.banco && <p className="text-xs text-red-500">{errors.banco}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -145,9 +176,14 @@ export function BankDataModal({ open, onClose, onSuccess, currentData }: BankDat
               <Input
                 id="agencia"
                 value={formData.agencia}
-                onChange={(e) => setFormData({ ...formData, agencia: e.target.value })}
-                placeholder="Ex: 1234-5"
+                onChange={(e) => {
+                  setFormData({ ...formData, agencia: e.target.value })
+                  setErrors({ ...errors, agencia: undefined })
+                }}
+                placeholder="Ex: 1234"
+                className={errors.agencia ? "border-red-500" : ""}
               />
+              {errors.agencia && <p className="text-xs text-red-500">{errors.agencia}</p>}
             </div>
 
             <div className="grid gap-2">
@@ -155,9 +191,14 @@ export function BankDataModal({ open, onClose, onSuccess, currentData }: BankDat
               <Input
                 id="conta"
                 value={formData.conta}
-                onChange={(e) => setFormData({ ...formData, conta: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, conta: e.target.value })
+                  setErrors({ ...errors, conta: undefined })
+                }}
                 placeholder="Ex: 12345-6"
+                className={errors.conta ? "border-red-500" : ""}
               />
+              {errors.conta && <p className="text-xs text-red-500">{errors.conta}</p>}
             </div>
           </div>
 
