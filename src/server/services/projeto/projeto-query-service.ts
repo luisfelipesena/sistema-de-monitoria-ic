@@ -1,5 +1,6 @@
 import { isAdmin, isProfessor } from '@/server/lib/auth-helpers'
 import { ForbiddenError, NotFoundError } from '@/server/lib/errors'
+import { getSelecaoSchedule } from '@/server/lib/selecao-schedule'
 import { ACCEPTED_VOLUNTARIO, SEMESTRE_1, SEMESTRE_2, VAGA_STATUS_ATIVO, type UserRole } from '@/types'
 import { logger } from '@/utils/logger'
 import type { ProjetoFilters, ProjetoRepository } from './projeto-repository'
@@ -169,6 +170,7 @@ export function createProjetoQueryService(repo: ProjetoRepository) {
           totalInscritos,
           inscricaoAberta: !!periodoAtivo,
           jaInscrito,
+          selecao: getSelecaoSchedule(projeto),
         }
       })
 

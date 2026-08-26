@@ -1,15 +1,18 @@
 'use client'
 
+import { SelectionScheduleCard } from '@/components/features/student/SelectionScheduleCard'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
+import { STATUS_INSCRICAO_SUBMITTED } from '@/types'
 import { api } from '@/utils/api'
 import {
     Activity,
     AlertTriangle,
     Award,
     BookOpen,
+    Calendar,
     CheckCircle2,
     Clock,
     FileText,
@@ -85,6 +88,7 @@ export default function StudentDashboard() {
   }
 
   const progressPercentage = status?.totalInscricoes ? (status.totalAprovacoes / status.totalInscricoes) * 100 : 0
+  const inscricoesPendentes = inscricoes?.filter((inscricao) => inscricao.status === STATUS_INSCRICAO_SUBMITTED) ?? []
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -148,6 +152,26 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {inscricoesPendentes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Seleções das suas inscrições
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 lg:grid-cols-2">
+            {inscricoesPendentes.map((inscricao) => (
+              <SelectionScheduleCard
+                key={inscricao.id}
+                title={inscricao.projeto.titulo}
+                schedule={inscricao.projeto.selecao}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         {/* Monitoria Ativa */}

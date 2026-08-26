@@ -1,58 +1,16 @@
 import { isAdmin, isProfessor } from '@/server/lib/auth-helpers'
+import { studentEmailService } from '@/server/lib/email'
 import { ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
+import { getSelecaoSchedule } from '@/server/lib/selecao-schedule'
+import { parseSlots } from '@/server/services/edital/parse-slots'
+import type { Projeto } from '@/server/db/schema'
+import { STATUS_INSCRICAO_SUBMITTED } from '@/types'
 import type { UserRole } from '@/types/enums'
-import type { SlotDataHorario } from '@/types/selecao-inputs'
+import type { SlotDataHorario, UpdateSelecaoDataPatch } from '@/types/selecao-inputs'
 import { logger } from '@/utils/logger'
 import type { ProjetoRepository } from './projeto-repository'
 
 const log = logger.child({ context: 'ProjetoSelecaoDataService' })
-
-/**
- * Parses the datasProvasDisponiveis JSON string from the edital into SlotDataHorario[].
- * Supports both new format (array of objects) and legacy format (array of strings).
- */
-function parseSlots(raw: string | null): SlotDataHorario[] {
-  if (!raw) return []
-  try {
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    // Legacy format: array of strings like "2025-03-15 14:00-16:00"
-    if (parsed.length > 0 && typeof parsed[0] === 'string') {
-      log.warn({ raw }, 'Formato legado detectado em datasProvasDisponiveis')
-      return parsed.map((s: string) => {
-        const [data, horario] = s.split(' ')
-        return { data: data || '', horario: horario || '' }
-      })
-    }
-    // New format: array of objects { data, horario }
-    return parsed.filter((s: unknown): s is SlotDataHorario => {
-      if (typeof s !== 'object' || s === null) return false
-      const obj = s as Record<string, unknown>
-      return typeof obj.data === 'string' && typeof obj.horario === 'string'
-    })
-  } catch {
-    log.warn({ raw }, 'Falha ao deserializar datasProvasDisponiveis')
-    return []
-  }
-}
-
-/**
- * Parses the datasSelecaoEscolhidas JSON string from the projeto into SlotDataHorario[].
- */
-function parseDatasEscolhidas(raw: string | null): SlotDataHorario[] {
-  if (!raw) return []
-  try {
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter((s: unknown): s is SlotDataHorario => {
-      if (typeof s !== 'object' || s === null) return false
-      const obj = s as Record<string, unknown>
-      return typeof obj.data === 'string' && typeof obj.horario === 'string'
-    })
-  } catch {
-    return []
-  }
-}
 
 /**
  * Validates that a slot is within the edital's allowed range.
@@ -82,6 +40,41 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       if (!professor || projeto.professorResponsavelId !== professor.id) {
         throw new ForbiddenError('Acesso negado a este projeto')
       }
+    }
+  }
+
+  async function notifyCandidates(projeto: Projeto, remetenteUserId: number) {
+    const inscricoes = await repo.findInscricoesWithUserByProjetoId(projeto.id)
+
+    const candidatos = [
+      ...new Map(
+        inscricoes
+          .filter(({ inscricao }) => inscricao.status === STATUS_INSCRICAO_SUBMITTED)
+          .map((inscricao) => [inscricao.aluno.id, inscricao])
+      ).values(),
+    ]
+    if (candidatos.length === 0) return 0
+
+    try {
+      const result = await studentEmailService.sendSelectionScheduleUpdated(
+        candidatos.map(({ aluno, user }) => ({
+          studentName: aluno.nomeCompleto,
+          studentEmail: user.email,
+          projectTitle: projeto.titulo,
+          schedule: getSelecaoSchedule(projeto),
+          projetoId: projeto.id,
+          alunoId: aluno.id,
+          remetenteUserId,
+        }))
+      )
+
+      if (result.failed.length > 0) {
+        log.warn({ projetoId: projeto.id, failed: result.failed.length }, 'Falha ao notificar parte dos candidatos')
+      }
+      return result.sent
+    } catch (error) {
+      log.error({ projetoId: projeto.id, error }, 'Falha ao preparar notificações dos candidatos')
+      return 0
     }
   }
 
@@ -157,8 +150,10 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         dadosEditalConfirmados: false,
       })
 
+      const notificationsSent = updated ? await notifyCandidates(updated, userId) : 0
+
       log.info({ projetoId, slots, userId }, 'Slots de seleção escolhidos')
-      return updated
+      return { projeto: updated, notificationsSent }
     },
 
     /**
@@ -205,8 +200,10 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         datasSelecaoEscolhidas: JSON.stringify([{ data, horario }]),
       })
 
+      const notificationsSent = updated ? await notifyCandidates(updated, userId) : 0
+
       log.info({ projetoId, data, horario, userId }, 'Slot de seleção escolhido')
-      return updated
+      return { projeto: updated, notificationsSent }
     },
 
     /**
@@ -270,7 +267,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
 
       // Validate that selection dates are chosen (minimum 1)
       const datasRaw = (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
-      const datasEscolhidas = parseDatasEscolhidas(datasRaw)
+      const datasEscolhidas = parseSlots(datasRaw)
       const hasLegacyDate = !!projeto.dataSelecaoEscolhida
 
       if (datasEscolhidas.length < 1 && !hasLegacyDate) {
@@ -326,17 +323,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       return updated
     },
 
-    /**
-     * Update textual selection data fields (pontosProva, bibliografia).
-     * Validates that values are not empty when provided.
-     */
-    async updateSelecaoData(
-      projetoId: number,
-      pontosProva: string | undefined,
-      bibliografia: string | undefined,
-      userId: number,
-      userRole: UserRole
-    ) {
+    async updateSelecaoData(projetoId: number, patch: UpdateSelecaoDataPatch, userId: number, userRole: UserRole) {
       const projeto = await repo.findById(projetoId)
       if (!projeto) {
         throw new NotFoundError('Projeto', projetoId)
@@ -345,45 +332,61 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       await verifyAuthorization(projeto, userId, userRole)
 
       // Validate: cannot save empty pontos de prova
-      if (pontosProva !== undefined && !pontosProva.trim()) {
+      if (patch.pontosProva !== undefined && !patch.pontosProva.trim()) {
         throw new ValidationError('Os pontos de prova são obrigatórios e não podem ficar vazios')
       }
 
       // Validate: cannot save empty bibliografia
-      if (bibliografia !== undefined && !bibliografia.trim()) {
+      if (patch.bibliografia !== undefined && !patch.bibliografia.trim()) {
         throw new ValidationError('A bibliografia é obrigatória e não pode ficar vazia')
       }
 
-      const updateData: Record<string, unknown> = {}
-      if (pontosProva !== undefined) {
-        updateData.pontosProva = pontosProva
+      const updateData: UpdateSelecaoDataPatch & { dadosEditalConfirmados?: boolean } = {}
+      if (patch.pontosProva !== undefined) {
+        updateData.pontosProva = patch.pontosProva.trim()
       }
-      if (bibliografia !== undefined) {
-        updateData.bibliografia = bibliografia
+      if (patch.bibliografia !== undefined) {
+        updateData.bibliografia = patch.bibliografia.trim()
       }
-
-      // Reset edital confirmation when pontos/bibliografia change
-      updateData.dadosEditalConfirmados = false
+      if (patch.localSelecao !== undefined) {
+        updateData.localSelecao = patch.localSelecao?.trim() || null
+      }
+      if (patch.pontosProva !== undefined || patch.bibliografia !== undefined) {
+        updateData.dadosEditalConfirmados = false
+      }
+      if (Object.keys(updateData).length === 0) {
+        throw new ValidationError('Informe pelo menos um dado da seleção para atualizar')
+      }
 
       const updated = await repo.update(projetoId, updateData)
 
-      // Also propagate the updated points of proof / bibliography to the discipline template
-      if (repo.findFirstDisciplinaForProjeto && repo.upsertProjetoTemplate) {
+      if (
+        (patch.pontosProva !== undefined || patch.bibliografia !== undefined) &&
+        repo.findFirstDisciplinaForProjeto &&
+        repo.upsertProjetoTemplate
+      ) {
         const disciplina = await repo.findFirstDisciplinaForProjeto(projetoId)
         if (disciplina) {
           await repo.upsertProjetoTemplate(disciplina.id, {
-            pontosProvaDefault: pontosProva,
-            bibliografiaDefault: bibliografia,
+            pontosProvaDefault: patch.pontosProva,
+            bibliografiaDefault: patch.bibliografia,
             userId,
           })
         }
       }
 
+      const localAnterior = projeto.localSelecao?.trim() || null
+      const localAtual = patch.localSelecao !== undefined ? (updateData.localSelecao ?? null) : localAnterior
+      const notificationsSent =
+        patch.localSelecao !== undefined && localAtual !== localAnterior && updated
+          ? await notifyCandidates(updated, userId)
+          : 0
+
       log.info(
         { projetoId, userId, fieldsUpdated: Object.keys(updateData) },
         'Dados de seleção atualizados e propagados para o template'
       )
-      return updated
+      return { projeto: updated, notificationsSent }
     },
 
     /**
@@ -397,6 +400,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       }
 
       await verifyAuthorization(projeto, userId, userRole)
+      const inscricoesCountPromise = repo.getInscricoesCountByProjetoId(projetoId)
 
       // If project has no editalInterno linked, try to find one by ano/semestre and link it
       let editalInterno = projeto.editalInterno
@@ -414,9 +418,7 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
       }
 
       const slotsDisponiveis = editalInterno ? parseSlots(editalInterno.datasProvasDisponiveis) : []
-      const datasEscolhidas = parseDatasEscolhidas(
-        (projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null
-      )
+      const datasEscolhidas = parseSlots((projeto as Record<string, unknown>).datasSelecaoEscolhidas as string | null)
 
       // Fallback: if new multi-slot field is empty but legacy fields exist, build from legacy
       const datasEscolhidasFinal =
@@ -452,6 +454,8 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         }
       }
 
+      const inscricoesCount = await inscricoesCountPromise
+
       return {
         projetoId: projeto.id,
         dataSelecaoEscolhida: projeto.dataSelecaoEscolhida?.toISOString().split('T')[0] ?? null,
@@ -460,18 +464,16 @@ export function createProjetoSelecaoDataService(repo: ProjetoRepository) {
         voluntariosSolicitados: projeto.voluntariosSolicitados ?? 0,
         voluntariosConfirmados: projeto.voluntariosConfirmados ?? false,
         dadosEditalConfirmados: projeto.dadosEditalConfirmados ?? false,
+        localSelecao: projeto.localSelecao ?? null,
         bolsasDisponibilizadas: projeto.bolsasDisponibilizadas ?? 0,
         pontosProva: projeto.pontosProva || templatePontos || null,
         bibliografia: projeto.bibliografia || templateBibliografia || null,
         slotsDisponiveis,
         rangeSelecao,
         hasEditalInterno: !!editalInterno,
+        totalInscritos: Number(inscricoesCount[0]?.count ?? 0),
       }
     },
-
-    /** Exposed for testing */
-    parseSlots,
-    parseDatasEscolhidas,
   }
 }
 

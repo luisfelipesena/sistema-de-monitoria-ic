@@ -1,4 +1,16 @@
 {
+  "healthchecks": {
+    "web": [
+      {
+        "type": "startup",
+        "name": "web healthcheck",
+        "path": "/api/health",
+        "content": "ok",
+        "attempts": 3,
+        "timeout": 5
+      }
+    ]
+  },
   "scripts": {
     "dokku": {
       "postdeploy": "npm run db:migrate"

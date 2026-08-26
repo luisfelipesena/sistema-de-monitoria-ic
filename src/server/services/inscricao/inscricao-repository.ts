@@ -1,6 +1,7 @@
-import { and, count, desc, eq, gte, ilike, inArray, isNull, lte, or, type SQL } from 'drizzle-orm'
+import { and, count, desc, eq, gte, ilike, inArray, isNull, or, type SQL } from 'drizzle-orm'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import type * as schema from '@/server/db/schema'
+import { activeEnrollmentPeriodCondition } from '@/server/lib/enrollment-period'
 import { resolvePeriodoForSemestre } from '@/server/lib/periodo-resolver'
 import {
   alunoTable,
@@ -264,15 +265,13 @@ export class InscricaoRepository {
     })
   }
 
-  async findActivePeriodoInscricao(ano: number, semestre: Semestre) {
-    const now = new Date()
+  async findActivePeriodoInscricao(ano: number, semestre: Semestre, now: Date = new Date()) {
     // Multiple periodos can be open for the same ano/semestre; pick the one carrying the edital.
     const periodos = await this.db.query.periodoInscricaoTable.findMany({
       where: and(
         eq(periodoInscricaoTable.ano, ano),
         eq(periodoInscricaoTable.semestre, semestre),
-        lte(periodoInscricaoTable.dataInicio, now),
-        gte(periodoInscricaoTable.dataFim, now)
+        activeEnrollmentPeriodCondition(now)
       ),
       with: { edital: { columns: { id: true, tipo: true } } },
     })
@@ -389,6 +388,10 @@ export class InscricaoRepository {
           status: projetoTable.status,
           bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
           voluntariosSolicitados: projetoTable.voluntariosSolicitados,
+          dataSelecaoEscolhida: projetoTable.dataSelecaoEscolhida,
+          horarioSelecao: projetoTable.horarioSelecao,
+          datasSelecaoEscolhidas: projetoTable.datasSelecaoEscolhidas,
+          localSelecao: projetoTable.localSelecao,
         },
         professorResponsavel: {
           id: professorTable.id,
@@ -452,6 +455,10 @@ export class InscricaoRepository {
           status: projetoTable.status,
           bolsasDisponibilizadas: projetoTable.bolsasDisponibilizadas,
           voluntariosSolicitados: projetoTable.voluntariosSolicitados,
+          dataSelecaoEscolhida: projetoTable.dataSelecaoEscolhida,
+          horarioSelecao: projetoTable.horarioSelecao,
+          datasSelecaoEscolhidas: projetoTable.datasSelecaoEscolhidas,
+          localSelecao: projetoTable.localSelecao,
         },
         professorResponsavel: {
           id: professorTable.id,

@@ -15,6 +15,19 @@ export const slotDataHorarioSchema = z.object({
   horario: z.string().min(1, 'Horário é obrigatório'),
 })
 
+export const selecaoScheduleSchema = z.object({
+  datas: z.array(slotDataHorarioSchema),
+  local: z.string().nullable(),
+})
+
+export type SelecaoSchedule = z.infer<typeof selecaoScheduleSchema>
+
+export interface UpdateSelecaoDataPatch {
+  pontosProva?: string
+  bibliografia?: string
+  localSelecao?: string | null
+}
+
 export const datasProvasDisponiveisSchema = z.array(slotDataHorarioSchema).min(1, 'Mínimo 1 opção de data/horário')
 
 // ========================================

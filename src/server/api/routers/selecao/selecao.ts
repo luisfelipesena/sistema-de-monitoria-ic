@@ -351,6 +351,7 @@ export const selecaoRouter = createTRPCRouter({
         projetoId: z.number(),
         pontosProva: z.string().optional(),
         bibliografia: z.string().optional(),
+        localSelecao: z.string().max(255, 'Local deve ter no máximo 255 caracteres').nullable().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -358,8 +359,11 @@ export const selecaoRouter = createTRPCRouter({
       try {
         return await service.updateSelecaoData(
           input.projetoId,
-          input.pontosProva,
-          input.bibliografia,
+          {
+            pontosProva: input.pontosProva,
+            bibliografia: input.bibliografia,
+            localSelecao: input.localSelecao,
+          },
           ctx.user.id,
           ctx.user.role
         )

@@ -1,8 +1,10 @@
-import { BusinessError } from '@/server/lib/errors'
+import { BusinessError, studentIdentityConflict } from '@/server/lib/errors'
+import { getSelecaoSchedule } from '@/server/lib/selecao-schedule'
 import type {
   AlunoProfilePatch,
   InscriptionFormData,
   StatusInscricao,
+  TipoDocumentoInscricao,
   TipoInscricao,
   TipoVaga,
   UserRole,
@@ -18,12 +20,16 @@ import {
   PROJETO_STATUS_APPROVED,
   REJECTED_BY_PROFESSOR,
   REJECTED_BY_STUDENT,
+  REQUIRED_UPLOAD_DOCS,
   SELECTED_BOLSISTA,
   SELECTED_VOLUNTARIO,
   SEMESTRE_1,
   STATUS_INSCRICAO_SUBMITTED,
   STUDENT,
   SUBMITTED,
+  TIPO_DOCUMENTO_INSCRICAO_COMPROVANTE_MATRICULA,
+  TIPO_DOCUMENTO_INSCRICAO_HISTORICO_ESCOLAR,
+  TIPO_DOCUMENTO_INSCRICAO_LABELS,
   TIPO_INSCRICAO_BOLSISTA,
   TIPO_INSCRICAO_VOLUNTARIO,
   VAGA_STATUS_ATIVO,
@@ -31,7 +37,7 @@ import {
   WAITING_LIST,
 } from '@/types'
 import { logger } from '@/utils/logger'
-import type { Database, InscricaoRepository } from './inscricao-repository'
+import type { Database, DocumentoData, InscricaoRepository } from './inscricao-repository'
 import { createInscricaoPdfService } from './pdf/inscricao-pdf-service'
 
 const log = logger.child({ context: 'StudentInscricaoService' })
@@ -43,6 +49,32 @@ const APPROVAL_STATUSES = new Set<StatusInscricao>([
   ACCEPTED_VOLUNTARIO,
 ])
 const ACTIVE_MONITOR_STATUSES = new Set<StatusInscricao>([ACCEPTED_BOLSISTA, ACCEPTED_VOLUNTARIO])
+
+export function resolveInscricaoDocuments(
+  uploadedDocuments: Array<{ fileId: string; tipoDocumento: TipoDocumentoInscricao }>,
+  profile: { historicoEscolarFileId: string | null; comprovanteMatriculaFileId: string | null }
+): DocumentoData[] {
+  const documents = new Map<TipoDocumentoInscricao, DocumentoData>()
+  if (profile.historicoEscolarFileId) {
+    documents.set(TIPO_DOCUMENTO_INSCRICAO_HISTORICO_ESCOLAR, {
+      fileId: profile.historicoEscolarFileId,
+      tipoDocumento: TIPO_DOCUMENTO_INSCRICAO_HISTORICO_ESCOLAR,
+    })
+  }
+  if (profile.comprovanteMatriculaFileId) {
+    documents.set(TIPO_DOCUMENTO_INSCRICAO_COMPROVANTE_MATRICULA, {
+      fileId: profile.comprovanteMatriculaFileId,
+      tipoDocumento: TIPO_DOCUMENTO_INSCRICAO_COMPROVANTE_MATRICULA,
+    })
+  }
+  for (const document of uploadedDocuments) documents.set(document.tipoDocumento, document)
+  return [...documents.values()]
+}
+
+export function getMissingRequiredDocuments(documents: DocumentoData[]) {
+  const documentTypes = new Set(documents.map((document) => document.tipoDocumento))
+  return REQUIRED_UPLOAD_DOCS.filter((documentType) => !documentTypes.has(documentType))
+}
 
 export class StudentInscricaoService {
   constructor(
@@ -221,7 +253,11 @@ export class StudentInscricaoService {
 
     // Aplicar patch de perfil (endereço + dados pessoais + banking) antes de validar completude
     if (input.profilePatch) {
-      await this.applyProfilePatch(aluno.id, input.profilePatch)
+      try {
+        await this.applyProfilePatch(aluno.id, input.profilePatch)
+      } catch (error) {
+        throw studentIdentityConflict(error) ?? error
+      }
     }
 
     // Re-ler aluno + endereço para validar completude
@@ -230,6 +266,15 @@ export class StudentInscricaoService {
       throw new BusinessError('Perfil de estudante não encontrado', 'NOT_FOUND')
     }
     this.assertProfileComplete(alunoFull, tipoVaga)
+
+    const documents = resolveInscricaoDocuments(input.uploadedDocuments, alunoFull)
+    const missingDocuments = getMissingRequiredDocuments(documents)
+    if (missingDocuments.length > 0) {
+      throw new BusinessError(
+        `Envie os documentos obrigatórios: ${missingDocuments.map((type) => TIPO_DOCUMENTO_INSCRICAO_LABELS[type]).join(', ')}`,
+        'BAD_REQUEST'
+      )
+    }
 
     // Resolver nota da disciplina (via equivalência)
     const projetoDisciplinas = await this.repository.findProjetoDisciplinas(input.projetoId)
@@ -255,9 +300,7 @@ export class StudentInscricaoService {
     })
 
     // Persistir documentos uploadados pelo aluno (RG, CPF, Histórico, etc)
-    if (input.uploadedDocuments.length > 0) {
-      await this.repository.createDocumentos(novaInscricao.id, input.uploadedDocuments)
-    }
+    await this.repository.createDocumentos(novaInscricao.id, documents)
 
     // Persistir assinatura + metadados de declaração
     await this.repository.updateInscricaoSignatureMetadata(novaInscricao.id, {
@@ -430,6 +473,7 @@ export class StudentInscricaoService {
             professorResponsavel: inscricao.professorResponsavel,
             departamento: inscricao.departamento,
             disciplinas,
+            selecao: getSelecaoSchedule(inscricao.projeto),
           },
           aluno: {
             ...inscricao.aluno,

@@ -1,6 +1,7 @@
 import { isProfessor, requireAdminOrProfessor, requireProfessor, requireStudent } from '@/server/lib/auth-helpers'
 import { emailSender } from '@/server/lib/email/email-sender'
 import { BusinessError } from '@/server/lib/errors'
+import { getSelecaoSchedule } from '@/server/lib/selecao-schedule'
 import type { StatusInscricao, UserRole } from '@/types'
 import {
   ACCEPTED_BOLSISTA,
@@ -112,6 +113,7 @@ export class ProfessorInscricaoService {
             professorResponsavel: inscricao.professorResponsavel,
             departamento: inscricao.departamento,
             disciplinas,
+            selecao: getSelecaoSchedule(inscricao.projeto),
           },
           aluno: {
             ...inscricao.aluno,

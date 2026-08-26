@@ -3,12 +3,15 @@ import {
   cpfSchema,
   generoSchema,
   onboardingStatusResponseSchema,
+  matriculaSchema,
   regimeSchema,
   tipoProfessorSchema,
   documentTypeSchema,
   type OnboardingStatusResponse,
 } from '@/types'
 import { createOnboardingService } from '@/server/services/onboarding/onboarding-service'
+import { ConflictError } from '@/server/lib/errors'
+import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
 
 export type { OnboardingStatusResponse }
@@ -49,7 +52,7 @@ export const onboardingRouter = createTRPCRouter({
     .input(
       z.object({
         nomeCompleto: z.string().min(1),
-        matricula: z.string().min(1),
+        matricula: matriculaSchema,
         cpf: cpfSchema,
         cr: z.number().min(0).max(10),
         cursoNome: z.string().min(1),
@@ -68,7 +71,14 @@ export const onboardingRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const service = createOnboardingService(ctx.db)
-      return service.createStudentProfile(input, ctx.user.id, ctx.user.role, ctx.user.email)
+      try {
+        return await service.createStudentProfile(input, ctx.user.id, ctx.user.role, ctx.user.email)
+      } catch (error) {
+        if (error instanceof ConflictError) {
+          throw new TRPCError({ code: 'CONFLICT', message: error.message })
+        }
+        throw error
+      }
     }),
 
   createProfessorProfile: protectedProcedure

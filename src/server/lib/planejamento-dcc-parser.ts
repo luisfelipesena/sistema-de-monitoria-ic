@@ -1,5 +1,5 @@
 import { logger } from '@/utils/logger'
-import * as XLSX from 'xlsx'
+import { XLSX } from './sheetjs'
 
 const log = logger.child({ context: 'PlanejamentoDCCParser' })
 const HEADER_DISCIPLINA_MARKER = 'DISCIPLINA' as const
@@ -58,8 +58,7 @@ export async function parsePlanejamentoDCC(fileBuffer: Buffer): Promise<ParsedPl
   const rows: PlanejamentoDCCRow[] = []
 
   try {
-    // Ler workbook com codepage UTF-8 para preservar caracteres acentuados
-    const workbook = XLSX.read(fileBuffer, { type: 'buffer', codepage: 65001 })
+    const workbook = XLSX.read(fileBuffer, { type: 'buffer' })
 
     // Pegar primeira sheet
     const sheetName = workbook.SheetNames[0]

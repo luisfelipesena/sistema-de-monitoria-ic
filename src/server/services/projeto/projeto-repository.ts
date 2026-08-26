@@ -15,11 +15,12 @@ import {
   projetoTemplateTable,
   userTable,
 } from '@/server/db/schema'
+import { activeEnrollmentPeriodCondition } from '@/server/lib/enrollment-period'
 import { pickPeriodoForSemestre, resolvePeriodoForSemestre } from '@/server/lib/periodo-resolver'
 import type { ProjetoStatus, Semestre, StatusInscricao } from '@/types'
 import { ADMIN, PROJETO_STATUS_APPROVED, TIPO_PROPOSICAO_COLETIVA } from '@/types'
 import type { InferInsertModel, SQL } from 'drizzle-orm'
-import { and, asc, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm'
 
 export type ProjetoInsert = InferInsertModel<typeof projetoTable>
 export type AtividadeProjetoInsert = InferInsertModel<typeof atividadeProjetoTable>
@@ -546,8 +547,7 @@ export function createProjetoRepository(db: Database) {
         where: and(
           ano !== undefined ? eq(periodoInscricaoTable.ano, ano) : undefined,
           semestre !== undefined ? eq(periodoInscricaoTable.semestre, semestre) : undefined,
-          lte(periodoInscricaoTable.dataInicio, now),
-          gte(periodoInscricaoTable.dataFim, now)
+          activeEnrollmentPeriodCondition(now)
         ),
       })
     },

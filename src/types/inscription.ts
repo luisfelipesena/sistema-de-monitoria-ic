@@ -19,6 +19,7 @@ import {
 } from './enums'
 import { tipoDocumentoInscricaoSchema } from './inscricao-document'
 import { idSchema } from './schemas'
+import { selecaoScheduleSchema } from './selecao-inputs'
 import { alunoProfilePatchSchema } from './student'
 
 // ========================================
@@ -195,7 +196,7 @@ export const inscriptionFormSchema = z
           tipoDocumento: tipoDocumentoInscricaoSchema,
         })
       )
-      .min(3, 'Envie pelo menos RG, CPF e Histórico Escolar'),
+      .default([]),
     // Se o perfil do aluno estiver incompleto, permite completar aqui
     profilePatch: alunoProfilePatchSchema.optional(),
   })
@@ -275,6 +276,7 @@ export const inscriptionDetailSchema = z.object({
         codigo: z.string(),
       })
     ),
+    selecao: selecaoScheduleSchema,
   }),
   aluno: z.object({
     id: idSchema,

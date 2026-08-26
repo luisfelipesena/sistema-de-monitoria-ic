@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { Genero, generoSchema, StudentStatus } from './enums'
-import { cpfSchema } from './schemas'
+import { cpfSchema, matriculaSchema } from './schemas'
 
 // ========================================
 // STUDENT TYPES
@@ -80,7 +80,7 @@ export const createStudentSchema = z.object({
   genero: generoSchema,
   especificacaoGenero: z.string().optional(),
   emailInstitucional: z.string().email(),
-  matricula: z.string().min(1),
+  matricula: matriculaSchema,
   rg: z.string().optional(),
   cpf: cpfSchema,
   cr: z.number().min(0).max(10),
@@ -113,6 +113,7 @@ export const enderecoPatchSchema = z.object({
 export const alunoProfilePatchSchema = z.object({
   nomeCompleto: z.string().min(1).optional(),
   nomeSocial: z.string().nullable().optional(),
+  matricula: matriculaSchema.optional(),
   cpf: cpfSchema.optional(),
   rg: z.string().min(1).optional(),
   dataNascimento: z.coerce.date().optional(),

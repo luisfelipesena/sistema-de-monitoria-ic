@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, gte, isNull, lte, sql } from 'drizzle-orm'
+import { and, desc, eq, gt, isNull, sql } from 'drizzle-orm'
 import type { db } from '@/server/db'
 import {
   alunoTable,
@@ -14,6 +14,7 @@ import {
   publicPdfTokenTable,
   vagaTable,
 } from '@/server/db/schema'
+import { activeEnrollmentPeriodCondition } from '@/server/lib/enrollment-period'
 import type { AdminType, ProjetoStatus, Semestre } from '@/types'
 import {
   APPROVED,
@@ -30,7 +31,7 @@ export function createAnalyticsRepository(db: Database) {
       const [result] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(periodoInscricaoTable)
-        .where(and(lte(periodoInscricaoTable.dataInicio, now), gte(periodoInscricaoTable.dataFim, now)))
+        .where(activeEnrollmentPeriodCondition(now))
       return result?.count || 0
     },
 

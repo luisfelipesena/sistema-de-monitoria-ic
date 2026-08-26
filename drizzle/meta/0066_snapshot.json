@@ -1,5 +1,5 @@
 {
-  "id": "23e2fd5f-e216-42fd-b834-62da8531dbeb",
+  "id": "dc31ed5b-fb99-44b0-a2e9-80fd8b10f6fa",
   "prevId": "8aa2c6d7-a14c-4439-9e7f-6522cf456291",
   "version": "7",
   "dialect": "postgresql",
@@ -155,7 +155,24 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "aluno_cpf_normalized_unique": {
+          "name": "aluno_cpf_normalized_unique",
+          "columns": [
+            {
+              "expression": "regexp_replace(\"cpf\", '\\D', '', 'g')",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"aluno\".\"cpf\" IS NOT NULL AND length(regexp_replace(\"aluno\".\"cpf\", '\\D', '', 'g')) = 11",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "aluno_user_id_user_id_fk": {
           "name": "aluno_user_id_user_id_fk",
@@ -3053,8 +3070,8 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
-        "projeto_importacao_planejamento_id_importacao_planejamento_id_fk": {
-          "name": "projeto_importacao_planejamento_id_importacao_planejamento_id_fk",
+        "projeto_importacao_planejamento_id_importacao_planejamento_id_f": {
+          "name": "projeto_importacao_planejamento_id_importacao_planejamento_id_f",
           "tableFrom": "projeto",
           "tableTo": "importacao_planejamento",
           "columnsFrom": [
@@ -3501,8 +3518,8 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "relatorio_final_monitor_relatorio_disciplina_id_relatorio_final_disciplina_id_fk": {
-          "name": "relatorio_final_monitor_relatorio_disciplina_id_relatorio_final_disciplina_id_fk",
+        "relatorio_final_monitor_relatorio_disciplina_id_relatorio_final": {
+          "name": "relatorio_final_monitor_relatorio_disciplina_id_relatorio_final",
           "tableFrom": "relatorio_final_monitor",
           "tableTo": "relatorio_final_disciplina",
           "columnsFrom": [
@@ -4106,7 +4123,6 @@
         "SUBMITTED",
         "SELECTED_BOLSISTA",
         "SELECTED_VOLUNTARIO",
-        "CONFIRMED_INTEREST",
         "ACCEPTED_BOLSISTA",
         "ACCEPTED_VOLUNTARIO",
         "REJECTED_BY_PROFESSOR",
