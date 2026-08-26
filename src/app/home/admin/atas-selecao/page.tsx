@@ -194,7 +194,7 @@ export default function AtasSelecaoAdminPage() {
                   </div>
 
                   <div className="h-[700px] w-full rounded-md border overflow-hidden">
-                    <ClientOnlyPDFViewer width="100%" height="100%">
+                    <ClientOnlyPDFViewer key={`${pdfMode}-${selectedAtaType}-${selectedAta?.id}`} width="100%" height="100%">
                       {pdfMode === 'RESULTADO' ? (
                         <ResultadoSelecaoTemplate data={ataData} tipo={selectedAtaType} />
                       ) : (
