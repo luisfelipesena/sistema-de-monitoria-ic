@@ -202,20 +202,29 @@ export const AtaSelecaoTemplate = ({ data }: { data: AtaSelecaoData }) => {
     id: c.id,
     aluno: c.aluno,
     tipoVagaPretendida: c.tipoVagaPretendida,
+    notaDisciplina: c.notaDisciplina ? Number(c.notaDisciplina) : null,
+    notaSelecao: c.notaSelecao ? Number(c.notaSelecao) : null,
     notaFinal: c.notaFinal ? Number(c.notaFinal) : null,
     status: c.status,
   }))
+
+  const candidatosCompareceram = todosCandidatos.filter(
+    (c) => c.notaFinal !== null || c.notaDisciplina !== null || c.notaSelecao !== null
+  )
 
   const candidatosClassificados = [...todosCandidatos]
     .filter((c) => c.notaFinal !== null && c.notaFinal >= 7.0)
     .sort((a, b) => (b.notaFinal || 0) - (a.notaFinal || 0))
 
+  const countInscritos = rawList.length || data.totalInscritos || 0
+  const countCompareceram = candidatosCompareceram.length > 0 ? candidatosCompareceram.length : (data.totalCompareceram || countInscritos)
   const countClassificados = candidatosClassificados.length
-  const totalInscritosPad = (countClassificados || data.totalInscritos).toString().padStart(2, "0")
-  const totalCompareceramPad = (countClassificados || data.totalCompareceram || data.totalInscritos).toString().padStart(2, "0")
 
-  const inscritosTexto = (countClassificados === 1)
-    ? `Inscreveram-se ${totalInscritosPad} candidatos e compareceram à seleção ${totalCompareceramPad} candidato inscrito`
+  const totalInscritosPad = countInscritos.toString().padStart(2, "0")
+  const totalCompareceramPad = countCompareceram.toString().padStart(2, "0")
+
+  const inscritosTexto = (countInscritos === 1)
+    ? `Inscreveu-se ${totalInscritosPad} candidato e compareceu à seleção ${totalCompareceramPad} candidato`
     : `Inscreveram-se ${totalInscritosPad} candidatos e compareceram à seleção ${totalCompareceramPad} candidatos inscritos`
 
   let conclusaoTexto = ""
