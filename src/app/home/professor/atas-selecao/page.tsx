@@ -357,7 +357,7 @@ export default function AtasSelecaoPage() {
                 </CardHeader>
                 <CardContent>
                   <div style={{ height: "800px", width: "100%" }}>
-                    <ClientOnlyPDFViewer width="100%" height="100%">
+                    <ClientOnlyPDFViewer key={`${pdfMode}-${selectedAtaType}-${selectedProjectId}`} width="100%" height="100%">
                       {pdfMode === "RESULTADO" ? (
                         <ResultadoSelecaoTemplate data={ataData} tipo={selectedAtaType} />
                       ) : (
