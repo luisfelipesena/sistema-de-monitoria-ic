@@ -356,12 +356,6 @@ const menuConfig: MenuConfig[] = [
         roles: ["professor"],
       },
       {
-        label: "Selecionar Monitores",
-        href: "/home/professor/select-monitors",
-        icon: Users,
-        roles: ["professor"],
-      },
-      {
         label: "Atas e Resultados",
         href: "/home/professor/atas-selecao",
         icon: FileText,
@@ -371,6 +365,12 @@ const menuConfig: MenuConfig[] = [
         label: "Publicar Resultados",
         href: "/home/professor/publicar-resultados",
         icon: FileCheck,
+        roles: ["professor"],
+      },
+      {
+        label: "Selecionar Monitores",
+        href: "/home/professor/select-monitors",
+        icon: Users,
         roles: ["professor"],
       },
     ],
