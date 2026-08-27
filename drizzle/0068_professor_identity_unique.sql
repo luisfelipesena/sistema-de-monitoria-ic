@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX "professor_cpf_normalized_unique" ON "professor" USING btree (regexp_replace("cpf", '\D', '', 'g')) WHERE "professor"."cpf" IS NOT NULL AND length(regexp_replace("professor"."cpf", '\D', '', 'g')) = 11;--> statement-breakpoint
+CREATE UNIQUE INDEX "professor_matricula_siape_normalized_unique" ON "professor" USING btree (lower(trim("matricula_siape"))) WHERE "professor"."matricula_siape" IS NOT NULL AND trim("professor"."matricula_siape") <> '';

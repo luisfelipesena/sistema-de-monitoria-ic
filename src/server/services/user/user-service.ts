@@ -3,7 +3,7 @@ import {
   BusinessError,
   ConflictError,
   NotFoundError,
-  studentIdentityConflict,
+  profileIdentityConflict,
   ValidationError,
 } from '@/server/lib/errors'
 import { createAuditService } from '@/server/services/audit/audit-service'
@@ -173,7 +173,7 @@ export const createUserService = (database: typeof db) => {
       try {
         await userRepository.updateProfile(userId, data)
       } catch (error) {
-        throw studentIdentityConflict(error) ?? error
+        throw profileIdentityConflict(error) ?? error
       }
     },
 

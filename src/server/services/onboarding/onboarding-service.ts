@@ -1,5 +1,5 @@
 import type { db } from '@/server/db'
-import { ConflictError, ForbiddenError, NotFoundError, studentIdentityConflict } from '@/server/lib/errors'
+import { ForbiddenError, NotFoundError, profileIdentityConflict } from '@/server/lib/errors'
 import type { DocumentType, Genero, Regime, TipoProfessor, UserRole } from '@/types'
 import { ADMIN, PROFESSOR, STUDENT, TIPO_PROFESSOR_EFETIVO } from '@/types'
 import { logger } from '@/utils/logger'
@@ -59,19 +59,24 @@ export function createOnboardingService(db: Database) {
       if (userRole === ADMIN) {
         return {
           pending: false,
-          profile: { exists: false, type: ADMIN },
+          profile: { exists: false, complete: true, type: ADMIN },
           documents: { required: [], uploaded: [], missing: [] },
         }
       }
 
       let hasProfile = false
+      let hasCompleteProfile = false
       let profileData: StudentProfile | ProfessorProfile | null = null
       let hasSignature = false
       let isInactive = false
       let existingProfileData: {
         nomeCompleto?: string
+        matricula?: string
         matriculaSiape?: string
         cpf?: string
+        cr?: number
+        cursoNome?: string
+        rg?: string
         telefone?: string
         telefoneInstitucional?: string
         regime?: Regime
@@ -91,6 +96,21 @@ export function createOnboardingService(db: Database) {
             }
           : null
         hasProfile = alunoProfile != null
+        hasCompleteProfile = !!(alunoProfile?.nomeCompleto && alunoProfile.matricula && alunoProfile.cpf)
+        if (alunoProfile) {
+          existingProfileData = {
+            nomeCompleto: alunoProfile.nomeCompleto,
+            matricula: alunoProfile.matricula ?? undefined,
+            cpf: alunoProfile.cpf ?? undefined,
+            cr: alunoProfile.cr ?? undefined,
+            cursoNome: alunoProfile.cursoNome ?? undefined,
+            rg: alunoProfile.rg ?? undefined,
+            telefone: alunoProfile.telefone ?? undefined,
+            genero: (alunoProfile.genero as Genero) ?? undefined,
+            especificacaoGenero: alunoProfile.especificacaoGenero ?? undefined,
+            nomeSocial: alunoProfile.nomeSocial ?? undefined,
+          }
+        }
       } else if (userRole === PROFESSOR) {
         const professorProfile = await repo.findProfessorProfile(userId)
         profileData = professorProfile
@@ -100,6 +120,7 @@ export function createOnboardingService(db: Database) {
             }
           : null
         hasProfile = professorProfile != null
+        hasCompleteProfile = hasProfile
         hasSignature = !!userSignature
         isInactive = professorProfile?.accountStatus === 'INACTIVE'
 
@@ -146,7 +167,7 @@ export function createOnboardingService(db: Database) {
       const uniqueUploadedDocs = [...new Set(uploadedDocTypes)]
       const missingDocs = requiredDocs.filter((doc) => !uniqueUploadedDocs.includes(doc))
 
-      let pending = !hasProfile || missingDocs.length > 0
+      let pending = !hasCompleteProfile || missingDocs.length > 0
       if (userRole === PROFESSOR) {
         // Professor INACTIVE must go through onboarding again
         pending = pending || !hasSignature || isInactive
@@ -156,6 +177,7 @@ export function createOnboardingService(db: Database) {
         pending,
         profile: {
           exists: hasProfile,
+          complete: hasCompleteProfile,
           type: userRole,
         },
         documents: {
@@ -163,6 +185,7 @@ export function createOnboardingService(db: Database) {
           uploaded: uniqueUploadedDocs,
           missing: missingDocs,
         },
+        existingProfileData: existingProfileData ?? undefined,
       }
 
       if (userRole === PROFESSOR) {
@@ -170,7 +193,6 @@ export function createOnboardingService(db: Database) {
           ...result,
           signature: { configured: hasSignature },
           isInactive,
-          existingProfileData: existingProfileData ?? undefined,
         }
       }
 
@@ -189,14 +211,9 @@ export function createOnboardingService(db: Database) {
 
       const existingProfile = await repo.findStudentProfile(userId)
 
-      if (existingProfile) {
-        throw new ConflictError('Student profile already exists')
-      }
-
       let newProfile: Awaited<ReturnType<typeof repo.createStudentProfile>>
       try {
-        newProfile = await repo.createStudentProfile({
-          userId,
+        const profileData = {
           nomeCompleto: input.nomeCompleto,
           matricula: input.matricula,
           cpf: input.cpf,
@@ -208,12 +225,15 @@ export function createOnboardingService(db: Database) {
           nomeSocial: input.nomeSocial,
           rg: input.rg,
           emailInstitucional: userEmail,
-        })
+        }
+        newProfile = existingProfile
+          ? await repo.updateStudentProfile(userId, profileData)
+          : await repo.createStudentProfile({ userId, ...profileData })
       } catch (error) {
-        throw studentIdentityConflict(error) ?? error
+        throw profileIdentityConflict(error) ?? error
       }
 
-      log.info({ userId, profileId: newProfile.id }, 'Student profile created successfully')
+      log.info({ userId, profileId: newProfile.id }, 'Student profile completed successfully')
       return { success: true, profileId: newProfile.id }
     },
 
@@ -229,47 +249,49 @@ export function createOnboardingService(db: Database) {
 
       const existingProfile = await repo.findProfessorProfile(userId)
 
-      // If profile exists (e.g., created via invitation or reactivating), update it instead of creating
-      if (existingProfile) {
-        const updatedProfile = await repo.updateProfessorProfile(userId, {
+      try {
+        if (existingProfile) {
+          const updatedProfile = await repo.updateProfessorProfile(userId, {
+            nomeCompleto: input.nomeCompleto,
+            matriculaSiape: input.matriculaSiape,
+            cpf: input.cpf,
+            telefone: input.telefone,
+            telefoneInstitucional: input.telefoneInstitucional,
+            regime: input.regime,
+            tipoProfessor: input.tipoProfessor || existingProfile.tipoProfessor || TIPO_PROFESSOR_EFETIVO,
+            departamentoId: input.departamentoId,
+            genero: input.genero,
+            especificacaoGenero: input.especificacaoGenero,
+            nomeSocial: input.nomeSocial,
+            emailInstitucional: userEmail,
+            accountStatus: 'ACTIVE',
+          })
+
+          log.info({ userId, profileId: updatedProfile.id }, 'Professor profile completed successfully')
+          return { success: true, profileId: updatedProfile.id }
+        }
+
+        const newProfile = await repo.createProfessorProfile({
+          userId,
           nomeCompleto: input.nomeCompleto,
           matriculaSiape: input.matriculaSiape,
           cpf: input.cpf,
           telefone: input.telefone,
           telefoneInstitucional: input.telefoneInstitucional,
           regime: input.regime,
-          tipoProfessor: input.tipoProfessor || existingProfile.tipoProfessor || TIPO_PROFESSOR_EFETIVO,
+          tipoProfessor: input.tipoProfessor || TIPO_PROFESSOR_EFETIVO,
           departamentoId: input.departamentoId,
           genero: input.genero,
           especificacaoGenero: input.especificacaoGenero,
           nomeSocial: input.nomeSocial,
           emailInstitucional: userEmail,
-          // Reactivate professor when completing onboarding
-          accountStatus: 'ACTIVE',
         })
 
-        log.info({ userId, profileId: updatedProfile.id }, 'Professor profile updated during onboarding (reactivated)')
-        return { success: true, profileId: updatedProfile.id }
+        log.info({ userId, profileId: newProfile.id }, 'Professor profile created successfully')
+        return { success: true, profileId: newProfile.id }
+      } catch (error) {
+        throw profileIdentityConflict(error) ?? error
       }
-
-      const newProfile = await repo.createProfessorProfile({
-        userId,
-        nomeCompleto: input.nomeCompleto,
-        matriculaSiape: input.matriculaSiape,
-        cpf: input.cpf,
-        telefone: input.telefone,
-        telefoneInstitucional: input.telefoneInstitucional,
-        regime: input.regime,
-        tipoProfessor: input.tipoProfessor || TIPO_PROFESSOR_EFETIVO,
-        departamentoId: input.departamentoId,
-        genero: input.genero,
-        especificacaoGenero: input.especificacaoGenero,
-        nomeSocial: input.nomeSocial,
-        emailInstitucional: userEmail,
-      })
-
-      log.info({ userId, profileId: newProfile.id }, 'Professor profile created successfully')
-      return { success: true, profileId: newProfile.id }
     },
 
     async updateDocument(documentType: DocumentType, fileId: string, userId: number, userRole: UserRole) {

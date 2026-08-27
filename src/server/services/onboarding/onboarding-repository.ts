@@ -35,6 +35,15 @@ export function createOnboardingRepository(db: Database) {
       return profile
     },
 
+    async updateStudentProfile(userId: number, data: AlunoUpdate) {
+      const [profile] = await db
+        .update(alunoTable)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(alunoTable.userId, userId))
+        .returning({ id: alunoTable.id })
+      return profile
+    },
+
     async createProfessorProfile(data: ProfessorInsert) {
       const [profile] = await db.insert(professorTable).values(data).returning({ id: professorTable.id })
       return profile

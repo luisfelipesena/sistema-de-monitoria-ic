@@ -23,18 +23,20 @@ interface StudentOnboardingFormProps {
 export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFormProps) {
   const { toast } = useToast()
   const router = useRouter()
+  const existingData = onboardingStatus.existingProfileData
+  const hasExistingProfile = onboardingStatus.profile.exists
   const [cpfError, setCpfError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
-    nomeCompleto: "",
-    matricula: "",
-    cpf: "",
-    cr: "",
-    cursoNome: "",
-    telefone: "",
-    genero: "" as Genero | "",
-    especificacaoGenero: "",
-    nomeSocial: "",
-    rg: "",
+    nomeCompleto: existingData?.nomeCompleto ?? "",
+    matricula: existingData?.matricula ?? "",
+    cpf: existingData?.cpf ?? "",
+    cr: existingData?.cr?.toString() ?? "",
+    cursoNome: existingData?.cursoNome ?? "",
+    telefone: existingData?.telefone ?? "",
+    genero: (existingData?.genero ?? "") as Genero | "",
+    especificacaoGenero: existingData?.especificacaoGenero ?? "",
+    nomeSocial: existingData?.nomeSocial ?? "",
+    rg: existingData?.rg ?? "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -42,7 +44,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
   const updateDocumentMutation = api.onboarding.updateDocument.useMutation()
   const { refetch: refetchOnboardingStatus } = api.onboarding.getStatus.useQuery()
 
-  const hasProfile = onboardingStatus.profile.exists
+  const hasProfile = onboardingStatus.profile.complete
   const requiredDocs = onboardingStatus.documents.required
   const uploadedDocs = onboardingStatus.documents.uploaded
   const missingDocs = onboardingStatus.documents.missing
@@ -101,7 +103,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
       })
       toast({
         title: "Sucesso!",
-        description: "Perfil criado com sucesso!",
+        description: hasExistingProfile ? "Perfil completado com sucesso!" : "Perfil criado com sucesso!",
       })
       await refetchOnboardingStatus()
     } catch (error: any) {
@@ -173,6 +175,14 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
       <div className="space-y-8">
         {!hasProfile && (
           <Card className="shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl">
+                {hasExistingProfile ? "Complete seu perfil" : "Crie seu perfil"}
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                Confirme seus dados acadêmicos antes de continuar.
+              </p>
+            </CardHeader>
             <CardContent className="p-8">
               <form onSubmit={handleSubmitProfile} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -314,7 +324,13 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
                     size="lg"
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
-                    {isSubmitting ? "Criando perfil..." : "Criar Perfil"}
+                    {isSubmitting
+                      ? hasExistingProfile
+                        ? "Salvando perfil..."
+                        : "Criando perfil..."
+                      : hasExistingProfile
+                        ? "Salvar perfil"
+                        : "Criar perfil"}
                   </Button>
                 </div>
               </form>

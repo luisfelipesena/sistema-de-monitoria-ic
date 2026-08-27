@@ -9,6 +9,7 @@ export interface OnboardingStatus {
   pending: boolean
   profile: {
     exists: boolean
+    complete: boolean
     type: UserRole
   }
   documents: {
@@ -22,8 +23,12 @@ export interface OnboardingStatus {
   isInactive?: boolean
   existingProfileData?: {
     nomeCompleto?: string
+    matricula?: string
     matriculaSiape?: string
     cpf?: string
+    cr?: number
+    cursoNome?: string
+    rg?: string
     telefone?: string
     telefoneInstitucional?: string
     regime?: string
@@ -39,11 +44,15 @@ export interface OnboardingStatus {
 // VALIDATION SCHEMAS
 // ========================================
 
-export const existingProfessorProfileDataSchema = z
+export const existingProfileDataSchema = z
   .object({
     nomeCompleto: z.string().optional(),
+    matricula: z.string().optional(),
     matriculaSiape: z.string().optional(),
     cpf: z.string().optional(),
+    cr: z.number().optional(),
+    cursoNome: z.string().optional(),
+    rg: z.string().optional(),
     telefone: z.string().optional(),
     telefoneInstitucional: z.string().optional(),
     regime: regimeSchema.optional(),
@@ -59,6 +68,7 @@ export const onboardingStatusResponseSchema = z.object({
   pending: z.boolean(),
   profile: z.object({
     exists: z.boolean(),
+    complete: z.boolean(),
     type: userRoleSchema,
   }),
   documents: z.object({
@@ -72,7 +82,7 @@ export const onboardingStatusResponseSchema = z.object({
     })
     .optional(),
   isInactive: z.boolean().optional(),
-  existingProfileData: existingProfessorProfileDataSchema,
+  existingProfileData: existingProfileDataSchema,
 })
 
 export type OnboardingStatusResponse = z.infer<typeof onboardingStatusResponseSchema>

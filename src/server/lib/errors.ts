@@ -48,18 +48,38 @@ export class ForbiddenError extends BusinessError {
   }
 }
 
-export function studentIdentityConflict(error: unknown): ConflictError | null {
-  if (!error || typeof error !== 'object' || !('code' in error) || error.code !== '23505') return null
+function uniqueConstraint(error: unknown): unknown {
+  let current = error
+  for (let depth = 0; depth < 3 && current && typeof current === 'object'; depth += 1) {
+    if ('code' in current && current.code === '23505') {
+      if ('constraint_name' in current) return current.constraint_name
+      if ('constraint' in current) return current.constraint
+    }
+    current = 'cause' in current ? current.cause : null
+  }
+  return null
+}
 
-  const constraint = 'constraint_name' in error ? error.constraint_name : null
+export function profileIdentityConflict(error: unknown): ConflictError | null {
+  const constraint = uniqueConstraint(error)
   if (constraint === 'aluno_matricula_unique') {
     return new ConflictError(
-      'Esta matrícula já está vinculada a outra conta. Entre com a conta anterior ou procure a coordenação.'
+      'Esta matrícula já está vinculada a outra conta. Recupere o acesso à conta anterior ou procure a coordenação antes de continuar.'
+    )
+  }
+  if (constraint === 'professor_matricula_siape_normalized_unique') {
+    return new ConflictError(
+      'Esta matrícula SIAPE já está vinculada a outra conta. Recupere o acesso à conta anterior ou procure a coordenação antes de continuar.'
     )
   }
   if (constraint === 'aluno_cpf_unique' || constraint === 'aluno_cpf_normalized_unique') {
     return new ConflictError(
-      'Este CPF já está vinculado a outra conta. Entre com a conta anterior ou procure a coordenação.'
+      'Este CPF já está vinculado a outra conta. Recupere o acesso à conta anterior ou procure a coordenação antes de continuar.'
+    )
+  }
+  if (constraint === 'professor_cpf_normalized_unique') {
+    return new ConflictError(
+      'Este CPF já está vinculado a outra conta. Recupere o acesso à conta anterior ou procure a coordenação antes de continuar.'
     )
   }
   return null

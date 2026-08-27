@@ -1,5 +1,5 @@
 {
-  "id": "504c0056-2d12-4afb-a32a-a6a394b3d040",
+  "id": "6f318250-af1d-4c69-b236-274b031fcc73",
   "prevId": "6f4e2b1c-9d3a-4e57-8b2f-0067c0nf1rm3",
   "version": "7",
   "dialect": "postgresql",
@@ -779,140 +779,6 @@
           "nullsNotDistinct": false,
           "columns": [
             "chave"
-          ]
-        }
-      },
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.consolidacao_prograd_assinatura": {
-      "name": "consolidacao_prograd_assinatura",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "ano": {
-          "name": "ano",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "semestre": {
-          "name": "semestre",
-          "type": "semestre_enum",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "chefe_email": {
-          "name": "chefe_email",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "chefe_nome": {
-          "name": "chefe_nome",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "chefe_assinatura": {
-          "name": "chefe_assinatura",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "chefe_assinou_em": {
-          "name": "chefe_assinou_em",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "chefe_departamento_id": {
-          "name": "chefe_departamento_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "signature_token": {
-          "name": "signature_token",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "signature_token_expires_at": {
-          "name": "signature_token_expires_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "pdf_file_id": {
-          "name": "pdf_file_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "requested_by_user_id": {
-          "name": "requested_by_user_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "consolidacao_prograd_assinatura_chefe_departamento_id_professor_id_fk": {
-          "name": "consolidacao_prograd_assinatura_chefe_departamento_id_professor_id_fk",
-          "tableFrom": "consolidacao_prograd_assinatura",
-          "tableTo": "professor",
-          "columnsFrom": [
-            "chefe_departamento_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "consolidacao_prograd_assinatura_requested_by_user_id_user_id_fk": {
-          "name": "consolidacao_prograd_assinatura_requested_by_user_id_user_id_fk",
-          "tableFrom": "consolidacao_prograd_assinatura",
-          "tableTo": "user",
-          "columnsFrom": [
-            "requested_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "consolidacao_prograd_assinatura_signature_token_unique": {
-          "name": "consolidacao_prograd_assinatura_signature_token_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "signature_token"
           ]
         }
       },
@@ -2675,7 +2541,40 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "professor_cpf_normalized_unique": {
+          "name": "professor_cpf_normalized_unique",
+          "columns": [
+            {
+              "expression": "regexp_replace(\"cpf\", '\\D', '', 'g')",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"professor\".\"cpf\" IS NOT NULL AND length(regexp_replace(\"professor\".\"cpf\", '\\D', '', 'g')) = 11",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "professor_matricula_siape_normalized_unique": {
+          "name": "professor_matricula_siape_normalized_unique",
+          "columns": [
+            {
+              "expression": "lower(trim(\"matricula_siape\"))",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"professor\".\"matricula_siape\" IS NOT NULL AND trim(\"professor\".\"matricula_siape\") <> ''",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "professor_user_id_user_id_fk": {
           "name": "professor_user_id_user_id_fk",
