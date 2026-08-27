@@ -92,14 +92,7 @@ export function createOnboardingService(db: Database) {
             }
           : null
         hasProfile = alunoProfile != null
-        hasCompleteProfile = !!(
-          alunoProfile?.nomeCompleto &&
-          alunoProfile.matricula &&
-          alunoProfile.cpf &&
-          alunoProfile.cr != null &&
-          alunoProfile.cursoNome &&
-          alunoProfile.genero
-        )
+        hasCompleteProfile = !!(alunoProfile?.nomeCompleto && alunoProfile.matricula && alunoProfile.cpf)
       } else if (userRole === PROFESSOR) {
         const professorProfile = await repo.findProfessorProfile(userId)
         profileData = professorProfile

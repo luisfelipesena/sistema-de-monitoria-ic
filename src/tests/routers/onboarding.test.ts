@@ -94,6 +94,27 @@ describe('onboardingRouter', () => {
       expect(result.profile.complete).toBe(false)
     })
 
+    it('should accept a legacy student profile with CPF and matrícula', async () => {
+      const mockContext = createMockContext(mockStudentUser)
+      const caller = onboardingRouter.createCaller(mockContext)
+
+      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({
+        id: 1,
+        nomeCompleto: 'Student',
+        matricula: '225115868',
+        cpf: '529.982.247-25',
+        cr: null,
+        cursoNome: null,
+        genero: null,
+        comprovanteMatriculaFileId: 'document.pdf',
+        historicoEscolarFileId: null,
+      } as never)
+
+      const result = await caller.getStatus()
+      expect(result.pending).toBe(false)
+      expect(result.profile.complete).toBe(true)
+    })
+
     it('should complete the partial profile created during registration', async () => {
       const mockContext = createMockContext(mockStudentUser)
       const caller = onboardingRouter.createCaller(mockContext)
