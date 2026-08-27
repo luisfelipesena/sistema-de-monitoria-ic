@@ -59,6 +59,7 @@ export const onboardingStatusResponseSchema = z.object({
   pending: z.boolean(),
   profile: z.object({
     exists: z.boolean(),
+    complete: z.boolean(),
     type: userRoleSchema,
   }),
   documents: z.object({

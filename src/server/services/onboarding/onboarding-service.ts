@@ -1,5 +1,5 @@
 import type { db } from '@/server/db'
-import { ConflictError, ForbiddenError, NotFoundError, studentIdentityConflict } from '@/server/lib/errors'
+import { ForbiddenError, NotFoundError, studentIdentityConflict } from '@/server/lib/errors'
 import type { DocumentType, Genero, Regime, TipoProfessor, UserRole } from '@/types'
 import { ADMIN, PROFESSOR, STUDENT, TIPO_PROFESSOR_EFETIVO } from '@/types'
 import { logger } from '@/utils/logger'
@@ -59,12 +59,13 @@ export function createOnboardingService(db: Database) {
       if (userRole === ADMIN) {
         return {
           pending: false,
-          profile: { exists: false, type: ADMIN },
+          profile: { exists: false, complete: true, type: ADMIN },
           documents: { required: [], uploaded: [], missing: [] },
         }
       }
 
       let hasProfile = false
+      let hasCompleteProfile = false
       let profileData: StudentProfile | ProfessorProfile | null = null
       let hasSignature = false
       let isInactive = false
@@ -91,6 +92,14 @@ export function createOnboardingService(db: Database) {
             }
           : null
         hasProfile = alunoProfile != null
+        hasCompleteProfile = !!(
+          alunoProfile?.nomeCompleto &&
+          alunoProfile.matricula &&
+          alunoProfile.cpf &&
+          alunoProfile.cr != null &&
+          alunoProfile.cursoNome &&
+          alunoProfile.genero
+        )
       } else if (userRole === PROFESSOR) {
         const professorProfile = await repo.findProfessorProfile(userId)
         profileData = professorProfile
@@ -100,6 +109,7 @@ export function createOnboardingService(db: Database) {
             }
           : null
         hasProfile = professorProfile != null
+        hasCompleteProfile = hasProfile
         hasSignature = !!userSignature
         isInactive = professorProfile?.accountStatus === 'INACTIVE'
 
@@ -146,7 +156,7 @@ export function createOnboardingService(db: Database) {
       const uniqueUploadedDocs = [...new Set(uploadedDocTypes)]
       const missingDocs = requiredDocs.filter((doc) => !uniqueUploadedDocs.includes(doc))
 
-      let pending = !hasProfile || missingDocs.length > 0
+      let pending = !hasCompleteProfile || missingDocs.length > 0
       if (userRole === PROFESSOR) {
         // Professor INACTIVE must go through onboarding again
         pending = pending || !hasSignature || isInactive
@@ -156,6 +166,7 @@ export function createOnboardingService(db: Database) {
         pending,
         profile: {
           exists: hasProfile,
+          complete: hasCompleteProfile,
           type: userRole,
         },
         documents: {
@@ -189,14 +200,9 @@ export function createOnboardingService(db: Database) {
 
       const existingProfile = await repo.findStudentProfile(userId)
 
-      if (existingProfile) {
-        throw new ConflictError('Student profile already exists')
-      }
-
       let newProfile: Awaited<ReturnType<typeof repo.createStudentProfile>>
       try {
-        newProfile = await repo.createStudentProfile({
-          userId,
+        const profileData = {
           nomeCompleto: input.nomeCompleto,
           matricula: input.matricula,
           cpf: input.cpf,
@@ -208,12 +214,15 @@ export function createOnboardingService(db: Database) {
           nomeSocial: input.nomeSocial,
           rg: input.rg,
           emailInstitucional: userEmail,
-        })
+        }
+        newProfile = existingProfile
+          ? await repo.updateStudentProfile(userId, profileData)
+          : await repo.createStudentProfile({ userId, ...profileData })
       } catch (error) {
         throw studentIdentityConflict(error) ?? error
       }
 
-      log.info({ userId, profileId: newProfile.id }, 'Student profile created successfully')
+      log.info({ userId, profileId: newProfile.id }, 'Student profile completed successfully')
       return { success: true, profileId: newProfile.id }
     },
 

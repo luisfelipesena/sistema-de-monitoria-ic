@@ -65,6 +65,12 @@ describe('student inscription inputs', () => {
 
     expect(getMissingRequiredDocuments(documents)).toEqual([TIPO_DOCUMENTO_INSCRICAO_HISTORICO_ESCOLAR])
     expect(studentIdentityConflict({ code: '23505', constraint_name: 'aluno_matricula_unique' })?.code).toBe('CONFLICT')
+    expect(studentIdentityConflict({ code: '23505', constraint_name: 'aluno_cpf_unique' })?.message).toBe(
+      'Este CPF já está vinculado a outra conta. Entre com a conta anterior ou procure a coordenação.'
+    )
+    expect(studentIdentityConflict({ code: '23505', constraint_name: 'aluno_cpf_normalized_unique' })?.code).toBe(
+      'CONFLICT'
+    )
     expect(studentIdentityConflict({ code: '23505', constraint_name: 'other_unique' })).toBeNull()
   })
 })

@@ -49,6 +49,7 @@ const createMockContext = (user: User | null): TRPCContext => ({
         findFirst: vi.fn(),
       },
     },
+    update: vi.fn(),
     // biome-ignore lint/suspicious/noExplicitAny: Mock complexo de teste
   } as any,
 })
@@ -68,6 +69,55 @@ describe('onboardingRouter', () => {
       const result = await caller.getStatus()
       expect(result.pending).toBe(true)
       expect(result.profile.exists).toBe(false)
+      expect(result.profile.complete).toBe(false)
+    })
+
+    it('should keep onboarding pending for a partial student profile', async () => {
+      const mockContext = createMockContext(mockStudentUser)
+      const caller = onboardingRouter.createCaller(mockContext)
+
+      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({
+        id: 1,
+        nomeCompleto: 'Student',
+        matricula: null,
+        cpf: null,
+        cr: null,
+        cursoNome: null,
+        genero: null,
+        comprovanteMatriculaFileId: 'document.pdf',
+        historicoEscolarFileId: null,
+      } as never)
+
+      const result = await caller.getStatus()
+      expect(result.pending).toBe(true)
+      expect(result.profile.exists).toBe(true)
+      expect(result.profile.complete).toBe(false)
+    })
+
+    it('should complete the partial profile created during registration', async () => {
+      const mockContext = createMockContext(mockStudentUser)
+      const caller = onboardingRouter.createCaller(mockContext)
+
+      vi.spyOn(mockContext.db.query.alunoTable, 'findFirst').mockResolvedValue({ id: 1 } as never)
+      vi.spyOn(mockContext.db, 'update').mockReturnValue({
+        set: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([{ id: 1 }]),
+          }),
+        }),
+      } as never)
+
+      const result = await caller.createStudentProfile({
+        nomeCompleto: 'Student',
+        matricula: '225115868',
+        cpf: '529.982.247-25',
+        cr: 8,
+        cursoNome: 'Sistemas de Informação',
+        genero: 'MASCULINO',
+      })
+
+      expect(result).toEqual({ success: true, profileId: 1 })
+      expect(mockContext.db.update).toHaveBeenCalled()
     })
 
     it('should return pending: true for a professor with a profile but missing documents', async () => {

@@ -42,7 +42,7 @@ export function StudentOnboardingForm({ onboardingStatus }: StudentOnboardingFor
   const updateDocumentMutation = api.onboarding.updateDocument.useMutation()
   const { refetch: refetchOnboardingStatus } = api.onboarding.getStatus.useQuery()
 
-  const hasProfile = onboardingStatus.profile.exists
+  const hasProfile = onboardingStatus.profile.complete
   const requiredDocs = onboardingStatus.documents.required
   const uploadedDocs = onboardingStatus.documents.uploaded
   const missingDocs = onboardingStatus.documents.missing
