@@ -78,6 +78,11 @@ describe('student inscription inputs', () => {
       profileIdentityConflict({ code: '23505', constraint_name: 'professor_matricula_siape_normalized_unique' })
         ?.message
     ).toContain('matrícula SIAPE')
+    expect(
+      profileIdentityConflict({
+        cause: { code: '23505', constraint_name: 'aluno_cpf_normalized_unique' },
+      })?.code
+    ).toBe('CONFLICT')
     expect(profileIdentityConflict({ code: '23505', constraint_name: 'other_unique' })).toBeNull()
   })
 })
