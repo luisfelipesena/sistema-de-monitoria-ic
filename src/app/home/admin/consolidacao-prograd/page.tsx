@@ -31,6 +31,8 @@ export default function ConsolidacaoPROGRADPage() {
     handleSemesterChange,
     handleValidateData,
     handleSendEmail,
+    handleSendEmailBolsistas,
+    handleSendEmailVoluntarios,
     generateXLSXSpreadsheetBolsistas,
     generateXLSXSpreadsheetVoluntarios,
     signatureStatus,
@@ -101,6 +103,8 @@ export default function ConsolidacaoPROGRADPage() {
             latestSignatureLink={latestSignatureLink}
             isRequestingSignature={isRequestingSignature}
             onSendEmail={handleSendEmail}
+            onSendEmailBolsistas={handleSendEmailBolsistas}
+            onSendEmailVoluntarios={handleSendEmailVoluntarios}
             onGenerateXLSXBolsistas={generateXLSXSpreadsheetBolsistas}
             onGenerateXLSXVoluntarios={generateXLSXSpreadsheetVoluntarios}
             onRequestChefeSignature={handleRequestChefeSignature}

@@ -129,7 +129,10 @@ export function useConsolidacaoPrograd() {
     setShowValidation(true)
   }
 
-  const handleSendEmail = async () => {
+  const handleSendEmail = async (opts?: { incluirBolsistas?: boolean; incluirVoluntarios?: boolean }) => {
+    const incBolsas = opts?.incluirBolsistas ?? incluirBolsistas
+    const incVol = opts?.incluirVoluntarios ?? incluirVoluntarios
+
     if (!emailsDepartamento.length) {
       toast({
         title: 'Configuração pendente',
@@ -143,8 +146,8 @@ export function useConsolidacaoPrograd() {
       const result = await exportConsolidatedMutation.mutateAsync({
         ano: selectedYear,
         semestre: selectedSemester,
-        incluirBolsistas,
-        incluirVoluntarios,
+        incluirBolsistas: incBolsas,
+        incluirVoluntarios: incVol,
       })
       toast({
         title: 'Email Enviado com Sucesso',
@@ -153,7 +156,7 @@ export function useConsolidacaoPrograd() {
       setShowEmailDialog(false)
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Ocorreu um erro ao tentar enviar a planilha por email.'
+        error instanceof Error ? error.message : 'Ocorreu um erro ao tentar enviar os documentos por email.'
       toast({
         title: 'Erro no Envio',
         description: errorMessage,
@@ -161,6 +164,9 @@ export function useConsolidacaoPrograd() {
       })
     }
   }
+
+  const handleSendEmailBolsistas = () => handleSendEmail({ incluirBolsistas: true, incluirVoluntarios: false })
+  const handleSendEmailVoluntarios = () => handleSendEmail({ incluirBolsistas: false, incluirVoluntarios: true })
 
   const generateXLSXSpreadsheet = async (tipoFilter: 'BOLSISTA' | 'VOLUNTARIO') => {
     if (!consolidationData || consolidationData.length === 0) {
@@ -379,6 +385,8 @@ export function useConsolidacaoPrograd() {
     handleSemesterChange,
     handleValidateData,
     handleSendEmail,
+    handleSendEmailBolsistas,
+    handleSendEmailVoluntarios,
     generateXLSXSpreadsheet,
     generateXLSXSpreadsheetBolsistas,
     generateXLSXSpreadsheetVoluntarios,

@@ -10,12 +10,15 @@ interface EmailDialogProps {
   emailsDepartamento: string[]
   selectedYear: number
   selectedSemester: Semestre
+  modalidade?: "bolsistas" | "voluntarios" | "geral"
   incluirBolsistas: boolean
   incluirVoluntarios: boolean
   totalMonitores: number
   isDisabled: boolean
   isPending: boolean
   onSendEmail: () => void
+  buttonText?: string
+  buttonClassName?: string
 }
 
 export function EmailDialog({
@@ -24,24 +27,56 @@ export function EmailDialog({
   emailsDepartamento,
   selectedYear,
   selectedSemester,
+  modalidade = "geral",
   incluirBolsistas,
   incluirVoluntarios,
   totalMonitores,
   isDisabled,
   isPending,
   onSendEmail,
+  buttonText,
+  buttonClassName,
 }: EmailDialogProps) {
+  const defaultButtonText =
+    modalidade === "bolsistas"
+      ? "Enviar Documentos dos Bolsistas (E-mail)"
+      : modalidade === "voluntarios"
+        ? "Enviar Documentos dos Voluntários (E-mail)"
+        : "Enviar ao Departamento"
+
+  const titleText =
+    modalidade === "bolsistas"
+      ? "Enviar Documentos dos Bolsistas ao Departamento"
+      : modalidade === "voluntarios"
+        ? "Enviar Documentos dos Voluntários ao Departamento"
+        : "Enviar documentos consolidados"
+
+  const arquivosInfo =
+    modalidade === "bolsistas"
+      ? "PDF Consolidado de Resultados com Bolsistas, Planilha Excel de Bolsistas (.xlsx) e Termos de Compromisso (PDF) dos Bolsistas"
+      : modalidade === "voluntarios"
+        ? "Planilha Excel de Voluntários (.xlsx) e Termos de Compromisso (PDF) dos Voluntários"
+        : "PDF Consolidado de Resultados, Planilhas Excel (.xlsx) e Termos de Compromisso (PDF)"
+
+  const btnClass =
+    buttonClassName ||
+    (modalidade === "bolsistas"
+      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+      : modalidade === "voluntarios"
+        ? "bg-blue-600 hover:bg-blue-700 text-white"
+        : "bg-green-600 hover:bg-green-700 text-white")
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button disabled={isDisabled} className="bg-green-600 hover:bg-green-700">
+        <Button disabled={isDisabled} className={btnClass}>
           <Mail className="h-4 w-4 mr-2" />
-          Enviar ao Departamento
+          {buttonText || defaultButtonText}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Enviar planilhas consolidadas</DialogTitle>
+          <DialogTitle>{titleText}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <Alert variant={emailsDepartamento.length ? "default" : "destructive"}>
@@ -59,9 +94,13 @@ export function EmailDialog({
                 • Período: {selectedYear}.{getSemestreNumero(selectedSemester)}
               </li>
               <li>• Total de monitores: {totalMonitores}</li>
-              <li>• Incluir bolsistas: {incluirBolsistas ? "Sim" : "Não"}</li>
-              <li>• Incluir voluntários: {incluirVoluntarios ? "Sim" : "Não"}</li>
-              <li>• Arquivos: consolidação de bolsistas e consolidação de voluntários (.xlsx)</li>
+              {modalidade === "geral" && (
+                <>
+                  <li>• Incluir bolsistas: {incluirBolsistas ? "Sim" : "Não"}</li>
+                  <li>• Incluir voluntários: {incluirVoluntarios ? "Sim" : "Não"}</li>
+                </>
+              )}
+              <li>• Arquivos: {arquivosInfo}</li>
             </ul>
           </div>
           <div className="flex flex-wrap justify-end gap-2">
@@ -69,11 +108,11 @@ export function EmailDialog({
               Cancelar
             </Button>
             <Button
+              disabled={isPending || !emailsDepartamento.length}
               onClick={onSendEmail}
-              disabled={isPending || emailsDepartamento.length === 0}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
-              {isPending ? "Enviando..." : "Enviar"}
+              {isPending ? "Enviando..." : "Confirmar Envio"}
             </Button>
           </div>
         </div>

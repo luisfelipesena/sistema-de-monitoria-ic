@@ -38,6 +38,8 @@ interface ExportSectionProps {
   latestSignatureLink?: string | null
   isRequestingSignature?: boolean
   onSendEmail: () => void
+  onSendEmailBolsistas: () => void
+  onSendEmailVoluntarios: () => void
   onGenerateXLSXBolsistas: () => void
   onGenerateXLSXVoluntarios: () => void
   onRequestChefeSignature: (chefeEmail: string, chefeNome: string) => void
@@ -59,11 +61,15 @@ export function ExportSection({
   latestSignatureLink,
   isRequestingSignature,
   onSendEmail,
+  onSendEmailBolsistas,
+  onSendEmailVoluntarios,
   onGenerateXLSXBolsistas,
   onGenerateXLSXVoluntarios,
   onRequestChefeSignature,
   onDownloadPDF,
 }: ExportSectionProps) {
+  const [showEmailBolsistasDialog, setShowEmailBolsistasDialog] = useState(false)
+  const [showEmailVoluntariosDialog, setShowEmailVoluntariosDialog] = useState(false)
   const [isSignatureDialogOpen, setIsSignatureDialogOpen] = useState(false)
   const [chefeEmailInput, setChefeEmailInput] = useState(emailsDepartamento[0] || "dcc@ufba.br")
   const [chefeNomeInput, setChefeNomeInput] = useState(signatureStatus?.chefeNome || "")
@@ -74,12 +80,15 @@ export function ExportSection({
     setIsSignatureDialogOpen(false)
   }
 
+  const bolsistasCount = data?.filter((item) => item.monitoria.tipo === "BOLSISTA").length || 0
+  const voluntariosCount = data?.filter((item) => item.monitoria.tipo === "VOLUNTARIO").length || 0
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Consolidação Final do Departamento</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Envie o PDF unificado de resultados e as planilhas consolidadas para o departamento validar e encaminhar à PROGRAD
+          Envie os documentos e planilhas consolidadas para o departamento validar e encaminhar à PROGRAD
         </p>
       </CardHeader>
       <CardContent>
@@ -191,25 +200,41 @@ export function ExportSection({
             )}
           </div>
 
-          {/* Envio por Email (Departamento) */}
-          <div className="space-y-2">
-            <h4 className="font-medium">Envio da Consolidação Completa (Departamento / PROGRAD)</h4>
+          {/* Envio de Documentos por E-mail (Departamento) */}
+          <div className="space-y-3">
+            <h4 className="font-medium">Envio de Documentos por E-mail (Departamento / PROGRAD)</h4>
             <p className="text-sm text-muted-foreground">
-              O sistema anexa o PDF Consolidado de Resultados (com assinatura se realizada) e as duas planilhas Excel (bolsistas e voluntários) e envia para os e-mails configurados.
+              Selecione a modalidade desejada para enviar por e-mail os relatórios, planilhas Excel e Termos de Compromisso individuais em PDF.
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               <EmailDialog
-                isOpen={showEmailDialog}
-                onOpenChange={setShowEmailDialog}
+                isOpen={showEmailBolsistasDialog}
+                onOpenChange={setShowEmailBolsistasDialog}
                 emailsDepartamento={emailsDepartamento}
                 selectedYear={selectedYear}
                 selectedSemester={selectedSemester}
-                incluirBolsistas={incluirBolsistas}
-                incluirVoluntarios={incluirVoluntarios}
-                totalMonitores={data?.length || 0}
-                isDisabled={!data || data.length === 0}
+                modalidade="bolsistas"
+                incluirBolsistas={true}
+                incluirVoluntarios={false}
+                totalMonitores={bolsistasCount}
+                isDisabled={!data || bolsistasCount === 0}
                 isPending={isPendingExport}
-                onSendEmail={onSendEmail}
+                onSendEmail={onSendEmailBolsistas}
+              />
+
+              <EmailDialog
+                isOpen={showEmailVoluntariosDialog}
+                onOpenChange={setShowEmailVoluntariosDialog}
+                emailsDepartamento={emailsDepartamento}
+                selectedYear={selectedYear}
+                selectedSemester={selectedSemester}
+                modalidade="voluntarios"
+                incluirBolsistas={false}
+                incluirVoluntarios={true}
+                totalMonitores={voluntariosCount}
+                isDisabled={!data || voluntariosCount === 0}
+                isPending={isPendingExport}
+                onSendEmail={onSendEmailVoluntarios}
               />
             </div>
           </div>
