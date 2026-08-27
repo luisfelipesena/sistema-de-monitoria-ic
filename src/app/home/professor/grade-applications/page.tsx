@@ -22,11 +22,36 @@ import { useToast } from "@/hooks/use-toast"
 import { getSemestreNumero, inscriptionDetailSchema, PROJETO_STATUS_APPROVED, Semestre, TIPO_VAGA_BOLSISTA } from "@/types"
 import { api } from "@/utils/api"
 import { Calculator, Check, ClipboardCheck, Copy, FileText, Loader2, Mail, Save, Users } from "lucide-react"
+import { PDFDownloadWrapper } from "@/components/ui/pdf-download-wrapper"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useMemo, useState } from "react"
 import { z } from "zod"
 
 type InscricaoComDetalhes = z.infer<typeof inscriptionDetailSchema>
+
+function TermoCompromissoQueryCell({ inscricaoId }: { inscricaoId: number }) {
+  const { data: termoData, isLoading } = api.inscricao.generateCommitmentTermData.useQuery(
+    { inscricaoId },
+    { enabled: !!inscricaoId, retry: false }
+  )
+
+  if (isLoading) {
+    return <span className="text-xs text-muted-foreground italic">Verificando...</span>
+  }
+
+  if (!termoData) {
+    return <span className="text-xs text-muted-foreground italic">Não disponível</span>
+  }
+
+  return (
+    <PDFDownloadWrapper
+      pdfData={termoData}
+      fileName={`termo-compromisso-${termoData.termo?.numero || inscricaoId}.pdf`}
+      buttonText="Baixar Termo"
+      size="sm"
+    />
+  )
+}
 
 function GradeApplicationsContent() {
   const { toast } = useToast()
@@ -225,42 +250,71 @@ function GradeApplicationsContent() {
                       <TableHead>Tipo de Vaga</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Histórico Escolar</TableHead>
+                      <TableHead>Termo de Compromisso</TableHead>
                       <TableHead>Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {inscricoes.map((inscricao: InscricaoComDetalhes) => (
-                      <TableRow key={inscricao.id} className={evaluatingInscricaoObj?.id === inscricao.id ? "bg-blue-50" : ""}>
-                        <TableCell>{inscricao.aluno.nomeCompleto}</TableCell>
-                        <TableCell>{inscricao.aluno.matricula}</TableCell>
-                        <TableCell>
-                          <Badge variant={inscricao.tipoVagaPretendida === TIPO_VAGA_BOLSISTA ? "default" : "secondary"}>
-                            {inscricao.tipoVagaPretendida}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{inscricao.notaFinal ? "Avaliado" : "Pendente"}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {inscricao.historicoEscolarFileId ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-800 border-blue-200"
-                              disabled={loadingFileId === inscricao.historicoEscolarFileId}
-                              onClick={() => handleViewHistorico(inscricao.historicoEscolarFileId!)}
-                            >
-                              {loadingFileId === inscricao.historicoEscolarFileId ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <FileText className="h-3.5 w-3.5 text-blue-600" />
-                              )}
-                              Ver Histórico
-                            </Button>
-                          ) : (
-                            <span className="text-xs text-muted-foreground italic">Não disponível</span>
-                          )}
-                        </TableCell>
+                    {inscricoes.map((inscricao: InscricaoComDetalhes) => {
+                      const termoDoc = (inscricao as any).documentos?.find(
+                        (d: any) =>
+                          d.tipoDocumento === "ANEXO_I_TERMO_COMPROMISSO" ||
+                          d.tipoDocumento === "TERMO_COMPROMISSO"
+                      )
+                      const termoFileId = termoDoc?.fileId || (inscricao as any).assinaturaAlunoFileId
+
+                      return (
+                        <TableRow key={inscricao.id} className={evaluatingInscricaoObj?.id === inscricao.id ? "bg-blue-50" : ""}>
+                          <TableCell>{inscricao.aluno.nomeCompleto}</TableCell>
+                          <TableCell>{inscricao.aluno.matricula}</TableCell>
+                          <TableCell>
+                            <Badge variant={inscricao.tipoVagaPretendida === TIPO_VAGA_BOLSISTA ? "default" : "secondary"}>
+                              {inscricao.tipoVagaPretendida}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{inscricao.notaFinal ? "Avaliado" : "Pendente"}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {inscricao.historicoEscolarFileId ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-800 border-blue-200"
+                                disabled={loadingFileId === inscricao.historicoEscolarFileId}
+                                onClick={() => handleViewHistorico(inscricao.historicoEscolarFileId!)}
+                              >
+                                {loadingFileId === inscricao.historicoEscolarFileId ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <FileText className="h-3.5 w-3.5 text-blue-600" />
+                                )}
+                                Ver Histórico
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-muted-foreground italic">Não disponível</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {termoFileId ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs flex items-center gap-1 text-emerald-600 hover:text-emerald-800 border-emerald-200"
+                                disabled={loadingFileId === termoFileId}
+                                onClick={() => handleViewHistorico(termoFileId)}
+                              >
+                                {loadingFileId === termoFileId ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <FileText className="h-3.5 w-3.5 text-emerald-600" />
+                                )}
+                                Ver Termo
+                              </Button>
+                            ) : (
+                              <TermoCompromissoQueryCell inscricaoId={inscricao.id} />
+                            )}
+                          </TableCell>
                         <TableCell>
                           <Button
                             variant={evaluatingInscricaoObj?.id === inscricao.id ? "default" : "outline"}
@@ -283,8 +337,9 @@ function GradeApplicationsContent() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
+                        )
+                      })}
+                    </TableBody>
                 </Table>
               ) : (
                 <div className="text-center py-8 text-gray-500">Nenhum candidato inscrito neste projeto</div>

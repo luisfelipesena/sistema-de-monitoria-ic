@@ -218,7 +218,7 @@ export const AtaSelecaoTemplate = ({ data }: { data: AtaSelecaoData }) => {
     .sort(compareCandidates)
 
   const countInscritos = rawList.length || data.totalInscritos || 0
-  const countCompareceram = candidatosCompareceram.length > 0 ? candidatosCompareceram.length : (data.totalCompareceram || countInscritos)
+  const countCompareceram = candidatosCompareceram.length
   const countClassificados = candidatosClassificados.length
 
   const totalInscritosPad = countInscritos.toString().padStart(2, "0")
