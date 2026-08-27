@@ -5,8 +5,10 @@ import { sendDepartamentoConsolidationEmail } from '@/server/lib/email'
 import { adminEmailService } from '@/server/lib/email/admin-emails'
 import { BusinessError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import { createConsolidacaoPDFService } from './consolidacao-pdf-service'
+import { createTermosService } from '@/server/services/termos/termos-service'
 import {
   ACCEPTED_BOLSISTA,
+  ADMIN,
   BOLSISTA,
   SEMESTRE_1,
   SEMESTRE_LABELS,
@@ -380,6 +382,20 @@ export function createRelatoriosExportService(
             filename: `consolidacao-voluntarios-${ano}-${semestreDisplay}.xlsx`,
             buffer: await createExcelBuffer(rows, 'Voluntários'),
           })
+        }
+      }
+
+      // 4. Anexar Termos de Compromisso Individuais dos Monitores
+      const termosService = createTermosService(db)
+      for (const vaga of filteredVagas) {
+        try {
+          const termoRes = await termosService.getTermoBuffer(vaga.id, remetenteUserId, ADMIN)
+          anexos.push({
+            filename: termoRes.fileName,
+            buffer: termoRes.buffer,
+          })
+        } catch (err) {
+          _log.warn({ err, vagaId: vaga.id }, 'Não foi possível gerar Termo de Compromisso para anexo')
         }
       }
 
