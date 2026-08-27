@@ -66,9 +66,8 @@ export function createSelecaoService(db: Database) {
         }
       }
       const inscricoesWithNota = await repo.findInscricoesWithNotaFinal(parseInt(projetoId))
-      const inscricoes = inscricoesWithNota.length > 0 ? inscricoesWithNota : allInscricoes
 
-      const inscricoesBolsista = inscricoes.filter(
+      const inscricoesBolsista = allInscricoes.filter(
         (i) =>
           i.tipoVagaPretendida === TIPO_INSCRICAO_BOLSISTA ||
           i.tipoVagaPretendida === 'ANY' ||
@@ -76,7 +75,7 @@ export function createSelecaoService(db: Database) {
           i.status === 'ACCEPTED_BOLSISTA' ||
           !i.tipoVagaPretendida
       )
-      const inscricoesVoluntario = inscricoes.filter(
+      const inscricoesVoluntario = allInscricoes.filter(
         (i) =>
           i.tipoVagaPretendida === TIPO_INSCRICAO_VOLUNTARIO ||
           i.status === 'SELECTED_VOLUNTARIO' ||
@@ -93,7 +92,7 @@ export function createSelecaoService(db: Database) {
           disciplinas: disciplinas.map((d) => d.disciplina),
         },
         totalInscritos: allInscricoes.length,
-        totalCompareceram: inscricoes.length,
+        totalCompareceram: inscricoesWithNota.length,
         inscricoesBolsista,
         inscricoesVoluntario,
         dataGeracao: new Date(),
