@@ -178,4 +178,43 @@ export const adminEmailService = {
       remetenteUserId: data.remetenteUserId,
     })
   },
+
+  async sendChefeConsolidacaoSignatureRequest(data: {
+    chefeEmail: string
+    chefeNome?: string
+    semestreFormatado: string
+    ano: number
+    signatureToken: string
+    expiresAt: Date
+    remetenteUserId?: number
+  }): Promise<void> {
+    const signatureUrl = `${clientUrl}/assinar-consolidacao?token=${data.signatureToken}`
+    const expiresAtFormatted = data.expiresAt.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
+    const html = await renderEmail(
+      <ChefeSignatureRequest
+        chefeNome={data.chefeNome}
+        editalNumero="Consolidação PROGRAD"
+        editalTitulo="Consolidação dos Resultados de Monitoria (Bolsistas)"
+        semestreFormatado={data.semestreFormatado}
+        ano={data.ano}
+        signatureUrl={signatureUrl}
+        expiresAtFormatted={expiresAtFormatted}
+      />
+    )
+
+    await emailSender.send({
+      to: data.chefeEmail,
+      subject: `[Monitoria IC] Solicitação de Assinatura - Consolidação de Resultados (${data.semestreFormatado}/${data.ano})`,
+      html,
+      tipoNotificacao: 'CHEFE_SIGNATURE_REQUEST',
+      remetenteUserId: data.remetenteUserId,
+    })
+  },
 }

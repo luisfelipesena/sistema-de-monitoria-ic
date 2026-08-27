@@ -1467,3 +1467,36 @@ export type ConfiguracaoSistema = typeof configuracaoSistemaTable.$inferSelect
 export type NewConfiguracaoSistema = typeof configuracaoSistemaTable.$inferInsert
 export type EmailNotificacao = typeof emailNotificacaoTable.$inferSelect
 export type NewEmailNotificacao = typeof emailNotificacaoTable.$inferInsert
+
+// --- Assinatura do Chefe do Departamento na Consolidação PROGRAD ---
+
+export const consolidacaoProgradAssinaturaTable = pgTable('consolidacao_prograd_assinatura', {
+  id: serial('id').primaryKey(),
+  ano: integer('ano').notNull(),
+  semestre: semestreEnum('semestre').notNull(),
+  chefeEmail: varchar('chefe_email', { length: 255 }),
+  chefeNome: varchar('chefe_nome', { length: 255 }),
+  chefeAssinatura: text('chefe_assinatura'),
+  chefeAssinouEm: timestamp('chefe_assinou_em', { withTimezone: true, mode: 'date' }),
+  chefeDepartamentoId: integer('chefe_departamento_id').references(() => professorTable.id),
+  signatureToken: varchar('signature_token', { length: 255 }).unique(),
+  signatureTokenExpiresAt: timestamp('signature_token_expires_at', { withTimezone: true, mode: 'date' }),
+  pdfFileId: text('pdf_file_id'),
+  requestedByUserId: integer('requested_by_user_id').references(() => userTable.id),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
+})
+
+export const consolidacaoProgradAssinaturaRelations = relations(consolidacaoProgradAssinaturaTable, ({ one }) => ({
+  chefeDepartamento: one(professorTable, {
+    fields: [consolidacaoProgradAssinaturaTable.chefeDepartamentoId],
+    references: [professorTable.id],
+  }),
+  requestedBy: one(userTable, {
+    fields: [consolidacaoProgradAssinaturaTable.requestedByUserId],
+    references: [userTable.id],
+  }),
+}))
+
+export type ConsolidacaoProgradAssinatura = typeof consolidacaoProgradAssinaturaTable.$inferSelect
+export type NewConsolidacaoProgradAssinatura = typeof consolidacaoProgradAssinaturaTable.$inferInsert

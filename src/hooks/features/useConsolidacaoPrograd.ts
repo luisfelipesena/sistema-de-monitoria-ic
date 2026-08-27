@@ -77,38 +77,6 @@ export function useConsolidacaoPrograd() {
     },
   })
 
-  // FASE 5: Redistribuição de Bolsas
-  const {
-    data: redistribuicaoStatus,
-    isLoading: isLoadingRedistribuicao,
-    refetch: refetchRedistribuicao,
-  } = api.relatorios.getBolsasRedistribuicaoStatus.useQuery(
-    { ano: selectedYear, semestre: selectedSemester },
-    { enabled: !!selectedYear && !!selectedSemester }
-  )
-
-  const redistribuirMutation = api.relatorios.redistribuirBolsa.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Bolsa Redistribuída',
-        description: 'A bolsa foi transferida com sucesso.',
-      })
-      refetchRedistribuicao()
-      refetch()
-    },
-    onError: (error) => {
-      toast({
-        title: 'Erro ao Redistribuir',
-        description: error.message,
-        variant: 'destructive',
-      })
-    },
-  })
-
-  const handleRedistribuir = (fromProjetoId: number, toProjetoId: number) => {
-    redistribuirMutation.mutate({ fromProjetoId, toProjetoId })
-  }
-
   const handleNotifyProfessors = (prazoFinal?: Date) => {
     notifyProfessorsMutation.mutate({
       ano: selectedYear,
@@ -161,7 +129,10 @@ export function useConsolidacaoPrograd() {
     setShowValidation(true)
   }
 
-  const handleSendEmail = async () => {
+  const handleSendEmail = async (opts?: { incluirBolsistas?: boolean; incluirVoluntarios?: boolean }) => {
+    const incBolsas = opts?.incluirBolsistas ?? incluirBolsistas
+    const incVol = opts?.incluirVoluntarios ?? incluirVoluntarios
+
     if (!emailsDepartamento.length) {
       toast({
         title: 'Configuração pendente',
@@ -175,8 +146,8 @@ export function useConsolidacaoPrograd() {
       const result = await exportConsolidatedMutation.mutateAsync({
         ano: selectedYear,
         semestre: selectedSemester,
-        incluirBolsistas,
-        incluirVoluntarios,
+        incluirBolsistas: incBolsas,
+        incluirVoluntarios: incVol,
       })
       toast({
         title: 'Email Enviado com Sucesso',
@@ -185,7 +156,7 @@ export function useConsolidacaoPrograd() {
       setShowEmailDialog(false)
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Ocorreu um erro ao tentar enviar a planilha por email.'
+        error instanceof Error ? error.message : 'Ocorreu um erro ao tentar enviar os documentos por email.'
       toast({
         title: 'Erro no Envio',
         description: errorMessage,
@@ -194,11 +165,25 @@ export function useConsolidacaoPrograd() {
     }
   }
 
-  const generateXLSXSpreadsheet = async () => {
+  const handleSendEmailBolsistas = () => handleSendEmail({ incluirBolsistas: true, incluirVoluntarios: false })
+  const handleSendEmailVoluntarios = () => handleSendEmail({ incluirBolsistas: false, incluirVoluntarios: true })
+
+  const generateXLSXSpreadsheet = async (tipoFilter: 'BOLSISTA' | 'VOLUNTARIO') => {
     if (!consolidationData || consolidationData.length === 0) {
       toast({
         title: 'Aviso',
-        description: 'Não há dados para gerar a planilha.',
+        description: 'Não há dados consolidados para exportar.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const filteredData = consolidationData.filter((item) => item.monitoria.tipo === tipoFilter)
+
+    if (filteredData.length === 0) {
+      toast({
+        title: 'Aviso',
+        description: `Nenhum monitor ${tipoFilter === 'BOLSISTA' ? 'bolsista' : 'voluntário'} encontrado no período.`,
         variant: 'destructive',
       })
       return
@@ -206,17 +191,19 @@ export function useConsolidacaoPrograd() {
 
     const ExcelJS = await import('exceljs')
     const workbook = new ExcelJS.Workbook()
-    const sheet = workbook.addWorksheet('Consolidação Monitoria')
+    const sheetName = tipoFilter === 'BOLSISTA' ? 'Monitores Bolsistas' : 'Monitores Voluntários'
+    const sheet = workbook.addWorksheet(sheetName)
 
     const headers = [
       'Matrícula Monitor',
       'Nome Monitor',
+      'CPF',
+      'RG',
+      'Telefone',
       'Email Monitor',
       'CR',
       'Tipo Monitoria',
-      'Valor Bolsa',
       'Projeto',
-      'Disciplinas',
       'Professor Responsável',
       'SIAPE Professor',
       'Departamento',
@@ -249,16 +236,17 @@ export function useConsolidacaoPrograd() {
     })
     headerRow.height = 25
 
-    consolidationData.forEach((item) => {
+    filteredData.forEach((item) => {
       const row = sheet.addRow([
         item.monitor.matricula || 'N/A',
         item.monitor.nome,
+        item.monitor.cpf || 'N/A',
+        item.monitor.rg || 'N/A',
+        item.monitor.telefone || 'N/A',
         item.monitor.email,
         item.monitor.cr?.toFixed(2) || 'N/A',
         item.monitoria.tipo === TIPO_VAGA_BOLSISTA ? 'Bolsista' : 'Voluntário',
-        item.monitoria.valorBolsa ? `R$ ${item.monitoria.valorBolsa.toFixed(2)}` : 'N/A',
         item.projeto.titulo,
-        item.projeto.disciplinas,
         item.professor.nome,
         item.professor.matriculaSiape || 'N/A',
         item.professor.departamento,
@@ -279,7 +267,7 @@ export function useConsolidacaoPrograd() {
       })
     })
 
-    const colWidths = [15, 30, 30, 8, 15, 12, 40, 50, 30, 15, 25, 15, 12, 12, 12, 10, 10, 15, 10, 15, 8]
+    const colWidths = [15, 30, 16, 15, 16, 30, 8, 15, 40, 30, 15, 25, 15, 12, 12, 12, 10, 10, 15, 10, 15, 8]
     headers.forEach((_, idx) => {
       sheet.getColumn(idx + 1).width = colWidths[idx] || 15
     })
@@ -288,7 +276,8 @@ export function useConsolidacaoPrograd() {
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    link.download = `consolidacao-monitoria-${selectedYear}-${selectedSemester === SEMESTRE_1 ? '1' : '2'}.xlsx`
+    const tipoSlug = tipoFilter === 'BOLSISTA' ? 'bolsistas' : 'voluntarios'
+    link.download = `consolidacao-${tipoSlug}-${selectedYear}-${selectedSemester === SEMESTRE_1 ? '1' : '2'}.xlsx`
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
@@ -296,8 +285,84 @@ export function useConsolidacaoPrograd() {
 
     toast({
       title: 'Sucesso',
-      description: 'Planilha Excel gerada e baixada com sucesso!',
+      description: `Planilha de ${tipoFilter === 'BOLSISTA' ? 'Bolsistas' : 'Voluntários'} gerada com sucesso!`,
     })
+  }
+
+  const generateXLSXSpreadsheetBolsistas = () => generateXLSXSpreadsheet('BOLSISTA')
+  const generateXLSXSpreadsheetVoluntarios = () => generateXLSXSpreadsheet('VOLUNTARIO')
+
+  // Signature status query
+  const {
+    data: signatureStatus,
+    isLoading: isLoadingSignatureStatus,
+    refetch: refetchSignatureStatus,
+  } = api.relatorios.getConsolidacaoSignatureStatus.useQuery({
+    ano: selectedYear,
+    semestre: selectedSemester,
+  })
+
+  const [latestSignatureLink, setLatestSignatureLink] = useState<string | null>(null)
+
+  const requestSignatureMutation = api.relatorios.solicitarAssinaturaChefeConsolidacao.useMutation({
+    onSuccess: (result) => {
+      setLatestSignatureLink(result.link || null)
+      toast({
+        title: 'Solicitação Enviada',
+        description: result.message,
+      })
+      refetchSignatureStatus()
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro ao solicitar assinatura',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+
+  const handleRequestChefeSignature = (chefeEmail: string, chefeNome: string) => {
+    requestSignatureMutation.mutate({
+      ano: selectedYear,
+      semestre: selectedSemester,
+      chefeEmail,
+      chefeNome,
+    })
+  }
+
+  const downloadPDFQuery = api.relatorios.downloadConsolidacaoPDF.useQuery(
+    { ano: selectedYear, semestre: selectedSemester },
+    { enabled: false }
+  )
+
+  const handleDownloadPDF = async () => {
+    try {
+      const result = await downloadPDFQuery.refetch()
+      if (result.data?.pdfBase64) {
+        const byteCharacters = atob(result.data.pdfBase64)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        }
+        const byteArray = new Uint8Array(byteNumbers)
+        const blob = new Blob([byteArray], { type: 'application/pdf' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = `resultados-selecao-bolsistas-${selectedYear}-${selectedSemester === SEMESTRE_1 ? '1' : '2'}.pdf`
+        link.click()
+        toast({
+          title: 'Sucesso',
+          description: 'PDF de Resultados das Matérias com Bolsistas baixado com sucesso!',
+        })
+      }
+    } catch (_err) {
+      toast({
+        title: 'Erro ao baixar PDF',
+        description: 'Não foi possível gerar o PDF consolidado.',
+        variant: 'destructive',
+      })
+    }
   }
 
   return {
@@ -320,7 +385,17 @@ export function useConsolidacaoPrograd() {
     handleSemesterChange,
     handleValidateData,
     handleSendEmail,
+    handleSendEmailBolsistas,
+    handleSendEmailVoluntarios,
     generateXLSXSpreadsheet,
+    generateXLSXSpreadsheetBolsistas,
+    generateXLSXSpreadsheetVoluntarios,
+    signatureStatus,
+    latestSignatureLink,
+    isLoadingSignatureStatus,
+    isRequestingSignature: requestSignatureMutation.isPending,
+    handleRequestChefeSignature,
+    handleDownloadPDF,
     refetch,
     // Report notification features
     validationStatus,
@@ -332,10 +407,5 @@ export function useConsolidacaoPrograd() {
     handleNotifyStudents,
     handleSendCertificates,
     refetchValidation,
-    // Redistribuição de bolsas (FASE 5)
-    redistribuicaoStatus,
-    isLoadingRedistribuicao,
-    isRedistribuindo: redistribuirMutation.isPending,
-    handleRedistribuir,
   }
 }

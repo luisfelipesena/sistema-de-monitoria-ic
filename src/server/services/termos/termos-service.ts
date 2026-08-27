@@ -79,6 +79,52 @@ export function createTermosService(db: Database) {
       }
     },
 
+    async getTermoBuffer(
+      vagaId: number,
+      userId: number,
+      userRole: UserRole
+    ): Promise<{ buffer: Buffer; fileName: string }> {
+      const vagaData = await repo.findVagaById(vagaId)
+
+      if (!vagaData) {
+        throw new NotFoundError('Vaga', vagaId)
+      }
+
+      const isAluno = userRole === STUDENT && vagaData.aluno.userId === userId
+      const isProfessor =
+        userRole === PROFESSOR &&
+        (vagaData.projeto.professorResponsavelId === userId || vagaData.projeto.professorResponsavel?.userId === userId)
+      const isAdmin = userRole === ADMIN
+
+      if (!isAluno && !isProfessor && !isAdmin) {
+        throw new ForbiddenError('Você não tem permissão para visualizar este termo')
+      }
+
+      const signatures = await repo.findSignaturesByVagaId(vagaId, vagaData.projetoId)
+
+      const alunoSigRecord = signatures.find((s) => s.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
+      const alunoAssinaturaBase64 = alunoSigRecord?.assinaturaData || vagaData.inscricao?.assinaturaAlunoFileId || null
+
+      const profSigRecord = signatures.find(
+        (s) =>
+          s.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO || s.tipoAssinatura === TIPO_ASSINATURA_PROJETO_PROFESSOR
+      )
+      const professorAssinaturaBase64 = profSigRecord?.assinaturaData || null
+
+      const pdfBuffer = await pdfGen.generateTermo({
+        ...vagaData,
+        alunoAssinaturaBase64,
+        professorAssinaturaBase64,
+      })
+
+      const sanitize = (name: string) => name.replace(/[^a-zA-Z0-9]/g, '_')
+      const nomeAluno = sanitize(vagaData.aluno.nomeCompleto || 'monitor')
+      const tipoSlug = vagaData.tipo.toLowerCase()
+      const fileName = `termo-compromisso-${tipoSlug}-${nomeAluno}.pdf`
+
+      return { buffer: pdfBuffer, fileName }
+    },
+
     async downloadTermo(vagaId: number, userId: number, userRole: UserRole) {
       const vagaData = await repo.findVagaSimple(vagaId)
 

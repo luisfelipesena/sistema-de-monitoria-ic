@@ -1,4 +1,4 @@
-import { adminProtectedProcedure, createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
+import { adminProtectedProcedure, createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/api/trpc'
 import { relatorioTemplateTable } from '@/server/db/schema'
 import { createRelatoriosService } from '@/server/services/relatorios/relatorios-service'
 import { createScholarshipAllocationService } from '@/server/services/scholarship-allocation/scholarship-allocation-service'
@@ -392,6 +392,80 @@ export const relatoriosRouter = createTRPCRouter({
 
     return { success: true }
   }),
+
+  // Assinatura do Chefe na Consolidação PROGRAD
+  getConsolidacaoSignatureStatus: adminProtectedProcedure
+    .input(z.object({ ano: z.number(), semestre: semestreSchema }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const relatoriosService = createRelatoriosService(ctx.db)
+        return await relatoriosService.getConsolidacaoSignatureStatus(input.ano, input.semestre)
+      } catch (error) {
+        return mapDomainErrorToTRPC(error)
+      }
+    }),
+
+  solicitarAssinaturaChefeConsolidacao: adminProtectedProcedure
+    .input(
+      z.object({
+        ano: z.number(),
+        semestre: semestreSchema,
+        chefeEmail: z.string().email(),
+        chefeNome: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const relatoriosService = createRelatoriosService(ctx.db)
+        return await relatoriosService.solicitarAssinaturaChefeConsolidacao(
+          input.ano,
+          input.semestre,
+          input.chefeEmail,
+          input.chefeNome,
+          ctx.user.id
+        )
+      } catch (error) {
+        return mapDomainErrorToTRPC(error)
+      }
+    }),
+
+  getConsolidacaoByToken: publicProcedure.input(z.object({ token: z.string() })).query(async ({ ctx, input }) => {
+    try {
+      const relatoriosService = createRelatoriosService(ctx.db)
+      return await relatoriosService.getConsolidacaoByToken(input.token)
+    } catch (error) {
+      return mapDomainErrorToTRPC(error)
+    }
+  }),
+
+  signConsolidacaoByToken: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        chefeAssinatura: z.string(),
+        chefeNome: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const relatoriosService = createRelatoriosService(ctx.db)
+        return await relatoriosService.signConsolidacaoByToken(input.token, input.chefeAssinatura, input.chefeNome)
+      } catch (error) {
+        return mapDomainErrorToTRPC(error)
+      }
+    }),
+
+  downloadConsolidacaoPDF: adminProtectedProcedure
+    .input(z.object({ ano: z.number(), semestre: semestreSchema }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const relatoriosService = createRelatoriosService(ctx.db)
+        const pdfBuffer = await relatoriosService.getConsolidacaoPDFBuffer(input.ano, input.semestre, ctx.user.id)
+        return { pdfBase64: pdfBuffer.toString('base64') }
+      } catch (error) {
+        return mapDomainErrorToTRPC(error)
+      }
+    }),
 
   // Merge validation router procedures
   ...relatoriosValidationRouter._def.procedures,
