@@ -92,6 +92,7 @@ describe('onboardingRouter', () => {
       expect(result.pending).toBe(true)
       expect(result.profile.exists).toBe(true)
       expect(result.profile.complete).toBe(false)
+      expect(result.existingProfileData?.nomeCompleto).toBe('Student')
     })
 
     it('should accept a legacy student profile with CPF and matrícula', async () => {
@@ -139,6 +140,38 @@ describe('onboardingRouter', () => {
 
       expect(result).toEqual({ success: true, profileId: 1 })
       expect(mockContext.db.update).toHaveBeenCalled()
+    })
+
+    it('should return a clear conflict for duplicate professor identity', async () => {
+      const mockContext = createMockContext(mockProfessorUser)
+      const caller = onboardingRouter.createCaller(mockContext)
+
+      vi.spyOn(mockContext.db.query.professorTable, 'findFirst').mockResolvedValue({
+        id: 1,
+        tipoProfessor: 'EFETIVO',
+      } as never)
+      vi.spyOn(mockContext.db, 'update').mockReturnValue({
+        set: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockRejectedValue({ code: '23505', constraint_name: 'professor_cpf_normalized_unique' }),
+          }),
+        }),
+      } as never)
+
+      await expect(
+        caller.createProfessorProfile({
+          nomeCompleto: 'Professor',
+          matriculaSiape: '1234567',
+          cpf: '529.982.247-25',
+          regime: 'DE',
+          departamentoId: 1,
+          genero: 'MASCULINO',
+        })
+      ).rejects.toMatchObject({
+        code: 'CONFLICT',
+        message:
+          'Este CPF já está vinculado a outra conta. Recupere o acesso à conta anterior ou procure a coordenação antes de continuar.',
+      })
     })
 
     it('should return pending: true for a professor with a profile but missing documents', async () => {

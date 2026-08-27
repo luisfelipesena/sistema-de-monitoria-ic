@@ -114,7 +114,14 @@ export const onboardingRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       const service = createOnboardingService(ctx.db)
-      return service.createProfessorProfile(input, ctx.user.id, ctx.user.role, ctx.user.email)
+      try {
+        return await service.createProfessorProfile(input, ctx.user.id, ctx.user.role, ctx.user.email)
+      } catch (error) {
+        if (error instanceof ConflictError) {
+          throw new TRPCError({ code: 'CONFLICT', message: error.message })
+        }
+        throw error
+      }
     }),
 
   updateDocument: protectedProcedure

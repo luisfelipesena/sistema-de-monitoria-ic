@@ -1,4 +1,4 @@
-import { studentIdentityConflict } from '@/server/lib/errors'
+import { profileIdentityConflict } from '@/server/lib/errors'
 import {
   TIPO_DOCUMENTO_INSCRICAO_COMPROVANTE_MATRICULA,
   TIPO_DOCUMENTO_INSCRICAO_CPF,
@@ -64,13 +64,20 @@ describe('student inscription inputs', () => {
     )
 
     expect(getMissingRequiredDocuments(documents)).toEqual([TIPO_DOCUMENTO_INSCRICAO_HISTORICO_ESCOLAR])
-    expect(studentIdentityConflict({ code: '23505', constraint_name: 'aluno_matricula_unique' })?.code).toBe('CONFLICT')
-    expect(studentIdentityConflict({ code: '23505', constraint_name: 'aluno_cpf_unique' })?.message).toBe(
-      'Este CPF já está vinculado a outra conta. Entre com a conta anterior ou procure a coordenação.'
+    expect(profileIdentityConflict({ code: '23505', constraint_name: 'aluno_matricula_unique' })?.code).toBe('CONFLICT')
+    expect(profileIdentityConflict({ code: '23505', constraint_name: 'aluno_cpf_unique' })?.message).toBe(
+      'Este CPF já está vinculado a outra conta. Recupere o acesso à conta anterior ou procure a coordenação antes de continuar.'
     )
-    expect(studentIdentityConflict({ code: '23505', constraint_name: 'aluno_cpf_normalized_unique' })?.code).toBe(
+    expect(profileIdentityConflict({ code: '23505', constraint_name: 'aluno_cpf_normalized_unique' })?.code).toBe(
       'CONFLICT'
     )
-    expect(studentIdentityConflict({ code: '23505', constraint_name: 'other_unique' })).toBeNull()
+    expect(profileIdentityConflict({ code: '23505', constraint_name: 'professor_cpf_normalized_unique' })?.code).toBe(
+      'CONFLICT'
+    )
+    expect(
+      profileIdentityConflict({ code: '23505', constraint_name: 'professor_matricula_siape_normalized_unique' })
+        ?.message
+    ).toContain('matrícula SIAPE')
+    expect(profileIdentityConflict({ code: '23505', constraint_name: 'other_unique' })).toBeNull()
   })
 })

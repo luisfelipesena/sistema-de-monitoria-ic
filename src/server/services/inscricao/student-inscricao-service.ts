@@ -1,4 +1,4 @@
-import { BusinessError, studentIdentityConflict } from '@/server/lib/errors'
+import { BusinessError, profileIdentityConflict } from '@/server/lib/errors'
 import { getSelecaoSchedule } from '@/server/lib/selecao-schedule'
 import type {
   AlunoProfilePatch,
@@ -252,7 +252,7 @@ export class StudentInscricaoService {
       try {
         await this.applyProfilePatch(aluno.id, input.profilePatch)
       } catch (error) {
-        throw studentIdentityConflict(error) ?? error
+        throw profileIdentityConflict(error) ?? error
       }
     }
 

@@ -343,40 +343,51 @@ export const atividadeProjetoTable = pgTable('atividade_projeto', {
   // }),
 })
 
-export const professorTable = pgTable('professor', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id')
-    .references(() => userTable.id, { onDelete: 'cascade' })
-    .notNull()
-    .unique(), // Link to auth user
-  departamentoId: integer('departamento_id').references(() => departamentoTable.id),
-  nomeCompleto: varchar('nome_completo').notNull(),
-  nomeSocial: varchar('nome_social'),
-  matriculaSiape: varchar('matricula_siape'),
-  genero: generoEnum('genero'),
-  regime: regimeEnum('regime'),
-  tipoProfessor: tipoProfessorEnum('tipo_professor').notNull().default('EFETIVO'),
-  accountStatus: professorAccountStatusEnum('account_status').notNull().default('ACTIVE'),
-  especificacaoGenero: varchar('especificacao_genero'),
-  cpf: varchar('cpf'), // Unique?
-  telefone: varchar('telefone'),
-  telefoneInstitucional: varchar('telefone_institucional'),
-  emailInstitucional: varchar('email_institucional'),
-  // Document file IDs for professor documents
-  curriculumVitaeFileId: text('curriculum_vitae_file_id'),
-  comprovanteVinculoFileId: text('comprovante_vinculo_file_id'),
-  createdAt: timestamp('created_at', {
-    withTimezone: true,
-    mode: 'date',
+export const professorTable = pgTable(
+  'professor',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .references(() => userTable.id, { onDelete: 'cascade' })
+      .notNull()
+      .unique(), // Link to auth user
+    departamentoId: integer('departamento_id').references(() => departamentoTable.id),
+    nomeCompleto: varchar('nome_completo').notNull(),
+    nomeSocial: varchar('nome_social'),
+    matriculaSiape: varchar('matricula_siape'),
+    genero: generoEnum('genero'),
+    regime: regimeEnum('regime'),
+    tipoProfessor: tipoProfessorEnum('tipo_professor').notNull().default('EFETIVO'),
+    accountStatus: professorAccountStatusEnum('account_status').notNull().default('ACTIVE'),
+    especificacaoGenero: varchar('especificacao_genero'),
+    cpf: varchar('cpf'),
+    telefone: varchar('telefone'),
+    telefoneInstitucional: varchar('telefone_institucional'),
+    emailInstitucional: varchar('email_institucional'),
+    // Document file IDs for professor documents
+    curriculumVitaeFileId: text('curriculum_vitae_file_id'),
+    comprovanteVinculoFileId: text('comprovante_vinculo_file_id'),
+    createdAt: timestamp('created_at', {
+      withTimezone: true,
+      mode: 'date',
+    })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', {
+      withTimezone: true,
+      mode: 'date',
+    }).$onUpdate(() => new Date()),
+    // deletedAt handled by user deletion cascade?
+  },
+  (table) => ({
+    cpfNormalizadoUnico: uniqueIndex('professor_cpf_normalized_unique')
+      .on(sql`regexp_replace(${table.cpf}, '\\D', '', 'g')`)
+      .where(sql`${table.cpf} IS NOT NULL AND length(regexp_replace(${table.cpf}, '\\D', '', 'g')) = 11`),
+    matriculaSiapeNormalizadaUnica: uniqueIndex('professor_matricula_siape_normalized_unique')
+      .on(sql`lower(trim(${table.matriculaSiape}))`)
+      .where(sql`${table.matriculaSiape} IS NOT NULL AND trim(${table.matriculaSiape}) <> ''`),
   })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp('updated_at', {
-    withTimezone: true,
-    mode: 'date',
-  }).$onUpdate(() => new Date()),
-  // deletedAt handled by user deletion cascade?
-})
+)
 
 export const disciplinaTable = pgTable(
   'disciplina',
