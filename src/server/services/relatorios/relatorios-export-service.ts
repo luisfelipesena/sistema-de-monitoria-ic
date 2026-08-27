@@ -1,5 +1,10 @@
+import { randomBytes } from 'crypto'
+import { db } from '@/server/db'
+import { consolidacaoProgradAssinaturaTable } from '@/server/db/schema'
 import { sendDepartamentoConsolidationEmail } from '@/server/lib/email'
+import { adminEmailService } from '@/server/lib/email/admin-emails'
 import { BusinessError, NotFoundError, ValidationError } from '@/server/lib/errors'
+import { createConsolidacaoPDFService } from './consolidacao-pdf-service'
 import {
   ACCEPTED_BOLSISTA,
   BOLSISTA,
@@ -15,6 +20,7 @@ import {
 } from '@/types'
 import { formatDateFullUTC } from '@/utils/date-utils'
 import { logger } from '@/utils/logger'
+import { and, eq } from 'drizzle-orm'
 import ExcelJS from 'exceljs'
 import type { RelatoriosRepository } from './relatorios-repository'
 
@@ -55,6 +61,8 @@ export function createRelatoriosExportService(
     tipo: 'bolsistas' | 'voluntarios' | 'ambos'
   }) => Promise<{ valido: boolean; totalProblemas: number; problemas: unknown[] }>
 ) {
+  const pdfService = createConsolidacaoPDFService()
+
   return {
     async exportRelatorioXlsx(tipo: string, ano: number, semestre: Semestre) {
       const workbook = new ExcelJS.Workbook()
@@ -326,31 +334,53 @@ export function createRelatoriosExportService(
         return Buffer.from(await workbook.xlsx.writeBuffer())
       }
 
-      const anexos: { filename: string; buffer: Buffer }[] = []
+      const anexos: Array<{ filename: string; buffer: Buffer }> = []
       const semestreDisplay = semestre === SEMESTRE_1 ? '1' : '2'
 
+      // 1. Anexar PDF Consolidado de Resultados (Bolsistas)
+      const signatureRecord = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
+        where: and(
+          eq(consolidacaoProgradAssinaturaTable.ano, ano),
+          eq(consolidacaoProgradAssinaturaTable.semestre, semestre)
+        ),
+      })
+
+      const pdfConsolidadoBuffer = await pdfService.generateConsolidatedResultadosPDF({
+        ano,
+        semestre,
+        chefeNome: signatureRecord?.chefeNome,
+        chefeAssinatura: signatureRecord?.chefeAssinatura,
+        chefeAssinouEm: signatureRecord?.chefeAssinouEm,
+        adminUserId: remetenteUserId,
+      })
+
+      anexos.push({
+        filename: `resultados-selecao-bolsistas-${ano}-${semestreDisplay}.pdf`,
+        buffer: pdfConsolidadoBuffer,
+      })
+
+      // 2. Anexar Planilha Excel de Bolsistas
       if (incluirBolsistas) {
         const bolsistas = filteredVagas.filter((vaga) => vaga.tipo === BOLSISTA)
-        if (bolsistas.length === 0) {
-          throw new NotFoundError('Bolsista', 'não encontrado para o período selecionado')
+        if (bolsistas.length > 0) {
+          const rows = await buildExcelRows(bolsistas)
+          anexos.push({
+            filename: `consolidacao-bolsistas-${ano}-${semestreDisplay}.xlsx`,
+            buffer: await createExcelBuffer(rows, 'Bolsistas'),
+          })
         }
-        const rows = await buildExcelRows(bolsistas)
-        anexos.push({
-          filename: `consolidacao-bolsistas-${ano}-${semestreDisplay}.xlsx`,
-          buffer: await createExcelBuffer(rows, 'Bolsistas'),
-        })
       }
 
+      // 3. Anexar Planilha Excel de Voluntários
       if (incluirVoluntarios) {
         const voluntarios = filteredVagas.filter((vaga) => vaga.tipo === VOLUNTARIO)
-        if (voluntarios.length === 0) {
-          throw new NotFoundError('Voluntário', 'não encontrado para o período selecionado')
+        if (voluntarios.length > 0) {
+          const rows = await buildExcelRows(voluntarios)
+          anexos.push({
+            filename: `consolidacao-voluntarios-${ano}-${semestreDisplay}.xlsx`,
+            buffer: await createExcelBuffer(rows, 'Voluntários'),
+          })
         }
-        const rows = await buildExcelRows(voluntarios)
-        anexos.push({
-          filename: `consolidacao-voluntarios-${ano}-${semestreDisplay}.xlsx`,
-          buffer: await createExcelBuffer(rows, 'Voluntários'),
-        })
       }
 
       if (anexos.length === 0) {
@@ -358,7 +388,6 @@ export function createRelatoriosExportService(
       }
 
       const departamentos = await repo.findAllDepartamentos()
-
       const destinatarios = departamentos
         .map((departamento) => departamento.emailChefeDepartamento)
         .filter((email): email is string => Boolean(email))
@@ -384,9 +413,166 @@ export function createRelatoriosExportService(
 
       return {
         success: true,
-        message: 'Planilhas enviadas ao departamento para validação e encaminhamento à PROGRAD.',
+        message: 'PDF consolidado e planilhas enviadas ao departamento com sucesso.',
         destinatarios,
       }
+    },
+
+    async getConsolidacaoSignatureStatus(ano: number, semestre: Semestre) {
+      const record = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
+        where: and(
+          eq(consolidacaoProgradAssinaturaTable.ano, ano),
+          eq(consolidacaoProgradAssinaturaTable.semestre, semestre)
+        ),
+      })
+
+      return {
+        isSigned: Boolean(record?.chefeAssinouEm),
+        chefeNome: record?.chefeNome || null,
+        chefeEmail: record?.chefeEmail || null,
+        chefeAssinouEm: record?.chefeAssinouEm || null,
+        hasPendingToken: Boolean(record?.signatureToken && !record.chefeAssinouEm),
+      }
+    },
+
+    async solicitarAssinaturaChefeConsolidacao(
+      ano: number,
+      semestre: Semestre,
+      chefeEmail: string,
+      chefeNome: string,
+      requestedByUserId: number
+    ) {
+      const token = randomBytes(32).toString('hex')
+      const expiresAt = new Date()
+      expiresAt.setHours(expiresAt.getHours() + 72) // 72 hours validity
+
+      const existing = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
+        where: and(
+          eq(consolidacaoProgradAssinaturaTable.ano, ano),
+          eq(consolidacaoProgradAssinaturaTable.semestre, semestre)
+        ),
+      })
+
+      if (existing) {
+        await db
+          .update(consolidacaoProgradAssinaturaTable)
+          .set({
+            chefeEmail,
+            chefeNome,
+            signatureToken: token,
+            signatureTokenExpiresAt: expiresAt,
+            requestedByUserId,
+          })
+          .where(eq(consolidacaoProgradAssinaturaTable.id, existing.id))
+      } else {
+        await db.insert(consolidacaoProgradAssinaturaTable).values({
+          ano,
+          semestre,
+          chefeEmail,
+          chefeNome,
+          signatureToken: token,
+          signatureTokenExpiresAt: expiresAt,
+          requestedByUserId,
+        })
+      }
+
+      const semestreDisplay = semestre === SEMESTRE_1 ? '1º Semestre' : '2º Semestre'
+
+      await adminEmailService.sendChefeConsolidacaoSignatureRequest({
+        chefeEmail,
+        chefeNome,
+        semestreFormatado: semestreDisplay,
+        ano,
+        signatureToken: token,
+        expiresAt,
+        remetenteUserId: requestedByUserId,
+      })
+
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+      const link = `${clientUrl}/assinar-consolidacao?token=${token}`
+
+      return {
+        success: true,
+        message: `Solicitação de assinatura enviada para ${chefeEmail}.`,
+        link,
+        token,
+        expiresAt,
+      }
+    },
+
+    async getConsolidacaoByToken(token: string) {
+      const record = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
+        where: eq(consolidacaoProgradAssinaturaTable.signatureToken, token),
+      })
+
+      if (!record) {
+        throw new NotFoundError('Token de assinatura', 'inválido ou expirado')
+      }
+
+      if (record.signatureTokenExpiresAt && record.signatureTokenExpiresAt < new Date()) {
+        throw new ValidationError('O link de assinatura expirou')
+      }
+
+      return {
+        id: record.id,
+        ano: record.ano,
+        semestre: record.semestre,
+        chefeNome: record.chefeNome,
+        chefeEmail: record.chefeEmail,
+        isSigned: Boolean(record.chefeAssinouEm),
+        chefeAssinouEm: record.chefeAssinouEm,
+        chefeAssinatura: record.chefeAssinatura,
+      }
+    },
+
+    async signConsolidacaoByToken(token: string, chefeAssinatura: string, chefeNome?: string) {
+      const record = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
+        where: eq(consolidacaoProgradAssinaturaTable.signatureToken, token),
+      })
+
+      if (!record) {
+        throw new NotFoundError('Token de assinatura', 'inválido ou não encontrado')
+      }
+
+      if (record.signatureTokenExpiresAt && record.signatureTokenExpiresAt < new Date()) {
+        throw new ValidationError('O link de assinatura expirou')
+      }
+
+      if (record.chefeAssinouEm) {
+        throw new ValidationError('Esta consolidação já foi assinada')
+      }
+
+      await db
+        .update(consolidacaoProgradAssinaturaTable)
+        .set({
+          chefeAssinatura,
+          chefeAssinouEm: new Date(),
+          chefeNome: chefeNome || record.chefeNome,
+        })
+        .where(eq(consolidacaoProgradAssinaturaTable.id, record.id))
+
+      return {
+        success: true,
+        message: 'Consolidação assinada com sucesso pelo Chefe do Departamento!',
+      }
+    },
+
+    async getConsolidacaoPDFBuffer(ano: number, semestre: Semestre, adminUserId = 1): Promise<Buffer> {
+      const signatureRecord = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
+        where: and(
+          eq(consolidacaoProgradAssinaturaTable.ano, ano),
+          eq(consolidacaoProgradAssinaturaTable.semestre, semestre)
+        ),
+      })
+
+      return pdfService.generateConsolidatedResultadosPDF({
+        ano,
+        semestre,
+        chefeNome: signatureRecord?.chefeNome,
+        chefeAssinatura: signatureRecord?.chefeAssinatura,
+        chefeAssinouEm: signatureRecord?.chefeAssinouEm,
+        adminUserId,
+      })
     },
 
     async getConsolidatedMonitoringData(ano: number, semestre: Semestre) {
@@ -407,6 +593,9 @@ export function createRelatoriosExportService(
             monitor: {
               nome: vaga.aluno.nomeCompleto,
               matricula: vaga.aluno.matricula,
+              cpf: vaga.aluno.cpf,
+              rg: vaga.aluno.rg,
+              telefone: vaga.aluno.telefone,
               email: vaga.aluno.user.email,
               cr: vaga.aluno.cr,
               banco: vaga.aluno.banco,

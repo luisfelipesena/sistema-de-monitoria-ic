@@ -47,6 +47,11 @@ export function createRelatoriosService(db: Database) {
     getConsolidatedMonitoringData: exportService.getConsolidatedMonitoringData,
     monitoresFinalBolsistas: exportService.monitoresFinalBolsistas,
     monitoresFinalVoluntarios: exportService.monitoresFinalVoluntarios,
+    getConsolidacaoSignatureStatus: exportService.getConsolidacaoSignatureStatus,
+    solicitarAssinaturaChefeConsolidacao: exportService.solicitarAssinaturaChefeConsolidacao,
+    getConsolidacaoByToken: exportService.getConsolidacaoByToken,
+    signConsolidacaoByToken: exportService.signConsolidacaoByToken,
+    getConsolidacaoPDFBuffer: exportService.getConsolidacaoPDFBuffer,
   }
 }
 

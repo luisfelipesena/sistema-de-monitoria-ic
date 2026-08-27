@@ -1,4 +1,3 @@
-export { BolsasRedistribuicaoSection } from './BolsasRedistribuicaoSection'
 export { ConsolidacaoFilters } from './ConsolidacaoFilters'
 export { ConsolidacaoStatsCards } from './ConsolidacaoStatsCards'
 export { ConsolidacaoTable } from './ConsolidacaoTable'

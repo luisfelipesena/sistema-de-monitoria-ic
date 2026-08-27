@@ -130,6 +130,9 @@ export interface MonitorConsolidado {
     nome: string
     matricula: string | null
     email: string
+    cpf?: string | null
+    rg?: string | null
+    telefone?: string | null
     cr: number | null
     banco?: string | null
     agencia?: string | null
@@ -335,6 +338,9 @@ export const monitorConsolidadoSchema = z.object({
     nome: nameSchema,
     matricula: z.string().nullable(),
     email: z.string().email(),
+    cpf: z.string().nullable().optional(),
+    rg: z.string().nullable().optional(),
+    telefone: z.string().nullable().optional(),
     cr: z.number().nullable(),
     banco: z.string().nullable().optional(),
     agencia: z.string().nullable().optional(),
