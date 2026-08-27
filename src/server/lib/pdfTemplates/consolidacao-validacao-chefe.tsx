@@ -49,15 +49,15 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 30,
+    marginTop: 40,
+    marginBottom: 60,
   },
   title: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Times-Bold',
     textAlign: 'center',
     textTransform: 'uppercase',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   subTitle: {
     fontSize: 11,
@@ -65,18 +65,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textTransform: 'uppercase',
   },
-  bodyText: {
-    fontSize: 11,
-    textAlign: 'justify',
-    marginTop: 20,
-    marginBottom: 30,
-    textIndent: 30,
-    lineHeight: 1.6,
-  },
   dateContainer: {
     alignItems: 'flex-end',
-    marginTop: 30,
-    marginBottom: 50,
+    marginTop: 60,
+    marginBottom: 60,
   },
   dateText: {
     fontSize: 11,
@@ -84,7 +76,7 @@ const styles = StyleSheet.create({
   signatureContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 40,
   },
   signatureImage: {
     height: 50,
@@ -141,15 +133,6 @@ export function ConsolidacaoValidacaoChefeTemplate({ data }: { data: Consolidaca
           <Text style={styles.title}>TERMO DE VALIDAÇÃO E CONSOLIDAÇÃO DE RESULTADOS DA MONITORIA</Text>
           <Text style={styles.subTitle}>PROCESSO SELETIVO - PERÍODO LETIVO {data.ano}.{data.semestre}</Text>
         </View>
-
-        {/* Body */}
-        <Text style={styles.bodyText}>
-          Apresentamos a consolidação oficial dos resultados do processo seletivo do Programa de Monitoria do Instituto de Computação da UFBA, referente ao semestre letivo {data.ano}.{data.semestre}. Este documento unifica os resultados das {data.totalProjetosBolsistas} disciplina(s) / projeto(s) contemplados com bolsa de monitoria PROGRAD.
-        </Text>
-
-        <Text style={styles.bodyText}>
-          Atesto a conferência e aprovação de todas as atas e listas de classificação dos candidatos selecionados para as vagas de bolsistas constantes nos relatórios em anexo, para encaminhamento à Pró-Reitoria de Ensino de Graduação (PROGRAD).
-        </Text>
 
         {/* Date */}
         <View style={styles.dateContainer}>
