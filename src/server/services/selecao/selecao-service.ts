@@ -375,8 +375,16 @@ export function createSelecaoService(db: Database) {
             `O candidato ${nomeStr} possui nota final ${notaStr}. Para ser selecionado como monitor, a nota final deve ser no mínimo 7,0.`
           )
         }
-        // Verify candidate has confirmed interest
-        if (candidate.status !== STATUS_INSCRICAO_CONFIRMED_INTEREST) {
+        // Verify candidate has confirmed interest or is already selected/accepted/on waiting list
+        const validStatuses = [
+          STATUS_INSCRICAO_CONFIRMED_INTEREST,
+          'SELECTED_BOLSISTA',
+          'SELECTED_VOLUNTARIO',
+          'ACCEPTED_BOLSISTA',
+          'ACCEPTED_VOLUNTARIO',
+          'WAITING_LIST',
+        ]
+        if (!candidate.status || !validStatuses.includes(candidate.status)) {
           const nomeStr = candidate?.aluno?.nomeCompleto || candidate?.aluno?.user?.username || `ID ${selectedId}`
           throw new ValidationError(
             `O candidato ${nomeStr} ainda não confirmou interesse em participar. Apenas candidatos que confirmaram interesse podem ser selecionados como monitores.`
