@@ -1,8 +1,10 @@
 import { db } from '@/server/db'
 import {
   alunoTable,
+  disciplinaTable,
   inscricaoTable,
   periodoInscricaoTable,
+  projetoDisciplinaTable,
   projetoTable,
   userTable,
   vagaTable,
@@ -35,6 +37,51 @@ async function seedConsolidationPhase5() {
   if (!period) {
     console.error('❌ Period for 2025 not found')
     process.exit(1)
+  }
+
+  // Ensure disciplines exist and link to projects
+  let disc1 = await db.query.disciplinaTable.findFirst({ where: eq(disciplinaTable.codigo, 'MATA49') })
+  if (!disc1) {
+    const [inserted] = await db
+      .insert(disciplinaTable)
+      .values({
+        codigo: 'MATA49',
+        nome: 'Programação de Software Básico',
+        departamentoId: project1.departamentoId ?? 1,
+      })
+      .returning()
+    disc1 = inserted
+  }
+
+  let disc2 = await db.query.disciplinaTable.findFirst({ where: eq(disciplinaTable.codigo, 'MATA37') })
+  if (!disc2) {
+    const [inserted] = await db
+      .insert(disciplinaTable)
+      .values({
+        codigo: 'MATA37',
+        nome: 'Introdução à Lógica de Programação',
+        departamentoId: project2.departamentoId ?? 1,
+      })
+      .returning()
+    disc2 = inserted
+  }
+
+  // Link project1 -> disc1
+  const pd1 = await db
+    .select()
+    .from(projetoDisciplinaTable)
+    .where(and(eq(projetoDisciplinaTable.projetoId, project1.id), eq(projetoDisciplinaTable.disciplinaId, disc1.id)))
+  if (pd1.length === 0) {
+    await db.insert(projetoDisciplinaTable).values({ projetoId: project1.id, disciplinaId: disc1.id })
+  }
+
+  // Link project2 -> disc2
+  const pd2 = await db
+    .select()
+    .from(projetoDisciplinaTable)
+    .where(and(eq(projetoDisciplinaTable.projetoId, project2.id), eq(projetoDisciplinaTable.disciplinaId, disc2.id)))
+  if (pd2.length === 0) {
+    await db.insert(projetoDisciplinaTable).values({ projetoId: project2.id, disciplinaId: disc2.id })
   }
 
   // 2. Prepare test monitors with CPF, RG and Telefone

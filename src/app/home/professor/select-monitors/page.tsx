@@ -42,6 +42,7 @@ export default function SelectMonitorsPage() {
     publishResultsMutation,
     handleSelectCandidate,
     handleSubmitSelection,
+    openSelectionForProject,
     resetSelection,
   } = useMonitorSelection()
 
@@ -60,7 +61,7 @@ export default function SelectMonitorsPage() {
   }
 
   const handleOpenSelection = (project: MonitorProject) => {
-    resetSelection()
+    openSelectionForProject(project)
     selectionDialog.open(project)
   }
 

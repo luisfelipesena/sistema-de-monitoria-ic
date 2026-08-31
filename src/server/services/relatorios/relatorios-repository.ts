@@ -256,6 +256,7 @@ export function createRelatoriosRepository(db: Database) {
           aluno: {
             with: {
               user: true,
+              endereco: true,
             },
           },
           projeto: {

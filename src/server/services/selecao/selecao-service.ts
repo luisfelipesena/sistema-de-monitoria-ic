@@ -415,6 +415,14 @@ export function createSelecaoService(db: Database) {
           )
           .map((i) => i.id)
 
+        // Track candidates who had already accepted their positions
+        const acceptedBolsistaIds = allInscricoesCurrent
+          .filter((i) => i.status === 'ACCEPTED_BOLSISTA')
+          .map((i) => i.id)
+        const acceptedVoluntarioIds = allInscricoesCurrent
+          .filter((i) => i.status === 'ACCEPTED_VOLUNTARIO')
+          .map((i) => i.id)
+
         // Reset all inscricoes to SUBMITTED
         await txRepo.resetInscricoes(projetoId)
 
@@ -425,17 +433,27 @@ export function createSelecaoService(db: Database) {
           )
         }
 
-        // Set selected bolsistas
+        // Set selected bolsistas (preserve ACCEPTED_BOLSISTA if student had already accepted)
         if (bolsistas.length > 0) {
           await Promise.all(
-            bolsistas.map((inscricaoId) => txRepo.updateInscricaoStatus(inscricaoId, 'SELECTED_BOLSISTA'))
+            bolsistas.map((inscricaoId) => {
+              const statusToApply = acceptedBolsistaIds.includes(inscricaoId)
+                ? 'ACCEPTED_BOLSISTA'
+                : 'SELECTED_BOLSISTA'
+              return txRepo.updateInscricaoStatus(inscricaoId, statusToApply)
+            })
           )
         }
 
-        // Set selected voluntarios
+        // Set selected voluntarios (preserve ACCEPTED_VOLUNTARIO if student had already accepted)
         if (voluntarios.length > 0) {
           await Promise.all(
-            voluntarios.map((inscricaoId) => txRepo.updateInscricaoStatus(inscricaoId, 'SELECTED_VOLUNTARIO'))
+            voluntarios.map((inscricaoId) => {
+              const statusToApply = acceptedVoluntarioIds.includes(inscricaoId)
+                ? 'ACCEPTED_VOLUNTARIO'
+                : 'SELECTED_VOLUNTARIO'
+              return txRepo.updateInscricaoStatus(inscricaoId, statusToApply)
+            })
           )
         }
 

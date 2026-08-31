@@ -138,6 +138,7 @@ export interface MonitorConsolidado {
     agencia?: string | null
     conta?: string | null
     digitoConta?: string | null
+    endereco?: string | null
   }
   professor: {
     nome: string
@@ -346,6 +347,7 @@ export const monitorConsolidadoSchema = z.object({
     agencia: z.string().nullable().optional(),
     conta: z.string().nullable().optional(),
     digitoConta: z.string().nullable().optional(),
+    endereco: z.string().nullable().optional(),
   }),
   professor: z.object({
     nome: nameSchema,
