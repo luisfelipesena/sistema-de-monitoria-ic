@@ -108,32 +108,31 @@ export function ProjectCard({ project, onOpenSelection, isPublishing }: ProjectC
                 const bolsistasAceitos = project.inscricoes.filter((i) => i.status === "ACCEPTED_BOLSISTA")
                 const allBolsasFilled = bolsistasAceitos.length >= bolsasDisponibilizadas && bolsasDisponibilizadas > 0
 
-                if (allBolsasFilled) {
-                  return (
-                    <div className="p-4 rounded-lg bg-green-50 border border-green-200">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <Award className="h-5 w-5 text-green-600" />
-                        <span className="font-semibold text-green-800">
-                          Todas as vagas de bolsa foram preenchidas ({bolsistasAceitos.length}/{bolsasDisponibilizadas})
-                        </span>
-                      </div>
-                      <div className="space-y-1 ml-7">
-                        {bolsistasAceitos.map((inscricao) => (
-                          <p key={inscricao.id} className="text-sm text-green-700">
-                            • <strong>{inscricao.aluno.nomeCompleto}</strong> — Matrícula: {inscricao.aluno.matricula || "N/A"}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                }
-
                 return (
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <Button onClick={() => onOpenSelection(project)} disabled={isPublishing} className="flex-1 min-w-0">
-                      <Users className="h-4 w-4 mr-2" />
-                      Selecionar Monitores
-                    </Button>
+                  <div className="space-y-3 pt-2">
+                    {allBolsasFilled && (
+                      <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <Award className="h-5 w-5 text-green-600" />
+                          <span className="font-semibold text-green-800">
+                            Todas as vagas de bolsa foram preenchidas ({bolsistasAceitos.length}/{bolsasDisponibilizadas})
+                          </span>
+                        </div>
+                        <div className="space-y-1 ml-7">
+                          {bolsistasAceitos.map((inscricao) => (
+                            <p key={inscricao.id} className="text-sm text-green-700">
+                              • <strong>{inscricao.aluno.nomeCompleto}</strong> — Matrícula: {inscricao.aluno.matricula || "N/A"}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <Button onClick={() => onOpenSelection(project)} disabled={isPublishing} className="flex-1 min-w-0">
+                        <Users className="h-4 w-4 mr-2" />
+                        Gerenciar / Selecionar Monitores
+                      </Button>
+                    </div>
                   </div>
                 )
               })()}

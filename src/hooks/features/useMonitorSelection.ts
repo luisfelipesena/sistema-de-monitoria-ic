@@ -69,7 +69,6 @@ export function useMonitorSelection() {
           return prev
         }
         const isSelected = prev.voluntarios.includes(inscricaoId)
-        const maxVoluntarios = project.voluntariosSolicitados || 0
 
         if (isSelected) {
           return {
@@ -77,13 +76,10 @@ export function useMonitorSelection() {
             voluntarios: prev.voluntarios.filter((id) => id !== inscricaoId),
           }
         }
-        if (prev.voluntarios.length < maxVoluntarios) {
-          return {
-            ...prev,
-            voluntarios: [...prev.voluntarios, inscricaoId],
-          }
+        return {
+          ...prev,
+          voluntarios: [...prev.voluntarios, inscricaoId],
         }
-        return prev
       })
     },
     []

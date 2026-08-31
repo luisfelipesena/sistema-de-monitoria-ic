@@ -352,14 +352,9 @@ export function createSelecaoService(db: Database) {
 
       // Verify quotas
       const maxBolsistas = projeto.bolsasDisponibilizadas || 0
-      const maxVoluntarios = projeto.voluntariosSolicitados || 0
 
       if (bolsistas.length > maxBolsistas) {
         throw new ValidationError(`Número de bolsistas excede o limite disponível (${maxBolsistas})`)
-      }
-
-      if (voluntarios.length > maxVoluntarios) {
-        throw new ValidationError(`Número de voluntários excede o limite disponível (${maxVoluntarios})`)
       }
 
       // Verify that all selected candidates have notaFinal >= 7.0
