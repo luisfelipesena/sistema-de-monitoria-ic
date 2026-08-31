@@ -56,7 +56,7 @@ export function SelectionActionsPanel({
                 <span className="font-medium">Voluntários</span>
               </div>
               <span className="text-sm text-muted-foreground">
-                {selectedCandidates.voluntarios.length} / {project.voluntariosSolicitados || 0}
+                {selectedCandidates.voluntarios.length} {project.voluntariosSolicitados ? `/ mín: ${project.voluntariosSolicitados}` : 'selecionado(s)'}
               </span>
             </div>
           </CardContent>
@@ -90,7 +90,7 @@ export function SelectionActionsPanel({
         <Separator />
 
         {/* Voluntários Section */}
-        {(project.voluntariosSolicitados || 0) > 0 && (
+        {voluntarioCandidates.length > 0 && (
           <div>
             <h4 className="text-sm font-medium mb-3 flex flex-wrap items-center gap-2">
               <Users className="h-4 w-4 text-blue-500" />
