@@ -55,6 +55,36 @@ function applyDataStyle(row: ExcelJS.Row) {
   })
 }
 
+function cleanDigits(val?: string | null): string {
+  if (!val) return ''
+  return val.replace(/\D/g, '') || val
+}
+
+function extractAgenciaParts(agencia?: string | null): { agencia: string; digito: string } {
+  if (!agencia) return { agencia: '', digito: '' }
+  const parts = agencia.split('-')
+  if (parts.length > 1) {
+    return { agencia: parts[0]?.trim() || '', digito: parts[1]?.trim() || '' }
+  }
+  return { agencia: agencia.trim(), digito: '' }
+}
+
+function formatEndereco(end?: unknown): string {
+  if (!end) return ''
+  if (typeof end === 'string') return end
+  const e = end as Record<string, string | number | null | undefined>
+  const parts = [
+    e.rua,
+    e.numero ? `${e.numero}` : '',
+    e.complemento,
+    e.bairro,
+    e.cep ? `${e.cep}` : '',
+    e.cidade,
+    e.estado,
+  ].filter(Boolean)
+  return parts.join(', ')
+}
+
 export function createRelatoriosExportService(
   repo: RelatoriosRepository,
   checkDadosFaltantes: (input: {
@@ -284,56 +314,97 @@ export function createRelatoriosExportService(
         return matchDepartamento && matchTipo
       })
 
-      const buildExcelRows = async (vagasData: typeof filteredVagas) => {
+      const bolsistasColumns = [
+        { header: 'Nome Completo', key: 'nomeCompleto', width: 32 },
+        { header: 'RG (somente números)', key: 'rg', width: 18 },
+        { header: 'CPF (somente números)', key: 'cpf', width: 18 },
+        { header: 'Matrícula', key: 'matricula', width: 14 },
+        { header: 'Celular (DDD + número)', key: 'celular', width: 18 },
+        { header: 'E-mail', key: 'email', width: 30 },
+        { header: 'Banco (exceto Mercado Pago)', key: 'banco', width: 28 },
+        { header: 'Agência', key: 'agencia', width: 12 },
+        { header: 'Dígito', key: 'digitoAgencia', width: 10 },
+        { header: 'Conta', key: 'conta', width: 14 },
+        { header: 'Dígito', key: 'digitoConta', width: 10 },
+        {
+          header: 'Endereço completo (rua, nº, complemento, bairro, CEP, cidade e estado)',
+          key: 'endereco',
+          width: 50,
+        },
+        { header: 'Componente Curricular do Projeto (código e nome)', key: 'disciplina', width: 35 },
+        { header: 'Professor Responsável', key: 'professor', width: 30 },
+      ]
+
+      const voluntariosColumns = [
+        { header: 'Nome Completo', key: 'nomeCompleto', width: 32 },
+        { header: 'RG (somente números)', key: 'rg', width: 18 },
+        { header: 'CPF (somente números)', key: 'cpf', width: 18 },
+        { header: 'Matrícula', key: 'matricula', width: 14 },
+        { header: 'Componente Curricular do Projeto (código e nome)', key: 'disciplina', width: 35 },
+        { header: 'Professor Responsável', key: 'professor', width: 30 },
+      ]
+
+      const createExcelBufferCustom = async (
+        columns: Array<{ header: string; key: string; width: number }>,
+        // biome-ignore lint/suspicious/noExplicitAny: row object payload
+        rowsData: Record<string, any>[],
+        sheetName: string
+      ): Promise<Buffer> => {
+        const workbook = new ExcelJS.Workbook()
+        const sheet = workbook.addWorksheet(sheetName)
+        sheet.columns = columns.map((col) => ({ header: col.header, key: col.key, width: col.width }))
+        const headerRow = sheet.getRow(1)
+        applyHeaderStyle(headerRow)
+        rowsData.forEach((rowObj) => {
+          const row = sheet.addRow(rowObj)
+          applyDataStyle(row)
+        })
+        return Buffer.from(await workbook.xlsx.writeBuffer())
+      }
+
+      const buildBolsistasRows = async (vagasData: typeof filteredVagas) => {
+        return Promise.all(
+          vagasData.map(async (vaga) => {
+            const disciplinas = await repo.findDisciplinasByProjetoId(vaga.projetoId)
+            const disciplinasTexto = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
+            const { agencia, digito: digitoAgencia } = extractAgenciaParts(vaga.aluno.agencia)
+
+            return {
+              nomeCompleto: vaga.aluno.nomeCompleto || '',
+              rg: cleanDigits(vaga.aluno.rg),
+              cpf: cleanDigits(vaga.aluno.cpf),
+              matricula: vaga.aluno.matricula || '',
+              celular: cleanDigits(vaga.aluno.telefone),
+              email: vaga.aluno.user.email || '',
+              banco: vaga.aluno.banco || '',
+              agencia,
+              digitoAgencia,
+              conta: vaga.aluno.conta || '',
+              digitoConta: vaga.aluno.digitoConta || '',
+              endereco: formatEndereco(vaga.aluno.endereco),
+              disciplina: disciplinasTexto,
+              professor: vaga.projeto.professorResponsavel.nomeCompleto || '',
+            }
+          })
+        )
+      }
+
+      const buildVoluntariosRows = async (vagasData: typeof filteredVagas) => {
         return Promise.all(
           vagasData.map(async (vaga) => {
             const disciplinas = await repo.findDisciplinasByProjetoId(vaga.projetoId)
             const disciplinasTexto = disciplinas.map((d) => `${d.codigo} - ${d.nome}`).join('; ')
 
             return {
-              'Matrícula Monitor': vaga.aluno.matricula || 'N/A',
-              'Nome Monitor': vaga.aluno.nomeCompleto,
-              'Email Monitor': vaga.aluno.user.email,
-              CR: vaga.aluno.cr?.toFixed(2) || '0.00',
-              'Tipo Monitoria': vaga.tipo === BOLSISTA ? 'Bolsista' : 'Voluntário',
-              'Valor Bolsa': vaga.tipo === BOLSISTA ? 'R$ 400,00' : 'N/A',
-              Projeto: vaga.projeto.titulo,
-              Disciplinas: disciplinasTexto,
-              'Professor Responsável': vaga.projeto.professorResponsavel.nomeCompleto,
-              'SIAPE Professor': vaga.projeto.professorResponsavel.matriculaSiape || 'N/A',
-              Departamento: vaga.projeto.departamento?.nome || 'N/A',
-              'Carga Horária Semanal': vaga.projeto.cargaHorariaSemana || 12,
-              'Total Horas': (vaga.projeto.cargaHorariaSemana || 12) * (vaga.projeto.numeroSemanas || 17),
-              'Data Início': formatDateFullUTC(vaga.dataInicio) || 'N/A',
-              'Data Fim': formatDateFullUTC(vaga.dataFim) || 'N/A',
-              Status: 'Ativo',
-              Período: `${ano}.${semestre === SEMESTRE_1 ? '1' : '2'}`,
-              Banco: vaga.aluno.banco || 'N/A',
-              Agência: vaga.aluno.agencia || 'N/A',
-              Conta: vaga.aluno.conta || 'N/A',
-              Dígito: vaga.aluno.digitoConta || 'N/A',
+              nomeCompleto: vaga.aluno.nomeCompleto || '',
+              rg: cleanDigits(vaga.aluno.rg),
+              cpf: cleanDigits(vaga.aluno.cpf),
+              matricula: vaga.aluno.matricula || '',
+              disciplina: disciplinasTexto,
+              professor: vaga.projeto.professorResponsavel.nomeCompleto || '',
             }
           })
         )
-      }
-
-      type ExcelRow = Record<string, string | number>
-      const createExcelBuffer = async (rows: ExcelRow[], sheetName: string): Promise<Buffer> => {
-        const workbook = new ExcelJS.Workbook()
-        const sheet = workbook.addWorksheet(sheetName)
-        if (rows.length === 0) return Buffer.from(await workbook.xlsx.writeBuffer())
-        const headers = Object.keys(rows[0])
-        const headerRow = sheet.addRow(headers)
-        applyHeaderStyle(headerRow)
-        rows.forEach((rowObj) => {
-          const row = sheet.addRow(Object.values(rowObj))
-          applyDataStyle(row)
-        })
-        const colWidths = [15, 30, 30, 8, 15, 12, 40, 50, 30, 15, 25, 15, 12, 12, 10, 10, 15, 10, 15, 8]
-        headers.forEach((_, idx) => {
-          sheet.getColumn(idx + 1).width = colWidths[idx] || 15
-        })
-        return Buffer.from(await workbook.xlsx.writeBuffer())
       }
 
       const anexos: Array<{ filename: string; buffer: Buffer }> = []
@@ -365,10 +436,10 @@ export function createRelatoriosExportService(
       if (incluirBolsistas) {
         const bolsistas = filteredVagas.filter((vaga) => vaga.tipo === BOLSISTA)
         if (bolsistas.length > 0) {
-          const rows = await buildExcelRows(bolsistas)
+          const rows = await buildBolsistasRows(bolsistas)
           anexos.push({
             filename: `consolidacao-bolsistas-${ano}-${semestreDisplay}.xlsx`,
-            buffer: await createExcelBuffer(rows, 'Bolsistas'),
+            buffer: await createExcelBufferCustom(bolsistasColumns, rows, 'Bolsistas'),
           })
         }
       }
@@ -377,10 +448,10 @@ export function createRelatoriosExportService(
       if (incluirVoluntarios) {
         const voluntarios = filteredVagas.filter((vaga) => vaga.tipo === VOLUNTARIO)
         if (voluntarios.length > 0) {
-          const rows = await buildExcelRows(voluntarios)
+          const rows = await buildVoluntariosRows(voluntarios)
           anexos.push({
             filename: `consolidacao-voluntarios-${ano}-${semestreDisplay}.xlsx`,
-            buffer: await createExcelBuffer(rows, 'Voluntários'),
+            buffer: await createExcelBufferCustom(voluntariosColumns, rows, 'Voluntários'),
           })
         }
       }
@@ -618,6 +689,7 @@ export function createRelatoriosExportService(
               agencia: vaga.aluno.agencia,
               conta: vaga.aluno.conta,
               digitoConta: vaga.aluno.digitoConta,
+              endereco: formatEndereco(vaga.aluno.endereco),
             },
             professor: {
               nome: vaga.projeto.professorResponsavel.nomeCompleto,

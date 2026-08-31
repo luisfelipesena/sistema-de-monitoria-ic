@@ -65,7 +65,20 @@ export function createVagasService(db: Database) {
       const vagaExistente = await repo.findVagaByInscricaoId(parseInt(inscricaoId))
 
       if (vagaExistente) {
-        throw new BusinessError('Vaga já foi aceita anteriormente', 'CONFLICT')
+        const acceptedStatus = tipoBolsa === BOLSISTA ? ACCEPTED_BOLSISTA : ACCEPTED_VOLUNTARIO
+        if (inscricaoData.status !== acceptedStatus) {
+          await db
+            .update(inscricaoTable)
+            .set({
+              status: acceptedStatus,
+              updatedAt: new Date(),
+            })
+            .where(eq(inscricaoTable.id, parseInt(inscricaoId)))
+        }
+        return {
+          vaga: vagaExistente,
+          message: 'Vaga aceita com sucesso.',
+        }
       }
 
       if (tipoBolsa === BOLSISTA) {

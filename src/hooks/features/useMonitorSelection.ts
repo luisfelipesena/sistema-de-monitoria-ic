@@ -108,6 +108,17 @@ export function useMonitorSelection() {
     [feedback, publishResultsMutation]
   )
 
+  const openSelectionForProject = useCallback((project: MonitorProject) => {
+    const bolsistas = project.inscricoes
+      .filter((i) => i.status === 'SELECTED_BOLSISTA' || i.status === 'ACCEPTED_BOLSISTA')
+      .map((i) => i.id)
+    const voluntarios = project.inscricoes
+      .filter((i) => i.status === 'SELECTED_VOLUNTARIO' || i.status === 'ACCEPTED_VOLUNTARIO')
+      .map((i) => i.id)
+    setSelectedCandidates({ bolsistas, voluntarios })
+    setFeedback('')
+  }, [])
+
   const resetSelection = useCallback(() => {
     setSelectedCandidates({ bolsistas: [], voluntarios: [] })
     setFeedback('')
@@ -124,6 +135,7 @@ export function useMonitorSelection() {
     handleSelectCandidate,
     handleSubmitSelection,
     handlePublishResults,
+    openSelectionForProject,
     resetSelection,
   }
 }

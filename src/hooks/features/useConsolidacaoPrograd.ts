@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { useConsolidatedMonitoringData, useExportConsolidated, useValidateCompleteData } from '@/hooks/use-relatorios'
 import { api } from '@/utils/api'
-import { SEMESTRE_1, TIPO_VAGA_BOLSISTA, type Semestre } from '@/types'
+import { SEMESTRE_1, type Semestre } from '@/types'
 
 export function useConsolidacaoPrograd() {
   const { toast } = useToast()
@@ -191,33 +191,41 @@ export function useConsolidacaoPrograd() {
 
     const ExcelJS = await import('exceljs')
     const workbook = new ExcelJS.Workbook()
-    const sheetName = tipoFilter === 'BOLSISTA' ? 'Monitores Bolsistas' : 'Monitores Voluntários'
+    const isBolsista = tipoFilter === 'BOLSISTA'
+    const sheetName = isBolsista ? 'Monitores Bolsistas' : 'Monitores Voluntários'
     const sheet = workbook.addWorksheet(sheetName)
 
-    const headers = [
-      'Matrícula Monitor',
-      'Nome Monitor',
-      'CPF',
-      'RG',
-      'Telefone',
-      'Email Monitor',
-      'CR',
-      'Tipo Monitoria',
-      'Projeto',
-      'Professor Responsável',
-      'SIAPE Professor',
-      'Departamento',
-      'Carga Horária Semanal',
-      'Total Horas',
-      'Data Início',
-      'Data Fim',
-      'Status',
-      'Período',
-      'Banco',
-      'Agência',
-      'Conta',
-      'Dígito',
-    ]
+    const columns = isBolsista
+      ? [
+          { header: 'Nome Completo', key: 'nomeCompleto', width: 32 },
+          { header: 'RG (somente números)', key: 'rg', width: 18 },
+          { header: 'CPF (somente números)', key: 'cpf', width: 18 },
+          { header: 'Matrícula', key: 'matricula', width: 14 },
+          { header: 'Celular (DDD + número)', key: 'celular', width: 18 },
+          { header: 'E-mail', key: 'email', width: 30 },
+          { header: 'Banco (exceto Mercado Pago)', key: 'banco', width: 28 },
+          { header: 'Agência', key: 'agencia', width: 12 },
+          { header: 'Dígito', key: 'digitoAgencia', width: 10 },
+          { header: 'Conta', key: 'conta', width: 14 },
+          { header: 'Dígito', key: 'digitoConta', width: 10 },
+          {
+            header: 'Endereço completo (rua, nº, complemento, bairro, CEP, cidade e estado)',
+            key: 'endereco',
+            width: 50,
+          },
+          { header: 'Componente Curricular do Projeto (código e nome)', key: 'disciplina', width: 35 },
+          { header: 'Professor Responsável', key: 'professor', width: 30 },
+        ]
+      : [
+          { header: 'Nome Completo', key: 'nomeCompleto', width: 32 },
+          { header: 'RG (somente números)', key: 'rg', width: 18 },
+          { header: 'CPF (somente números)', key: 'cpf', width: 18 },
+          { header: 'Matrícula', key: 'matricula', width: 14 },
+          { header: 'Componente Curricular do Projeto (código e nome)', key: 'disciplina', width: 35 },
+          { header: 'Professor Responsável', key: 'professor', width: 30 },
+        ]
+
+    sheet.columns = columns.map((col) => ({ header: col.header, key: col.key, width: col.width }))
 
     const greenFill = { type: 'pattern' as const, pattern: 'solid' as const, fgColor: { argb: 'FF92D050' } }
     const thinBorder = {
@@ -227,7 +235,7 @@ export function useConsolidacaoPrograd() {
       right: { style: 'thin' as const },
     }
 
-    const headerRow = sheet.addRow(headers)
+    const headerRow = sheet.getRow(1)
     headerRow.eachCell((cell) => {
       cell.fill = greenFill
       cell.font = { bold: true, size: 10 }
@@ -236,40 +244,52 @@ export function useConsolidacaoPrograd() {
     })
     headerRow.height = 25
 
+    const cleanDigits = (val?: string | null) => (val ? val.replace(/\D/g, '') : '')
+    const extractAgenciaParts = (agencia?: string | null) => {
+      if (!agencia) return { agencia: '', digito: '' }
+      const parts = agencia.split('-')
+      if (parts.length > 1) {
+        return { agencia: parts[0]?.trim() || '', digito: parts[1]?.trim() || '' }
+      }
+      return { agencia: agencia.trim(), digito: '' }
+    }
+
     filteredData.forEach((item) => {
-      const row = sheet.addRow([
-        item.monitor.matricula || 'N/A',
-        item.monitor.nome,
-        item.monitor.cpf || 'N/A',
-        item.monitor.rg || 'N/A',
-        item.monitor.telefone || 'N/A',
-        item.monitor.email,
-        item.monitor.cr?.toFixed(2) || 'N/A',
-        item.monitoria.tipo === TIPO_VAGA_BOLSISTA ? 'Bolsista' : 'Voluntário',
-        item.projeto.titulo,
-        item.professor.nome,
-        item.professor.matriculaSiape || 'N/A',
-        item.professor.departamento,
-        item.projeto.cargaHorariaSemana,
-        item.projeto.cargaHorariaSemana * item.projeto.numeroSemanas,
-        item.monitoria.dataInicio,
-        item.monitoria.dataFim,
-        item.monitoria.status,
-        `${item.projeto.ano}.${item.projeto.semestre === SEMESTRE_1 ? '1' : '2'}`,
-        item.monitor.banco || 'N/A',
-        item.monitor.agencia || 'N/A',
-        item.monitor.conta || 'N/A',
-        item.monitor.digitoConta || 'N/A',
-      ])
+      let rowData: Record<string, string> = {}
+      if (isBolsista) {
+        const { agencia, digito: digitoAgencia } = extractAgenciaParts(item.monitor.agencia)
+        rowData = {
+          nomeCompleto: item.monitor.nome,
+          rg: cleanDigits(item.monitor.rg),
+          cpf: cleanDigits(item.monitor.cpf),
+          matricula: item.monitor.matricula || '',
+          celular: cleanDigits(item.monitor.telefone),
+          email: item.monitor.email,
+          banco: item.monitor.banco || '',
+          agencia,
+          digitoAgencia,
+          conta: item.monitor.conta || '',
+          digitoConta: item.monitor.digitoConta || '',
+          endereco: item.monitor.endereco || '',
+          disciplina: item.projeto.disciplinas,
+          professor: item.professor.nome,
+        }
+      } else {
+        rowData = {
+          nomeCompleto: item.monitor.nome,
+          rg: cleanDigits(item.monitor.rg),
+          cpf: cleanDigits(item.monitor.cpf),
+          matricula: item.monitor.matricula || '',
+          disciplina: item.projeto.disciplinas,
+          professor: item.professor.nome,
+        }
+      }
+
+      const row = sheet.addRow(rowData)
       row.eachCell((cell) => {
         cell.border = thinBorder
         cell.alignment = { vertical: 'middle', wrapText: true }
       })
-    })
-
-    const colWidths = [15, 30, 16, 15, 16, 30, 8, 15, 40, 30, 15, 25, 15, 12, 12, 12, 10, 10, 15, 10, 15, 8]
-    headers.forEach((_, idx) => {
-      sheet.getColumn(idx + 1).width = colWidths[idx] || 15
     })
 
     const buffer = await workbook.xlsx.writeBuffer()
