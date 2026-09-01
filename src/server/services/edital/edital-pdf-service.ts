@@ -140,7 +140,7 @@ export function createEditalPdfService(repo: EditalRepository) {
       const presignedUrl = await minioClient.presignedGetObject(bucketName, fileName, 24 * 60 * 60)
 
       log.info({ editalId: id, fileName, userId }, 'PDF do edital gerado')
-      return { url: presignedUrl, fileId: fileName }
+      return { url: presignedUrl, fileId: fileName, buffer: pdfBuffer }
     },
   }
 }

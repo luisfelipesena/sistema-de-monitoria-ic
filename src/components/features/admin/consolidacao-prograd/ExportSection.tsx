@@ -37,9 +37,9 @@ interface ExportSectionProps {
   }
   latestSignatureLink?: string | null
   isRequestingSignature?: boolean
-  onSendEmail: () => void
-  onSendEmailBolsistas: () => void
-  onSendEmailVoluntarios: () => void
+  onSendEmail: (emailDestino?: string) => void
+  onSendEmailBolsistas: (emailDestino?: string) => void
+  onSendEmailVoluntarios: (emailDestino?: string) => void
   onGenerateXLSXBolsistas: () => void
   onGenerateXLSXVoluntarios: () => void
   onRequestChefeSignature: (chefeEmail: string, chefeNome: string) => void

@@ -234,6 +234,7 @@ export const relatoriosRouter = createTRPCRouter({
         incluirBolsistas: z.boolean().default(true),
         incluirVoluntarios: z.boolean().default(true),
         departamentoId: z.number().int().positive().optional(),
+        emailDestino: z.string().email().optional(),
       })
     )
     .output(
@@ -252,7 +253,8 @@ export const relatoriosRouter = createTRPCRouter({
           input.incluirBolsistas,
           input.incluirVoluntarios,
           input.departamentoId,
-          ctx.user.id
+          ctx.user.id,
+          input.emailDestino
         )
       } catch (error) {
         if (error instanceof ValidationError) {

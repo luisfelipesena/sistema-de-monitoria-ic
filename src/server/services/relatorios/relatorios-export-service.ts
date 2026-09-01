@@ -1,10 +1,12 @@
 import { randomBytes } from 'crypto'
 import { db } from '@/server/db'
-import { consolidacaoProgradAssinaturaTable } from '@/server/db/schema'
+import { consolidacaoProgradAssinaturaTable, editalTable, periodoInscricaoTable } from '@/server/db/schema'
 import { sendDepartamentoConsolidationEmail } from '@/server/lib/email'
 import { adminEmailService } from '@/server/lib/email/admin-emails'
 import { BusinessError, NotFoundError, ValidationError } from '@/server/lib/errors'
 import { createConsolidacaoPDFService } from './consolidacao-pdf-service'
+import { createEditalPdfService } from '@/server/services/edital/edital-pdf-service'
+import { createEditalRepository } from '@/server/services/edital/edital-repository'
 import { createTermosService } from '@/server/services/termos/termos-service'
 import {
   ACCEPTED_BOLSISTA,
@@ -291,7 +293,8 @@ export function createRelatoriosExportService(
       incluirBolsistas: boolean,
       incluirVoluntarios: boolean,
       departamentoId: number | undefined,
-      remetenteUserId: number
+      remetenteUserId: number,
+      emailDestino?: string
     ) {
       const validacao = await checkDadosFaltantes({
         ano,
@@ -410,7 +413,34 @@ export function createRelatoriosExportService(
       const anexos: Array<{ filename: string; buffer: Buffer }> = []
       const semestreDisplay = semestre === SEMESTRE_1 ? '1' : '2'
 
-      // 1. Anexar PDF Consolidado de Resultados (Bolsistas)
+      // 1. Anexar PDF do Edital Interno Atual (com alocação de vagas)
+      try {
+        const periodo = await db.query.periodoInscricaoTable.findFirst({
+          where: and(eq(periodoInscricaoTable.ano, ano), eq(periodoInscricaoTable.semestre, semestre)),
+        })
+
+        if (periodo) {
+          const edital = await db.query.editalTable.findFirst({
+            where: eq(editalTable.periodoInscricaoId, periodo.id),
+          })
+
+          if (edital) {
+            const editalRepo = createEditalRepository(db)
+            const editalPdfService = createEditalPdfService(editalRepo)
+            const editalPdf = await editalPdfService.generateEditalPdf(edital.id, remetenteUserId)
+            if (editalPdf?.buffer) {
+              anexos.push({
+                filename: `edital-interno-monitoria-${ano}-${semestreDisplay}.pdf`,
+                buffer: editalPdf.buffer,
+              })
+            }
+          }
+        }
+      } catch (err) {
+        _log.warn({ err }, 'Não foi possível gerar/anexar o PDF do Edital Interno atual')
+      }
+
+      // 2. Anexar PDF Consolidado de Resultados (Bolsistas)
       const signatureRecord = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
         where: and(
           eq(consolidacaoProgradAssinaturaTable.ano, ano),
@@ -474,14 +504,19 @@ export function createRelatoriosExportService(
         throw new NotFoundError('Dados', 'não encontrados para os filtros aplicados')
       }
 
-      const departamentos = await repo.findAllDepartamentos()
-      const destinatarios = departamentos
-        .map((departamento) => departamento.emailChefeDepartamento)
-        .filter((email): email is string => Boolean(email))
+      let destinatarios: string[] = []
+      if (emailDestino?.trim()) {
+        destinatarios = [emailDestino.trim()]
+      } else {
+        const departamentos = await repo.findAllDepartamentos()
+        destinatarios = departamentos
+          .map((departamento) => departamento.emailChefeDepartamento)
+          .filter((email): email is string => Boolean(email))
+      }
 
       if (destinatarios.length === 0) {
         throw new BusinessError(
-          'Nenhum email do chefe de departamento configurado para envio da consolidação.',
+          'Nenhum email de destinatário ou chefe de departamento configurado para envio da consolidação.',
           'VALIDATION_ERROR'
         )
       }

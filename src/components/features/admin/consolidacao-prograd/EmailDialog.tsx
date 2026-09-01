@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { getSemestreNumero, type Semestre } from "@/types"
 import { AlertTriangle, Mail } from "lucide-react"
 
@@ -16,7 +19,7 @@ interface EmailDialogProps {
   totalMonitores: number
   isDisabled: boolean
   isPending: boolean
-  onSendEmail: () => void
+  onSendEmail: (emailDestino?: string) => void
   buttonText?: string
   buttonClassName?: string
 }
@@ -37,6 +40,14 @@ export function EmailDialog({
   buttonText,
   buttonClassName,
 }: EmailDialogProps) {
+  const [recipientEmail, setRecipientEmail] = useState("")
+
+  useEffect(() => {
+    if (emailsDepartamento.length > 0) {
+      setRecipientEmail(emailsDepartamento[0])
+    }
+  }, [emailsDepartamento])
+
   const defaultButtonText =
     modalidade === "bolsistas"
       ? "Enviar Documentos dos Bolsistas (E-mail)"
@@ -53,10 +64,10 @@ export function EmailDialog({
 
   const arquivosInfo =
     modalidade === "bolsistas"
-      ? "PDF Consolidado de Resultados com Bolsistas, Planilha Excel de Bolsistas (.xlsx) e Termos de Compromisso (PDF) dos Bolsistas"
+      ? "PDF do Edital Interno Atual (alocação de vagas), PDF Consolidado de Resultados com Bolsistas, Planilha Excel de Bolsistas (.xlsx) e Termos de Compromisso (PDF) dos Bolsistas"
       : modalidade === "voluntarios"
-        ? "Planilha Excel de Voluntários (.xlsx) e Termos de Compromisso (PDF) dos Voluntários"
-        : "PDF Consolidado de Resultados, Planilhas Excel (.xlsx) e Termos de Compromisso (PDF)"
+        ? "PDF do Edital Interno Atual (alocação de vagas), Planilha Excel de Voluntários (.xlsx) e Termos de Compromisso (PDF) dos Voluntários"
+        : "PDF do Edital Interno Atual (alocação de vagas), PDF Consolidado de Resultados, Planilhas Excel (.xlsx) e Termos de Compromisso (PDF)"
 
   const btnClass =
     buttonClassName ||
@@ -79,14 +90,31 @@ export function EmailDialog({
           <DialogTitle>{titleText}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <Alert variant={emailsDepartamento.length ? "default" : "destructive"}>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              {emailsDepartamento.length
-                ? `Destinatários: ${emailsDepartamento.join(", ")}`
-                : "Nenhum email de chefe de departamento cadastrado nas configurações."}
-            </AlertDescription>
-          </Alert>
+          <div className="space-y-1.5">
+            <Label htmlFor="recipientEmail" className="text-sm font-medium">
+              E-mail Destinatário (Editável):
+            </Label>
+            <Input
+              id="recipientEmail"
+              type="email"
+              value={recipientEmail}
+              onChange={(e) => setRecipientEmail(e.target.value)}
+              placeholder="ex: dcc@ufba.br ou seu.email@ufba.br"
+            />
+            <p className="text-xs text-muted-foreground">
+              Pré-preenchido com o e-mail oficial. Você pode alterar para qualquer outro e-mail de teste se desejar.
+            </p>
+          </div>
+
+          {!emailsDepartamento.length && !recipientEmail && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Nenhum e-mail cadastrado por padrão. Por favor, digite o e-mail de destino acima.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="bg-blue-50 p-4 rounded-lg">
             <h5 className="font-medium mb-2">Informações que serão enviadas:</h5>
             <ul className="text-sm text-muted-foreground space-y-1">
@@ -108,8 +136,8 @@ export function EmailDialog({
               Cancelar
             </Button>
             <Button
-              disabled={isPending || !emailsDepartamento.length}
-              onClick={onSendEmail}
+              disabled={isPending || !recipientEmail.trim()}
+              onClick={() => onSendEmail(recipientEmail.trim())}
               className="bg-green-600 hover:bg-green-700 text-white"
             >
               {isPending ? "Enviando..." : "Confirmar Envio"}
