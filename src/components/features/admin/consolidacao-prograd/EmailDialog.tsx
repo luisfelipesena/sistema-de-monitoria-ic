@@ -64,10 +64,10 @@ export function EmailDialog({
 
   const arquivosInfo =
     modalidade === "bolsistas"
-      ? "PDF Consolidado de Resultados com Bolsistas, Planilha Excel de Bolsistas (.xlsx) e Termos de Compromisso (PDF) dos Bolsistas"
+      ? "PDF do Edital Interno Atual (alocação de vagas), PDF Consolidado de Resultados com Bolsistas, Planilha Excel de Bolsistas (.xlsx) e Termos de Compromisso (PDF) dos Bolsistas"
       : modalidade === "voluntarios"
-        ? "Planilha Excel de Voluntários (.xlsx) e Termos de Compromisso (PDF) dos Voluntários"
-        : "PDF Consolidado de Resultados, Planilhas Excel (.xlsx) e Termos de Compromisso (PDF)"
+        ? "PDF do Edital Interno Atual (alocação de vagas), Planilha Excel de Voluntários (.xlsx) e Termos de Compromisso (PDF) dos Voluntários"
+        : "PDF do Edital Interno Atual (alocação de vagas), PDF Consolidado de Resultados, Planilhas Excel (.xlsx) e Termos de Compromisso (PDF)"
 
   const btnClass =
     buttonClassName ||
