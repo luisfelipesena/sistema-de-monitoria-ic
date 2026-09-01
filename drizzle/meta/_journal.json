@@ -491,6 +491,13 @@
       "when": 1787869513870,
       "tag": "0068_professor_identity_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1788304779765,
+      "tag": "0069_add_consolidacao_prograd_assinatura",
+      "breakpoints": true
     }
   ]
 }
