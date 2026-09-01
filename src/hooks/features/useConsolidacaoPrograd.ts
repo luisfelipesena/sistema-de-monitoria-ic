@@ -129,14 +129,17 @@ export function useConsolidacaoPrograd() {
     setShowValidation(true)
   }
 
-  const handleSendEmail = async (opts?: { incluirBolsistas?: boolean; incluirVoluntarios?: boolean }) => {
+  const handleSendEmail = async (
+    arg?: string | { incluirBolsistas?: boolean; incluirVoluntarios?: boolean; emailDestino?: string }
+  ) => {
+    const opts = typeof arg === 'string' ? { emailDestino: arg } : arg
     const incBolsas = opts?.incluirBolsistas ?? incluirBolsistas
     const incVol = opts?.incluirVoluntarios ?? incluirVoluntarios
 
-    if (!emailsDepartamento.length) {
+    if (!emailsDepartamento.length && !opts?.emailDestino?.trim()) {
       toast({
         title: 'Configuração pendente',
-        description: 'Cadastre o email do departamento nas configurações antes de enviar.',
+        description: 'Digite um email de destino ou cadastre o email do departamento nas configurações.',
         variant: 'destructive',
       })
       return
@@ -148,10 +151,11 @@ export function useConsolidacaoPrograd() {
         semestre: selectedSemester,
         incluirBolsistas: incBolsas,
         incluirVoluntarios: incVol,
+        emailDestino: opts?.emailDestino?.trim() || undefined,
       })
       toast({
         title: 'Email Enviado com Sucesso',
-        description: result.message,
+        description: `${result.message} Destinatário(s): ${result.destinatarios.join(', ')}`,
       })
       setShowEmailDialog(false)
     } catch (error: unknown) {
@@ -165,8 +169,10 @@ export function useConsolidacaoPrograd() {
     }
   }
 
-  const handleSendEmailBolsistas = () => handleSendEmail({ incluirBolsistas: true, incluirVoluntarios: false })
-  const handleSendEmailVoluntarios = () => handleSendEmail({ incluirBolsistas: false, incluirVoluntarios: true })
+  const handleSendEmailBolsistas = (emailDestino?: string) =>
+    handleSendEmail({ incluirBolsistas: true, incluirVoluntarios: false, emailDestino })
+  const handleSendEmailVoluntarios = (emailDestino?: string) =>
+    handleSendEmail({ incluirBolsistas: false, incluirVoluntarios: true, emailDestino })
 
   const generateXLSXSpreadsheet = async (tipoFilter: 'BOLSISTA' | 'VOLUNTARIO') => {
     if (!consolidationData || consolidationData.length === 0) {

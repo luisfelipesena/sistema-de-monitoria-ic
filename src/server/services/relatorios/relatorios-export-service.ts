@@ -291,7 +291,8 @@ export function createRelatoriosExportService(
       incluirBolsistas: boolean,
       incluirVoluntarios: boolean,
       departamentoId: number | undefined,
-      remetenteUserId: number
+      remetenteUserId: number,
+      emailDestino?: string
     ) {
       const validacao = await checkDadosFaltantes({
         ano,
@@ -474,14 +475,19 @@ export function createRelatoriosExportService(
         throw new NotFoundError('Dados', 'não encontrados para os filtros aplicados')
       }
 
-      const departamentos = await repo.findAllDepartamentos()
-      const destinatarios = departamentos
-        .map((departamento) => departamento.emailChefeDepartamento)
-        .filter((email): email is string => Boolean(email))
+      let destinatarios: string[] = []
+      if (emailDestino?.trim()) {
+        destinatarios = [emailDestino.trim()]
+      } else {
+        const departamentos = await repo.findAllDepartamentos()
+        destinatarios = departamentos
+          .map((departamento) => departamento.emailChefeDepartamento)
+          .filter((email): email is string => Boolean(email))
+      }
 
       if (destinatarios.length === 0) {
         throw new BusinessError(
-          'Nenhum email do chefe de departamento configurado para envio da consolidação.',
+          'Nenhum email de destinatário ou chefe de departamento configurado para envio da consolidação.',
           'VALIDATION_ERROR'
         )
       }
