@@ -216,7 +216,10 @@ export function ResultadoSelecaoTemplate({ data, tipo }: ResultadoSelecaoProps) 
 
   const isVoluntario = tipo === "VOLUNTARIO"
   const tipoTituloStr = isVoluntario ? "VOLUNTÁRIA" : "COM BOLSA"
-  const editalNum = "02/2025"
+  const editalNum =
+    data.editalNumero ||
+    data.projeto.editalNumero ||
+    (data.projeto.ano ? `001/${data.projeto.ano}` : "001/2025")
 
   // Obter lista de candidatos de acordo com o tipo
   const rawList = isVoluntario

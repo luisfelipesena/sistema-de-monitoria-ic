@@ -109,7 +109,10 @@ export function AtaSelecaoTemplate({ data }: { data: AtaSelecaoData }) {
   const tipoVagaStr = isVoluntarioAta ? "VOLUNTÁRIA" : "COM BOLSA"
   const monitoriaTexto = isVoluntarioAta ? "monitoria voluntária" : "monitoria com bolsa"
 
-  const editalNum = "02/2025"
+  const editalNum =
+    data.editalNumero ||
+    data.projeto.editalNumero ||
+    (data.projeto.ano ? `001/${data.projeto.ano}` : "001/2025")
 
   // Obter candidatos filtrados de acordo com o tipo da Ata
   const rawList = isVoluntarioAta
