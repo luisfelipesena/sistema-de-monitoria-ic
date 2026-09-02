@@ -103,7 +103,20 @@ export function createTermosService(db: Database) {
       const signatures = await repo.findSignaturesByVagaId(vagaId, vagaData.projetoId)
 
       const alunoSigRecord = signatures.find((s) => s.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
-      const alunoAssinaturaBase64 = alunoSigRecord?.assinaturaData || vagaData.inscricao?.assinaturaAlunoFileId || null
+
+      const isDummySig = (str?: string | null) =>
+        !str ||
+        str.includes(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+        ) ||
+        str.includes('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==')
+
+      const rawAlunoSig = alunoSigRecord?.assinaturaData
+      const alunoAssinaturaBase64 = !isDummySig(rawAlunoSig)
+        ? (rawAlunoSig ?? null)
+        : !isDummySig(vagaData.inscricao?.assinaturaAlunoFileId)
+          ? (vagaData.inscricao?.assinaturaAlunoFileId ?? null)
+          : vagaData.aluno?.user?.assinaturaDefault || null
 
       const profSigRecord = signatures.find(
         (s) =>
