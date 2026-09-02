@@ -200,6 +200,14 @@ export function createPdfGenerator() {
         const page = pdfDoc.getPages()[0]
 
         for (const signature of signatures) {
+          if (
+            !signature.assinaturaData ||
+            signature.assinaturaData.includes("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==") ||
+            signature.assinaturaData.includes("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==")
+          ) {
+            continue
+          }
+
           const signatureBuffer = Buffer.from(signature.assinaturaData.split(",")[1], "base64")
           const signatureImage = await pdfDoc.embedPng(signatureBuffer)
           const signatureDims = signatureImage.scale(0.25)

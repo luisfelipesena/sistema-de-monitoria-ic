@@ -128,7 +128,8 @@ export function createVagasService(db: Database) {
         // Registrar assinatura do Aluno no Termo de Compromisso
         const alunoAssinatura =
           inscricaoData.aluno?.user?.assinaturaDefault ||
-          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+          inscricaoData.assinaturaAlunoFileId ||
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
 
         await tx.insert(assinaturaDocumentoTable).values({
           vagaId: novaVaga.id,
@@ -144,7 +145,7 @@ export function createVagasService(db: Database) {
         if (profUserId) {
           const profAssinatura =
             inscricaoData.projeto.professorResponsavel?.user?.assinaturaDefault ||
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
 
           await tx.insert(assinaturaDocumentoTable).values({
             vagaId: novaVaga.id,

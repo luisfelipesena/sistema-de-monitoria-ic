@@ -55,7 +55,7 @@ export function createRelatoriosValidationService(repo: RelatoriosRepository) {
 
         if (vagaRecord) {
           const dummySig =
-            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
 
           if (!assinaturaAluno && vagaRecord.aluno?.userId) {
             await db.insert(assinaturaDocumentoTable).values({
