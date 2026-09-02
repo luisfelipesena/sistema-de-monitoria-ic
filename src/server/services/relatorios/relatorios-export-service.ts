@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto'
 import { db } from '@/server/db'
-import { consolidacaoProgradAssinaturaTable, editalTable, periodoInscricaoTable } from '@/server/db/schema'
+import { consolidacaoProgradAssinaturaTable } from '@/server/db/schema'
 import { sendDepartamentoConsolidationEmail } from '@/server/lib/email'
 import { adminEmailService } from '@/server/lib/email/admin-emails'
 import { BusinessError, NotFoundError, ValidationError } from '@/server/lib/errors'
@@ -415,25 +415,18 @@ export function createRelatoriosExportService(
 
       // 1. Anexar PDF do Edital Interno Atual (com alocação de vagas)
       try {
-        const periodo = await db.query.periodoInscricaoTable.findFirst({
-          where: and(eq(periodoInscricaoTable.ano, ano), eq(periodoInscricaoTable.semestre, semestre)),
-        })
+        const editalRepo = createEditalRepository(db)
+        const editais = await editalRepo.findBySemestre(ano, semestre)
+        const edital = editais.find((e) => e.tipo === 'DCC' || e.publicado) || editais[0]
 
-        if (periodo) {
-          const edital = await db.query.editalTable.findFirst({
-            where: eq(editalTable.periodoInscricaoId, periodo.id),
-          })
-
-          if (edital) {
-            const editalRepo = createEditalRepository(db)
-            const editalPdfService = createEditalPdfService(editalRepo)
-            const editalPdf = await editalPdfService.generateEditalPdf(edital.id, remetenteUserId)
-            if (editalPdf?.buffer) {
-              anexos.push({
-                filename: `edital-interno-monitoria-${ano}-${semestreDisplay}.pdf`,
-                buffer: editalPdf.buffer,
-              })
-            }
+        if (edital) {
+          const editalPdfService = createEditalPdfService(editalRepo)
+          const editalPdf = await editalPdfService.generateEditalPdf(edital.id, remetenteUserId)
+          if (editalPdf?.buffer) {
+            anexos.push({
+              filename: `edital-interno-monitoria-${ano}-${semestreDisplay}.pdf`,
+              buffer: editalPdf.buffer,
+            })
           }
         }
       } catch (err) {
