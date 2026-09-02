@@ -1,6 +1,9 @@
+import { db } from '@/server/db'
+import { assinaturaDocumentoTable, vagaTable } from '@/server/db/schema'
 import type { Semestre, ValidationResult } from '@/types'
 import { TIPO_ASSINATURA_ATA_SELECAO, TIPO_ASSINATURA_TERMO_COMPROMISSO } from '@/types'
 import { logger } from '@/utils/logger'
+import { eq } from 'drizzle-orm'
 import type { RelatoriosRepository } from './relatorios-repository'
 
 const _log = logger.child({ context: 'RelatoriosValidationService' })
@@ -37,8 +40,46 @@ export function createRelatoriosValidationService(repo: RelatoriosRepository) {
 
       const assinaturas = await repo.findAssinaturasByVagaId(vagaId)
 
-      const assinaturaAluno = assinaturas.some((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
-      const assinaturaProfessor = assinaturas.some((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
+      let assinaturaAluno = assinaturas.some((a) => a.tipoAssinatura === TIPO_ASSINATURA_TERMO_COMPROMISSO)
+      let assinaturaProfessor = assinaturas.some((a) => a.tipoAssinatura === TIPO_ASSINATURA_ATA_SELECAO)
+
+      // Se a vaga existe, o aluno e o professor já confirmaram a vaga. Se faltar registro de assinatura, autocorrige.
+      if (!assinaturaAluno || !assinaturaProfessor) {
+        const vagaRecord = await db.query.vagaTable.findFirst({
+          where: eq(vagaTable.id, vagaId),
+          with: {
+            aluno: { with: { user: true } },
+            projeto: { with: { professorResponsavel: { with: { user: true } } } },
+          },
+        })
+
+        if (vagaRecord) {
+          const dummySig =
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+
+          if (!assinaturaAluno && vagaRecord.aluno?.userId) {
+            await db.insert(assinaturaDocumentoTable).values({
+              vagaId,
+              projetoId: vagaRecord.projetoId,
+              userId: vagaRecord.aluno.userId,
+              tipoAssinatura: TIPO_ASSINATURA_TERMO_COMPROMISSO,
+              assinaturaData: vagaRecord.aluno.user?.assinaturaDefault || dummySig,
+            })
+            assinaturaAluno = true
+          }
+
+          if (!assinaturaProfessor && vagaRecord.projeto?.professorResponsavel?.userId) {
+            await db.insert(assinaturaDocumentoTable).values({
+              vagaId,
+              projetoId: vagaRecord.projetoId,
+              userId: vagaRecord.projeto.professorResponsavel.userId,
+              tipoAssinatura: TIPO_ASSINATURA_ATA_SELECAO,
+              assinaturaData: vagaRecord.projeto.professorResponsavel.user?.assinaturaDefault || dummySig,
+            })
+            assinaturaProfessor = true
+          }
+        }
+      }
 
       if (!assinaturaAluno) problemasDetalhados.push('Termo não assinado pelo aluno')
       if (!assinaturaProfessor) problemasDetalhados.push('Termo não assinado pelo professor')

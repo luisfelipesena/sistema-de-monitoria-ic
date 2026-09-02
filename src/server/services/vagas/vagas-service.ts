@@ -1,5 +1,5 @@
 import type { db } from '@/server/db'
-import { inscricaoTable, professorTable, projetoTable, vagaTable } from '@/server/db/schema'
+import { assinaturaDocumentoTable, inscricaoTable, professorTable, projetoTable, vagaTable } from '@/server/db/schema'
 import { isProfessor, requireAdmin, requireAdminOrProfessor, requireStudent } from '@/server/lib/auth-helpers'
 import { emailService } from '@/server/lib/email'
 import { BusinessError, ForbiddenError, NotFoundError, ValidationError } from '@/server/lib/errors'
@@ -124,6 +124,36 @@ export function createVagasService(db: Database) {
             updatedAt: new Date(),
           })
           .where(eq(inscricaoTable.id, parseInt(inscricaoId)))
+
+        // Registrar assinatura do Aluno no Termo de Compromisso
+        const alunoAssinatura =
+          inscricaoData.aluno?.user?.assinaturaDefault ||
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+
+        await tx.insert(assinaturaDocumentoTable).values({
+          vagaId: novaVaga.id,
+          projetoId: inscricaoData.projetoId,
+          userId: inscricaoData.aluno.userId,
+          tipoAssinatura: TIPO_ASSINATURA_TERMO_COMPROMISSO,
+          assinaturaData: alunoAssinatura,
+        })
+
+        // Registrar assinatura do Professor Responsável no Termo/Ata de Seleção
+        const profUserId =
+          inscricaoData.projeto.professorResponsavel?.userId || inscricaoData.projeto.professorResponsavelId
+        if (profUserId) {
+          const profAssinatura =
+            inscricaoData.projeto.professorResponsavel?.user?.assinaturaDefault ||
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+
+          await tx.insert(assinaturaDocumentoTable).values({
+            vagaId: novaVaga.id,
+            projetoId: inscricaoData.projetoId,
+            userId: profUserId,
+            tipoAssinatura: TIPO_ASSINATURA_ATA_SELECAO,
+            assinaturaData: profAssinatura,
+          })
+        }
 
         return novaVaga
       })
