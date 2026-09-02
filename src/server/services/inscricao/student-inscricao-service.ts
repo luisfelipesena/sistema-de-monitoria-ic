@@ -37,8 +37,10 @@ import {
   WAITING_LIST,
 } from '@/types'
 import { logger } from '@/utils/logger'
+import { userTable } from '@/server/db/schema'
 import type { Database, DocumentoData, InscricaoRepository } from './inscricao-repository'
 import { createInscricaoPdfService } from './pdf/inscricao-pdf-service'
+import { eq } from 'drizzle-orm'
 
 const log = logger.child({ context: 'StudentInscricaoService' })
 
@@ -306,6 +308,10 @@ export class StudentInscricaoService {
       cursouComponente: input.cursouComponente,
       disciplinaEquivalenteId: input.disciplinaEquivalenteId ?? null,
     })
+
+    if (input.signatureDataUrl) {
+      await this.db.update(userTable).set({ assinaturaDefault: input.signatureDataUrl }).where(eq(userTable.id, userId))
+    }
 
     // Gerar + persistir PDFs oficiais (Anexo III ou IV + Anexo I + combinado)
     const pdfService = createInscricaoPdfService(this.db)

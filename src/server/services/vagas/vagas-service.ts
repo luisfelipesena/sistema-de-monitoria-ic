@@ -128,6 +128,7 @@ export function createVagasService(db: Database) {
         // Registrar assinatura do Aluno no Termo de Compromisso
         const alunoAssinatura =
           inscricaoData.aluno?.user?.assinaturaDefault ||
+          inscricaoData.assinaturaAlunoFileId ||
           'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
 
         await tx.insert(assinaturaDocumentoTable).values({
