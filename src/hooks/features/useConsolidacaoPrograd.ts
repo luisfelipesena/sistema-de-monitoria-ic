@@ -161,6 +161,7 @@ export function useConsolidacaoPrograd() {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : 'Ocorreu um erro ao tentar enviar os documentos por email.'
+      setShowValidation(true)
       toast({
         title: 'Erro no Envio',
         description: errorMessage,
