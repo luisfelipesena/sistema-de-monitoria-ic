@@ -391,7 +391,9 @@ export function TermoCompromissoTemplate({
             <Text style={styles.captionText}>Data</Text>
           </View>
           <View style={styles.footerCellSignature}>
-            {alunoAssinaturaBase64 ? (
+            {alunoAssinaturaBase64 &&
+            !alunoAssinaturaBase64.includes("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==") &&
+            !alunoAssinaturaBase64.includes("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==") ? (
               <Image src={alunoAssinaturaBase64} style={styles.signatureImg} cache={false} />
             ) : null}
             <Text style={styles.lineText}> </Text>
