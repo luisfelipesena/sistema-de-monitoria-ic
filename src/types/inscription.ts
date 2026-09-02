@@ -114,11 +114,13 @@ export interface SelecaoCandidato {
 
 export interface AtaSelecaoData {
   tipoAta?: 'BOLSISTA' | 'VOLUNTARIO'
+  editalNumero?: string | null
   projeto: {
     id: number
     titulo: string
     ano: number
     semestre: string
+    editalNumero?: string | null
     departamento: { nome: string; sigla: string | null }
     professorResponsavel: { nomeCompleto: string; matriculaSiape: string | null }
     disciplinas: Array<{ codigo: string; nome: string }>

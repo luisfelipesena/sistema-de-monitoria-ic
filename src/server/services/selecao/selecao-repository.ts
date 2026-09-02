@@ -66,6 +66,7 @@ export function createSelecaoRepository(db: Database) {
         where: eq(projetoTable.id, projetoId),
         with: {
           departamento: true,
+          editalInterno: true,
           professorResponsavel: {
             with: { user: true },
           },

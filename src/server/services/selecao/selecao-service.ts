@@ -24,6 +24,8 @@ import {
   TIPO_INSCRICAO_BOLSISTA,
   TIPO_INSCRICAO_VOLUNTARIO,
 } from '@/types'
+import { editalTable, periodoInscricaoTable } from '@/server/db/schema'
+import { and, eq } from 'drizzle-orm'
 import { ResultadoSelecaoTemplate } from '@/server/lib/pdfTemplates/resultado-selecao'
 import { env } from '@/utils/env'
 import { logger } from '@/utils/logger'
@@ -84,11 +86,36 @@ export function createSelecaoService(db: Database) {
 
       const disciplinas = await repo.findDisciplinasByProjetoId(parseInt(projetoId))
 
-      log.info({ projetoId }, 'Ata data generated successfully')
+      let editalNumero = (projetoData as { editalInterno?: { numeroEdital?: string } }).editalInterno?.numeroEdital
+      if (!editalNumero) {
+        const periodo = await db.query.periodoInscricaoTable.findFirst({
+          where: and(
+            eq(periodoInscricaoTable.ano, projetoData.ano),
+            eq(periodoInscricaoTable.semestre, projetoData.semestre)
+          ),
+        })
+
+        if (periodo) {
+          const edital = await db.query.editalTable.findFirst({
+            where: eq(editalTable.periodoInscricaoId, periodo.id),
+          })
+          if (edital) {
+            editalNumero = edital.numeroEdital
+          }
+        }
+      }
+
+      if (!editalNumero && projetoData.ano) {
+        editalNumero = `001/${projetoData.ano}`
+      }
+
+      log.info({ projetoId, editalNumero }, 'Ata data generated successfully')
 
       return {
+        editalNumero,
         projeto: {
           ...projetoData,
+          editalNumero,
           disciplinas: disciplinas.map((d) => d.disciplina),
         },
         totalInscritos: allInscricoes.length,
