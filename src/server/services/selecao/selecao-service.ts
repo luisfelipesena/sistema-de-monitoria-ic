@@ -240,7 +240,8 @@ export function createSelecaoService(db: Database) {
               // Only update candidates in SUBMITTED or WAITING_LIST status if they have grades
               const candidateNota = inscricao.notaFinal ? Number(inscricao.notaFinal) : null
               if (candidateNota !== null) {
-                const status = candidateNota >= 7.0 ? STATUS_INSCRICAO_WAITING_LIST : STATUS_INSCRICAO_REJECTED_BY_PROFESSOR
+                const status =
+                  candidateNota >= 7.0 ? STATUS_INSCRICAO_WAITING_LIST : STATUS_INSCRICAO_REJECTED_BY_PROFESSOR
                 if (status !== inscricao.status) {
                   return txRepo.updateInscricaoStatus(inscricao.id, status)
                 }
