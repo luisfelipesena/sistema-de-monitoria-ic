@@ -109,13 +109,15 @@ interface ConsolidacaoValidacaoChefeData {
   chefeAssinatura?: string | null
   chefeAssinouEm?: Date | null
   totalProjetosBolsistas: number
+  tipo?: 'BOLSISTA' | 'VOLUNTARIO'
 }
 
 export function ConsolidacaoValidacaoChefeTemplate({ data }: { data: ConsolidacaoValidacaoChefeData }) {
   const dataExtenso = data.chefeAssinouEm ? formatDateExtenso(data.chefeAssinouEm.toISOString()) : formatDateExtenso(new Date().toISOString())
+  const tipoTexto = data.tipo === 'VOLUNTARIO' ? 'Voluntários' : 'Bolsistas'
 
   return (
-    <Document title={`Consolidação de Resultados com Bolsistas - ${data.ano}.${data.semestre}`}>
+    <Document title={`Consolidação de Resultados com ${tipoTexto} - ${data.ano}.${data.semestre}`}>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.headerContainer}>
@@ -130,7 +132,7 @@ export function ConsolidacaoValidacaoChefeTemplate({ data }: { data: Consolidaca
 
         {/* Title */}
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>TERMO DE VALIDAÇÃO E CONSOLIDAÇÃO DE RESULTADOS DA MONITORIA</Text>
+          <Text style={styles.title}>TERMO DE VALIDAÇÃO E CONSOLIDAÇÃO DE RESULTADOS DA MONITORIA ({tipoTexto.toUpperCase()})</Text>
           <Text style={styles.subTitle}>PROCESSO SELETIVO - PERÍODO LETIVO {data.ano}.{data.semestre}</Text>
         </View>
 

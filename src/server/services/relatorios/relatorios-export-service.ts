@@ -441,19 +441,40 @@ export function createRelatoriosExportService(
         ),
       })
 
-      const pdfConsolidadoBuffer = await pdfService.generateConsolidatedResultadosPDF({
-        ano,
-        semestre,
-        chefeNome: signatureRecord?.chefeNome,
-        chefeAssinatura: signatureRecord?.chefeAssinatura,
-        chefeAssinouEm: signatureRecord?.chefeAssinouEm,
-        adminUserId: remetenteUserId,
-      })
+      // 1. Anexar PDF Consolidado de Resultados (Bolsistas / Voluntários)
+      if (incluirBolsistas) {
+        const pdfConsolidadoBolsistasBuffer = await pdfService.generateConsolidatedResultadosPDF({
+          ano,
+          semestre,
+          chefeNome: signatureRecord?.chefeNome,
+          chefeAssinatura: signatureRecord?.chefeAssinatura,
+          chefeAssinouEm: signatureRecord?.chefeAssinouEm,
+          adminUserId: remetenteUserId,
+          tipo: BOLSISTA,
+        })
 
-      anexos.push({
-        filename: `resultados-selecao-bolsistas-${ano}-${semestreDisplay}.pdf`,
-        buffer: pdfConsolidadoBuffer,
-      })
+        anexos.push({
+          filename: `resultados-selecao-bolsistas-${ano}-${semestreDisplay}.pdf`,
+          buffer: pdfConsolidadoBolsistasBuffer,
+        })
+      }
+
+      if (incluirVoluntarios) {
+        const pdfConsolidadoVoluntariosBuffer = await pdfService.generateConsolidatedResultadosPDF({
+          ano,
+          semestre,
+          chefeNome: signatureRecord?.chefeNome,
+          chefeAssinatura: signatureRecord?.chefeAssinatura,
+          chefeAssinouEm: signatureRecord?.chefeAssinouEm,
+          adminUserId: remetenteUserId,
+          tipo: VOLUNTARIO,
+        })
+
+        anexos.push({
+          filename: `resultados-selecao-voluntarios-${ano}-${semestreDisplay}.pdf`,
+          buffer: pdfConsolidadoVoluntariosBuffer,
+        })
+      }
 
       // 2. Anexar Planilha Excel de Bolsistas
       if (incluirBolsistas) {
@@ -672,7 +693,12 @@ export function createRelatoriosExportService(
       }
     },
 
-    async getConsolidacaoPDFBuffer(ano: number, semestre: Semestre, adminUserId = 1): Promise<Buffer> {
+    async getConsolidacaoPDFBuffer(
+      ano: number,
+      semestre: Semestre,
+      adminUserId = 1,
+      tipo: 'BOLSISTA' | 'VOLUNTARIO' = 'BOLSISTA'
+    ): Promise<Buffer> {
       const signatureRecord = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
         where: and(
           eq(consolidacaoProgradAssinaturaTable.ano, ano),
@@ -687,6 +713,7 @@ export function createRelatoriosExportService(
         chefeAssinatura: signatureRecord?.chefeAssinatura,
         chefeAssinouEm: signatureRecord?.chefeAssinouEm,
         adminUserId,
+        tipo,
       })
     },
 

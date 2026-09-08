@@ -44,6 +44,7 @@ interface ExportSectionProps {
   onGenerateXLSXVoluntarios: () => void
   onRequestChefeSignature: (chefeEmail: string, chefeNome: string) => void
   onDownloadPDF: () => void
+  onDownloadPDFVoluntarios?: () => void
 }
 
 export function ExportSection({
@@ -67,6 +68,7 @@ export function ExportSection({
   onGenerateXLSXVoluntarios,
   onRequestChefeSignature,
   onDownloadPDF,
+  onDownloadPDFVoluntarios,
 }: ExportSectionProps) {
   const [showEmailBolsistasDialog, setShowEmailBolsistasDialog] = useState(false)
   const [showEmailVoluntariosDialog, setShowEmailVoluntariosDialog] = useState(false)
@@ -177,6 +179,12 @@ export function ExportSection({
                 <FileText className="h-4 w-4 mr-2 text-purple-600" />
                 Baixar PDF Consolidado (Resultados Bolsistas)
               </Button>
+              {onDownloadPDFVoluntarios && (
+                <Button onClick={onDownloadPDFVoluntarios} disabled={isLoading || !data || data.length === 0} variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+                  <FileText className="h-4 w-4 mr-2 text-blue-600" />
+                  Baixar PDF Consolidado (Resultados Voluntários)
+                </Button>
+              )}
             </div>
 
             {latestSignatureLink && (

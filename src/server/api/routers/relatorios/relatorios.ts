@@ -458,11 +458,22 @@ export const relatoriosRouter = createTRPCRouter({
     }),
 
   downloadConsolidacaoPDF: adminProtectedProcedure
-    .input(z.object({ ano: z.number(), semestre: semestreSchema }))
+    .input(
+      z.object({
+        ano: z.number(),
+        semestre: semestreSchema,
+        tipo: z.enum(['BOLSISTA', 'VOLUNTARIO']).default('BOLSISTA'),
+      })
+    )
     .query(async ({ ctx, input }) => {
       try {
         const relatoriosService = createRelatoriosService(ctx.db)
-        const pdfBuffer = await relatoriosService.getConsolidacaoPDFBuffer(input.ano, input.semestre, ctx.user.id)
+        const pdfBuffer = await relatoriosService.getConsolidacaoPDFBuffer(
+          input.ano,
+          input.semestre,
+          ctx.user.id,
+          input.tipo
+        )
         return { pdfBase64: pdfBuffer.toString('base64') }
       } catch (error) {
         return mapDomainErrorToTRPC(error)

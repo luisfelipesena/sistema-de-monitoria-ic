@@ -40,6 +40,8 @@ export default function ConsolidacaoPROGRADPage() {
     isRequestingSignature,
     handleRequestChefeSignature,
     handleDownloadPDF,
+    handleDownloadPDFBolsistas,
+    handleDownloadPDFVoluntarios,
     refetch,
     // Report notifications
     validationStatus,
@@ -108,7 +110,8 @@ export default function ConsolidacaoPROGRADPage() {
             onGenerateXLSXBolsistas={generateXLSXSpreadsheetBolsistas}
             onGenerateXLSXVoluntarios={generateXLSXSpreadsheetVoluntarios}
             onRequestChefeSignature={handleRequestChefeSignature}
-            onDownloadPDF={handleDownloadPDF}
+            onDownloadPDF={handleDownloadPDFBolsistas}
+            onDownloadPDFVoluntarios={handleDownloadPDFVoluntarios}
           />
 
           {/* Main table */}

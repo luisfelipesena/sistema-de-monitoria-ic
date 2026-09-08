@@ -32,12 +32,16 @@ export function createConsolidacaoPDFService() {
       chefeAssinatura?: string | null
       chefeAssinouEm?: Date | null
       adminUserId: number
+      tipo?: 'BOLSISTA' | 'VOLUNTARIO'
     }): Promise<Buffer> {
-      const { ano, semestre, chefeNome, chefeAssinatura, chefeAssinouEm, adminUserId } = input
+      const { ano, semestre, chefeNome, chefeAssinatura, chefeAssinouEm, adminUserId, tipo = 'BOLSISTA' } = input
 
-      log.info({ ano, semestre }, 'Gerando PDF consolidado de resultados com bolsistas')
+      log.info({ ano, semestre, tipo }, 'Gerando PDF consolidado de resultados')
 
-      // Find all approved projects for this semester with bolsasDisponibilizadas > 0
+      // Find all approved projects for this semester according to tipo quota
+      const projectCondition =
+        tipo === 'BOLSISTA' ? gte(projetoTable.bolsasDisponibilizadas, 1) : gte(projetoTable.voluntariosSolicitados, 1)
+
       const projects = await db
         .select()
         .from(projetoTable)
@@ -46,12 +50,12 @@ export function createConsolidacaoPDFService() {
             eq(projetoTable.ano, ano),
             eq(projetoTable.semestre, semestre),
             eq(projetoTable.status, 'APPROVED'),
-            gte(projetoTable.bolsasDisponibilizadas, 1)
+            projectCondition
           )
         )
 
       if (projects.length === 0) {
-        log.warn({ ano, semestre }, 'Nenhum projeto com bolsistas encontrado para o período')
+        log.warn({ ano, semestre, tipo }, 'Nenhum projeto encontrado para o período com o tipo selecionado')
       }
 
       const mergedPdf = await PDFDocument.create()
@@ -66,6 +70,7 @@ export function createConsolidacaoPDFService() {
             chefeAssinatura,
             chefeAssinouEm,
             totalProjetosBolsistas: projects.length,
+            tipo,
           },
         })
       )
@@ -109,7 +114,7 @@ export function createConsolidacaoPDFService() {
           }
 
           const resultadoElement = toDocumentElement(
-            React.createElement(ResultadoSelecaoTemplate, { data: ataData, tipo: 'BOLSISTA' })
+            React.createElement(ResultadoSelecaoTemplate, { data: ataData, tipo })
           )
 
           const resultadoBuffer = await renderToBuffer(resultadoElement)

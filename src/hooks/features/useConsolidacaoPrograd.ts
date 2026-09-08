@@ -358,16 +358,17 @@ export function useConsolidacaoPrograd() {
     })
   }
 
-  const downloadPDFQuery = api.relatorios.downloadConsolidacaoPDF.useQuery(
-    { ano: selectedYear, semestre: selectedSemester },
-    { enabled: false }
-  )
+  const utils = api.useUtils()
 
-  const handleDownloadPDF = async () => {
+  const handleDownloadPDF = async (tipo: 'BOLSISTA' | 'VOLUNTARIO' = 'BOLSISTA') => {
     try {
-      const result = await downloadPDFQuery.refetch()
-      if (result.data?.pdfBase64) {
-        const byteCharacters = atob(result.data.pdfBase64)
+      const data = await utils.relatorios.downloadConsolidacaoPDF.fetch({
+        ano: selectedYear,
+        semestre: selectedSemester,
+        tipo,
+      })
+      if (data?.pdfBase64) {
+        const byteCharacters = atob(data.pdfBase64)
         const byteNumbers = new Array(byteCharacters.length)
         for (let i = 0; i < byteCharacters.length; i++) {
           byteNumbers[i] = byteCharacters.charCodeAt(i)
@@ -376,11 +377,12 @@ export function useConsolidacaoPrograd() {
         const blob = new Blob([byteArray], { type: 'application/pdf' })
         const link = document.createElement('a')
         link.href = URL.createObjectURL(blob)
-        link.download = `resultados-selecao-bolsistas-${selectedYear}-${selectedSemester === SEMESTRE_1 ? '1' : '2'}.pdf`
+        const tipoSlug = tipo === 'VOLUNTARIO' ? 'voluntarios' : 'bolsistas'
+        link.download = `resultados-selecao-${tipoSlug}-${selectedYear}-${selectedSemester === SEMESTRE_1 ? '1' : '2'}.pdf`
         link.click()
         toast({
           title: 'Sucesso',
-          description: 'PDF de Resultados das Matérias com Bolsistas baixado com sucesso!',
+          description: `PDF de Resultados das Matérias com ${tipo === 'VOLUNTARIO' ? 'Voluntários' : 'Bolsistas'} baixado com sucesso!`,
         })
       }
     } catch (_err) {
@@ -391,6 +393,9 @@ export function useConsolidacaoPrograd() {
       })
     }
   }
+
+  const handleDownloadPDFBolsistas = () => handleDownloadPDF('BOLSISTA')
+  const handleDownloadPDFVoluntarios = () => handleDownloadPDF('VOLUNTARIO')
 
   return {
     selectedYear,
@@ -423,6 +428,8 @@ export function useConsolidacaoPrograd() {
     isRequestingSignature: requestSignatureMutation.isPending,
     handleRequestChefeSignature,
     handleDownloadPDF,
+    handleDownloadPDFBolsistas,
+    handleDownloadPDFVoluntarios,
     refetch,
     // Report notification features
     validationStatus,
