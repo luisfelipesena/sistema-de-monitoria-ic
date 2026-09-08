@@ -14,11 +14,15 @@ import type {
 } from '@/types'
 import {
   PROFESSOR,
+  STATUS_INSCRICAO_ACCEPTED_BOLSISTA,
+  STATUS_INSCRICAO_ACCEPTED_VOLUNTARIO,
   STATUS_INSCRICAO_CONFIRMED_INTEREST,
   STATUS_INSCRICAO_REJECTED_BY_PROFESSOR,
+  STATUS_INSCRICAO_REJECTED_BY_STUDENT,
   STATUS_INSCRICAO_SELECTED_BOLSISTA,
   STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
   STATUS_INSCRICAO_SUBMITTED,
+  STATUS_INSCRICAO_WAITING_LIST,
   STUDENT,
   TIPO_ASSINATURA_ATA_SELECAO,
   TIPO_INSCRICAO_BOLSISTA,
@@ -220,11 +224,28 @@ export function createSelecaoService(db: Database) {
           const txRepo = createSelecaoRepository(tx as unknown as Database)
           await Promise.all(
             inscricoes.map((inscricao) => {
-              const aprovado = inscricao.notaFinal && Number(inscricao.notaFinal) >= 7.0
-              // Approved students go to WAITING_LIST (waiting for them to confirm interest)
-              // Rejected students go to REJECTED_BY_PROFESSOR
-              const status = aprovado ? 'WAITING_LIST' : STATUS_INSCRICAO_REJECTED_BY_PROFESSOR
-              return txRepo.updateInscricaoStatus(inscricao.id, status)
+              // Preserve statuses for candidates who are already selected, accepted, or confirmed
+              const activeOrFinalStatuses = [
+                STATUS_INSCRICAO_SELECTED_BOLSISTA,
+                STATUS_INSCRICAO_SELECTED_VOLUNTARIO,
+                STATUS_INSCRICAO_ACCEPTED_BOLSISTA,
+                STATUS_INSCRICAO_ACCEPTED_VOLUNTARIO,
+                STATUS_INSCRICAO_CONFIRMED_INTEREST,
+                STATUS_INSCRICAO_REJECTED_BY_STUDENT,
+              ]
+              if (inscricao.status && (activeOrFinalStatuses as readonly string[]).includes(inscricao.status)) {
+                return Promise.resolve()
+              }
+
+              // Only update candidates in SUBMITTED or WAITING_LIST status if they have grades
+              const candidateNota = inscricao.notaFinal ? Number(inscricao.notaFinal) : null
+              if (candidateNota !== null) {
+                const status = candidateNota >= 7.0 ? STATUS_INSCRICAO_WAITING_LIST : STATUS_INSCRICAO_REJECTED_BY_PROFESSOR
+                if (status !== inscricao.status) {
+                  return txRepo.updateInscricaoStatus(inscricao.id, status)
+                }
+              }
+              return Promise.resolve()
             })
           )
         })
@@ -290,7 +311,17 @@ export function createSelecaoService(db: Database) {
           log.warn({ pdfErr, projetoId }, 'Falha ao gerar anexo PDF do resultado da seleção')
         }
 
-        const emailPromises = inscricoes.map(async (inscricaoItem) => {
+        // Filter out candidates who already accepted or rejected their vaga
+        const inscricoesParaNotificar = inscricoes.filter((inscricaoItem) => {
+          const statusFinais = [
+            STATUS_INSCRICAO_ACCEPTED_BOLSISTA,
+            STATUS_INSCRICAO_ACCEPTED_VOLUNTARIO,
+            STATUS_INSCRICAO_REJECTED_BY_STUDENT,
+          ]
+          return !inscricaoItem.status || !(statusFinais as readonly string[]).includes(inscricaoItem.status)
+        })
+
+        const emailPromises = inscricoesParaNotificar.map(async (inscricaoItem) => {
           const aprovado = inscricaoItem.notaFinal && Number(inscricaoItem.notaFinal) >= 7.0
           // For the email, we still show what type they applied for (informational)
           const status = aprovado
@@ -318,16 +349,27 @@ export function createSelecaoService(db: Database) {
 
         try {
           await Promise.all(emailPromises)
-          log.info({ projetoId, count: inscricoes.length }, 'Notifications sent successfully')
+          log.info({ projetoId, count: inscricoesParaNotificar.length }, 'Notifications sent successfully')
         } catch (error) {
           log.error({ error, projetoId }, 'Error sending notifications')
+        }
+
+        const count = notifyStudents ? inscricoesParaNotificar.length : 0
+        return {
+          success: true,
+          notificationsCount: count,
+          message: notifyStudents
+            ? count > 0
+              ? 'Resultados publicados e notificações enviadas aos candidatos pendentes'
+              : 'Resultados publicados (todos os candidatos selecionados já haviam respondido)'
+            : 'Resultados publicados sem envio de e-mails',
         }
       }
 
       return {
         success: true,
-        notificationsCount: inscricoes.length,
-        message: 'Resultados publicados e notificações enviadas',
+        notificationsCount: 0,
+        message: 'Resultados publicados sem envio de e-mails',
       }
     },
 
