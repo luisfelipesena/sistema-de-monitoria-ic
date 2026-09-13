@@ -1,5 +1,5 @@
 {
-  "install": "npm ci",
+  "install": "npm ci && mkdir -p \"$HOME/.ssh\" && chmod 700 \"$HOME/.ssh\" && if [ -n \"${DOKKU_SSH_PRIVATE_KEY:-}\" ]; then printf '%s\\n' \"$DOKKU_SSH_PRIVATE_KEY\" > \"$HOME/.ssh/dokku\"; chmod 600 \"$HOME/.ssh/dokku\"; printf 'Host app.ic.ufba.br\\n  HostName 200.128.51.137\\n  Port 9999\\n  User dokku\\n  IdentityFile ~/.ssh/dokku\\n  StrictHostKeyChecking accept-new\\n' > \"$HOME/.ssh/config\"; fi",
   "start": "sudo service docker start || true",
   "terminals": [
     {
