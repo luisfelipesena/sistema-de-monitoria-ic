@@ -24,11 +24,22 @@ import {
   relatorioValidationTypeSchema,
   semestreSchema,
   tipoVagaSchema,
+  type TipoVaga,
 } from '@/types'
 import { NotFoundError, ValidationError } from '@/types/errors'
 import { TRPCError } from '@trpc/server'
 import { eq, or } from 'drizzle-orm'
 import { z } from 'zod'
+
+function requireConsolidacaoTipo(tipo: TipoVaga | undefined): TipoVaga {
+  if (!tipo) {
+    throw new TRPCError({
+      code: 'PRECONDITION_FAILED',
+      message: 'Esta página está desatualizada. Recarregue a página e escolha Bolsistas ou Voluntários na seção de assinatura.',
+    })
+  }
+  return tipo
+}
 
 function mapDomainErrorToTRPC(error: unknown): never {
   if (error instanceof NotFoundError) {
@@ -398,11 +409,12 @@ export const relatoriosRouter = createTRPCRouter({
 
   // Assinatura do Chefe na Consolidação PROGRAD
   getConsolidacaoSignatureStatus: adminProtectedProcedure
-    .input(z.object({ ano: z.number(), semestre: semestreSchema, tipo: tipoVagaSchema }))
+    .input(z.object({ ano: z.number(), semestre: semestreSchema, tipo: tipoVagaSchema.optional() }))
     .query(async ({ ctx, input }) => {
+      const tipo = requireConsolidacaoTipo(input.tipo)
       try {
         const relatoriosService = createRelatoriosService(ctx.db)
-        return await relatoriosService.getConsolidacaoSignatureStatus(input.ano, input.semestre, input.tipo)
+        return await relatoriosService.getConsolidacaoSignatureStatus(input.ano, input.semestre, tipo)
       } catch (error) {
         return mapDomainErrorToTRPC(error)
       }
@@ -415,11 +427,12 @@ export const relatoriosRouter = createTRPCRouter({
         semestre: semestreSchema,
         chefeEmail: z.string().email(),
         chefeNome: z.string().trim().min(1),
-        tipo: tipoVagaSchema,
+        tipo: tipoVagaSchema.optional(),
         substituirAssinatura: z.boolean().default(false),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const tipo = requireConsolidacaoTipo(input.tipo)
       try {
         const relatoriosService = createRelatoriosService(ctx.db)
         return await relatoriosService.solicitarAssinaturaChefeConsolidacao(
@@ -428,7 +441,7 @@ export const relatoriosRouter = createTRPCRouter({
           input.chefeEmail,
           input.chefeNome,
           ctx.user.id,
-          input.tipo,
+          tipo,
           input.substituirAssinatura
         )
       } catch (error) {
@@ -463,11 +476,12 @@ export const relatoriosRouter = createTRPCRouter({
     }),
 
   downloadConsolidacaoPDF: adminProtectedProcedure
-    .input(z.object({ ano: z.number(), semestre: semestreSchema, tipo: tipoVagaSchema }))
+    .input(z.object({ ano: z.number(), semestre: semestreSchema, tipo: tipoVagaSchema.optional() }))
     .query(async ({ ctx, input }) => {
+      const tipo = requireConsolidacaoTipo(input.tipo)
       try {
         const relatoriosService = createRelatoriosService(ctx.db)
-        const pdfBuffer = await relatoriosService.getConsolidacaoPDFBuffer(input.ano, input.semestre, ctx.user.id, input.tipo)
+        const pdfBuffer = await relatoriosService.getConsolidacaoPDFBuffer(input.ano, input.semestre, ctx.user.id, tipo)
         return { pdfBase64: pdfBuffer.toString('base64') }
       } catch (error) {
         return mapDomainErrorToTRPC(error)

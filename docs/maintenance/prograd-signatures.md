@@ -51,3 +51,18 @@ backup, modality-specific PDF generation and unauthenticated endpoint protection
 The backup `backup_consolidacao_assinatura_2026_2` from the earlier operational
 reset must remain intact. No production signature requests or emails are needed
 for deployment verification.
+
+## Pages opened before deployment
+
+The previous single-panel UI did not send `tipo`. Its requests fail before any
+signature operation. Missing modality now returns `PRECONDITION_FAILED` with a
+Portuguese instruction to reload and choose the appropriate signature section.
+Never default a legacy request to either modality: the old request cannot express
+which document the user intends to sign. Existing open tabs need one reload.
+Next's deployment identity uses `GIT_REV` to version asset requests.
+
+Every HTTP tRPC response includes `x-request-id`. Failed requests log the same ID,
+procedure, operation type, error code, authenticated user ID and deployed revision.
+This covers input validation failures too. Tokens, signatures, inputs, raw error
+messages, cookies and email addresses are excluded. Errors are in application
+logs, not `audit_log` or `notificacao_historico`; the latter records email activity.
