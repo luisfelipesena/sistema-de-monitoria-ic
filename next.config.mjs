@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  deploymentId: process.env.GIT_REV,
   serverExternalPackages: ["sequelize", "pino", "pino-pretty", "@react-pdf/renderer", "pdf-lib"],
   images: {
     remotePatterns: [

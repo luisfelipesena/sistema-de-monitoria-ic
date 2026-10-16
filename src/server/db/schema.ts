@@ -1470,22 +1470,27 @@ export type NewEmailNotificacao = typeof emailNotificacaoTable.$inferInsert
 
 // --- Assinatura do Chefe do Departamento na Consolidação PROGRAD ---
 
-export const consolidacaoProgradAssinaturaTable = pgTable('consolidacao_prograd_assinatura', {
-  id: serial('id').primaryKey(),
-  ano: integer('ano').notNull(),
-  semestre: semestreEnum('semestre').notNull(),
-  chefeEmail: varchar('chefe_email', { length: 255 }),
-  chefeNome: varchar('chefe_nome', { length: 255 }),
-  chefeAssinatura: text('chefe_assinatura'),
-  chefeAssinouEm: timestamp('chefe_assinou_em', { withTimezone: true, mode: 'date' }),
-  chefeDepartamentoId: integer('chefe_departamento_id').references(() => professorTable.id),
-  signatureToken: varchar('signature_token', { length: 255 }).unique(),
-  signatureTokenExpiresAt: timestamp('signature_token_expires_at', { withTimezone: true, mode: 'date' }),
-  pdfFileId: text('pdf_file_id'),
-  requestedByUserId: integer('requested_by_user_id').references(() => userTable.id),
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
-})
+export const consolidacaoProgradAssinaturaTable = pgTable(
+  'consolidacao_prograd_assinatura',
+  {
+    id: serial('id').primaryKey(),
+    ano: integer('ano').notNull(),
+    semestre: semestreEnum('semestre').notNull(),
+    tipo: tipoVagaEnum('tipo').notNull().default('BOLSISTA'),
+    chefeEmail: varchar('chefe_email', { length: 255 }),
+    chefeNome: varchar('chefe_nome', { length: 255 }),
+    chefeAssinatura: text('chefe_assinatura'),
+    chefeAssinouEm: timestamp('chefe_assinou_em', { withTimezone: true, mode: 'date' }),
+    chefeDepartamentoId: integer('chefe_departamento_id').references(() => professorTable.id),
+    signatureToken: varchar('signature_token', { length: 255 }).unique(),
+    signatureTokenExpiresAt: timestamp('signature_token_expires_at', { withTimezone: true, mode: 'date' }),
+    pdfFileId: text('pdf_file_id'),
+    requestedByUserId: integer('requested_by_user_id').references(() => userTable.id),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
+  },
+  (table) => [uniqueIndex('consolidacao_prograd_periodo_tipo_unique').on(table.ano, table.semestre, table.tipo)]
+)
 
 export const consolidacaoProgradAssinaturaRelations = relations(consolidacaoProgradAssinaturaTable, ({ one }) => ({
   chefeDepartamento: one(professorTable, {

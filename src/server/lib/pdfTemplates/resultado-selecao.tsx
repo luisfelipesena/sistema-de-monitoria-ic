@@ -204,6 +204,34 @@ export interface ResultadoSelecaoProps {
   tipo: "BOLSISTA" | "VOLUNTARIO"
 }
 
+export function getCandidatosAprovados(data: AtaSelecaoData, tipo: "BOLSISTA" | "VOLUNTARIO") {
+  const isVoluntario = tipo === "VOLUNTARIO"
+
+  // Obter lista de candidatos de acordo com o tipo
+  const rawList = isVoluntario
+    ? data.inscricoesVoluntario && data.inscricoesVoluntario.length > 0
+      ? data.inscricoesVoluntario
+      : (data.candidatos || []).filter(
+          (c) => c.tipoVagaPretendida === "VOLUNTARIO" || c.status?.includes("VOLUNTARIO")
+        )
+    : data.inscricoesBolsista && data.inscricoesBolsista.length > 0
+    ? data.inscricoesBolsista
+    : (data.candidatos || []).filter((c) => c.tipoVagaPretendida !== "VOLUNTARIO")
+
+  // Regra estrita: Apenas candidatos com nota final >= 7.0 entram no resultado
+  return rawList
+    .map((c) => ({
+      id: c.id,
+      alunoNome: c.aluno?.nomeCompleto || ("user" in c.aluno ? c.aluno.user?.username : null) || "Candidato",
+      notaDisciplina: c.notaDisciplina ? Number(c.notaDisciplina) : null,
+      coeficienteRendimento: c.coeficienteRendimento ? Number(c.coeficienteRendimento) : null,
+      aluno: c.aluno,
+      notaFinal: c.notaFinal !== null && c.notaFinal !== undefined ? Math.round(Number(c.notaFinal) * 10) / 10 : null,
+    }))
+    .filter((c) => c.notaFinal !== null && c.notaFinal >= 7.0)
+    .sort(compareCandidates)
+}
+
 export function ResultadoSelecaoTemplate({ data, tipo }: ResultadoSelecaoProps) {
   const semestreNum = getSemestreNumero(data.projeto.semestre as Semestre)
   const ano = data.projeto.ano
@@ -221,29 +249,7 @@ export function ResultadoSelecaoTemplate({ data, tipo }: ResultadoSelecaoProps) 
     data.projeto.editalNumero ||
     (data.projeto.ano ? `001/${data.projeto.ano}` : "001/2025")
 
-  // Obter lista de candidatos de acordo com o tipo
-  const rawList = isVoluntario
-    ? data.inscricoesVoluntario && data.inscricoesVoluntario.length > 0
-      ? data.inscricoesVoluntario
-      : (data.candidatos || []).filter(
-          (c) => c.tipoVagaPretendida === "VOLUNTARIO" || c.status?.includes("VOLUNTARIO")
-        )
-    : data.inscricoesBolsista && data.inscricoesBolsista.length > 0
-    ? data.inscricoesBolsista
-    : (data.candidatos || []).filter((c) => c.tipoVagaPretendida !== "VOLUNTARIO")
-
-  // Regra estrita: Apenas candidatos com nota final >= 7.0 entram no resultado
-  const candidatosAprovados = rawList
-    .map((c: any) => ({
-      id: c.id,
-      alunoNome: c.aluno?.nomeCompleto || c.aluno?.user?.username || "Candidato",
-      notaDisciplina: c.notaDisciplina ? Number(c.notaDisciplina) : null,
-      coeficienteRendimento: c.coeficienteRendimento ? Number(c.coeficienteRendimento) : null,
-      aluno: c.aluno,
-      notaFinal: c.notaFinal !== null && c.notaFinal !== undefined ? Math.round(Number(c.notaFinal) * 10) / 10 : null,
-    }))
-    .filter((c) => c.notaFinal !== null && c.notaFinal >= 7.0)
-    .sort(compareCandidates)
+  const candidatosAprovados = getCandidatosAprovados(data, tipo)
 
   const dataAtaStr = data.ataInfo?.dataSelecao || new Date()
 

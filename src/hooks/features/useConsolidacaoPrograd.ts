@@ -319,79 +319,6 @@ export function useConsolidacaoPrograd() {
   const generateXLSXSpreadsheetBolsistas = () => generateXLSXSpreadsheet('BOLSISTA')
   const generateXLSXSpreadsheetVoluntarios = () => generateXLSXSpreadsheet('VOLUNTARIO')
 
-  // Signature status query
-  const {
-    data: signatureStatus,
-    isLoading: isLoadingSignatureStatus,
-    refetch: refetchSignatureStatus,
-  } = api.relatorios.getConsolidacaoSignatureStatus.useQuery({
-    ano: selectedYear,
-    semestre: selectedSemester,
-  })
-
-  const [latestSignatureLink, setLatestSignatureLink] = useState<string | null>(null)
-
-  const requestSignatureMutation = api.relatorios.solicitarAssinaturaChefeConsolidacao.useMutation({
-    onSuccess: (result) => {
-      setLatestSignatureLink(result.link || null)
-      toast({
-        title: 'Solicitação Enviada',
-        description: result.message,
-      })
-      refetchSignatureStatus()
-    },
-    onError: (error) => {
-      toast({
-        title: 'Erro ao solicitar assinatura',
-        description: error.message,
-        variant: 'destructive',
-      })
-    },
-  })
-
-  const handleRequestChefeSignature = (chefeEmail: string, chefeNome: string) => {
-    requestSignatureMutation.mutate({
-      ano: selectedYear,
-      semestre: selectedSemester,
-      chefeEmail,
-      chefeNome,
-    })
-  }
-
-  const downloadPDFQuery = api.relatorios.downloadConsolidacaoPDF.useQuery(
-    { ano: selectedYear, semestre: selectedSemester },
-    { enabled: false }
-  )
-
-  const handleDownloadPDF = async () => {
-    try {
-      const result = await downloadPDFQuery.refetch()
-      if (result.data?.pdfBase64) {
-        const byteCharacters = atob(result.data.pdfBase64)
-        const byteNumbers = new Array(byteCharacters.length)
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i)
-        }
-        const byteArray = new Uint8Array(byteNumbers)
-        const blob = new Blob([byteArray], { type: 'application/pdf' })
-        const link = document.createElement('a')
-        link.href = URL.createObjectURL(blob)
-        link.download = `resultados-selecao-bolsistas-${selectedYear}-${selectedSemester === SEMESTRE_1 ? '1' : '2'}.pdf`
-        link.click()
-        toast({
-          title: 'Sucesso',
-          description: 'PDF de Resultados das Matérias com Bolsistas baixado com sucesso!',
-        })
-      }
-    } catch (_err) {
-      toast({
-        title: 'Erro ao baixar PDF',
-        description: 'Não foi possível gerar o PDF consolidado.',
-        variant: 'destructive',
-      })
-    }
-  }
-
   return {
     selectedYear,
     selectedSemester,
@@ -417,12 +344,6 @@ export function useConsolidacaoPrograd() {
     generateXLSXSpreadsheet,
     generateXLSXSpreadsheetBolsistas,
     generateXLSXSpreadsheetVoluntarios,
-    signatureStatus,
-    latestSignatureLink,
-    isLoadingSignatureStatus,
-    isRequestingSignature: requestSignatureMutation.isPending,
-    handleRequestChefeSignature,
-    handleDownloadPDF,
     refetch,
     // Report notification features
     validationStatus,

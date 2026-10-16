@@ -180,6 +180,7 @@ export const adminEmailService = {
   },
 
   async sendChefeConsolidacaoSignatureRequest(data: {
+    tipo: 'BOLSISTA' | 'VOLUNTARIO'
     chefeEmail: string
     chefeNome?: string
     semestreFormatado: string
@@ -201,7 +202,7 @@ export const adminEmailService = {
       <ChefeSignatureRequest
         chefeNome={data.chefeNome}
         editalNumero="Consolidação PROGRAD"
-        editalTitulo="Consolidação dos Resultados de Monitoria (Bolsistas)"
+        editalTitulo={`Consolidação dos Resultados de Monitoria (${data.tipo === 'BOLSISTA' ? 'Bolsistas' : 'Voluntários'})`}
         semestreFormatado={data.semestreFormatado}
         ano={data.ano}
         signatureUrl={signatureUrl}
@@ -211,7 +212,7 @@ export const adminEmailService = {
 
     await emailSender.send({
       to: data.chefeEmail,
-      subject: `[Monitoria IC] Solicitação de Assinatura - Consolidação de Resultados (${data.semestreFormatado}/${data.ano})`,
+      subject: `[Monitoria IC] Solicitação de Assinatura - Consolidação ${data.tipo === 'BOLSISTA' ? 'Bolsistas' : 'Voluntários'} (${data.semestreFormatado}/${data.ano})`,
       html,
       tipoNotificacao: 'CHEFE_SIGNATURE_REQUEST',
       remetenteUserId: data.remetenteUserId,
