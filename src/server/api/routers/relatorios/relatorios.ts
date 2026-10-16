@@ -35,7 +35,8 @@ function requireConsolidacaoTipo(tipo: TipoVaga | undefined): TipoVaga {
   if (!tipo) {
     throw new TRPCError({
       code: 'PRECONDITION_FAILED',
-      message: 'Esta página está desatualizada. Recarregue a página e escolha Bolsistas ou Voluntários na seção de assinatura.',
+      message:
+        'Esta página está desatualizada. Recarregue a página e escolha Bolsistas ou Voluntários na seção de assinatura.',
     })
   }
   return tipo

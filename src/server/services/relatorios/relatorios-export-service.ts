@@ -451,7 +451,9 @@ export function createRelatoriosExportService(
         anexos.push({
           filename: `resultados-selecao-${tipo === BOLSISTA ? 'bolsistas' : 'voluntarios'}-${ano}-${semestreDisplay}.pdf`,
           buffer: await pdfService.generateConsolidatedResultadosPDF({
-            ano, semestre, tipo,
+            ano,
+            semestre,
+            tipo,
             chefeNome: signatureRecord?.chefeNome,
             chefeAssinatura: signatureRecord?.chefeAssinatura,
             chefeAssinouEm: signatureRecord?.chefeAssinouEm,
@@ -552,8 +554,17 @@ export function createRelatoriosExportService(
         chefeNome: record?.chefeNome || null,
         chefeEmail: record?.chefeEmail || null,
         chefeAssinouEm: record?.chefeAssinouEm || null,
-        isExpired: Boolean(record?.signatureToken && !record.chefeAssinouEm && (!record.signatureTokenExpiresAt || record.signatureTokenExpiresAt <= new Date())),
-        hasPendingToken: Boolean(record?.signatureToken && !record.chefeAssinouEm && record.signatureTokenExpiresAt && record.signatureTokenExpiresAt > new Date()),
+        isExpired: Boolean(
+          record?.signatureToken &&
+            !record.chefeAssinouEm &&
+            (!record.signatureTokenExpiresAt || record.signatureTokenExpiresAt <= new Date())
+        ),
+        hasPendingToken: Boolean(
+          record?.signatureToken &&
+            !record.chefeAssinouEm &&
+            record.signatureTokenExpiresAt &&
+            record.signatureTokenExpiresAt > new Date()
+        ),
       }
     },
 
@@ -570,18 +581,40 @@ export function createRelatoriosExportService(
       const expiresAt = new Date()
       expiresAt.setHours(expiresAt.getHours() + 72) // 72 hours validity
 
-      const [record] = await db.insert(consolidacaoProgradAssinaturaTable).values({
-        ano, semestre, tipo, chefeEmail, chefeNome, signatureToken: token,
-        signatureTokenExpiresAt: expiresAt, requestedByUserId,
-      }).onConflictDoUpdate({
-        target: [consolidacaoProgradAssinaturaTable.ano, consolidacaoProgradAssinaturaTable.semestre, consolidacaoProgradAssinaturaTable.tipo],
-        set: {
-          chefeEmail, chefeNome, signatureToken: token, signatureTokenExpiresAt: expiresAt,
-          requestedByUserId, chefeAssinatura: null, chefeAssinouEm: null,
-        },
-        setWhere: substituirAssinatura ? undefined : isNull(consolidacaoProgradAssinaturaTable.chefeAssinouEm),
-      }).returning({ id: consolidacaoProgradAssinaturaTable.id })
-      if (!record) throw new ValidationError('Esta consolidação já foi assinada. Confirme a substituição para solicitar outra assinatura.')
+      const [record] = await db
+        .insert(consolidacaoProgradAssinaturaTable)
+        .values({
+          ano,
+          semestre,
+          tipo,
+          chefeEmail,
+          chefeNome,
+          signatureToken: token,
+          signatureTokenExpiresAt: expiresAt,
+          requestedByUserId,
+        })
+        .onConflictDoUpdate({
+          target: [
+            consolidacaoProgradAssinaturaTable.ano,
+            consolidacaoProgradAssinaturaTable.semestre,
+            consolidacaoProgradAssinaturaTable.tipo,
+          ],
+          set: {
+            chefeEmail,
+            chefeNome,
+            signatureToken: token,
+            signatureTokenExpiresAt: expiresAt,
+            requestedByUserId,
+            chefeAssinatura: null,
+            chefeAssinouEm: null,
+          },
+          setWhere: substituirAssinatura ? undefined : isNull(consolidacaoProgradAssinaturaTable.chefeAssinouEm),
+        })
+        .returning({ id: consolidacaoProgradAssinaturaTable.id })
+      if (!record)
+        throw new ValidationError(
+          'Esta consolidação já foi assinada. Confirme a substituição para solicitar outra assinatura.'
+        )
 
       const semestreDisplay = semestre === SEMESTRE_1 ? '1º Semestre' : '2º Semestre'
 
@@ -635,7 +668,10 @@ export function createRelatoriosExportService(
     },
 
     async signConsolidacaoByToken(token: string, chefeAssinatura: string, chefeNome?: string) {
-      if (!/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/.test(chefeAssinatura) || chefeAssinatura.length > 3_000_000) {
+      if (
+        !/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/.test(chefeAssinatura) ||
+        chefeAssinatura.length > 3_000_000
+      ) {
         throw new ValidationError('Envie uma assinatura em PNG ou JPG de até 2 MB.')
       }
       const imageBytes = Buffer.from(chefeAssinatura.split(',')[1], 'base64')
@@ -647,16 +683,25 @@ export function createRelatoriosExportService(
       } catch {
         throw new ValidationError('A imagem da assinatura está inválida. Envie um arquivo PNG ou JPG válido.')
       }
-      const [signed] = await db.update(consolidacaoProgradAssinaturaTable).set({
-        chefeAssinatura: normalizedSignature,
-        chefeAssinouEm: new Date(),
-        ...(chefeNome ? { chefeNome } : {}),
-      }).where(and(
-        eq(consolidacaoProgradAssinaturaTable.signatureToken, token),
-        isNull(consolidacaoProgradAssinaturaTable.chefeAssinouEm),
-        gt(consolidacaoProgradAssinaturaTable.signatureTokenExpiresAt, new Date())
-      )).returning({ id: consolidacaoProgradAssinaturaTable.id })
-      if (!signed) throw new ValidationError('Link inválido, expirado ou consolidação já assinada. Solicite um novo link ao administrador.')
+      const [signed] = await db
+        .update(consolidacaoProgradAssinaturaTable)
+        .set({
+          chefeAssinatura: normalizedSignature,
+          chefeAssinouEm: new Date(),
+          ...(chefeNome ? { chefeNome } : {}),
+        })
+        .where(
+          and(
+            eq(consolidacaoProgradAssinaturaTable.signatureToken, token),
+            isNull(consolidacaoProgradAssinaturaTable.chefeAssinouEm),
+            gt(consolidacaoProgradAssinaturaTable.signatureTokenExpiresAt, new Date())
+          )
+        )
+        .returning({ id: consolidacaoProgradAssinaturaTable.id })
+      if (!signed)
+        throw new ValidationError(
+          'Link inválido, expirado ou consolidação já assinada. Solicite um novo link ao administrador.'
+        )
 
       return {
         success: true,
@@ -664,7 +709,12 @@ export function createRelatoriosExportService(
       }
     },
 
-    async getConsolidacaoPDFBuffer(ano: number, semestre: Semestre, adminUserId: number, tipo: TipoVaga): Promise<Buffer> {
+    async getConsolidacaoPDFBuffer(
+      ano: number,
+      semestre: Semestre,
+      adminUserId: number,
+      tipo: TipoVaga
+    ): Promise<Buffer> {
       const signatureRecord = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
         where: and(
           eq(consolidacaoProgradAssinaturaTable.ano, ano),

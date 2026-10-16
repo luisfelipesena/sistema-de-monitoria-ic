@@ -43,10 +43,12 @@ export function createConsolidacaoPDFService() {
             eq(projetoTable.semestre, semestre),
             eq(projetoTable.status, 'APPROVED'),
             isNull(projetoTable.deletedAt),
-            tipo === 'BOLSISTA' ? gte(projetoTable.bolsasDisponibilizadas, 1) : or(
-              gte(projetoTable.voluntariosSolicitados, 1),
-              sql`exists (select 1 from ${vagaTable} where ${vagaTable.projetoId} = ${projetoTable.id} and ${vagaTable.tipo} = ${tipo})`
-            )
+            tipo === 'BOLSISTA'
+              ? gte(projetoTable.bolsasDisponibilizadas, 1)
+              : or(
+                  gte(projetoTable.voluntariosSolicitados, 1),
+                  sql`exists (select 1 from ${vagaTable} where ${vagaTable.projetoId} = ${projetoTable.id} and ${vagaTable.tipo} = ${tipo})`
+                )
           )
         )
 

@@ -319,7 +319,6 @@ export function useConsolidacaoPrograd() {
   const generateXLSXSpreadsheetBolsistas = () => generateXLSXSpreadsheet('BOLSISTA')
   const generateXLSXSpreadsheetVoluntarios = () => generateXLSXSpreadsheet('VOLUNTARIO')
 
-
   return {
     selectedYear,
     selectedSemester,
