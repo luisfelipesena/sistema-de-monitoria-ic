@@ -1,12 +1,12 @@
 import { db } from '@/server/db'
-import { projetoTable } from '@/server/db/schema'
+import { projetoTable, vagaTable } from '@/server/db/schema'
 import { ConsolidacaoValidacaoChefeTemplate } from '@/server/lib/pdfTemplates/consolidacao-validacao-chefe'
 import { ResultadoSelecaoTemplate } from '@/server/lib/pdfTemplates/resultado-selecao'
 import { createSelecaoService } from '@/server/services/selecao/selecao-service'
-import { ADMIN, type AtaSelecaoData, type Semestre } from '@/types'
+import { ADMIN, type AtaSelecaoData, type Semestre, type TipoVaga } from '@/types'
 import { logger } from '@/utils/logger'
 import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
-import { and, eq, gte } from 'drizzle-orm'
+import { and, eq, gte, isNull, or, sql } from 'drizzle-orm'
 import { PDFDocument } from 'pdf-lib'
 import React, { type ReactElement } from 'react'
 
@@ -20,24 +20,19 @@ export function createConsolidacaoPDFService() {
   const selecaoService = createSelecaoService(db)
 
   return {
-    /**
-     * Generates a single merged PDF containing:
-     * 1. Official Department Validation & Signature cover page
-     * 2. All "Resultado Seleção" PDF pages for subjects with Bolsistas in that semester
-     */
     async generateConsolidatedResultadosPDF(input: {
       ano: number
       semestre: Semestre
+      tipo: TipoVaga
       chefeNome?: string | null
       chefeAssinatura?: string | null
       chefeAssinouEm?: Date | null
       adminUserId: number
     }): Promise<Buffer> {
-      const { ano, semestre, chefeNome, chefeAssinatura, chefeAssinouEm, adminUserId } = input
+      const { ano, semestre, tipo, chefeNome, chefeAssinatura, chefeAssinouEm, adminUserId } = input
 
-      log.info({ ano, semestre }, 'Gerando PDF consolidado de resultados com bolsistas')
+      log.info({ ano, semestre, tipo }, 'Gerando PDF consolidado de resultados')
 
-      // Find all approved projects for this semester with bolsasDisponibilizadas > 0
       const projects = await db
         .select()
         .from(projetoTable)
@@ -46,12 +41,16 @@ export function createConsolidacaoPDFService() {
             eq(projetoTable.ano, ano),
             eq(projetoTable.semestre, semestre),
             eq(projetoTable.status, 'APPROVED'),
-            gte(projetoTable.bolsasDisponibilizadas, 1)
+            isNull(projetoTable.deletedAt),
+            tipo === 'BOLSISTA' ? gte(projetoTable.bolsasDisponibilizadas, 1) : or(
+              gte(projetoTable.voluntariosSolicitados, 1),
+              sql`exists (select 1 from ${vagaTable} where ${vagaTable.projetoId} = ${projetoTable.id} and ${vagaTable.tipo} = ${tipo})`
+            )
           )
         )
 
       if (projects.length === 0) {
-        log.warn({ ano, semestre }, 'Nenhum projeto com bolsistas encontrado para o período')
+        log.warn({ ano, semestre, tipo }, 'Nenhum projeto encontrado para a modalidade no período')
       }
 
       const mergedPdf = await PDFDocument.create()
@@ -65,7 +64,7 @@ export function createConsolidacaoPDFService() {
             chefeNome,
             chefeAssinatura,
             chefeAssinouEm,
-            totalProjetosBolsistas: projects.length,
+            tipo,
           },
         })
       )
@@ -109,7 +108,7 @@ export function createConsolidacaoPDFService() {
           }
 
           const resultadoElement = toDocumentElement(
-            React.createElement(ResultadoSelecaoTemplate, { data: ataData, tipo: 'BOLSISTA' })
+            React.createElement(ResultadoSelecaoTemplate, { data: ataData, tipo })
           )
 
           const resultadoBuffer = await renderToBuffer(resultadoElement)
@@ -121,6 +120,7 @@ export function createConsolidacaoPDFService() {
             { error, projetoId: proj.id },
             'Erro ao gerar Resultado Seleção de projeto individual para consolidação'
           )
+          throw error
         }
       }
 

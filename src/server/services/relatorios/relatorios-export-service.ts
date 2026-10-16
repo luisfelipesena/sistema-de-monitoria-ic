@@ -21,11 +21,13 @@ import {
   VAGA_STATUS_ATIVO,
   VOLUNTARIO,
   type Semestre,
+  type TipoVaga,
 } from '@/types'
 import { formatDateFullUTC } from '@/utils/date-utils'
 import { logger } from '@/utils/logger'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, gt, isNull } from 'drizzle-orm'
 import ExcelJS from 'exceljs'
+import sharp from 'sharp'
 import type { RelatoriosRepository } from './relatorios-repository'
 
 const _log = logger.child({ context: 'RelatoriosExportService' })
@@ -433,27 +435,30 @@ export function createRelatoriosExportService(
         _log.warn({ err }, 'Não foi possível gerar/anexar o PDF do Edital Interno atual')
       }
 
-      // 2. Anexar PDF Consolidado de Resultados (Bolsistas)
-      const signatureRecord = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
-        where: and(
-          eq(consolidacaoProgradAssinaturaTable.ano, ano),
-          eq(consolidacaoProgradAssinaturaTable.semestre, semestre)
-        ),
-      })
+      const tipos: TipoVaga[] = []
+      if (incluirBolsistas) tipos.push(BOLSISTA)
+      if (incluirVoluntarios) tipos.push(VOLUNTARIO)
+      if (tipos.length === 0) throw new ValidationError('Selecione ao menos uma modalidade')
 
-      const pdfConsolidadoBuffer = await pdfService.generateConsolidatedResultadosPDF({
-        ano,
-        semestre,
-        chefeNome: signatureRecord?.chefeNome,
-        chefeAssinatura: signatureRecord?.chefeAssinatura,
-        chefeAssinouEm: signatureRecord?.chefeAssinouEm,
-        adminUserId: remetenteUserId,
-      })
-
-      anexos.push({
-        filename: `resultados-selecao-bolsistas-${ano}-${semestreDisplay}.pdf`,
-        buffer: pdfConsolidadoBuffer,
-      })
+      for (const tipo of tipos) {
+        const signatureRecord = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
+          where: and(
+            eq(consolidacaoProgradAssinaturaTable.ano, ano),
+            eq(consolidacaoProgradAssinaturaTable.semestre, semestre),
+            eq(consolidacaoProgradAssinaturaTable.tipo, tipo)
+          ),
+        })
+        anexos.push({
+          filename: `resultados-selecao-${tipo === BOLSISTA ? 'bolsistas' : 'voluntarios'}-${ano}-${semestreDisplay}.pdf`,
+          buffer: await pdfService.generateConsolidatedResultadosPDF({
+            ano, semestre, tipo,
+            chefeNome: signatureRecord?.chefeNome,
+            chefeAssinatura: signatureRecord?.chefeAssinatura,
+            chefeAssinouEm: signatureRecord?.chefeAssinouEm,
+            adminUserId: remetenteUserId,
+          }),
+        })
+      }
 
       // 2. Anexar Planilha Excel de Bolsistas
       if (incluirBolsistas) {
@@ -533,11 +538,12 @@ export function createRelatoriosExportService(
       }
     },
 
-    async getConsolidacaoSignatureStatus(ano: number, semestre: Semestre) {
+    async getConsolidacaoSignatureStatus(ano: number, semestre: Semestre, tipo: TipoVaga) {
       const record = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
         where: and(
           eq(consolidacaoProgradAssinaturaTable.ano, ano),
-          eq(consolidacaoProgradAssinaturaTable.semestre, semestre)
+          eq(consolidacaoProgradAssinaturaTable.semestre, semestre),
+          eq(consolidacaoProgradAssinaturaTable.tipo, tipo)
         ),
       })
 
@@ -546,7 +552,8 @@ export function createRelatoriosExportService(
         chefeNome: record?.chefeNome || null,
         chefeEmail: record?.chefeEmail || null,
         chefeAssinouEm: record?.chefeAssinouEm || null,
-        hasPendingToken: Boolean(record?.signatureToken && !record.chefeAssinouEm),
+        isExpired: Boolean(record?.signatureToken && !record.chefeAssinouEm && (!record.signatureTokenExpiresAt || record.signatureTokenExpiresAt <= new Date())),
+        hasPendingToken: Boolean(record?.signatureToken && !record.chefeAssinouEm && record.signatureTokenExpiresAt && record.signatureTokenExpiresAt > new Date()),
       }
     },
 
@@ -555,47 +562,33 @@ export function createRelatoriosExportService(
       semestre: Semestre,
       chefeEmail: string,
       chefeNome: string,
-      requestedByUserId: number
+      requestedByUserId: number,
+      tipo: TipoVaga,
+      substituirAssinatura = false
     ) {
       const token = randomBytes(32).toString('hex')
       const expiresAt = new Date()
       expiresAt.setHours(expiresAt.getHours() + 72) // 72 hours validity
 
-      const existing = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
-        where: and(
-          eq(consolidacaoProgradAssinaturaTable.ano, ano),
-          eq(consolidacaoProgradAssinaturaTable.semestre, semestre)
-        ),
-      })
-
-      if (existing) {
-        await db
-          .update(consolidacaoProgradAssinaturaTable)
-          .set({
-            chefeEmail,
-            chefeNome,
-            signatureToken: token,
-            signatureTokenExpiresAt: expiresAt,
-            requestedByUserId,
-          })
-          .where(eq(consolidacaoProgradAssinaturaTable.id, existing.id))
-      } else {
-        await db.insert(consolidacaoProgradAssinaturaTable).values({
-          ano,
-          semestre,
-          chefeEmail,
-          chefeNome,
-          signatureToken: token,
-          signatureTokenExpiresAt: expiresAt,
-          requestedByUserId,
-        })
-      }
+      const [record] = await db.insert(consolidacaoProgradAssinaturaTable).values({
+        ano, semestre, tipo, chefeEmail, chefeNome, signatureToken: token,
+        signatureTokenExpiresAt: expiresAt, requestedByUserId,
+      }).onConflictDoUpdate({
+        target: [consolidacaoProgradAssinaturaTable.ano, consolidacaoProgradAssinaturaTable.semestre, consolidacaoProgradAssinaturaTable.tipo],
+        set: {
+          chefeEmail, chefeNome, signatureToken: token, signatureTokenExpiresAt: expiresAt,
+          requestedByUserId, chefeAssinatura: null, chefeAssinouEm: null,
+        },
+        setWhere: substituirAssinatura ? undefined : isNull(consolidacaoProgradAssinaturaTable.chefeAssinouEm),
+      }).returning({ id: consolidacaoProgradAssinaturaTable.id })
+      if (!record) throw new ValidationError('Esta consolidação já foi assinada. Confirme a substituição para solicitar outra assinatura.')
 
       const semestreDisplay = semestre === SEMESTRE_1 ? '1º Semestre' : '2º Semestre'
 
       await adminEmailService.sendChefeConsolidacaoSignatureRequest({
         chefeEmail,
         chefeNome,
+        tipo,
         semestreFormatado: semestreDisplay,
         ano,
         signatureToken: token,
@@ -624,7 +617,7 @@ export function createRelatoriosExportService(
         throw new NotFoundError('Token de assinatura', 'inválido ou expirado')
       }
 
-      if (record.signatureTokenExpiresAt && record.signatureTokenExpiresAt < new Date()) {
+      if (!record.signatureTokenExpiresAt || record.signatureTokenExpiresAt <= new Date()) {
         throw new ValidationError('O link de assinatura expirou')
       }
 
@@ -632,6 +625,7 @@ export function createRelatoriosExportService(
         id: record.id,
         ano: record.ano,
         semestre: record.semestre,
+        tipo: record.tipo,
         chefeNome: record.chefeNome,
         chefeEmail: record.chefeEmail,
         isSigned: Boolean(record.chefeAssinouEm),
@@ -641,30 +635,28 @@ export function createRelatoriosExportService(
     },
 
     async signConsolidacaoByToken(token: string, chefeAssinatura: string, chefeNome?: string) {
-      const record = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
-        where: eq(consolidacaoProgradAssinaturaTable.signatureToken, token),
-      })
-
-      if (!record) {
-        throw new NotFoundError('Token de assinatura', 'inválido ou não encontrado')
+      if (!/^data:image\/(png|jpeg);base64,[A-Za-z0-9+/]+={0,2}$/.test(chefeAssinatura) || chefeAssinatura.length > 3_000_000) {
+        throw new ValidationError('Envie uma assinatura em PNG ou JPG de até 2 MB.')
       }
-
-      if (record.signatureTokenExpiresAt && record.signatureTokenExpiresAt < new Date()) {
-        throw new ValidationError('O link de assinatura expirou')
+      const imageBytes = Buffer.from(chefeAssinatura.split(',')[1], 'base64')
+      if (imageBytes.length > 2_000_000) throw new ValidationError('A assinatura deve ter até 2 MB.')
+      let normalizedSignature: string
+      try {
+        const png = await sharp(imageBytes, { limitInputPixels: 4_000_000 }).png().toBuffer()
+        normalizedSignature = `data:image/png;base64,${png.toString('base64')}`
+      } catch {
+        throw new ValidationError('A imagem da assinatura está inválida. Envie um arquivo PNG ou JPG válido.')
       }
-
-      if (record.chefeAssinouEm) {
-        throw new ValidationError('Esta consolidação já foi assinada')
-      }
-
-      await db
-        .update(consolidacaoProgradAssinaturaTable)
-        .set({
-          chefeAssinatura,
-          chefeAssinouEm: new Date(),
-          chefeNome: chefeNome || record.chefeNome,
-        })
-        .where(eq(consolidacaoProgradAssinaturaTable.id, record.id))
+      const [signed] = await db.update(consolidacaoProgradAssinaturaTable).set({
+        chefeAssinatura: normalizedSignature,
+        chefeAssinouEm: new Date(),
+        ...(chefeNome ? { chefeNome } : {}),
+      }).where(and(
+        eq(consolidacaoProgradAssinaturaTable.signatureToken, token),
+        isNull(consolidacaoProgradAssinaturaTable.chefeAssinouEm),
+        gt(consolidacaoProgradAssinaturaTable.signatureTokenExpiresAt, new Date())
+      )).returning({ id: consolidacaoProgradAssinaturaTable.id })
+      if (!signed) throw new ValidationError('Link inválido, expirado ou consolidação já assinada. Solicite um novo link ao administrador.')
 
       return {
         success: true,
@@ -672,17 +664,19 @@ export function createRelatoriosExportService(
       }
     },
 
-    async getConsolidacaoPDFBuffer(ano: number, semestre: Semestre, adminUserId = 1): Promise<Buffer> {
+    async getConsolidacaoPDFBuffer(ano: number, semestre: Semestre, adminUserId: number, tipo: TipoVaga): Promise<Buffer> {
       const signatureRecord = await db.query.consolidacaoProgradAssinaturaTable.findFirst({
         where: and(
           eq(consolidacaoProgradAssinaturaTable.ano, ano),
-          eq(consolidacaoProgradAssinaturaTable.semestre, semestre)
+          eq(consolidacaoProgradAssinaturaTable.semestre, semestre),
+          eq(consolidacaoProgradAssinaturaTable.tipo, tipo)
         ),
       })
 
       return pdfService.generateConsolidatedResultadosPDF({
         ano,
         semestre,
+        tipo,
         chefeNome: signatureRecord?.chefeNome,
         chefeAssinatura: signatureRecord?.chefeAssinatura,
         chefeAssinouEm: signatureRecord?.chefeAssinouEm,

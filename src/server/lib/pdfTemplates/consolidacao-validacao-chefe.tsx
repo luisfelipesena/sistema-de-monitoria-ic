@@ -1,4 +1,5 @@
 import React from 'react'
+import type { TipoVaga } from '@/types'
 import { Document, Font, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer'
 import { IC_LOGO_BASE64, UFBA_LOGO__FORM_BASE64 } from '@/utils/images'
 import { formatDateExtenso } from './AtaSelecaoTemplate'
@@ -108,14 +109,14 @@ interface ConsolidacaoValidacaoChefeData {
   chefeNome?: string | null
   chefeAssinatura?: string | null
   chefeAssinouEm?: Date | null
-  totalProjetosBolsistas: number
+  tipo: TipoVaga
 }
 
 export function ConsolidacaoValidacaoChefeTemplate({ data }: { data: ConsolidacaoValidacaoChefeData }) {
   const dataExtenso = data.chefeAssinouEm ? formatDateExtenso(data.chefeAssinouEm.toISOString()) : formatDateExtenso(new Date().toISOString())
 
   return (
-    <Document title={`Consolidação de Resultados com Bolsistas - ${data.ano}.${data.semestre}`}>
+    <Document title={`Consolidação de Resultados ${data.tipo === 'BOLSISTA' ? 'Bolsistas' : 'Voluntários'} - ${data.ano}.${data.semestre}`}>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.headerContainer}>
@@ -131,7 +132,7 @@ export function ConsolidacaoValidacaoChefeTemplate({ data }: { data: Consolidaca
         {/* Title */}
         <View style={styles.titleContainer}>
           <Text style={styles.title}>TERMO DE VALIDAÇÃO E CONSOLIDAÇÃO DE RESULTADOS DA MONITORIA</Text>
-          <Text style={styles.subTitle}>PROCESSO SELETIVO - PERÍODO LETIVO {data.ano}.{data.semestre}</Text>
+          <Text style={styles.subTitle}>{data.tipo === 'BOLSISTA' ? 'BOLSISTAS' : 'VOLUNTÁRIOS'} - PERÍODO LETIVO {data.ano}.{data.semestre}</Text>
         </View>
 
         {/* Date */}

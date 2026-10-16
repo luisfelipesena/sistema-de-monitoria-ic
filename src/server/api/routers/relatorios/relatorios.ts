@@ -23,6 +23,7 @@ import {
   relatorioGeralSchema,
   relatorioValidationTypeSchema,
   semestreSchema,
+  tipoVagaSchema,
 } from '@/types'
 import { NotFoundError, ValidationError } from '@/types/errors'
 import { TRPCError } from '@trpc/server'
@@ -397,11 +398,11 @@ export const relatoriosRouter = createTRPCRouter({
 
   // Assinatura do Chefe na Consolidação PROGRAD
   getConsolidacaoSignatureStatus: adminProtectedProcedure
-    .input(z.object({ ano: z.number(), semestre: semestreSchema }))
+    .input(z.object({ ano: z.number(), semestre: semestreSchema, tipo: tipoVagaSchema }))
     .query(async ({ ctx, input }) => {
       try {
         const relatoriosService = createRelatoriosService(ctx.db)
-        return await relatoriosService.getConsolidacaoSignatureStatus(input.ano, input.semestre)
+        return await relatoriosService.getConsolidacaoSignatureStatus(input.ano, input.semestre, input.tipo)
       } catch (error) {
         return mapDomainErrorToTRPC(error)
       }
@@ -413,7 +414,9 @@ export const relatoriosRouter = createTRPCRouter({
         ano: z.number(),
         semestre: semestreSchema,
         chefeEmail: z.string().email(),
-        chefeNome: z.string(),
+        chefeNome: z.string().trim().min(1),
+        tipo: tipoVagaSchema,
+        substituirAssinatura: z.boolean().default(false),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -424,7 +427,9 @@ export const relatoriosRouter = createTRPCRouter({
           input.semestre,
           input.chefeEmail,
           input.chefeNome,
-          ctx.user.id
+          ctx.user.id,
+          input.tipo,
+          input.substituirAssinatura
         )
       } catch (error) {
         return mapDomainErrorToTRPC(error)
@@ -458,11 +463,11 @@ export const relatoriosRouter = createTRPCRouter({
     }),
 
   downloadConsolidacaoPDF: adminProtectedProcedure
-    .input(z.object({ ano: z.number(), semestre: semestreSchema }))
+    .input(z.object({ ano: z.number(), semestre: semestreSchema, tipo: tipoVagaSchema }))
     .query(async ({ ctx, input }) => {
       try {
         const relatoriosService = createRelatoriosService(ctx.db)
-        const pdfBuffer = await relatoriosService.getConsolidacaoPDFBuffer(input.ano, input.semestre, ctx.user.id)
+        const pdfBuffer = await relatoriosService.getConsolidacaoPDFBuffer(input.ano, input.semestre, ctx.user.id, input.tipo)
         return { pdfBase64: pdfBuffer.toString('base64') }
       } catch (error) {
         return mapDomainErrorToTRPC(error)

@@ -1474,6 +1474,7 @@ export const consolidacaoProgradAssinaturaTable = pgTable('consolidacao_prograd_
   id: serial('id').primaryKey(),
   ano: integer('ano').notNull(),
   semestre: semestreEnum('semestre').notNull(),
+  tipo: tipoVagaEnum('tipo').notNull().default('BOLSISTA'),
   chefeEmail: varchar('chefe_email', { length: 255 }),
   chefeNome: varchar('chefe_nome', { length: 255 }),
   chefeAssinatura: text('chefe_assinatura'),
@@ -1485,7 +1486,9 @@ export const consolidacaoProgradAssinaturaTable = pgTable('consolidacao_prograd_
   requestedByUserId: integer('requested_by_user_id').references(() => userTable.id),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).$onUpdate(() => new Date()),
-})
+}, (table) => [
+  uniqueIndex('consolidacao_prograd_periodo_tipo_unique').on(table.ano, table.semestre, table.tipo),
+])
 
 export const consolidacaoProgradAssinaturaRelations = relations(consolidacaoProgradAssinaturaTable, ({ one }) => ({
   chefeDepartamento: one(professorTable, {

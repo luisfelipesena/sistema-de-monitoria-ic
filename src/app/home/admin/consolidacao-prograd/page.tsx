@@ -35,11 +35,6 @@ export default function ConsolidacaoPROGRADPage() {
     handleSendEmailVoluntarios,
     generateXLSXSpreadsheetBolsistas,
     generateXLSXSpreadsheetVoluntarios,
-    signatureStatus,
-    latestSignatureLink,
-    isRequestingSignature,
-    handleRequestChefeSignature,
-    handleDownloadPDF,
     refetch,
     // Report notifications
     validationStatus,
@@ -99,16 +94,11 @@ export default function ConsolidacaoPROGRADPage() {
             showEmailDialog={showEmailDialog}
             setShowEmailDialog={setShowEmailDialog}
             isPendingExport={isPendingExport}
-            signatureStatus={signatureStatus}
-            latestSignatureLink={latestSignatureLink}
-            isRequestingSignature={isRequestingSignature}
             onSendEmail={handleSendEmail}
             onSendEmailBolsistas={handleSendEmailBolsistas}
             onSendEmailVoluntarios={handleSendEmailVoluntarios}
             onGenerateXLSXBolsistas={generateXLSXSpreadsheetBolsistas}
             onGenerateXLSXVoluntarios={generateXLSXSpreadsheetVoluntarios}
-            onRequestChefeSignature={handleRequestChefeSignature}
-            onDownloadPDF={handleDownloadPDF}
           />
 
           {/* Main table */}

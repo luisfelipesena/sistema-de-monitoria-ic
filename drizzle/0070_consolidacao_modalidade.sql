@@ -1,0 +1,2 @@
+ALTER TABLE "consolidacao_prograd_assinatura" ADD COLUMN "tipo" "tipo_vaga_enum" DEFAULT 'BOLSISTA' NOT NULL;--> statement-breakpoint
+CREATE UNIQUE INDEX "consolidacao_prograd_periodo_tipo_unique" ON "consolidacao_prograd_assinatura" USING btree ("ano","semestre","tipo");

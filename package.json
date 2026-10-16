@@ -10,6 +10,7 @@
     "lint:fix": "npm run lint -- --fix --diagnostic-level=error --unsafe",
     "format": "biome format --write .",
     "test": "vitest run --reporter=verbose",
+    "test:prograd": "vitest run --config vitest.prograd.config.ts",
     "test:watch": "vitest",
     "test:basic": "vitest run src/tests/unit/basic.test.ts",
     "test:e2e": "playwright test",
