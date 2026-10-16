@@ -204,10 +204,6 @@ export interface ResultadoSelecaoProps {
   tipo: "BOLSISTA" | "VOLUNTARIO"
 }
 
-/**
- * Candidatos que aparecem no resultado do tipo informado (nota final >= 7,0), já ordenados.
- * Exportado para que a consolidação omita disciplinas cujo resultado sairia vazio.
- */
 export function getCandidatosAprovados(data: AtaSelecaoData, tipo: "BOLSISTA" | "VOLUNTARIO") {
   const isVoluntario = tipo === "VOLUNTARIO"
 
@@ -224,9 +220,9 @@ export function getCandidatosAprovados(data: AtaSelecaoData, tipo: "BOLSISTA" | 
 
   // Regra estrita: Apenas candidatos com nota final >= 7.0 entram no resultado
   return rawList
-    .map((c: any) => ({
+    .map((c) => ({
       id: c.id,
-      alunoNome: c.aluno?.nomeCompleto || c.aluno?.user?.username || "Candidato",
+      alunoNome: c.aluno?.nomeCompleto || ("user" in c.aluno ? c.aluno.user?.username : null) || "Candidato",
       notaDisciplina: c.notaDisciplina ? Number(c.notaDisciplina) : null,
       coeficienteRendimento: c.coeficienteRendimento ? Number(c.coeficienteRendimento) : null,
       aluno: c.aluno,

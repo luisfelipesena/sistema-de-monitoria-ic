@@ -1,12 +1,13 @@
 import { db } from '@/server/db'
-import { projetoTable } from '@/server/db/schema'
+import { projetoTable, vagaTable } from '@/server/db/schema'
 import { ConsolidacaoValidacaoChefeTemplate } from '@/server/lib/pdfTemplates/consolidacao-validacao-chefe'
 import { getCandidatosAprovados, ResultadoSelecaoTemplate } from '@/server/lib/pdfTemplates/resultado-selecao'
 import { createSelecaoService } from '@/server/services/selecao/selecao-service'
-import { ADMIN, type AtaSelecaoData, type Semestre } from '@/types'
+import { ADMIN, type AtaSelecaoData, type Semestre, type TipoVaga } from '@/types'
+import { ValidationError } from '@/server/lib/errors'
 import { logger } from '@/utils/logger'
 import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
-import { and, eq, gte } from 'drizzle-orm'
+import { and, eq, gte, isNull, or, sql } from 'drizzle-orm'
 import { PDFDocument } from 'pdf-lib'
 import React, { type ReactElement } from 'react'
 
@@ -20,27 +21,18 @@ export function createConsolidacaoPDFService() {
   const selecaoService = createSelecaoService(db)
 
   return {
-    /**
-     * Generates a single merged PDF containing:
-     * 1. Official Department Validation & Signature cover page
-     * 2. "Resultado Seleção" pages for the semester's subjects that have approved candidates of the given tipo
-     */
     async generateConsolidatedResultadosPDF(input: {
       ano: number
       semestre: Semestre
+      tipo: TipoVaga
       chefeNome?: string | null
       chefeAssinatura?: string | null
       chefeAssinouEm?: Date | null
       adminUserId: number
-      tipo?: 'BOLSISTA' | 'VOLUNTARIO'
     }): Promise<Buffer> {
-      const { ano, semestre, chefeNome, chefeAssinatura, chefeAssinouEm, adminUserId, tipo = 'BOLSISTA' } = input
+      const { ano, semestre, tipo, chefeNome, chefeAssinatura, chefeAssinouEm, adminUserId } = input
 
       log.info({ ano, semestre, tipo }, 'Gerando PDF consolidado de resultados')
-
-      // Find all approved projects for this semester according to tipo quota
-      const projectCondition =
-        tipo === 'BOLSISTA' ? gte(projetoTable.bolsasDisponibilizadas, 1) : gte(projetoTable.voluntariosSolicitados, 1)
 
       const projects = await db
         .select()
@@ -50,16 +42,41 @@ export function createConsolidacaoPDFService() {
             eq(projetoTable.ano, ano),
             eq(projetoTable.semestre, semestre),
             eq(projetoTable.status, 'APPROVED'),
-            projectCondition
+            isNull(projetoTable.deletedAt),
+            tipo === 'BOLSISTA' ? gte(projetoTable.bolsasDisponibilizadas, 1) : or(
+              gte(projetoTable.voluntariosSolicitados, 1),
+              sql`exists (select 1 from ${vagaTable} where ${vagaTable.projetoId} = ${projetoTable.id} and ${vagaTable.tipo} = ${tipo})`
+            )
           )
         )
 
       if (projects.length === 0) {
-        log.warn({ ano, semestre, tipo }, 'Nenhum projeto encontrado para o período com o tipo selecionado')
+        log.warn({ ano, semestre, tipo }, 'Nenhum projeto encontrado para a modalidade no período')
       }
 
-      // 1. Build each project's result data, keeping only those with at least one candidate to list
-      const resultados: Array<{ projetoId: number; ataData: AtaSelecaoData }> = []
+      const mergedPdf = await PDFDocument.create()
+      let totalProjetos = 0
+
+      // 1. Render validation page (Termo de Validação do Chefe)
+      const validacaoElement = toDocumentElement(
+        React.createElement(ConsolidacaoValidacaoChefeTemplate, {
+          data: {
+            ano,
+            semestre: semestre === 'SEMESTRE_1' ? '1' : '2',
+            chefeNome,
+            chefeAssinatura,
+            chefeAssinouEm,
+            tipo,
+          },
+        })
+      )
+
+      const validacaoBuffer = await renderToBuffer(validacaoElement)
+      const validacaoPdf = await PDFDocument.load(validacaoBuffer)
+      const validacaoPages = await mergedPdf.copyPages(validacaoPdf, validacaoPdf.getPageIndices())
+      validacaoPages.forEach((page) => mergedPdf.addPage(page))
+
+      // 2. Render each project's Resultado Seleção PDF and append pages
       for (const proj of projects) {
         try {
           const rawAtaData = await selecaoService.generateAtaData({
@@ -92,45 +109,8 @@ export function createConsolidacaoPDFService() {
             },
           }
 
-          if (getCandidatosAprovados(ataData, tipo).length === 0) {
-            log.info({ projetoId: proj.id, tipo }, 'Projeto sem candidatos aprovados omitido da consolidação')
-            continue
-          }
+          if (getCandidatosAprovados(ataData, tipo).length === 0) continue
 
-          resultados.push({ projetoId: proj.id, ataData })
-        } catch (error) {
-          log.error(
-            { error, projetoId: proj.id },
-            'Erro ao gerar Resultado Seleção de projeto individual para consolidação'
-          )
-        }
-      }
-
-      const mergedPdf = await PDFDocument.create()
-
-      // 2. Render validation page (Termo de Validação do Chefe)
-      const validacaoElement = toDocumentElement(
-        React.createElement(ConsolidacaoValidacaoChefeTemplate, {
-          data: {
-            ano,
-            semestre: semestre === 'SEMESTRE_1' ? '1' : '2',
-            chefeNome,
-            chefeAssinatura,
-            chefeAssinouEm,
-            totalProjetosBolsistas: resultados.length,
-            tipo,
-          },
-        })
-      )
-
-      const validacaoBuffer = await renderToBuffer(validacaoElement)
-      const validacaoPdf = await PDFDocument.load(validacaoBuffer)
-      const validacaoPages = await mergedPdf.copyPages(validacaoPdf, validacaoPdf.getPageIndices())
-      validacaoPages.forEach((page) => mergedPdf.addPage(page))
-
-      // 3. Append each project's Resultado Seleção pages
-      for (const { projetoId, ataData } of resultados) {
-        try {
           const resultadoElement = toDocumentElement(
             React.createElement(ResultadoSelecaoTemplate, { data: ataData, tipo })
           )
@@ -139,13 +119,22 @@ export function createConsolidacaoPDFService() {
           const resultadoPdf = await PDFDocument.load(resultadoBuffer)
           const copiedPages = await mergedPdf.copyPages(resultadoPdf, resultadoPdf.getPageIndices())
           copiedPages.forEach((page) => mergedPdf.addPage(page))
+          totalProjetos++
         } catch (error) {
-          log.error({ error, projetoId }, 'Erro ao renderizar Resultado Seleção de projeto para consolidação')
+          log.error(
+            { error, projetoId: proj.id },
+            'Erro ao gerar Resultado Seleção de projeto individual para consolidação'
+          )
+          throw error
         }
       }
 
+      if (totalProjetos === 0) {
+        throw new ValidationError('Nenhum candidato aprovado encontrado para a modalidade e o período selecionados.')
+      }
+
       const mergedBuffer = Buffer.from(await mergedPdf.save())
-      log.info({ size: mergedBuffer.length, totalProjetos: resultados.length }, 'PDF consolidado gerado com sucesso')
+      log.info({ size: mergedBuffer.length, totalProjetos }, 'PDF consolidado gerado com sucesso')
       return mergedBuffer
     },
   }

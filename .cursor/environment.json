@@ -1,4 +1,10 @@
 {
-  "snapshot": "snapshot-20250521-e8e5d408-e6ea-4f2f-94fe-8fe15df8e3a3",
-  "terminals": []
+  "install": "npm ci && mkdir -p \"$HOME/.ssh\" && chmod 700 \"$HOME/.ssh\" && if [ -n \"${DOKKU_SSH_PRIVATE_KEY:-}\" ]; then printf '%s\\n' \"$DOKKU_SSH_PRIVATE_KEY\" > \"$HOME/.ssh/dokku\"; chmod 600 \"$HOME/.ssh/dokku\"; printf 'Host app.ic.ufba.br\\n  HostName 200.128.51.137\\n  Port 9999\\n  User dokku\\n  IdentityFile ~/.ssh/dokku\\n  StrictHostKeyChecking accept-new\\n' > \"$HOME/.ssh/config\"; fi",
+  "start": "sudo service docker start || true",
+  "terminals": [
+    {
+      "name": "db",
+      "command": "docker compose up -d db && docker compose exec -T db pg_isready -U postgres || true"
+    }
+  ]
 }

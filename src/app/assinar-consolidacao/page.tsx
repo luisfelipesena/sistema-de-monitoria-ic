@@ -27,10 +27,10 @@ function SignConsolidacaoContent() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (!file.type.startsWith("image/")) {
+    if (!["image/png", "image/jpeg"].includes(file.type) || file.size > 2_000_000) {
       toast({
         title: "Arquivo inválido",
-        description: "Selecione uma imagem (PNG, JPG ou SVG).",
+        description: "Selecione uma imagem PNG ou JPG de até 2 MB.",
         variant: "destructive",
       })
       return
@@ -239,7 +239,7 @@ function SignConsolidacaoContent() {
               <FileSignature className="h-6 w-6 text-blue-600" />
             </div>
             <CardTitle className="text-xl text-blue-900">
-              Assinatura da Consolidação de Resultados de Monitoria
+              Assinatura da Consolidação: {consolidacaoData.tipo === "BOLSISTA" ? "Bolsistas" : "Voluntários"}
             </CardTitle>
             <CardDescription className="text-base">
               Departamento de Ciência da Computação — Período {consolidacaoData.ano}.
@@ -255,7 +255,7 @@ function SignConsolidacaoContent() {
                 <strong>E-mail:</strong> {consolidacaoData.chefeEmail}
               </p>
               <p className="pt-2 text-xs text-blue-600">
-                Ao assinar este documento, você confirma e valida os resultados do processo seletivo de monitoria para matérias com bolsa de monitoria no período selecionado.
+                Ao assinar este documento, você confirma e valida os resultados do processo seletivo de monitoria da modalidade {consolidacaoData.tipo === "BOLSISTA" ? "bolsista" : "voluntária"} no período selecionado.
               </p>
             </div>
 
@@ -322,7 +322,7 @@ function SignConsolidacaoContent() {
                   <Input
                     id="signature-file"
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg"
                     onChange={handleFileUpload}
                     className="cursor-pointer"
                   />
