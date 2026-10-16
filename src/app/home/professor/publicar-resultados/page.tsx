@@ -89,7 +89,10 @@ export default function PublicarResultadosPage() {
     onSuccess: (data) => {
       toast({
         title: "Resultados publicados!",
-        description: `${data.notificationsCount} notificações foram enviadas aos candidatos.`,
+        description:
+          data.notificationsCount > 0
+            ? `${data.notificationsCount} notificações foram enviadas aos candidatos.`
+            : "Resultados publicados com sucesso no sistema (sem envio de e-mails).",
       })
     },
     onError: (error) => {

@@ -11,13 +11,13 @@ interface CandidateRowProps {
 
 export function CandidateRow({ candidate }: CandidateRowProps) {
   const wasRejectedByStudent = candidate.status === "REJECTED_BY_STUDENT"
-  const wasRemovedByProfessor = candidate.status === "WAITING_LIST"
+  const isWaitingList = candidate.status === "WAITING_LIST"
   const isCurrentlySelected = candidate.status === "SELECTED_BOLSISTA" || candidate.status === "SELECTED_VOLUNTARIO"
 
   const rowClassName = wasRejectedByStudent
     ? "bg-red-50"
-    : wasRemovedByProfessor
-      ? "bg-orange-50"
+    : isWaitingList
+      ? "bg-amber-50/40"
       : isCurrentlySelected
         ? "bg-green-50"
         : ""
@@ -30,9 +30,6 @@ export function CandidateRow({ candidate }: CandidateRowProps) {
           <div className="text-sm text-muted-foreground">{candidate.aluno.matricula}</div>
           {wasRejectedByStudent && (
             <div className="text-xs text-red-700 font-semibold mt-0.5">❌ Recusou bolsa</div>
-          )}
-          {wasRemovedByProfessor && (
-            <div className="text-xs text-orange-600 font-medium mt-0.5">⚠️ Bolsa removida pelo professor</div>
           )}
         </div>
       </TableCell>

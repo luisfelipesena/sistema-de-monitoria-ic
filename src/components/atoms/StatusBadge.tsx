@@ -119,10 +119,10 @@ const STATUS_CONFIG_MAP: Record<string, StatusConfig> = {
   },
   WAITING_LIST: {
     variant: "outline",
-    label: "Bolsa removida pelo professor",
-    ariaLabel: "Status: Professor removeu a seleção de bolsa",
+    label: "Aprovado - Lista de Espera",
+    ariaLabel: "Status: Candidato aprovado na lista de espera",
     icon: Clock,
-    className: "bg-orange-50 text-orange-700 border-orange-300",
+    className: "bg-amber-50 text-amber-700 border-amber-300",
   },
   CONFIRMED_INTEREST: {
     variant: "outline",

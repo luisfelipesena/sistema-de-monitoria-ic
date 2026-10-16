@@ -179,10 +179,13 @@ export default function AtasSelecaoPage() {
 
   // Mutation para publicar resultados e notificar alunos
   const publishResultsMutation = api.selecao.publishResults.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Resultados Publicados!",
-        description: "Os resultados foram publicados com sucesso e as notificações foram enviadas aos alunos selecionados.",
+        description:
+          data.notificationsCount > 0
+            ? `${data.notificationsCount} notificações foram enviadas aos candidatos por e-mail.`
+            : "Resultados publicados com sucesso no sistema (sem envio de e-mails).",
       })
     },
     onError: (error) => {
